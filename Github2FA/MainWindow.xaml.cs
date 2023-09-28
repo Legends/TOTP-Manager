@@ -15,9 +15,11 @@ namespace Github2FA
 		public MainWindow()
 		{
 			InitializeComponent();
-
+			// You have to create a user secrets.json file first:
 			// right-click project: Manage user secrets
-			// in secrets.json enter: { "sharedGithubSecret": "yourGithubKey" }
+			// in secrets.json enter: { "sharedGithubSecret": "yourGithubKeyGoesHere" }
+			// the github secret key can originally be obtained from here:
+			// https://github.com/settings/security?type=app#two-factor-summary
 			// save.
 			_configuration = new ConfigurationBuilder()
 						.AddUserSecrets(Assembly.GetExecutingAssembly(), true)
@@ -26,7 +28,7 @@ namespace Github2FA
 
 		private async void Button_Click(object sender, RoutedEventArgs e)
 		{
-			// the github secret can originally be obtained from here:
+			// the github secret key can originally be obtained from here:
 			// https://github.com/settings/security?type=app#two-factor-summary
 			string sharedSecret = _configuration["sharedGithubSecret"];
 
