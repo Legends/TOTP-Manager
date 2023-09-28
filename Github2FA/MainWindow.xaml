@@ -1,0 +1,23 @@
+﻿<Window x:Class="Github2FA.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Github2FA"
+        mc:Ignorable="d"
+        Title="Github 2FA - TOTP code generator" Height="450" Width="800">
+    <Grid>
+        <Button Content="Generate 2FA-TOTP code" HorizontalAlignment="Center" Margin="0,57,0,0" VerticalAlignment="Top" Height="107" Width="506" Click="Button_Click"/>
+        <Label x:Name="lblCode" Content="" HorizontalContentAlignment="Center"  VerticalContentAlignment="Center"   HorizontalAlignment="Center" 
+Margin="0,183,0,0" VerticalAlignment="Top" Height="117" Width="506" FontWeight="Bold" FontSize="48"/>
+        <Label x:Name="lblClipboard" Content="Code was copied to clipboard!" 
+HorizontalContentAlignment="Center" VerticalContentAlignment="Center"  HorizontalAlignment="Center" VerticalAlignment="Top" Width="315" Height="64" 
+FontSize="18" FontWeight="Bold" Foreground="#FF22ED20" 
+Visibility="Hidden" Margin="0,159,0,0">
+            <Label.Effect>
+                <DropShadowEffect/>
+            </Label.Effect>
+        </Label>
+
+    </Grid>
+</Window>

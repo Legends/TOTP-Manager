@@ -1,0 +1,52 @@
+﻿using Microsoft.Extensions.Configuration;
+using OtpNet;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Windows;
+
+namespace Github2FA
+{
+	/// <summary>
+	/// Interaction logic for MainWindow.xaml
+	/// </summary>
+	public partial class MainWindow : Window
+	{
+		IConfiguration _configuration;
+		public MainWindow()
+		{
+			InitializeComponent();
+
+			// right-click project: Manage user secrets
+			// in secrets.json enter: { "sharedGithubSecret": "yourGithubKey" }
+			// save.
+			_configuration = new ConfigurationBuilder()
+						.AddUserSecrets(Assembly.GetExecutingAssembly(), true)
+						.Build();
+		}
+
+		private async void Button_Click(object sender, RoutedEventArgs e)
+		{
+			// the github secret can originally be obtained from here:
+			// https://github.com/settings/security?type=app#two-factor-summary
+			string sharedSecret = _configuration["sharedGithubSecret"];
+
+			var totp = new Totp(Base32Encoding.ToBytes(sharedSecret));
+
+			// Generate a TOTP code:
+			string totpCode = totp.ComputeTotp(); // This generates a TOTP code for the current time.
+
+			lblCode.Content = totpCode;
+			Clipboard.SetText(totpCode);
+			lblClipboard.Visibility = Visibility.Visible;
+
+			await Task.Delay(2500).ContinueWith((ct) =>
+			{
+				Dispatcher.Invoke(() =>
+				{
+					lblClipboard.Visibility = Visibility.Hidden;
+				});
+
+			});
+		}
+	}
+}
