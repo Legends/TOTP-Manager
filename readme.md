@@ -14,3 +14,5 @@ The github secret key can originally be obtained from here:
 	 {
 	  "sharedGithubSecret": "NXYZPPWERLMK4"
 	 }
+
+User secrets are not persisted to git repository!
