@@ -41,6 +41,7 @@ namespace Github2FA
             // }
 
             string sharedSecret = _configuration["sharedGithubSecret"]; //"NUBTWTGJ6UU7SMK4"; 
+            //string sharedSecret = _configuration["sharedNgrokSecret"]; //"NUBTWTGJ6UU7SMK4"; 
 
             var totp = new Totp(Base32Encoding.ToBytes(sharedSecret));
 
