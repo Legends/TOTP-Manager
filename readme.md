@@ -1,4 +1,16 @@
-﻿## Tool for generating 2FA codes for Github
+﻿## Adding a new secret code to your project
+
+	Right-lick your project => Manage user secretes
+
+Add a new secret code like:
+
+```json
+{
+  "github": "NXYZPPWERLMK4"
+}
+```
+
+## Tool for generating 2FA codes for Github
 
 Just run the tool and generate a code
 
@@ -12,7 +24,7 @@ The github secret key can originally be obtained from here:
  Now right-click your VS project and click "Manage user secrets" and add the key there like:
 
 	 {
-	  "sharedGithubSecret": "NXYZPPWERLMK4"
+	  "github": "NXYZPPWERLMK4"
 	 }
 
 User secrets are not persisted to git repository!

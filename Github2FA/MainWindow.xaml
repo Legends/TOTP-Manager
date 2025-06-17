@@ -3,21 +3,89 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
         xmlns:local="clr-namespace:Github2FA"
         mc:Ignorable="d"
-        Title="Github 2FA - TOTP code generator" Height="291" Width="613">
-    <Grid Margin="0,0,0,24">
-        <Button Content="Generate 2FA-TOTP code" HorizontalAlignment="Center" Margin="0,20,0,0" VerticalAlignment="Top" Height="107" Width="507" Click="Button_Click"/>
-        <Label x:Name="lblCode" Content="" HorizontalContentAlignment="Center"  VerticalContentAlignment="Center"   HorizontalAlignment="Center" 
-Margin="0,146,0,0" VerticalAlignment="Top" Height="117" Width="507" FontWeight="Bold" FontSize="48"/>
-        <Label x:Name="lblClipboard" Content="Code was copied to clipboard!" 
-HorizontalContentAlignment="Center" VerticalContentAlignment="Center"  HorizontalAlignment="Center" VerticalAlignment="Top" Width="315" Height="64" 
-FontSize="18" FontWeight="Bold" Foreground="#FF22ED20" 
-Visibility="Hidden" Margin="0,122,0,0">
+        Width="300"
+        Height="300"
+        Title="TOTP code generator"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <!-- Row 0: DataGrid -->
+            <RowDefinition Height="Auto" />
+            <!-- Row 1: Code Label -->
+            <RowDefinition Height="Auto" />
+            <!-- Row 2: Copied Label -->
+        </Grid.RowDefinitions>
+
+        <syncfusion:SfDataGrid x:Name="SecretsGrid"
+                               AutoGenerateColumns="False"
+                               SelectionMode="Single"
+                               SelectionUnit="Row"
+                               MaxHeight="140"
+                               RowSelectionBrush="LightYellow"
+                               SelectionForegroundBrush="DarkBlue"
+                               CurrentCellBorderBrush="black"
+                               CurrentCellBorderThickness="0"
+                               Grid.Row="0"
+                               HorizontalAlignment="Stretch"
+                               ColumnSizer="Star"
+                               SelectionChanged="SecretsGrid_SelectionChanged">
+
+            <syncfusion:SfDataGrid.Resources>
+                <Style TargetType="syncfusion:GridHeaderCellControl">
+                    <Setter Property="Background"
+                            Value="#FF005577" />
+                    <!-- Deep blue -->
+                    <Setter Property="Foreground"
+                            Value="White" />
+                    <Setter Property="FontWeight"
+                            Value="Bold" />
+                    <Setter Property="HorizontalContentAlignment"
+                            Value="Center" />
+                </Style>
+              
+            </syncfusion:SfDataGrid.Resources>
+
+            <syncfusion:SfDataGrid.Columns>
+                <syncfusion:GridTextColumn HeaderText="TOTP"
+                                           MappingName="Key" />
+            </syncfusion:SfDataGrid.Columns>
+        </syncfusion:SfDataGrid>
+
+        <Label x:Name="lblCode"
+               Content=""
+               HorizontalContentAlignment="Center"
+               VerticalContentAlignment="Center"
+               Height="80"
+               FontWeight="Bold"
+               FontSize="24"
+               Grid.Row="1"
+               HorizontalAlignment="Center"
+               Margin="0,10" />
+
+        <Label x:Name="lblCopiedToClipboard"
+               Content="Code was copied to clipboard!"
+               HorizontalContentAlignment="Center"
+               VerticalContentAlignment="Top"
+               FontSize="18"
+               FontWeight="Bold"
+               Foreground="#FF22ED20"
+               Visibility="Hidden"
+               Grid.Row="2"
+               HorizontalAlignment="Center"
+               Margin="0,5">
             <Label.Effect>
-                <DropShadowEffect/>
+                <DropShadowEffect BlurRadius="10"
+                                  Color="Aqua" />
             </Label.Effect>
         </Label>
-
     </Grid>
 </Window>

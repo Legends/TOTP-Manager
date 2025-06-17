@@ -1,10 +1,16 @@
 ﻿using Microsoft.Extensions.Configuration;
 using OtpNet;
-using System.Reflection;
-using System.Text;
-using System.Text.Unicode;
+using Syncfusion.UI.Xaml.Grid;
+using Syncfusion.UI.Xaml.Grid.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+ 
 
 namespace Github2FA
 {
@@ -13,53 +19,93 @@ namespace Github2FA
     /// </summary>
     public partial class MainWindow : Window
     {
-        IConfiguration _configuration;
-        public MainWindow()
+        private readonly IConfiguration _configuration;
+        private List<KeyValuePair<string, string>> _secrets;
+
+        public MainWindow(IConfiguration configuration)
         {
             InitializeComponent();
-            // You have to create a user secrets.json file first:
-            // right-click project: Manage user secrets
-            // in secrets.json enter: { "sharedGithubSecret": "yourGithubKeyGoesHere" }
-            // the github secret key can originally be obtained from here:
-            // https://github.com/settings/security?type=app#two-factor-summary
-            // save.
-            _configuration = new ConfigurationBuilder()
-                        .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
-                        .Build();
+            _configuration = configuration;
+            ReadSecretCodes();
+            SecretsGrid.ItemsSource = _secrets;
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private void ReadSecretCodes()
         {
-            // the github secret key can originally be obtained from here:
-            // https://github.com/settings/security?type=app#two-factor-summary
-            // Click => Two-Factor methods: => Authenticator app => ... => Edit
-            // Either you scan the QR code now with your phone or you click on the link below to get the secret code/key:
-            // "You can use the >> setup key << to manually configure your authenticator app."
-            // Now right-click your project and click "Manage user secrets" and add the key there like:
-            // {
-            //  "sharedGithubSecret": "NXYZPPWERLMK4"
-            // }
-
-            string sharedSecret = _configuration["sharedGithubSecret"]; //"NUBTWTGJ6UU7SMK4"; 
-            //string sharedSecret = _configuration["sharedNgrokSecret"]; //"NUBTWTGJ6UU7SMK4"; 
-
-            var totp = new Totp(Base32Encoding.ToBytes(sharedSecret));
-
-            // Generate a TOTP code:
-            string totpCode = totp.ComputeTotp(); // This generates a TOTP code for the current time.
-
-            lblCode.Content = totpCode;
-            Clipboard.SetText(totpCode);
-            lblClipboard.Visibility = Visibility.Visible;
-
-            await Task.Delay(2500).ContinueWith((ct) =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    lblClipboard.Visibility = Visibility.Hidden;
-                });
-
-            });
+            _secrets = _configuration?.AsEnumerable().Skip(1)
+                ?.Where(pair => pair.Value != null) // Filter out null values
+                .Select(pair => new KeyValuePair<string, string>(pair.Key, pair.Value!)) // Use null-forgiving operator
+                .ToList() ?? new List<KeyValuePair<string, string>>(); // Default to an empty list if null
         }
+
+        private async void SecretsGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
+        {
+            if (SecretsGrid.SelectedItem is KeyValuePair<string, string> selectedSecret)
+            {
+                string platform = selectedSecret.Key;
+                string platformSecret = selectedSecret.Value;
+
+                var totp = new Totp(Base32Encoding.ToBytes(platformSecret));
+                string totpCode = totp.ComputeTotp();
+
+                lblCode.Content = $"{platform}: {totpCode}";
+                Clipboard.SetText(totpCode);
+                lblCopiedToClipboard.Visibility = Visibility.Visible;
+
+                //AnimateSelectedRow();
+
+                
+                await Task.Delay(2500);
+                lblCopiedToClipboard.Visibility = Visibility.Hidden;
+            }
+        }
+        private void AnimateSelectedRow()
+        {
+            if (SecretsGrid.SelectedItem == null)
+                return;
+
+            int rowIndex = SecretsGrid.ResolveToRowIndex(SecretsGrid.SelectedItem);
+
+            var row = SecretsGrid.GetRowGenerator()?.Items
+                .FirstOrDefault(r => r.RowIndex == rowIndex) as DataRowBase;
+
+            if (row == null)
+                return;
+
+            foreach (var cell in FindVisualChildren<ContentControl>(row.Element))
+            {
+                var brush = new SolidColorBrush(Colors.Transparent);
+                cell.Background = brush;
+
+                var animation = new ColorAnimation
+                {
+                    From = Colors.LightYellow,
+                    To = Colors.White,
+                    Duration = TimeSpan.FromMilliseconds(400),
+                    AutoReverse = false
+                };
+
+                brush.BeginAnimation(SolidColorBrush.ColorProperty, animation);
+            }
+        }
+
+        private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null) yield break;
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+
+                if (child is T correctlyTyped)
+                    yield return correctlyTyped;
+
+                foreach (var descendent in FindVisualChildren<T>(child))
+                    yield return descendent;
+            }
+        }
+
+
+
     }
 }
