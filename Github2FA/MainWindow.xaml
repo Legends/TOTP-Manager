@@ -4,88 +4,133 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
-        xmlns:local="clr-namespace:Github2FA"
+        xmlns:local="clr-namespace:Github2FA.ViewModels"
         mc:Ignorable="d"
         Width="300"
         Height="300"
         Title="TOTP code generator"
         WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <ResourceDictionary x:Key="gridStyle"
+                            Source="/StylesDictionary.xaml" />
+    </Window.Resources>
 
-    <Grid Margin="10">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+    <StackPanel Orientation="Vertical"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+        <syncfusion:MenuAdv Orientation="Horizontal"
+                            ExpandMode="ExpandOnClick"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Margin="10">
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <!-- Row 0: DataGrid -->
-            <RowDefinition Height="Auto" />
-            <!-- Row 1: Code Label -->
-            <RowDefinition Height="Auto" />
-            <!-- Row 2: Copied Label -->
-        </Grid.RowDefinitions>
+            <syncfusion:MenuItemAdv Header="Add new entry"
+                                    VerticalContentAlignment="Center"
+                                    Command="{Binding AddNewTotpCommand}" />
 
-        <syncfusion:SfDataGrid x:Name="SecretsGrid"
-                               AutoGenerateColumns="False"
-                               SelectionMode="Single"
-                               SelectionUnit="Row"
-                               MaxHeight="140"
-                               RowSelectionBrush="LightYellow"
-                               SelectionForegroundBrush="DarkBlue"
-                               CurrentCellBorderBrush="black"
-                               CurrentCellBorderThickness="0"
-                               Grid.Row="0"
-                               HorizontalAlignment="Stretch"
-                               ColumnSizer="Star"
-                               SelectionChanged="SecretsGrid_SelectionChanged">
+            <!--<syncfusion:MenuItemAdv Header="Command 2"                                  
+                                    Command="{Binding Cmd2Command}" Foreground="#FF0A0B0C" />
 
-            <syncfusion:SfDataGrid.Resources>
-                <Style TargetType="syncfusion:GridHeaderCellControl">
-                    <Setter Property="Background"
-                            Value="#FF005577" />
-                    <!-- Deep blue -->
-                    <Setter Property="Foreground"
-                            Value="White" />
-                    <Setter Property="FontWeight"
-                            Value="Bold" />
-                    <Setter Property="HorizontalContentAlignment"
-                            Value="Center" />
-                </Style>
-              
-            </syncfusion:SfDataGrid.Resources>
+            <syncfusion:MenuItemAdv Header="Command 3"
+                                    Command="{Binding Cmd3Command}" />-->
 
-            <syncfusion:SfDataGrid.Columns>
-                <syncfusion:GridTextColumn HeaderText="TOTP"
-                                           MappingName="Key" />
-            </syncfusion:SfDataGrid.Columns>
-        </syncfusion:SfDataGrid>
+            <!--<syncfusion:MenuItemAdv Style="{DynamicResource FancyAnimatedMenuItemAdvStyle}"
+                                    Header="Command 4"
+                                    Command="{Binding Cmd3Command}" />-->
 
-        <Label x:Name="lblCode"
-               Content=""
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Height="80"
-               FontWeight="Bold"
-               FontSize="24"
-               Grid.Row="1"
-               HorizontalAlignment="Center"
-               Margin="0,10" />
+        </syncfusion:MenuAdv>
+        <Grid Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <Label x:Name="lblCopiedToClipboard"
-               Content="Code was copied to clipboard!"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Top"
-               FontSize="18"
-               FontWeight="Bold"
-               Foreground="#FF22ED20"
-               Visibility="Hidden"
-               Grid.Row="2"
-               HorizontalAlignment="Center"
-               Margin="0,5">
-            <Label.Effect>
-                <DropShadowEffect BlurRadius="10"
-                                  Color="Aqua" />
-            </Label.Effect>
-        </Label>
-    </Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <!-- Row 0: DataGrid -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 1: Code Label -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 2: Copied Label -->
+            </Grid.RowDefinitions>
+
+            <syncfusion:SfDataGrid x:Name="SecretsGrid"
+                                   AllowEditing="True"
+                                   AllowDeleting="True"
+                                   AutoGenerateColumns="False"
+                                   ItemsSource="{Binding Secrets}"
+                                   SelectedItem="{Binding SelectedSecret, Mode=TwoWay}"
+                                   SelectionMode="Single"
+                                   SelectionUnit="Row"
+                                   MaxHeight="140"
+                                   BorderThickness="0"
+                                   RowSelectionBrush="LightYellow"
+                                   SelectionForegroundBrush="DarkBlue"
+                                   CurrentCellBorderBrush="Transparent"
+                                   CurrentCellBorderThickness="0"
+                                   Grid.Row="0"
+                                   HorizontalAlignment="Stretch"
+                                   ColumnSizer="Star">
+
+                <syncfusion:SfDataGrid.Resources>
+                    <Style TargetType="syncfusion:GridHeaderCellControl">
+                        <Setter Property="Background"
+                                Value="#FF005577" />
+                        <!-- Deep blue -->
+                        <Setter Property="Foreground"
+                                Value="White" />
+                        <Setter Property="FontWeight"
+                                Value="Bold" />
+                        <Setter Property="HorizontalContentAlignment"
+                                Value="Center" />
+                    </Style>
+
+                </syncfusion:SfDataGrid.Resources>
+
+                <syncfusion:SfDataGrid.Columns>
+                    <syncfusion:GridTextColumn HeaderText="TOTP"
+                                               MappingName="Key" />
+                    <syncfusion:GridTextColumn HeaderText="Secret"
+                                               MappingName="Value" />
+                    <syncfusion:GridTemplateColumn HeaderText="Delete">
+                        <syncfusion:GridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Delete"
+                                        Focusable="False"
+                                        Command="{Binding DataContext.DeleteSecretCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </syncfusion:GridTemplateColumn.CellTemplate>
+                    </syncfusion:GridTemplateColumn>
+                </syncfusion:SfDataGrid.Columns>
+            </syncfusion:SfDataGrid>
+
+            <Label x:Name="lblCode"
+                   Content="{Binding CurrentCodeLabel}"
+                   HorizontalContentAlignment="Center"
+                   VerticalContentAlignment="Center"
+                   Height="80"
+                   FontWeight="Bold"
+                   FontSize="24"
+                   Grid.Row="1"
+                   HorizontalAlignment="Center"
+                   Margin="0,0" />
+
+            <Label x:Name="lblCopiedToClipboard"
+                   Content="Code was copied to clipboard!"
+                   HorizontalContentAlignment="Center"
+                   VerticalContentAlignment="Top"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   Foreground="#FF22ED20"
+                   Visibility="{Binding IsCodeCopiedVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Grid.Row="2"
+                   Margin="0,0">
+                <Label.Effect>
+                    <DropShadowEffect BlurRadius="10"
+                                      Color="Aqua" />
+                </Label.Effect>
+            </Label>
+        </Grid>
+    </StackPanel>
 </Window>

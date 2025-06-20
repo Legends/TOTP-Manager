@@ -1,14 +1,18 @@
-﻿using System;
+﻿using Github2FA.Helper;
+using Github2FA.Interfaces;
+using Github2FA.Services;
+using Github2FA.ViewModels;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Syncfusion.Licensing;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
-using Syncfusion.Licensing;
 
 namespace Github2FA
 {
@@ -32,7 +36,13 @@ namespace Github2FA
             SyncfusionLicenseProvider.RegisterLicense(configuration["syncfusion"]);
 
             // Register configuration
+            serviceCollection.AddSingleton<IMessageService, MessageService>();
+            serviceCollection.AddSingleton<ISecretsHelper, SecretsHelper>();
+
             serviceCollection.AddSingleton<IConfiguration>(configuration);
+            serviceCollection.AddSingleton<IDialogService, DialogService>();
+            serviceCollection.AddSingleton<IMainViewModel, MainViewModel>();
+
 
             // Register MainWindow
             serviceCollection.AddTransient<MainWindow>();

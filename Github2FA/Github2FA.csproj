@@ -26,4 +26,8 @@
     <PackageReference Include="syncfusion.ui.wpf.net" Version="29.1.33" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="UserControls\" />
+  </ItemGroup>
+
 </Project>
