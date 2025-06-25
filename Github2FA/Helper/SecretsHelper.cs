@@ -1,5 +1,8 @@
 ﻿using Github2FA.Interfaces;
+using Github2FA.Models;
+using Github2FA.Services;
 using Microsoft.Extensions.Configuration;
+using Syncfusion.ProjIO;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,9 +18,11 @@ namespace Github2FA.Helper
         string csprojPath;
         string userSecretsId;
         string secretsPath;
+        IMessageService _messageService;
 
-        public SecretsHelper()
+        public SecretsHelper(IMessageService svcMsg)
         {
+            _messageService = svcMsg;
             csprojPath = @"E:\Repos\Github2FA\Github2FA\Github2FA.csproj";
             var csproj = XDocument.Load(csprojPath);
             userSecretsId = csproj.Descendants("UserSecretsId").FirstOrDefault()?.Value;
@@ -51,22 +56,15 @@ namespace Github2FA.Helper
 
             var json = File.ReadAllText(secretsPath);
             var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new();
+
             if (dict.Remove(key))
             {
-                try
-                {
-                    string newJson = JsonSerializer.Serialize(dict, new JsonSerializerOptions { WriteIndented = true });
-                    File.WriteAllText(secretsPath, newJson);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error serializing secrets: {ex.Message}");
-                    return false;
-                }
+                var success = UpdateSecretsFile(dict);
+                return success;
             }
             Debug.WriteLine($"Key '{key}' not found in secrets.");
             return false;
+
         }
 
         public bool AddNewItemToSecretsFile(string key, string value)
@@ -84,6 +82,62 @@ namespace Github2FA.Helper
             // Set or update a secret
             dict[key] = value;
 
+            var success = UpdateSecretsFile(dict);
+            return success;
+
+        }
+
+        public bool UpdateItemInSecretsFile(string prevKey, SecretItem updated)
+        {
+            (bool hasRead, Dictionary<string, string> dict) = ReadSecretsFile();
+
+            if (!hasRead)
+            {
+                return false;
+            }
+
+            if (prevKey == updated.Key)// just update the value
+            {
+                dict[prevKey] = updated.Value;
+            }
+            else // key has changed, we need to remove the old key and add the new one
+            {
+                if (dict.ContainsKey(prevKey))
+                {
+                    dict.Remove(prevKey);
+                }
+                dict[updated.Key] = updated.Value; // add or update the new key
+            }
+
+            var success = UpdateSecretsFile(dict);
+            return success;
+        }
+
+        private (bool flowControl, Dictionary<string, string> dict) ReadSecretsFile()
+        {
+            Dictionary<string, string>? dict = default;
+            try
+            {
+                if (!getSecretsPath())
+                    return (flowControl: false, dict: default);
+
+                var json = File.Exists(secretsPath)
+                    ? File.ReadAllText(secretsPath)
+                    : "{}";
+
+                dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new();
+
+            }
+            catch (Exception ex)
+            {
+                _messageService.ShowMessageDialog($"Error reading secrets file: {ex.Message}", "Error");
+                return (flowControl: false, dict: default);
+            }
+            return (flowControl: true, dict: dict);
+        }
+
+        private bool UpdateSecretsFile(Dictionary<string, string> dict)
+        {
             try
             {
                 string newJson = JsonSerializer.Serialize(dict, new JsonSerializerOptions { WriteIndented = true });
@@ -91,12 +145,12 @@ namespace Github2FA.Helper
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error serializing secrets: {ex.Message}");
+                Debug.WriteLine($"Error updating secrets: {ex.Message}");
+                _messageService.ShowMessageDialog($"Error updating secrets file: {ex.Message}", "Error");
                 return false;
             }
 
             return true;
-
         }
     }
 

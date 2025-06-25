@@ -5,15 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
         xmlns:local="clr-namespace:Github2FA.ViewModels"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:behaviors="clr-namespace:Github2FA.Behaviors"
         mc:Ignorable="d"
         Width="300"
-        Height="300"
+        Height="350"
         Title="TOTP code generator"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <ResourceDictionary x:Key="gridStyle"
-                            Source="/StylesDictionary.xaml" />
+                            Source="/StylesDictionary.xaml" />       
     </Window.Resources>
 
     <StackPanel Orientation="Vertical"
@@ -60,6 +63,9 @@
                                    AutoGenerateColumns="False"
                                    ItemsSource="{Binding Secrets}"
                                    SelectedItem="{Binding SelectedSecret, Mode=TwoWay}"
+                                   CurrentCellBeginEdit="SecretsGrid_CurrentCellBeginEdit"
+                                   CurrentCellEndEdit="SecretsGrid_CurrentCellEndEdit"
+                                   MouseDoubleClick="SecretsGrid_MouseDoubleClick"
                                    SelectionMode="Single"
                                    SelectionUnit="Row"
                                    MaxHeight="140"
@@ -71,6 +77,10 @@
                                    Grid.Row="0"
                                    HorizontalAlignment="Stretch"
                                    ColumnSizer="Star">
+                <i:Interaction.Behaviors>
+                    <behaviors:ToggleColumnVisibilityBehavior ShowActionsColumn="{Binding ShowActionsColumn}" />
+                </i:Interaction.Behaviors>
+
 
                 <syncfusion:SfDataGrid.Resources>
                     <Style TargetType="syncfusion:GridHeaderCellControl">
@@ -88,20 +98,56 @@
                 </syncfusion:SfDataGrid.Resources>
 
                 <syncfusion:SfDataGrid.Columns>
+
                     <syncfusion:GridTextColumn HeaderText="TOTP"
                                                MappingName="Key" />
+
                     <syncfusion:GridTextColumn HeaderText="Secret"
                                                MappingName="Value" />
-                    <syncfusion:GridTemplateColumn HeaderText="Delete">
+
+                    <syncfusion:GridTemplateColumn x:Name="ActionsColumn"
+                                                   HeaderText="Actions">
+
                         <syncfusion:GridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="Delete"
-                                        Focusable="False"
-                                        Command="{Binding DataContext.DeleteSecretCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding}" />
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsBeingEdited}"
+                                                             Value="False">
+                                                    <Setter Property="Visibility"
+                                                            Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <!-- Delete Button -->
+
+                                    <Button  FontFamily="Segoe MDL2 Assets"
+                                             Content="&#xE74D;"
+                                             ToolTip="Delete"
+                                             Command="{Binding DataContext.DeleteSecretCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                             CommandParameter="{Binding}"
+                                             Focusable="False" />
+
+
+                                    <!-- Edit Button -->
+                                    <!--<Button FontFamily="Segoe MDL2 Assets"
+                                            Content="&#xE74E;"
+                                            ToolTip="Save"
+                                            Command="{Binding DataContext.UpdateSecretCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Focusable="False"
+                                            Margin="4,0,0,0" />-->
+                                </StackPanel>
                             </DataTemplate>
                         </syncfusion:GridTemplateColumn.CellTemplate>
                     </syncfusion:GridTemplateColumn>
+
                 </syncfusion:SfDataGrid.Columns>
             </syncfusion:SfDataGrid>
 

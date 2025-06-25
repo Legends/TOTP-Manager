@@ -2,6 +2,7 @@
 using Github2FA.Helper;
 using Github2FA.Interfaces;
 using Github2FA.Models;
+using Github2FA.Services;
 using Microsoft.Extensions.Configuration;
 using OtpNet;
 using System;
@@ -23,18 +24,22 @@ namespace Github2FA.ViewModels
     {
 
         #region ### prop and vars ###
-       
+
         public ObservableCollection<SecretItem> Secrets { get; }
 
         public ICommand AddNewTotpCommand { get; }
         public ICommand DeleteSecretCommand { get; }
-        public ICommand Cmd2Command { get; }
-        public ICommand Cmd3Command { get; }
+        public ICommand UpdateSecretCommand { get; }
+
 
         private readonly IDialogService _dialogService;
         private readonly IConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly ISecretsHelper _secretsHelper;
+
+        public bool ShowActionsColumn => Secrets.Any(s => s.IsBeingEdited);
+
+
 
         private SecretItem? _selectedSecret;
         public SecretItem? SelectedSecret
@@ -44,6 +49,10 @@ namespace Github2FA.ViewModels
             {
                 if (!EqualityComparer<SecretItem?>.Default.Equals(_selectedSecret, value))
                 {
+                    // Reset edit mode on all rows
+                    foreach (var item in Secrets)
+                        item.IsBeingEdited = false;
+
                     _selectedSecret = value;
                     OnPropertyChanged();
                     OnSecretSelected();
@@ -73,11 +82,31 @@ namespace Github2FA.ViewModels
             }
         }
 
+
+
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        private SecretItem? _activeToolsRow;
+        public SecretItem? ActiveToolsRow
+        {
+            get => _activeToolsRow;
+            set
+            {
+                _activeToolsRow = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Version before updated secreetItem state
+        /// </summary>
+        public SecretItem PreviousVersion { get; set; }
+
 
         #endregion
 
@@ -93,12 +122,17 @@ namespace Github2FA.ViewModels
             _dialogService = dialogService;
             AddNewTotpCommand = new RelayCommand(addNewTotp);
             DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
+            //UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
 
             var secrets = _config?.AsEnumerable().Where(kv => kv.Key != "syncfusion") // Exclude syncfusion key
                           ?.Where(pair => pair.Value != null) // Filter out null values
                           .Select(pair => new SecretItem(pair.Key, pair.Value));
 
             Secrets = new(secrets ?? Enumerable.Empty<SecretItem>());
+
+
+            foreach (var item in Secrets)
+                item.PropertyChanged += SecretItem_PropertyChanged;
 
             Secrets.CollectionChanged += (s, e) =>
             {
@@ -110,6 +144,11 @@ namespace Github2FA.ViewModels
             };
         }
 
+        private void SecretItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SecretItem.IsBeingEdited))
+                OnPropertyChanged(nameof(ShowActionsColumn));
+        }
 
         void addNewTotp()
         {
@@ -121,7 +160,7 @@ namespace Github2FA.ViewModels
                     Secrets.Add(new(key, value));
                     OnPropertyChanged("Secrets");
 
-                    _messageService.ShowMessage("Key/Value successfully added!", "Success");
+                    //_messageService.ShowMessage("Key/Value successfully added!", "Success");
                 }
                 else
                 {
@@ -131,16 +170,40 @@ namespace Github2FA.ViewModels
             }
         }
 
+
+        public void UpdateSecret(SecretItem previous, SecretItem updated)
+        {
+
+            if (!previous.Equals(updated))
+            {
+                var current = Secrets.Where(it => it.Key == previous.Key).FirstOrDefault();
+
+                // todo: update secrets.json               
+                // we also get the previous
+                // because the user might have update the key, so we need the previous key to look for in secrets.json,
+                // in order to find the respective entry for updting
+                // we need: previous.key and updated object 
+
+                _secretsHelper.UpdateItemInSecretsFile(previous.Key, updated);
+
+                _messageService.ShowMessage($"Updated secret: {previous.Key}");
+            }
+        }
+
+
         public void DeleteSecret(SecretItem item)
         {
             if (item != null)
             {
                 try
                 {
-                   
-                    Secrets.Remove(item);
-                    _secretsHelper.DeleteItemFromSecretsFile(item.Key);
-                    OnPropertyChanged("Secrets");
+                    var shouldDelete = _messageService.ShowMessageDialog($"Are you sure you want to delete the secret: {item.Key}?", "Confirm Delete");
+                    if (shouldDelete)
+                    {
+                        Secrets.Remove(item); // Delete from data source
+                        _secretsHelper.DeleteItemFromSecretsFile(item.Key); // delete from persistent secrets.json file
+                        OnPropertyChanged("Secrets");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -148,7 +211,7 @@ namespace Github2FA.ViewModels
                 }
                 finally
                 {
-                  
+
                 }
             }
         }
@@ -157,18 +220,27 @@ namespace Github2FA.ViewModels
         {
             if (SelectedSecret != null)
             {
-                string platform = SelectedSecret.Key;
-                string platformSecret = SelectedSecret.Value;
+                try
+                {
+                    string platform = SelectedSecret.Key;
+                    string platformSecret = SelectedSecret.Value;
 
-                var totp = new Totp(Base32Encoding.ToBytes(platformSecret));
-                string totpCode = totp.ComputeTotp();
+                    // Base32 uses only the characters: A–Z and 2–7.
+                    // (So 1, 0, 8, 9 are not allowed.)
+                    var totp = new Totp(Base32Encoding.ToBytes(platformSecret));
+                    string totpCode = totp.ComputeTotp();
 
-                CurrentCodeLabel = $"{platform}: {totpCode}";
-                Clipboard.SetText(totpCode);
-                IsCodeCopiedVisible = true;
+                    CurrentCodeLabel = $"{platform}: {totpCode}";
+                    Clipboard.SetText(totpCode);
+                    IsCodeCopiedVisible = true;
 
-                await Task.Delay(2500);
-                IsCodeCopiedVisible = false;
+                    await Task.Delay(2500);
+                    IsCodeCopiedVisible = false;
+                }
+                catch (ArgumentException aex)
+                {
+                    _messageService.ShowMessage($"Secret is not a Base32 encoded string! {Environment.NewLine}{aex.Message}");
+                }
             }
         }
     }
