@@ -10,7 +10,7 @@ Add a new secret code like:
 }
 ```
 
-## Tool for generating 2FA codes for Github
+## Tool for generating 2FA codes for example Github
 
 Just run the tool and generate a code
 
