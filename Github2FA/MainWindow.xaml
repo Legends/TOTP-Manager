@@ -11,8 +11,8 @@
         Width="300"
         Height="350"
         Title="TOTP code generator"
-        WindowStartupLocation="CenterScreen"
-        Loaded="Window_Loaded">
+        WindowStartupLocation="CenterScreen">
+    <!--Loaded="Window_Loaded">-->
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <ResourceDictionary x:Key="gridStyle"
@@ -28,7 +28,7 @@
                             VerticalAlignment="Top"
                             Margin="10">
 
-            <syncfusion:MenuItemAdv Header="Add new entry"
+            <syncfusion:MenuItemAdv Header="Add new (T)OTP Provider"
                                     VerticalContentAlignment="Center"
                                     Command="{Binding AddNewTotpCommand}" />
 
@@ -62,10 +62,7 @@
                                    AllowDeleting="True"
                                    AutoGenerateColumns="False"
                                    ItemsSource="{Binding Secrets}"
-                                   SelectedItem="{Binding SelectedSecret, Mode=TwoWay}"
-                                   CurrentCellBeginEdit="SecretsGrid_CurrentCellBeginEdit"
-                                   CurrentCellEndEdit="SecretsGrid_CurrentCellEndEdit"
-                                   MouseDoubleClick="SecretsGrid_MouseDoubleClick"
+                                   SelectedItem="{Binding SelectedSecret, Mode=TwoWay}"                                   
                                    SelectionMode="Single"
                                    SelectionUnit="Row"
                                    MaxHeight="140"
@@ -78,6 +75,9 @@
                                    HorizontalAlignment="Stretch"
                                    ColumnSizer="Star">
                 <i:Interaction.Behaviors>
+                    <behaviors:SfDataGridEditingBehavior BeginEditCommand="{Binding BeginEditCommand}"
+                                                         EndEditCommand="{Binding EndEditCommand}"
+                                                         DoubleClickCommand="{Binding DoubleClickCommand}" />
                     <behaviors:ToggleColumnVisibilityBehavior ShowActionsColumn="{Binding ShowActionsColumn}" />
                 </i:Interaction.Behaviors>
 

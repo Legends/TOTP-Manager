@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Xaml.Behaviors;
+﻿using Microsoft.Xaml.Behaviors;
 using Syncfusion.UI.Xaml.Grid;
 using System.Linq;
 using System.Windows;
@@ -9,7 +8,10 @@ namespace Github2FA.Behaviors
     public class ToggleColumnVisibilityBehavior : Behavior<SfDataGrid>
     {
         public static readonly DependencyProperty ShowActionsColumnProperty =
-            DependencyProperty.Register(nameof(ShowActionsColumn), typeof(bool), typeof(ToggleColumnVisibilityBehavior),
+            DependencyProperty.Register(
+                nameof(ShowActionsColumn),
+                typeof(bool),
+                typeof(ToggleColumnVisibilityBehavior),
                 new PropertyMetadata(false, OnShowActionsColumnChanged));
 
         public bool ShowActionsColumn
@@ -29,6 +31,20 @@ namespace Github2FA.Behaviors
         protected override void OnAttached()
         {
             base.OnAttached();
+
+            // Wait until the grid has loaded
+            AssociatedObject.Loaded += AssociatedObject_Loaded;
+        }
+
+        protected override void OnDetaching()
+        {
+            base.OnDetaching();
+            AssociatedObject.Loaded -= AssociatedObject_Loaded;
+        }
+
+        private void AssociatedObject_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Now Columns exist
             UpdateColumnVisibility();
         }
 

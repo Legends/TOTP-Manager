@@ -35,19 +35,19 @@ namespace Github2FA
             _vm = vm;
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
+        //private void Window_Loaded(object sender, RoutedEventArgs e)
+        //{
 
-            ActionsColumn.IsHidden = !_vm.ShowActionsColumn;
+        //    ActionsColumn.IsHidden = !_vm.ShowActionsColumn;
 
-            _vm.PropertyChanged += (s, args) =>
-            {
-                if (args.PropertyName == nameof(_vm.ShowActionsColumn))
-                {
-                    ActionsColumn.IsHidden = !_vm.ShowActionsColumn;
-                }
-            };
-        }
+        //    _vm.PropertyChanged += (s, args) =>
+        //    {
+        //        if (args.PropertyName == nameof(_vm.ShowActionsColumn))
+        //        {
+        //            ActionsColumn.IsHidden = !_vm.ShowActionsColumn;
+        //        }
+        //    };
+        //}
 
 
         private void SecretsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)

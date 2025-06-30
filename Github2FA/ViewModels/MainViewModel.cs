@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -27,10 +28,15 @@ namespace Github2FA.ViewModels
 
         public ObservableCollection<SecretItem> Secrets { get; }
 
+        #region COMMANDS
         public ICommand AddNewTotpCommand { get; }
         public ICommand DeleteSecretCommand { get; }
         public ICommand UpdateSecretCommand { get; }
+        public ICommand BeginEditCommand { get; }
+        public ICommand EndEditCommand { get; }
+        public ICommand DoubleClickCommand { get; }
 
+        #endregion
 
         private readonly IDialogService _dialogService;
         private readonly IConfiguration _config;
@@ -82,9 +88,6 @@ namespace Github2FA.ViewModels
             }
         }
 
-
-
-
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
@@ -122,6 +125,10 @@ namespace Github2FA.ViewModels
             _dialogService = dialogService;
             AddNewTotpCommand = new RelayCommand(addNewTotp);
             DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
+            BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
+            EndEditCommand = new RelayCommand<SecretItem>(OnEndEdit);
+            DoubleClickCommand = new RelayCommand<SecretItem>(OnDoubleClick);
+
             //UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
 
             var secrets = _config?.AsEnumerable().Where(kv => kv.Key != "syncfusion") // Exclude syncfusion key
@@ -142,34 +149,108 @@ namespace Github2FA.ViewModels
                     // Handle additional logic here (like updating secrets.json)
                 }
             };
+
+            /// Even though the property is false, 
+            /// the behavior doesn’t get a notification unless the property changes.
+            /// This ensures that when the behavior is attached, 
+            /// it gets the property notification and will call UpdateColumnVisibility().
+            OnPropertyChanged(nameof(ShowActionsColumn));
+
         }
+
+        private void OnBeginEdit(SecretItem item)
+        {
+            PreviousVersion = new SecretItem(item.Key, item.Value);
+            item.IsBeingEdited = true;
+            OnPropertyChanged(nameof(ShowActionsColumn));
+        }
+
+        private void OnEndEdit(SecretItem item)
+        {
+            item.IsBeingEdited = false;
+            OnPropertyChanged(nameof(ShowActionsColumn));
+
+            if (PreviousVersion != null && !item.Equals(PreviousVersion))
+            {
+                UpdateSecret(PreviousVersion, item);
+            }
+
+            PreviousVersion = null;
+        }
+
+        private void OnDoubleClick(SecretItem item)
+        {
+            foreach (var s in Secrets)
+                s.IsBeingEdited = false;
+
+            item.IsBeingEdited = !item.IsBeingEdited;
+            OnPropertyChanged(nameof(ShowActionsColumn));
+        }
+
 
         private void SecretItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(SecretItem.IsBeingEdited))
                 OnPropertyChanged(nameof(ShowActionsColumn));
         }
-
-        void addNewTotp()
+        private void addNewTotp()
         {
-            var (success, key, value) = _dialogService.ShowKeyValueDialog();
-            if (success)
+            string? lastKey = null;
+            string? lastValue = null;
+
+            while (true)
             {
+                var (success, key, value) = _dialogService.ShowKeyValueDialog(lastKey, lastValue);
+
+                // Cancel button pressed
+                if (!success)
+                    return;
+
+                // Keep the latest entered values
+                lastKey = key;
+                lastValue = value;
+
+                if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
+                {
+                    _messageService.ShowMessage("Key and Value cannot be empty.", "Error");
+                    continue; // Prompt again with same values
+                }
+
+                // Validate Base32
+                if (!IsValidBase32Format(value))
+                {
+                    _messageService.ShowMessage("Secret must be a valid Base32 string.", "Error");
+                    continue; // Prompt again with same values
+                }
+
+                // Try to add the secret
                 if (_secretsHelper.AddNewItemToSecretsFile(key, value))
                 {
-                    Secrets.Add(new(key, value));
-                    OnPropertyChanged("Secrets");
-
-                    //_messageService.ShowMessage("Key/Value successfully added!", "Success");
+                    Secrets.Add(new SecretItem(key, value));
+                    OnPropertyChanged(nameof(Secrets));
+                    return; // Success, exit loop
                 }
                 else
                 {
-                    // Failed to set the secret
-                    _messageService.ShowMessage($"Failed to set secret: {key}");
+                    _messageService.ShowMessage($"Failed to set secret: {key}", "Error");
+                    return; // Exit on failure
                 }
             }
         }
 
+
+        private bool IsValidBase32Format(string value)
+        {
+            try
+            {
+                _ = OtpNet.Base32Encoding.ToBytes(value);
+                return true;
+            }
+            catch (ArgumentException ex)
+            {             
+                return false;
+            }
+        }
 
         public void UpdateSecret(SecretItem previous, SecretItem updated)
         {

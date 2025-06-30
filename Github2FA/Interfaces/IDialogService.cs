@@ -15,6 +15,7 @@ namespace Github2FA.Interfaces
         /// Tuple (success, key, value), where 'success' is true if OK was pressed, false if canceled.
         /// </returns>
         (bool success, string? key, string? value) ShowKeyValueDialog();
+        (bool success, string? key, string? value) ShowKeyValueDialog(string? initialKey = null, string? initialValue = null);
     }
 
 }
