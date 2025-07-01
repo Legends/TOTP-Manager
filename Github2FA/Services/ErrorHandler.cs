@@ -1,0 +1,37 @@
+﻿using Github2FA.Interfaces;
+using System;
+using System.IO;
+using System.Windows;
+
+namespace Github2FA.Services
+{
+    public class ErrorHandler : IErrorHandler
+    {
+        public void Handle(Exception exception, string userMessage)
+        {
+            // 1. Show user-friendly message
+            MessageBox.Show(
+                $"{userMessage}\n\nDetails:\n{exception.Message}",
+                "Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+
+            // 2. Log details (optional)
+            LogException(exception);
+        }
+
+        private void LogException(Exception ex)
+        {
+            try
+            {
+                var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
+                File.AppendAllText(logPath,
+                    $"[{DateTime.Now}] {ex}\n\n");
+            }
+            catch
+            {
+                // Swallow logging exceptions
+            }
+        }
+    }
+}

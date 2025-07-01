@@ -1,21 +1,22 @@
 ﻿using Github2FA.Models;
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 
-namespace Github2FA.Interfaces
+public interface IMainViewModel : INotifyPropertyChanged
 {
-    public interface IMainViewModel
-    {
-        event PropertyChangedEventHandler? PropertyChanged;
-        ObservableCollection<SecretItem> Secrets { get; }
+    ObservableCollection<SecretItem> Secrets { get; }
+    ICommand AddNewTotpCommand { get; }
+    ICommand DeleteSecretCommand { get; }
+    ICommand UpdateSecretCommand { get; }
+    ICommand BeginEditCommand { get; }
+    ICommand EndEditCommand { get; }
+    ICommand DoubleClickCommand { get; }
+    SecretItem? SelectedSecret { get; set; }
+    bool ShowActionsColumn { get; }
+    string? CurrentCodeLabel { get; }
+    bool IsCodeCopiedVisible { get; }
+    SecretItem? PreviousVersion { get; set; } // ADD THIS
 
-        ICommand AddNewTotpCommand { get; }
-        ICommand DeleteSecretCommand { get; }
-        ICommand UpdateSecretCommand { get; }
-        SecretItem PreviousVersion { get; set; }
-        bool ShowActionsColumn { get; }
-        void UpdateSecret(SecretItem original, SecretItem updated);
-    }
+    void UpdateSecret(SecretItem updated); // ADD THIS
 }

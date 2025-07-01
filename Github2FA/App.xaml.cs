@@ -4,14 +4,10 @@ using Github2FA.Services;
 using Github2FA.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Syncfusion.Licensing;
 using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace Github2FA
@@ -21,37 +17,68 @@ namespace Github2FA
     /// </summary>
     public partial class App : Application
     {
-        public static ServiceProvider ServiceProvider { get; private set; }
+        private IHost _host;
 
-        protected override void OnStartup(StartupEventArgs e)
+        public App()
         {
-            var serviceCollection = new ServiceCollection();
-
-            // Build configuration
+            // Build configuration first to get secrets
             var configuration = new ConfigurationBuilder()
-                .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
+                .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
                 .Build();
 
             // Register Syncfusion license
-            SyncfusionLicenseProvider.RegisterLicense(configuration["syncfusion"]);
+            var syncfusionLicense = configuration["syncfusion"];
+            if (!string.IsNullOrEmpty(syncfusionLicense))
+                SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
 
-            // Register configuration
-            serviceCollection.AddSingleton<IMessageService, MessageService>();
-            serviceCollection.AddSingleton<ISecretsHelper, SecretsHelper>();
+            // Create the host builder
+            _host = Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) =>
+                {
+                    // Register configuration so it can be injected
+                    services.AddSingleton<IConfiguration>(configuration);
 
-            serviceCollection.AddSingleton<IConfiguration>(configuration);
-            serviceCollection.AddSingleton<IDialogService, DialogService>();
-            serviceCollection.AddSingleton<IMainViewModel, MainViewModel>();
+                    // Register services
+                    services.AddSingleton<IDialogService, DialogService>();
+                    services.AddSingleton<IMessageService, MessageService>();
+                    services.AddSingleton<ISecretsHelper, SecretsHelper>();
+                    services.AddSingleton<IErrorHandler, ErrorHandler>();
+                    services.AddSingleton<ITotpManager, TotpManager>();
 
+                    // Register ViewModels
+                    services.AddSingleton<IMainViewModel, MainViewModel>();
 
-            // Register MainWindow
-            serviceCollection.AddTransient<MainWindow>();
+                    // Register MainWindow
+                    services.AddSingleton<MainWindow>();
+                })
+                .Build();
+        }
 
-            ServiceProvider = serviceCollection.BuildServiceProvider();
+        protected override async void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
 
-            // Start MainWindow via DI
-            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+            // Global unhandled exception handler
+            AppDomain.CurrentDomain.UnhandledException += (s, ex) =>
+            {
+                MessageBox.Show($"A fatal error occurred:\n{ex.ExceptionObject}");
+            };
+
+            // Start the host
+            await _host.StartAsync();
+
+            // Show the main window via DI
+            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
+        }
+
+        protected override async void OnExit(ExitEventArgs e)
+        {
+            // Gracefully shut down the host
+            if (_host != null)
+                await _host.StopAsync();
+
+            base.OnExit(e);
         }
     }
 }
