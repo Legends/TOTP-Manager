@@ -7,5 +7,6 @@ namespace Github2FA.Interfaces
         bool AddNewItemToSecretsFile(string key, string value);
         bool DeleteItemFromSecretsFile(string key);
         bool UpdateItemInSecretsFile(string prevKey, SecretItem updated);
+        bool BackupSecretsFile();
     }
 }

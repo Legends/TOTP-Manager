@@ -1,4 +1,5 @@
 ﻿using Github2FA.Commands;
+using Github2FA.Helper;
 using Github2FA.Interfaces;
 using Github2FA.Models;
 using Microsoft.Extensions.Configuration;
@@ -20,14 +21,14 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 {
     #region Props and Vars
 
-    public ObservableCollection<SecretItem> Secrets { get; }
+    public ObservableCollection<SecretItem> Secrets { get; set; }
 
-    public ICommand AddNewTotpCommand { get; }
-    public ICommand DeleteSecretCommand { get; }
-    public ICommand UpdateSecretCommand { get; }
-    public ICommand BeginEditCommand { get; }
-    public ICommand EndEditCommand { get; }
-    public ICommand DoubleClickCommand { get; }
+    public ICommand AddNewTotpCommand { get; set; }
+    public ICommand DeleteSecretCommand { get; set; }
+    public ICommand UpdateSecretCommand { get; set;  }
+    public ICommand BeginEditCommand { get; set; }
+    public ICommand EndEditCommand { get; set; }
+    public ICommand DoubleClickCommand { get; set; }
 
     private readonly ITotpManager _totpManager;
 
@@ -87,15 +88,15 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         IConfiguration config,
         ITotpManager totpManager)
     {
+
         _totpManager = totpManager;
+        SetupCommands();
+        SetupSecretsSourceWithEvents(config);
+        OnPropertyChanged(nameof(ShowActionsColumn));
+    }
 
-        AddNewTotpCommand = new RelayCommand(AddNewTotp);
-        DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
-        UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
-        BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
-        EndEditCommand = new RelayCommand<SecretItem>(OnEndEdit);
-        DoubleClickCommand = new RelayCommand<SecretItem>(OnDoubleClick);
-
+    private void SetupSecretsSourceWithEvents(IConfiguration config)
+    {
         var secrets = config?.AsEnumerable()
             .Where(kv => kv.Key != "syncfusion")
             .Where(pair => pair.Value != null)
@@ -105,8 +106,16 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
         foreach (var item in Secrets)
             item.PropertyChanged += SecretItem_PropertyChanged;
+    }
 
-        OnPropertyChanged(nameof(ShowActionsColumn));
+    private void SetupCommands()
+    {
+        AddNewTotpCommand = new RelayCommand(AddNewTotp);
+        DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
+        UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
+        BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
+        EndEditCommand = new RelayCommand<SecretItem>(OnEndEdit);
+        DoubleClickCommand = new RelayCommand<SecretItem>(OnDoubleClick);
     }
 
     private void AddNewTotp()
