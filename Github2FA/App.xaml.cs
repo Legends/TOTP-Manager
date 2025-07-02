@@ -39,6 +39,7 @@ namespace Github2FA
                     services.AddSingleton<IConfiguration>(configuration);
 
                     // Register services
+                    services.AddSingleton<IDebounceService, DebounceService>();
                     services.AddSingleton<IDialogService, DialogService>();
                     services.AddSingleton<IMessageService, MessageService>();
                     services.AddSingleton<ISecretsHelper, SecretsHelper>();

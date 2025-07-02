@@ -5,7 +5,7 @@ using System.Windows.Input;
 
 public interface IMainViewModel : INotifyPropertyChanged
 {
-    ObservableCollection<SecretItem> Secrets { get; }
+    ObservableCollection<SecretItem> AllSecrets { get; }
     ICommand AddNewTotpCommand { get; }
     ICommand DeleteSecretCommand { get; }
     ICommand UpdateSecretCommand { get; }

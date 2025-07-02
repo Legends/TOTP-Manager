@@ -10,7 +10,7 @@
                              mc:Ignorable="d"
                              Title="Enter Key and Value"
                              Height="220"
-                             Width="400"
+                             Width="300"
                              WindowStartupLocation="CenterOwner"
                              ResizeMode="NoResize"
                              ShowInTaskbar="False">

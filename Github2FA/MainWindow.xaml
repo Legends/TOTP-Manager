@@ -16,33 +16,86 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <ResourceDictionary x:Key="gridStyle"
-                            Source="/StylesDictionary.xaml" />       
+                            Source="/StylesDictionary.xaml" />
+
     </Window.Resources>
 
     <StackPanel Orientation="Vertical"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
         <syncfusion:MenuAdv Orientation="Horizontal"
-                            ExpandMode="ExpandOnClick"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
+                            VerticalAlignment="Center"
                             Margin="10">
 
-            <syncfusion:MenuItemAdv Header="Add new (T)OTP Provider"
+            <!-- Add New TOTP (Plus icon) -->
+            <syncfusion:MenuItemAdv Header=""
+                                    ToolTip="New TOTP"
                                     VerticalContentAlignment="Center"
-                                    Command="{Binding AddNewTotpCommand}" />
+                                    Command="{Binding AddNewTotpCommand}">
+                <syncfusion:MenuItemAdv.Icon>
+                    <TextBlock FontFamily="Segoe Fluent Icons"
+                               Text="&#xE710;"
+                               FontSize="16" />
+                </syncfusion:MenuItemAdv.Icon>
+            </syncfusion:MenuItemAdv>
 
-            <!--<syncfusion:MenuItemAdv Header="Command 2"                                  
-                                    Command="{Binding Cmd2Command}" Foreground="#FF0A0B0C" />
+            <!-- Search (Magnifier icon) -->
+            <syncfusion:MenuItemAdv Header=""
+                                    ToolTip="Search"
+                                    VerticalContentAlignment="Center"
+                                    Command="{Binding ToggleSearchBoxCommand}">
+                <syncfusion:MenuItemAdv.Icon>
+                    <TextBlock FontFamily="Segoe Fluent Icons"
+                               Text="&#xE721;"
+                               FontSize="16" />
+                </syncfusion:MenuItemAdv.Icon>
+            </syncfusion:MenuItemAdv>
 
-            <syncfusion:MenuItemAdv Header="Command 3"
-                                    Command="{Binding Cmd3Command}" />-->
+            <!-- Search TextBox (Inline, but toggled visible) -->
+            <!--<syncfusion:MenuItemAdv Header="">
+                <syncfusion:MenuItemAdv.Icon>
+                    <TextBox Width="150"
+                             VerticalAlignment="Center"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </syncfusion:MenuItemAdv.Icon>
+            </syncfusion:MenuItemAdv>-->
 
-            <!--<syncfusion:MenuItemAdv Style="{DynamicResource FancyAnimatedMenuItemAdvStyle}"
-                                    Header="Command 4"
-                                    Command="{Binding Cmd3Command}" />-->
+            <!-- Search TextBox, shown/hidden with IsSearchVisible -->
 
+            <syncfusion:MenuItemAdv  Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                     VerticalAlignment="Center">
+                <syncfusion:MenuItemAdv.HeaderTemplate>
+                    <DataTemplate>
+                        <Grid Width="140"
+                              Background="Transparent"
+                              DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
+                            <syncfusion:SfTextBoxExt FocusVisualStyle="{x:Null}"
+                                                     BorderThickness="1"
+                                                     Margin="-1"
+                                                     BorderBrush="Transparent"
+                                                     Background="White"
+                                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                     Watermark="Search..."
+                                                     VerticalAlignment="Center" />
+                            <Button Content="×"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Width="20"
+                                    Height="20"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,2,0"
+                                    Command="{Binding ClearSearchCommand}"
+                                    Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </Grid>
+
+                    </DataTemplate>
+                </syncfusion:MenuItemAdv.HeaderTemplate>
+            </syncfusion:MenuItemAdv>
         </syncfusion:MenuAdv>
+
+
         <Grid Margin="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -61,8 +114,8 @@
                                    AllowEditing="True"
                                    AllowDeleting="True"
                                    AutoGenerateColumns="False"
-                                   ItemsSource="{Binding Secrets}"
-                                   SelectedItem="{Binding SelectedSecret, Mode=TwoWay}"                                   
+                                   ItemsSource="{Binding FilteredSecrets}"
+                                   SelectedItem="{Binding SelectedSecret, Mode=TwoWay}"
                                    SelectionMode="Single"
                                    SelectionUnit="Row"
                                    MaxHeight="140"

@@ -2,6 +2,7 @@
 using Github2FA.Helper;
 using Github2FA.Interfaces;
 using Github2FA.Models;
+using Github2FA.Services;
 using Microsoft.Extensions.Configuration;
 using OtpNet;
 using System;
@@ -12,8 +13,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace Github2FA.ViewModels;
 
@@ -21,18 +24,25 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 {
     #region Props and Vars
 
-    public ObservableCollection<SecretItem> Secrets { get; set; }
+    public ObservableCollection<SecretItem> AllSecrets { get; set; }
+    public ObservableCollection<SecretItem> FilteredSecrets { get; } = new();
 
-    public ICommand AddNewTotpCommand { get; set; }
-    public ICommand DeleteSecretCommand { get; set; }
-    public ICommand UpdateSecretCommand { get; set;  }
-    public ICommand BeginEditCommand { get; set; }
-    public ICommand EndEditCommand { get; set; }
-    public ICommand DoubleClickCommand { get; set; }
+    public ICommand AddNewTotpCommand { get; private set; }
+    public ICommand DeleteSecretCommand { get; private set; }
+    public ICommand UpdateSecretCommand { get; private set; }
+    public ICommand BeginEditCommand { get; private set; }
+    public ICommand EndEditCommand { get; private set; }
+    public ICommand DoubleClickCommand { get; private set; }
+    public ICommand ToggleSearchBoxCommand { get; private set; }
+    public ICommand ClearSearchCommand { get; private set; }
+
 
     private readonly ITotpManager _totpManager;
+    private readonly IDebounceService _debounceService;
+    private readonly DispatcherTimer _debounceTimer;
+    private string _pendingSearchText;
 
-    public bool ShowActionsColumn => Secrets.Any(s => s.IsBeingEdited);
+    public bool ShowActionsColumn => AllSecrets.Any(s => s.IsBeingEdited);
 
     private SecretItem? _selectedSecret;
     public SecretItem? SelectedSecret
@@ -42,7 +52,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         {
             if (!EqualityComparer<SecretItem?>.Default.Equals(_selectedSecret, value))
             {
-                foreach (var item in Secrets)
+                foreach (var item in AllSecrets)
                     item.IsBeingEdited = false;
 
                 _selectedSecret = value;
@@ -81,30 +91,77 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     }
 
     public SecretItem PreviousVersion { get; set; }
+    public bool IsSearchVisible
+    {
+        get => _isSearchVisible;
+        set
+        {
+            _isSearchVisible = value; OnPropertyChanged();
+        }
+    }
+    private bool _isSearchVisible = false;
+    public bool IsSearchTextNotEmpty => !string.IsNullOrEmpty(_searchText);
+
+
+    private readonly DebounceDispatcher _debouncer = new DebounceDispatcher();
+
+    private string _searchText;
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            _searchText = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsSearchTextNotEmpty));
+            _debounceService.Debounce("Search", 300, () => ExecuteSearch());
+        }
+    }
+
+    private void ExecuteSearch()
+    {
+        UpdateFilter();
+    }
+
+    private void UpdateFilter()
+    {
+        FilteredSecrets.Clear();
+        var filtered = string.IsNullOrWhiteSpace(SearchText)
+            ? AllSecrets
+            : AllSecrets.Where(x =>
+                (x.Key?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
+        foreach (var item in filtered)
+            FilteredSecrets.Add(item);
+    }
 
     #endregion
 
     public MainViewModel(
         IConfiguration config,
-        ITotpManager totpManager)
+        ITotpManager totpManager,
+        IDebounceService debounceService)
     {
+        _debounceService = debounceService;
 
         _totpManager = totpManager;
         SetupCommands();
-        SetupSecretsSourceWithEvents(config);
+
+        InitDataSource(config);
         OnPropertyChanged(nameof(ShowActionsColumn));
+        UpdateFilter();
+        
     }
 
-    private void SetupSecretsSourceWithEvents(IConfiguration config)
+    private void InitDataSource(IConfiguration config)
     {
         var secrets = config?.AsEnumerable()
             .Where(kv => kv.Key != "syncfusion")
             .Where(pair => pair.Value != null)
             .Select(pair => new SecretItem(pair.Key, pair.Value));
 
-        Secrets = new ObservableCollection<SecretItem>(secrets ?? Enumerable.Empty<SecretItem>());
+        AllSecrets = new ObservableCollection<SecretItem>(secrets ?? Enumerable.Empty<SecretItem>());
 
-        foreach (var item in Secrets)
+        foreach (var item in AllSecrets)
             item.PropertyChanged += SecretItem_PropertyChanged;
     }
 
@@ -116,6 +173,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
         EndEditCommand = new RelayCommand<SecretItem>(OnEndEdit);
         DoubleClickCommand = new RelayCommand<SecretItem>(OnDoubleClick);
+        ToggleSearchBoxCommand = new RelayCommand(() => IsSearchVisible = !IsSearchVisible);
+        ClearSearchCommand = new RelayCommand(() => SearchText = "");
     }
 
     private void AddNewTotp()
@@ -123,8 +182,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         var (success, item) = _totpManager.PromptAndAddTotp();
         if (success && item != null)
         {
-            Secrets.Add(item);
-            OnPropertyChanged(nameof(Secrets));
+            AllSecrets.Add(item);
+            OnPropertyChanged(nameof(AllSecrets));
+            UpdateFilter();
         }
     }
 
@@ -134,8 +194,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             return;
 
         _totpManager.DeleteSecret(item);
-        Secrets.Remove(item);
-        OnPropertyChanged(nameof(Secrets));
+        AllSecrets.Remove(item);
+        OnPropertyChanged(nameof(AllSecrets));
+        UpdateFilter();
     }
 
     public void UpdateSecret(SecretItem updated)
@@ -145,6 +206,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
         _totpManager.UpdateSecret(PreviousVersion, updated);
         PreviousVersion = null;
+        UpdateFilter();
     }
 
     private void OnBeginEdit(SecretItem item)
@@ -168,7 +230,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     private void OnDoubleClick(SecretItem item)
     {
-        foreach (var s in Secrets)
+        foreach (var s in AllSecrets)
             s.IsBeingEdited = false;
 
         item.IsBeingEdited = !item.IsBeingEdited;

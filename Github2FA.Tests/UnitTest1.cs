@@ -37,12 +37,12 @@ namespace Github2FA.Tests
 
 
             // Act
-            var initialCount = vm.Secrets.Count;
+            var initialCount = vm.AllSecrets.Count;
             var method = typeof(MainViewModel).GetMethod("addNewTotp", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             method.Invoke(vm, null);
 
             // Assert
-            Assert.Equal(initialCount + 1, vm.Secrets.Count);
+            Assert.Equal(initialCount + 1, vm.AllSecrets.Count);
             secretsHelperMock.Verify(s => s.AddNewItemToSecretsFile("MyKey", "JBSWY3DPEHPK3PXP"), Times.Once);
         }
 
@@ -71,7 +71,7 @@ namespace Github2FA.Tests
             messageServiceMock.Verify(m => m.ShowMessage(
                 "Secret must be a valid Base32 string.", "Error"), Times.Once);
 
-            Assert.Empty(vm.Secrets);
+            Assert.Empty(vm.AllSecrets);
         }
 
         [Fact]
@@ -92,13 +92,13 @@ namespace Github2FA.Tests
                 messageServiceMock.Object,
                 secretsHelperMock.Object);
 
-            vm.Secrets.Add(secret);
+            vm.AllSecrets.Add(secret);
 
             // Act
             vm.DeleteSecret(secret);
 
             // Assert
-            Assert.Empty(vm.Secrets);
+            Assert.Empty(vm.AllSecrets);
             secretsHelperMock.Verify(s => s.DeleteItemFromSecretsFile("MyKey"), Times.Once);
         }
 
