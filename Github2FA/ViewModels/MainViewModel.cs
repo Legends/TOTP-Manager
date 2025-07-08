@@ -5,6 +5,9 @@ using Github2FA.Models;
 using Github2FA.Services;
 using Microsoft.Extensions.Configuration;
 using OtpNet;
+using Syncfusion.PMML;
+using Syncfusion.SfSkinManager;
+using Syncfusion.UI.Xaml.Grid;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,6 +15,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
@@ -29,12 +33,15 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     public ICommand AddNewTotpCommand { get; private set; }
     public ICommand DeleteSecretCommand { get; private set; }
+    public ICommand DeleteSecretCommand2 { get; private set; }
     public ICommand UpdateSecretCommand { get; private set; }
     public ICommand BeginEditCommand { get; private set; }
     public ICommand EndEditCommand { get; private set; }
     public ICommand DoubleClickCommand { get; private set; }
     public ICommand ToggleSearchBoxCommand { get; private set; }
     public ICommand ClearSearchCommand { get; private set; }
+    public ICommand SingleTapCommand { get; private set; }
+    public ICommand DoubleTapCommand { get; private set; }
 
 
     private readonly ITotpManager _totpManager;
@@ -57,7 +64,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
                 _selectedSecret = value;
                 OnPropertyChanged();
-                OnSecretSelected();
+                //OnSecretSelected();
             }
         }
     }
@@ -118,22 +125,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
     }
 
-    private void ExecuteSearch()
-    {
-        UpdateFilter();
-    }
-
-    private void UpdateFilter()
-    {
-        FilteredSecrets.Clear();
-        var filtered = string.IsNullOrWhiteSpace(SearchText)
-            ? AllSecrets
-            : AllSecrets.Where(x =>
-                (x.Key?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
-        foreach (var item in filtered)
-            FilteredSecrets.Add(item);
-    }
-
     #endregion
 
     public MainViewModel(
@@ -141,6 +132,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         ITotpManager totpManager,
         IDebounceService debounceService)
     {
+
         _debounceService = debounceService;
 
         _totpManager = totpManager;
@@ -149,7 +141,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         InitDataSource(config);
         OnPropertyChanged(nameof(ShowActionsColumn));
         UpdateFilter();
-        
+
     }
 
     private void InitDataSource(IConfiguration config)
@@ -161,14 +153,18 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
         AllSecrets = new ObservableCollection<SecretItem>(secrets ?? Enumerable.Empty<SecretItem>());
 
-        foreach (var item in AllSecrets)
-            item.PropertyChanged += SecretItem_PropertyChanged;
+        foreach (var secretItem in AllSecrets)
+            secretItem.PropertyChanged += SecretItem_PropertyChanged;
     }
 
     private void SetupCommands()
     {
         AddNewTotpCommand = new RelayCommand(AddNewTotp);
         DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
+        DeleteSecretCommand2 = new BaseCommand(DeleteSecret2);
+        SingleTapCommand = new RelayCommand(OnSingleTap);
+        DoubleTapCommand = new RelayCommand<object>(OnDoubleTap);
+
         UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
         BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
         EndEditCommand = new RelayCommand<SecretItem>(OnEndEdit);
@@ -177,8 +173,33 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         ClearSearchCommand = new RelayCommand(() => SearchText = "");
     }
 
+    private void OnSingleTap()
+    {
+        //MessageBox.Show("Single Tap executed.");
+        OnSecretSelected();
+    }
+
+    private void OnDoubleTap(object parameter)
+    {
+        //var e = parameter as Syncfusion.UI.Xaml.Grid.GridCellDoubleTappedEventArgs;
+        //MessageBox.Show($"Double Tap executed on row {e?.RowColumnIndex.RowIndex}");
+        
+ 
+    }
+
+    private void OnDoubleClick(SecretItem item)
+    {
+        foreach (var s in AllSecrets)
+            s.IsBeingEdited = false;
+
+        item.IsBeingEdited = !item.IsBeingEdited;
+        //OnPropertyChanged(nameof(ShowActionsColumn));
+    }
+
+
     private void AddNewTotp()
     {
+
         var (success, item) = _totpManager.PromptAndAddTotp();
         if (success && item != null)
         {
@@ -188,16 +209,33 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
     }
 
+
     public void DeleteSecret(SecretItem item)
     {
         if (item == null)
             return;
 
-        _totpManager.DeleteSecret(item);
-        AllSecrets.Remove(item);
-        OnPropertyChanged(nameof(AllSecrets));
-        UpdateFilter();
+        if (_totpManager.DeleteSecret(item))
+        {
+            AllSecrets.Remove(item);
+            OnPropertyChanged(nameof(AllSecrets));
+            UpdateFilter();
+        }
     }
+
+    // working, but no mvvm
+    public void DeleteSecret2(object item) // but here you get a reference to GridRecordContextMenuInfo
+    {
+        MessageBox.Show(item?.ToString() ?? "Null");
+        if (item == null)
+            return;
+
+        // Your deletion logic
+    }
+
+    public string ViewModelTypeName => GetType().Name;
+
+
 
     public void UpdateSecret(SecretItem updated)
     {
@@ -228,18 +266,18 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         PreviousVersion = null;
     }
 
-    private void OnDoubleClick(SecretItem item)
-    {
-        foreach (var s in AllSecrets)
-            s.IsBeingEdited = false;
+  
+    private static int _counter;
 
-        item.IsBeingEdited = !item.IsBeingEdited;
-        OnPropertyChanged(nameof(ShowActionsColumn));
+    public static int Increment()
+    {
+        return Interlocked.Increment(ref _counter);
     }
 
+    public bool IsContextmenuOpen { get; set; }
     private async void OnSecretSelected()
     {
-        if (SelectedSecret != null)
+        if (SelectedSecret != null && !SelectedSecret.IsBeingEdited && !IsContextmenuOpen)
         {
             try
             {
@@ -249,12 +287,19 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
                 var totp = new Totp(Base32Encoding.ToBytes(platformSecret));
                 string totpCode = totp.ComputeTotp();
 
+                var localCounter = Increment(); // Increment the counter
+
+                // Update the UI
                 CurrentCodeLabel = $"{platform}: {totpCode}";
                 Clipboard.SetText(totpCode);
                 IsCodeCopiedVisible = true;
 
-                await Task.Delay(2500);
-                IsCodeCopiedVisible = false;
+                await Task.Delay(2000);
+                if (IsCodeCopiedVisible && localCounter == _counter)
+                {
+                    IsCodeCopiedVisible = false;
+                }
+
             }
             catch (ArgumentException ex)
             {
@@ -264,9 +309,27 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
     }
 
+
     private void SecretItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(SecretItem.IsBeingEdited))
             OnPropertyChanged(nameof(ShowActionsColumn));
     }
+
+    private void ExecuteSearch()
+    {
+        UpdateFilter();
+    }
+
+    private void UpdateFilter()
+    {
+        FilteredSecrets.Clear();
+        var filtered = string.IsNullOrWhiteSpace(SearchText)
+            ? AllSecrets
+            : AllSecrets.Where(x =>
+                (x.Key?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
+        foreach (var item in filtered)
+            FilteredSecrets.Add(item);
+    }
+
 }

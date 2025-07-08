@@ -19,4 +19,8 @@ public interface IMainViewModel : INotifyPropertyChanged
     SecretItem? PreviousVersion { get; set; } // ADD THIS
 
     void UpdateSecret(SecretItem updated); // ADD THIS
+    bool IsContextmenuOpen { get; set; }
+
+
+
 }

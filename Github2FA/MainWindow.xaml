@@ -5,8 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
         xmlns:local="clr-namespace:Github2FA.ViewModels"
+        xmlns:helper="clr-namespace:Github2FA.Helper"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:behaviors="clr-namespace:Github2FA.Behaviors"
+        xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
+        syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=Windows11Light}"
+        xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
         mc:Ignorable="d"
         Width="300"
         Height="350"
@@ -15,92 +19,72 @@
     <!--Loaded="Window_Loaded">-->
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <ResourceDictionary x:Key="gridStyle"
-                            Source="/StylesDictionary.xaml" />
-
     </Window.Resources>
+    <Window.Background>
+        <ImageBrush ImageSource="/Assets/backgrounds/background-main.png"
+                    Stretch="UniformToFill"
+                    Opacity="1" />
+    </Window.Background>
+
 
     <StackPanel Orientation="Vertical"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
-        <syncfusion:MenuAdv Orientation="Horizontal"
-                            VerticalAlignment="Center"
-                            Margin="10">
 
-            <!-- Add New TOTP (Plus icon) -->
-            <syncfusion:MenuItemAdv Header=""
-                                    ToolTip="New TOTP"
-                                    VerticalContentAlignment="Center"
-                                    Command="{Binding AddNewTotpCommand}">
-                <syncfusion:MenuItemAdv.Icon>
-                    <TextBlock FontFamily="Segoe Fluent Icons"
-                               Text="&#xE710;"
-                               FontSize="16" />
-                </syncfusion:MenuItemAdv.Icon>
-            </syncfusion:MenuItemAdv>
 
-            <!-- Search (Magnifier icon) -->
-            <syncfusion:MenuItemAdv Header=""
-                                    ToolTip="Search"
-                                    VerticalContentAlignment="Center"
-                                    Command="{Binding ToggleSearchBoxCommand}">
-                <syncfusion:MenuItemAdv.Icon>
-                    <TextBlock FontFamily="Segoe Fluent Icons"
-                               Text="&#xE721;"
-                               FontSize="16" />
-                </syncfusion:MenuItemAdv.Icon>
-            </syncfusion:MenuItemAdv>
+        <syncfusion:ToolBarAdv HorizontalAlignment="Stretch"
+                               Height="30"
+                               MaxHeight="35"
+                               Foreground="White"
+                               Background="Transparent"
+                               OverflowMode="AsNeeded">
 
-            <!-- Search TextBox (Inline, but toggled visible) -->
-            <!--<syncfusion:MenuItemAdv Header="">
-                <syncfusion:MenuItemAdv.Icon>
-                    <TextBox Width="150"
-                             VerticalAlignment="Center"
-                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
-                </syncfusion:MenuItemAdv.Icon>
-            </syncfusion:MenuItemAdv>-->
+            <Button ToolTip="Add new"
+                    Command="{Binding AddNewTotpCommand}">
+                <!--svg image property must be set to Resource !-->
+                <svgc:SvgViewbox Source="/Assets/Icons/plus-24x24.svg"
+                                 Height="12"
+                                 Stretch="Uniform" />
+            </Button>
 
-            <!-- Search TextBox, shown/hidden with IsSearchVisible -->
+            <Separator />
 
-            <syncfusion:MenuItemAdv  Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                                     VerticalAlignment="Center">
-                <syncfusion:MenuItemAdv.HeaderTemplate>
-                    <DataTemplate>
-                        <Grid Width="140"
-                              Background="Transparent"
-                              DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
-                            <syncfusion:SfTextBoxExt FocusVisualStyle="{x:Null}"
-                                                     BorderThickness="1"
-                                                     Margin="-1"
-                                                     BorderBrush="Transparent"
-                                                     Background="White"
-                                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                     Watermark="Search..."
-                                                     VerticalAlignment="Center" />
-                            <Button Content="×"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Width="20"
-                                    Height="20"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center"
-                                    Margin="0,0,2,0"
-                                    Command="{Binding ClearSearchCommand}"
-                                    Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverter}}" />
-                        </Grid>
+            <Button Command="{Binding ToggleSearchBoxCommand}"
+                    ToolTip="Search">
+                <!--svg image property must be set to Resource !-->
+                <svgc:SvgViewbox Source="/Assets/Icons/Search-Find-24x24.svg"
+                                 Height="12"
+                                 Stretch="Uniform" />
+            </Button>
 
-                    </DataTemplate>
-                </syncfusion:MenuItemAdv.HeaderTemplate>
-            </syncfusion:MenuItemAdv>
-        </syncfusion:MenuAdv>
+            <!-- Search Box -->
+            <syncfusion:SfTextBoxExt Width="150"
+                                     Height="30"
+                                     VerticalAlignment="Center"
+                                     VerticalContentAlignment="Stretch"
+                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     Watermark="Search..."
+                                     Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                     Padding="0"
+                                     Margin="10,0,0,0" />
+            <Button Content="×"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Width="20"
+                    Height="20"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Margin="-20,0,0,0"
+                    Command="{Binding ClearSearchCommand}"
+                    Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverter}}" />
+        </syncfusion:ToolBarAdv>
 
 
         <Grid Margin="10">
+
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <!-- Row 0: DataGrid -->
@@ -110,17 +94,27 @@
                 <!-- Row 2: Copied Label -->
             </Grid.RowDefinitions>
 
+            <!--CellTapped="datagrid_CellTapped"
+CellDoubleTapped="SecretsGrid_CellDoubleTapped"
+ SelectionChanging="SecretsGrid_SelectionChanging"
+-->
+
             <syncfusion:SfDataGrid x:Name="SecretsGrid"
                                    AllowEditing="True"
                                    AllowDeleting="True"
                                    AutoGenerateColumns="False"
-                                   ItemsSource="{Binding FilteredSecrets}"
+                                   CanMaintainScrollPosition="True"
+                                   EditTrigger="OnDoubleTap"
                                    SelectedItem="{Binding SelectedSecret, Mode=TwoWay}"
                                    SelectionMode="Single"
                                    SelectionUnit="Row"
+                                   NavigationMode="Cell"
+                                                                     
+                                   ItemsSource="{Binding FilteredSecrets}"
+                                   LiveDataUpdateMode="AllowDataShaping"
                                    MaxHeight="140"
                                    BorderThickness="0"
-                                   RowSelectionBrush="LightYellow"
+                                   RowSelectionBrush="#E6E6E6"
                                    SelectionForegroundBrush="DarkBlue"
                                    CurrentCellBorderBrush="Transparent"
                                    CurrentCellBorderThickness="0"
@@ -131,15 +125,43 @@
                     <behaviors:SfDataGridEditingBehavior BeginEditCommand="{Binding BeginEditCommand}"
                                                          EndEditCommand="{Binding EndEditCommand}"
                                                          DoubleClickCommand="{Binding DoubleClickCommand}" />
+
                     <behaviors:ToggleColumnVisibilityBehavior ShowActionsColumn="{Binding ShowActionsColumn}" />
+
+                    <behaviors:SingleOrDoubleTapBehavior SingleTapCommand="{Binding SingleTapCommand}"
+                                                         DoubleTapCommand="{Binding DoubleTapCommand}"
+                                                         TapDelay="300" />
+                    <behaviors:SfDataGridContextMenuBehavior />
                 </i:Interaction.Behaviors>
 
-
                 <syncfusion:SfDataGrid.Resources>
-                    <Style TargetType="syncfusion:GridHeaderCellControl">
+                    <!--<Style TargetType="syncfusion:GridHeaderCellControl">
                         <Setter Property="Background"
                                 Value="#FF005577" />
-                        <!-- Deep blue -->
+                        -->
+                    <!-- Deep blue -->
+                    <!--
+                        <Setter Property="Foreground"
+                                Value="White" />
+                        <Setter Property="FontWeight"
+                                Value="Bold" />
+                        <Setter Property="HorizontalContentAlignment"
+                                Value="Center" />
+                    </Style>-->
+
+                    <Style TargetType="syncfusion:GridHeaderCellControl">
+                        <Setter Property="Background"
+                                Value="#0097a7">
+                            <!--<Setter.Value>
+                                <LinearGradientBrush StartPoint="0,0"
+                                                     EndPoint="0,1">
+                                    <GradientStop Color="#FF1976D2"
+                                                  Offset="0" />
+                                    <GradientStop Color="#FF005577"
+                                                  Offset="1" />
+                                </LinearGradientBrush>
+                            </Setter.Value>-->
+                        </Setter>
                         <Setter Property="Foreground"
                                 Value="White" />
                         <Setter Property="FontWeight"
@@ -147,18 +169,30 @@
                         <Setter Property="HorizontalContentAlignment"
                                 Value="Center" />
                     </Style>
-
                 </syncfusion:SfDataGrid.Resources>
 
                 <syncfusion:SfDataGrid.Columns>
-
                     <syncfusion:GridTextColumn HeaderText="TOTP"
-                                               MappingName="Key" />
+                                               MappingName="Key">
+                        <!--<syncfusion:GridTextColumn.HeaderStyle>
+                            <Style TargetType="syncfusion:GridHeaderCellControl">
+                                <Setter Property="Background"
+                                        Value="DeepSkyBlue" />
+                                <Setter Property="Foreground"
+                                        Value="White" />
+                                <Setter Property="FontWeight"
+                                        Value="Bold" />
+                                <Setter Property="HorizontalContentAlignment"
+                                        Value="Center" />
+                            </Style>
+                        </syncfusion:GridTextColumn.HeaderStyle>-->
+                    </syncfusion:GridTextColumn>
 
                     <syncfusion:GridTextColumn HeaderText="Secret"
-                                               MappingName="Value" />
+                                               MappingName="Value">
+                    </syncfusion:GridTextColumn>
 
-                    <syncfusion:GridTemplateColumn x:Name="ActionsColumn"
+                    <!--<syncfusion:GridTemplateColumn x:Name="ActionsColumn"
                                                    HeaderText="Actions">
 
                         <syncfusion:GridTemplateColumn.CellTemplate>
@@ -177,9 +211,8 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-
-                                    <!-- Delete Button -->
-
+                                   
+                 
                                     <Button  FontFamily="Segoe MDL2 Assets"
                                              Content="&#xE74D;"
                                              ToolTip="Delete"
@@ -188,20 +221,64 @@
                                              Focusable="False" />
 
 
-                                    <!-- Edit Button -->
-                                    <!--<Button FontFamily="Segoe MDL2 Assets"
-                                            Content="&#xE74E;"
-                                            ToolTip="Save"
-                                            Command="{Binding DataContext.UpdateSecretCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                            CommandParameter="{Binding}"
-                                            Focusable="False"
-                                            Margin="4,0,0,0" />-->
                                 </StackPanel>
                             </DataTemplate>
                         </syncfusion:GridTemplateColumn.CellTemplate>
-                    </syncfusion:GridTemplateColumn>
+                    </syncfusion:GridTemplateColumn>-->
 
                 </syncfusion:SfDataGrid.Columns>
+
+                <syncfusion:SfDataGrid.RecordContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Delete"
+                                  FontWeight="Bold"
+                                  Padding="2"
+                                  Command="{Binding DataGrid.DataContext.DeleteSecretCommand}"
+                                  CommandParameter="{Binding Record}">
+                            <MenuItem.Icon>
+                                <svgc:SvgViewbox Width="16"
+                                                 Height="16"
+                                                 Source="/Assets/Icons/delete.svg"></svgc:SvgViewbox>
+                            </MenuItem.Icon>
+
+                        </MenuItem>
+                        <!--<MenuItem Header="Delete"
+                                  Command="{Binding DataGrid.DataContext.DeleteSecretCommand2}"
+                                  CommandParameter="{Binding}">                            
+                            <MenuItem.Icon>
+                                -->
+                        <!-- Simple trash icon, can be replaced with any SVG or path you like -->
+                        <!--
+                                <Path Width="20"
+                                      Height="20"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="M21.546655,7.0632796E-06 C21.883706,-0.00066572799 22.051846,0.046859182 21.985844,0.085105601 21.985844,0.085105706 18.149817,2.3661337 15.459795,4.1891491 14.654603,4.735152 13.507447,5.8064868 12.312733,7.0429675 L12.265645,7.0920484 12.341799,7.1837728 C14.125798,9.3470118 15.905157,11.851134 17.039897,13.84393 18.552884,16.501994 18.99088,18.823049 18.821881,18.823049 L18.654883,18.823049 C18.654883,18.823049 16.500902,14.852954 13.944925,12.296894 12.986434,11.337997 11.848084,10.275033 10.716134,9.2747557 L10.458408,9.048093 10.387407,9.1277754 C9.3161123,10.336912 8.3393701,11.52151 7.6887401,12.398274 5.7887242,14.957258 5.5417207,15.095261 5.198716,15.794303 4.6507152,16.9173 6.1067274,20.571326 2.9787056,20.269321 0.8946903,20.067292 0.90368542,16.771302 1.0396879,16.165279 1.039688,16.165279 1.4646943,14.146277 3.5857051,12.027238 4.9094673,10.702228 6.5359638,9.1150982 8.3255475,7.5771367 L8.5209888,7.4112942 8.515951,7.4071881 C7.4753121,6.5646021 6.5652421,5.8958676 5.9719976,5.5677344 4.3920117,4.6937139 1.7210358,3.0476751 0.98804266,2.7766685 0.25504911,2.5076623 -0.4199447,1.9546491 0.32204843,1.2046314 1.0600419,0.45461359 2.7760263,-0.35240552 4.1220141,0.25360882 5.4670017,0.85862317 8.2939766,2.708667 10.579956,5.165725 10.651456,5.2424457 10.723317,5.3202512 10.795494,5.39908 L10.89612,5.5099146 11.114782,5.3459823 C11.306557,5.2048852 11.499266,5.0658362 11.692768,4.9291465 14.785793,2.7421748 16.837804,1.525122 18.755824,0.67110976 19.953959,0.13613158 20.984904,0.0011281502 21.546655,7.0632796E-06 z"
+                                      Fill="#FFC1272D"
+                                      Stretch="Fill" />
+                            </MenuItem.Icon>
+                        </MenuItem>-->
+                        <!--<MenuItem Header="Delete"
+                                  Command="{Binding Source={x:Static Member=helper:ContextMenuCommands.Cut}}"
+                                  CommandParameter="{Binding}">
+
+                            <MenuItem.Icon>
+                                -->
+                        <!-- Simple trash icon, can be replaced with any SVG or path you like -->
+                        <!--
+                                <Path Width="20"
+                                      Height="20"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="M21.546655,7.0632796E-06 C21.883706,-0.00066572799 22.051846,0.046859182 21.985844,0.085105601 21.985844,0.085105706 18.149817,2.3661337 15.459795,4.1891491 14.654603,4.735152 13.507447,5.8064868 12.312733,7.0429675 L12.265645,7.0920484 12.341799,7.1837728 C14.125798,9.3470118 15.905157,11.851134 17.039897,13.84393 18.552884,16.501994 18.99088,18.823049 18.821881,18.823049 L18.654883,18.823049 C18.654883,18.823049 16.500902,14.852954 13.944925,12.296894 12.986434,11.337997 11.848084,10.275033 10.716134,9.2747557 L10.458408,9.048093 10.387407,9.1277754 C9.3161123,10.336912 8.3393701,11.52151 7.6887401,12.398274 5.7887242,14.957258 5.5417207,15.095261 5.198716,15.794303 4.6507152,16.9173 6.1067274,20.571326 2.9787056,20.269321 0.8946903,20.067292 0.90368542,16.771302 1.0396879,16.165279 1.039688,16.165279 1.4646943,14.146277 3.5857051,12.027238 4.9094673,10.702228 6.5359638,9.1150982 8.3255475,7.5771367 L8.5209888,7.4112942 8.515951,7.4071881 C7.4753121,6.5646021 6.5652421,5.8958676 5.9719976,5.5677344 4.3920117,4.6937139 1.7210358,3.0476751 0.98804266,2.7766685 0.25504911,2.5076623 -0.4199447,1.9546491 0.32204843,1.2046314 1.0600419,0.45461359 2.7760263,-0.35240552 4.1220141,0.25360882 5.4670017,0.85862317 8.2939766,2.708667 10.579956,5.165725 10.651456,5.2424457 10.723317,5.3202512 10.795494,5.39908 L10.89612,5.5099146 11.114782,5.3459823 C11.306557,5.2048852 11.499266,5.0658362 11.692768,4.9291465 14.785793,2.7421748 16.837804,1.525122 18.755824,0.67110976 19.953959,0.13613158 20.984904,0.0011281502 21.546655,7.0632796E-06 z"
+                                      Fill="#FFC1272D"
+                                      Stretch="Fill" />
+                            </MenuItem.Icon>
+                        </MenuItem>-->
+                    </ContextMenu>
+                </syncfusion:SfDataGrid.RecordContextMenu>
+
+
             </syncfusion:SfDataGrid>
 
             <Label x:Name="lblCode"

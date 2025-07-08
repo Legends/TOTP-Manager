@@ -91,12 +91,12 @@ public class TotpManager : ITotpManager
         }
     }
 
-    public void DeleteSecret(SecretItem item)
+    public bool DeleteSecret(SecretItem item)
     {
         try
         {
             if (item == null)
-                return;
+                return false;
 
             var shouldDelete = _messageService.ShowMessageDialog(
                 $"Are you sure you want to delete the secret: {item.Key}?",
@@ -105,11 +105,14 @@ public class TotpManager : ITotpManager
             if (shouldDelete)
             {
                 _secretsHelper.DeleteItemFromSecretsFile(item.Key);
+                return true;
             }
+            return false;
         }
         catch (Exception ex)
         {
             _errorHandler.Handle(ex, "Error deleting secret.");
+            return false;
         }
     }
 

@@ -6,11 +6,21 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <UserSecretsId>6f888768-43da-4da8-9820-96b854382d72</UserSecretsId>
-    <ApplicationIcon>github.ico</ApplicationIcon>
+    <ApplicationIcon>totp.ico</ApplicationIcon>
+    <PackageIcon>totp.ico</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="github.ico" />
+    <None Remove="Assets\Icons\delete.svg" />
+    <None Remove="Assets\Icons\plus-24x24.svg" />
+    <None Remove="Assets\Icons\plus-24x24_light.svg" />   
+    <None Remove="Assets\Icons\search-24x24.svg" />   
+    <None Remove="Assets\Icons\Search-Find-24x24_light.svg" />   
+    <None Remove="Assets\Icons\Search-WF-24x24.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="totp.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,12 +35,33 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.6" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="Otp.NET" Version="1.4.0" />
-    <PackageReference Include="Syncfusion.Licensing" Version="30.1.37" />
-    <PackageReference Include="syncfusion.ui.wpf.net" Version="30.1.37" />
+    <PackageReference Include="SharpVectors" Version="1.8.4.2" />
+    <PackageReference Include="Syncfusion.Licensing" Version="30.1.38" />
+    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="30.1.38" />
+    <PackageReference Include="Syncfusion.Shared.WPF" Version="30.1.38" />
+    <PackageReference Include="Syncfusion.Themes.Windows11Dark.WPF" Version="30.1.38" />
+    <PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="30.1.38" />
+    <PackageReference Include="Syncfusion.Tools.WPF" Version="30.1.38" />
+    <PackageReference Include="syncfusion.ui.wpf.net" Version="30.1.38" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="UserControls\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\backgrounds\background-main.png" />
+    <Resource Include="Assets\Icons\delete.svg" />
+    <Resource Include="Assets\Icons\plus-24x24.svg" /> 
+    <Resource Include="Assets\Icons\Search-Find-24x24.svg" />
+    <Resource Include="Assets\Icons\Search-WF-24x24.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="totp.ico">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

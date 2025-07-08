@@ -6,6 +6,6 @@ namespace Github2FA.Interfaces
     {
         (bool success, SecretItem? item) PromptAndAddTotp();
         void UpdateSecret(SecretItem previous, SecretItem updated);
-        void DeleteSecret(SecretItem item);
+        bool DeleteSecret(SecretItem item);
     }
 }
