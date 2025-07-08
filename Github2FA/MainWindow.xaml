@@ -103,11 +103,6 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                 <!-- Row 2: Copied Label -->
             </Grid.RowDefinitions>
 
-            <!--CellTapped="datagrid_CellTapped"
-CellDoubleTapped="SecretsGrid_CellDoubleTapped"
- SelectionChanging="SecretsGrid_SelectionChanging"
--->
-
             <syncfusion:SfDataGrid x:Name="SecretsGrid"
                                    AllowEditing="True"
                                    AllowDeleting="True"
@@ -259,7 +254,6 @@ CellDoubleTapped="SecretsGrid_CellDoubleTapped"
                         </MenuItem>-->
                     </ContextMenu>
                 </syncfusion:SfDataGrid.RecordContextMenu>
-
 
             </syncfusion:SfDataGrid>
 
