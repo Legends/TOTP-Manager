@@ -282,6 +282,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             try
             {
                 string platform = SelectedSecret.Key;
+                // Base32 encoding: Only uppercase letters (A–Z) and digits 2–7 ❌ No lowercase letters, symbols, or whitespace
                 string platformSecret = SelectedSecret.Value;
 
                 var totp = new Totp(Base32Encoding.ToBytes(platformSecret));

@@ -20,7 +20,7 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
     }
 
     public static readonly DependencyProperty TapDelayProperty =
-        DependencyProperty.Register(nameof(TapDelay), typeof(int), typeof(SingleOrDoubleTapBehavior), new PropertyMetadata(100));
+        DependencyProperty.Register(nameof(TapDelay), typeof(int), typeof(SingleOrDoubleTapBehavior), new PropertyMetadata(0)); // delay = sec
 
     public ICommand SingleTapCommand
     {

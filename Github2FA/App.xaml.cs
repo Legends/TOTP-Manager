@@ -26,10 +26,7 @@ namespace Github2FA
                 .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
                 .Build();
 
-            // Register Syncfusion license
-            var syncfusionLicense = configuration["syncfusion"];
-            if (!string.IsNullOrEmpty(syncfusionLicense))
-                SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
+            RegisterSyncfusionLicenseKey(configuration);
 
             // Create the host builder
             _host = Host.CreateDefaultBuilder()
@@ -53,6 +50,14 @@ namespace Github2FA
                     services.AddSingleton<MainWindow>();
                 })
                 .Build();
+        }
+
+        private static void RegisterSyncfusionLicenseKey(IConfigurationRoot configuration)
+        {
+            // Register Syncfusion license
+            var syncfusionLicense = configuration["syncfusion"];
+            if (!string.IsNullOrEmpty(syncfusionLicense))
+                SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
         }
 
         protected override async void OnStartup(StartupEventArgs e)

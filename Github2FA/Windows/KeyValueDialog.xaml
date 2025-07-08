@@ -7,22 +7,31 @@
                              xmlns:vm="clr-namespace:Github2FA.ViewModels"
                              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
                              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
-                             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=Windows11Light}"
+                             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
                              mc:Ignorable="d"
                              Title="Enter Key and Value"
                              Height="220"
                              Width="300"
                              WindowStartupLocation="CenterOwner"
                              ResizeMode="NoResize"
+                             TitleBarBackground="#87CE3E"
+                             TitleBarForeground="White"
                              ShowInTaskbar="False">
 
     <StackPanel Margin="24"
                 FocusManager.FocusedElement="{Binding ElementName=KeyTextBox}">
-        <TextBlock Text="Key:" />
-        <syncfusion:SfTextBoxExt x:Name="KeyTextBox" Watermark="Enter key" Focusable="True"
+
+        <TextBlock Text="Key:"
+                   FontWeight="Medium"
+                   Margin="0,5" />
+        <syncfusion:SfTextBoxExt x:Name="KeyTextBox"
+                                 Watermark="Enter key"
+                                 Focusable="True"
                                  Margin="0,0,0,12"
                                  Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBlock Text="Value:" />
+        <TextBlock Text="Value:"
+                   FontWeight="Medium"
+                   Margin="0,5" />
         <syncfusion:SfTextBoxExt Watermark="Enter value"
                                  Margin="0,0,0,16"
                                  Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
