@@ -1,10 +1,15 @@
-﻿using Github2FA.Interfaces;
+﻿using AutoFixture;
+using AutoFixture.AutoMoq;
+using Github2FA.Interfaces;
 using Github2FA.Models;
 using Github2FA.Services;
 using Github2FA.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Moq;
+using Moq.AutoMock;
+using Syncfusion.Windows.Controls.Input;
 using System.Reflection;
+using Xunit;
 using static System.Net.WebRequestMethods;
 
 namespace Github2FA.Tests;
@@ -21,24 +26,15 @@ public class UnitTestCommands : TestBase
     [Fact]
     public void AddNewTotpCommand_ShouldAddNewSecret_WhenManagerReturnsSuccess()
     {
-        var msgMock = new Mock<IMessageService>();
-        var clipboardMock = new Mock<IClipboardService>();
-        var configMock = new Mock<IConfiguration>();
-        var totpMock = new Mock<ITotpManager>();
-        var debounceMock = new Mock<IDebounceService>();
-        var delayMock = new Mock<IDelayService>();
-
-        var vm = new MainViewModel(
-            msgMock.Object,
-            clipboardMock.Object,
-            configMock.Object,
-            totpMock.Object,
-            debounceMock.Object,
-            delayMock.Object
-        );
+        // Arrange
+        var mocker = new AutoMocker();
+        // Auto-resolve all dependencies
+        var vm = mocker.CreateInstance<MainViewModel>();
 
         var secretItem = new SecretItem("TestKey", "TestValue");
-        totpMock.Setup(m => m.PromptAndAddTotp())
+
+        mocker.GetMock<ITotpManager>()
+                      .Setup(m => m.PromptAndAddTotp())
                                 .Returns((true, secretItem));
 
         int initialCount = vm.AllSecrets.Count;
@@ -54,24 +50,13 @@ public class UnitTestCommands : TestBase
     [Fact]
     public void DeleteSecretCommand_ShouldRemoveSecret_WhenManagerDeletesSuccessfully()
     {
-        var msgMock = new Mock<IMessageService>();
-        var clipboardMock = new Mock<IClipboardService>();
-        var configMock = new Mock<IConfiguration>();
-        var totpMock = new Mock<ITotpManager>();
-        var debounceMock = new Mock<IDebounceService>();
-        var delayMock = new Mock<IDelayService>();
-
-        var vm = new MainViewModel(
-            msgMock.Object,
-            clipboardMock.Object,
-            configMock.Object,
-            totpMock.Object,
-            debounceMock.Object,
-            delayMock.Object
-        );
+        // Arrange
+        var mocker = new AutoMocker();
+        // Auto-resolve all dependencies
+        var vm = mocker.CreateInstance<MainViewModel>();
 
         var secret = new SecretItem("DeleteKey", "DeleteValue");
-        totpMock.Setup(m => m.DeleteSecret(secret)).Returns(true);
+        mocker.GetMock<ITotpManager>().Setup(m => m.DeleteSecret(secret)).Returns(true);
 
         vm.AllSecrets.Add(secret);
 
@@ -88,21 +73,10 @@ public class UnitTestCommands : TestBase
     [Fact]
     public void SearchText_ShouldFilterSecrets()
     {
-        var msgMock = new Mock<IMessageService>();
-        var clipboardMock = new Mock<IClipboardService>();
-        var configMock = new Mock<IConfiguration>();
-        var totpMock = new Mock<ITotpManager>();
-        var debounceMock = new Mock<IDebounceService>();
-        var delayMock = new Mock<IDelayService>();
-
-        var vm = new MainViewModel(
-            msgMock.Object,
-            clipboardMock.Object,
-            configMock.Object,
-            totpMock.Object,
-            debounceMock.Object,
-            delayMock.Object
-        );
+        // Arrange
+        var mocker = new AutoMocker();
+        // Auto-resolve all dependencies
+        var vm = mocker.CreateInstance<MainViewModel>();
 
         vm.AllSecrets.Add(new SecretItem("apple", "value1"));
         vm.AllSecrets.Add(new SecretItem("banana", "value2"));
@@ -131,21 +105,10 @@ public class UnitTestCommands : TestBase
     [Fact]
     public void ClearSearchCommand_ShouldClearSearchText()
     {
-        var msgMock = new Mock<IMessageService>();
-        var clipboardMock = new Mock<IClipboardService>();
-        var configMock = new Mock<IConfiguration>();
-        var totpMock = new Mock<ITotpManager>();
-        var debounceMock = new Mock<IDebounceService>();
-        var delayMock = new Mock<IDelayService>();
-
-        var vm = new MainViewModel(
-            msgMock.Object,
-            clipboardMock.Object,
-            configMock.Object,
-            totpMock.Object,
-            debounceMock.Object,
-            delayMock.Object
-        );
+        // Arrange
+        var mocker = new AutoMocker();
+        // Auto-resolve all dependencies
+        var vm = mocker.CreateInstance<MainViewModel>();
 
         vm.SearchText = "query";
 
@@ -158,21 +121,10 @@ public class UnitTestCommands : TestBase
     [Fact]
     public void BeginEditCommand_ShouldSetIsBeingEdited()
     {
-        var msgMock = new Mock<IMessageService>();
-        var clipboardMock = new Mock<IClipboardService>();
-        var configMock = new Mock<IConfiguration>();
-        var totpMock = new Mock<ITotpManager>();
-        var debounceMock = new Mock<IDebounceService>();
-        var delayMock = new Mock<IDelayService>();
-
-        var vm = new MainViewModel(
-            msgMock.Object,
-            clipboardMock.Object,
-            configMock.Object,
-            totpMock.Object,
-            debounceMock.Object,
-            delayMock.Object
-        );
+        // Arrange
+        var mocker = new AutoMocker();
+        // Auto-resolve all dependencies
+        var vm = mocker.CreateInstance<MainViewModel>();
 
         var secret = new SecretItem("key", "value");
         vm.AllSecrets.Add(secret);
@@ -186,21 +138,10 @@ public class UnitTestCommands : TestBase
     [Fact]
     public void SearchText_ShouldRaisePropertyChanged()
     {
-        var msgMock = new Mock<IMessageService>();
-        var clipboardMock = new Mock<IClipboardService>();
-        var configMock = new Mock<IConfiguration>();
-        var totpMock = new Mock<ITotpManager>();
-        var debounceMock = new Mock<IDebounceService>();
-        var delayMock = new Mock<IDelayService>();
-
-        var vm = new MainViewModel(
-            msgMock.Object,
-            clipboardMock.Object,
-            configMock.Object,
-            totpMock.Object,
-            debounceMock.Object,
-            delayMock.Object
-        );
+        // Arrange
+        var mocker = new AutoMocker();
+        // Auto-resolve all dependencies
+        var vm = mocker.CreateInstance<MainViewModel>();
 
         bool eventRaised = false;
         vm.PropertyChanged += (s, e) =>
@@ -221,33 +162,19 @@ public class UnitTestCommands : TestBase
     {
         // Arrange
         var secret = new SecretItem("TestPlatform", "JBSWY3DPEHPK3PXP");
-        //var (vm, _clipboardMock, _, _totpManagerMock, _, _) = GetVMWithMocks();
 
-
-
-        var msgMock = new Mock<IMessageService>();
-        var clipboardMock = new Mock<IClipboardService>();
-        var configMock = new Mock<IConfiguration>();
-        var totpMock = new Mock<ITotpManager>();
-        var debounceMock = new Mock<IDebounceService>();
-        var delayMock = new Mock<IDelayService>();
-
-        var vm = new MainViewModel(
-            msgMock.Object,
-            clipboardMock.Object,
-            configMock.Object,
-            totpMock.Object,
-            debounceMock.Object,
-            delayMock.Object
-        );
+        // Arrange
+        var mocker = new AutoMocker();
+        // Auto-resolve all dependencies
+        var vm = mocker.CreateInstance<MainViewModel>();
 
         string capturedText = null;
 
-        clipboardMock.Setup(c => c.SetText(It.IsAny<string>()))
+        mocker.GetMock<IClipboardService>().Setup(c => c.SetText(It.IsAny<string>()))
                    .Callback<string>(text => capturedText = text);
 
 
-        totpMock.Setup(m => m.TryComputeCode(It.IsAny<string>(), out It.Ref<string>.IsAny, out It.Ref<string>.IsAny))
+        mocker.GetMock<ITotpManager>().Setup(m => m.TryComputeCode(It.IsAny<string>(), out It.Ref<string>.IsAny, out It.Ref<string>.IsAny))
             .Returns(true)
             .Callback((string input, out string code, out string error) =>
             {
@@ -255,12 +182,10 @@ public class UnitTestCommands : TestBase
                 error = null;
             });
 
+        var delayMock = mocker.GetMock<IDelayService>();
         delayMock.Setup(d => d.Delay(It.IsAny<int>())).Returns(Task.CompletedTask);
 
-
         vm.SelectedSecret = secret;
-        vm.SelectedSecret.IsBeingEdited = false;
-        vm.IsContextmenuOpen = false;
 
         try
         {
@@ -274,6 +199,6 @@ public class UnitTestCommands : TestBase
         // Assert
         Assert.Contains("TestPlatform", vm.CurrentCodeLabel);
         Assert.False(vm.IsCodeCopiedVisible);
-    }    
+    }
 
 }
