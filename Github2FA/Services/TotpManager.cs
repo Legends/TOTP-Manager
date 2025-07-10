@@ -2,6 +2,8 @@
 using Github2FA.Models;
 using OtpNet;
 using System;
+using System.Net.Sockets;
+using System.Text.RegularExpressions;
 
 namespace Github2FA.Services;
 
@@ -24,6 +26,10 @@ public class TotpManager : ITotpManager
         _errorHandler = errorHandler;
     }
 
+    /// <summary>
+    /// Adds a new TOTP secret to the secrets.json file by prompting the user for a key and value.
+    /// </summary>
+    /// <returns>bool for success and the secretItem/null</returns>
     public (bool success, SecretItem? item) PromptAndAddTotp()
     {
         try
@@ -72,6 +78,31 @@ public class TotpManager : ITotpManager
         }
     }
 
+    public bool TryComputeCode(string secret, out string? code, out string? error)
+    {
+        try
+        {
+            var totp = new Totp(Base32Encoding.ToBytes(secret));
+            code = totp.ComputeTotp();
+            error = null;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            code = null;
+
+            if (ex is FormatException || ex is ArgumentException)
+            {
+                error = "Invalid secret format. Please ensure it is a valid Base32 string.";
+            }
+            else
+            {
+                error = $"An unexpected error occurred while computing the TOTP code.{Environment.NewLine}{ex.Message}";
+            }
+            return false;
+        }
+    }
+
     public void UpdateSecret(SecretItem previous, SecretItem updated)
     {
         try
@@ -91,6 +122,11 @@ public class TotpManager : ITotpManager
         }
     }
 
+    /// <summary>
+    /// Deletes a secret item from the secrets.json file.
+    /// </summary>
+    /// <param name="item">SecretItem</param>
+    /// <returns>true/false</returns>
     public bool DeleteSecret(SecretItem item)
     {
         try
@@ -127,5 +163,17 @@ public class TotpManager : ITotpManager
         {
             return false;
         }
+    }
+
+    // Base32 encoding: Only uppercase letters (A–Z) and digits 2–7
+    // ❌ No lowercase letters, symbols, or whitespace
+    private static readonly Regex Base32Regex = new Regex("^[A-Z2-7]+=*$", RegexOptions.None);
+
+    public bool IsValidBase32Strict(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return false;
+
+        return Base32Regex.IsMatch(input);
     }
 }

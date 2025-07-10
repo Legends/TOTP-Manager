@@ -7,14 +7,17 @@ namespace Github2FA.Services
 {
     public class ErrorHandler : IErrorHandler
     {
+        IMessageService _msgSvc;
+        public ErrorHandler(IMessageService msgSvc)
+        {
+            _msgSvc = msgSvc ?? throw new ArgumentNullException(nameof(msgSvc));
+        }
         public void Handle(Exception exception, string userMessage)
         {
             // 1. Show user-friendly message
-            MessageBox.Show(
+            _msgSvc.ShowMessage(
                 $"{userMessage}\n\nDetails:\n{exception.Message}",
-                "Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
+                "Error");
 
             // 2. Log details (optional)
             LogException(exception);
@@ -25,8 +28,7 @@ namespace Github2FA.Services
             try
             {
                 var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
-                File.AppendAllText(logPath,
-                    $"[{DateTime.Now}] {ex}\n\n");
+                File.AppendAllText(logPath, $"[{DateTime.Now}] {ex}\n\n");
             }
             catch
             {

@@ -18,7 +18,7 @@ namespace Github2FA
     public partial class App : Application
     {
         private IHost _host;
-
+        //public static IServiceProvider Services { get; private set; }
         public App()
         {
             // Build configuration first to get secrets
@@ -34,6 +34,8 @@ namespace Github2FA
                 {
                     // Register configuration so it can be injected
                     services.AddSingleton<IConfiguration>(configuration);
+                    services.AddSingleton<IClipboardService, ClipboardService>();
+                    services.AddSingleton<IDelayService, DelayService>();
 
                     // Register services
                     services.AddSingleton<IDebounceService, DebounceService>();
@@ -48,6 +50,8 @@ namespace Github2FA
 
                     // Register MainWindow
                     services.AddSingleton<MainWindow>();
+
+                    //Services = services.BuildServiceProvider();
                 })
                 .Build();
         }
@@ -67,7 +71,10 @@ namespace Github2FA
             // Global unhandled exception handler
             AppDomain.CurrentDomain.UnhandledException += (s, ex) =>
             {
-                MessageBox.Show($"A fatal error occurred:\n{ex.ExceptionObject}");
+                //var msgSvc = Services.GetRequiredService<IMessageService>();
+                var msgSvc = _host.Services.GetRequiredService<IMessageService>();
+                msgSvc.ShowMessage($"A fatal error occurred:\n{ex.ExceptionObject}", "Fatal Error");
+                
             };
 
             // Start the host

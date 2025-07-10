@@ -11,18 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Assets\Icons\delete.svg" />
+    <None Remove="Assets\Icons\delete-24x24.svg" />
     <None Remove="Assets\Icons\plus-24x24.svg" />
-    <None Remove="Assets\Icons\plus-24x24_light.svg" />   
-    <None Remove="Assets\Icons\search-24x24.svg" />   
-    <None Remove="Assets\Icons\Search-Find-24x24_light.svg" />   
-    <None Remove="Assets\Icons\Search-WF-24x24.svg" />   
-    <None Remove="github.ico" />
+    <None Remove="Assets\Icons\find-24x24.svg" />     
+    <None Remove="app.ico" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Resource Include="totp.ico" />
-  </ItemGroup>
+   
 
   <ItemGroup>
     <None Include="..\readme.md" Link="readme.md" />
@@ -55,11 +50,10 @@
 
   <ItemGroup>
     <Resource Include="Assets\backgrounds\background-main.png" />
-    <Resource Include="Assets\Icons\delete.svg" />
+    <Resource Include="Assets\Icons\delete-24x24.svg" />
     <Resource Include="Assets\Icons\plus-24x24.svg" /> 
-    <Resource Include="Assets\Icons\Search-Find-24x24.svg" />
-    <Resource Include="Assets\Icons\Search-WF-24x24.svg" />
-    <Content Include="Assets\Icons\github.ico">
+    <Resource Include="Assets\Icons\find-24x24.svg" />    
+    <Content Include="Assets\Icons\app.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

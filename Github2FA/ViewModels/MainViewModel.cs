@@ -14,7 +14,9 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -26,11 +28,13 @@ namespace Github2FA.ViewModels;
 
 public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 {
-    #region Props and Vars
 
+    #region ### ObservableCollections ###
     public ObservableCollection<SecretItem> AllSecrets { get; set; }
     public ObservableCollection<SecretItem> FilteredSecrets { get; } = new();
+    #endregion ObservableCollections
 
+    #region ### COMMANDS ###
     public ICommand AddNewTotpCommand { get; private set; }
     public ICommand DeleteSecretCommand { get; private set; }
     public ICommand DeleteSecretCommand2 { get; private set; }
@@ -42,13 +46,19 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     public ICommand ClearSearchCommand { get; private set; }
     public ICommand SingleTapCommand { get; private set; }
     public ICommand DoubleTapCommand { get; private set; }
+    #endregion REGION COMMANDS
 
-
+    #region ### SERVICES ###
+    private readonly IClipboardService _clipboard;
+    private readonly IMessageService _msgService;
     private readonly ITotpManager _totpManager;
     private readonly IDebounceService _debounceService;
     private readonly DispatcherTimer _debounceTimer;
-    private string _pendingSearchText;
+    private readonly IDelayService _delayService;
+    //private string _pendingSearchText;
+    #endregion REGION SERVICES
 
+    #region ### PROPERTIES AND VARS ###
     public bool ShowActionsColumn => AllSecrets.Any(s => s.IsBeingEdited);
 
     private SecretItem? _selectedSecret;
@@ -91,13 +101,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
     }
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-    protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
     public SecretItem PreviousVersion { get; set; }
+
+    private bool _isSearchVisible = false;
     public bool IsSearchVisible
     {
         get => _isSearchVisible;
@@ -106,11 +112,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             _isSearchVisible = value; OnPropertyChanged();
         }
     }
-    private bool _isSearchVisible = false;
-    public bool IsSearchTextNotEmpty => !string.IsNullOrEmpty(_searchText);
-
-
-    private readonly DebounceDispatcher _debouncer = new DebounceDispatcher();
 
     private string _searchText;
     public string SearchText
@@ -125,16 +126,34 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
     }
 
+    public bool IsSearchTextNotEmpty => !string.IsNullOrEmpty(_searchText);
+
+    private readonly DebounceDispatcher _debouncer = new DebounceDispatcher();
+
+    #endregion REGION PROPERTIES AND VARS
+
+    #region ### Events ###
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
     #endregion
 
+
     public MainViewModel(
+        IMessageService msgService,
+        IClipboardService clipboard,
         IConfiguration config,
         ITotpManager totpManager,
-        IDebounceService debounceService)
+        IDebounceService debounceService,
+        IDelayService delayService) // NEW
     {
-
+        _delayService = delayService;
+        _msgService = msgService;
         _debounceService = debounceService;
-
+        _clipboard = clipboard;
         _totpManager = totpManager;
         SetupCommands();
 
@@ -162,7 +181,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         AddNewTotpCommand = new RelayCommand(AddNewTotp);
         DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
         DeleteSecretCommand2 = new BaseCommand(DeleteSecret2);
-        SingleTapCommand = new RelayCommand(OnSingleTap);
+        //SingleTapCommand = new RelayCommand(async () => await OnSingleTap());
+        SingleTapCommand = new AsyncCommand(OnSingleTap);
         DoubleTapCommand = new RelayCommand<object>(OnDoubleTap);
 
         UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
@@ -173,18 +193,18 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         ClearSearchCommand = new RelayCommand(() => SearchText = "");
     }
 
-    private void OnSingleTap()
+    private async Task OnSingleTap()
     {
         //MessageBox.Show("Single Tap executed.");
-        OnSecretSelected();
+        await OnSecretSelected();
     }
 
     private void OnDoubleTap(object parameter)
     {
         //var e = parameter as Syncfusion.UI.Xaml.Grid.GridCellDoubleTappedEventArgs;
         //MessageBox.Show($"Double Tap executed on row {e?.RowColumnIndex.RowIndex}");
-        
- 
+
+
     }
 
     private void OnDoubleClick(SecretItem item)
@@ -226,7 +246,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     // working, but no mvvm
     public void DeleteSecret2(object item) // but here you get a reference to GridRecordContextMenuInfo
     {
-        MessageBox.Show(item?.ToString() ?? "Null");
+        _msgService.ShowMessage(item?.ToString() ?? "Null");
+
         if (item == null)
             return;
 
@@ -266,7 +287,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         PreviousVersion = null;
     }
 
-  
+
     private static int _counter;
 
     public static int Increment()
@@ -274,42 +295,55 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         return Interlocked.Increment(ref _counter);
     }
 
+
+
+
+
+
     public bool IsContextmenuOpen { get; set; }
-    private async void OnSecretSelected()
+    private async Task OnSecretSelected()
     {
         if (SelectedSecret != null && !SelectedSecret.IsBeingEdited && !IsContextmenuOpen)
         {
             try
             {
-                string platform = SelectedSecret.Key;
-                // Base32 encoding: Only uppercase letters (A–Z) and digits 2–7 ❌ No lowercase letters, symbols, or whitespace
-                string platformSecret = SelectedSecret.Value;
-
-                var totp = new Totp(Base32Encoding.ToBytes(platformSecret));
-                string totpCode = totp.ComputeTotp();
-
-                var localCounter = Increment(); // Increment the counter
-
-                // Update the UI
-                CurrentCodeLabel = $"{platform}: {totpCode}";
-                Clipboard.SetText(totpCode);
-                IsCodeCopiedVisible = true;
-
-                await Task.Delay(2000);
-                if (IsCodeCopiedVisible && localCounter == _counter)
-                {
-                    IsCodeCopiedVisible = false;
-                }
-
+                await CalculateAndDisplayTotpCode(SelectedSecret);
             }
-            catch (ArgumentException ex)
+            catch (Exception ex)
             {
                 // This is still here because it's specific to TOTP encoding
-                MessageBox.Show($"Invalid Base32 string.\n{ex.Message}", "Error");
+                _msgService.ShowMessage($"{ex.Message}", "Error");
             }
         }
     }
 
+    private async Task CalculateAndDisplayTotpCode(SecretItem secret)
+    {
+        string? totpCode = null;
+        string? error = null;
+
+        if (_totpManager.TryComputeCode(secret.Value, out totpCode, out error))
+        {
+            var localCounter = Increment(); // Increment the counter
+
+            // Update the UI
+            CurrentCodeLabel = $"{secret.Key}: {totpCode}";
+            _clipboard.SetText(totpCode);
+
+            IsCodeCopiedVisible = true;
+
+            await _delayService.Delay(2000);
+            if (IsCodeCopiedVisible && localCounter == _counter)
+            {
+                IsCodeCopiedVisible = false;
+            }
+        }
+        else
+        {
+            _msgService.ShowMessage($"Error generating TOTP code for {secret.Key}: {error}", "Error");
+            await Task.FromResult(error);
+        }
+    }
 
     private void SecretItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

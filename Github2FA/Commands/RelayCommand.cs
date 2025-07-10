@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 
@@ -32,7 +33,8 @@ namespace Github2FA.Commands
 
     public class RelayCommand : ICommand
     {
-        private readonly Action _execute;        
+        private readonly Action _execute;
+        private readonly Func<Task> _executeAsync;
         private readonly Func<bool>? _canExecute;
 
         public RelayCommand(Action execute, Func<bool>? canExecute = null)
@@ -40,7 +42,13 @@ namespace Github2FA.Commands
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
-        
+
+        //public RelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
+        //{
+        //    _executeAsync = execute ?? throw new ArgumentNullException(nameof(execute));
+        //    _canExecute = canExecute;
+        //}
+
         public event EventHandler? CanExecuteChanged;
 
         public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;

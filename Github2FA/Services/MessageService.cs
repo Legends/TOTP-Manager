@@ -10,12 +10,12 @@ namespace Github2FA.Services
     {
         public void ShowMessage(string message, string caption = "Info")
         {
-            System.Windows.MessageBox.Show(message, caption);
+            MessageBox.Show(message, caption);
         }
 
         public bool ShowMessageDialog(string message, string caption = "Info")
         {
-            var result = System.Windows.MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question);
             return result == MessageBoxResult.Yes;
         }
     }
