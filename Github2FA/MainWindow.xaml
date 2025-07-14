@@ -8,6 +8,7 @@
                              xmlns:helper="clr-namespace:Github2FA.Helper"
                              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                              xmlns:behaviors="clr-namespace:Github2FA.Behaviors"
+                             xmlns:props="clr-namespace:Github2FA.AttachedProperties"
                              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
                              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
                              xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
@@ -78,6 +79,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                      VerticalContentAlignment="Stretch"
                                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                      Watermark="Search..."
+                                     props:FocusExtension.IsFocused="{Binding IsSearchFocused}"
                                      Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverter}}"
                                      Padding="0"
                                      Margin="10,0,0,0" />

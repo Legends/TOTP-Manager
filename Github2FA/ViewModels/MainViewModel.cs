@@ -59,6 +59,18 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     #endregion REGION SERVICES
 
     #region ### PROPERTIES AND VARS ###
+
+    private bool _isSearchFocused;
+    public bool IsSearchFocused
+    {
+        get => _isSearchFocused;
+        set
+        {
+            _isSearchFocused = value;
+            OnPropertyChanged();
+        }
+    }
+
     public bool ShowActionsColumn => AllSecrets.Any(s => s.IsBeingEdited);
 
     private SecretItem? _selectedSecret;
@@ -189,8 +201,24 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
         EndEditCommand = new RelayCommand<SecretItem>(OnEndEdit);
         DoubleClickCommand = new RelayCommand<SecretItem>(OnDoubleClick);
-        ToggleSearchBoxCommand = new RelayCommand(() => IsSearchVisible = !IsSearchVisible);
-        ClearSearchCommand = new RelayCommand(() => SearchText = "");
+
+        ToggleSearchBoxCommand = new RelayCommand(() =>
+                {
+                    IsSearchVisible = !IsSearchVisible;
+                    IsSearchFocused = IsSearchVisible;
+                });
+
+        ClearSearchCommand = new RelayCommand(() =>
+        {
+            SearchText = "";
+
+            // the property doesnt change if IsSearchFocused is already true
+            // so, setting true => true doesnt raise onpropertyChanged and therefore no focus occurs
+            // A common pattern is to first set it to false, then back to true,
+            // to force the property changed notification:
+            IsSearchFocused = false;
+            IsSearchFocused = IsSearchVisible;
+        });
     }
 
     private async Task OnSingleTap()
