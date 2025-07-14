@@ -21,7 +21,8 @@
     <StackPanel Margin="24"
                 FocusManager.FocusedElement="{Binding ElementName=KeyTextBox}">
 
-        <TextBlock Text="Key:"
+        <TextBlock Text="Key"
+                   Foreground="White"
                    FontWeight="Medium"
                    Margin="0,5" />
         <syncfusion:SfTextBoxExt x:Name="KeyTextBox"
@@ -29,8 +30,9 @@
                                  Focusable="True"
                                  Margin="0,0,0,12"
                                  Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBlock Text="Value:"
+        <TextBlock Text="Value"
                    FontWeight="Medium"
+Foreground="White"
                    Margin="0,5" />
         <syncfusion:SfTextBoxExt Watermark="Enter value"
                                  Margin="0,0,0,16"
