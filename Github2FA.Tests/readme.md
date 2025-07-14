@@ -8,6 +8,10 @@ Below is a side-by-side comparison of **Moq.AutoMock** and **AutoFixture.AutoMoq
 
 ---
 
+## xUnit.v3
+
+We use `xUnit.v3 `nuget package
+
 ## 🟢 **Moq.AutoMock**
 
 **Library:** [Moq.AutoMocker](https://github.com/moq/moq4/wiki/Quickstart#automocker)
