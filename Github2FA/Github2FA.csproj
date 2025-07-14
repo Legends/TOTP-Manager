@@ -24,23 +24,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.7" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="Otp.NET" Version="1.4.0" />
     <PackageReference Include="SharpVectors" Version="1.8.4.2" />
-    <PackageReference Include="Syncfusion.Licensing" Version="30.1.38" />
-    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="30.1.38" />
-    <PackageReference Include="Syncfusion.Shared.WPF" Version="30.1.38" />
-    <PackageReference Include="Syncfusion.Themes.MaterialDarkBlue.WPF" Version="30.1.38" />
-    <PackageReference Include="Syncfusion.Themes.MaterialLightBlue.WPF" Version="30.1.38" />
-    <PackageReference Include="Syncfusion.Themes.Windows11Dark.WPF" Version="30.1.38" />
-    <PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="30.1.38" />
-    <PackageReference Include="Syncfusion.Tools.WPF" Version="30.1.38" />
-    <PackageReference Include="syncfusion.ui.wpf.net" Version="30.1.38" />
+    <PackageReference Include="Syncfusion.Licensing" Version="30.1.39" />
+    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="30.1.39" />
+    <PackageReference Include="Syncfusion.Shared.WPF" Version="30.1.39" />
+    <PackageReference Include="Syncfusion.Themes.MaterialDarkBlue.WPF" Version="30.1.39" />
+    <PackageReference Include="Syncfusion.Themes.MaterialLightBlue.WPF" Version="30.1.39" />
+    <PackageReference Include="Syncfusion.Themes.Windows11Dark.WPF" Version="30.1.39" />
+    <PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="30.1.39" />
+    <PackageReference Include="Syncfusion.Tools.WPF" Version="30.1.39" />
+    <PackageReference Include="syncfusion.ui.wpf.net" Version="30.1.39" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.7" />
   </ItemGroup>
 

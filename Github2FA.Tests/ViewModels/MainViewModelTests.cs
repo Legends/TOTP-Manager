@@ -12,7 +12,7 @@ using System.Reflection;
 using Xunit;
 using static System.Net.WebRequestMethods;
 
-namespace Github2FA.Tests;
+namespace Github2FA.Tests.ViewModels;
 
 
 /// <summary>
@@ -20,9 +20,10 @@ namespace Github2FA.Tests;
 /// dotnet add package Otp.NET
 
 /// </summary>
-public class UnitTestCommands : TestBase
+public class MainViewModelTests
 {
 
+    #region ### Mock.AutoMock ###
     [Fact]
     public void AddNewTotpCommand_ShouldAddNewSecret_WhenManagerReturnsSuccess()
     {
@@ -200,5 +201,35 @@ public class UnitTestCommands : TestBase
         Assert.Contains("TestPlatform", vm.CurrentCodeLabel);
         Assert.False(vm.IsCodeCopiedVisible);
     }
+    #endregion
 
+    #region ### AutoFixture.AutoMoq
+
+    [Fact]
+    public void ClearSearchCommand_ShouldClearSearchText2()
+    {
+        var fixture = new Fixture().Customize(new AutoMoqCustomization());
+        var vm = fixture.Create<MainViewModel>();
+
+        vm.SearchText = "hello";
+
+        vm.ClearSearchCommand.Execute(null);
+
+        Assert.True(string.IsNullOrEmpty(vm.SearchText));
+    }
+
+    [Fact]
+    public void BeginEditCommand_ShouldSetIsBeingEdited2()
+    {
+        var fixture = new Fixture().Customize(new AutoMoqCustomization());
+        var vm = fixture.Create<MainViewModel>();
+
+        var secret = new SecretItem("key", "value");
+        vm.AllSecrets.Add(secret);
+
+        vm.BeginEditCommand.Execute(secret);
+
+        Assert.True(secret.IsBeingEdited);
+    }
+    #endregion
 }

@@ -92,10 +92,16 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 
         if (!_doubleTapOccurred)
         {
-            if (SingleTapCommand != null && SingleTapCommand.CanExecute(null))
-            {
-                SingleTapCommand.Execute(null);
-            }
+            InvokeSingleTap();
         }
     }
+
+    protected virtual void InvokeSingleTap()
+    {
+        if (SingleTapCommand != null && SingleTapCommand.CanExecute(null))
+        {
+            SingleTapCommand.Execute(null);
+        }
+    }
+
 }
