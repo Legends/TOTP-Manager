@@ -86,7 +86,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
                 _selectedSecret = value;
                 OnPropertyChanged();
-                //OnSecretSelected();
+                OnSecretSelected();
             }
         }
     }

@@ -21,8 +21,6 @@
                              TitleBarForeground="White"
                              WindowStartupLocation="CenterScreen">
 
-
-
     <!--
 https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:  
         Windows11Light, 

@@ -53,9 +53,9 @@
     <Resource Include="Assets\Icons\delete-24x24.svg" />
     <Resource Include="Assets\Icons\plus-24x24.svg" /> 
     <Resource Include="Assets\Icons\find-24x24.svg" />    
-    <Content Include="Assets\Icons\app.ico">
+    <Resource Include="Assets\Icons\app.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>

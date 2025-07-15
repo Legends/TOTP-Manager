@@ -8,8 +8,10 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using Moq.AutoMock;
 using Syncfusion.Windows.Controls.Input;
+using System.Diagnostics;
 using System.Reflection;
 using Xunit;
+using Xunit.Sdk;
 using static System.Net.WebRequestMethods;
 
 namespace Github2FA.Tests.ViewModels;
@@ -20,13 +22,24 @@ namespace Github2FA.Tests.ViewModels;
 /// dotnet add package Otp.NET
 
 /// </summary>
-public class MainViewModelTests
+public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 {
+    private readonly MyFixture _fixture;
+
+    public MainViewModelTests(MyFixture fixture)
+    {
+        _fixture = fixture;
+        // This constructor is called before each test
+        Debug.WriteLine("MainViewModelTests constructor called. This method is called before each test.");
+        // You can initialize shared resources here
+    }
 
     #region ### Mock.AutoMock ###
     [Fact]
     public void AddNewTotpCommand_ShouldAddNewSecret_WhenManagerReturnsSuccess()
     {
+        // Use _fixture
+        //_fixture.
         // Arrange
         var mocker = new AutoMocker();
         // Auto-resolve all dependencies
@@ -230,6 +243,21 @@ public class MainViewModelTests
         vm.BeginEditCommand.Execute(secret);
 
         Assert.True(secret.IsBeingEdited);
+    }
+
+    public string? ToJson()
+    {
+        // This method is called after each test
+        return "";
+    }
+
+    public void Dispose()
+    {
+        // This method is called after each test
+        Debug.WriteLine("Dispose is: This method is called after each test");
+        // Clean up resources if needed
+        // For example, you can reset static properties or clear collections
+        // _fixture = null; // Not necessary, as it will be garbage collected
     }
     #endregion
 }

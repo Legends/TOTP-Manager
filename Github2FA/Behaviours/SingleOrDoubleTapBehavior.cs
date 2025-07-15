@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -10,7 +12,7 @@ namespace Github2FA.Behaviors;
 
 public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 {
-    private DispatcherTimer _tapTimer;
+    
     private bool _doubleTapOccurred;
 
     public int TapDelay
@@ -20,7 +22,8 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
     }
 
     public static readonly DependencyProperty TapDelayProperty =
-        DependencyProperty.Register(nameof(TapDelay), typeof(int), typeof(SingleOrDoubleTapBehavior), new PropertyMetadata(0)); // delay = sec
+    DependencyProperty.Register(nameof(TapDelay), typeof(int), typeof(SingleOrDoubleTapBehavior), new PropertyMetadata(300));
+
 
     public ICommand SingleTapCommand
     {
@@ -46,12 +49,7 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 
         AssociatedObject.CellTapped += AssociatedObject_CellTapped;
         AssociatedObject.CellDoubleTapped += AssociatedObject_CellDoubleTapped;
-
-        _tapTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(TapDelay)
-        };
-        _tapTimer.Tick += TapTimer_Tick;
+ 
     }
 
     protected override void OnDetaching()
@@ -60,46 +58,43 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 
         AssociatedObject.CellTapped -= AssociatedObject_CellTapped;
         AssociatedObject.CellDoubleTapped -= AssociatedObject_CellDoubleTapped;
-
-        if (_tapTimer != null)
-        {
-            _tapTimer.Stop();
-            _tapTimer.Tick -= TapTimer_Tick;
-            _tapTimer = null;
-        }
+ 
     }
 
     private void AssociatedObject_CellTapped(object sender, GridCellTappedEventArgs e)
     {
-        _doubleTapOccurred = false;
-        _tapTimer.Start();
+        //_doubleTapOccurred = false;
+
+        //// Schedule single tap execution after delay
+        //AssociatedObject.Dispatcher.InvokeAsync(async () =>
+        //{
+        //    await Task.Delay(TapDelay);
+
+        //    if (!_doubleTapOccurred)
+        //    {
+                //InvokeSingleTap();
+        //    }
+        //});
     }
+
 
     private void AssociatedObject_CellDoubleTapped(object sender, GridCellDoubleTappedEventArgs e)
     {
-        _doubleTapOccurred = true;
-        _tapTimer.Stop();
+        //_doubleTapOccurred = true;
 
-        if (DoubleTapCommand != null && DoubleTapCommand.CanExecute(e))
-        {
+        //if (DoubleTapCommand != null && DoubleTapCommand.CanExecute(e))
+        //{
             DoubleTapCommand.Execute(e);
-        }
+        //}
     }
 
-    private void TapTimer_Tick(object sender, EventArgs e)
-    {
-        _tapTimer.Stop();
 
-        if (!_doubleTapOccurred)
-        {
-            InvokeSingleTap();
-        }
-    }
 
     protected virtual void InvokeSingleTap()
     {
         if (SingleTapCommand != null && SingleTapCommand.CanExecute(null))
         {
+            Debug.WriteLine(" SingleTapCommand.Execute(null);");
             SingleTapCommand.Execute(null);
         }
     }
