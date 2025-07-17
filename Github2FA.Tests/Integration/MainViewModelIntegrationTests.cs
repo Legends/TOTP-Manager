@@ -57,6 +57,7 @@ public class MainViewModelIntegrationTests
 
         // Resolve dependencies
         var vm = new MainViewModel(
+            provider.GetRequiredService<IQrCodeService>(),
             provider.GetRequiredService<IMessageService>(),
             provider.GetRequiredService<IClipboardService>(),
             provider.GetRequiredService<IConfiguration>(),

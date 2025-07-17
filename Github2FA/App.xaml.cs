@@ -37,6 +37,7 @@ namespace Github2FA
                     services.AddSingleton<IDelayService, DelayService>();
 
                     // Register services
+                    services.AddSingleton<IQrCodeService, QrCodeService>();
                     services.AddSingleton<IDebounceService, DebounceService>();
                     services.AddSingleton<IDialogService, DialogService>();
                     services.AddSingleton<IMessageService, MessageService>();
@@ -73,7 +74,7 @@ namespace Github2FA
                 //var msgSvc = Services.GetRequiredService<IMessageService>();
                 var msgSvc = _host.Services.GetRequiredService<IMessageService>();
                 msgSvc.ShowMessage($"A fatal error occurred:\n{ex.ExceptionObject}", "Fatal Error");
-                
+
             };
 
             // Start the host

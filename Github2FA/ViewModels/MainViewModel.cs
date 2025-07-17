@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace Github2FA.ViewModels;
@@ -49,11 +50,23 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     private readonly ITotpManager _totpManager;
     private readonly IDebounceService _debounceService;
     private readonly DispatcherTimer _debounceTimer;
+    private readonly IQrCodeService _qrService;
     private readonly IDelayService _delayService;
     //private string _pendingSearchText;
     #endregion REGION SERVICES
 
     #region ### PROPERTIES AND VARS ###
+
+    private BitmapImage _qrCodeImage;
+    public BitmapImage QrCodeImage
+    {
+        get => _qrCodeImage;
+        set
+        {
+            _qrCodeImage = value;
+            OnPropertyChanged();
+        }
+    }
 
     private bool _isSearchFocused;
     public bool IsSearchFocused
@@ -154,6 +167,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     #region ### Constructor ###
     public MainViewModel(
+        IQrCodeService svcQR,
         IMessageService msgService,
         IClipboardService clipboard,
         IConfiguration config,
@@ -161,6 +175,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         IDebounceService debounceService,
         IDelayService delayService) // NEW
     {
+        _qrService = svcQR;
         _delayService = delayService;
         _msgService = msgService;
         _debounceService = debounceService;
@@ -189,6 +204,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             secretItem.PropertyChanged += SecretItem_PropertyChanged;
     }
 
+    #region ### COMMANDS SETUP ###
     private void SetupCommands()
     {
         AddNewTotpCommand = new RelayCommand(AddNewTotp);
@@ -220,6 +236,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             IsSearchFocused = IsSearchVisible;
         });
     }
+    #endregion COMMANDS SETUP
 
     #region ### OLD CODE ###
     //private async Task OnSingleTap()
@@ -250,7 +267,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
     }
 
-
+    #region ### Delete Logic ###
     public void DeleteSecret(SecretItem item)
     {
         if (item == null)
@@ -274,9 +291,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
         // Your deletion logic
     }
-
-     
-
+    #endregion
 
     #region ### Update logic ###
 
@@ -311,13 +326,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     #endregion
 
 
-
-    private static int _counter;
-
-    public static int Increment()
-    {
-        return Interlocked.Increment(ref _counter);
-    }
 
     #region ### Row/Field Selection Logic  ###
 
@@ -358,6 +366,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     {
         CurrentCodeLabel = string.Empty;
         IsCodeCopiedVisible = false;
+        QrCodeImage = null;
     }
 
     private async Task OnSecretSelected()
@@ -380,6 +389,14 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     #region ### TOTP Code Generation Logic ###
 
+
+    private static int _counter;
+
+    public static int Increment()
+    {
+        return Interlocked.Increment(ref _counter);
+    }
+
     private async Task CalculateAndDisplayTotpCode(SecretItem secret)
     {
         string? totpCode = null;
@@ -387,12 +404,13 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
         if (_totpManager.TryComputeCode(secret.Secret, out totpCode, out error))
         {
+
             var localCounter = Increment(); // Increment the counter
 
             // Update the UI
             CurrentCodeLabel = $"{secret.Platform}: {totpCode}";
             _clipboard.SetText(totpCode);
-
+            QrCodeImage = _qrService.GenerateQr(secret.Platform, secret.Secret, secret.Account);
             IsCodeCopiedVisible = true;
 
             await _delayService.Delay(2000);

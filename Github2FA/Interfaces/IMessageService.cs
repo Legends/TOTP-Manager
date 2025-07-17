@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Github2FA.Interfaces;
 
-namespace Github2FA.Interfaces
+public interface IMessageService
 {
-    public interface IMessageService
-    {
-        void ShowMessage(string message, string caption = "Info");
-        bool ShowMessageDialog(string message, string caption = "Info");
-    }
-
+    void ShowMessage(string message, string caption = "Info");
+    bool ShowMessageDialog(string message, string caption = "Info");
 }

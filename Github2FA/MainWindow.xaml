@@ -15,7 +15,7 @@
                              xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
                              mc:Ignorable="d"
                              Width="350"
-                             Height="350"
+                             SizeToContent="Height"
                              Icon="/Assets/Icons/app.ico"
                              Title="TOTP Manager"
                              TitleBarBackground="#7D7FF4"
@@ -108,12 +108,16 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                 <RowDefinition Height="*" />
                 <!-- Row 0: DataGrid -->
                 <RowDefinition Height="Auto" />
-                <!-- Row 1: Code Label -->
+                <!-- Row 1: QR Code -->
                 <RowDefinition Height="Auto" />
                 <!-- Row 2: Copied Label -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 2: Copied Label -->
+
             </Grid.RowDefinitions>
 
             <syncfusion:SfDataGrid x:Name="SecretsGrid"
+                                   Grid.Row="0"
                                    AllowEditing="True"
                                    AllowDeleting="True"
                                    AutoGenerateColumns="False"
@@ -132,7 +136,6 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                    SelectionForegroundBrush="#87CE3E"
                                    CurrentCellBorderBrush="Transparent"
                                    CurrentCellBorderThickness="0"
-                                   Grid.Row="0"
                                    HorizontalAlignment="Stretch"
                                    ColumnSizer="Star">
                 <i:Interaction.Triggers>
@@ -226,7 +229,6 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                 <syncfusion:SfDataGrid.RecordContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Delete"
-                                 
                                   Padding="0,0,2,0"
                                   Foreground="White"
                                   Command="{Binding DataGrid.DataContext.DeleteSecretCommand}"
@@ -277,6 +279,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
             </syncfusion:SfDataGrid>
 
             <Label x:Name="lblCode"
+                   Grid.Row="2"
                    Content="{Binding CurrentCodeLabel}"
                    HorizontalContentAlignment="Center"
                    VerticalContentAlignment="Center"
@@ -284,7 +287,6 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                    FontWeight="Bold"
                    Foreground="#97B0DF"
                    FontSize="24"
-                   Grid.Row="1"
                    HorizontalAlignment="Center"
                    Margin="0,0">
                 <Label.RenderTransform>
@@ -313,8 +315,14 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                     </Style>
                 </Label.Style>
             </Label>
+            <Image Grid.Row="1" Margin="0,20"
+                   Source="{Binding QrCodeImage}"
+                   Width="130"
+                   Height="130" />
+
 
             <Label x:Name="lblCopiedToClipboard"
+                   Grid.Row="3"
                    Content="Code was copied to clipboard!"
                    HorizontalContentAlignment="Center"
                    VerticalContentAlignment="Top"
@@ -322,7 +330,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                    FontWeight="Bold"
                    Foreground="#FF22ED20"
                    Visibility="{Binding IsCodeCopiedVisible, Converter={StaticResource BoolToVisibilityConverter}}"
-                   Grid.Row="2"
+                  
                    Margin="0,0">
                 <Label.Effect>
                     <DropShadowEffect BlurRadius="10"
