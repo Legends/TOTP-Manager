@@ -131,7 +131,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                    NavigationMode="Cell"
                                    ItemsSource="{Binding FilteredSecrets}"
                                    LiveDataUpdateMode="AllowDataShaping"
-                                   MaxHeight="140"
+                                   MaxHeight="160"
                                    MaxWidth="340"
                                    Margin="0,0,0,20"
                                    BorderThickness="0"
