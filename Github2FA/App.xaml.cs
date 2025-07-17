@@ -1,5 +1,4 @@
-﻿using Github2FA.Helper;
-using Github2FA.Interfaces;
+﻿using Github2FA.Interfaces;
 using Github2FA.Services;
 using Github2FA.ViewModels;
 using Microsoft.Extensions.Configuration;
@@ -41,7 +40,7 @@ namespace Github2FA
                     services.AddSingleton<IDebounceService, DebounceService>();
                     services.AddSingleton<IDialogService, DialogService>();
                     services.AddSingleton<IMessageService, MessageService>();
-                    services.AddSingleton<ISecretsHelper, SecretsHelper>();
+                    services.AddSingleton<ISecretsManager, SecretsManager>();
                     services.AddSingleton<IErrorHandler, ErrorHandler>();
                     services.AddSingleton<ITotpManager, TotpManager>();
 

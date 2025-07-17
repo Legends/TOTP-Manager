@@ -9,34 +9,47 @@
                              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
                              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
                              mc:Ignorable="d"
-                             Title="Enter Key and Value"
-                             Height="220"
+                             Title="add new platform secret"
+                             Height="270"
                              Width="300"
                              WindowStartupLocation="CenterOwner"
                              ResizeMode="NoResize"
-                             TitleBarBackground="#87CE3E"
+                             TitleBarBackground="#7D7FF4"
                              TitleBarForeground="White"
                              ShowInTaskbar="False">
 
     <StackPanel Margin="24"
                 FocusManager.FocusedElement="{Binding ElementName=KeyTextBox}">
 
-        <TextBlock Text="Key"
+        <TextBlock Text="platform"
                    Foreground="White"
                    FontWeight="Medium"
                    Margin="0,5" />
+
         <syncfusion:SfTextBoxExt x:Name="KeyTextBox"
-                                 Watermark="Enter key"
+                                 Watermark="i.e. github, microsoft, ..."
                                  Focusable="True"
                                  Margin="0,0,0,12"
-                                 Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBlock Text="Value"
+                                 Text="{Binding Platform, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+        <TextBlock Text="shared secret"
                    FontWeight="Medium"
-Foreground="White"
+                   Foreground="White"
                    Margin="0,5" />
-        <syncfusion:SfTextBoxExt Watermark="Enter value"
+
+        <syncfusion:SfTextBoxExt Watermark="base32-encoded string"
                                  Margin="0,0,0,16"
-                                 Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                 Text="{Binding Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+        <TextBlock Text="account (optional)"
+                   FontWeight="Medium"
+                   Foreground="White"
+                   Margin="0,5" />
+
+        <syncfusion:SfTextBoxExt Watermark="username or email"
+                                 Margin="0,0,0,16"
+                                 Text="{Binding Account, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
         <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Right">
             <Button Content="OK"

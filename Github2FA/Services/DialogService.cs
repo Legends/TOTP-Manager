@@ -18,7 +18,7 @@ namespace Github2FA.Services
                 Owner = System.Windows.Application.Current?.MainWindow
             };
             var result = dlg.ShowDialog() == true;
-            return (result, dlg.ViewModel.Key, dlg.ViewModel.Value);
+            return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
         }
 
         public (bool success, string? key, string? value) ShowKeyValueDialog(string? initialKey = null, string? initialValue = null)
@@ -29,13 +29,13 @@ namespace Github2FA.Services
             };
 
             if (initialKey != null)
-                dlg.ViewModel.Key = initialKey;
+                dlg.ViewModel.Platform = initialKey;
 
             if (initialValue != null)
-                dlg.ViewModel.Value = initialValue;
+                dlg.ViewModel.Secret = initialValue;
 
             var result = dlg.ShowDialog() == true;
-            return (result, dlg.ViewModel.Key, dlg.ViewModel.Value);
+            return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
         }
 
     }

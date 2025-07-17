@@ -1,6 +1,5 @@
 ﻿using Github2FA.Interfaces;
 using Github2FA.Models;
-using Github2FA.Services;
 using Microsoft.Extensions.Configuration;
 using Syncfusion.ProjIO;
 using System;
@@ -11,16 +10,16 @@ using System.Linq;
 using System.Text.Json;
 using System.Xml.Linq;
 
-namespace Github2FA.Helper;
+namespace Github2FA.Services;
 
-public class SecretsHelper : ISecretsHelper
+public class SecretsManager : ISecretsManager
 {
     string csprojPath;
     string userSecretsId;
     string secretsPath;
     IMessageService _messageService;
 
-    public SecretsHelper(IMessageService svcMsg)
+    public SecretsManager(IMessageService svcMsg)
     {
         _messageService = svcMsg;
         Init();
@@ -81,9 +80,9 @@ public class SecretsHelper : ISecretsHelper
             return false;
         }
 
-        if (prevKey == updated.Key)// just update the value
+        if (prevKey == updated.Platform)// just update the value
         {
-            dict[prevKey] = updated.Value;
+            dict[prevKey] = updated.Secret;
         }
         else // key has changed, we need to remove the old key and add the new one
         {
@@ -91,7 +90,7 @@ public class SecretsHelper : ISecretsHelper
             {
                 dict.Remove(prevKey);
             }
-            dict[updated.Key] = updated.Value; // add or update the new key
+            dict[updated.Platform] = updated.Secret; // add or update the new key
         }
 
         var success = UpdateSecretsFile(dict);
@@ -118,7 +117,7 @@ public class SecretsHelper : ISecretsHelper
             _messageService.ShowMessageDialog($"Error reading secrets file: {ex.Message}", "Error");
             return (flowControl: false, dict: default);
         }
-        return (flowControl: true, dict: dict);
+        return (flowControl: true, dict);
     }
 
     private bool UpdateSecretsFile(Dictionary<string, string> dict)

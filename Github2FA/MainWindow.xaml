@@ -7,16 +7,17 @@
                              xmlns:local="clr-namespace:Github2FA.ViewModels"
                              xmlns:helper="clr-namespace:Github2FA.Helper"
                              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+                             xmlns:ei="http://schemas.microsoft.com/xaml/behaviors/core"
                              xmlns:behaviors="clr-namespace:Github2FA.Behaviors"
                              xmlns:props="clr-namespace:Github2FA.AttachedProperties"
                              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
                              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
                              xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
                              mc:Ignorable="d"
-                             Width="400"
+                             Width="350"
                              Height="350"
                              Icon="/Assets/Icons/app.ico"
-                             Title="TOTP code generator"
+                             Title="TOTP Manager"
                              TitleBarBackground="#7D7FF4"
                              TitleBarForeground="White"
                              WindowStartupLocation="CenterScreen">
@@ -29,6 +30,10 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
 -->
     <syncfusion:ChromelessWindow.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <BounceEase x:Key="BounceEase"
+                    Bounces="1"
+                    Bounciness="100"
+                    EasingMode="EaseOut" />
 
     </syncfusion:ChromelessWindow.Resources>
     <!--<Window.Background>
@@ -121,15 +126,21 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                    ItemsSource="{Binding FilteredSecrets}"
                                    LiveDataUpdateMode="AllowDataShaping"
                                    MaxHeight="140"
-                                   MaxWidth="370"
+                                   MaxWidth="340"
                                    BorderThickness="0"
-                                   RowSelectionBrush="#E6E6E6"
-                                   SelectionForegroundBrush="DarkBlue"
+                                   RowSelectionBrush="#1D3366"
+                                   SelectionForegroundBrush="#87CE3E"
                                    CurrentCellBorderBrush="Transparent"
                                    CurrentCellBorderThickness="0"
                                    Grid.Row="0"
                                    HorizontalAlignment="Stretch"
                                    ColumnSizer="Star">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding SelectionChangedCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+
                 <i:Interaction.Behaviors>
                     <behaviors:SfDataGridEditingBehavior BeginEditCommand="{Binding BeginEditCommand}"
                                                          EndEditCommand="{Binding EndEditCommand}"
@@ -137,16 +148,16 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
 
                     <behaviors:ToggleColumnVisibilityBehavior ShowActionsColumn="{Binding ShowActionsColumn}" />
 
-                    <behaviors:SingleOrDoubleTapBehavior SingleTapCommand="{Binding SingleTapCommand}"
+                    <!--<behaviors:SingleOrDoubleTapBehavior SingleTapCommand="{Binding SingleTapCommand}"
                                                          DoubleTapCommand="{Binding DoubleTapCommand}"
-                                                         TapDelay="300" />
+                                                         TapDelay="300" />-->
                     <behaviors:SfDataGridContextMenuBehavior />
                 </i:Interaction.Behaviors>
 
                 <syncfusion:SfDataGrid.Resources>
                     <Style TargetType="syncfusion:GridHeaderCellControl">
                         <Setter Property="Background"
-                                Value="#0097a7">
+                                Value="#269797">
                             <!--<Setter.Value>
                                 <LinearGradientBrush StartPoint="0,0"
                                                      EndPoint="0,1">
@@ -164,15 +175,16 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                         <Setter Property="HorizontalContentAlignment"
                                 Value="Center" />
                     </Style>
+
                 </syncfusion:SfDataGrid.Resources>
 
                 <syncfusion:SfDataGrid.Columns>
-                    <syncfusion:GridTextColumn HeaderText="TOTP"
-                                               MappingName="Key">
+                    <syncfusion:GridTextColumn HeaderText="platform"
+                                               MappingName="Platform">
                     </syncfusion:GridTextColumn>
 
-                    <syncfusion:GridTextColumn HeaderText="Secret"
-                                               MappingName="Value">
+                    <syncfusion:GridTextColumn HeaderText="secret"
+                                               MappingName="Secret">
                     </syncfusion:GridTextColumn>
 
                     <!--<syncfusion:GridTemplateColumn x:Name="ActionsColumn"
@@ -214,13 +226,14 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                 <syncfusion:SfDataGrid.RecordContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Delete"
-                                  FontWeight="Bold"
-                                  Padding="2"
+                                 
+                                  Padding="0,0,2,0"
+                                  Foreground="White"
                                   Command="{Binding DataGrid.DataContext.DeleteSecretCommand}"
                                   CommandParameter="{Binding Record}">
                             <MenuItem.Icon>
-                                <svgc:SvgViewbox Width="16"
-                                                 Height="16"
+                                <svgc:SvgViewbox Width="11"
+                                                 Height="11"
                                                  Source="/Assets/Icons/delete-24x24.svg"></svgc:SvgViewbox>
                             </MenuItem.Icon>
 
@@ -269,10 +282,37 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                    VerticalContentAlignment="Center"
                    Height="80"
                    FontWeight="Bold"
+                   Foreground="#97B0DF"
                    FontSize="24"
                    Grid.Row="1"
                    HorizontalAlignment="Center"
-                   Margin="0,0" />
+                   Margin="0,0">
+                <Label.RenderTransform>
+                    <TranslateTransform />
+                </Label.RenderTransform>
+                <Label.Style>
+                    <Style TargetType="Label">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCodeCopiedVisible}"
+                                         Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-10 "
+                                                             Duration="0:0:0.2"
+                                                             AutoReverse="True"
+                                                             RepeatBehavior="1x"
+                                                             EasingFunction="{StaticResource BounceEase}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Label.Style>
+            </Label>
 
             <Label x:Name="lblCopiedToClipboard"
                    Content="Code was copied to clipboard!"

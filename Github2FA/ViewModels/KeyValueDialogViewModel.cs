@@ -5,19 +5,26 @@ namespace Github2FA.ViewModels
 {
     public class KeyValueDialogViewModel : INotifyPropertyChanged
     {
-        private string? _key;
-        private string? _value;
+        private string? _platform;
+        private string? _secret;
+        private string? _account;
 
-        public string? Key
+        public string? Platform
         {
-            get => _key;
-            set { _key = value; OnPropertyChanged(); }
+            get => _platform;
+            set { _platform = value; OnPropertyChanged(); }
         }
 
-        public string? Value
+        public string? Secret
         {
-            get => _value;
-            set { _value = value; OnPropertyChanged(); }
+            get => _secret;
+            set { _secret = value; OnPropertyChanged(); }
+        }
+
+        public string Account
+        {
+            get => _account;
+            set { _account = value; OnPropertyChanged(); }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

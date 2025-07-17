@@ -2,25 +2,16 @@
 using Github2FA.Helper;
 using Github2FA.Interfaces;
 using Github2FA.Models;
-using Github2FA.Services;
 using Microsoft.Extensions.Configuration;
-using OtpNet;
-using Syncfusion.PMML;
-using Syncfusion.SfSkinManager;
-using Syncfusion.UI.Xaml.Grid;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -36,16 +27,20 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     #region ### COMMANDS ###
     public ICommand AddNewTotpCommand { get; private set; }
+    public ICommand BeginEditCommand { get; private set; }
+    public ICommand ClearSearchCommand { get; private set; }
     public ICommand DeleteSecretCommand { get; private set; }
     public ICommand DeleteSecretCommand2 { get; private set; }
-    public ICommand UpdateSecretCommand { get; private set; }
-    public ICommand BeginEditCommand { get; private set; }
-    public ICommand EndEditCommand { get; private set; }
     public ICommand DoubleClickCommand { get; private set; }
-    public ICommand ToggleSearchBoxCommand { get; private set; }
-    public ICommand ClearSearchCommand { get; private set; }
-    public ICommand SingleTapCommand { get; private set; }
     public ICommand DoubleTapCommand { get; private set; }
+    public ICommand EndEditCommand { get; private set; }
+    public ICommand SingleTapCommand { get; private set; }
+    public ICommand ToggleSearchBoxCommand { get; private set; }
+    public ICommand UpdateSecretCommand { get; private set; }
+
+    public ICommand SelectionChangedCommand => new AsyncCommand(OnSelectionChangedAsync);
+
+
     #endregion REGION COMMANDS
 
     #region ### SERVICES ###
@@ -71,6 +66,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
     }
 
+    public bool IsContextmenuOpen { get; set; }
+
     public bool ShowActionsColumn => AllSecrets.Any(s => s.IsBeingEdited);
 
     private SecretItem? _selectedSecret;
@@ -86,7 +83,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
                 _selectedSecret = value;
                 OnPropertyChanged();
-                OnSecretSelected();
+                //OnSecretSelected();
             }
         }
     }
@@ -131,6 +128,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         get => _searchText;
         set
         {
+            ResetCodeGenerationLabels();
             _searchText = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsSearchTextNotEmpty));
@@ -154,6 +152,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     #endregion
 
 
+    #region ### Constructor ###
     public MainViewModel(
         IMessageService msgService,
         IClipboardService clipboard,
@@ -175,6 +174,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     }
 
+    #endregion
+
     private void InitDataSource(IConfiguration config)
     {
         var secrets = config?.AsEnumerable()
@@ -193,9 +194,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         AddNewTotpCommand = new RelayCommand(AddNewTotp);
         DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
         DeleteSecretCommand2 = new BaseCommand(DeleteSecret2);
-        //SingleTapCommand = new RelayCommand(async () => await OnSingleTap());
-        SingleTapCommand = new AsyncCommand(OnSingleTap);
-        DoubleTapCommand = new RelayCommand<object>(OnDoubleTap);
+        //SingleTapCommand = new AsyncCommand(OnSingleTap);
+        //DoubleTapCommand = new RelayCommand<object>(OnDoubleTap);
 
         UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
         BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
@@ -221,29 +221,22 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         });
     }
 
-    private async Task OnSingleTap()
-    {
-        //MessageBox.Show("Single Tap executed.");
-        await OnSecretSelected();
-    }
+    #region ### OLD CODE ###
+    //private async Task OnSingleTap()
+    //{
+    //    //MessageBox.Show("Single Tap executed.");
+    //    //await OnSecretSelected();
+    //    Debug.WriteLine("OnSingelTap");
+    //}
 
-    private void OnDoubleTap(object parameter)
-    {
-        //var e = parameter as Syncfusion.UI.Xaml.Grid.GridCellDoubleTappedEventArgs;
-        //MessageBox.Show($"Double Tap executed on row {e?.RowColumnIndex.RowIndex}");
-
-
-    }
-
-    private void OnDoubleClick(SecretItem item)
-    {
-        foreach (var s in AllSecrets)
-            s.IsBeingEdited = false;
-
-        item.IsBeingEdited = !item.IsBeingEdited;
-        //OnPropertyChanged(nameof(ShowActionsColumn));
-    }
-
+    //private void OnDoubleTap(object parameter)
+    //{
+    //    Debug.WriteLine("OnDoubleTap");
+    //    isDoubleClick = true;
+    //    //var e = parameter as Syncfusion.UI.Xaml.Grid.GridCellDoubleTappedEventArgs;
+    //    //MessageBox.Show($"Double Tap executed on row {e?.RowColumnIndex.RowIndex}");
+    //}
+    #endregion
 
     private void AddNewTotp()
     {
@@ -282,9 +275,10 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         // Your deletion logic
     }
 
-    public string ViewModelTypeName => GetType().Name;
+     
 
 
+    #region ### Update logic ###
 
     public void UpdateSecret(SecretItem updated)
     {
@@ -298,7 +292,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     private void OnBeginEdit(SecretItem item)
     {
-        PreviousVersion = new SecretItem(item.Key, item.Value);
+        PreviousVersion = new SecretItem(item.Platform, item.Secret);
         item.IsBeingEdited = true;
         OnPropertyChanged(nameof(ShowActionsColumn));
     }
@@ -314,6 +308,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
         PreviousVersion = null;
     }
+    #endregion
+
 
 
     private static int _counter;
@@ -323,19 +319,54 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         return Interlocked.Increment(ref _counter);
     }
 
+    #region ### Row/Field Selection Logic  ###
 
+    bool isDoubleClick = false;
+    private async Task OnSelectionChangedAsync()
+    {
+        var currentKey = SelectedSecret.Platform;
+        await Task.Delay(300);
+        try
+        {
+            if (currentKey == SelectedSecret.Platform && !isDoubleClick)
+            {
+                //_msgService.ShowMessage(currentKey);
+                OnSecretSelected();
+            }
+        }
+        finally
+        {
+            isDoubleClick = false;
+        }
 
+    }
 
+    private void OnDoubleClick(SecretItem item)
+    {
+        isDoubleClick = true;
+        ResetCodeGenerationLabels();
 
+        foreach (var s in AllSecrets)
+            s.IsBeingEdited = false;
 
-    public bool IsContextmenuOpen { get; set; }
+        item.IsBeingEdited = !item.IsBeingEdited;
+        Debug.WriteLine("OnDoubleClick");
+        //OnPropertyChanged(nameof(ShowActionsColumn));
+    }
+
+    private void ResetCodeGenerationLabels()
+    {
+        CurrentCodeLabel = string.Empty;
+        IsCodeCopiedVisible = false;
+    }
+
     private async Task OnSecretSelected()
     {
         if (SelectedSecret != null && !SelectedSecret.IsBeingEdited && !IsContextmenuOpen)
         {
             try
             {
-                await CalculateAndDisplayTotpCode(SelectedSecret);
+                CalculateAndDisplayTotpCode(SelectedSecret);
             }
             catch (Exception ex)
             {
@@ -344,18 +375,22 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             }
         }
     }
+    #endregion
+
+
+    #region ### TOTP Code Generation Logic ###
 
     private async Task CalculateAndDisplayTotpCode(SecretItem secret)
     {
         string? totpCode = null;
         string? error = null;
 
-        if (_totpManager.TryComputeCode(secret.Value, out totpCode, out error))
+        if (_totpManager.TryComputeCode(secret.Secret, out totpCode, out error))
         {
             var localCounter = Increment(); // Increment the counter
 
             // Update the UI
-            CurrentCodeLabel = $"{secret.Key}: {totpCode}";
+            CurrentCodeLabel = $"{secret.Platform}: {totpCode}";
             _clipboard.SetText(totpCode);
 
             IsCodeCopiedVisible = true;
@@ -368,10 +403,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
         else
         {
-            _msgService.ShowMessage($"Error generating TOTP code for {secret.Key}: {error}", "Error");
+            _msgService.ShowMessage($"Error generating TOTP code for {secret.Platform}: {error}", "Error");
             await Task.FromResult(error);
         }
     }
+    #endregion
 
     private void SecretItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -379,6 +415,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             OnPropertyChanged(nameof(ShowActionsColumn));
     }
 
+    #region ### Search Logic ###
     private void ExecuteSearch()
     {
         UpdateFilter();
@@ -390,9 +427,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         var filtered = string.IsNullOrWhiteSpace(SearchText)
             ? AllSecrets
             : AllSecrets.Where(x =>
-                (x.Key?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
+                (x.Platform?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
         foreach (var item in filtered)
             FilteredSecrets.Add(item);
     }
-
+    #endregion
 }

@@ -113,7 +113,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         // Assert
         Assert.Single(vm.FilteredSecrets);
-        Assert.Equal("apple", vm.FilteredSecrets[0].Key);
+        Assert.Equal("apple", vm.FilteredSecrets[0].Platform);
     }
 
     [Fact]

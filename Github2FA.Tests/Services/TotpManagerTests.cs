@@ -22,7 +22,7 @@ public class TotpManagerTests
         // Arrange
         var dialog = _fixture.Freeze<Mock<IDialogService>>();
         var messageSvc = _fixture.Freeze<Mock<IMessageService>>();
-        var secretsHelper = _fixture.Freeze<Mock<ISecretsHelper>>();
+        var secretsHelper = _fixture.Freeze<Mock<ISecretsManager>>();
         var errorHandler = _fixture.Freeze<Mock<IErrorHandler>>();
 
         var manager = new TotpManager(
@@ -52,7 +52,7 @@ public class TotpManagerTests
         var totpManager = new TotpManager(
             Mock.Of<IDialogService>(),
             Mock.Of<IMessageService>(),
-            Mock.Of<ISecretsHelper>(),
+            Mock.Of<ISecretsManager>(),
             Mock.Of<IErrorHandler>()
         );
 

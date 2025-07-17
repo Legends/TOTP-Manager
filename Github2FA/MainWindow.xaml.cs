@@ -37,7 +37,7 @@ namespace Github2FA
             SkinManagerHelper.SetScrollBarMode(this, ScrollBarMode.Compact);
             
         }
- 
 
+        
     }
 }

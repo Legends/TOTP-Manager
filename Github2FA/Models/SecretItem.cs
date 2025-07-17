@@ -25,24 +25,26 @@ namespace Github2FA.Models
             }
         }
 
-        private string _key;
-        public string Key
+        private string _platform;
+        public string Platform
         {
-            get => _key;
-            set { _key = value; OnPropertyChanged(); }
+            get => _platform;
+            set { _platform = value; OnPropertyChanged(); }
         }
 
-        private string _value;
-        public string Value
+        private string _secret;
+        public string Secret
         {
-            get => _value;
-            set { _value = value; OnPropertyChanged(); }
+            get => _secret;
+            set { _secret = value; OnPropertyChanged(); }
         }
-        public SecretItem(string k, string v)
+        public SecretItem(string p, string s)
         {
-            Key = k;
-            Value = v;
+            Platform = p;
+            Secret = s;
         }
+
+        public string Account { get; set; }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null) =>
@@ -51,8 +53,8 @@ namespace Github2FA.Models
         public bool Equals(SecretItem? other)
         {
             return other is not null &&
-                   Key == other.Key &&
-                   Value == other.Value;
+                   Platform == other.Platform &&
+                   Secret == other.Secret;
         }
 
         protected Dictionary<string, object> BackUp()

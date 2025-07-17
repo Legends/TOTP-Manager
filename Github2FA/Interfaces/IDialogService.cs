@@ -9,7 +9,7 @@ namespace Github2FA.Interfaces
     public interface IDialogService
     {
         /// <summary>
-        /// Shows a Key/Value entry dialog and returns the result.
+        /// Shows a Platform/Secret entry dialog and returns the result.
         /// </summary>
         /// <returns>
         /// Tuple (success, key, value), where 'success' is true if OK was pressed, false if canceled.

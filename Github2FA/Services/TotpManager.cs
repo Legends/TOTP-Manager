@@ -11,13 +11,13 @@ public class TotpManager : ITotpManager
 {
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
-    private readonly ISecretsHelper _secretsHelper;
+    private readonly ISecretsManager _secretsHelper;
     private readonly IErrorHandler _errorHandler;
 
     public TotpManager(
         IDialogService dialogService,
         IMessageService messageService,
-        ISecretsHelper secretsHelper,
+        ISecretsManager secretsHelper,
         IErrorHandler errorHandler)
     {
         _dialogService = dialogService;
@@ -112,8 +112,8 @@ public class TotpManager : ITotpManager
 
             if (!previous.Equals(updated))
             {
-                _secretsHelper.UpdateItemInSecretsFile(previous.Key, updated);
-                _messageService.ShowMessage($"Updated secret: {previous.Key}");
+                _secretsHelper.UpdateItemInSecretsFile(previous.Platform, updated);
+                _messageService.ShowMessage($"Updated secret: {previous.Platform}");
             }
         }
         catch (Exception ex)
@@ -135,12 +135,12 @@ public class TotpManager : ITotpManager
                 return false;
 
             var shouldDelete = _messageService.ShowMessageDialog(
-                $"Are you sure you want to delete the secret: {item.Key}?",
+                $"Are you sure you want to delete the secret: {item.Platform}?",
                 "Confirm Delete");
 
             if (shouldDelete)
             {
-                _secretsHelper.DeleteItemFromSecretsFile(item.Key);
+                _secretsHelper.DeleteItemFromSecretsFile(item.Platform);
                 return true;
             }
             return false;

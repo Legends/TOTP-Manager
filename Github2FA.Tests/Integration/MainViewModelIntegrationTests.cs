@@ -1,5 +1,4 @@
-﻿using Github2FA.Helper;
-using Github2FA.Interfaces;
+﻿using Github2FA.Interfaces;
 using Github2FA.Models;
 using Github2FA.Services;
 using Github2FA.ViewModels;
@@ -35,7 +34,7 @@ public class MainViewModelIntegrationTests
         // All real services except TotpManager
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IMessageService, MessageService>();
-        services.AddSingleton<ISecretsHelper, SecretsHelper>();
+        services.AddSingleton<ISecretsManager, SecretsManager>();
         services.AddSingleton<IErrorHandler, ErrorHandler>();
         services.AddSingleton<IClipboardService, ClipboardService>();
         services.AddSingleton<IDebounceService, DebounceService>();
@@ -73,6 +72,6 @@ public class MainViewModelIntegrationTests
 
         // Assert
         Assert.Equal(initialCount + 1, vm.AllSecrets.Count);
-        Assert.Contains(vm.AllSecrets, s => s.Key == "MyKey" && s.Value == "MySecret");
+        Assert.Contains(vm.AllSecrets, s => s.Platform == "MyKey" && s.Secret == "MySecret");
     }
 }
