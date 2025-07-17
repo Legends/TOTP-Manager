@@ -13,8 +13,8 @@
   <ItemGroup>
     <None Remove="Assets\Icons\delete-24x24.svg" />
     <None Remove="Assets\Icons\plus-24x24.svg" />
-    <None Remove="Assets\Icons\find-24x24.svg" />     
-    <None Remove="app.ico" />
+    <None Remove="Assets\Icons\find-24x24.svg" />
+    <None Remove="totp.ico" />
   </ItemGroup>
 
    
@@ -56,14 +56,10 @@
     <Resource Include="Assets\Icons\find-24x24.svg" />    
     <Resource Include="Assets\Icons\app.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="totp.ico">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
+    </Resource>    
+    <Content Include="totp.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
