@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:Github2FA.Converters;assembly=Github2FA">
+   
     <Style x:Key="WindowStyle1" TargetType="{x:Type Window}">
         <Setter Property="Template">
             <Setter.Value>

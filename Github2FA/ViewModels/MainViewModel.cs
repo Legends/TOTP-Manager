@@ -57,6 +57,29 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     #region ### PROPERTIES AND VARS ###
 
+    private double _codeLabelOpacity = 0.0;
+    public double CodeLabelOpacity
+    {
+        get => _codeLabelOpacity;
+        set
+        {
+            if (_codeLabelOpacity != value)
+            {
+                _codeLabelOpacity = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private int _codeLabelHeight = 0;
+
+    public int CodeLabelHeight
+    {
+        get { return _codeLabelHeight; }
+        set { _codeLabelHeight = value; OnPropertyChanged(); }
+    }
+
+
     private BitmapImage _qrCodeImage;
     public BitmapImage QrCodeImage
     {
@@ -112,16 +135,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
     }
 
-    private bool _isCodeCopiedVisible;
-    public bool IsCodeCopiedVisible
-    {
-        get => _isCodeCopiedVisible;
-        set
-        {
-            _isCodeCopiedVisible = value;
-            OnPropertyChanged();
-        }
-    }
 
     public SecretItem PreviousVersion { get; set; }
 
@@ -134,6 +147,42 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             _isSearchVisible = value; OnPropertyChanged();
         }
     }
+
+    private bool _isCodeCopiedVisible;
+    public bool IsCodeCopiedVisible
+    {
+        get => _isCodeCopiedVisible;
+        set
+        {
+            _isCodeCopiedVisible = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private bool _ssQrVisible;
+
+    public bool IsQrVisible
+    {
+        get { return _ssQrVisible; }
+        set
+        {
+            _ssQrVisible = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private bool _IsCodeLabelVisible;
+
+    public bool IsCodeLabelVisible
+    {
+        get { return _IsCodeLabelVisible; }
+        set
+        {
+            _IsCodeLabelVisible = value;
+            OnPropertyChanged();
+        }
+    }
+
 
     private string _searchText;
     public string SearchText
@@ -278,6 +327,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             AllSecrets.Remove(item);
             OnPropertyChanged(nameof(AllSecrets));
             UpdateFilter();
+            ResetCodeGenerationLabels();
         }
     }
 
@@ -362,11 +412,22 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         //OnPropertyChanged(nameof(ShowActionsColumn));
     }
 
+    void showCodeLabels()
+    {
+        CodeLabelHeight = 40;
+        IsCodeCopiedVisible = true;
+        IsCodeLabelVisible = true;
+        IsQrVisible = true;
+
+    }
     private void ResetCodeGenerationLabels()
     {
-        CurrentCodeLabel = string.Empty;
+        CodeLabelHeight = 0;
         IsCodeCopiedVisible = false;
+        IsQrVisible = false;
+        IsCodeLabelVisible = false;
         QrCodeImage = null;
+        CurrentCodeLabel = string.Empty;
     }
 
     private async Task OnSecretSelected()
@@ -404,14 +465,19 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
         if (_totpManager.TryComputeCode(secret.Secret, out totpCode, out error))
         {
-
+            ResetCodeGenerationLabels();
+            // if the user clicks on another row right after the currently selected row, the counter gets incremented
+            // as this is an async function and we use a async delay below, we check if the counter is the same, so we know
+            // the user didnt click on another row meanwhile and
+            // we can therefore make the label lblCopiedCode invisible otherwise we dont
             var localCounter = Increment(); // Increment the counter
 
             // Update the UI
             CurrentCodeLabel = $"{secret.Platform}: {totpCode}";
             _clipboard.SetText(totpCode);
             QrCodeImage = _qrService.GenerateQr(secret.Platform, secret.Secret, secret.Account);
-            IsCodeCopiedVisible = true;
+
+            showCodeLabels();
 
             await _delayService.Delay(2000);
             if (IsCodeCopiedVisible && localCounter == _counter)
@@ -450,4 +516,5 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             FilteredSecrets.Add(item);
     }
     #endregion
+
 }
