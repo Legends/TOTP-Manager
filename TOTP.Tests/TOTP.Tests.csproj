@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Github2FA\Github2FA.csproj" />
+    <ProjectReference Include="..\TOTP\TOTP.Manager.csproj" />
   </ItemGroup>
 
   <ItemGroup>

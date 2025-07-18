@@ -28,7 +28,7 @@ public class SecretsManager : ISecretsManager
 
     private void Init()
     {
-        csprojPath = @"E:\Repos\Github2FA\Github2FA\Github2FA.csproj";
+        csprojPath = @"E:\Repos\Github2FA\TOTP\TOTP.Manager.csproj";
         var csprojXDocument = XDocument.Load(csprojPath);
         userSecretsId = csprojXDocument.Descendants("UserSecretsId").FirstOrDefault()?.Value ?? string.Empty;
     }
