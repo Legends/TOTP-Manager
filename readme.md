@@ -18,3 +18,21 @@ Run:
 Or delete icon cache manually:
 
 	del %localappdata%\IconCache.db /a
+
+
+## "Send to Desktop" Quirk
+When you "Send to Desktop", Windows uses cached metadata from a prior version of the file — or even old icon data embedded in the PE header.
+
+To fix:
+
+Delete the old shortcut from the desktop.
+
+Create a new shortcut manually:
+
+>Right-click desktop → New → Shortcut
+
+Point to your TOTP.Manager.exe
+
+After it's created, right-click → Properties → Confirm the icon is correct
+
+If still wrong, click "Change Icon" again → Re-select the one embedded.

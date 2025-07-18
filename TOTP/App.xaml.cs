@@ -42,7 +42,13 @@ namespace Github2FA
                     .Enrich.FromLogContext()
                     .WriteTo.Console() // 
                     .WriteTo.Debug()
-                    .WriteTo.File("Logs/app.log", rollingInterval: RollingInterval.Day);
+                    .WriteTo.File("Logs/app.log",
+                                    rollingInterval: RollingInterval.Day,
+                                    retainedFileCountLimit: 7, // Keep logs for 7 days
+                                    fileSizeLimitBytes: 10485760, // 10 MB max per file
+                                    rollOnFileSizeLimit: true // Create new file if size exceeds limit
+                                );
+
             })
                 .ConfigureServices((context, services) =>
                 {
@@ -93,7 +99,7 @@ namespace Github2FA
                 exArgs.SetObserved();
             };
         }
- 
+
 
         private static void RegisterSyncfusionLicenseKey(IConfigurationRoot configuration)
         {
