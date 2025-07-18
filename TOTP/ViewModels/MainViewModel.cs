@@ -3,6 +3,7 @@ using Github2FA.Helper;
 using Github2FA.Interfaces;
 using Github2FA.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -56,6 +57,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     #endregion REGION SERVICES
 
     #region ### PROPERTIES AND VARS ###
+
+    private readonly ILogger<MainViewModel> _logger;
 
     private double _codeLabelOpacity = 0.0;
     public double CodeLabelOpacity
@@ -213,9 +216,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     #endregion
 
-
     #region ### Constructor ###
     public MainViewModel(
+        ILogger<MainViewModel> logger,
         IQrCodeService svcQR,
         IMessageService msgService,
         IClipboardService clipboard,
@@ -224,6 +227,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         IDebounceService debounceService,
         IDelayService delayService) // NEW
     {
+        _logger = logger;
         _qrService = svcQR;
         _delayService = delayService;
         _msgService = msgService;
@@ -306,13 +310,23 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     private void AddNewTotp()
     {
-
-        var (success, item) = _totpManager.PromptAndAddTotp();
-        if (success && item != null)
+        try
         {
-            AllSecrets.Add(item);
-            OnPropertyChanged(nameof(AllSecrets));
-            UpdateFilter();
+
+            var (success, item) = _totpManager.PromptAndAddTotp();
+            if (success && item != null)
+            {
+                ResetCodeGenerationLabels();
+                AllSecrets.Add(item);
+                OnPropertyChanged(nameof(AllSecrets));
+                UpdateFilter();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding new TOTP!");
+            _msgService.ShowMessage("Error adding new TOTP! Check the log file.");
         }
     }
 
@@ -322,13 +336,22 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         if (item == null)
             return;
 
-        if (_totpManager.DeleteSecret(item))
+        try
         {
-            AllSecrets.Remove(item);
-            OnPropertyChanged(nameof(AllSecrets));
-            UpdateFilter();
-            ResetCodeGenerationLabels();
+            if (_totpManager.DeleteSecret(item))
+            {
+                AllSecrets.Remove(item);
+                OnPropertyChanged(nameof(AllSecrets));
+                UpdateFilter();
+                ResetCodeGenerationLabels();
+            }
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting secret");
+            _msgService.ShowMessage($"Error deleting secret: {ex.Message}", "Error");
+        }
+
     }
 
     // working, but no mvvm
@@ -350,9 +373,18 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         if (updated == null || PreviousVersion == null)
             return;
 
-        _totpManager.UpdateSecret(PreviousVersion, updated);
-        PreviousVersion = null;
-        UpdateFilter();
+        try
+        {
+            _totpManager.UpdateSecret(PreviousVersion, updated);
+            PreviousVersion = null;
+            UpdateFilter();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating secret");
+            _msgService.ShowMessage($"Error updating secret: {ex.Message}", "Error");
+        }
+
     }
 
     private void OnBeginEdit(SecretItem item)
@@ -391,6 +423,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
                 //_msgService.ShowMessage(currentKey);
                 OnSecretSelected();
             }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error selecting secret");
+            _msgService.ShowMessage($"Error selecting secret: {e.Message}", "Error");
         }
         finally
         {
@@ -436,10 +473,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         {
             try
             {
-                CalculateAndDisplayTotpCode(SelectedSecret);
+                await CalculateAndDisplayTotpCode(SelectedSecret);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error generating TOTP code");
                 // This is still here because it's specific to TOTP encoding
                 _msgService.ShowMessage($"{ex.Message}", "Error");
             }
@@ -463,34 +501,45 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         string? totpCode = null;
         string? error = null;
 
-        if (_totpManager.TryComputeCode(secret.Secret, out totpCode, out error))
+        try
         {
-            ResetCodeGenerationLabels();
-            // if the user clicks on another row right after the currently selected row, the counter gets incremented
-            // as this is an async function and we use a async delay below, we check if the counter is the same, so we know
-            // the user didnt click on another row meanwhile and
-            // we can therefore make the label lblCopiedCode invisible otherwise we dont
-            var localCounter = Increment(); // Increment the counter
 
-            // Update the UI
-            CurrentCodeLabel = $"{secret.Platform}: {totpCode}";
-            _clipboard.SetText(totpCode);
-            QrCodeImage = _qrService.GenerateQr(secret.Platform, secret.Secret, secret.Account);
-
-            showCodeLabels();
-
-            await _delayService.Delay(2000);
-            if (IsCodeCopiedVisible && localCounter == _counter)
+            if (_totpManager.TryComputeCode(secret.Secret, out totpCode, out error))
             {
-                IsCodeCopiedVisible = false;
+                ResetCodeGenerationLabels();
+                // if the user clicks on another row right after the currently selected row, the counter gets incremented
+                // as this is an async function and we use a async delay below, we check if the counter is the same, so we know
+                // the user didnt click on another row meanwhile and
+                // we can therefore make the label lblCopiedCode invisible otherwise we dont
+                var localCounter = Increment(); // Increment the counter
+
+                // Update the UI
+                CurrentCodeLabel = $"{secret.Platform}: {totpCode}";
+                _clipboard.SetText(totpCode);
+                QrCodeImage = _qrService.GenerateQr(secret.Platform, secret.Secret, secret.Account);
+
+                showCodeLabels();
+
+                await _delayService.Delay(2000);
+                if (IsCodeCopiedVisible && localCounter == _counter)
+                {
+                    IsCodeCopiedVisible = false;
+                }
             }
+            else
+            {
+                _msgService.ShowMessage($"Error generating TOTP code for {secret.Platform}: {error}", "Error");
+                await Task.FromResult(error);
+            }
+
         }
-        else
+        catch (Exception)
         {
-            _msgService.ShowMessage($"Error generating TOTP code for {secret.Platform}: {error}", "Error");
-            await Task.FromResult(error);
+            throw;
         }
     }
+
+
     #endregion
 
     private void SecretItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -502,7 +551,15 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     #region ### Search Logic ###
     private void ExecuteSearch()
     {
-        UpdateFilter();
+        try
+        {
+            UpdateFilter();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error filtering secrets");
+            _msgService.ShowMessage($"Error filtering secrets: {ex.Message}", "Error");
+        }
     }
 
     private void UpdateFilter()

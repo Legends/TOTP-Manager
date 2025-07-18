@@ -1,30 +1,20 @@
-﻿## Adding a new secret code to your project
+﻿## Windows Icon Cache Not Refreshed
 
-	Right-lick your project => Manage user secretes
+Windows caches icons aggressively. Try this first:
 
-Add a new secret code like:
+🔄 Refresh Windows Explorer icon cache
+Press Ctrl + F5 in the folder where your .exe is.
 
-```json
-{
-  "github": "NXYZPPWERLMK4"
-}
-```
+If that doesn’t help:
 
-## Tool for generating 2FA codes for example Github
+Open cmd.exe as Administrator.
 
-Just run the tool and generate a code
-
-The github secret key can originally be obtained from here:
- https://github.com/settings/security?type=app#two-factor-summary
+Run:
  
- > Click => Two-Factor methods: => Authenticator app => ... => Edit
- 
- Either you scan the QR code now with your phone or you click on the link below to get the secret code/key:
- "You can use the >> setup key << to manually configure your authenticator app."
- Now right-click your VS project and click "Manage user secrets" and add the key there like:
+	ie4uinit.exe -ClearIconCache
+	taskkill /IM explorer.exe /F
+	start explorer.exe
 
-	 {
-	  "github": "NXYZPPWERLMK4"
-	 }
+Or delete icon cache manually:
 
-User secrets are not persisted to git repository!
+	del %localappdata%\IconCache.db /a

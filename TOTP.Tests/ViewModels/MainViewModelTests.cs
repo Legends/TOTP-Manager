@@ -203,7 +203,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         try
         {
-            var method = vm.GetType().GetMethod("OnSingleTap", BindingFlags.NonPublic | BindingFlags.Instance);
+            var method = vm.GetType().GetMethod("OnSecretSelected", BindingFlags.NonPublic | BindingFlags.Instance);
             await (Task)method.Invoke(vm, null);
         }
         catch (Exception ex) { throw; }
