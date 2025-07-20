@@ -1,4 +1,20 @@
-﻿# Moq.AutoMock vs Autofixture.AutoMoq
+<!-- TOC-START (DO NOT REMOVE OR CHANGE COMMENT!) -->
+**Table of Contents**
+- [Moq.AutoMock vs Autofixture.AutoMoq](#moqautomock-vs-autofixtureautomoq)
+  - [xUnit.v3](#xunit.v3)
+  - [**Moq.AutoMock**](#moq.automock)
+  - [**AutoFixture.AutoMoq**](#autofixture.automoq)
+  - [**When to pick which?**](#when-to-pick-which)
+  - [**Tip**](#tip)
+  - [Example Class Under Test](#example-class-under-test)
+- [Example 1: Using **Moq.AutoMock**](#example-1-using-moq.automock)
+- [Example 2: Using **AutoFixture.AutoMoq**](#example-2-using-autofixture.automoq)
+- [Bonus Example: AutoFixture Generating Data](#bonus-example-autofixture-generating-data)
+- [Moq.AutoMock Recap](#moq.automock-recap)
+- [AutoFixture.AutoMoq Recap](#autofixture.automoq-recap)
+<!-- TOC-END (DO NOT REMOVE OR CHANGE COMMENT!) -->
+
+# Moq.AutoMock vs Autofixture.AutoMoq
 
 Great question—let’s break this down clearly so you can choose the best tool for your testing scenario.
 
@@ -12,7 +28,7 @@ Below is a side-by-side comparison of **Moq.AutoMock** and **AutoFixture.AutoMoq
 
 We use `xUnit.v3 `nuget package
 
-## 🟢 **Moq.AutoMock**
+## **Moq.AutoMock**
 
 **Library:** [Moq.AutoMocker](https://github.com/moq/moq4/wiki/Quickstart#automocker)
 
@@ -66,7 +82,7 @@ var result = service.DoWork();
 
 ---
 
-## 🟣 **AutoFixture.AutoMoq**
+## **AutoFixture.AutoMoq**
 
 **Library:** [AutoFixture](https://github.com/AutoFixture/AutoFixture)
 
@@ -125,7 +141,7 @@ depMock.Setup(x => x.DoSomething()).Returns(99);
 
 ---
 
-## ⚖️ **When to pick which?**
+## **When to pick which?**
 
 | **Scenario**                                              | **Better Option**     |
 | --------------------------------------------------------- | --------------------- |
@@ -136,7 +152,7 @@ depMock.Setup(x => x.DoSomething()).Returns(99);
 
 ---
 
-## 🛠️ **Tip**
+## **Tip**
 
 If you are already comfortable with AutoFixture and like auto-generated data, **AutoFixture.AutoMoq** will feel extremely productive.
 If you prefer more explicit control over what you mock and don’t need generated test data, **Moq.AutoMock** is simpler and more predictable.
@@ -148,7 +164,7 @@ I’ll use a simple example service:
 
 ---
 
-## 🎯 Example Class Under Test
+## Example Class Under Test
 
 ```csharp
 public interface ILogger
@@ -185,7 +201,7 @@ We want to test `CalculateAndLog`.
 
 ---
 
-# 🟢 Example 1: Using **Moq.AutoMock**
+# Example 1: Using Moq.AutoMock
 
 This is **focused purely on mocking**:
 
@@ -237,7 +253,7 @@ No test data generation.
 
 ---
 
-# 🟣 Example 2: Using **AutoFixture.AutoMoq**
+# Example 2: Using **AutoFixture.AutoMoq**
 
 This is **richer**—it can auto-create the SUT **and** other data.
 
@@ -290,7 +306,7 @@ public class MyServiceTests
 
 ---
 
-# 🟡 Bonus Example: AutoFixture Generating Data
+# Bonus Example: AutoFixture Generating Data
 
 To illustrate why AutoFixture is also great for **auto-generated inputs**, look at this:
 
@@ -323,7 +339,7 @@ public void CalculateAndLog_WithRandomNumbers_LogsCorrectly()
 
 ---
 
-# 🟢 Moq.AutoMock Recap
+# Moq.AutoMock Recap
 
 **✅ Good for:**
 
@@ -337,7 +353,7 @@ public void CalculateAndLog_WithRandomNumbers_LogsCorrectly()
 
 ---
 
-# 🟣 AutoFixture.AutoMoq Recap
+# AutoFixture.AutoMoq Recap
 
 **✅ Good for:**
 

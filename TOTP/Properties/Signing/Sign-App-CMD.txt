@@ -1,0 +1,9 @@
+﻿Execute in root folder "TOTP" to sign the assembly with a PFX certificate.
+
+"C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe" sign ^
+  /f totp-signing-cert.pfx ^
+  /p freerunner ^
+  /tr http://timestamp.digicert.com ^
+  /td sha256 ^
+  /fd sha256 ^
+  "bin\Release\net9.0-windows7.0\TOTP.Manager.exe"

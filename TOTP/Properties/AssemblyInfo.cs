@@ -1,3 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("TOTP.Tests")]
+[assembly: InternalsVisibleTo("TOTP.Tests, PublicKey=002400000480000094000000060200000024000052534131000400000100010099f4449145c5f3\r\n7f4715bbfc7b3393d2fdfd569adcb13022e232f8f06c45337f89a82a346e35ed16951747815659\r\n04b34d81922c0d1fbe62febeda403133dcbe7d871c76023605d7bdd9ee6f43771b1c1e248af864\r\n24fab9f96f0aceb1d912d52e268cd125f36ff9dcf16e99c410f60a93dac22efbebc5518edf10dd\r\n160eeac7")]
+
