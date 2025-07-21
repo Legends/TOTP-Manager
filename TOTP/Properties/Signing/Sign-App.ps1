@@ -11,7 +11,7 @@ $TimestampUrl = "http://timestamp.digicert.com"
 # Search for your built .exe file dynamically
 $ExePath = Get-ChildItem -Path ".\bin\Release" -Recurse -Filter "TOTP.Manager.exe" | Select-Object -First 1
 
-#try
+#try sds
 
 if (-not $ExePath) {
     Write-Error "❌ Executable not found. Did you build the project in Release mode?"
