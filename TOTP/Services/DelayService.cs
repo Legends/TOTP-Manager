@@ -1,5 +1,5 @@
-﻿using TOTP.Interfaces;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using TOTP.Interfaces;
 
 namespace TOTP.Services;
 

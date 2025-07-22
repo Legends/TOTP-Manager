@@ -1,8 +1,8 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
+using Moq;
 using TOTP.Interfaces;
 using TOTP.Services;
-using Moq;
 
 namespace TOTP.Tests.Services;
 

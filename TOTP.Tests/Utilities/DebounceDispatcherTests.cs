@@ -1,7 +1,7 @@
 ﻿namespace TOTP.Tests.Utilities;
 
-using TOTP.Helper;
 using System.Threading.Tasks;
+using TOTP.Helper;
 using Xunit;
 
 public class DebounceDispatcherTests

@@ -1,7 +1,7 @@
-﻿using TOTP.Models;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
+using TOTP.Models;
 
 public interface IMainViewModel : INotifyPropertyChanged
 {

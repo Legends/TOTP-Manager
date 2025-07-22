@@ -1,9 +1,9 @@
 ﻿namespace TOTP.Services;
 
-using TOTP.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.Windows.Threading;
+using TOTP.Interfaces;
 
 public class DebounceService : IDebounceService
 {

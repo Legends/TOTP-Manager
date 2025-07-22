@@ -1,8 +1,8 @@
-﻿using TOTP.Interfaces;
-using TOTP.Models;
-using OtpNet;
+﻿using OtpNet;
 using System;
 using System.Text.RegularExpressions;
+using TOTP.Interfaces;
+using TOTP.Models;
 
 namespace TOTP.Services;
 

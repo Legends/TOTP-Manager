@@ -1,6 +1,6 @@
-﻿using TOTP.Commands;
-using Syncfusion.UI.Xaml.Grid;
+﻿using Syncfusion.UI.Xaml.Grid;
 using System.Windows.Input;
+using TOTP.Commands;
 
 namespace TOTP.Helper;
 

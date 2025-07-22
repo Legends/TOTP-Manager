@@ -1,6 +1,6 @@
-﻿using TOTP.ViewModels;
-using Syncfusion.Windows.Shared;
+﻿using Syncfusion.Windows.Shared;
 using System.Windows;
+using TOTP.ViewModels;
 
 //ControlNamespace###
 

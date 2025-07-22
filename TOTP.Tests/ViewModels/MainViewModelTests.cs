@@ -1,12 +1,12 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
-using TOTP.Interfaces;
-using TOTP.Models;
-using TOTP.ViewModels;
 using Moq;
 using Moq.AutoMock;
 using System.Diagnostics;
 using System.Reflection;
+using TOTP.Interfaces;
+using TOTP.Models;
+using TOTP.ViewModels;
 
 namespace TOTP.Tests.ViewModels;
 

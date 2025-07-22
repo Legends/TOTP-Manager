@@ -1,6 +1,6 @@
-﻿using TOTP.Interfaces;
-using System;
+﻿using System;
 using System.IO;
+using TOTP.Interfaces;
 
 namespace TOTP.Services;
 

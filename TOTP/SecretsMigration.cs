@@ -1,9 +1,9 @@
-﻿using TOTP.Interfaces;
-using TOTP.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using TOTP.Interfaces;
+using TOTP.Models;
 
 namespace TOTP.Manager
 {

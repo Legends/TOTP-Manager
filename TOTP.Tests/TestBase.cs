@@ -1,16 +1,4 @@
-﻿using TOTP.Interfaces;
-using TOTP.Models;
-using TOTP.ViewModels;
-using Microsoft.Extensions.Configuration;
-using Moq;
-using Moq.AutoMock;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TOTP.Tests
+﻿namespace TOTP.Tests
 {
     public class TestBase
     {
