@@ -11,19 +11,24 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
-namespace Github2FA
-{
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
-    {
-        private IHost _host;
-        ILogger<App>? _logger;
-        //public static IServiceProvider Services { get; private set; }
-        public App()
-        {
+using TOTP.Manager.Logging;
 
+namespace Github2FA;
+
+/// <summary>
+/// Interaction logic for App.xaml
+/// </summary>
+public partial class App : Application, IDisposable
+{
+    private IHost _host;
+    ILogger<App>? _logger;
+    //public static IServiceProvider Services { get; private set; }
+    public App()
+    {
+        LoggingConfigurator.SetupEarlyLogger();
+
+        try
+        {
             SetupUnhandledExceptionsHooks();
 
             // Build configuration first to get secrets
@@ -34,119 +39,120 @@ namespace Github2FA
             // Create the host builder
             CreateHostAndConfigureServices(configuration);
         }
-
-        private static IConfigurationRoot BuildConfiguration()
+        catch (Exception ex)
         {
-            return new ConfigurationBuilder()
-                .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
-                .Build();
+            Log.Error(ex, "An error occurred during application startup.");
         }
+    }
 
-        private void CreateHostAndConfigureServices(IConfigurationRoot configuration)
-        {
-            _host = Host.CreateDefaultBuilder().UseSerilog((context, services, config) =>
+
+    // can be removed
+    private static IConfigurationRoot BuildConfiguration()
+    {
+        return new ConfigurationBuilder()
+            .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
+            .Build();
+    }
+
+    private void CreateHostAndConfigureServices(IConfigurationRoot configuration)
+    {
+        _host = Host.CreateDefaultBuilder().UseSerilog(LoggingConfigurator.ConfigureWithHostContext, preserveStaticLogger: true)
+            .ConfigureServices((context, services) =>
             {
-                config
-                    .Enrich.FromLogContext()
-                    .WriteTo.Console() // 
-                    .WriteTo.Debug()
-                    .WriteTo.File("Logs/app.log",
-                                    rollingInterval: RollingInterval.Day,
-                                    retainedFileCountLimit: 7, // Keep logs for 7 days
-                                    fileSizeLimitBytes: 10485760, // 10 MB max per file
-                                    rollOnFileSizeLimit: true // Create new file if size exceeds limit
-                                );
+                // Register configuration so it can be injected
+                services.AddSingleton<IConfiguration>(configuration);
+                services.AddSingleton<IClipboardService, ClipboardService>();
+                services.AddSingleton<IDelayService, DelayService>();
 
+                // Register services
+                services.AddSingleton<IQrCodeService, QrCodeService>();
+                services.AddSingleton<IDebounceService, DebounceService>();
+                services.AddSingleton<IDialogService, DialogService>();
+                services.AddSingleton<IMessageService, MessageService>();
+                services.AddSingleton<ISecretsManager, SecretsManager>();
+                services.AddSingleton<IErrorHandler, ErrorHandler>();
+                services.AddSingleton<ITotpManager, TotpManager>();
+
+                // Register ViewModels
+                services.AddSingleton<IMainViewModel, MainViewModel>();
+
+                // Register MainWindow
+                services.AddSingleton<MainWindow>();
+
+                //Services = services.BuildServiceProvider();
             })
-                .ConfigureServices((context, services) =>
-                {
-                    // Register configuration so it can be injected
-                    services.AddSingleton<IConfiguration>(configuration);
-                    services.AddSingleton<IClipboardService, ClipboardService>();
-                    services.AddSingleton<IDelayService, DelayService>();
-
-                    // Register services
-                    services.AddSingleton<IQrCodeService, QrCodeService>();
-                    services.AddSingleton<IDebounceService, DebounceService>();
-                    services.AddSingleton<IDialogService, DialogService>();
-                    services.AddSingleton<IMessageService, MessageService>();
-                    services.AddSingleton<ISecretsManager, SecretsManager>();
-                    services.AddSingleton<IErrorHandler, ErrorHandler>();
-                    services.AddSingleton<ITotpManager, TotpManager>();
-
-                    // Register ViewModels
-                    services.AddSingleton<IMainViewModel, MainViewModel>();
-
-                    // Register MainWindow
-                    services.AddSingleton<MainWindow>();
-
-                    //Services = services.BuildServiceProvider();
-                })
-                .Build();
+            .Build();
 
 
-            //var messageService = new MessageService(); // Or a mock if not needed
-            //var targetManager = new SecretsManager(messageService);
+        //var messageService = new MessageService(); // Or a mock if not needed
+        //var targetManager = new SecretsManager(messageService);
 
-            //SecretsMigration.MigrateFromUserSecrets("6f888768-43da-4da8-9820-96b854382d72", targetManager);
-        }
+        //SecretsMigration.MigrateFromUserSecrets("6f888768-43da-4da8-9820-96b854382d72", targetManager);
+    }
 
-        private void SetupUnhandledExceptionsHooks()
+    private void SetupUnhandledExceptionsHooks()
+    {
+
+        this.DispatcherUnhandledException += (s, exArgs) =>
         {
+            _logger?.LogError(exArgs.Exception, "Unhandled UI thread exception");
+            MessageBox.Show("A critical UI error occurred. Check logs.");
+            exArgs.Handled = true;
+        };
 
-            this.DispatcherUnhandledException += (s, exArgs) =>
-            {
-                _logger.LogError(exArgs.Exception, "Unhandled UI thread exception");
-                MessageBox.Show("A critical UI error occurred. Check logs.");
-                exArgs.Handled = true;
-            };
-
-            AppDomain.CurrentDomain.UnhandledException += (s, exArgs) =>
-            {
-                _logger.LogError(exArgs.ExceptionObject as Exception, "Unhandled domain exception");
-                MessageBox.Show("A fatal error occurred. Check logs.");
-            };
-
-            TaskScheduler.UnobservedTaskException += (s, exArgs) =>
-            {
-                _logger.LogError(exArgs.Exception, "Unobserved task exception");
-                exArgs.SetObserved();
-            };
-        }
-
-
-        private static void RegisterSyncfusionLicenseKey(IConfigurationRoot configuration)
+        AppDomain.CurrentDomain.UnhandledException += (s, exArgs) =>
         {
-            // Register Syncfusion license
-            var syncfusionLicense = configuration["syncfusion"];
-            if (!string.IsNullOrEmpty(syncfusionLicense))
-                SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
-        }
+            _logger?.LogError(exArgs.ExceptionObject as Exception, "Unhandled domain exception");
+            MessageBox.Show("A fatal error occurred. Check logs.");
+        };
 
-        protected override async void OnStartup(StartupEventArgs e)
+        TaskScheduler.UnobservedTaskException += (s, exArgs) =>
         {
-            base.OnStartup(e);
+            _logger?.LogError(exArgs.Exception, "Unobserved task exception");
+            exArgs.SetObserved();
+        };
+    }
 
-            _logger?.LogInformation("Application startup triggered.");
 
-            // Start the host
-            await _host.StartAsync();
+    private static void RegisterSyncfusionLicenseKey(IConfigurationRoot configuration)
+    {
+        // Register Syncfusion license
+        var syncfusionLicense = configuration["syncfusion"];
+        if (!string.IsNullOrEmpty(syncfusionLicense))
+            SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
+    }
 
-            // Show the main window via DI
-            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-            mainWindow.Show();
-        }
+    protected override async void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
 
-        protected override async void OnExit(ExitEventArgs e)
-        {
-            // Gracefully shut down the host
-            if (_host != null)
-                await _host.StopAsync();
+        // Start the host
+        await _host.StartAsync();
 
-            _host?.Dispose();
+        // 🔥 Resolve logger now that DI container is available
+        _logger = _host.Services.GetRequiredService<ILogger<App>>();
+        _logger.LogInformation("Application startup triggered.");
 
-            base.OnExit(e);
-        }
+        // Show the main window via DI
+        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+        mainWindow.Show();
+    }
 
+    protected override async void OnExit(ExitEventArgs e)
+    {
+        // Gracefully shut down the host
+        if (_host != null)
+            await _host.StopAsync();
+
+        _host?.Dispose();
+
+        Log.CloseAndFlush();
+
+        base.OnExit(e);
+    }
+
+    public void Dispose()
+    {
+        throw new NotImplementedException();
     }
 }
