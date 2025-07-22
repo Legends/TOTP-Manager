@@ -26,13 +26,23 @@ namespace Github2FA
             SetupUnhandledExceptionsHooks();
 
             // Build configuration first to get secrets
-            var configuration = new ConfigurationBuilder()
-                .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
-                .Build();
+            IConfigurationRoot configuration = BuildConfiguration();
 
             RegisterSyncfusionLicenseKey(configuration);
 
             // Create the host builder
+            CreateHostAndConfigureServices(configuration);
+        }
+
+        private static IConfigurationRoot BuildConfiguration()
+        {
+            return new ConfigurationBuilder()
+                .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
+                .Build();
+        }
+
+        private void CreateHostAndConfigureServices(IConfigurationRoot configuration)
+        {
             _host = Host.CreateDefaultBuilder().UseSerilog((context, services, config) =>
             {
                 config
