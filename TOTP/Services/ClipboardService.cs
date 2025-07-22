@@ -8,7 +8,7 @@ using System.Windows;
 
 namespace Github2FA.Services
 {
-    internal class ClipboardService : IClipboardService
+    public class ClipboardService : IClipboardService
     {
         public void SetText(string text)
         {
