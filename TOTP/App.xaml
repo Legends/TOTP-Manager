@@ -5,9 +5,9 @@
              xmlns:converters="clr-namespace:TOTP.Converters">
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Dictionary1.xaml" />
-            </ResourceDictionary.MergedDictionaries>           
+            <!--<ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/GlobalResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>-->           
         </ResourceDictionary>
     </Application.Resources>
 
