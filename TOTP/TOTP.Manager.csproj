@@ -20,12 +20,6 @@
 		<None Remove="Assets\Icons\find-24x24.svg" />
 	</ItemGroup>
 
-
-
-	<ItemGroup>
-		<None Include="..\readme.md" Link="readme.md" />
-	</ItemGroup>
-
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.7" />
@@ -65,6 +59,7 @@
 		<Content Include="totp.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+		<None Include="..\dev-helper.md" Link="dev-helper.md" />
 		<Resource Include="Assets\backgrounds\background-main.png" />
 		<Resource Include="Assets\Icons\delete-24x24.svg" />
 		<Resource Include="Assets\Icons\plus-24x24.svg" />
