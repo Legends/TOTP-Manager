@@ -25,29 +25,7 @@ public class MainViewModelIntegrationTests
     public void AddNewTotpCommand_ShouldAddSecret_WhenTotpManagerReturnsSuccess()
     {
         var services = new ServiceCollection();
-
-        // 🔧 Use Serilog for logging
-        var logger = new LoggerConfiguration()
-            .WriteTo.File("Logs/test.log", rollingInterval: RollingInterval.Day)
-            .MinimumLevel.Debug()
-            .CreateLogger();
-
-        services.AddSingleton<ILoggerFactory>(new SerilogLoggerFactory(logger));
-        services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
-
-        // Real services
-        services.AddSingleton<IDialogService, DialogService>();
-        services.AddSingleton<IMessageService, MessageService>();
-        services.AddSingleton<ISecretsManager, SecretsManager>();
-        services.AddSingleton<IErrorHandler, ErrorHandler>();
-        services.AddSingleton<IClipboardService, ClipboardService>();
-        services.AddSingleton<IDebounceService, DebounceService>();
-        services.AddSingleton<IDelayService, DelayService>();
-        services.AddSingleton<IQrCodeService, QrCodeService>();
-
-        // Configuration
-        var config = new ConfigurationBuilder().Build();
-        services.AddSingleton<IConfiguration>(config);
+        ConfigureServices(services);
 
         // Mock only TotpManager
         var secretItem = new SecretItem("MyKey", "MySecret");
@@ -80,5 +58,31 @@ public class MainViewModelIntegrationTests
         // Assert
         Assert.Equal(initialCount + 1, vm.AllSecrets.Count);
         Assert.Contains(vm.AllSecrets, s => s.Platform == "MyKey" && s.Secret == "MySecret");
+    }
+
+    private static void ConfigureServices(ServiceCollection services)
+    {
+        // 🔧 Use Serilog for logging
+        var logger = new LoggerConfiguration()
+            .WriteTo.File("Logs/test.log", rollingInterval: RollingInterval.Day)
+            .MinimumLevel.Debug()
+            .CreateLogger();
+
+        services.AddSingleton<ILoggerFactory>(new SerilogLoggerFactory(logger));
+        services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+
+        // Real services
+        services.AddSingleton<IDialogService, DialogService>();
+        services.AddSingleton<IMessageService, MessageService>();
+        services.AddSingleton<ISecretsManager, SecretsManager>();
+        services.AddSingleton<IErrorHandler, ErrorHandler>();
+        services.AddSingleton<IClipboardService, ClipboardService>();
+        services.AddSingleton<IDebounceService, DebounceService>();
+        services.AddSingleton<IDelayService, DelayService>();
+        services.AddSingleton<IQrCodeService, QrCodeService>();
+
+        // Configuration
+        var config = new ConfigurationBuilder().Build();
+        services.AddSingleton<IConfiguration>(config);
     }
 }
