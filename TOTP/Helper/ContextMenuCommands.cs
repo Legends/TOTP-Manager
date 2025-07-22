@@ -1,17 +1,12 @@
 ﻿using Github2FA.Commands;
 using Syncfusion.UI.Xaml.Grid;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Github2FA.Helper;
 
 public static class ContextMenuCommands
 {
-   
+
     static ICommand cut;
     public static ICommand Cut
     {

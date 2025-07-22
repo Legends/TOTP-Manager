@@ -1,39 +1,37 @@
 ﻿using Github2FA.Interfaces;
 using System;
 using System.IO;
-using System.Windows;
 
-namespace Github2FA.Services
+namespace Github2FA.Services;
+
+public class ErrorHandler : IErrorHandler
 {
-    public class ErrorHandler : IErrorHandler
+    IMessageService _msgSvc;
+    public ErrorHandler(IMessageService msgSvc)
     {
-        IMessageService _msgSvc;
-        public ErrorHandler(IMessageService msgSvc)
-        {
-            _msgSvc = msgSvc ?? throw new ArgumentNullException(nameof(msgSvc));
-        }
-        public void Handle(Exception exception, string userMessage)
-        {
-            // 1. Show user-friendly message
-            _msgSvc.ShowMessage(
-                $"{userMessage}\n\nDetails:\n{exception.Message}",
-                "Error");
+        _msgSvc = msgSvc ?? throw new ArgumentNullException(nameof(msgSvc));
+    }
+    public void Handle(Exception exception, string userMessage)
+    {
+        // 1. Show user-friendly message
+        _msgSvc.ShowMessage(
+            $"{userMessage}\n\nDetails:\n{exception.Message}",
+            "Error");
 
-            // 2. Log details (optional)
-            LogException(exception);
-        }
+        // 2. Log details (optional)
+        LogException(exception);
+    }
 
-        private void LogException(Exception ex)
+    private void LogException(Exception ex)
+    {
+        try
         {
-            try
-            {
-                var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
-                File.AppendAllText(logPath, $"[{DateTime.Now}] {ex}\n\n");
-            }
-            catch
-            {
-                // Swallow logging exceptions
-            }
+            var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
+            File.AppendAllText(logPath, $"[{DateTime.Now}] {ex}\n\n");
+        }
+        catch
+        {
+            // Swallow logging exceptions
         }
     }
 }

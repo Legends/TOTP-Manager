@@ -2,7 +2,6 @@
 using Github2FA.Models;
 using OtpNet;
 using System;
-using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
 namespace Github2FA.Services;

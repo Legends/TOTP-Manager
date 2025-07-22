@@ -1,23 +1,20 @@
 ﻿using Github2FA.Interfaces;
-using Syncfusion.Windows.Shared;
 using System.Windows;
 
-namespace Github2FA.Services
+namespace Github2FA.Services;
+
+
+
+public class MessageService : IMessageService
 {
-
-
-    public class MessageService : IMessageService
+    public void ShowMessage(string message, string caption = "Info")
     {
-        public void ShowMessage(string message, string caption = "Info")
-        {
-            MessageBox.Show(message, caption);
-        }
-
-        public bool ShowMessageDialog(string message, string caption = "Info")
-        {
-            var result = MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question);
-            return result == MessageBoxResult.Yes;
-        }
+        MessageBox.Show(message, caption);
     }
 
+    public bool ShowMessageDialog(string message, string caption = "Info")
+    {
+        var result = MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question);
+        return result == MessageBoxResult.Yes;
+    }
 }

@@ -1,42 +1,36 @@
 ﻿using Github2FA.Interfaces;
 using Github2FA.Windows;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
-namespace Github2FA.Services
+namespace Github2FA.Services;
+
+public class DialogService : IDialogService
 {
-    public class DialogService : IDialogService
+    public (bool success, string? key, string? value) ShowKeyValueDialog()
     {
-        public (bool success, string? key, string? value) ShowKeyValueDialog()
+        var dlg = new KeyValueDialog
         {
-            var dlg = new KeyValueDialog
-            {
-                Owner = System.Windows.Application.Current?.MainWindow
-            };
-            var result = dlg.ShowDialog() == true;
-            return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
-        }
-
-        public (bool success, string? key, string? value) ShowKeyValueDialog(string? initialKey = null, string? initialValue = null)
-        {
-            var dlg = new KeyValueDialog
-            {
-                Owner = Application.Current?.MainWindow
-            };
-
-            if (initialKey != null)
-                dlg.ViewModel.Platform = initialKey;
-
-            if (initialValue != null)
-                dlg.ViewModel.Secret = initialValue;
-
-            var result = dlg.ShowDialog() == true;
-            return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
-        }
-
+            Owner = System.Windows.Application.Current?.MainWindow
+        };
+        var result = dlg.ShowDialog() == true;
+        return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
     }
+
+    public (bool success, string? key, string? value) ShowKeyValueDialog(string? initialKey = null, string? initialValue = null)
+    {
+        var dlg = new KeyValueDialog
+        {
+            Owner = Application.Current?.MainWindow
+        };
+
+        if (initialKey != null)
+            dlg.ViewModel.Platform = initialKey;
+
+        if (initialValue != null)
+            dlg.ViewModel.Secret = initialValue;
+
+        var result = dlg.ShowDialog() == true;
+        return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
+    }
+
 }

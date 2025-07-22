@@ -1,54 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Github2FA.Services;
 
-namespace Github2FA.Services
+using Github2FA.Interfaces;
+using System;
+using System.Collections.Concurrent;
+using System.Windows.Threading;
+
+public class DebounceService : IDebounceService
 {
-    using Github2FA.Interfaces;
-    using System;
-    using System.Collections.Concurrent;
-    using System.Windows.Threading;
+    private readonly ConcurrentDictionary<string, DispatcherTimer> _timers = new();
 
-    public class DebounceService : IDebounceService
+    public void Debounce(string key, int milliseconds, Action action)
     {
-        private readonly ConcurrentDictionary<string, DispatcherTimer> _timers = new();
-
-        public void Debounce(string key, int milliseconds, Action action)
+        if (_timers.TryGetValue(key, out var timer))
         {
-            if (_timers.TryGetValue(key, out var timer))
-            {
-                timer.Stop();
-            }
-            else
-            {
-                timer = new DispatcherTimer();
-                _timers[key] = timer;
-            }
-
-            timer.Interval = TimeSpan.FromMilliseconds(milliseconds);
-            timer.Tick -= OnTimerTick; // Prevent duplicate
-            timer.Tick += OnTimerTick;
-
-            void OnTimerTick(object? sender, EventArgs e)
-            {
-                timer.Stop();
-                timer.Tick -= OnTimerTick;
-                _timers.TryRemove(key, out _);
-                action();
-            }
-
-            timer.Start();
+            timer.Stop();
+        }
+        else
+        {
+            timer = new DispatcherTimer();
+            _timers[key] = timer;
         }
 
-        public void Cancel(string key)
+        timer.Interval = TimeSpan.FromMilliseconds(milliseconds);
+        timer.Tick -= OnTimerTick; // Prevent duplicate
+        timer.Tick += OnTimerTick;
+
+        void OnTimerTick(object? sender, EventArgs e)
         {
-            if (_timers.TryRemove(key, out var timer))
-            {
-                timer.Stop();
-            }
+            timer.Stop();
+            timer.Tick -= OnTimerTick;
+            _timers.TryRemove(key, out _);
+            action();
         }
+
+        timer.Start();
     }
 
+    public void Cancel(string key)
+    {
+        if (_timers.TryRemove(key, out var timer))
+        {
+            timer.Stop();
+        }
+    }
 }

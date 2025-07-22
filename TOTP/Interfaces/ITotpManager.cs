@@ -1,4 +1,4 @@
-﻿ using Github2FA.Models;
+﻿using Github2FA.Models;
 
 namespace Github2FA.Interfaces
 {
@@ -10,7 +10,7 @@ namespace Github2FA.Interfaces
         /// <returns>bool for success and the secretItem/null</returns>
         (bool success, SecretItem? item) PromptAndAddTotp();
         bool TryComputeCode(string secret, out string? code, out string? error);
-      
+
         void UpdateSecret(SecretItem previous, SecretItem updated);
 
         /// <summary>

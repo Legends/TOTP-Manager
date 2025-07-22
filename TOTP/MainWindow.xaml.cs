@@ -1,19 +1,6 @@
-﻿using Github2FA.Interfaces;
-using Github2FA.Models;
-using Github2FA.ViewModels;
-using Syncfusion.SfSkinManager;
-using Syncfusion.UI.Xaml.Grid;
+﻿using Syncfusion.SfSkinManager;
 using Syncfusion.Windows.Shared;
 using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media.Imaging;
 
 
 namespace Github2FA
@@ -35,9 +22,9 @@ namespace Github2FA
             DataContext = vm;
             _vm = vm ?? throw new ArgumentNullException(nameof(vm));
             SkinManagerHelper.SetScrollBarMode(this, ScrollBarMode.Compact);
-            
+
         }
 
-        
+
     }
 }

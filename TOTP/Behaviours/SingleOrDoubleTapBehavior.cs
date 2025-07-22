@@ -1,18 +1,15 @@
-﻿using System;
+﻿using Microsoft.Xaml.Behaviors;
+using Syncfusion.UI.Xaml.Grid;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
-using Microsoft.Xaml.Behaviors;
-using Syncfusion.UI.Xaml.Grid;
 
 
 namespace Github2FA.Behaviors;
 
 public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 {
-    
+
     private bool _doubleTapOccurred;
 
     public int TapDelay
@@ -49,7 +46,7 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 
         AssociatedObject.CellTapped += AssociatedObject_CellTapped;
         AssociatedObject.CellDoubleTapped += AssociatedObject_CellDoubleTapped;
- 
+
     }
 
     protected override void OnDetaching()
@@ -58,7 +55,7 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 
         AssociatedObject.CellTapped -= AssociatedObject_CellTapped;
         AssociatedObject.CellDoubleTapped -= AssociatedObject_CellDoubleTapped;
- 
+
     }
 
     private void AssociatedObject_CellTapped(object sender, GridCellTappedEventArgs e)
@@ -72,7 +69,7 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 
         //    if (!_doubleTapOccurred)
         //    {
-                //InvokeSingleTap();
+        //InvokeSingleTap();
         //    }
         //});
     }
@@ -84,7 +81,7 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 
         //if (DoubleTapCommand != null && DoubleTapCommand.CanExecute(e))
         //{
-            DoubleTapCommand.Execute(e);
+        DoubleTapCommand.Execute(e);
         //}
     }
 

@@ -2,17 +2,11 @@
 using AutoFixture.AutoMoq;
 using Github2FA.Interfaces;
 using Github2FA.Models;
-using Github2FA.Services;
 using Github2FA.ViewModels;
-using Microsoft.Extensions.Configuration;
 using Moq;
 using Moq.AutoMock;
-using Syncfusion.Windows.Controls.Input;
 using System.Diagnostics;
 using System.Reflection;
-using Xunit;
-using Xunit.Sdk;
-using static System.Net.WebRequestMethods;
 
 namespace Github2FA.Tests.ViewModels;
 

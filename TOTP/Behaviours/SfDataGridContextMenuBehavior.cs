@@ -1,8 +1,6 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using Github2FA.ViewModels;
-using Microsoft.Xaml.Behaviors;
+﻿using Microsoft.Xaml.Behaviors;
 using Syncfusion.UI.Xaml.Grid;
+using System.Windows;
 
 namespace Github2FA.Behaviors;
 
@@ -12,7 +10,7 @@ public class SfDataGridContextMenuBehavior : Behavior<SfDataGrid>
     protected override void OnAttached()
     {
         base.OnAttached();
-     
+
         AssociatedObject.GridContextMenuOpening += OnContextMenuOpening;
     }
 

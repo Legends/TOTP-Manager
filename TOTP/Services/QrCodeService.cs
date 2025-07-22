@@ -1,8 +1,8 @@
-﻿using QRCoder;
+﻿using Github2FA.Interfaces;
+using QRCoder;
 using System.Drawing;
-using System.Windows.Media.Imaging;
 using System.IO;
-using Github2FA.Interfaces;
+using System.Windows.Media.Imaging;
 
 namespace Github2FA.Services;
 

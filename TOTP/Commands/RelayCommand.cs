@@ -3,59 +3,57 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 
 
-namespace Github2FA.Commands
+namespace Github2FA.Commands;
+
+public class RelayCommand<T> : ICommand
 {
-    public class RelayCommand<T> : ICommand
+    private readonly Action<T> _execute;
+    private readonly Func<T, bool>? _canExecute;
+
+    public RelayCommand(Action<T> execute, Func<T, bool>? canExecute = null)
     {
-        private readonly Action<T> _execute;
-        private readonly Func<T, bool>? _canExecute;
-
-        public RelayCommand(Action<T> execute, Func<T, bool>? canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public event EventHandler? CanExecuteChanged;
-
-        public bool CanExecute(object? parameter)
-        {
-            return _canExecute == null || _canExecute((T)parameter!);
-        }
-
-        public void Execute(object? parameter)
-        {
-            _execute((T)parameter!);
-        }
-
-        public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
     }
 
-    public class RelayCommand : ICommand
+    public event EventHandler? CanExecuteChanged;
+
+    public bool CanExecute(object? parameter)
     {
-        private readonly Action _execute;
-        private readonly Func<Task> _executeAsync;
-        private readonly Func<bool>? _canExecute;
-
-        public RelayCommand(Action execute, Func<bool>? canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        //public RelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
-        //{
-        //    _executeAsync = execute ?? throw new ArgumentNullException(nameof(execute));
-        //    _canExecute = canExecute;
-        //}
-
-        public event EventHandler? CanExecuteChanged;
-
-        public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;
-        public void Execute(object? parameter) => _execute();
-        public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        return _canExecute == null || _canExecute((T)parameter!);
     }
 
+    public void Execute(object? parameter)
+    {
+        _execute((T)parameter!);
+    }
+
+    public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+}
+
+public class RelayCommand : ICommand
+{
+    private readonly Action _execute;
+    private readonly Func<Task> _executeAsync;
+    private readonly Func<bool>? _canExecute;
+
+    public RelayCommand(Action execute, Func<bool>? canExecute = null)
+    {
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
+    }
+
+    //public RelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
+    //{
+    //    _executeAsync = execute ?? throw new ArgumentNullException(nameof(execute));
+    //    _canExecute = canExecute;
+    //}
+
+    public event EventHandler? CanExecuteChanged;
+
+    public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;
+    public void Execute(object? parameter) => _execute();
+    public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }
 
 

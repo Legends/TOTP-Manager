@@ -1,7 +1,5 @@
 ﻿using Github2FA.Interfaces;
 using Github2FA.Models;
-using Microsoft.Extensions.Configuration;
-using Syncfusion.ProjIO;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
