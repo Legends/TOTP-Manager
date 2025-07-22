@@ -20,8 +20,6 @@ public class BoolToVisibilityConverterCollapsed : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is Visibility v)
-            return v == Visibility.Visible;
-        return false;
+        return value is Visibility v && v == Visibility.Visible;
     }
 }

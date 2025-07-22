@@ -203,7 +203,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     public bool IsSearchTextNotEmpty => !string.IsNullOrEmpty(_searchText);
 
-    private readonly DebounceDispatcher _debouncer = new DebounceDispatcher();
+    private readonly DebounceDispatcher _debouncer = new();
 
     #endregion REGION PROPERTIES AND VARS
 

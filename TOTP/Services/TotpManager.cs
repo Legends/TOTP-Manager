@@ -90,14 +90,9 @@ public class TotpManager : ITotpManager
         {
             code = null;
 
-            if (ex is FormatException || ex is ArgumentException)
-            {
-                error = "Invalid secret format. Please ensure it is a valid Base32 string.";
-            }
-            else
-            {
-                error = $"An unexpected error occurred while computing the TOTP code.{Environment.NewLine}{ex.Message}";
-            }
+            error = ex is FormatException || ex is ArgumentException
+                ? "Invalid secret format. Please ensure it is a valid Base32 string."
+                : $"An unexpected error occurred while computing the TOTP code.{Environment.NewLine}{ex.Message}";
             return false;
         }
     }
@@ -166,13 +161,10 @@ public class TotpManager : ITotpManager
 
     // Base32 encoding: Only uppercase letters (A–Z) and digits 2–7
     // ❌ No lowercase letters, symbols, or whitespace
-    private static readonly Regex Base32Regex = new Regex("^[A-Z2-7]+=*$", RegexOptions.None);
+    private static readonly Regex Base32Regex = new("^[A-Z2-7]+=*$", RegexOptions.None);
 
     public bool IsValidBase32Strict(string input)
     {
-        if (string.IsNullOrEmpty(input))
-            return false;
-
-        return Base32Regex.IsMatch(input);
+        return !string.IsNullOrEmpty(input) && Base32Regex.IsMatch(input);
     }
 }

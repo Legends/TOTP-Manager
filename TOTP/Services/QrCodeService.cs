@@ -18,17 +18,17 @@ public class QrCodeService : IQrCodeService
     /// <returns></returns>
     BitmapImage GenerateQrCodeImage(string uri)
     {
-        QRCodeGenerator qrGenerator = new QRCodeGenerator();
+        QRCodeGenerator qrGenerator = new();
         QRCodeData qrCodeData = qrGenerator.CreateQrCode(uri, QRCodeGenerator.ECCLevel.Q);
-        QRCode qrCode = new QRCode(qrCodeData);
+        QRCode qrCode = new(qrCodeData);
         Bitmap qrBitmap = qrCode.GetGraphic(20);
 
-        using (MemoryStream ms = new MemoryStream())
+        using (MemoryStream ms = new())
         {
             qrBitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
             ms.Position = 0;
 
-            BitmapImage bitmapImage = new BitmapImage();
+            BitmapImage bitmapImage = new();
             bitmapImage.BeginInit();
             bitmapImage.StreamSource = ms;
             bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
