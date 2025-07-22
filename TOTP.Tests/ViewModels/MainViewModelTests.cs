@@ -176,7 +176,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         // Auto-resolve all dependencies
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        string capturedText = null;
+        string? capturedText = null;
 
         mocker.GetMock<IClipboardService>().Setup(c => c.SetText(It.IsAny<string>()))
                    .Callback<string>(text => capturedText = text);
@@ -184,7 +184,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         mocker.GetMock<ITotpManager>().Setup(m => m.TryComputeCode(It.IsAny<string>(), out It.Ref<string>.IsAny, out It.Ref<string>.IsAny))
             .Returns(true)
-            .Callback((string input, out string code, out string error) =>
+            .Callback((string input, out string code, out string? error) =>
             {
                 code = "123456";
                 error = null;

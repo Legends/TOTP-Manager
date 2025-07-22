@@ -60,7 +60,7 @@ public class DebounceDispatcherTests
     {
         // Arrange
         var debounce = new DebounceDispatcher();
-        string result = null;
+        string? result = null;
 
         // Act
         debounce.Debounce(100, () => result = "First");

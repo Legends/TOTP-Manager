@@ -84,7 +84,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
 
     private BitmapImage _qrCodeImage;
-    public BitmapImage QrCodeImage
+    public BitmapImage? QrCodeImage
     {
         get => _qrCodeImage;
         set
@@ -139,7 +139,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     }
 
 
-    public SecretItem PreviousVersion { get; set; }
+    public SecretItem? PreviousVersion { get; set; }
 
     private bool _isSearchVisible = false;
     public bool IsSearchVisible
@@ -209,7 +209,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     #region ### Events ###
     public event PropertyChangedEventHandler? PropertyChanged;
-    protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

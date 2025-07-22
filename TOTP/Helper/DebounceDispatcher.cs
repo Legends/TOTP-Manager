@@ -6,7 +6,7 @@ namespace Github2FA.Helper;
 public class DebounceDispatcher
 {
     private DispatcherTimer? _timer;
-    private Action _action;
+    private Action? _action;
 
     /// <summary>
     /// Debounce is called repeatedly when typing into the textbox, once for each character.

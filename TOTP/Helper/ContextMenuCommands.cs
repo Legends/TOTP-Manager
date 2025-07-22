@@ -7,7 +7,7 @@ namespace Github2FA.Helper;
 public static class ContextMenuCommands
 {
 
-    static ICommand cut;
+    static ICommand? cut;
     public static ICommand Cut
     {
         get

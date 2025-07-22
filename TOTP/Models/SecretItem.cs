@@ -44,7 +44,7 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
     public string Account { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-    protected void OnPropertyChanged([CallerMemberName] string name = null) =>
+    protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
     public bool Equals(SecretItem? other)
@@ -68,7 +68,7 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
         return dict;
     }
 
-    private Dictionary<string, object> storedValues;
+    private Dictionary<string, object>? storedValues;
 
     public void BeginEdit()
     {

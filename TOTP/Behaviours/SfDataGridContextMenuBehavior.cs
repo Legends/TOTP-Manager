@@ -6,7 +6,7 @@ namespace Github2FA.Behaviors;
 
 public class SfDataGridContextMenuBehavior : Behavior<SfDataGrid>
 {
-    IMainViewModel _vm;
+    IMainViewModel? _vm;
     protected override void OnAttached()
     {
         base.OnAttached();
