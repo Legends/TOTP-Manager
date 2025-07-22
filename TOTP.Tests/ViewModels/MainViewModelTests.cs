@@ -200,7 +200,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
             var method = vm.GetType().GetMethod("OnSecretSelected", BindingFlags.NonPublic | BindingFlags.Instance);
             await (Task)method.Invoke(vm, null);
         }
-        catch (Exception ex) { throw; }
+        catch (Exception) { throw; }
 
         delayMock.Verify(d => d.Delay(It.IsAny<int>()), Times.Once);
 
