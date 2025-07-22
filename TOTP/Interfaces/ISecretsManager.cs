@@ -1,12 +1,15 @@
 ﻿using Github2FA.Models;
+using System.Collections.Generic;
 
 namespace Github2FA.Interfaces
 {
     public interface ISecretsManager
     {
-        bool AddNewItemToSecretsFile(string key, string value);
-        bool DeleteItemFromSecretsFile(string key);
-        bool UpdateItemInSecretsFile(string prevKey, SecretItem updated);
+        List<SecretItem> GetAllSecrets();
+        bool AddNewItem(SecretItem item);
+        bool UpdateItem(string previousPlatform, SecretItem updated);
+        bool DeleteItem(string platform);
         bool BackupSecretsFile();
     }
+
 }

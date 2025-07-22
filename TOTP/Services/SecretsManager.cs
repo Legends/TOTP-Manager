@@ -5,149 +5,133 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace Github2FA.Services;
 
 public class SecretsManager : ISecretsManager
 {
-    string csprojPath;
-    string userSecretsId;
-    string secretsPath;
-    IMessageService _messageService;
+    private readonly string secretsPath;
+    private readonly IMessageService _messageService;
 
-    public SecretsManager(IMessageService svcMsg)
+    public SecretsManager(IMessageService messageService)
     {
-        _messageService = svcMsg;
-        Init();
+        _messageService = messageService;
+
+        string appDataDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "TOTP-Manager");
+
+        Directory.CreateDirectory(appDataDir);
+        secretsPath = Path.Combine(appDataDir, "secrets.dat");
+
         BackupSecretsFile();
     }
 
-    private void Init()
+    public List<SecretItem> GetAllSecrets()
     {
-        csprojPath = @"E:\Repos\TOTP-Manager-App\TOTP\TOTP.Manager.csproj";
-        var csprojXDocument = XDocument.Load(csprojPath);
-        userSecretsId = csprojXDocument.Descendants("UserSecretsId").FirstOrDefault()?.Value ?? string.Empty;
+        var (ok, list) = ReadSecretsFile();
+        return ok ? list : new List<SecretItem>();
     }
 
-    public bool DeleteItemFromSecretsFile(string key)
+    public bool AddNewItem(SecretItem newItem)
     {
-        if (!getSecretsPath())
-            return false;
+        var (ok, list) = ReadSecretsFile();
+        if (!ok) return false;
 
-        var json = File.ReadAllText(secretsPath);
-        var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new();
-
-        if (dict.Remove(key))
+        // Don't allow duplicates by platform
+        if (list.Any(x => x.Platform == newItem.Platform))
         {
-            var success = UpdateSecretsFile(dict);
-            return success;
-        }
-        Debug.WriteLine($"Key '{key}' not found in secrets.");
-        return false;
-
-    }
-
-    public bool AddNewItemToSecretsFile(string key, string value)
-    {
-
-        if (!getSecretsPath())
-            return false;
-
-        var json = File.Exists(secretsPath)
-            ? File.ReadAllText(secretsPath)
-            : "{}";
-
-        var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new();
-
-        // Set or update a secret
-        dict[key] = value;
-
-        var success = UpdateSecretsFile(dict);
-        return success;
-
-    }
-
-    public bool UpdateItemInSecretsFile(string prevKey, SecretItem updated)
-    {
-        (bool hasRead, Dictionary<string, string> dict) = ReadSecretsFile();
-
-        if (!hasRead)
-        {
+            _messageService.ShowMessageDialog($"Platform '{newItem.Platform}' already exists.", "Error");
             return false;
         }
 
-        if (prevKey == updated.Platform)// just update the value
-        {
-            dict[prevKey] = updated.Secret;
-        }
-        else // key has changed, we need to remove the old key and add the new one
-        {
-            if (dict.ContainsKey(prevKey))
-            {
-                dict.Remove(prevKey);
-            }
-            dict[updated.Platform] = updated.Secret; // add or update the new key
-        }
-
-        var success = UpdateSecretsFile(dict);
-        return success;
+        list.Add(newItem);
+        return WriteEncryptedFile(list);
     }
 
-    private (bool flowControl, Dictionary<string, string> dict) ReadSecretsFile()
+    public bool DeleteItem(string platform)
     {
-        Dictionary<string, string>? dict = default;
-        try
+        var (ok, list) = ReadSecretsFile();
+        if (!ok) return false;
+
+        var existing = list.FirstOrDefault(x => x.Platform == platform);
+        if (existing == null)
         {
-            if (!getSecretsPath())
-                return (flowControl: false, dict: default);
-
-            var json = File.Exists(secretsPath)
-                ? File.ReadAllText(secretsPath)
-                : "{}";
-
-            dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new();
-
+            Debug.WriteLine($"Platform '{platform}' not found.");
+            return false;
         }
-        catch (Exception ex)
-        {
-            _messageService.ShowMessageDialog($"Error reading secrets file: {ex.Message}", "Error");
-            return (flowControl: false, dict: default);
-        }
-        return (flowControl: true, dict);
+
+        list.Remove(existing);
+        return WriteEncryptedFile(list);
     }
 
-    private bool UpdateSecretsFile(Dictionary<string, string> dict)
+    public bool UpdateItem(string previousPlatform, SecretItem updated)
+    {
+        var (ok, list) = ReadSecretsFile();
+        if (!ok) return false;
+
+        var existing = list.FirstOrDefault(x => x.Platform == previousPlatform);
+        if (existing == null)
+        {
+            _messageService.ShowMessageDialog("Platform not found.", "Error");
+            return false;
+        }
+
+        list.Remove(existing);
+        list.Add(updated);
+        return WriteEncryptedFile(list);
+    }
+
+    private (bool, List<SecretItem>) ReadSecretsFile()
     {
         try
         {
-            string newJson = JsonSerializer.Serialize(dict, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(secretsPath, newJson);
+            if (!File.Exists(secretsPath))
+                return (true, new List<SecretItem>());
+
+            byte[] encrypted = File.ReadAllBytes(secretsPath);
+            byte[] decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
+            string json = Encoding.UTF8.GetString(decrypted);
+
+            var list = JsonSerializer.Deserialize<List<SecretItem>>(json) ?? new();
+            return (true, list);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error updating secrets: {ex.Message}");
-            _messageService.ShowMessageDialog($"Error updating secrets file: {ex.Message}", "Error");
+            _messageService.ShowMessageDialog($"Failed to read secrets: {ex.Message}", "Error");
+            return (false, default!);
+        }
+    }
+
+    private bool WriteEncryptedFile(List<SecretItem> list)
+    {
+        try
+        {
+            string json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
+            byte[] data = Encoding.UTF8.GetBytes(json);
+            byte[] encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
+            File.WriteAllBytes(secretsPath, encrypted);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _messageService.ShowMessageDialog($"Failed to save secrets: {ex.Message}", "Error");
             return false;
         }
-
-        return true;
     }
+
     public bool BackupSecretsFile()
     {
         try
         {
-            if (!getSecretsPath())
-            {
-                _messageService.ShowMessageDialog("Secrets file not found. Backup failed.", "Error");
-                return false;
-            }
+            if (!File.Exists(secretsPath)) return false;
 
-            string dir = Path.GetDirectoryName(secretsPath) ?? "";
+            string dir = Path.GetDirectoryName(secretsPath)!;
             string file = Path.GetFileName(secretsPath);
 
-            // Rotate old backups
             for (int i = 5; i >= 1; i--)
             {
                 string oldBackup = Path.Combine(dir, $"{file}.bak{i}");
@@ -155,49 +139,21 @@ public class SecretsManager : ISecretsManager
 
                 if (File.Exists(oldBackup))
                 {
-                    // Delete the oldest
-                    if (i == 5 && File.Exists(oldBackup))
-                        File.Delete(oldBackup);
-
-                    // Move (rename) to next
-                    if (i < 5)
-                        File.Move(oldBackup, nextBackup, true);
+                    if (i == 5) File.Delete(oldBackup);
+                    else File.Move(oldBackup, nextBackup, true);
                 }
             }
 
-            // Create newest backup
             string firstBackup = Path.Combine(dir, $"{file}.bak1");
             File.Copy(secretsPath, firstBackup, true);
 
-            Debug.WriteLine($"Backup created at {firstBackup}");
+            Debug.WriteLine($"Backup created: {firstBackup}");
             return true;
-
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error creating backup: {ex.Message}");
-            _messageService.ShowMessageDialog($"Error creating backup: {ex.Message}", "Error");
+            _messageService.ShowMessageDialog($"Backup failed: {ex.Message}", "Error");
             return false;
         }
-    }
-    bool getSecretsPath()
-    {
-        if (string.IsNullOrWhiteSpace(userSecretsId))
-        {
-            Debug.WriteLine("No UserSecretsId found in .csproj.");
-            return false;
-        }
-
-        secretsPath = Path.Combine(
-           Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-           "Microsoft", "UserSecrets", userSecretsId, "secrets.json"
-       );
-
-        if (!File.Exists(secretsPath))
-        {
-            Debug.WriteLine($"Secrets file not found at {secretsPath}.");
-            return false;
-        }
-        return true;
     }
 }

@@ -10,18 +10,18 @@ public class TotpManager : ITotpManager
 {
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
-    private readonly ISecretsManager _secretsHelper;
+    private readonly ISecretsManager _SecretsManager;
     private readonly IErrorHandler _errorHandler;
 
     public TotpManager(
         IDialogService dialogService,
         IMessageService messageService,
-        ISecretsManager secretsHelper,
+        ISecretsManager secretsManager,
         IErrorHandler errorHandler)
     {
         _dialogService = dialogService;
         _messageService = messageService;
-        _secretsHelper = secretsHelper;
+        _SecretsManager = secretsManager;
         _errorHandler = errorHandler;
     }
 
@@ -58,7 +58,7 @@ public class TotpManager : ITotpManager
                     continue;
                 }
 
-                if (_secretsHelper.AddNewItemToSecretsFile(key, value))
+                if (_SecretsManager.AddNewItem(new SecretItem(key, value)))
                 {
                     var item = new SecretItem(key, value);
                     return (true, item);
@@ -106,7 +106,7 @@ public class TotpManager : ITotpManager
 
             if (!previous.Equals(updated))
             {
-                _secretsHelper.UpdateItemInSecretsFile(previous.Platform, updated);
+                _SecretsManager.UpdateItem(previous.Platform, updated);
                 _messageService.ShowMessage($"Updated secret: {previous.Platform}");
             }
         }
@@ -134,7 +134,7 @@ public class TotpManager : ITotpManager
 
             if (shouldDelete)
             {
-                _secretsHelper.DeleteItemFromSecretsFile(item.Platform);
+                _SecretsManager.DeleteItem(item.Platform);
                 return true;
             }
             return false;

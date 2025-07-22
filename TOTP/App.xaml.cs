@@ -23,6 +23,7 @@ namespace Github2FA
         //public static IServiceProvider Services { get; private set; }
         public App()
         {
+
             SetupUnhandledExceptionsHooks();
 
             // Build configuration first to get secrets
@@ -82,6 +83,12 @@ namespace Github2FA
                     //Services = services.BuildServiceProvider();
                 })
                 .Build();
+
+
+            //var messageService = new MessageService(); // Or a mock if not needed
+            //var targetManager = new SecretsManager(messageService);
+
+            //SecretsMigration.MigrateFromUserSecrets("6f888768-43da-4da8-9820-96b854382d72", targetManager);
         }
 
         private void SetupUnhandledExceptionsHooks()

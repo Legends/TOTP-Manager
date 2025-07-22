@@ -5,12 +5,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace Github2FA.Models;
 
 public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEditableObject
 {
 
+    #region ### PROPS and VARs
     private bool _isBeingEdited;
     public bool IsBeingEdited
     {
@@ -35,13 +37,18 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
         get => _secret;
         set { _secret = value; OnPropertyChanged(); }
     }
-    public SecretItem(string p, string s)
-    {
-        Platform = p;
-        Secret = s;
-    }
+
 
     public string Account { get; set; }
+
+    #endregion
+
+    [JsonConstructor]
+    public SecretItem(string platform, string secret)
+    {
+        Platform = platform;
+        Secret = secret;
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
     protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
