@@ -1,15 +1,15 @@
-﻿using Github2FA.Interfaces;
-using Github2FA.Models;
-using Github2FA.Services;
-using Github2FA.ViewModels;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Serilog;
 using Serilog.Extensions.Logging;
+using TOTP.Interfaces;
+using TOTP.Models;
+using TOTP.Services;
+using TOTP.ViewModels;
 
-namespace Github2FA.Tests.Integration;
+namespace TOTP.Tests.Integration;
 
 /// <summary>
 /// Integration Tests

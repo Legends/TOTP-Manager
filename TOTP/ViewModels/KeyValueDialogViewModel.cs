@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Github2FA.ViewModels;
+namespace TOTP.ViewModels;
 
 public class KeyValueDialogViewModel : INotifyPropertyChanged
 {

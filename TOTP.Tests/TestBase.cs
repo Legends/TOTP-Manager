@@ -1,6 +1,6 @@
-﻿using Github2FA.Interfaces;
-using Github2FA.Models;
-using Github2FA.ViewModels;
+﻿using TOTP.Interfaces;
+using TOTP.Models;
+using TOTP.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Moq.AutoMock;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Github2FA.Tests
+namespace TOTP.Tests
 {
     public class TestBase
     {

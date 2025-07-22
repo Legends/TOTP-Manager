@@ -1,6 +1,4 @@
-﻿using Github2FA.Interfaces;
-using Github2FA.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,8 +6,10 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using TOTP.Interfaces;
+using TOTP.Models;
 
-namespace Github2FA.Services;
+namespace TOTP.Services;
 
 public class SecretsManager : ISecretsManager
 {

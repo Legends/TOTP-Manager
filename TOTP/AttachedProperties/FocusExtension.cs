@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 
-namespace Github2FA.AttachedProperties;
+namespace TOTP.AttachedProperties;
 
 
 public static class FocusExtension

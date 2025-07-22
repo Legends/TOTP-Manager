@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Github2FA.Tests
+namespace TOTP.Tests
 {
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿namespace Github2FA.Tests.Services
+﻿namespace TOTP.Tests.Services
 {
     internal class ClipboardServiceTests
     {

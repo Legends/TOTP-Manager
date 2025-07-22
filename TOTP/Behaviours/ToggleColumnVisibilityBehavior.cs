@@ -3,7 +3,7 @@ using Syncfusion.UI.Xaml.Grid;
 using System.Linq;
 using System.Windows;
 
-namespace Github2FA.Behaviors;
+namespace TOTP.Behaviors;
 
 public class ToggleColumnVisibilityBehavior : Behavior<SfDataGrid>
 {

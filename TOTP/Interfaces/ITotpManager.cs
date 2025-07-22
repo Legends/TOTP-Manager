@@ -1,6 +1,6 @@
-﻿using Github2FA.Models;
+﻿using TOTP.Models;
 
-namespace Github2FA.Interfaces
+namespace TOTP.Interfaces
 {
     public interface ITotpManager
     {

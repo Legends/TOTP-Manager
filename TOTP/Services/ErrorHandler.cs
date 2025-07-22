@@ -1,8 +1,8 @@
-﻿using Github2FA.Interfaces;
+﻿using TOTP.Interfaces;
 using System;
 using System.IO;
 
-namespace Github2FA.Services;
+namespace TOTP.Services;
 
 public class ErrorHandler : IErrorHandler
 {

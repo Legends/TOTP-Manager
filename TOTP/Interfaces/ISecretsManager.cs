@@ -1,7 +1,7 @@
-﻿using Github2FA.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using TOTP.Models;
 
-namespace Github2FA.Interfaces
+namespace TOTP.Interfaces
 {
     public interface ISecretsManager
     {

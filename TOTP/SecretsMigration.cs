@@ -1,5 +1,5 @@
-﻿using Github2FA.Interfaces;
-using Github2FA.Models;
+﻿using TOTP.Interfaces;
+using TOTP.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;

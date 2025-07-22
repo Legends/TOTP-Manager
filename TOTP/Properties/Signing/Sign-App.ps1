@@ -1,6 +1,6 @@
 ﻿# Change these values as needed
 # Execute in root folder "TOTP" to sign the assembly with a PFX certificate.
-# CMD: powershell -file E:\Repos\Github2FA\TOTP\Properties\Signing\Sign-App.ps1
+# CMD: powershell -file E:\Repos\TOTP\TOTP\Properties\Signing\Sign-App.ps1
 # or:
 # PS: .\Sign-App.ps1
 $SignToolPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe"

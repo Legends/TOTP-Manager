@@ -1,14 +1,14 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
-using Github2FA.Interfaces;
-using Github2FA.Models;
-using Github2FA.ViewModels;
+using TOTP.Interfaces;
+using TOTP.Models;
+using TOTP.ViewModels;
 using Moq;
 using Moq.AutoMock;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Github2FA.Tests.ViewModels;
+namespace TOTP.Tests.ViewModels;
 
 
 /// <summary>

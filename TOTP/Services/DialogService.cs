@@ -1,8 +1,8 @@
-﻿using Github2FA.Interfaces;
-using Github2FA.Windows;
-using System.Windows;
+﻿using System.Windows;
+using TOTP.Interfaces;
+using TOTP.Windows;
 
-namespace Github2FA.Services;
+namespace TOTP.Services;
 
 public class DialogService : IDialogService
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace Github2FA.Commands;
+namespace TOTP.Commands;
 
 public class BaseCommand : ICommand
 {

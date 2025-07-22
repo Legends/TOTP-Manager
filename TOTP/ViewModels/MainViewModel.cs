@@ -1,8 +1,4 @@
-﻿using Github2FA.Commands;
-using Github2FA.Helper;
-using Github2FA.Interfaces;
-using Github2FA.Models;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -16,8 +12,12 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using TOTP.Commands;
+using TOTP.Helper;
+using TOTP.Interfaces;
+using TOTP.Models;
 
-namespace Github2FA.ViewModels;
+namespace TOTP.ViewModels;
 
 public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 {

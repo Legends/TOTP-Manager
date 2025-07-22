@@ -3,7 +3,7 @@ using Syncfusion.Windows.Shared;
 using System;
 
 
-namespace Github2FA
+namespace TOTP
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

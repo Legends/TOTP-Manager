@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 
 
-namespace Github2FA.Commands;
+namespace TOTP.Commands;
 
 public class RelayCommand<T> : ICommand
 {

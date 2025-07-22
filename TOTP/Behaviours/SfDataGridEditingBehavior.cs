@@ -3,7 +3,7 @@ using Syncfusion.UI.Xaml.Grid;
 using System.Windows;
 using System.Windows.Input;
 
-namespace Github2FA.Behaviors;
+namespace TOTP.Behaviors;
 
 public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
 {

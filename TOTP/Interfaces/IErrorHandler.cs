@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Github2FA.Interfaces
+namespace TOTP.Interfaces
 {
     public interface IErrorHandler
     {

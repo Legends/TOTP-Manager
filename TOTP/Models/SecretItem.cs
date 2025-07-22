@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
-namespace Github2FA.Models;
+namespace TOTP.Models;
 
 public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEditableObject
 {

@@ -1,6 +1,6 @@
-﻿namespace Github2FA.Tests.Utilities;
+﻿namespace TOTP.Tests.Utilities;
 
-using Github2FA.Helper;
+using TOTP.Helper;
 using System.Threading.Tasks;
 using Xunit;
 

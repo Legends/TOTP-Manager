@@ -1,10 +1,10 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
-using Github2FA.Interfaces;
-using Github2FA.Services;
+using TOTP.Interfaces;
+using TOTP.Services;
 using Moq;
 
-namespace Github2FA.Tests.Services;
+namespace TOTP.Tests.Services;
 
 public class TotpManagerTests
 {

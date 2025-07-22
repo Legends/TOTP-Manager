@@ -1,7 +1,4 @@
-﻿using Github2FA.Interfaces;
-using Github2FA.Services;
-using Github2FA.ViewModels;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -11,9 +8,12 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
+using TOTP.Interfaces;
 using TOTP.Manager.Logging;
+using TOTP.Services;
+using TOTP.ViewModels;
 
-namespace Github2FA;
+namespace TOTP;
 
 /// <summary>
 /// Interaction logic for App.xaml

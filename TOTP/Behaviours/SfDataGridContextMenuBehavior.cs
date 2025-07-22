@@ -2,7 +2,7 @@
 using Syncfusion.UI.Xaml.Grid;
 using System.Windows;
 
-namespace Github2FA.Behaviors;
+namespace TOTP.Behaviors;
 
 public class SfDataGridContextMenuBehavior : Behavior<SfDataGrid>
 {

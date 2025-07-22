@@ -1,10 +1,10 @@
-﻿using Github2FA.ViewModels;
+﻿using TOTP.ViewModels;
 using Syncfusion.Windows.Shared;
 using System.Windows;
 
 //ControlNamespace###
 
-namespace Github2FA.Windows
+namespace TOTP.Windows
 {
     /// <summary>
     /// Interaction logic for KeyValueDialog.xaml

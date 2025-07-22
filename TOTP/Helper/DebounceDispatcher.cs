@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Threading;
 
-namespace Github2FA.Helper;
+namespace TOTP.Helper;
 
 public class DebounceDispatcher
 {

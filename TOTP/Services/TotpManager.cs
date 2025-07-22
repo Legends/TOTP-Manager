@@ -1,10 +1,10 @@
-﻿using Github2FA.Interfaces;
-using Github2FA.Models;
+﻿using TOTP.Interfaces;
+using TOTP.Models;
 using OtpNet;
 using System;
 using System.Text.RegularExpressions;
 
-namespace Github2FA.Services;
+namespace TOTP.Services;
 
 public class TotpManager : ITotpManager
 {

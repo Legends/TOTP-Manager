@@ -1,6 +1,6 @@
 ﻿using System.Windows.Threading;
 
-namespace Github2FA.Tests
+namespace TOTP.Tests
 {
     public static class DispatcherUtil
     {

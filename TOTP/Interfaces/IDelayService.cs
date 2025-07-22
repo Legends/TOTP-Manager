@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Github2FA.Interfaces
+namespace TOTP.Interfaces
 {
     public interface IDelayService
     {

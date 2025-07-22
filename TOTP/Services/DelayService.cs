@@ -1,7 +1,7 @@
-﻿using Github2FA.Interfaces;
+﻿using TOTP.Interfaces;
 using System.Threading.Tasks;
 
-namespace Github2FA.Services;
+namespace TOTP.Services;
 
 public class DelayService : IDelayService
 {

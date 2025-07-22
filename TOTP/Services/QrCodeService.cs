@@ -1,10 +1,10 @@
-﻿using Github2FA.Interfaces;
+﻿using TOTP.Interfaces;
 using QRCoder;
 using System.Drawing;
 using System.IO;
 using System.Windows.Media.Imaging;
 
-namespace Github2FA.Services;
+namespace TOTP.Services;
 
 public class QrCodeService : IQrCodeService
 {

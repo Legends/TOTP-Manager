@@ -1,8 +1,8 @@
-﻿using Github2FA.Commands;
+﻿using TOTP.Commands;
 using Syncfusion.UI.Xaml.Grid;
 using System.Windows.Input;
 
-namespace Github2FA.Helper;
+namespace TOTP.Helper;
 
 public static class ContextMenuCommands
 {

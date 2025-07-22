@@ -1,6 +1,6 @@
-﻿using Github2FA.Services;
+﻿using TOTP.Services;
 
-namespace Github2FA.Tests.Utilities
+namespace TOTP.Tests.Utilities
 {
     public class DelayServiceTests
     {

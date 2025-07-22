@@ -1,6 +1,6 @@
-﻿namespace Github2FA.Services;
+﻿namespace TOTP.Services;
 
-using Github2FA.Interfaces;
+using TOTP.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.Windows.Threading;

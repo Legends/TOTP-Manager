@@ -1,7 +1,7 @@
-﻿using Github2FA.Behaviors;
-using Github2FA.Commands;
+﻿using TOTP.Behaviors;
+using TOTP.Commands;
 
-namespace Github2FA.Tests.Behaviors;
+namespace TOTP.Tests.Behaviors;
 
 public class SingleOrDoubleTapBehaviorTests
 {
