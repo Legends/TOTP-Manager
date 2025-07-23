@@ -16,26 +16,24 @@ public class QrCodeService : IQrCodeService
     /// </summary>
     /// <param name="uri"></param>
     /// <returns></returns>
-    BitmapImage GenerateQrCodeImage(string uri)
+    static BitmapImage GenerateQrCodeImage(string uri)
     {
         QRCodeGenerator qrGenerator = new();
         QRCodeData qrCodeData = qrGenerator.CreateQrCode(uri, QRCodeGenerator.ECCLevel.Q);
         QRCode qrCode = new(qrCodeData);
         Bitmap qrBitmap = qrCode.GetGraphic(20);
 
-        using (MemoryStream ms = new())
-        {
-            qrBitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-            ms.Position = 0;
+        using MemoryStream ms = new();
+        qrBitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+        ms.Position = 0;
 
-            BitmapImage bitmapImage = new();
-            bitmapImage.BeginInit();
-            bitmapImage.StreamSource = ms;
-            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-            bitmapImage.EndInit();
+        BitmapImage bitmapImage = new();
+        bitmapImage.BeginInit();
+        bitmapImage.StreamSource = ms;
+        bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+        bitmapImage.EndInit();
 
-            return bitmapImage;
-        }
+        return bitmapImage;
     }
 
     // otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}

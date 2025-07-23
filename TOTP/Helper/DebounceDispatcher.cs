@@ -28,8 +28,12 @@ public class DebounceDispatcher
 
     private void Timer_Tick(object? sender, EventArgs e)
     {
-        _timer?.Stop();
-        _timer.Tick -= Timer_Tick;
+
+        if (_timer is not null)
+        {
+            _timer.Stop();
+            _timer.Tick -= Timer_Tick;
+        }
         _action?.Invoke();
     }
 }

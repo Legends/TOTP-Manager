@@ -21,7 +21,7 @@ public class KeyValueDialogViewModel : INotifyPropertyChanged
         set { _secret = value; OnPropertyChanged(); }
     }
 
-    public string Account
+    public string? Account
     {
         get => _account;
         set { _account = value; OnPropertyChanged(); }

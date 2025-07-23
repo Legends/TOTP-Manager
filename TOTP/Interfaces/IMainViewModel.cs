@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Windows.Input;
 using TOTP.Models;
 
+namespace TOTP.Interfaces;
+
 public interface IMainViewModel : INotifyPropertyChanged
 {
     ObservableCollection<SecretItem> AllSecrets { get; }

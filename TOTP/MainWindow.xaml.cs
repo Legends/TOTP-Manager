@@ -1,6 +1,7 @@
 ﻿using Syncfusion.SfSkinManager;
 using Syncfusion.Windows.Shared;
 using System;
+using TOTP.Interfaces;
 
 
 namespace TOTP

@@ -8,16 +8,8 @@ public static class ContextMenuCommands
 {
 
     static ICommand? cut;
-    public static ICommand Cut
-    {
-        get
-        {
-            if (cut == null)
-                cut = new BaseCommand(OnCutClicked);
+    public static ICommand Cut => cut ??= new BaseCommand(OnCutClicked);
 
-            return cut;
-        }
-    }
 
     private static void OnCutClicked(object? obj)
     {

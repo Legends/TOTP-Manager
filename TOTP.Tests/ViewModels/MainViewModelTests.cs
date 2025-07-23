@@ -182,6 +182,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
                    .Callback<string>(text => capturedText = text);
 
 
+#pragma warning disable CS8601 // Possible null reference assignment.
         mocker.GetMock<ITotpManager>().Setup(m => m.TryComputeCode(It.IsAny<string>(), out It.Ref<string>.IsAny, out It.Ref<string>.IsAny))
             .Returns(true)
             .Callback((string input, out string code, out string? error) =>
@@ -189,6 +190,9 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
                 code = "123456";
                 error = null;
             });
+#pragma warning restore CS8601 // Possible null reference assignment.
+
+
 
         var delayMock = mocker.GetMock<IDelayService>();
         delayMock.Setup(d => d.Delay(It.IsAny<int>())).Returns(Task.CompletedTask);
@@ -197,9 +201,8 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         try
         {
-            var method = vm.GetType().GetMethod("OnSecretSelected", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (method is null)
-                throw new InvalidOperationException("OnSecretSelected method not found.");
+            var method = vm.GetType().GetMethod("OnSecretSelected", BindingFlags.NonPublic | BindingFlags.Instance)
+              ?? throw new InvalidOperationException("OnSecretSelected method not found.");
 
             var result = method.Invoke(vm, null);
             if (result is not Task task)
@@ -247,7 +250,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         Assert.True(secret.IsBeingEdited);
     }
 
-    public string? ToJson()
+    public static string? ToJson()
     {
         // This method is called after each test
         return "";
@@ -260,6 +263,10 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         // Clean up resources if needed
         // For example, you can reset static properties or clear collections
         // _fixture = null; // Not necessary, as it will be garbage collected
+
+        // just for removing info messages in the console
+        GC.SuppressFinalize(this);
+
     }
     #endregion
 }

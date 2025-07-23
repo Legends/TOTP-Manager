@@ -20,7 +20,7 @@ namespace TOTP;
 /// </summary>
 public partial class App : Application
 {
-    private IHost _host;
+    private readonly IHost _host = null!;
     ILogger<App>? _logger;
     //public static IServiceProvider Services { get; private set; }
     public App()
@@ -54,7 +54,7 @@ public partial class App : Application
             .Build();
     }
 
-    private IHost CreateHostAndConfigureServices(IConfigurationRoot configuration)
+    private static IHost CreateHostAndConfigureServices(IConfigurationRoot configuration)
     {
         return Host.CreateDefaultBuilder().UseSerilog(LoggingConfigurator.ConfigureWithHostContext, preserveStaticLogger: true)
             .ConfigureServices((context, services) =>
