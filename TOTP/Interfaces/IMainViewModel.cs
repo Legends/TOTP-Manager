@@ -12,7 +12,7 @@ public interface IMainViewModel : INotifyPropertyChanged
     ICommand BeginEditCommand { get; }
     ICommand EndEditCommand { get; }
     ICommand DoubleClickCommand { get; }
-    SecretItem? SelectedSecret { get; set; }
+    SecretItem SelectedSecret { get; set; }
     bool ShowActionsColumn { get; }
     string? CurrentCodeLabel { get; }
     bool IsCodeCopiedVisible { get; }

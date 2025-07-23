@@ -41,7 +41,7 @@ public class QrCodeService : IQrCodeService
     // otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}
     // otpauth://totp/?secret={secret}&issuer={issuer}
 
-    public BitmapImage GenerateQr(string issuer, string secret, string account = "")
+    public BitmapImage GenerateQr(string issuer, string secret, string? account = "")
     {
         string uri = !string.IsNullOrWhiteSpace(account) ?
                         $"otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30" :

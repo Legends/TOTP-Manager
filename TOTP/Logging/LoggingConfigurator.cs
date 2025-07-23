@@ -2,7 +2,7 @@
 using Serilog;
 using System;
 
-namespace TOTP.Manager.Logging;
+namespace TOTP.Logging;
 
 public static class LoggingConfigurator
 {

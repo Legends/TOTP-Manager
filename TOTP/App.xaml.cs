@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using TOTP.Interfaces;
-using TOTP.Manager.Logging;
+using TOTP.Logging;
 using TOTP.Services;
 using TOTP.ViewModels;
 
@@ -18,7 +18,7 @@ namespace TOTP;
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
-public partial class App : Application, IDisposable
+public partial class App : Application
 {
     private IHost _host;
     ILogger<App>? _logger;
@@ -37,7 +37,7 @@ public partial class App : Application, IDisposable
             RegisterSyncfusionLicenseKey(configuration);
 
             // Create the host builder
-            CreateHostAndConfigureServices(configuration);
+            _host = CreateHostAndConfigureServices(configuration);
         }
         catch (Exception ex)
         {
@@ -54,9 +54,9 @@ public partial class App : Application, IDisposable
             .Build();
     }
 
-    private void CreateHostAndConfigureServices(IConfigurationRoot configuration)
+    private IHost CreateHostAndConfigureServices(IConfigurationRoot configuration)
     {
-        _host = Host.CreateDefaultBuilder().UseSerilog(LoggingConfigurator.ConfigureWithHostContext, preserveStaticLogger: true)
+        return Host.CreateDefaultBuilder().UseSerilog(LoggingConfigurator.ConfigureWithHostContext, preserveStaticLogger: true)
             .ConfigureServices((context, services) =>
             {
                 // Register configuration so it can be injected

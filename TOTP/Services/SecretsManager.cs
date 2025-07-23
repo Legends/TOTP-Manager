@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OtpNet;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -15,6 +16,7 @@ public class SecretsManager : ISecretsManager
 {
     private readonly string secretsPath;
     private readonly IMessageService _messageService;
+    JsonSerializerOptions? _options = null;
 
     public SecretsManager(IMessageService messageService)
     {
@@ -33,7 +35,7 @@ public class SecretsManager : ISecretsManager
     public List<SecretItem> GetAllSecrets()
     {
         var (ok, list) = ReadSecretsFile();
-        return ok ? list : new List<SecretItem>();
+        return ok ? list : [];
     }
 
     public bool AddNewItem(SecretItem newItem)
@@ -90,13 +92,13 @@ public class SecretsManager : ISecretsManager
         try
         {
             if (!File.Exists(secretsPath))
-                return (true, new List<SecretItem>());
+                return (true, []);
 
             byte[] encrypted = File.ReadAllBytes(secretsPath);
             byte[] decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
             string json = Encoding.UTF8.GetString(decrypted);
 
-            var list = JsonSerializer.Deserialize<List<SecretItem>>(json) ?? new();
+            var list = JsonSerializer.Deserialize<List<SecretItem>>(json) ?? [];
             return (true, list);
         }
         catch (Exception ex)
@@ -110,7 +112,7 @@ public class SecretsManager : ISecretsManager
     {
         try
         {
-            string json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
+            string json = JsonSerializer.Serialize(list, GetOptions());
             byte[] data = Encoding.UTF8.GetBytes(json);
             byte[] encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
             File.WriteAllBytes(secretsPath, encrypted);
@@ -121,6 +123,11 @@ public class SecretsManager : ISecretsManager
             _messageService.ShowMessageDialog($"Failed to save secrets: {ex.Message}", "Error");
             return false;
         }
+    }
+
+    private JsonSerializerOptions GetOptions()
+    {
+        return _options ?? new JsonSerializerOptions() { WriteIndented = true };
     }
 
     public bool BackupSecretsFile()
@@ -156,4 +163,18 @@ public class SecretsManager : ISecretsManager
             return false;
         }
     }
+
+    public static bool IsValidBase32Format(string value)
+    {
+        try
+        {
+            _ = Base32Encoding.ToBytes(value);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
 }

@@ -14,6 +14,8 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
 
     #region ### PROPS and VARs
     private bool _isBeingEdited;
+
+    [JsonIgnore]
     public bool IsBeingEdited
     {
         get => _isBeingEdited;
@@ -31,7 +33,7 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
         set { _platform = value; OnPropertyChanged(); }
     }
 
-    private string _secret;
+    private string _secret = string.Empty;
     public string Secret
     {
         get => _secret;
@@ -39,15 +41,16 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
     }
 
 
-    public string Account { get; set; }
+    public string? Account { get; set; }
 
     #endregion
 
     [JsonConstructor]
     public SecretItem(string platform, string secret)
     {
-        Platform = platform;
-        Secret = secret;
+        _platform = platform ?? throw new ArgumentNullException(nameof(platform));
+        Secret = secret ?? throw new ArgumentNullException(nameof(secret));
+
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -70,7 +73,7 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
         {
 
             if (pDescriptor.CanWrite)
-                dict.Add(pDescriptor.Name, pDescriptor.GetValue(this));
+                dict.Add(pDescriptor.Name, pDescriptor.GetValue(this)!);
         }
         return dict;
     }
@@ -93,8 +96,7 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
             var itemProperties = this.GetType().GetTypeInfo().DeclaredProperties;
             var pDesc = itemProperties.FirstOrDefault(p => p.Name == item.Key);
 
-            if (pDesc != null)
-                pDesc.SetValue(this, item.Value);
+            pDesc?.SetValue(this, item.Value);
         }
     }
 
@@ -108,4 +110,10 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
         }
         Debug.WriteLine("End Edit Called");
     }
+
+
+    public override bool Equals(object? obj) => Equals(obj as SecretItem);
+
+    public override int GetHashCode() => HashCode.Combine(Platform, Secret);
+
 }

@@ -20,7 +20,7 @@ public class SfDataGridContextMenuBehavior : Behavior<SfDataGrid>
         base.OnDetaching();
     }
 
-    private void OnContextMenuOpening(object sender, GridContextMenuEventArgs e)
+    private void OnContextMenuOpening(object? sender, GridContextMenuEventArgs e)
     {
         if (e.ContextMenuType == ContextMenuType.RecordCell)
         {

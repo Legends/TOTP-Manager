@@ -1,6 +1,5 @@
 ﻿using OtpNet;
 using System;
-using System.Text.RegularExpressions;
 using TOTP.Interfaces;
 using TOTP.Models;
 
@@ -52,7 +51,7 @@ public class TotpManager : ITotpManager
                     continue;
                 }
 
-                if (!IsValidBase32Format(value))
+                if (!SecretsManager.IsValidBase32Format(value))
                 {
                     _messageService.ShowMessage("Secret must be a valid Base32 string.", "Error");
                     continue;
@@ -146,25 +145,5 @@ public class TotpManager : ITotpManager
         }
     }
 
-    private bool IsValidBase32Format(string value)
-    {
-        try
-        {
-            _ = Base32Encoding.ToBytes(value);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
-    // Base32 encoding: Only uppercase letters (A–Z) and digits 2–7
-    // ❌ No lowercase letters, symbols, or whitespace
-    private static readonly Regex Base32Regex = new("^[A-Z2-7]+=*$", RegexOptions.None);
-
-    public bool IsValidBase32Strict(string input)
-    {
-        return !string.IsNullOrEmpty(input) && Base32Regex.IsMatch(input);
-    }
 }

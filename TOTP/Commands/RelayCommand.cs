@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 
@@ -34,7 +33,6 @@ public class RelayCommand<T> : ICommand
 public class RelayCommand : ICommand
 {
     private readonly Action _execute;
-    private readonly Func<Task> _executeAsync;
     private readonly Func<bool>? _canExecute;
 
     public RelayCommand(Action execute, Func<bool>? canExecute = null)

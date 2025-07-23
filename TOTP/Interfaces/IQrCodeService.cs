@@ -4,6 +4,6 @@ namespace TOTP.Interfaces;
 
 public interface IQrCodeService
 {
-    BitmapImage GenerateQr(string issuer, string secret, string account = "");
+    BitmapImage GenerateQr(string issuer, string secret, string? account = "");
     //BitmapImage GenerateQrCodeImage(string uri);
 }

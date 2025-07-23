@@ -19,15 +19,16 @@ public static class ContextMenuCommands
         }
     }
 
-    private static void OnCutClicked(object obj)
+    private static void OnCutClicked(object? obj)
     {
-        if (obj is GridRecordContextMenuInfo)
+        if (obj is GridRecordContextMenuInfo contextInfo && contextInfo.DataGrid is not null)
         {
-            var grid = (obj as GridRecordContextMenuInfo).DataGrid;
+            var grid = contextInfo.DataGrid;
             var copypasteoption = grid.GridCopyOption;
             grid.GridCopyOption = GridCopyOption.CutData;
             grid.GridCopyPaste.Cut();
             grid.GridCopyOption = copypasteoption;
         }
     }
+
 }

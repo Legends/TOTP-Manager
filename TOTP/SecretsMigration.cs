@@ -5,7 +5,7 @@ using System.Text.Json;
 using TOTP.Interfaces;
 using TOTP.Models;
 
-namespace TOTP.Manager
+namespace TOTP
 {
     public static class SecretsMigration
     {

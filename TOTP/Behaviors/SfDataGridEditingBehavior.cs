@@ -50,13 +50,13 @@ public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
         AssociatedObject.MouseDoubleClick -= OnMouseDoubleClick;
     }
 
-    private void OnBeginEdit(object sender, CurrentCellBeginEditEventArgs e)
+    private void OnBeginEdit(object? sender, CurrentCellBeginEditEventArgs e)
     {
         if (AssociatedObject.SelectedItem != null && BeginEditCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
             BeginEditCommand.Execute(AssociatedObject.SelectedItem);
     }
 
-    private void OnEndEdit(object sender, CurrentCellEndEditEventArgs e)
+    private void OnEndEdit(object? sender, CurrentCellEndEditEventArgs e)
     {
         if (AssociatedObject.SelectedItem != null && EndEditCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
             EndEditCommand.Execute(AssociatedObject.SelectedItem);

@@ -10,7 +10,7 @@ namespace TOTP.Behaviors;
 public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 {
 
-    private bool _doubleTapOccurred;
+    //private readonly bool _doubleTapOccurred;
 
     public int TapDelay
     {
@@ -58,7 +58,7 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 
     }
 
-    private void AssociatedObject_CellTapped(object sender, GridCellTappedEventArgs e)
+    private void AssociatedObject_CellTapped(object? sender, GridCellTappedEventArgs e)
     {
         //_doubleTapOccurred = false;
 
@@ -75,7 +75,7 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
     }
 
 
-    private void AssociatedObject_CellDoubleTapped(object sender, GridCellDoubleTappedEventArgs e)
+    private void AssociatedObject_CellDoubleTapped(object? sender, GridCellDoubleTappedEventArgs e)
     {
         //_doubleTapOccurred = true;
 

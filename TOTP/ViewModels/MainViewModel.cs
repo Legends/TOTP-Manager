@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using TOTP.Commands;
 using TOTP.Helper;
 using TOTP.Interfaces;
@@ -23,22 +22,22 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 {
 
     #region ### ObservableCollections ###
-    public ObservableCollection<SecretItem> AllSecrets { get; set; }
-    public ObservableCollection<SecretItem> FilteredSecrets { get; } = new();
+    public ObservableCollection<SecretItem> AllSecrets { get; set; } = null!;
+    public ObservableCollection<SecretItem> FilteredSecrets { get; } = [];
     #endregion ObservableCollections
 
     #region ### COMMANDS ###
-    public ICommand AddNewTotpCommand { get; private set; }
-    public ICommand BeginEditCommand { get; private set; }
-    public ICommand ClearSearchCommand { get; private set; }
-    public ICommand DeleteSecretCommand { get; private set; }
-    public ICommand DeleteSecretCommand2 { get; private set; }
-    public ICommand DoubleClickCommand { get; private set; }
-    public ICommand DoubleTapCommand { get; private set; }
-    public ICommand EndEditCommand { get; private set; }
-    public ICommand SingleTapCommand { get; private set; }
-    public ICommand ToggleSearchBoxCommand { get; private set; }
-    public ICommand UpdateSecretCommand { get; private set; }
+    public ICommand AddNewTotpCommand { get; private set; } = null!;
+    public ICommand BeginEditCommand { get; private set; } = null!;
+    public ICommand ClearSearchCommand { get; private set; } = null!;
+    public ICommand DeleteSecretCommand { get; private set; } = null!;
+    public ICommand DeleteSecretCommand2 { get; private set; } = null!;
+    public ICommand DoubleClickCommand { get; private set; } = null!;
+    public ICommand DoubleTapCommand { get; private set; } = null!;
+    public ICommand EndEditCommand { get; private set; } = null!;
+    public ICommand SingleTapCommand { get; private set; } = null!;
+    public ICommand ToggleSearchBoxCommand { get; private set; } = null!;
+    public ICommand UpdateSecretCommand { get; private set; } = null!;
 
     public ICommand SelectionChangedCommand => new AsyncCommand(OnSelectionChangedAsync);
 
@@ -50,7 +49,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     private readonly IMessageService _msgService;
     private readonly ITotpManager _totpManager;
     private readonly IDebounceService _debounceService;
-    private readonly DispatcherTimer _debounceTimer;
+    //private readonly DispatcherTimer _debounceTimer;
     private readonly IQrCodeService _qrService;
     private readonly IDelayService _delayService;
     //private string _pendingSearchText;
@@ -83,7 +82,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     }
 
 
-    private BitmapImage _qrCodeImage;
+    private BitmapImage? _qrCodeImage;
     public BitmapImage? QrCodeImage
     {
         get => _qrCodeImage;
@@ -109,8 +108,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     public bool ShowActionsColumn => AllSecrets.Any(s => s.IsBeingEdited);
 
-    private SecretItem? _selectedSecret;
-    public SecretItem? SelectedSecret
+    private SecretItem _selectedSecret = null!;
+    public SecretItem SelectedSecret
     {
         get => _selectedSecret;
         set
@@ -127,7 +126,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
     }
 
-    private string _currentCodeLabel;
+    private string _currentCodeLabel = string.Empty;
     public string CurrentCodeLabel
     {
         get => _currentCodeLabel;
@@ -187,7 +186,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     }
 
 
-    private string _searchText;
+    private string _searchText = string.Empty;
     public string SearchText
     {
         get => _searchText;
@@ -234,6 +233,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         _debounceService = debounceService;
         _clipboard = clipboard;
         _totpManager = totpManager;
+
         SetupCommands();
 
         InitDataSource(config);
@@ -249,9 +249,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         var secrets = config?.AsEnumerable()
             .Where(kv => kv.Key != "syncfusion")
             .Where(pair => pair.Value != null)
-            .Select(pair => new SecretItem(pair.Key, pair.Value));
+            .Select(pair => new SecretItem(pair.Key, pair.Value!));
 
-        AllSecrets = new ObservableCollection<SecretItem>(secrets ?? Enumerable.Empty<SecretItem>());
+        AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
 
         foreach (var secretItem in AllSecrets)
             secretItem.PropertyChanged += SecretItem_PropertyChanged;
@@ -355,8 +355,10 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     }
 
     // working, but no mvvm
-    public void DeleteSecret2(object item) // but here you get a reference to GridRecordContextMenuInfo
+    public void DeleteSecret2(object? item) // but here you get a reference to GridRecordContextMenuInfo
     {
+        ArgumentNullException.ThrowIfNull(item, nameof(item));
+
         _msgService.ShowMessage(item?.ToString() ?? "Null");
 
         if (item == null)
@@ -421,7 +423,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             if (currentKey == SelectedSecret.Platform && !isDoubleClick)
             {
                 //_msgService.ShowMessage(currentKey);
-                OnSecretSelected();
+                _ = OnSecretSelected();
             }
         }
         catch (Exception e)
@@ -449,7 +451,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         //OnPropertyChanged(nameof(ShowActionsColumn));
     }
 
-    void showCodeLabels()
+    void ShowCodeLabels()
     {
         CodeLabelHeight = 40;
         IsCodeCopiedVisible = true;
@@ -498,13 +500,10 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     private async Task CalculateAndDisplayTotpCode(SecretItem secret)
     {
-        string? totpCode = null;
-        string? error = null;
-
         try
         {
 
-            if (_totpManager.TryComputeCode(secret.Secret, out totpCode, out error))
+            if (_totpManager.TryComputeCode(secret.Secret, out string? totpCode, out string? error))
             {
                 ResetCodeGenerationLabels();
                 // if the user clicks on another row right after the currently selected row, the counter gets incremented
@@ -515,10 +514,10 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
                 // Update the UI
                 CurrentCodeLabel = $"{secret.Platform}: {totpCode}";
-                _clipboard.SetText(totpCode);
+                _clipboard.SetText(totpCode!);
                 QrCodeImage = _qrService.GenerateQr(secret.Platform, secret.Secret, secret.Account);
 
-                showCodeLabels();
+                ShowCodeLabels();
 
                 await _delayService.Delay(2000);
                 if (IsCodeCopiedVisible && localCounter == _counter)

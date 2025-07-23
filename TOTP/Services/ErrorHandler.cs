@@ -6,10 +6,11 @@ namespace TOTP.Services;
 
 public class ErrorHandler : IErrorHandler
 {
-    IMessageService _msgSvc;
+    readonly IMessageService _msgSvc;
     public ErrorHandler(IMessageService msgSvc)
     {
-        _msgSvc = msgSvc ?? throw new ArgumentNullException(nameof(msgSvc));
+        ArgumentNullException.ThrowIfNull(msgSvc, nameof(msgSvc));
+        _msgSvc = msgSvc;
     }
     public void Handle(Exception exception, string userMessage)
     {
@@ -22,7 +23,7 @@ public class ErrorHandler : IErrorHandler
         LogException(exception);
     }
 
-    private void LogException(Exception ex)
+    private static void LogException(Exception ex)
     {
         try
         {

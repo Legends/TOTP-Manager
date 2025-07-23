@@ -7,8 +7,8 @@ public class BaseCommand : ICommand
 {
     #region Fields
 
-    readonly Action<object> _execute;
-    readonly Predicate<object> _canExecute;
+    readonly Action<object?> _execute;
+    readonly Predicate<object?>? _canExecute;
 
     #endregion // Fields
 
@@ -18,7 +18,7 @@ public class BaseCommand : ICommand
     /// Creates a new command that can always execute.
     /// </summary>
     /// <param name="execute">The execution logic.</param>
-    public BaseCommand(Action<object> execute)
+    public BaseCommand(Action<object?> execute)
         : this(execute, null)
     {
     }
@@ -28,10 +28,9 @@ public class BaseCommand : ICommand
     /// </summary>
     /// <param name="execute">The execution logic.</param>
     /// <param name="canExecute">The execution status logic.</param>
-    public BaseCommand(Action<object> execute, Predicate<object> canExecute)
+    public BaseCommand(Action<object?> execute, Predicate<object?>? canExecute)
     {
-        if (execute == null)
-            throw new ArgumentNullException("execute");
+        ArgumentNullException.ThrowIfNull(execute);
 
         _execute = execute;
         _canExecute = canExecute;
@@ -41,18 +40,18 @@ public class BaseCommand : ICommand
 
     #region ICommand Members
 
-    public bool CanExecute(object parameter)
+    public bool CanExecute(object? parameter)
     {
         return _canExecute == null || _canExecute(parameter);
     }
 
-    public event EventHandler CanExecuteChanged
+    public event EventHandler? CanExecuteChanged
     {
         add { CommandManager.RequerySuggested += value; }
         remove { CommandManager.RequerySuggested -= value; }
     }
 
-    public void Execute(object parameter)
+    public void Execute(object? parameter)
     {
         _execute(parameter);
     }

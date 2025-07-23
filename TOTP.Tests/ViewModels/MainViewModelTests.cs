@@ -166,7 +166,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     }
 
     [Fact]
-    public async Task OnSingleTap_ShouldGenerateTotp_AndCopyToClipboard()
+    public async Task? OnSingleTap_ShouldGenerateTotp_AndCopyToClipboard()
     {
         // Arrange
         var secret = new SecretItem("TestPlatform", "JBSWY3DPEHPK3PXP");
@@ -198,7 +198,15 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         try
         {
             var method = vm.GetType().GetMethod("OnSecretSelected", BindingFlags.NonPublic | BindingFlags.Instance);
-            await (Task)method.Invoke(vm, null);
+            if (method is null)
+                throw new InvalidOperationException("OnSecretSelected method not found.");
+
+            var result = method.Invoke(vm, null);
+            if (result is not Task task)
+                throw new InvalidOperationException("OnSecretSelected did not return a Task.");
+
+            await task;
+
         }
         catch (Exception) { throw; }
 
