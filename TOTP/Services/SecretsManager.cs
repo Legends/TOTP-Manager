@@ -16,7 +16,7 @@ public class SecretsManager : ISecretsManager
 {
     private readonly IMessageService _messageService;
     private readonly JsonSerializerOptions? _options = null;
-    private readonly string secretsPath;
+    private readonly string _secretsPath;
 
     public SecretsManager(IMessageService messageService)
     {
@@ -27,7 +27,7 @@ public class SecretsManager : ISecretsManager
             "TOTP-Manager");
 
         Directory.CreateDirectory(appDataDir);
-        secretsPath = Path.Combine(appDataDir, "secrets.dat");
+        _secretsPath = Path.Combine(appDataDir, "secrets.dat");
 
         BackupSecretsFile();
     }
@@ -91,10 +91,10 @@ public class SecretsManager : ISecretsManager
     {
         try
         {
-            if (!File.Exists(secretsPath)) return false;
+            if (!File.Exists(_secretsPath)) return false;
 
-            var dir = Path.GetDirectoryName(secretsPath)!;
-            var file = Path.GetFileName(secretsPath);
+            var dir = Path.GetDirectoryName(_secretsPath)!;
+            var file = Path.GetFileName(_secretsPath);
 
             for (var i = 5; i >= 1; i--)
             {
@@ -109,7 +109,7 @@ public class SecretsManager : ISecretsManager
             }
 
             var firstBackup = Path.Combine(dir, $"{file}.bak1");
-            File.Copy(secretsPath, firstBackup, true);
+            File.Copy(_secretsPath, firstBackup, true);
 
             Debug.WriteLine($"Backup created: {firstBackup}");
             return true;
@@ -125,10 +125,10 @@ public class SecretsManager : ISecretsManager
     {
         try
         {
-            if (!File.Exists(secretsPath))
+            if (!File.Exists(_secretsPath))
                 return (true, []);
 
-            var encrypted = File.ReadAllBytes(secretsPath);
+            var encrypted = File.ReadAllBytes(_secretsPath);
             var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
             var json = Encoding.UTF8.GetString(decrypted);
 
@@ -149,7 +149,7 @@ public class SecretsManager : ISecretsManager
             var json = JsonSerializer.Serialize(list, GetOptions());
             var data = Encoding.UTF8.GetBytes(json);
             var encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
-            File.WriteAllBytes(secretsPath, encrypted);
+            File.WriteAllBytes(_secretsPath, encrypted);
             return true;
         }
         catch (Exception ex)

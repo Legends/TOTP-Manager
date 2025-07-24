@@ -47,7 +47,8 @@ public class MainViewModelIntegrationTests
             provider.GetRequiredService<IConfiguration>(),
             provider.GetRequiredService<ITotpManager>(),
             provider.GetRequiredService<IDebounceService>(),
-            provider.GetRequiredService<IDelayService>()
+            provider.GetRequiredService<IDelayService>(),
+            provider.GetRequiredService<ISecretsManager>()
         );
 
         var initialCount = vm.AllSecrets.Count;

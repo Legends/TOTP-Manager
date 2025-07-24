@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,8 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using TOTP.Commands;
 using TOTP.Helper;
 using TOTP.Interfaces;
@@ -30,8 +30,10 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         IConfiguration config,
         ITotpManager totpManager,
         IDebounceService debounceService,
-        IDelayService delayService) // NEW
+        IDelayService delayService,
+        ISecretsManager secretsManager) // NEW
     {
+        _secretsManager = secretsManager;
         _logger = logger;
         _qrService = svcQR;
         _delayService = delayService;
@@ -42,19 +44,23 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
         SetupCommands();
 
-        InitDataSource(config);
+        InitDataSource();
         OnPropertyChanged(nameof(ShowActionsColumn));
         UpdateFilter();
     }
 
     #endregion
 
-    private void InitDataSource(IConfiguration config)
+    private void InitDataSource()
     {
-        var secrets = config.AsEnumerable()
-            .Where(kv => kv.Key != "syncfusion")
-            .Where(pair => pair.Value != null)
-            .Select(pair => new SecretItem(pair.Key, pair.Value!));
+        //var secrets = config.AsEnumerable()
+        //    .Where(kv => kv.Key != "syncfusion")
+        //    .Where(pair => pair.Value != null)
+        //    .Select(pair => new SecretItem(pair.Key, pair.Value!));
+
+        // Load secrets from file or other source
+        var secrets = _secretsManager.GetAllSecrets().Where(s => s.Platform != "syncfusion");
+
 
         AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
 
@@ -151,6 +157,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     #region ### SERVICES ###
 
+    private readonly ISecretsManager _secretsManager;
     private readonly IClipboardService _clipboard;
     private readonly IMessageService _msgService;
     private readonly ITotpManager _totpManager;
