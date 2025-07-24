@@ -22,6 +22,7 @@ public class SecretsManager : ISecretsManager
     {
         _messageService = messageService;
 
+        // win: C:\Users\User\AppData\Roaming\TOTP-Manager
         var appDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "TOTP-Manager");
