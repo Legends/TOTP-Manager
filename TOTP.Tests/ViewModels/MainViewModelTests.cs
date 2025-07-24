@@ -32,7 +32,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     #region ### Mock.AutoMock ###
 
     /// <summary>
-    /// Just tests AddNewTotp inside MainViewModel
+    /// Just tests AddNewSecret inside MainViewModel
     /// </summary>
     [Fact]
     public void AddNewTotpCommand_ShouldAddNewSecret_WhenManagerReturnsSuccess()
@@ -44,7 +44,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         var secretItem = new SecretItem("TestKey", "TestValue");
 
         mocker.GetMock<ITotpManager>()
-            .Setup(m => m.AddNewTotp())
+            .Setup(m => m.AddNewSecret())
             .Returns((true, secretItem));
 
         // Auto-resolve all dependencies

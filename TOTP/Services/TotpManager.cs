@@ -25,7 +25,7 @@ public class TotpManager : ITotpManager
     }
 
 
-    public (bool success, SecretItem? item) AddNewTotp()
+    public (bool success, SecretItem? item) AddNewSecret()
     {
         try
         {

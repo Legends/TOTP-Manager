@@ -9,7 +9,7 @@ public interface ITotpManager
     /// It writes the new item to the secrets file and returns the item if successful.
     /// </summary>
     /// <returns></returns>
-    (bool success, SecretItem? item) AddNewTotp();
+    (bool success, SecretItem? item) AddNewSecret();
 
     bool TryComputeCode(string secret, out string? code, out string? error);
 

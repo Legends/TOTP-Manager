@@ -19,8 +19,19 @@ namespace TOTP.Tests.Integration;
 ///      real configuration
 ///      but maybe a fake IClipboardService
 /// </summary>
-public class MainViewModelIntegrationTests
+public class MainViewModelIntegrationTests : IDisposable
 {
+    //private readonly AutoMocker _mocker;
+    private readonly string _testPath;
+    //private readonly ISecretsManager _secretsManager;
+
+    public MainViewModelIntegrationTests()
+    {
+        // Setup temp test path
+        _testPath = Path.Combine(Path.GetTempPath(), $"test-secrets-{Guid.NewGuid()}.dat");
+    }
+
+
     [Fact]
     public void AddNewTotpCommand_ShouldAddSecret_WhenTotpManagerReturnsSuccess()
     {
@@ -30,9 +41,20 @@ public class MainViewModelIntegrationTests
         // Mock only TotpManager
         var secretItem = new SecretItem("MyKey", "MySecret");
         var totpManagerMock = new Mock<ITotpManager>();
-        totpManagerMock.Setup(m => m.AddNewTotp())
+        totpManagerMock.Setup(m => m.AddNewSecret())
             .Returns((true, secretItem));
         services.AddSingleton(totpManagerMock.Object);
+
+        services.AddSingleton<ISecretsManager>(provider =>
+        {
+            var messageService = provider.GetRequiredService<IMessageService>();
+
+            // Use a temp or mock path for tests
+            var testPath = Path.Combine(Path.GetTempPath(), "test-secrets.dat");
+
+            return new SecretsManager(messageService, testPath);
+        });
+
 
 
         // Build provider
@@ -85,5 +107,19 @@ public class MainViewModelIntegrationTests
         // Configuration
         var config = new ConfigurationBuilder().Build();
         services.AddSingleton<IConfiguration>(config);
+    }
+
+    public void Dispose()
+    {
+        // Clean up test file and backup files
+        if (File.Exists(_testPath))
+            File.Delete(_testPath);
+
+        for (int i = 1; i <= 5; i++)
+        {
+            var backup = _testPath + $".bak{i}";
+            if (File.Exists(backup))
+                File.Delete(backup);
+        }
     }
 }
