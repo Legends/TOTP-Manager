@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
 using Moq;
+using Moq.AutoMock;
 using TOTP.Interfaces;
 using TOTP.Services;
 
@@ -15,13 +16,19 @@ public class TotpManagerTests
     [Fact]
     public void TryComputeCode_ShouldReturnFalse_ForInvalidBase32()
     {
+        // Manual setup of dependencies is not needed when using AutoMocker
+        //var totpManager = new TotpManager(
+        //    Mock.Of<IDialogService>(),
+        //    Mock.Of<IMessageService>(),
+        //    Mock.Of<ISecretsManager>(),
+        //    Mock.Of<IErrorHandler>()
+        //);
+
         // Arrange
-        var totpManager = new TotpManager(
-            Mock.Of<IDialogService>(),
-            Mock.Of<IMessageService>(),
-            Mock.Of<ISecretsManager>(),
-            Mock.Of<IErrorHandler>()
-        );
+        var mocker = new AutoMocker();
+
+        // Auto-resolve all dependencies
+        var totpManager = mocker.CreateInstance<TotpManager>();
 
         var secret = "!!!INVALID!!!";
 

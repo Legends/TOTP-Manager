@@ -18,17 +18,12 @@ public class SecretsManager : ISecretsManager
     private readonly JsonSerializerOptions? _options = null;
     private readonly string _secretsPath;
 
-    public SecretsManager(IMessageService messageService)
+    public SecretsManager(IMessageService messageService, string? storageFilePath)
     {
         _messageService = messageService;
-
-        // win: C:\Users\User\AppData\Roaming\TOTP-Manager
-        var appDataDir = Path.Combine(
+        _secretsPath = storageFilePath ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "TOTP-Manager");
-
-        Directory.CreateDirectory(appDataDir);
-        _secretsPath = Path.Combine(appDataDir, "secrets.dat");
+            "TOTP-Manager", "secrets.dat");
 
         BackupSecretsFile();
     }

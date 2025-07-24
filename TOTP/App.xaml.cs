@@ -52,9 +52,12 @@ public partial class App : Application
     private static IConfigurationRoot BuildConfiguration()
     {
         return new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
             .Build();
     }
+
 
     private static IHost CreateHostAndConfigureServices(IConfigurationRoot configuration)
     {
@@ -71,7 +74,17 @@ public partial class App : Application
                 services.AddSingleton<IDebounceService, DebounceService>();
                 services.AddSingleton<IDialogService, DialogService>();
                 services.AddSingleton<IMessageService, MessageService>();
-                services.AddSingleton<ISecretsManager, SecretsManager>();
+                services.AddSingleton<ISecretsManager>(provider =>
+                {
+                    var messageService = provider.GetRequiredService<IMessageService>();
+                    var config = provider.GetRequiredService<IConfiguration>();
+
+                    var rawPath = config.GetSection("Secrets:StorageFilePath").Value;
+                    var resolvedPath = Environment.ExpandEnvironmentVariables(rawPath ?? "");
+
+                    return new SecretsManager(messageService, resolvedPath);
+                });
+
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
                 services.AddSingleton<ITotpManager, TotpManager>();
 

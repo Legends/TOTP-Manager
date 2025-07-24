@@ -13,11 +13,11 @@ namespace TOTP.Tests.Integration;
 
 /// <summary>
 /// Integration Tests
-//  These wire everything together:
-//      real ViewModel
-//      real services
-//      real configuration
-//      but maybe a fake IClipboardService
+///  These wire everything together:
+///      real ViewModel
+///      real services
+///      real configuration
+///      but maybe a fake IClipboardService
 /// </summary>
 public class MainViewModelIntegrationTests
 {
