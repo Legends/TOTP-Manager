@@ -58,10 +58,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="UserControls\" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<Content Include="totp.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
