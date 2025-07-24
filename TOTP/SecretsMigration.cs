@@ -5,38 +5,36 @@ using System.Text.Json;
 using TOTP.Interfaces;
 using TOTP.Models;
 
-namespace TOTP
+namespace TOTP;
+
+public static class SecretsMigration
 {
-    public static class SecretsMigration
+    public static void MigrateFromUserSecrets(string userSecretsId, ISecretsManager targetManager)
     {
-        public static void MigrateFromUserSecrets(string userSecretsId, ISecretsManager targetManager)
+        var userSecretsPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Microsoft", "UserSecrets", userSecretsId, "secrets.json");
+
+        if (!File.Exists(userSecretsPath))
         {
-            string userSecretsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Microsoft", "UserSecrets", userSecretsId, "secrets.json");
-
-            if (!File.Exists(userSecretsPath))
-            {
-                Console.WriteLine($"❌ Secrets file not found at: {userSecretsPath}");
-                return;
-            }
-
-            string json = File.ReadAllText(userSecretsPath);
-            var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-            if (dict == null)
-            {
-                Console.WriteLine("❌ Failed to deserialize secrets.");
-                return;
-            }
-
-            foreach (var kv in dict)
-            {
-                var item = new SecretItem(kv.Key, kv.Value);
-                targetManager.AddNewItem(item);
-            }
-
-            Console.WriteLine("✅ Migration complete.");
+            Console.WriteLine($"❌ Secrets file not found at: {userSecretsPath}");
+            return;
         }
-    }
 
+        var json = File.ReadAllText(userSecretsPath);
+        var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+        if (dict == null)
+        {
+            Console.WriteLine("❌ Failed to deserialize secrets.");
+            return;
+        }
+
+        foreach (var kv in dict)
+        {
+            var item = new SecretItem(kv.Key, kv.Value);
+            targetManager.AddNewItem(item);
+        }
+
+        Console.WriteLine("✅ Migration complete.");
+    }
 }

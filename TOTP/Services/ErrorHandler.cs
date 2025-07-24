@@ -6,12 +6,14 @@ namespace TOTP.Services;
 
 public class ErrorHandler : IErrorHandler
 {
-    readonly IMessageService _msgSvc;
+    private readonly IMessageService _msgSvc;
+
     public ErrorHandler(IMessageService msgSvc)
     {
         ArgumentNullException.ThrowIfNull(msgSvc, nameof(msgSvc));
         _msgSvc = msgSvc;
     }
+
     public void Handle(Exception exception, string userMessage)
     {
         // 1. Show user-friendly message

@@ -1,13 +1,12 @@
 ﻿using System.Windows;
 using TOTP.Interfaces;
 
-namespace TOTP.Services
+namespace TOTP.Services;
+
+public class ClipboardService : IClipboardService
 {
-    public class ClipboardService : IClipboardService
+    public void SetText(string text)
     {
-        public void SetText(string text)
-        {
-            Clipboard.SetText(text, TextDataFormat.UnicodeText);
-        }
+        Clipboard.SetText(text, TextDataFormat.UnicodeText);
     }
 }

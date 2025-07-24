@@ -1,23 +1,22 @@
-﻿using TOTP.Services;
+﻿using System.Diagnostics;
+using TOTP.Services;
 
-namespace TOTP.Tests.Utilities
+namespace TOTP.Tests.Utilities;
+
+public class DelayServiceTests
 {
-    public class DelayServiceTests
+    [Fact]
+    public async Task Delay_ShouldWaitAtLeastSpecifiedTime()
     {
-        [Fact]
-        public async Task Delay_ShouldWaitAtLeastSpecifiedTime()
-        {
-            // Arrange
-            var delayService = new DelayService();
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        // Arrange
+        var delayService = new DelayService();
+        var stopwatch = Stopwatch.StartNew();
 
-            // Act
-            await delayService.Delay(500);
+        // Act
+        await delayService.Delay(500);
 
-            // Assert
-            stopwatch.Stop();
-            Assert.True(stopwatch.ElapsedMilliseconds >= 500);
-        }
+        // Assert
+        stopwatch.Stop();
+        Assert.True(stopwatch.ElapsedMilliseconds >= 500);
     }
-
 }

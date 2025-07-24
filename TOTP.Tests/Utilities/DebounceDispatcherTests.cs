@@ -1,8 +1,6 @@
-﻿namespace TOTP.Tests.Utilities;
+﻿using TOTP.Helper;
 
-using System.Threading.Tasks;
-using TOTP.Helper;
-using Xunit;
+namespace TOTP.Tests.Utilities;
 
 public class DebounceDispatcherTests
 {
@@ -42,7 +40,7 @@ public class DebounceDispatcherTests
     public async Task Debounce_ShouldNotExecuteAction_AfterDelay()
     {
         var dispatcher = new DebounceDispatcher();
-        bool wasCalled = false;
+        var wasCalled = false;
 
         dispatcher.Debounce(100, () => wasCalled = true);
 
@@ -80,7 +78,7 @@ public class DebounceDispatcherTests
     {
         // Arrange
         var debounce = new DebounceDispatcher();
-        bool wasCalled = false;
+        var wasCalled = false;
 
         // Act
         debounce.Debounce(100, () => wasCalled = true);
@@ -106,7 +104,7 @@ public class DebounceDispatcherTests
     {
         // Arrange
         var debounce = new DebounceDispatcher();
-        int count = 0;
+        var count = 0;
 
         // Act
         debounce.Debounce(50, () => count++);

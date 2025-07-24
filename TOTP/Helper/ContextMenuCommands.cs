@@ -6,8 +6,7 @@ namespace TOTP.Helper;
 
 public static class ContextMenuCommands
 {
-
-    static ICommand? cut;
+    private static ICommand? cut;
     public static ICommand Cut => cut ??= new BaseCommand(OnCutClicked);
 
 
@@ -22,5 +21,4 @@ public static class ContextMenuCommands
             grid.GridCopyOption = copypasteoption;
         }
     }
-
 }

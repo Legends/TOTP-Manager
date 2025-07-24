@@ -10,11 +10,9 @@ using TOTP.ViewModels;
 
 namespace TOTP.Tests.ViewModels;
 
-
 /// <summary>
-/// dotnet add package Moq
-/// dotnet add package Otp.NET
-
+///     dotnet add package Moq
+///     dotnet add package Otp.NET
 /// </summary>
 public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 {
@@ -29,6 +27,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     }
 
     #region ### Mock.AutoMock ###
+
     [Fact]
     public void AddNewTotpCommand_ShouldAddNewSecret_WhenManagerReturnsSuccess()
     {
@@ -42,10 +41,10 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         var secretItem = new SecretItem("TestKey", "TestValue");
 
         mocker.GetMock<ITotpManager>()
-                      .Setup(m => m.PromptAndAddTotp())
-                                .Returns((true, secretItem));
+            .Setup(m => m.PromptAndAddTotp())
+            .Returns((true, secretItem));
 
-        int initialCount = vm.AllSecrets.Count;
+        var initialCount = vm.AllSecrets.Count;
 
         // Act
         vm.AddNewTotpCommand.Execute(null);
@@ -68,7 +67,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         vm.AllSecrets.Add(secret);
 
-        int initialCount = vm.AllSecrets.Count;
+        var initialCount = vm.AllSecrets.Count;
 
         // Act
         vm.DeleteSecretCommand.Execute(secret);
@@ -95,13 +94,9 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         var method = typeof(MainViewModel).GetMethod("UpdateFilter", BindingFlags.NonPublic | BindingFlags.Instance);
 
         if (method != null)
-        {
             method.Invoke(vm, null);
-        }
         else
-        {
             throw new InvalidOperationException("UpdateFilter() not found.");
-        }
 
         //vm.UpdateFilter();
 
@@ -126,6 +121,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         // Assert
         Assert.True(string.IsNullOrEmpty(vm.SearchText));
     }
+
     [Fact]
     public void BeginEditCommand_ShouldSetIsBeingEdited()
     {
@@ -143,6 +139,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         // Assert
         Assert.True(secret.IsBeingEdited);
     }
+
     [Fact]
     public void SearchText_ShouldRaisePropertyChanged()
     {
@@ -151,7 +148,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         // Auto-resolve all dependencies
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        bool eventRaised = false;
+        var eventRaised = false;
         vm.PropertyChanged += (s, e) =>
         {
             if (e.PropertyName == nameof(vm.SearchText))
@@ -179,11 +176,12 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         string? capturedText = null;
 
         mocker.GetMock<IClipboardService>().Setup(c => c.SetText(It.IsAny<string>()))
-                   .Callback<string>(text => capturedText = text);
+            .Callback<string>(text => capturedText = text);
 
 
 #pragma warning disable CS8601 // Possible null reference assignment.
-        mocker.GetMock<ITotpManager>().Setup(m => m.TryComputeCode(It.IsAny<string>(), out It.Ref<string>.IsAny, out It.Ref<string>.IsAny))
+        mocker.GetMock<ITotpManager>().Setup(m =>
+                m.TryComputeCode(It.IsAny<string>(), out It.Ref<string>.IsAny, out It.Ref<string>.IsAny))
             .Returns(true)
             .Callback((string input, out string code, out string? error) =>
             {
@@ -193,25 +191,19 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 #pragma warning restore CS8601 // Possible null reference assignment.
 
 
-
         var delayMock = mocker.GetMock<IDelayService>();
         delayMock.Setup(d => d.Delay(It.IsAny<int>())).Returns(Task.CompletedTask);
 
         vm.SelectedSecret = secret;
 
-        try
-        {
-            var method = vm.GetType().GetMethod("OnSecretSelected", BindingFlags.NonPublic | BindingFlags.Instance)
-              ?? throw new InvalidOperationException("OnSecretSelected method not found.");
+        var method = vm.GetType().GetMethod("OnSecretSelected", BindingFlags.NonPublic | BindingFlags.Instance)
+                     ?? throw new InvalidOperationException("OnSecretSelected method not found.");
 
-            var result = method.Invoke(vm, null);
-            if (result is not Task task)
-                throw new InvalidOperationException("OnSecretSelected did not return a Task.");
+        var result = method.Invoke(vm, null);
+        if (result is not Task task)
+            throw new InvalidOperationException("OnSecretSelected did not return a Task.");
 
-            await task;
-
-        }
-        catch (Exception) { throw; }
+        await task;
 
         delayMock.Verify(d => d.Delay(It.IsAny<int>()), Times.Once);
 
@@ -219,6 +211,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         Assert.Contains("TestPlatform", vm.CurrentCodeLabel);
         Assert.False(vm.IsCodeCopiedVisible);
     }
+
     #endregion
 
     #region ### AutoFixture.AutoMoq
@@ -266,7 +259,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         // just for removing info messages in the console
         GC.SuppressFinalize(this);
-
     }
+
     #endregion
 }

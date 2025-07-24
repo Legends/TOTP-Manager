@@ -31,7 +31,7 @@ public class MainViewModelIntegrationTests
         var secretItem = new SecretItem("MyKey", "MySecret");
         var totpManagerMock = new Mock<ITotpManager>();
         totpManagerMock.Setup(m => m.PromptAndAddTotp())
-                       .Returns((true, secretItem));
+            .Returns((true, secretItem));
         services.AddSingleton(totpManagerMock.Object);
 
 
@@ -50,7 +50,7 @@ public class MainViewModelIntegrationTests
             provider.GetRequiredService<IDelayService>()
         );
 
-        int initialCount = vm.AllSecrets.Count;
+        var initialCount = vm.AllSecrets.Count;
 
         // Act
         vm.AddNewTotpCommand.Execute(null);

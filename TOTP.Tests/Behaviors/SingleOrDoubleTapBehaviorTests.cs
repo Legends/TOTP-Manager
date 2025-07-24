@@ -9,7 +9,7 @@ public class SingleOrDoubleTapBehaviorTests
     public void InvokeSingleTap_ShouldExecuteCommand()
     {
         // Arrange
-        bool wasCalled = false;
+        var wasCalled = false;
         var behavior = new TestableSingleOrDoubleTapBehavior
         {
             SingleTapCommand = new RelayCommand(() => wasCalled = true)
@@ -24,8 +24,9 @@ public class SingleOrDoubleTapBehaviorTests
 
     private class TestableSingleOrDoubleTapBehavior : SingleOrDoubleTapBehavior
     {
-        public new void InvokeSingleTap() => base.InvokeSingleTap();
+        public new void InvokeSingleTap()
+        {
+            base.InvokeSingleTap();
+        }
     }
 }
-
-

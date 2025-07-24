@@ -1,44 +1,45 @@
-﻿using Microsoft.Xaml.Behaviors;
-using Syncfusion.UI.Xaml.Grid;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
-
+using Microsoft.Xaml.Behaviors;
+using Syncfusion.UI.Xaml.Grid;
 
 namespace TOTP.Behaviors;
 
 public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 {
+    public static readonly DependencyProperty TapDelayProperty =
+        DependencyProperty.Register(nameof(TapDelay), typeof(int), typeof(SingleOrDoubleTapBehavior),
+            new PropertyMetadata(300));
+
+    public static readonly DependencyProperty SingleTapCommandProperty =
+        DependencyProperty.Register(nameof(SingleTapCommand), typeof(ICommand), typeof(SingleOrDoubleTapBehavior),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty DoubleTapCommandProperty =
+        DependencyProperty.Register(nameof(DoubleTapCommand), typeof(ICommand), typeof(SingleOrDoubleTapBehavior),
+            new PropertyMetadata(null));
 
     //private readonly bool _doubleTapOccurred;
 
     public int TapDelay
     {
-        get { return (int)GetValue(TapDelayProperty); }
-        set { SetValue(TapDelayProperty, value); }
+        get => (int)GetValue(TapDelayProperty);
+        set => SetValue(TapDelayProperty, value);
     }
-
-    public static readonly DependencyProperty TapDelayProperty =
-    DependencyProperty.Register(nameof(TapDelay), typeof(int), typeof(SingleOrDoubleTapBehavior), new PropertyMetadata(300));
 
 
     public ICommand SingleTapCommand
     {
-        get { return (ICommand)GetValue(SingleTapCommandProperty); }
-        set { SetValue(SingleTapCommandProperty, value); }
+        get => (ICommand)GetValue(SingleTapCommandProperty);
+        set => SetValue(SingleTapCommandProperty, value);
     }
-
-    public static readonly DependencyProperty SingleTapCommandProperty =
-        DependencyProperty.Register(nameof(SingleTapCommand), typeof(ICommand), typeof(SingleOrDoubleTapBehavior), new PropertyMetadata(null));
 
     public ICommand DoubleTapCommand
     {
-        get { return (ICommand)GetValue(DoubleTapCommandProperty); }
-        set { SetValue(DoubleTapCommandProperty, value); }
+        get => (ICommand)GetValue(DoubleTapCommandProperty);
+        set => SetValue(DoubleTapCommandProperty, value);
     }
-
-    public static readonly DependencyProperty DoubleTapCommandProperty =
-        DependencyProperty.Register(nameof(DoubleTapCommand), typeof(ICommand), typeof(SingleOrDoubleTapBehavior), new PropertyMetadata(null));
 
     protected override void OnAttached()
     {
@@ -46,7 +47,6 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 
         AssociatedObject.CellTapped += AssociatedObject_CellTapped;
         AssociatedObject.CellDoubleTapped += AssociatedObject_CellDoubleTapped;
-
     }
 
     protected override void OnDetaching()
@@ -55,7 +55,6 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 
         AssociatedObject.CellTapped -= AssociatedObject_CellTapped;
         AssociatedObject.CellDoubleTapped -= AssociatedObject_CellDoubleTapped;
-
     }
 
     private void AssociatedObject_CellTapped(object? sender, GridCellTappedEventArgs e)
@@ -86,7 +85,6 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
     }
 
 
-
     protected virtual void InvokeSingleTap()
     {
         if (SingleTapCommand != null && SingleTapCommand.CanExecute(null))
@@ -95,5 +93,4 @@ public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
             SingleTapCommand.Execute(null);
         }
     }
-
 }

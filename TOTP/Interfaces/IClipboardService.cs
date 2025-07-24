@@ -1,8 +1,6 @@
-﻿namespace TOTP.Interfaces
-{
-    public interface IClipboardService
-    {
-        void SetText(string text);
-    }
+﻿namespace TOTP.Interfaces;
 
+public interface IClipboardService
+{
+    void SetText(string text);
 }

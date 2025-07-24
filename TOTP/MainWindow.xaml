@@ -4,10 +4,7 @@
                              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
-                             xmlns:local="clr-namespace:TOTP.ViewModels"
-                             xmlns:helper="clr-namespace:TOTP.Helper"
                              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-                             xmlns:ei="http://schemas.microsoft.com/xaml/behaviors/core"
                              xmlns:behaviors="clr-namespace:TOTP.Behaviors"
                              xmlns:converters="clr-namespace:TOTP.Converters"
                              xmlns:props="clr-namespace:TOTP.AttachedProperties"
@@ -186,12 +183,10 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
 
                 <syncfusion:SfDataGrid.Columns>
                     <syncfusion:GridTextColumn HeaderText="platform"
-                                               MappingName="Platform">
-                    </syncfusion:GridTextColumn>
+                                               MappingName="Platform" />
 
                     <syncfusion:GridTextColumn HeaderText="secret"
-                                               MappingName="Secret">
-                    </syncfusion:GridTextColumn>
+                                               MappingName="Secret" />
 
                     <!--<syncfusion:GridTemplateColumn x:Name="ActionsColumn"
                                                    HeaderText="Actions">
@@ -239,7 +234,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                             <MenuItem.Icon>
                                 <svgc:SvgViewbox Width="11"
                                                  Height="11"
-                                                 Source="/Assets/Icons/delete-24x24.svg"></svgc:SvgViewbox>
+                                                 Source="/Assets/Icons/delete-24x24.svg" />
                             </MenuItem.Icon>
 
                         </MenuItem>
@@ -307,12 +302,13 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                 <DataTrigger.EnterActions>
                                     <BeginStoryboard>
                                         <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
-                                                             From="0"
-                                                             To="-10"
-                                                             Duration="0:0:0.2"
-                                                             AutoReverse="True"
-                                                             EasingFunction="{StaticResource BounceEase}" />
+                                            <DoubleAnimation
+                                                Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                From="0"
+                                                To="-10"
+                                                Duration="0:0:0.2"
+                                                AutoReverse="True"
+                                                EasingFunction="{StaticResource BounceEase}" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </DataTrigger.EnterActions>

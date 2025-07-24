@@ -1,31 +1,28 @@
-﻿using Syncfusion.Windows.Shared;
-using System.Windows;
+﻿using System.Windows;
+using Syncfusion.Windows.Shared;
 using TOTP.ViewModels;
 
 //ControlNamespace###
 
-namespace TOTP.Windows
+namespace TOTP.Windows;
+
+/// <summary>
+///     Interaction logic for KeyValueDialog.xaml
+/// </summary>
+public partial class KeyValueDialog : ChromelessWindow
 {
-    /// <summary>
-    /// Interaction logic for KeyValueDialog.xaml
-    /// </summary>
-    public partial class KeyValueDialog : ChromelessWindow
+    public KeyValueDialog()
     {
-        public KeyValueDialogViewModel ViewModel { get; } = new KeyValueDialogViewModel();
+        InitializeComponent();
+        DataContext = ViewModel;
 
-        public KeyValueDialog()
-        {
-            InitializeComponent();
-            DataContext = ViewModel;
+        //ControlMethodCall###
+    }
 
-            //ControlMethodCall###
-        }
+    public KeyValueDialogViewModel ViewModel { get; } = new();
 
-        private void Ok_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-        }
-
-
+    private void Ok_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = true;
     }
 }

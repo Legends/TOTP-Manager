@@ -23,9 +23,7 @@ public class ToggleColumnVisibilityBehavior : Behavior<SfDataGrid>
     private static void OnShowActionsColumnChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is ToggleColumnVisibilityBehavior behavior && behavior.AssociatedObject != null)
-        {
             behavior.UpdateColumnVisibility();
-        }
     }
 
     protected override void OnAttached()
@@ -52,9 +50,6 @@ public class ToggleColumnVisibilityBehavior : Behavior<SfDataGrid>
     {
         var grid = AssociatedObject;
         var actionsColumn = grid.Columns.FirstOrDefault(c => c.HeaderText == "Actions");
-        if (actionsColumn != null)
-        {
-            actionsColumn.IsHidden = !ShowActionsColumn;
-        }
+        if (actionsColumn != null) actionsColumn.IsHidden = !ShowActionsColumn;
     }
 }

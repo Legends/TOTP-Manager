@@ -1,9 +1,9 @@
-﻿namespace TOTP.Services;
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Windows.Threading;
 using TOTP.Interfaces;
+
+namespace TOTP.Services;
 
 public class DebounceService : IDebounceService
 {
@@ -38,9 +38,6 @@ public class DebounceService : IDebounceService
 
     public void Cancel(string key)
     {
-        if (_timers.TryRemove(key, out var timer))
-        {
-            timer.Stop();
-        }
+        if (_timers.TryRemove(key, out var timer)) timer.Stop();
     }
 }

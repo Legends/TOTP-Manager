@@ -1,13 +1,14 @@
-﻿using Microsoft.Xaml.Behaviors;
+﻿using System.Windows;
+using Microsoft.Xaml.Behaviors;
 using Syncfusion.UI.Xaml.Grid;
-using System.Windows;
 using TOTP.Interfaces;
 
 namespace TOTP.Behaviors;
 
 public class SfDataGridContextMenuBehavior : Behavior<SfDataGrid>
 {
-    IMainViewModel? _vm;
+    private IMainViewModel? _vm;
+
     protected override void OnAttached()
     {
         base.OnAttached();
@@ -24,7 +25,6 @@ public class SfDataGridContextMenuBehavior : Behavior<SfDataGrid>
     private void OnContextMenuOpening(object? sender, GridContextMenuEventArgs e)
     {
         if (e.ContextMenuType == ContextMenuType.RecordCell)
-        {
             if (AssociatedObject.DataContext is IMainViewModel vm)
             {
                 _vm = vm;
@@ -33,7 +33,6 @@ public class SfDataGridContextMenuBehavior : Behavior<SfDataGrid>
                 e.ContextMenu.Closed -= ContextMenu_Closed;
                 e.ContextMenu.Closed += ContextMenu_Closed;
             }
-        }
     }
 
     private void ContextMenu_Closed(object sender, RoutedEventArgs e)

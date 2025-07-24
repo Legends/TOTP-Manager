@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Windows;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Syncfusion.Licensing;
-using System;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows;
 using TOTP.Interfaces;
 using TOTP.Logging;
 using TOTP.Services;
@@ -16,13 +16,15 @@ using TOTP.ViewModels;
 namespace TOTP;
 
 /// <summary>
-/// Interaction logic for App.xaml
+///     Interaction logic for App.xaml
 /// </summary>
 public partial class App : Application
 {
     private readonly IHost _host = null!;
-    ILogger<App>? _logger;
+
+    private ILogger<App>? _logger;
     //public static IServiceProvider Services { get; private set; }
+
     public App()
     {
         LoggingConfigurator.SetupEarlyLogger();
@@ -32,7 +34,7 @@ public partial class App : Application
             SetupUnhandledExceptionsHooks();
 
             // Build configuration first to get secrets
-            IConfigurationRoot configuration = BuildConfiguration();
+            var configuration = BuildConfiguration();
 
             RegisterSyncfusionLicenseKey(configuration);
 
@@ -50,13 +52,13 @@ public partial class App : Application
     private static IConfigurationRoot BuildConfiguration()
     {
         return new ConfigurationBuilder()
-            .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
+            .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
             .Build();
     }
 
     private static IHost CreateHostAndConfigureServices(IConfigurationRoot configuration)
     {
-        return Host.CreateDefaultBuilder().UseSerilog(LoggingConfigurator.ConfigureWithHostContext, preserveStaticLogger: true)
+        return Host.CreateDefaultBuilder().UseSerilog(LoggingConfigurator.ConfigureWithHostContext, true)
             .ConfigureServices((context, services) =>
             {
                 // Register configuration so it can be injected
@@ -92,8 +94,7 @@ public partial class App : Application
 
     private void SetupUnhandledExceptionsHooks()
     {
-
-        this.DispatcherUnhandledException += (s, exArgs) =>
+        DispatcherUnhandledException += (s, exArgs) =>
         {
             _logger?.LogError(exArgs.Exception, "Unhandled UI thread exception");
             MessageBox.Show("A critical UI error occurred. Check logs.");
@@ -146,7 +147,7 @@ public partial class App : Application
 
         _host?.Dispose();
 
-        Log.CloseAndFlush();
+        await Log.CloseAndFlushAsync();
 
         base.OnExit(e);
     }

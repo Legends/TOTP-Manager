@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace TOTP.Interfaces
+namespace TOTP.Interfaces;
+
+public interface IErrorHandler
 {
-    public interface IErrorHandler
-    {
-        void Handle(Exception exception, string userMessage);
-    }
+    void Handle(Exception exception, string userMessage);
 }

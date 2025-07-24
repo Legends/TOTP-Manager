@@ -1,6 +1,5 @@
-﻿namespace TOTP.Tests.Services
+﻿namespace TOTP.Tests.Services;
+
+internal class ClipboardServiceTests
 {
-    internal class ClipboardServiceTests
-    {
-    }
 }

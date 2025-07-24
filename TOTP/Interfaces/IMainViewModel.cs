@@ -19,10 +19,7 @@ public interface IMainViewModel : INotifyPropertyChanged
     string? CurrentCodeLabel { get; }
     bool IsCodeCopiedVisible { get; }
     SecretItem? PreviousVersion { get; set; } // ADD THIS
-
-    void UpdateSecret(SecretItem updated); // ADD THIS
     bool IsContextmenuOpen { get; set; }
 
-
-
+    void UpdateSecret(SecretItem updated); // ADD THIS
 }

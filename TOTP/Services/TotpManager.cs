@@ -8,9 +8,9 @@ namespace TOTP.Services;
 public class TotpManager : ITotpManager
 {
     private readonly IDialogService _dialogService;
+    private readonly IErrorHandler _errorHandler;
     private readonly IMessageService _messageService;
     private readonly ISecretsManager _SecretsManager;
-    private readonly IErrorHandler _errorHandler;
 
     public TotpManager(
         IDialogService dialogService,
@@ -25,7 +25,7 @@ public class TotpManager : ITotpManager
     }
 
     /// <summary>
-    /// Adds a new TOTP secret to the secrets.json file by prompting the user for a key and value.
+    ///     Adds a new TOTP secret to the secrets.json file by prompting the user for a key and value.
     /// </summary>
     /// <returns>bool for success and the secretItem/null</returns>
     public (bool success, SecretItem? item) PromptAndAddTotp()
@@ -62,11 +62,9 @@ public class TotpManager : ITotpManager
                     var item = new SecretItem(key, value);
                     return (true, item);
                 }
-                else
-                {
-                    _messageService.ShowMessage($"Failed to set secret: {key}", "Error");
-                    return (false, null);
-                }
+
+                _messageService.ShowMessage($"Failed to set secret: {key}", "Error");
+                return (false, null);
             }
         }
         catch (Exception ex)
@@ -116,7 +114,7 @@ public class TotpManager : ITotpManager
     }
 
     /// <summary>
-    /// Deletes a secret item from the secrets.json file.
+    ///     Deletes a secret item from the secrets.json file.
     /// </summary>
     /// <param name="item">SecretItem</param>
     /// <returns>true/false</returns>
@@ -136,6 +134,7 @@ public class TotpManager : ITotpManager
                 _SecretsManager.DeleteItem(item.Platform);
                 return true;
             }
+
             return false;
         }
         catch (Exception ex)
@@ -144,6 +143,4 @@ public class TotpManager : ITotpManager
             return false;
         }
     }
-
-
 }

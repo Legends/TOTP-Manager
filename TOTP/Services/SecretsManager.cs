@@ -14,15 +14,15 @@ namespace TOTP.Services;
 
 public class SecretsManager : ISecretsManager
 {
-    private readonly string secretsPath;
     private readonly IMessageService _messageService;
-    JsonSerializerOptions? _options = null;
+    private readonly JsonSerializerOptions? _options = null;
+    private readonly string secretsPath;
 
     public SecretsManager(IMessageService messageService)
     {
         _messageService = messageService;
 
-        string appDataDir = Path.Combine(
+        var appDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "TOTP-Manager");
 
@@ -87,6 +87,40 @@ public class SecretsManager : ISecretsManager
         return WriteEncryptedFile(list);
     }
 
+    public bool BackupSecretsFile()
+    {
+        try
+        {
+            if (!File.Exists(secretsPath)) return false;
+
+            var dir = Path.GetDirectoryName(secretsPath)!;
+            var file = Path.GetFileName(secretsPath);
+
+            for (var i = 5; i >= 1; i--)
+            {
+                var oldBackup = Path.Combine(dir, $"{file}.bak{i}");
+                var nextBackup = Path.Combine(dir, $"{file}.bak{i + 1}");
+
+                if (File.Exists(oldBackup))
+                {
+                    if (i == 5) File.Delete(oldBackup);
+                    else File.Move(oldBackup, nextBackup, true);
+                }
+            }
+
+            var firstBackup = Path.Combine(dir, $"{file}.bak1");
+            File.Copy(secretsPath, firstBackup, true);
+
+            Debug.WriteLine($"Backup created: {firstBackup}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _messageService.ShowMessageDialog($"Backup failed: {ex.Message}", "Error");
+            return false;
+        }
+    }
+
     private (bool, List<SecretItem>) ReadSecretsFile()
     {
         try
@@ -94,9 +128,9 @@ public class SecretsManager : ISecretsManager
             if (!File.Exists(secretsPath))
                 return (true, []);
 
-            byte[] encrypted = File.ReadAllBytes(secretsPath);
-            byte[] decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
-            string json = Encoding.UTF8.GetString(decrypted);
+            var encrypted = File.ReadAllBytes(secretsPath);
+            var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
+            var json = Encoding.UTF8.GetString(decrypted);
 
             var list = JsonSerializer.Deserialize<List<SecretItem>>(json) ?? [];
             return (true, list);
@@ -112,9 +146,9 @@ public class SecretsManager : ISecretsManager
     {
         try
         {
-            string json = JsonSerializer.Serialize(list, GetOptions());
-            byte[] data = Encoding.UTF8.GetBytes(json);
-            byte[] encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
+            var json = JsonSerializer.Serialize(list, GetOptions());
+            var data = Encoding.UTF8.GetBytes(json);
+            var encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
             File.WriteAllBytes(secretsPath, encrypted);
             return true;
         }
@@ -127,41 +161,7 @@ public class SecretsManager : ISecretsManager
 
     private JsonSerializerOptions GetOptions()
     {
-        return _options ?? new JsonSerializerOptions() { WriteIndented = true };
-    }
-
-    public bool BackupSecretsFile()
-    {
-        try
-        {
-            if (!File.Exists(secretsPath)) return false;
-
-            string dir = Path.GetDirectoryName(secretsPath)!;
-            string file = Path.GetFileName(secretsPath);
-
-            for (int i = 5; i >= 1; i--)
-            {
-                string oldBackup = Path.Combine(dir, $"{file}.bak{i}");
-                string nextBackup = Path.Combine(dir, $"{file}.bak{i + 1}");
-
-                if (File.Exists(oldBackup))
-                {
-                    if (i == 5) File.Delete(oldBackup);
-                    else File.Move(oldBackup, nextBackup, true);
-                }
-            }
-
-            string firstBackup = Path.Combine(dir, $"{file}.bak1");
-            File.Copy(secretsPath, firstBackup, true);
-
-            Debug.WriteLine($"Backup created: {firstBackup}");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _messageService.ShowMessageDialog($"Backup failed: {ex.Message}", "Error");
-            return false;
-        }
+        return _options ?? new JsonSerializerOptions { WriteIndented = true };
     }
 
     public static bool IsValidBase32Format(string value)
@@ -176,5 +176,4 @@ public class SecretsManager : ISecretsManager
             return false;
         }
     }
-
 }

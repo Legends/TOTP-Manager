@@ -1,7 +1,7 @@
-﻿using Microsoft.Xaml.Behaviors;
-using Syncfusion.UI.Xaml.Grid;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
+using Microsoft.Xaml.Behaviors;
+using Syncfusion.UI.Xaml.Grid;
 
 namespace TOTP.Behaviors;
 
@@ -52,7 +52,8 @@ public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
 
     private void OnBeginEdit(object? sender, CurrentCellBeginEditEventArgs e)
     {
-        if (AssociatedObject.SelectedItem != null && BeginEditCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
+        if (AssociatedObject.SelectedItem != null &&
+            BeginEditCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
             BeginEditCommand.Execute(AssociatedObject.SelectedItem);
     }
 
@@ -64,7 +65,8 @@ public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
 
     private void OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (AssociatedObject.SelectedItem != null && DoubleClickCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
+        if (AssociatedObject.SelectedItem != null &&
+            DoubleClickCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
             DoubleClickCommand.Execute(AssociatedObject.SelectedItem);
     }
 }

@@ -10,13 +10,14 @@ public class DialogService : IDialogService
     {
         var dlg = new KeyValueDialog
         {
-            Owner = System.Windows.Application.Current?.MainWindow
+            Owner = Application.Current?.MainWindow
         };
         var result = dlg.ShowDialog() == true;
         return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
     }
 
-    public (bool success, string? key, string? value) ShowKeyValueDialog(string? initialKey = null, string? initialValue = null)
+    public (bool success, string? key, string? value) ShowKeyValueDialog(string? initialKey = null,
+        string? initialValue = null)
     {
         var dlg = new KeyValueDialog
         {
@@ -32,5 +33,4 @@ public class DialogService : IDialogService
         var result = dlg.ShowDialog() == true;
         return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
     }
-
 }

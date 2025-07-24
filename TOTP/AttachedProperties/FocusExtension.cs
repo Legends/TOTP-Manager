@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace TOTP.AttachedProperties;
-
 
 public static class FocusExtension
 {
@@ -36,6 +36,6 @@ public static class FocusExtension
                 uiElement.Focus();
                 Keyboard.Focus(uiElement);
             }),
-            System.Windows.Threading.DispatcherPriority.Input);
+            DispatcherPriority.Input);
     }
 }

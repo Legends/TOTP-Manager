@@ -3,8 +3,6 @@ using TOTP.Interfaces;
 
 namespace TOTP.Services;
 
-
-
 public class MessageService : IMessageService
 {
     public void ShowMessage(string message, string caption = "Info")

@@ -5,15 +5,15 @@ namespace TOTP.Helper;
 
 public class DebounceDispatcher
 {
-    private DispatcherTimer? _timer;
     private Action? _action;
+    private DispatcherTimer? _timer;
 
     /// <summary>
-    /// Debounce is called repeatedly when typing into the textbox, once for each character.
-    /// so if u type multiple times, within the soecifed threshold specified in ms, 
-    /// the timer will resest and start again and execute the action 
-    /// after the last typed character when the specified timeinterval has elapsed 
-    /// thats how debounce works.
+    ///     Debounce is called repeatedly when typing into the textbox, once for each character.
+    ///     so if u type multiple times, within the soecifed threshold specified in ms,
+    ///     the timer will resest and start again and execute the action
+    ///     after the last typed character when the specified timeinterval has elapsed
+    ///     thats how debounce works.
     /// </summary>
     /// <param name="milliseconds"></param>
     /// <param name="action"></param>
@@ -28,12 +28,12 @@ public class DebounceDispatcher
 
     private void Timer_Tick(object? sender, EventArgs e)
     {
-
         if (_timer is not null)
         {
             _timer.Stop();
             _timer.Tick -= Timer_Tick;
         }
+
         _action?.Invoke();
     }
 }
