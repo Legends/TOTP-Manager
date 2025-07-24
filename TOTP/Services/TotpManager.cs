@@ -24,11 +24,8 @@ public class TotpManager : ITotpManager
         _errorHandler = errorHandler;
     }
 
-    /// <summary>
-    ///     Adds a new TOTP secret to the secrets.json file by prompting the user for a key and value.
-    /// </summary>
-    /// <returns>bool for success and the secretItem/null</returns>
-    public (bool success, SecretItem? item) PromptAndAddTotp()
+
+    public (bool success, SecretItem? item) AddNewTotp()
     {
         try
         {

@@ -108,7 +108,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     {
         try
         {
-            var (success, item) = _totpManager.PromptAndAddTotp();
+            var (success, item) = _totpManager.AddNewTotp();
             if (success && item != null)
             {
                 ResetCodeGenerationLabels();

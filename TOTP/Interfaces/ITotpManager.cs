@@ -5,10 +5,11 @@ namespace TOTP.Interfaces;
 public interface ITotpManager
 {
     /// <summary>
-    ///     Adds a new TOTP secret to the secrets.json file by prompting the user for a key and value.
+    /// Adds a new TOTP secret item by prompting the user for key and value.
+    /// It writes the new item to the secrets file and returns the item if successful.
     /// </summary>
-    /// <returns>bool for success and the secretItem/null</returns>
-    (bool success, SecretItem? item) PromptAndAddTotp();
+    /// <returns></returns>
+    (bool success, SecretItem? item) AddNewTotp();
 
     bool TryComputeCode(string secret, out string? code, out string? error);
 

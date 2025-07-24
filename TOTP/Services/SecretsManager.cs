@@ -121,6 +121,10 @@ public class SecretsManager : ISecretsManager
         }
     }
 
+    /// <summary>
+    /// Returns a tuple indicating success and the list of secrets read from the encrypted secrets.dat file
+    /// </summary>
+    /// <returns></returns>
     private (bool, List<SecretItem>) ReadSecretsFile()
     {
         try

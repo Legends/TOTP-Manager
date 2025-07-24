@@ -13,6 +13,9 @@ namespace TOTP.Tests.ViewModels;
 /// <summary>
 ///     dotnet add package Moq
 ///     dotnet add package Otp.NET
+///
+/// Here we just test the logic inside the methods of MainViewModel, all external methods calls like TotpManager, SecretsManager and other services are mocked.
+/// Very simple tests
 /// </summary>
 public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 {
@@ -28,21 +31,24 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
     #region ### Mock.AutoMock ###
 
+    /// <summary>
+    /// Just tests AddNewTotp inside MainViewModel
+    /// </summary>
     [Fact]
     public void AddNewTotpCommand_ShouldAddNewSecret_WhenManagerReturnsSuccess()
     {
-        // Use _fixture
-        //_fixture.
-        // Arrange
         var mocker = new AutoMocker();
-        // Auto-resolve all dependencies
-        var vm = mocker.CreateInstance<MainViewModel>();
+
+        SetupSecretsDataSourceMock(mocker);
 
         var secretItem = new SecretItem("TestKey", "TestValue");
 
         mocker.GetMock<ITotpManager>()
-            .Setup(m => m.PromptAndAddTotp())
+            .Setup(m => m.AddNewTotp())
             .Returns((true, secretItem));
+
+        // Auto-resolve all dependencies
+        var vm = mocker.CreateInstance<MainViewModel>();
 
         var initialCount = vm.AllSecrets.Count;
 
@@ -54,11 +60,21 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         Assert.Contains(secretItem, vm.AllSecrets);
     }
 
+    private static void SetupSecretsDataSourceMock(AutoMocker mocker)
+    {
+        var secrets = new List<SecretItem>(); // Or add dummy items if needed
+        var secretsManagerMock = new Mock<ISecretsManager>();
+        secretsManagerMock.Setup(m => m.GetAllSecrets()).Returns(secrets);
+        mocker.Use<ISecretsManager>(secretsManagerMock.Object);
+    }
+
     [Fact]
     public void DeleteSecretCommand_ShouldRemoveSecret_WhenManagerDeletesSuccessfully()
     {
         // Arrange
         var mocker = new AutoMocker();
+        SetupSecretsDataSourceMock(mocker);
+
         // Auto-resolve all dependencies
         var vm = mocker.CreateInstance<MainViewModel>();
 
@@ -82,6 +98,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     {
         // Arrange
         var mocker = new AutoMocker();
+        SetupSecretsDataSourceMock(mocker);
         // Auto-resolve all dependencies
         var vm = mocker.CreateInstance<MainViewModel>();
 
@@ -110,6 +127,8 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     {
         // Arrange
         var mocker = new AutoMocker();
+        SetupSecretsDataSourceMock(mocker);
+
         // Auto-resolve all dependencies
         var vm = mocker.CreateInstance<MainViewModel>();
 
@@ -127,6 +146,8 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     {
         // Arrange
         var mocker = new AutoMocker();
+        SetupSecretsDataSourceMock(mocker);
+
         // Auto-resolve all dependencies
         var vm = mocker.CreateInstance<MainViewModel>();
 
@@ -145,6 +166,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     {
         // Arrange
         var mocker = new AutoMocker();
+        SetupSecretsDataSourceMock(mocker);
         // Auto-resolve all dependencies
         var vm = mocker.CreateInstance<MainViewModel>();
 
@@ -170,6 +192,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         // Arrange
         var mocker = new AutoMocker();
+        SetupSecretsDataSourceMock(mocker);
         // Auto-resolve all dependencies
         var vm = mocker.CreateInstance<MainViewModel>();
 

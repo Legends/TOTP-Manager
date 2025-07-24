@@ -30,7 +30,7 @@ public class MainViewModelIntegrationTests
         // Mock only TotpManager
         var secretItem = new SecretItem("MyKey", "MySecret");
         var totpManagerMock = new Mock<ITotpManager>();
-        totpManagerMock.Setup(m => m.PromptAndAddTotp())
+        totpManagerMock.Setup(m => m.AddNewTotp())
             .Returns((true, secretItem));
         services.AddSingleton(totpManagerMock.Object);
 

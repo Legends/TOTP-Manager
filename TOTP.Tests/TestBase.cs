@@ -26,7 +26,7 @@ public class TestBase
 
     //    var secretItem = new SecretItem("TestKey", "TestValue");
 
-    //    totpMock.Setup(m => m.PromptAndAddTotp())
+    //    totpMock.Setup(m => m.AddNewTotp())
     //                            .Returns((true, secretItem));
 
     //    int initialCount = vm.AllSecrets.Count;
