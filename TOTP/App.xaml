@@ -1,11 +1,16 @@
 ﻿<Application x:Class="TOTP.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:TOTP.Converters">
+
     <Application.Resources>
         <ResourceDictionary>
-            <!--<ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/GlobalResources.xaml" />
-            </ResourceDictionary.MergedDictionaries>-->
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Local resources go here -->
+          
         </ResourceDictionary>
     </Application.Resources>
 

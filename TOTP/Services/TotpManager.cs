@@ -44,7 +44,7 @@ public class TotpManager : ITotpManager
 
                 if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
                 {
-                    _messageService.ShowErrorMessage("Key and Value cannot be empty.");
+                    _messageService.ShowErrorMessage("platform and secret cannot be empty.");
                     continue;
                 }
 

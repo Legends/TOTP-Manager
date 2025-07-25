@@ -13,38 +13,41 @@
                              WindowStartupLocation="CenterOwner"
                              ResizeMode="NoResize"
                              TitleBarBackground="#7D7FF4"
-                             TitleBarForeground="White"
+                             TitleBarForeground="{DynamicResource Brush.Foreground}"
                              ShowInTaskbar="False">
 
     <StackPanel Margin="24"
                 FocusManager.FocusedElement="{Binding ElementName=KeyTextBox}">
 
         <TextBlock Text="platform"
-                   Foreground="White"
+                   Foreground="{DynamicResource Brush.Foreground}"
                    FontWeight="Medium"
                    Margin="0,5" />
 
         <syncfusion:SfTextBoxExt x:Name="KeyTextBox"
                                  Watermark="i.e. github, msft, ..."
+                                 WatermarkTemplate="{StaticResource CustomWatermarkTemplate}"
                                  Focusable="True"
                                  Margin="0,0,0,12"
                                  Text="{Binding Platform, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
         <TextBlock Text="shared secret"
                    FontWeight="Medium"
-                   Foreground="White"
+                   Foreground="{DynamicResource Brush.Foreground}"
                    Margin="0,5" />
 
         <syncfusion:SfTextBoxExt Watermark="base32-encoded string"
                                  Margin="0,0,0,16"
+                                 WatermarkTemplate="{StaticResource CustomWatermarkTemplate}"
                                  Text="{Binding Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
         <TextBlock Text="account (optional)"
                    FontWeight="Medium"
-                   Foreground="White"
+                   Foreground="{DynamicResource Brush.Foreground}"
                    Margin="0,5" />
 
         <syncfusion:SfTextBoxExt Watermark="username or email"
+                                 WatermarkTemplate="{StaticResource CustomWatermarkTemplate}"
                                  Margin="0,0,0,16"
                                  Text="{Binding Account, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 

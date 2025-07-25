@@ -17,7 +17,7 @@
                              Icon="/Assets/Icons/app.ico"
                              Title="TOTP Manager"
                              TitleBarBackground="#7D7FF4"
-                             TitleBarForeground="White"
+                             TitleBarForeground="{DynamicResource Brush.Foreground}"
                              WindowStartupLocation="CenterScreen">
 
     <!--
@@ -28,29 +28,22 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
 -->
     <syncfusion:ChromelessWindow.Resources>
         <!--<BoolToVisibilityConverterCollapsed x:Key="BoolToVisibilityConverterCollapsed" />-->
-        <converters:BoolToVisibilityConverterCollapsed x:Key="BoolToVisibilityConverterCollapsed" />
+
         <BounceEase x:Key="BounceEase"
                     Bounces="1"
                     Bounciness="100"
                     EasingMode="EaseOut" />
 
     </syncfusion:ChromelessWindow.Resources>
-    <!--<Window.Background>
-        <ImageBrush ImageSource="/Assets/backgrounds/background-main.png"
-                    Stretch="UniformToFill"
-                    Opacity="1" />
-    </Window.Background>-->
-
 
     <StackPanel Orientation="Vertical"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
-
-
+     
         <syncfusion:ToolBarAdv HorizontalAlignment="Stretch"
                                Height="30"
                                MaxHeight="35"
-                               Foreground="White"
+                               Foreground="{DynamicResource Brush.Foreground}"
                                Background="Transparent"
                                OverflowMode="AsNeeded">
 
@@ -172,7 +165,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                             </Setter.Value>-->
                         </Setter>
                         <Setter Property="Foreground"
-                                Value="White" />
+                                Value="{DynamicResource Brush.Foreground}" />
                         <Setter Property="FontWeight"
                                 Value="Bold" />
                         <Setter Property="HorizontalContentAlignment"
@@ -228,7 +221,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                     <ContextMenu>
                         <MenuItem Header="Delete"
                                   Padding="0,0,2,0"
-                                  Foreground="White"
+                                  Foreground="{DynamicResource Brush.Foreground}"
                                   Command="{Binding DataGrid.DataContext.DeleteSecretCommand}"
                                   CommandParameter="{Binding Record}">
                             <MenuItem.Icon>
@@ -302,13 +295,12 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                 <DataTrigger.EnterActions>
                                     <BeginStoryboard>
                                         <Storyboard>
-                                            <DoubleAnimation
-                                                Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
-                                                From="0"
-                                                To="-10"
-                                                Duration="0:0:0.2"
-                                                AutoReverse="True"
-                                                EasingFunction="{StaticResource BounceEase}" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-10"
+                                                             Duration="0:0:0.2"
+                                                             AutoReverse="True"
+                                                             EasingFunction="{StaticResource BounceEase}" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </DataTrigger.EnterActions>

@@ -52,7 +52,7 @@ public class MessageService : IMessageService
         };
 
         var dialog = new Dialog(vm);
-        bool? result = dialog.ShowDialog();
+        _ = dialog.ShowDialog();
     }
 
     public bool ShowMessageDialog(string message, string caption = "Info", string iconPath = "", string btnOkText = "Ok", string btnCancelText = "Cancel")
