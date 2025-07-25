@@ -120,7 +120,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding new TOTP!");
-            _msgService.ShowMessage("Error adding new TOTP! Check the log file.");
+            _msgService.ShowErrorMessage("Error adding new TOTP! Check the log file.");
         }
     }
 
@@ -386,7 +386,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting secret");
-            _msgService.ShowMessage($"Error deleting secret: {ex.Message}", "Error");
+            _msgService.ShowErrorMessage($"Error deleting secret: {ex.Message}");
         }
     }
 
@@ -419,7 +419,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating secret");
-            _msgService.ShowMessage($"Error updating secret: {ex.Message}", "Error");
+            _msgService.ShowErrorMessageDialog($"Error updating secret: {ex.Message}");
         }
     }
 
@@ -459,7 +459,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         catch (Exception e)
         {
             _logger.LogError(e, "Error selecting secret");
-            _msgService.ShowMessage($"Error selecting secret: {e.Message}", "Error");
+            _msgService.ShowErrorMessage($"Error selecting secret: {e.Message}");
         }
         finally
         {
@@ -509,7 +509,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             {
                 _logger.LogError(ex, "Error generating TOTP code");
                 // This is still here because it's specific to TOTP encoding
-                _msgService.ShowMessage($"{ex.Message}", "Error");
+                _msgService.ShowErrorMessage($"{ex.Message}");
             }
     }
 
@@ -548,7 +548,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
         else
         {
-            _msgService.ShowMessage($"Error generating TOTP code for {secret.Platform}: {error}", "Error");
+            _msgService.ShowErrorMessage($"Error generating TOTP code for {secret.Platform}: {error}");
             await Task.FromResult(error);
         }
     }
@@ -566,7 +566,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error filtering secrets");
-            _msgService.ShowMessage($"Error filtering secrets: {ex.Message}", "Error");
+            _msgService.ShowErrorMessage($"Error filtering secrets: {ex.Message}");
         }
     }
 

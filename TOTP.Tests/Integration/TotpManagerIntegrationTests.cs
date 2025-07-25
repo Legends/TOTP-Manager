@@ -27,7 +27,7 @@ public class TotpManagerIntegrationTests : IDisposable
             .Returns((true, _initialSecret.Platform, _initialSecret.Secret));
 
         _mocker.GetMock<IMessageService>()
-            .Setup(x => x.ShowMessageDialog(It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(x => x.ShowMessageDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns(true); // Simulate confirmation for deletion
 
         // Real SecretsManager with test file

@@ -42,7 +42,7 @@ public class SecretsManager : ISecretsManager
         // Don't allow duplicates by platform
         if (list.Any(x => x.Platform == newItem.Platform))
         {
-            _messageService.ShowMessageDialog($"Platform '{newItem.Platform}' already exists.", "Error");
+            _messageService.ShowMessageDialog($"Platform '{newItem.Platform}' already exists.", "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
             return false;
         }
 
@@ -74,7 +74,7 @@ public class SecretsManager : ISecretsManager
         var existing = list.FirstOrDefault(x => x.Platform == previousPlatform);
         if (existing == null)
         {
-            _messageService.ShowMessageDialog("Platform not found.", "Error");
+            _messageService.ShowMessageDialog("Platform not found.", "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
             return false;
         }
 
@@ -112,7 +112,7 @@ public class SecretsManager : ISecretsManager
         }
         catch (Exception ex)
         {
-            _messageService.ShowMessageDialog($"Backup failed: {ex.Message}", "Error");
+            _messageService.ShowMessageDialog($"Backup failed: {ex.Message}", "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
             return false;
         }
     }
@@ -137,7 +137,7 @@ public class SecretsManager : ISecretsManager
         }
         catch (Exception ex)
         {
-            _messageService.ShowMessageDialog($"Failed to read secrets: {ex.Message}", "Error");
+            _messageService.ShowMessageDialog($"Failed to read secrets: {ex.Message}", "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
             return (false, default!);
         }
     }
@@ -154,7 +154,7 @@ public class SecretsManager : ISecretsManager
         }
         catch (Exception ex)
         {
-            _messageService.ShowMessageDialog($"Failed to save secrets: {ex.Message}", "Error");
+            _messageService.ShowMessageDialog($"Failed to save secrets: {ex.Message}", "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
             return false;
         }
     }

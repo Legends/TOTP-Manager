@@ -1,0 +1,54 @@
+﻿<syncfusion:ChromelessWindow x:Class="TOTP.UserControls.Dialog"
+							 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+							 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+							 xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+							 xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
+							 syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
+							 WindowStartupLocation="CenterScreen"
+							 ResizeMode="NoResize"
+							 SizeToContent="WidthAndHeight"
+							 MinWidth="350"
+							 MinHeight="150"
+							 MaxWidth="600"
+							 MaxHeight="400"
+							 Title="{Binding Caption}"
+							 UseNativeChrome="False">
+
+	<Border Padding="20">
+		<StackPanel>
+			<!-- Optional Icon -->
+			<Image Source="{Binding IconPath}"
+				   Width="64"
+				   Height="64"
+				   Margin="0,0,0,15"
+				   Visibility="{Binding IconVisibility}"
+				   HorizontalAlignment="Center" />
+
+			<!-- Message Text -->
+			<TextBlock Text="{Binding Message}"
+					   TextWrapping="Wrap"
+					   FontSize="14"
+					   MaxWidth="500"
+					   Margin="0,0,0,20"
+					   TextAlignment="Center" />
+
+			<!-- Buttons -->
+			<StackPanel Orientation="Horizontal"
+						HorizontalAlignment="Center"
+						Margin="0,10,0,0">
+				<Button Width="100"
+						Margin="5,0"
+						Content="{Binding OkButtonText}"
+						IsDefault="True"
+						Click="Ok_Click" />
+
+				<Button Width="100"
+						Margin="5,0"
+						Content="{Binding CancelButtonText}"
+						Visibility="{Binding CancelButtonVisibility}"
+						IsCancel="True"
+						Click="Cancel_Click" />
+			</StackPanel>
+		</StackPanel>
+	</Border>
+</syncfusion:ChromelessWindow>

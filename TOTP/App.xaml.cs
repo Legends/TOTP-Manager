@@ -105,23 +105,61 @@ public partial class App : Application
         //SecretsMigration.MigrateFromUserSecrets("6f888768-43da-4da8-9820-96b854382d72", targetManager);
     }
 
+
     private void SetupUnhandledExceptionsHooks()
     {
         DispatcherUnhandledException += (s, exArgs) =>
         {
+            try
+            {
+                var messageService = _host?.Services.GetService<IMessageService>();
+                messageService?.ShowErrorMessageDialog(
+                    "An unexpected error occurred in the UI.\n\nYou can continue using the application, but some features may not work correctly.");
+
+            }
+            catch
+            {
+                // fallback in case DI isn't ready
+                MessageBox.Show(exArgs.Exception.Message, "UI Error");
+            }
+
             _logger?.LogError(exArgs.Exception, "Unhandled UI thread exception");
-            MessageBox.Show("A critical UI error occurred. Check logs.");
             exArgs.Handled = true;
+            //messageService ?.ShowWarningMessage();
         };
 
         AppDomain.CurrentDomain.UnhandledException += (s, exArgs) =>
         {
+            try
+            {
+                var messageService = _host?.Services.GetService<IMessageService>();
+                messageService?.ShowErrorMessageDialog(
+                    "A fatal application error occurred. The app must now close.\n\nSee log files for details.");
+
+            }
+            catch
+            {
+                MessageBox.Show("A fatal error occurred. The app will shut down!", "AppDomain Error");
+            }
+
             _logger?.LogError(exArgs.ExceptionObject as Exception, "Unhandled domain exception");
-            MessageBox.Show("A fatal error occurred. Check logs.");
+            Environment.Exit(1);
         };
 
         TaskScheduler.UnobservedTaskException += (s, exArgs) =>
         {
+            try
+            {
+                var messageService = _host?.Services.GetService<IMessageService>();
+                messageService?.ShowWarningMessage(
+                    "A background task failed. You can continue using the application.");
+
+            }
+            catch
+            {
+                MessageBox.Show("A background task failed.", "Task Error");
+            }
+
             _logger?.LogError(exArgs.Exception, "Unobserved task exception");
             exArgs.SetObserved();
         };

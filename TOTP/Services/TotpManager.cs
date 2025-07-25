@@ -44,13 +44,13 @@ public class TotpManager : ITotpManager
 
                 if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
                 {
-                    _messageService.ShowMessage("Key and Value cannot be empty.", "Error");
+                    _messageService.ShowErrorMessage("Key and Value cannot be empty.");
                     continue;
                 }
 
                 if (!SecretsManager.IsValidBase32Format(value))
                 {
-                    _messageService.ShowMessage("Secret must be a valid Base32 string.", "Error");
+                    _messageService.ShowErrorMessage("Secret must be a valid Base32 string.");
                     continue;
                 }
 
@@ -60,7 +60,7 @@ public class TotpManager : ITotpManager
                     return (true, item);
                 }
 
-                _messageService.ShowMessage($"Failed to set secret: {key}", "Error");
+                _messageService.ShowErrorMessage($"Failed to set secret: {key}");
                 return (false, null);
             }
         }
@@ -95,8 +95,8 @@ public class TotpManager : ITotpManager
     {
         try
         {
-            if (previous == null || updated == null)
-                return;
+            ArgumentNullException.ThrowIfNull(previous);
+            ArgumentNullException.ThrowIfNull(updated);
 
             if (!previous.Equals(updated))
             {

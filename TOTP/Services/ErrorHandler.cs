@@ -19,7 +19,8 @@ public class ErrorHandler : IErrorHandler
         // 1. Show user-friendly message
         _msgSvc.ShowMessage(
             $"{userMessage}\n\nDetails:\n{exception.Message}",
-            "Error");
+            "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png"
+        );
 
         // 2. Log details (optional)
         LogException(exception);
