@@ -17,6 +17,7 @@
 	<ItemGroup>
 		<None Remove="Assets\Icons\delete-24x24.svg" />
 		<None Remove="Assets\Icons\Info.png" />
+		<None Remove="Assets\Icons\Lock-Add.png" />
 		<None Remove="Assets\Icons\plus-24x24.svg" />
 		<None Remove="Assets\Icons\find-24x24.svg" />
 		<None Remove="Assets\Icons\Warning-Message.png" />
@@ -70,7 +71,10 @@
 		<Resource Include="Assets\backgrounds\background-main.png" />
 		<Resource Include="Assets\Icons\delete-24x24.svg" />
 		<Resource Include="Assets\Icons\Info.png" />
-		<Resource Include="Assets\Icons\plus-24x24.svg" />
+		<Resource Include="Assets\Icons\Lock-Add.png" />
+		<Resource Include="Assets\Icons\plus-24x24.svg">
+		  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</Resource>
 		<Resource Include="Assets\Icons\find-24x24.svg" />
 		<Resource Include="Assets\Icons\app.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>

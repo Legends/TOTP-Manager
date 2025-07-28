@@ -12,6 +12,7 @@
                              Width="300"
                              WindowStartupLocation="CenterOwner"
                              ResizeMode="NoResize"
+                             Icon="{Binding Icon}"
                              TitleBarBackground="#7D7FF4"
                              TitleBarForeground="{DynamicResource Brush.Foreground}"
                              ShowInTaskbar="False">

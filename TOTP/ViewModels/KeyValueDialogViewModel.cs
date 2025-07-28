@@ -1,5 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace TOTP.ViewModels;
 
@@ -8,6 +11,17 @@ public class KeyValueDialogViewModel : INotifyPropertyChanged
     private string? _account;
     private string? _platform;
     private string? _secret;
+    private ImageSource? _icon = new BitmapImage(new Uri("pack://application:,,,/TOTP.Manager;component/Assets/Icons/lock-add.png"));
+
+    public ImageSource? Icon
+    {
+        get => _icon;
+        set
+        {
+            _icon = value;
+            OnPropertyChanged();
+        }
+    }
 
     public string? Platform
     {

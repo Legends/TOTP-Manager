@@ -11,6 +11,8 @@
                              MinHeight="150"
                              MaxWidth="600"
                              MaxHeight="400"
+                             TitleBarBackground="{Binding TitleBarBackground}"
+                             TitleBarForeground="{Binding TitleBarForeground}"
                              Title="{Binding Caption}"
                              UseNativeChrome="False">
 
