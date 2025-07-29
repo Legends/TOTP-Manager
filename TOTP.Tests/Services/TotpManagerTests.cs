@@ -18,7 +18,7 @@ public class TotpManagerTests
     {
         // Manual setup of dependencies is not needed when using AutoMocker
         //var totpManager = new TotpManager(
-        //    Mock.Of<IDialogService>(),
+        //    Mock.Of<IPlatformSecretDialogService>(),
         //    Mock.Of<IMessageService>(),
         //    Mock.Of<ISecretsManager>(),
         //    Mock.Of<IErrorHandler>()
@@ -54,7 +54,7 @@ public class TotpManagerTests
     public void TryComputeCode_ShouldReturnFalse_WhenInvalidBase32()
     {
         // Arrange
-        var dialog = _fixture.Freeze<Mock<IDialogService>>();
+        var dialog = _fixture.Freeze<Mock<IPlatformSecretDialogService>>();
         var messageSvc = _fixture.Freeze<Mock<IMessageService>>();
         var secretsHelper = _fixture.Freeze<Mock<ISecretsManager>>();
         var errorHandler = _fixture.Freeze<Mock<IErrorHandler>>();

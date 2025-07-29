@@ -12,6 +12,7 @@ using TOTP.Interfaces;
 using TOTP.Logging;
 using TOTP.Services;
 using TOTP.ViewModels;
+using TOTP.Windows;
 
 namespace TOTP;
 
@@ -72,8 +73,12 @@ public partial class App : Application
                 // Register services
                 services.AddSingleton<IQrCodeService, QrCodeService>();
                 services.AddSingleton<IDebounceService, DebounceService>();
-                services.AddSingleton<IDialogService, DialogService>();
+                services.AddSingleton<IPlatformSecretDialogService, PlatformSecretDialogService>();
                 services.AddSingleton<IMessageService, MessageService>();
+                services.AddTransient<KeyValueDialog>();
+                services.AddTransient<IKeyValueDialogViewModel, KeyValueDialogViewModel>();
+                services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
+
                 services.AddSingleton<ISecretsManager>(provider =>
                 {
                     var messageService = provider.GetRequiredService<IMessageService>();

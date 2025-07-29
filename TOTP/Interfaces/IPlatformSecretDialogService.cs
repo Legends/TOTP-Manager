@@ -1,6 +1,6 @@
 ﻿namespace TOTP.Interfaces;
 
-public interface IDialogService
+public interface IPlatformSecretDialogService
 {
     /// <summary>
     ///     Shows a Platform/Secret entry dialog and returns the result.
@@ -8,8 +8,8 @@ public interface IDialogService
     /// <returns>
     ///     Tuple (success, key, value), where 'success' is true if OK was pressed, false if canceled.
     /// </returns>
-    (bool success, string? key, string? value) ShowKeyValueDialog();
+    (bool success, string? key, string? value) ShowForm();
 
-    (bool success, string? key, string? value) ShowKeyValueDialog(string? initialKey = null,
+    (bool success, string? key, string? value) ShowForm(string? initialKey = null,
         string? initialValue = null);
 }

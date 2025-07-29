@@ -38,6 +38,10 @@ public class MainViewModelIntegrationTests : IDisposable
         var services = new ServiceCollection();
         ConfigureServices(services);
 
+        var umdVM = new Mock<IUserMessageDialogViewModel>();
+        //services.AddSingleton<IUserMessageDialogViewModel>(umdVM.Object);
+        services.AddTransient<IUserMessageDialogViewModel>(sp => umdVM.Object);
+
         // Mock only TotpManager
         var secretItem = new SecretItem("MyKey", "MySecret");
         var totpManagerMock = new Mock<ITotpManager>();
@@ -47,15 +51,16 @@ public class MainViewModelIntegrationTests : IDisposable
 
         services.AddSingleton<ISecretsManager>(provider =>
         {
-            var messageService = provider.GetRequiredService<IMessageService>();
-
+            var messageService = new Mock<IMessageService>();// 
             // Use a temp or mock path for tests
             var testPath = Path.Combine(Path.GetTempPath(), "test-secrets.dat");
 
-            return new SecretsManager(messageService, testPath);
+            return new SecretsManager(messageService.Object, testPath);
         });
 
-
+        var pltfDialogMock = new Mock<IPlatformSecretDialogService>();
+        pltfDialogMock.Setup(p => p.ShowForm()).Returns((true, "MyKey", "MySecret"));
+        services.AddSingleton(pltfDialogMock.Object);
 
         // Build provider
         var provider = services.BuildServiceProvider();
@@ -95,7 +100,7 @@ public class MainViewModelIntegrationTests : IDisposable
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 
         // Real services
-        services.AddSingleton<IDialogService, DialogService>();
+        services.AddSingleton<IPlatformSecretDialogService, PlatformSecretDialogService>();
         services.AddSingleton<IMessageService, MessageService>();
         services.AddSingleton<ISecretsManager, SecretsManager>();
         services.AddSingleton<IErrorHandler, ErrorHandler>();

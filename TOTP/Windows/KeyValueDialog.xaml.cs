@@ -1,6 +1,5 @@
-﻿using System.Windows;
-using Syncfusion.Windows.Shared;
-using TOTP.ViewModels;
+﻿using Syncfusion.Windows.Shared;
+using TOTP.Interfaces;
 
 //ControlNamespace###
 
@@ -11,18 +10,21 @@ namespace TOTP.Windows;
 /// </summary>
 public partial class KeyValueDialog : ChromelessWindow
 {
-    public KeyValueDialog()
+    public KeyValueDialog(IKeyValueDialogViewModel viewModel)
     {
         InitializeComponent();
-        DataContext = ViewModel;
+        DataContext = viewModel;
 
-        //ControlMethodCall###
+        viewModel.RequestClose += ViewModel_RequestClose;
+        Closed += (_, _) => ViewModel.RequestClose -= ViewModel_RequestClose;
     }
 
-    public KeyValueDialogViewModel ViewModel { get; } = new();
-
-    private void Ok_Click(object sender, RoutedEventArgs e)
+    private void ViewModel_RequestClose(object? sender, bool e)
     {
-        DialogResult = true;
+        DialogResult = e;
+        //Close();
     }
+
+    public IKeyValueDialogViewModel ViewModel => (IKeyValueDialogViewModel)DataContext;
+
 }

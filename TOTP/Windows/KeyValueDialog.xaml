@@ -58,8 +58,9 @@
                     Width="72"
                     Margin="0,0,10,0"
                     IsDefault="True"
-                    Click="Ok_Click" />
+                    Command="{Binding OkCommand}" />
             <Button Content="Cancel"
+                    Command="{Binding CancelCommand}"
                     Width="72"
                     IsCancel="True" />
         </StackPanel>

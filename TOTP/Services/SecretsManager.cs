@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using TOTP.Enums;
 using TOTP.Interfaces;
 using TOTP.Models;
 
@@ -42,7 +43,7 @@ public class SecretsManager : ISecretsManager
         // Don't allow duplicates by platform
         if (list.Any(x => x.Platform == newItem.Platform))
         {
-            _messageService.ShowMessageDialog($"Platform '{newItem.Platform}' already exists.", "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
+            _messageService.ShowMessage($"Platform '{newItem.Platform}' already exists.", CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
             return false;
         }
 
@@ -74,7 +75,7 @@ public class SecretsManager : ISecretsManager
         var existing = list.FirstOrDefault(x => x.Platform == previousPlatform);
         if (existing == null)
         {
-            _messageService.ShowMessageDialog("Platform not found.", "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
+            _messageService.ShowMessage("Platform not found.", CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
             return false;
         }
 
@@ -112,7 +113,7 @@ public class SecretsManager : ISecretsManager
         }
         catch (Exception ex)
         {
-            _messageService.ShowMessageDialog($"Backup failed: {ex.Message}", "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
+            _messageService.ShowMessage($"Backup failed: {ex.Message}", CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
             return false;
         }
     }
@@ -137,7 +138,7 @@ public class SecretsManager : ISecretsManager
         }
         catch (Exception ex)
         {
-            _messageService.ShowMessageDialog($"Failed to read secrets: {ex.Message}", "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
+            _messageService.ShowMessage($"Failed to read secrets: {ex.Message}", CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
             return (false, default!);
         }
     }
@@ -154,7 +155,7 @@ public class SecretsManager : ISecretsManager
         }
         catch (Exception ex)
         {
-            _messageService.ShowMessageDialog($"Failed to save secrets: {ex.Message}", "Error", "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
+            _messageService.ShowMessage($"Failed to save secrets: {ex.Message}", CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
             return false;
         }
     }

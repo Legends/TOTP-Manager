@@ -7,18 +7,18 @@ namespace TOTP.Services;
 
 public class TotpManager : ITotpManager
 {
-    private readonly IDialogService _dialogService;
+    private readonly IPlatformSecretDialogService _platformSecretDialogService;
     private readonly IErrorHandler _errorHandler;
     private readonly IMessageService _messageService;
     private readonly ISecretsManager _SecretsManager;
 
     public TotpManager(
-        IDialogService dialogService,
+        IPlatformSecretDialogService platformSecretDialogService,
         IMessageService messageService,
         ISecretsManager secretsManager,
         IErrorHandler errorHandler)
     {
-        _dialogService = dialogService;
+        _platformSecretDialogService = platformSecretDialogService;
         _messageService = messageService;
         _SecretsManager = secretsManager;
         _errorHandler = errorHandler;
@@ -29,34 +29,30 @@ public class TotpManager : ITotpManager
     {
         try
         {
-            string? lastKey = null;
-            string? lastValue = null;
 
             while (true)
             {
-                var (success, key, value) = _dialogService.ShowKeyValueDialog(lastKey, lastValue);
+                var (success, key, value) = _platformSecretDialogService.ShowForm();
 
                 if (!success)
                     return (false, null);
 
-                lastKey = key;
-                lastValue = value;
 
-                if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
-                {
-                    _messageService.ShowErrorMessage("platform and secret cannot be empty.");
-                    continue;
-                }
+                //if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
+                //{
+                //    _messageService.ShowErrorMessage("Platform and Secret cannot be empty");
+                //    continue;
+                //}
 
-                if (!SecretsManager.IsValidBase32Format(value))
-                {
-                    _messageService.ShowErrorMessage("Secret must be a valid Base32 string.");
-                    continue;
-                }
+                //if (!SecretsManager.IsValidBase32Format(value))
+                //{
+                //    _messageService.ShowErrorMessage("Secret must be a valid Base32 string.");
+                //    continue;
+                //}
 
-                if (_SecretsManager.AddNewItem(new SecretItem(key, value)))
+                if (_SecretsManager.AddNewItem(new SecretItem(key!, value!)))
                 {
-                    var item = new SecretItem(key, value);
+                    var item = new SecretItem(key!, value!);
                     return (true, item);
                 }
 
@@ -119,12 +115,8 @@ public class TotpManager : ITotpManager
     {
         try
         {
-            if (item == null)
-                return false;
-
-            var shouldDelete = _messageService.ShowMessageDialog(
-                $"Are you sure you want to delete the secret: {item.Platform}?",
-                "Confirm Delete");
+            var shouldDelete = _messageService.ShowWarningMessageDialog(
+                $"Are you sure you want to delete the secret: {item.Platform}?");
 
             if (shouldDelete)
             {

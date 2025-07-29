@@ -1,5 +1,6 @@
 using Moq;
 using Moq.AutoMock;
+using TOTP.Enums;
 using TOTP.Interfaces;
 using TOTP.Models;
 using TOTP.Services;
@@ -8,10 +9,10 @@ namespace TOTP.Tests.Integration;
 
 public class TotpManagerIntegrationTests : IDisposable
 {
-    private readonly string _testPath;
-    private readonly AutoMocker _mocker;
-    private readonly SecretsManager _secretsManager;
-    private readonly TotpManager _totpManager;
+    private readonly string? _testPath;
+    private readonly AutoMocker? _mocker;
+    private readonly SecretsManager? _secretsManager;
+    private readonly TotpManager? _totpManager;
 
     private readonly SecretItem _initialSecret = new("GitHub", "JBSWY3DPEHPK3PXP");
 
@@ -22,17 +23,32 @@ public class TotpManagerIntegrationTests : IDisposable
         _mocker = new AutoMocker();
 
         // Set up mocks
-        _mocker.GetMock<IDialogService>()
-            .Setup(x => x.ShowKeyValueDialog(It.IsAny<string?>(), It.IsAny<string?>()))
+        _mocker.GetMock<IPlatformSecretDialogService>()
+            .Setup(x => x.ShowForm(It.IsAny<string?>(), It.IsAny<string?>()))
             .Returns((true, _initialSecret.Platform, _initialSecret.Secret));
 
         _mocker.GetMock<IMessageService>()
-            .Setup(x => x.ShowMessageDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(true); // Simulate confirmation for deletion
+            .Setup(x => x.ShowMessageDialog(
+                It.IsAny<string>(),
+                It.IsAny<CaptionType>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .Returns(true);
+
+        _mocker.GetMock<IMessageService>()
+            .Setup(x => x.ShowWarningMessageDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(true);
+        // _messageService.ShowWarningMessageDialog(
+
+
+        // Simulate confirmation for deletion
 
         // Real SecretsManager with test file
         _secretsManager = new SecretsManager(_mocker.Get<IMessageService>(), _testPath);
         _mocker.Use<ISecretsManager>(_secretsManager);
+
+        _mocker.GetMock<IPlatformSecretDialogService>().Setup(ips => ips.ShowForm()).Returns((true, _initialSecret.Platform, _initialSecret.Secret));
 
         // Create real TotpManager
         _totpManager = _mocker.CreateInstance<TotpManager>();

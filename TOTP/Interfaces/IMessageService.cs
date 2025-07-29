@@ -1,9 +1,11 @@
-﻿namespace TOTP.Interfaces;
+﻿using TOTP.Enums;
+
+namespace TOTP.Interfaces;
 
 public interface IMessageService
 {
-    void ShowMessage(string message, string caption = "Info", string iconPath = "", string btnOkText = "Ok");
-    bool ShowMessageDialog(string message, string caption = "Info", string iconPath = "", string btnOkText = "Ok", string btnCancelText = "Cancel");
+    void ShowMessage(string message, CaptionType caption = CaptionType.Info, string iconPath = "", string btnOkText = "Ok");
+    bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Info, string iconPath = "", string btnOkText = "Ok", string btnCancelText = "Cancel");
 
     public bool ShowErrorMessageDialog(string message, string btnOkText = "Ok", string btnCancelText = "Cancel");
     public bool ShowInfoMessageDialog(string message, string btnOkText = "Ok", string btnCancelText = "Cancel");
