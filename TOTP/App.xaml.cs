@@ -41,6 +41,8 @@ public partial class App : Application
 
             // Create the host builder
             _host = CreateHostAndConfigureServices(configuration);
+
+            Log.Information($"{this.GetType().AssemblyQualifiedName} successfully started!");
         }
         catch (Exception ex)
         {
