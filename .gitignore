@@ -58,3 +58,4 @@ _ReSharper*/
 
 # Rider
 .idea/
+/ResXManager.config.xml
