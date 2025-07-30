@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using TOTP.Enums;
+using TOTP.Events;
 
 namespace TOTP.Interfaces
 {
@@ -24,7 +25,7 @@ namespace TOTP.Interfaces
         Visibility IconVisibility { get; }
         Visibility CancelButtonVisibility { get; }
 
-        event EventHandler<bool> RequestClose;
+        event EventHandler<DialogCloseRequestedEventArgs> RequestClose;
     }
 
 }

@@ -1,6 +1,7 @@
 ﻿using Syncfusion.Windows.Shared;
 using System;
 using System.Windows.Media.Imaging;
+using TOTP.Events;
 using TOTP.Helper;
 using TOTP.Interfaces;
 
@@ -26,9 +27,9 @@ public partial class UserMessageDialog : ChromelessWindow
         Closed += (_, _) => vm.RequestClose -= OnRequestClose; // ! Important ! otherwise you get loops and unhandled exceptions
     }
 
-    private void OnRequestClose(object? sender, bool result)
+    private void OnRequestClose(object? sender, DialogCloseRequestedEventArgs e)
     {
-        DialogResult = Result = result;
+        DialogResult = Result = e.DialogResult;
         Close();
     }
 

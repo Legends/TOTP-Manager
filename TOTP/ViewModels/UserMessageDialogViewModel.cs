@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using TOTP.Commands;
 using TOTP.Enums;
+using TOTP.Events;
 using TOTP.Interfaces;
 
 namespace TOTP.ViewModels;
@@ -78,19 +79,16 @@ public class UserMessageDialogViewModel : INotifyPropertyChanged, IUserMessageDi
     public ICommand OkCommand { get; }
     public ICommand CancelCommand { get; }
 
-    public event EventHandler<bool>? RequestClose;
+    public event EventHandler<DialogCloseRequestedEventArgs> RequestClose;
 
-    private void OnOk()
-    {
-        RequestClose?.Invoke(this, true);
-    }
+    private void OnOk() => RequestClose?.Invoke(this, new(true));
 
     private void OnCancel()
     {
-        RequestClose?.Invoke(this, false);
+        RequestClose?.Invoke(this, new(false));
     }
 
-    public Visibility IconVisibility => string.IsNullOrEmpty(IconPath) ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility IconVisibility => string.IsNullOrWhiteSpace(IconPath) ? Visibility.Collapsed : Visibility.Visible;
     public Visibility CancelButtonVisibility => ShowCancelButton ? Visibility.Visible : Visibility.Collapsed;
 
     public event PropertyChangedEventHandler? PropertyChanged;
