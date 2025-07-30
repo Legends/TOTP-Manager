@@ -1,7 +1,8 @@
-﻿using System;
-using Syncfusion.SfSkinManager;
+﻿using Syncfusion.SfSkinManager;
 using Syncfusion.Windows.Shared;
+using System;
 using TOTP.Interfaces;
+using TOTP.Resources;
 
 namespace TOTP;
 
@@ -20,6 +21,8 @@ public partial class MainWindow : ChromelessWindow
         //this.Icon = new BitmapImage(new Uri("pack://application:,,,/totp.ico"));
 
         DataContext = vm;
+        Title = UI.ui_Window_Title_TOTP_Manager;
+
         _vm = vm ?? throw new ArgumentNullException(nameof(vm));
         SkinManagerHelper.SetScrollBarMode(this, ScrollBarMode.Compact);
     }

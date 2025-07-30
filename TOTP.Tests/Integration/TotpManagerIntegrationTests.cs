@@ -31,18 +31,13 @@ public class TotpManagerIntegrationTests : IDisposable
             .Setup(x => x.ShowMessageDialog(
                 It.IsAny<string>(),
                 It.IsAny<CaptionType>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>()))
+                It.IsAny<string>()
+               ))
             .Returns(true);
 
         _mocker.GetMock<IMessageService>()
-            .Setup(x => x.ShowWarningMessageDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(x => x.ShowWarningMessageDialog(It.IsAny<string>()))
             .Returns(true);
-        // _messageService.ShowWarningMessageDialog(
-
-
-        // Simulate confirmation for deletion
 
         // Real SecretsManager with test file
         _secretsManager = new SecretsManager(_mocker.Get<IMessageService>(), _testPath);

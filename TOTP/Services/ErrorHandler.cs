@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using TOTP.Enums;
+using TOTP.Helper;
 using TOTP.Interfaces;
 
 namespace TOTP.Services;
@@ -20,7 +21,7 @@ public class ErrorHandler : IErrorHandler
         // 1. Show user-friendly message
         _msgSvc.ShowMessage(
             $"{userMessage}\n\nDetails:\n{exception.Message}",
-            CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png"
+            CaptionType.Error, StringsConstants.ImgError
         );
 
         // 2. Log details (optional)

@@ -2,44 +2,47 @@
 using System.Windows;
 using System.Windows.Media;
 using TOTP.Enums;
+using TOTP.Helper;
 using TOTP.Interfaces;
+using TOTP.Resources;
 using TOTP.UserControls;
 
 namespace TOTP.Services;
 
 public class MessageService(IUserMessageDialogViewModel userMessageDialogViewModel) : IMessageService
 {
-    public void ShowErrorMessage(string message, string btnOkText = "Ok")
+    public void ShowErrorMessage(string message)
     {
-        ShowMessage(message, CaptionType.Error, "pack://application:,,,/TOTP.Manager;component/Assets/Icons/Wrong.png", btnOkText);
+        ShowMessage(message, CaptionType.Error, StringsConstants.ImgError);
     }
-    public void ShowInfoMessage(string message, string btnOkText = "Ok")
+    public void ShowInfoMessage(string message)
     {
-        ShowMessage(message, CaptionType.Info, "pack://application:,,,/TOTP.Manager;component/Assets/Icons/Info.png", btnOkText);
-    }
-
-    public void ShowWarningMessage(string message, string btnOkText = "Ok")
-    {
-        ShowMessage(message, CaptionType.Warning, "pack://application:,,,/TOTP.Manager;component/Assets/Icons/Warning_message.png", btnOkText);
+        ShowMessage(message, CaptionType.Info, StringsConstants.ImgInfo);
     }
 
-    public bool ShowErrorMessageDialog(string message, string btnOkText = "Ok", string btnCancelText = "Cancel")
+    public void ShowWarningMessage(string message)
     {
-        return ShowMessageDialog(message, CaptionType.Error, "pack://application:,,,/TOTP.Manager;component/Assets/Icons/Wrong.png", btnOkText, btnCancelText);
-    }
-    public bool ShowInfoMessageDialog(string message, string btnOkText = "Ok", string btnCancelText = "Cancel")
-    {
-        return ShowMessageDialog(message, CaptionType.Info, "pack://application:,,,/TOTP.Manager;component/Assets/Icons/Info.png", btnOkText, btnCancelText);
+        ShowMessage(message, CaptionType.Warning, StringsConstants.ImgWarning);
     }
 
-    public bool ShowWarningMessageDialog(string message, string btnOkText = "Ok", string btnCancelText = "Cancel")
+    public bool ShowErrorMessageDialog(string message)
     {
-        return ShowMessageDialog(message, CaptionType.Warning, "pack://application:,,,/TOTP.Manager;component/Assets/Icons/Warning-Message.png", btnOkText, btnCancelText);
+        return ShowMessageDialog(message, CaptionType.Error, StringsConstants.ImgError);
+    }
+    public bool ShowInfoMessageDialog(string message)
+    {
+
+        return ShowMessageDialog(message, CaptionType.Info, StringsConstants.ImgInfo);
     }
 
-    public void ShowMessage(string message, CaptionType caption = CaptionType.Default, string iconPath = "", string btnOkText = "Ok")
+    public bool ShowWarningMessageDialog(string message)
     {
-        var vm = CreateViewModel(message, caption, iconPath, btnOkText, string.Empty);
+        return ShowMessageDialog(message, CaptionType.Warning, StringsConstants.ImgWarning);
+    }
+
+    public void ShowMessage(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
+    {
+        var vm = CreateViewModel(message, caption, iconPath, UI.ui_btnOK, string.Empty);
         vm.ShowCancelButton = false;
 
         var dialog = new UserMessageDialog(vm)
@@ -49,9 +52,9 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         dialog.ShowDialog();
     }
 
-    public bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Default, string iconPath = "", string btnOkText = "Ok", string btnCancelText = "Cancel")
+    public bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
     {
-        var vm = CreateViewModel(message, caption, iconPath, btnOkText, btnCancelText);
+        var vm = CreateViewModel(message, caption, iconPath, UI.ui_btnOK, UI.ui_btnCancel);
 
         var dialog = new UserMessageDialog(vm)
         {

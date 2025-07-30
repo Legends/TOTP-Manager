@@ -85,6 +85,21 @@
 		</Resource>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Compile Update="Resources\UI.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>UI.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="Resources\UI.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>UI.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+
 	<Target Name="PostBuildSign" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
 		<Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;" />
 	</Target>

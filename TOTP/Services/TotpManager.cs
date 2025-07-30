@@ -2,6 +2,7 @@
 using System;
 using TOTP.Interfaces;
 using TOTP.Models;
+using TOTP.Resources;
 
 namespace TOTP.Services;
 
@@ -56,13 +57,13 @@ public class TotpManager : ITotpManager
                     return (true, item);
                 }
 
-                _messageService.ShowErrorMessage($"Failed to set secret: {key}");
+                _messageService.ShowErrorMessage(string.Format(UI.msg_FailedAddingSecret, key));
                 return (false, null);
             }
         }
         catch (Exception ex)
         {
-            _errorHandler.Handle(ex, "Unexpected error adding secret.");
+            _errorHandler.Handle(ex, UI.ex_UnexpectedError);
             return (false, null);
         }
     }
@@ -81,8 +82,8 @@ public class TotpManager : ITotpManager
             code = null;
 
             error = ex is FormatException || ex is ArgumentException
-                ? "Invalid secret format. Please ensure it is a valid Base32 string."
-                : $"An unexpected error occurred while computing the TOTP code.{Environment.NewLine}{ex.Message}";
+                ? UI.ex_InvalidSecret
+                : $"{UI.ex_UnexpectedError}.{Environment.NewLine}{ex.Message}";
             return false;
         }
     }
@@ -97,12 +98,12 @@ public class TotpManager : ITotpManager
             if (!previous.Equals(updated))
             {
                 _SecretsManager.UpdateItem(previous.Platform, updated);
-                _messageService.ShowMessage($"Updated secret: {previous.Platform}");
+                _messageService.ShowMessage($"{UI.msg_SecretUpdated}: {previous.Platform}");
             }
         }
         catch (Exception ex)
         {
-            _errorHandler.Handle(ex, "Error updating secret.");
+            _errorHandler.Handle(ex, UI.ex_UpdatingSecret);
         }
     }
 
@@ -116,7 +117,7 @@ public class TotpManager : ITotpManager
         try
         {
             var shouldDelete = _messageService.ShowWarningMessageDialog(
-                $"Are you sure you want to delete the secret: {item.Platform}?");
+                string.Format(UI.msg_ConfirmDeleteSecret, item.Platform));
 
             if (shouldDelete)
             {
@@ -128,7 +129,7 @@ public class TotpManager : ITotpManager
         }
         catch (Exception ex)
         {
-            _errorHandler.Handle(ex, "Error deleting secret.");
+            _errorHandler.Handle(ex, UI.ex_DeletingSecret);
             return false;
         }
     }

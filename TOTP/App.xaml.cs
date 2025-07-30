@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Syncfusion.Licensing;
 using System;
+using System.Globalization;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
@@ -28,6 +29,12 @@ public partial class App : Application
 
     public App()
     {
+
+        // Set for ALL threads
+        var culture = new CultureInfo("de-DE");
+        CultureInfo.DefaultThreadCurrentCulture = culture;
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+
         LoggingConfigurator.SetupEarlyLogger();
 
         try
@@ -78,7 +85,7 @@ public partial class App : Application
                 services.AddSingleton<IPlatformSecretDialogService, PlatformSecretDialogService>();
                 services.AddSingleton<IMessageService, MessageService>();
                 services.AddTransient<KeyValueDialog>();
-                services.AddTransient<IKeyValueDialogViewModel, KeyValueDialogViewModel>();
+                services.AddTransient<IPlatformSecretDialogViewModel, PlatformSecretDialogViewModel>();
                 services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
 
                 services.AddSingleton<ISecretsManager>(provider =>

@@ -13,7 +13,7 @@
                              MaxHeight="400"
                              TitleBarBackground="{Binding TitleBarBackground}"
                              TitleBarForeground="{Binding TitleBarForeground}"
-                             Title="{Binding Caption}"
+                             Title="{Binding CaptionString}"
                              BorderBrush="{Binding TitleBarBackground}"
                              UseNativeChrome="False"
                              ShowInTaskbar="False">

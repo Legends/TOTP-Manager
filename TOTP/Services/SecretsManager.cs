@@ -8,8 +8,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using TOTP.Enums;
+using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Models;
+using TOTP.Resources;
 
 namespace TOTP.Services;
 
@@ -31,19 +33,19 @@ public class SecretsManager : ISecretsManager
 
     public List<SecretItem> GetAllSecrets()
     {
-        var (ok, list) = ReadSecretsFile();
+        var (ok, list) = LoadSecretsFromFile();
         return ok ? list : [];
     }
 
     public bool AddNewItem(SecretItem newItem)
     {
-        var (ok, list) = ReadSecretsFile();
+        var (ok, list) = LoadSecretsFromFile();
         if (!ok) return false;
 
         // Don't allow duplicates by platform
         if (list.Any(x => x.Platform == newItem.Platform))
         {
-            _messageService.ShowMessage($"Platform '{newItem.Platform}' already exists.", CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
+            _messageService.ShowMessage(string.Format(UI.msg_Platform_Exists, newItem.Platform), CaptionType.Error, StringsConstants.ImgError);
             return false;
         }
 
@@ -53,13 +55,13 @@ public class SecretsManager : ISecretsManager
 
     public bool DeleteItem(string platform)
     {
-        var (ok, list) = ReadSecretsFile();
+        var (ok, list) = LoadSecretsFromFile();
         if (!ok) return false;
 
         var existing = list.FirstOrDefault(x => x.Platform == platform);
         if (existing == null)
         {
-            Debug.WriteLine($"Platform '{platform}' not found.");
+            Debug.WriteLine(string.Format(UI.msg_PlatformNotFound_0, platform));
             return false;
         }
 
@@ -69,13 +71,13 @@ public class SecretsManager : ISecretsManager
 
     public bool UpdateItem(string previousPlatform, SecretItem updated)
     {
-        var (ok, list) = ReadSecretsFile();
+        var (ok, list) = LoadSecretsFromFile();
         if (!ok) return false;
 
         var existing = list.FirstOrDefault(x => x.Platform == previousPlatform);
         if (existing == null)
         {
-            _messageService.ShowMessage("Platform not found.", CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
+            _messageService.ShowMessage(UI.msg_Platform_Not_Found, CaptionType.Error, StringsConstants.ImgError);
             return false;
         }
 
@@ -113,7 +115,7 @@ public class SecretsManager : ISecretsManager
         }
         catch (Exception ex)
         {
-            _messageService.ShowMessage($"Backup failed: {ex.Message}", CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
+            _messageService.ShowMessage(string.Format(UI.ex_BackupFailed, ex.Message), CaptionType.Error, StringsConstants.ImgError);
             return false;
         }
     }
@@ -122,7 +124,7 @@ public class SecretsManager : ISecretsManager
     /// Returns a tuple indicating success and the list of secrets read from the encrypted secrets.dat file
     /// </summary>
     /// <returns></returns>
-    private (bool, List<SecretItem>) ReadSecretsFile()
+    private (bool, List<SecretItem>) LoadSecretsFromFile()
     {
         try
         {
@@ -138,7 +140,7 @@ public class SecretsManager : ISecretsManager
         }
         catch (Exception ex)
         {
-            _messageService.ShowMessage($"Failed to read secrets: {ex.Message}", CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
+            _messageService.ShowMessage(string.Format(UI.msg_FailedReadingSecrets, ex.Message), CaptionType.Error, StringsConstants.ImgError);
             return (false, default!);
         }
     }
@@ -155,7 +157,7 @@ public class SecretsManager : ISecretsManager
         }
         catch (Exception ex)
         {
-            _messageService.ShowMessage($"Failed to save secrets: {ex.Message}", CaptionType.Error, "pack://application:,,,/TOTP;component/Assets/Icons/Wrong.png");
+            _messageService.ShowMessage($"Failed to save secrets: {ex.Message}", CaptionType.Error, StringsConstants.ImgError);
             return false;
         }
     }

@@ -11,6 +11,8 @@
                              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
                              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
                              xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
+                             xmlns:resx="clr-namespace:TOTP.Resources"
+                             xmlns:xaml="clr-namespace:TOTP.Xaml"
                              mc:Ignorable="d"
                              Width="350"
                              SizeToContent="Height"
@@ -39,7 +41,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
     <StackPanel Orientation="Vertical"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
-     
+
         <syncfusion:ToolBarAdv HorizontalAlignment="Stretch"
                                Height="30"
                                MaxHeight="35"
@@ -60,7 +62,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
 
             <Button Command="{Binding ToggleSearchBoxCommand}"
                     Margin="5,0"
-                    ToolTip="Search">
+                    ToolTip="{xaml:Resx Key=ui_btnSearch}">
                 <!--svg image property must be set to Resource !-->
                 <svgc:SvgViewbox Source="/Assets/Icons/find-24x24.svg"
                                  Height="17"
@@ -73,7 +75,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                      VerticalAlignment="Center"
                                      VerticalContentAlignment="Stretch"
                                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                     Watermark="Search..."
+                                     Watermark="{xaml:Resx Key=ui_label_Search_Dots}"
                                      props:FocusExtension.IsFocused="{Binding IsSearchFocused}"
                                      Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
                                      Padding="0"
@@ -175,10 +177,10 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                 </syncfusion:SfDataGrid.Resources>
 
                 <syncfusion:SfDataGrid.Columns>
-                    <syncfusion:GridTextColumn HeaderText="platform"
+                    <syncfusion:GridTextColumn HeaderText="{xaml:Resx Key=ui_Header_Platform}"
                                                MappingName="Platform" />
 
-                    <syncfusion:GridTextColumn HeaderText="secret"
+                    <syncfusion:GridTextColumn HeaderText="{xaml:Resx Key=ui_Header_Secret}"
                                                MappingName="Secret" />
 
                     <!--<syncfusion:GridTemplateColumn x:Name="ActionsColumn"
@@ -219,7 +221,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
 
                 <syncfusion:SfDataGrid.RecordContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Delete"
+                        <MenuItem Header="{xaml:Resx Key=ui_btnDelete}"
                                   Padding="0,0,2,0"
                                   Foreground="{DynamicResource Brush.Foreground}"
                                   Command="{Binding DataGrid.DataContext.DeleteSecretCommand}"

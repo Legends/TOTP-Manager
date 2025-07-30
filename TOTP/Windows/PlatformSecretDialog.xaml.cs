@@ -1,5 +1,6 @@
 ﻿using Syncfusion.Windows.Shared;
 using TOTP.Interfaces;
+using TOTP.Resources;
 
 //ControlNamespace###
 
@@ -10,10 +11,11 @@ namespace TOTP.Windows;
 /// </summary>
 public partial class KeyValueDialog : ChromelessWindow
 {
-    public KeyValueDialog(IKeyValueDialogViewModel viewModel)
+    public KeyValueDialog(IPlatformSecretDialogViewModel viewModel)
     {
         InitializeComponent();
         DataContext = viewModel;
+        Title = UI.ui_Window_Title_PlatformSecretDialog;
 
         viewModel.RequestClose += ViewModel_RequestClose;
         Closed += (_, _) => ViewModel.RequestClose -= ViewModel_RequestClose;
@@ -25,6 +27,6 @@ public partial class KeyValueDialog : ChromelessWindow
         //Close();
     }
 
-    public IKeyValueDialogViewModel ViewModel => (IKeyValueDialogViewModel)DataContext;
+    public IPlatformSecretDialogViewModel ViewModel => (IPlatformSecretDialogViewModel)DataContext;
 
 }

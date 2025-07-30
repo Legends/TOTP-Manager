@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace TOTP.Interfaces;
 
-public interface IKeyValueDialogViewModel
+public interface IPlatformSecretDialogViewModel
 {
     ICommand OkCommand { get; }
     ICommand CancelCommand { get; }

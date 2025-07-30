@@ -15,6 +15,7 @@ using TOTP.Commands;
 using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Models;
+using TOTP.Resources;
 
 namespace TOTP.ViewModels;
 
@@ -119,8 +120,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error adding new TOTP!");
-            _msgService.ShowErrorMessage("Error adding new TOTP! Check the log file.");
+            _logger.LogError(ex, UI.ex_Adding_New_TOTP);
+            _msgService.ShowErrorMessage(UI.ex_Adding_New_TOTP + ": " + ex.Message);
         }
     }
 
@@ -385,8 +386,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting secret");
-            _msgService.ShowErrorMessage($"Error deleting secret: {ex.Message}");
+            _logger.LogError(ex, UI.ex_DeletingSecret);
+            _msgService.ShowErrorMessage(string.Format(UI.ex_DeletingSecret_0, ex.Message));
         }
     }
 
@@ -418,8 +419,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating secret");
-            _msgService.ShowErrorMessageDialog($"Error updating secret: {ex.Message}");
+            _logger.LogError(ex, UI.ex_UpdatingSecret);
+            _msgService.ShowErrorMessageDialog(string.Format(UI.ex_UpdatingSecret_0, ex.Message));
         }
     }
 
@@ -458,8 +459,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error selecting secret");
-            _msgService.ShowErrorMessage($"Error selecting secret: {e.Message}");
+            _logger.LogError(e, UI.ex_Selecting_Secret);
+            _msgService.ShowErrorMessage(UI.ex_Selecting_Secret + ": " + e.Message);
         }
         finally
         {
@@ -507,9 +508,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error generating TOTP code");
+                _logger.LogError(ex, UI.ex_Error_Generating_TOTP);
                 // This is still here because it's specific to TOTP encoding
-                _msgService.ShowErrorMessage($"{ex.Message}");
+                _msgService.ShowErrorMessage(UI.ex_Error_Generating_TOTP + ": " + ex.Message);
             }
     }
 
@@ -548,7 +549,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
         else
         {
-            _msgService.ShowErrorMessage($"Error generating TOTP code for {secret.Platform}: {error}");
+            _msgService.ShowErrorMessage(string.Format(UI.ex_Error_Generating_TOTP_0_0, secret.Platform, error));
             await Task.FromResult(error);
         }
     }
@@ -565,8 +566,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error filtering secrets");
-            _msgService.ShowErrorMessage($"Error filtering secrets: {ex.Message}");
+            _logger.LogError(ex, UI.ex_Filtering_Secrets);
+            _msgService.ShowErrorMessage(UI.ex_Filtering_Secrets + ": " + ex.Message);
         }
     }
 

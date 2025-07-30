@@ -4,14 +4,14 @@ namespace TOTP.Interfaces;
 
 public interface IMessageService
 {
-    void ShowMessage(string message, CaptionType caption = CaptionType.Info, string iconPath = "", string btnOkText = "Ok");
-    bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Info, string iconPath = "", string btnOkText = "Ok", string btnCancelText = "Cancel");
+    void ShowMessage(string message, CaptionType caption = CaptionType.Info, string iconPath = "");
+    bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Info, string iconPath = "");
 
-    public bool ShowErrorMessageDialog(string message, string btnOkText = "Ok", string btnCancelText = "Cancel");
-    public bool ShowInfoMessageDialog(string message, string btnOkText = "Ok", string btnCancelText = "Cancel");
-    public bool ShowWarningMessageDialog(string message, string btnOkText = "Ok", string btnCancelText = "Cancel");
+    public bool ShowErrorMessageDialog(string message);
+    public bool ShowInfoMessageDialog(string message);
+    public bool ShowWarningMessageDialog(string message);
 
-    public void ShowErrorMessage(string message, string btnOkText = "Ok");
-    public void ShowInfoMessage(string message, string btnOkText = "Ok");
-    public void ShowWarningMessage(string message, string btnOkText = "Ok");
+    public void ShowErrorMessage(string message);
+    public void ShowInfoMessage(string message);
+    public void ShowWarningMessage(string message);
 }

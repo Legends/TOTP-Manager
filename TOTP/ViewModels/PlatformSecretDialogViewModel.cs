@@ -5,20 +5,22 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
+using TOTP.Helper;
 using TOTP.Interfaces;
+using TOTP.Resources;
 using TOTP.Services; // Assuming you have a message service interface here
 
 namespace TOTP.ViewModels;
 
-public class KeyValueDialogViewModel : INotifyPropertyChanged, IKeyValueDialogViewModel
+public class PlatformSecretDialogViewModel : INotifyPropertyChanged, IPlatformSecretDialogViewModel
 {
     private string? _account;
     private string? _platform;
     private string? _secret;
-    private ImageSource? _icon = new BitmapImage(new Uri("pack://application:,,,/TOTP.Manager;component/Assets/Icons/lock-add.png"));
+    private ImageSource? _icon = new BitmapImage(new Uri(StringsConstants.ImgLockAdd));
     private readonly IMessageService _messageService;
 
-    public KeyValueDialogViewModel(IMessageService msgService)
+    public PlatformSecretDialogViewModel(IMessageService msgService)
     {
         _messageService = msgService;
         OkCommand = new RelayCommand(ExecuteOkCommand);
@@ -78,13 +80,13 @@ public class KeyValueDialogViewModel : INotifyPropertyChanged, IKeyValueDialogVi
 
         if (string.IsNullOrWhiteSpace(Platform) || string.IsNullOrWhiteSpace(Secret))
         {
-            _messageService.ShowInfoMessage("Platform and Secret cannot be empty");
+            _messageService.ShowInfoMessage(UI.msg_PlatformSecretNotEmpty);
             return;
         }
 
         if (!SecretsManager.IsValidBase32Format(Secret))
         {
-            _messageService.ShowInfoMessage("Secret must be a valid Base32 string.");
+            _messageService.ShowInfoMessage(UI.msg_SecretInvalidFormat);
             return;
         }
 
