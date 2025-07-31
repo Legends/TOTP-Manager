@@ -91,9 +91,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     {
         AddNewTotpCommand = new RelayCommand(AddNewTotp);
         DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
-        //DeleteSecretCommand2 = new BaseCommand(DeleteSecret2);
-        //SingleTapCommand = new AsyncCommand(OnSingleTap);
-        //DoubleTapCommand = new RelayCommand<object>(OnDoubleTap);
 
         UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
         BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
@@ -161,11 +158,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     public ICommand BeginEditCommand { get; private set; } = null!;
     public ICommand ClearSearchCommand { get; private set; } = null!;
     public ICommand DeleteSecretCommand { get; private set; } = null!;
-    public ICommand DeleteSecretCommand2 { get; private set; } = null!;
     public ICommand DoubleClickCommand { get; private set; } = null!;
-    public ICommand DoubleTapCommand { get; private set; } = null!;
     public ICommand EndEditCommand { get; private set; } = null!;
-    public ICommand SingleTapCommand { get; private set; } = null!;
     public ICommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
 
@@ -212,27 +206,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         }
     }
 
-    private void ChangeCulture(CultureInfo culture)
-    {
-        CultureInfo.DefaultThreadCurrentUICulture = culture;
-        CultureInfo.DefaultThreadCurrentCulture = culture;
-        //RefreshLocalization();
-    }
 
-    private double _codeLabelOpacity;
-
-    public double CodeLabelOpacity
-    {
-        get => _codeLabelOpacity;
-        set
-        {
-            if (_codeLabelOpacity != value)
-            {
-                _codeLabelOpacity = value;
-                OnPropertyChanged();
-            }
-        }
-    }
 
     private int _codeLabelHeight;
 
@@ -375,7 +349,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     public bool IsSearchTextNotEmpty => !string.IsNullOrEmpty(_searchText);
 
-    private readonly DebounceDispatcher _debouncer = new();
 
     #endregion REGION PROPERTIES AND VARS
 
@@ -390,24 +363,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     #endregion
 
-    #region ### OLD CODE ###
-
-    //private async Task OnSingleTap()
-    //{
-    //    //MessageBox.Show("Single Tap executed.");
-    //    //await OnSecretSelected();
-    //    Debug.WriteLine("OnSingelTap");
-    //}
-
-    //private void OnDoubleTap(object parameter)
-    //{
-    //    Debug.WriteLine("OnDoubleTap");
-    //    isDoubleClick = true;
-    //    //var e = parameter as Syncfusion.UI.Xaml.Grid.GridCellDoubleTappedEventArgs;
-    //    //MessageBox.Show($"Double Tap executed on row {e?.RowColumnIndex.RowIndex}");
-    //}
-
-    #endregion
 
     #region ### Delete Logic ###
 
@@ -431,17 +386,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
             _logger.LogError(ex, UI.ex_DeletingSecret);
             _msgService.ShowErrorMessage(string.Format(UI.ex_DeletingSecret_0, ex.Message));
         }
-    }
-
-    // working, but no mvvm
-    public void DeleteSecret2(object item) // but here you get a reference to GridRecordContextMenuInfo
-    {
-        ArgumentNullException.ThrowIfNull(item, nameof(item));
-
-        _msgService.ShowMessage(item.ToString() ?? "Null");
-
-
-        // Your deletion logic
     }
 
     #endregion
