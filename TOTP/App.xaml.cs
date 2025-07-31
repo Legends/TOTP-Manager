@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Syncfusion.Licensing;
 using System;
-using System.Globalization;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
@@ -31,9 +30,10 @@ public partial class App : Application
     {
 
         // Set for ALL threads
-        var culture = new CultureInfo("de-DE");
-        CultureInfo.DefaultThreadCurrentCulture = culture;
-        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        // for testing purposes only
+        //var culture = new CultureInfo("de-DE");
+        //CultureInfo.DefaultThreadCurrentCulture = culture;
+        //CultureInfo.DefaultThreadCurrentUICulture = culture;
 
         LoggingConfigurator.SetupEarlyLogger();
 

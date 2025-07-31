@@ -447,7 +447,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     #region ### Row/Field Selection Logic  ###
 
-    private bool isDoubleClick;
+    private bool _isDoubleClick;
 
     private async Task OnSelectionChangedAsync()
     {
@@ -455,7 +455,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         await Task.Delay(300);
         try
         {
-            if (currentKey == SelectedSecret.Platform && !isDoubleClick)
+            if (currentKey == SelectedSecret.Platform && !_isDoubleClick)
                 //_msgService.ShowMessage(currentKey);
                 _ = OnSecretSelected();
         }
@@ -466,13 +466,13 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         }
         finally
         {
-            isDoubleClick = false;
+            _isDoubleClick = false;
         }
     }
 
     private void OnDoubleClick(SecretItem item)
     {
-        isDoubleClick = true;
+        _isDoubleClick = true;
         ResetCodeGenerationLabels();
 
         foreach (var s in AllSecrets)

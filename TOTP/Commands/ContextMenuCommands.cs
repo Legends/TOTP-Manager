@@ -1,8 +1,7 @@
 ﻿using Syncfusion.UI.Xaml.Grid;
 using System.Windows.Input;
-using TOTP.Commands;
 
-namespace TOTP.Helper;
+namespace TOTP.Commands;
 
 public static class ContextMenuCommands
 {
