@@ -7,5 +7,8 @@
         public const string ImgWarning = "pack://application:,,,/TOTP;component/Assets/Icons/Warning.png";
         public const string ImgError = "pack://application:,,,/TOTP;component/Assets/Icons/Error.png";
         public const string ImgLockAdd = "pack://application:,,,/TOTP.Manager;component/Assets/Icons/lock-add.png";
+
+        public const string deFlag = "pack://application:,,,/TOTP.Manager;component/Assets/flags/de.png";
+        public const string enFlag = "pack://application:,,,/TOTP.Manager;component/Assets/flags/en.png";
     }
 }

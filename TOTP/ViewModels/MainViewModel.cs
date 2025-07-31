@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -16,10 +17,11 @@ using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Models;
 using TOTP.Resources;
+using TOTP.Services;
 
 namespace TOTP.ViewModels;
 
-public class MainViewModel : IMainViewModel, INotifyPropertyChanged
+public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizable
 {
     #region ### Constructor ###
 
@@ -45,14 +47,28 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
         SetupCommands();
 
-        InitDataSource();
+        LocalizationService.LanguageChanged += RefreshLocalization;
+
+        SupportedCultures =
+        [
+            new(new CultureInfo("en"), StringsConstants.enFlag),
+            new(new CultureInfo("de-DE"), StringsConstants.deFlag),
+        ];
+
+        var currentCulture = CultureInfo.CurrentUICulture;
+
+        var selCulture = SupportedCultures.FirstOrDefault(c => c.Culture.Name == currentCulture.Name)
+                           ?? SupportedCultures.First();
+        SelectedCulture = selCulture;
+
+        LoadSecrets();
         OnPropertyChanged(nameof(ShowActionsColumn));
         UpdateFilter();
     }
 
     #endregion
 
-    private void InitDataSource()
+    private void LoadSecrets()
     {
         //var secrets = config.AsEnumerable()
         //    .Where(kv => kv.Key != "syncfusion")
@@ -140,6 +156,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
 
     #region ### COMMANDS ###
 
+    public ICommand ChangeLanguageCommand { get; private set; } = null!;
     public ICommand AddNewTotpCommand { get; private set; } = null!;
     public ICommand BeginEditCommand { get; private set; } = null!;
     public ICommand ClearSearchCommand { get; private set; } = null!;
@@ -174,8 +191,33 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     #endregion REGION SERVICES
 
     #region ### PROPERTIES AND VARS ###
-
+    private CultureDisplay _selectedCulture;
     private readonly ILogger<MainViewModel> _logger;
+
+    public ObservableCollection<CultureDisplay> SupportedCultures { get; }
+
+    public CultureDisplay SelectedCulture
+    {
+        get => _selectedCulture;
+        set
+        {
+            if (_selectedCulture != value)
+            {
+                _selectedCulture = value;
+                LocalizationService.ChangeCulture(value.Culture.Name);
+
+                OnPropertyChanged();
+                //LanguageChanged?.Invoke(this, value.Culture);
+            }
+        }
+    }
+
+    private void ChangeCulture(CultureInfo culture)
+    {
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        CultureInfo.DefaultThreadCurrentCulture = culture;
+        //RefreshLocalization();
+    }
 
     private double _codeLabelOpacity;
 
@@ -338,7 +380,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
     #endregion REGION PROPERTIES AND VARS
 
     #region ### Events ###
-
+    public event EventHandler<CultureInfo>? LanguageChanged;
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -582,6 +624,18 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
                 x.Platform?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false);
         foreach (var item in filtered)
             FilteredSecrets.Add(item);
+    }
+
+    public string DeleteLabel => TOTP.Resources.UI.ui_btnDelete;
+
+    public void RefreshLocalization()
+    {
+
+    }
+
+    ~MainViewModel()
+    {
+        LocalizationService.LanguageChanged -= RefreshLocalization;
     }
 
     #endregion

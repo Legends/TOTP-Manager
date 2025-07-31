@@ -5,7 +5,9 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Syncfusion.Licensing;
 using System;
+using System.Globalization;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using TOTP.Interfaces;
@@ -44,6 +46,8 @@ public partial class App : Application
             // Build configuration first to get secrets
             var configuration = BuildConfiguration();
 
+            SetCulture(configuration);
+
             RegisterSyncfusionLicenseKey(configuration);
 
             // Create the host builder
@@ -57,15 +61,31 @@ public partial class App : Application
         }
     }
 
+    private static void SetCulture(IConfigurationRoot configuration)
+    {
+
+        var cultureCode = configuration["Localization:Culture"] ?? "en";
+        var culture = new CultureInfo(cultureCode);
+
+        CultureInfo.DefaultThreadCurrentCulture = culture;
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+        Thread.CurrentThread.CurrentCulture = culture;
+        Thread.CurrentThread.CurrentUICulture = culture;
+
+        LocalizationService.ChangeCulture(cultureCode);
+    }
+
 
     // can be removed
     private static IConfigurationRoot BuildConfiguration()
     {
-        return new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
-            .Build();
+        return new ConfigurationBuilder().AddUserSecrets(Assembly.GetExecutingAssembly(), true)
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
+
     }
 
 

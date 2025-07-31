@@ -13,6 +13,7 @@
                              xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
                              xmlns:resx="clr-namespace:TOTP.Resources"
                              xmlns:xaml="clr-namespace:TOTP.Xaml"
+                             xmlns:models="clr-namespace:TOTP.Models"
                              mc:Ignorable="d"
                              Width="350"
                              SizeToContent="Height"
@@ -90,6 +91,34 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                     Margin="-20,0,0,0"
                     Command="{Binding ClearSearchCommand}"
                     Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
+
+
+
+
+            <syncfusion:ComboBoxAdv ItemsSource="{Binding SupportedCultures}"
+                                    SelectedItem="{Binding SelectedCulture, Mode=TwoWay}"
+                                    Width="50"
+                                    HorizontalAlignment="Right"
+                                    Margin="2"
+                                    AllowMultiSelect="False">
+                <!--Item template is bound to datasource type: class CultureDisplay
+-->
+                <syncfusion:ComboBoxAdv.ItemTemplate>
+                    <DataTemplate DataType="{x:Type models:CultureDisplay}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding IconPath}"
+                                   Width="20"
+                                   Height="25"
+                                   Margin="0,0,5,0" />
+                            <!--<TextBlock Text="{Binding DisplayName}"
+                                       VerticalAlignment="Center" />-->
+                        </StackPanel>
+                    </DataTemplate>
+                </syncfusion:ComboBoxAdv.ItemTemplate>
+            </syncfusion:ComboBoxAdv>
+
+
+
         </syncfusion:ToolBarAdv>
 
 
@@ -221,7 +250,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
 
                 <syncfusion:SfDataGrid.RecordContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="{xaml:Resx Key=ui_btnDelete}"
+                        <MenuItem Header="{Binding DataGrid.DataContext.DeleteLabel}"
                                   Padding="0,0,2,0"
                                   Foreground="{DynamicResource Brush.Foreground}"
                                   Command="{Binding DataGrid.DataContext.DeleteSecretCommand}"

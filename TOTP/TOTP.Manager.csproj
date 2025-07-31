@@ -15,6 +15,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Remove="Assets\flags\de.png" />
 		<None Remove="Assets\Icons\delete-24x24.svg" />
 		<None Remove="Assets\Icons\Info.png" />
 		<None Remove="Assets\Icons\Lock-Add.png" />
@@ -39,6 +40,7 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Otp.NET" Version="1.4.0" />
 		<PackageReference Include="QRCoder" Version="1.6.0" />
 		<PackageReference Include="Serilog" Version="4.3.0" />
@@ -69,6 +71,8 @@
 		</Content>
 		<None Include="..\dev-helper.md" Link="dev-helper.md" />
 		<Resource Include="Assets\backgrounds\background-main.png" />
+		<Resource Include="Assets\flags\de.png" />
+		<Resource Include="Assets\flags\en.png" />
 		<Resource Include="Assets\Icons\delete-24x24.svg" />
 		<Resource Include="Assets\Icons\Info.png" />
 		<Resource Include="Assets\Icons\Lock-Add.png" />

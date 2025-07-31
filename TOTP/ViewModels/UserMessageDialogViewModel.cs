@@ -9,10 +9,11 @@ using TOTP.Enums;
 using TOTP.Events;
 using TOTP.Interfaces;
 using TOTP.Resources;
+using TOTP.Services;
 
 namespace TOTP.ViewModels;
 
-public class UserMessageDialogViewModel : INotifyPropertyChanged, IUserMessageDialogViewModel
+public class UserMessageDialogViewModel : INotifyPropertyChanged, IUserMessageDialogViewModel, ILocalizable
 {
     private CaptionType _caption = CaptionType.Info;
     private string? _message;
@@ -27,6 +28,8 @@ public class UserMessageDialogViewModel : INotifyPropertyChanged, IUserMessageDi
     {
         OkCommand = new RelayCommand(_ => OnOk());
         CancelCommand = new RelayCommand(_ => OnCancel(), () => ShowCancelButton);
+        LocalizationService.LanguageChanged += () => RefreshLocalization();
+
     }
 
     public CaptionType Caption
@@ -109,4 +112,10 @@ public class UserMessageDialogViewModel : INotifyPropertyChanged, IUserMessageDi
     public event PropertyChangedEventHandler? PropertyChanged;
     protected void OnPropertyChanged([CallerMemberName] string? name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    public void RefreshLocalization()
+    {
+        OkButtonText = UI.ui_btnOK;
+        CancelButtonText = UI.ui_btnCancel;
+    }
 }
