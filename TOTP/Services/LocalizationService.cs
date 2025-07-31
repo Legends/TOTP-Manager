@@ -16,7 +16,7 @@ namespace TOTP.Services
             Thread.CurrentThread.CurrentUICulture = culture;
             CultureInfo.DefaultThreadCurrentCulture = culture;
             CultureInfo.DefaultThreadCurrentUICulture = culture;
-
+            UpdateCultureSetting(cultureCode);
             LanguageChanged?.Invoke();
             //LanguageChanged?.Invoke(this, value.Culture);
         }
