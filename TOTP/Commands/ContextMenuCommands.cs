@@ -5,8 +5,8 @@ namespace TOTP.Commands;
 
 public static class ContextMenuCommands
 {
-    private static ICommand? cut;
-    public static ICommand Cut => cut ??= new BaseCommand(OnCutClicked);
+    private static ICommand? _cut;
+    public static ICommand Cut => _cut ??= new BaseCommand(OnCutClicked);
 
 
     private static void OnCutClicked(object? obj)

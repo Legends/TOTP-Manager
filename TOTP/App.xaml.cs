@@ -237,8 +237,4 @@ public partial class App : Application
         base.OnExit(e);
     }
 
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
 }

@@ -11,7 +11,7 @@ namespace TOTP.Models;
 
 public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEditableObject
 {
-    private Dictionary<string, object>? storedValues;
+    private Dictionary<string, object>? _storedValues;
 
     [JsonConstructor]
     public SecretItem(string platform, string secret)
@@ -22,15 +22,15 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
 
     public void BeginEdit()
     {
-        storedValues = BackUp();
+        _storedValues = BackUp();
     }
 
     public void CancelEdit()
     {
-        if (storedValues == null)
+        if (_storedValues == null)
             return;
 
-        foreach (var item in storedValues)
+        foreach (var item in _storedValues)
         {
             var itemProperties = GetType().GetTypeInfo().DeclaredProperties;
             var pDesc = itemProperties.FirstOrDefault(p => p.Name == item.Key);
@@ -41,10 +41,10 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
 
     public void EndEdit()
     {
-        if (storedValues != null)
+        if (_storedValues != null)
         {
-            storedValues.Clear();
-            storedValues = null;
+            _storedValues.Clear();
+            _storedValues = null;
         }
 
         Debug.WriteLine("End Edit Called");

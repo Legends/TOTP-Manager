@@ -27,7 +27,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     public MainViewModel(
         ILogger<MainViewModel> logger,
-        IQrCodeService svcQR,
+        IQrCodeService svcQr,
         IMessageService msgService,
         IClipboardService clipboard,
         IConfiguration config,
@@ -38,7 +38,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     {
         _secretsManager = secretsManager;
         _logger = logger;
-        _qrService = svcQR;
+        _qrService = svcQr;
         _delayService = delayService;
         _msgService = msgService;
         _debounceService = debounceService;
@@ -51,8 +51,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
         SupportedCultures =
         [
-            new(new CultureInfo("en"), StringsConstants.enFlag),
-            new(new CultureInfo("de-DE"), StringsConstants.deFlag),
+            new(new CultureInfo("en"), StringsConstants.EnFlag),
+            new(new CultureInfo("de-DE"), StringsConstants.DeFlag),
         ];
 
         var currentCulture = CultureInfo.CurrentUICulture;
@@ -91,10 +91,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     {
         AddNewTotpCommand = new RelayCommand(AddNewTotp);
         DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
-        //DeleteSecretCommand2 = new BaseCommand(DeleteSecret2);
-        //SingleTapCommand = new AsyncCommand(OnSingleTap);
-        //DoubleTapCommand = new RelayCommand<object>(OnDoubleTap);
-
         UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
         BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
         EndEditCommand = new RelayCommand<SecretItem>(OnEndEdit);
@@ -161,11 +157,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     public ICommand BeginEditCommand { get; private set; } = null!;
     public ICommand ClearSearchCommand { get; private set; } = null!;
     public ICommand DeleteSecretCommand { get; private set; } = null!;
-    public ICommand DeleteSecretCommand2 { get; private set; } = null!;
     public ICommand DoubleClickCommand { get; private set; } = null!;
-    public ICommand DoubleTapCommand { get; private set; } = null!;
     public ICommand EndEditCommand { get; private set; } = null!;
-    public ICommand SingleTapCommand { get; private set; } = null!;
     public ICommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
 
@@ -208,28 +201,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
                 OnPropertyChanged();
                 //LanguageChanged?.Invoke(this, value.Culture);
-            }
-        }
-    }
-
-    private void ChangeCulture(CultureInfo culture)
-    {
-        CultureInfo.DefaultThreadCurrentUICulture = culture;
-        CultureInfo.DefaultThreadCurrentCulture = culture;
-        //RefreshLocalization();
-    }
-
-    private double _codeLabelOpacity;
-
-    public double CodeLabelOpacity
-    {
-        get => _codeLabelOpacity;
-        set
-        {
-            if (_codeLabelOpacity != value)
-            {
-                _codeLabelOpacity = value;
-                OnPropertyChanged();
             }
         }
     }
@@ -345,14 +316,14 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         }
     }
 
-    private bool _IsCodeLabelVisible;
+    private bool _isCodeLabelVisible;
 
     public bool IsCodeLabelVisible
     {
-        get => _IsCodeLabelVisible;
+        get => _isCodeLabelVisible;
         set
         {
-            _IsCodeLabelVisible = value;
+            _isCodeLabelVisible = value;
             OnPropertyChanged();
         }
     }
@@ -380,32 +351,13 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     #endregion REGION PROPERTIES AND VARS
 
     #region ### Events ###
-    public event EventHandler<CultureInfo>? LanguageChanged;
+    //public event EventHandler<CultureInfo>? LanguageChanged;
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-
-    #endregion
-
-    #region ### OLD CODE ###
-
-    //private async Task OnSingleTap()
-    //{
-    //    //MessageBox.Show("Single Tap executed.");
-    //    //await OnSecretSelected();
-    //    Debug.WriteLine("OnSingelTap");
-    //}
-
-    //private void OnDoubleTap(object parameter)
-    //{
-    //    Debug.WriteLine("OnDoubleTap");
-    //    isDoubleClick = true;
-    //    //var e = parameter as Syncfusion.UI.Xaml.Grid.GridCellDoubleTappedEventArgs;
-    //    //MessageBox.Show($"Double Tap executed on row {e?.RowColumnIndex.RowIndex}");
-    //}
 
     #endregion
 
@@ -433,16 +385,16 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         }
     }
 
-    // working, but no mvvm
-    public void DeleteSecret2(object item) // but here you get a reference to GridRecordContextMenuInfo
-    {
-        ArgumentNullException.ThrowIfNull(item, nameof(item));
+    //// working, but no mvvm
+    //public void DeleteSecret2(object item) // but here you get a reference to GridRecordContextMenuInfo
+    //{
+    //    ArgumentNullException.ThrowIfNull(item, nameof(item));
 
-        _msgService.ShowMessage(item.ToString() ?? "Null");
+    //    _msgService.ShowMessage(item.ToString() ?? "Null");
 
 
-        // Your deletion logic
-    }
+    //    // Your deletion logic
+    //}
 
     #endregion
 

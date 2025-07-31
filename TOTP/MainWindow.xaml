@@ -178,10 +178,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                                          DoubleClickCommand="{Binding DoubleClickCommand}" />
 
                     <behaviors:ToggleColumnVisibilityBehavior ShowActionsColumn="{Binding ShowActionsColumn}" />
-
-                    <!--<behaviors:SingleOrDoubleTapBehavior SingleTapCommand="{Binding SingleTapCommand}"
-                                                         DoubleTapCommand="{Binding DoubleTapCommand}"
-                                                         TapDelay="300" />-->
+ 
                     <behaviors:SfDataGridContextMenuBehavior />
                 </i:Interaction.Behaviors>
 
