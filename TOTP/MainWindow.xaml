@@ -320,21 +320,22 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                    Visibility="{Binding IsQrVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
 
 
-            <Label x:Name="lblCopiedToClipboard"
-                   Grid.Row="3"
-                   Margin="0,10"
-                   Content="Code was copied to clipboard!"
-                   HorizontalContentAlignment="Center"
-                   VerticalContentAlignment="Top"
-                   FontSize="18"
-                   FontWeight="Bold"
-                   Foreground="#FF22ED20"
-                   Visibility="{Binding IsCodeCopiedVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
-                <Label.Effect>
+            <TextBlock x:Name="lblCopiedToClipboard"
+                       Grid.Row="3"
+                       Margin="0,10"
+                       Text="{xaml:Resx Key=ui_Code_Copied_Clipboard}"
+                       TextAlignment="Center"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       Foreground="#FF22ED20"
+                       TextWrapping="Wrap"
+                       Visibility="{Binding IsCodeCopiedVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
+                <TextBlock.Effect>
                     <DropShadowEffect BlurRadius="10"
                                       Color="Aqua" />
-                </Label.Effect>
-            </Label>
+                </TextBlock.Effect>
+            </TextBlock>
+
         </Grid>
     </StackPanel>
 </syncfusion:ChromelessWindow>

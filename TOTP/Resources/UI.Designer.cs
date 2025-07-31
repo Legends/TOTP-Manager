@@ -304,6 +304,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code was copied to clipboard!.
+        /// </summary>
+        internal static string ui_Code_Copied_Clipboard {
+            get {
+                return ResourceManager.GetString("ui_Code_Copied_Clipboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to platform.
         /// </summary>
         internal static string ui_Header_Platform {

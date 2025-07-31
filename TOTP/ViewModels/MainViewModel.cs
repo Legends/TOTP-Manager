@@ -431,6 +431,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged
         OnPropertyChanged(nameof(ShowActionsColumn));
     }
 
+    // TODO: updating does not trigger validation of the secret ! add validation
+
     private void OnEndEdit(SecretItem item)
     {
         item.IsBeingEdited = false;

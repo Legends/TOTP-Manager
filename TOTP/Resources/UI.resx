@@ -211,4 +211,7 @@
   <data name="ui_Window_Title_TOTP_Manager" xml:space="preserve">
     <value>TOTP Manager</value>
   </data>
+  <data name="ui_Code_Copied_Clipboard" xml:space="preserve">
+    <value>Code was copied to clipboard!</value>
+  </data>
 </root>
