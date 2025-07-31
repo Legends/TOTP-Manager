@@ -212,6 +212,6 @@
     <value>TOTP Manager</value>
   </data>
   <data name="ui_Code_Copied_Clipboard" xml:space="preserve">
-    <value>Code wurde in den Zwischenablage kopiert!</value>
+    <value>Code wurde in Zwischenablage kopiert!</value>
   </data>
 </root>

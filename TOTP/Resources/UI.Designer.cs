@@ -304,7 +304,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code was copied to clipboard!.
+        ///   Looks up a localized string similar to Code copied to clipboard!.
         /// </summary>
         internal static string ui_Code_Copied_Clipboard {
             get {

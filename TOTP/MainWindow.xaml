@@ -39,90 +39,94 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
 
     </syncfusion:ChromelessWindow.Resources>
 
-    <StackPanel Orientation="Vertical"
+    <StackPanel Orientation="Vertical" Margin="0,5,0,0"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
 
-        <syncfusion:ToolBarAdv HorizontalAlignment="Stretch"
-                               Height="30"
-                               MaxHeight="35"
-                               Foreground="{DynamicResource Brush.Foreground}"
-                               Background="Transparent"
-                               OverflowMode="AsNeeded">
+        <Grid Height="30"
+              Background="Transparent">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <!-- linke Seite: Buttons, Suche -->
+                <ColumnDefinition Width="Auto" />
+                <!-- rechte Seite: Sprache -->
+            </Grid.ColumnDefinitions>
 
-            <Button ToolTip="Add new"
-                    Margin="5,0"
-                    Command="{Binding AddNewTotpCommand}">
-                <!--svg image property must be set to Resource !-->
-                <svgc:SvgViewbox Source="/Assets/Icons/plus-24x24.svg"
-                                 Height="15"
-                                 Stretch="Uniform" />
-            </Button>
+            <!-- Linke Seite -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Grid.Column="0">
 
-            <Separator />
+                <!-- Add Button -->
+                <Button ToolTip="Add new"
+                        Margin="5,5,0,0"
+                        Padding="5,5"
+                        Command="{Binding AddNewTotpCommand}">
+                    <svgc:SvgViewbox Source="/Assets/Icons/plus-24x24.svg"
+                                     Height="15"
+                                     Stretch="Uniform" />
+                </Button>
 
-            <Button Command="{Binding ToggleSearchBoxCommand}"
-                    Margin="5,0"
-                    ToolTip="{xaml:Resx Key=ui_btnSearch}">
-                <!--svg image property must be set to Resource !-->
-                <svgc:SvgViewbox Source="/Assets/Icons/find-24x24.svg"
-                                 Height="17"
-                                 Stretch="Uniform" />
-            </Button>
+                <!-- Such-Button -->
+                <Button Command="{Binding ToggleSearchBoxCommand}"
+                        Margin="5,5,5,0"
+                        Padding="5,5"
+                        ToolTip="{xaml:Resx Key=ui_btnSearch}">
+                    <svgc:SvgViewbox Source="/Assets/Icons/find-24x24.svg"
+                                     Height="15"
+                                     Stretch="Uniform" />
+                </Button>
 
-            <!-- Search Box -->
-            <syncfusion:SfTextBoxExt Width="150"
-                                     Height="30"
-                                     VerticalAlignment="Center"
-                                     VerticalContentAlignment="Stretch"
-                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                     Watermark="{xaml:Resx Key=ui_label_Search_Dots}"
-                                     props:FocusExtension.IsFocused="{Binding IsSearchFocused}"
-                                     Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
-                                     Padding="0"
-                                     Margin="10,0,0,0" />
-            <Button Content="×"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Width="20"
-                    Height="20"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Margin="-20,0,0,0"
-                    Command="{Binding ClearSearchCommand}"
-                    Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
+                <!-- Suchfeld -->
+                <syncfusion:SfTextBoxExt Width="150"
+                                         Height="30"
+                                         VerticalAlignment="Center"
+                                         VerticalContentAlignment="Stretch"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Watermark="{xaml:Resx Key=ui_label_Search_Dots}"
+                                         props:FocusExtension.IsFocused="{Binding IsSearchFocused}"
+                                         Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+                                         Padding="0"
+                                         Margin="10,0,0,0" />
 
+                <!-- Clear-Suche-Button -->
+                <Button Content="×"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Width="20"
+                        Height="20"
+                        VerticalAlignment="Center"
+                        Margin="-20,0,0,0"
+                        Command="{Binding ClearSearchCommand}"
+                        Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
 
+            </StackPanel>
 
-
-            <syncfusion:ComboBoxAdv ItemsSource="{Binding SupportedCultures}"
+            <!-- Rechte Seite: Sprachwahl -->
+            <syncfusion:ComboBoxAdv Grid.Column="1"
+                                    ItemsSource="{Binding SupportedCultures}"
                                     SelectedItem="{Binding SelectedCulture, Mode=TwoWay}"
                                     Width="50"
-                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
                                     Margin="2"
                                     AllowMultiSelect="False">
-                <!--Item template is bound to datasource type: class CultureDisplay
--->
                 <syncfusion:ComboBoxAdv.ItemTemplate>
-                    <DataTemplate DataType="{x:Type models:CultureDisplay}">
+                    <DataTemplate>
                         <StackPanel Orientation="Horizontal">
                             <Image Source="{Binding IconPath}"
                                    Width="20"
                                    Height="25"
                                    Margin="0,0,5,0" />
-                            <!--<TextBlock Text="{Binding DisplayName}"
-                                       VerticalAlignment="Center" />-->
                         </StackPanel>
                     </DataTemplate>
                 </syncfusion:ComboBoxAdv.ItemTemplate>
             </syncfusion:ComboBoxAdv>
+        </Grid>
 
 
 
-        </syncfusion:ToolBarAdv>
-
-
-        <Grid Margin="10">
+        <Grid Margin="10,20,10,10">
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
