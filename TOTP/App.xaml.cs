@@ -104,7 +104,7 @@ public partial class App : Application
                 services.AddSingleton<IDebounceService, DebounceService>();
                 services.AddSingleton<IPlatformSecretDialogService, PlatformSecretDialogService>();
                 services.AddSingleton<IMessageService, MessageService>();
-                services.AddTransient<KeyValueDialog>();
+                services.AddTransient<PlatformSecretDialog>();
                 services.AddTransient<IPlatformSecretDialogViewModel, PlatformSecretDialogViewModel>();
                 services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
 

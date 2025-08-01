@@ -17,7 +17,7 @@ public class PlatformSecretDialogService : IPlatformSecretDialogService
 
     public (bool success, string? key, string? value) ShowForm()
     {
-        var dlg = _provider.GetRequiredService<KeyValueDialog>();
+        var dlg = _provider.GetRequiredService<PlatformSecretDialog>();
         dlg.Owner = Application.Current?.MainWindow;
         var result = dlg.ShowDialog() == true;
         return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
@@ -26,7 +26,7 @@ public class PlatformSecretDialogService : IPlatformSecretDialogService
     public (bool success, string? key, string? value) ShowForm(string? initialKey = null,
         string? initialValue = null)
     {
-        var dlg = _provider.GetRequiredService<KeyValueDialog>();
+        var dlg = _provider.GetRequiredService<PlatformSecretDialog>();
         dlg.Owner = Application.Current?.MainWindow;
 
         if (initialKey != null)

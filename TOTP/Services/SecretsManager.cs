@@ -167,6 +167,21 @@ public class SecretsManager : ISecretsManager
         return _options ?? new JsonSerializerOptions { WriteIndented = true };
     }
 
+    public static (bool IsValid, string? ErrorMessage) IsValid(string? platform, string? secret)
+    {
+        if (string.IsNullOrWhiteSpace(platform) || string.IsNullOrWhiteSpace(secret))
+        {
+            return (false, UI.msg_PlatformSecretNotEmpty);
+        }
+
+        if (!SecretsManager.IsValidBase32Format(secret))
+        {
+            return (false, UI.msg_SecretInvalidFormat);
+        }
+
+        return (true, null);
+    }
+
     public static bool IsValidBase32Format(string value)
     {
         try

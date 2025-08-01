@@ -7,28 +7,20 @@ using System.Windows.Media.Imaging;
 using TOTP.Commands;
 using TOTP.Helper;
 using TOTP.Interfaces;
-using TOTP.Resources;
-using TOTP.Services; // Assuming you have a message service interface here
+using TOTP.Services;
 
 namespace TOTP.ViewModels;
 
 public class PlatformSecretDialogViewModel : INotifyPropertyChanged, IPlatformSecretDialogViewModel
 {
+
+    #region ### PROPS & VARS ###
+
     private string? _account;
     private string? _platform;
     private string? _secret;
     private ImageSource? _icon = new BitmapImage(new Uri(StringsConstants.ImgLockAdd));
     private readonly IMessageService _messageService;
-
-    public PlatformSecretDialogViewModel(IMessageService msgService)
-    {
-        _messageService = msgService;
-        OkCommand = new RelayCommand(ExecuteOkCommand);
-        CancelCommand = new RelayCommand((_) =>
-        {
-            RequestClose?.Invoke(this, false);
-        });
-    }
 
     public ICommand OkCommand { get; }
     public ICommand CancelCommand { get; }
@@ -73,22 +65,45 @@ public class PlatformSecretDialogViewModel : INotifyPropertyChanged, IPlatformSe
         }
     }
 
+
     public event EventHandler<bool>? RequestClose;
+
+    #endregion
+
+    public PlatformSecretDialogViewModel(IMessageService msgService)
+    {
+        _messageService = msgService;
+        OkCommand = new RelayCommand(ExecuteOkCommand);
+        CancelCommand = new RelayCommand((_) =>
+        {
+            RequestClose?.Invoke(this, false);
+        });
+    }
+
 
     private void ExecuteOkCommand(object? parameter)
     {
 
-        if (string.IsNullOrWhiteSpace(Platform) || string.IsNullOrWhiteSpace(Secret))
+        var (isValid, error) = SecretsManager.IsValid(Platform, Secret);
+
+        if (!isValid)
         {
-            _messageService.ShowInfoMessage(UI.msg_PlatformSecretNotEmpty);
+            _messageService.ShowInfoMessage(error!);
             return;
         }
 
-        if (!SecretsManager.IsValidBase32Format(Secret))
-        {
-            _messageService.ShowInfoMessage(UI.msg_SecretInvalidFormat);
-            return;
-        }
+
+        //if (string.IsNullOrWhiteSpace(Platform) || string.IsNullOrWhiteSpace(Secret))
+        //{
+        //    _messageService.ShowInfoMessage(UI.msg_PlatformSecretNotEmpty);
+        //    return;
+        //}
+
+        //if (!SecretsManager.IsValidBase32Format(Secret))
+        //{
+        //    _messageService.ShowInfoMessage(UI.msg_SecretInvalidFormat);
+        //    return;
+        //}
 
 
         RequestClose?.Invoke(this, true);

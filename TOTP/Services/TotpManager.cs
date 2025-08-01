@@ -38,19 +38,6 @@ public class TotpManager : ITotpManager
                 if (!success)
                     return (false, null);
 
-
-                //if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
-                //{
-                //    _messageService.ShowErrorMessage("Platform and Secret cannot be empty");
-                //    continue;
-                //}
-
-                //if (!SecretsManager.IsValidBase32Format(value))
-                //{
-                //    _messageService.ShowErrorMessage("Secret must be a valid Base32 string.");
-                //    continue;
-                //}
-
                 if (_secretsManager.AddNewItem(new SecretItem(key!, value!)))
                 {
                     var item = new SecretItem(key!, value!);

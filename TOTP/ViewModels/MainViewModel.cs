@@ -23,167 +23,8 @@ namespace TOTP.ViewModels;
 
 public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizable
 {
-    #region ### Constructor ###
-
-    public MainViewModel(
-        ILogger<MainViewModel> logger,
-        IQrCodeService svcQr,
-        IMessageService msgService,
-        IClipboardService clipboard,
-        IConfiguration config,
-        ITotpManager totpManager,
-        IDebounceService debounceService,
-        IDelayService delayService,
-        ISecretsManager secretsManager) // NEW
-    {
-        _secretsManager = secretsManager;
-        _logger = logger;
-        _qrService = svcQr;
-        _delayService = delayService;
-        _msgService = msgService;
-        _debounceService = debounceService;
-        _clipboard = clipboard;
-        _totpManager = totpManager;
-
-        SetupCommands();
-
-        LocalizationService.LanguageChanged += RefreshLocalization;
-
-        SupportedCultures =
-        [
-            new(new CultureInfo("en"), StringsConstants.EnFlag),
-            new(new CultureInfo("de-DE"), StringsConstants.DeFlag),
-        ];
-
-        var currentCulture = CultureInfo.CurrentUICulture;
-
-        var selCulture = SupportedCultures.FirstOrDefault(c => c.Culture.Name == currentCulture.Name)
-                           ?? SupportedCultures.First();
-        SelectedCulture = selCulture;
-
-        LoadSecrets();
-        OnPropertyChanged(nameof(ShowActionsColumn));
-        UpdateFilter();
-    }
-
-    #endregion
-
-    private void LoadSecrets()
-    {
-        //var secrets = config.AsEnumerable()
-        //    .Where(kv => kv.Key != "syncfusion")
-        //    .Where(pair => pair.Value != null)
-        //    .Select(pair => new SecretItem(pair.Key, pair.Value!));
-
-        // Load secrets from file or other source
-        var secrets = _secretsManager.GetAllSecrets().Where(s => s.Platform != "syncfusion");
-
-
-        AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
-
-        foreach (var secretItem in AllSecrets)
-            secretItem.PropertyChanged += SecretItem_PropertyChanged;
-    }
-
-    #region ### COMMANDS SETUP ###
-
-    private void SetupCommands()
-    {
-        AddNewTotpCommand = new RelayCommand(AddNewTotp);
-        DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
-        UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
-        BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
-        EndEditCommand = new RelayCommand<SecretItem>(OnEndEdit);
-        DoubleClickCommand = new RelayCommand<SecretItem>(OnDoubleClick);
-
-        ToggleSearchBoxCommand = new RelayCommand(() =>
-        {
-            IsSearchVisible = !IsSearchVisible;
-            IsSearchFocused = IsSearchVisible;
-        });
-
-        ClearSearchCommand = new RelayCommand(() =>
-        {
-            SearchText = "";
-
-            // the property doesnt change if IsSearchFocused is already true
-            // so, setting true => true doesnt raise onpropertyChanged and therefore no focus occurs
-            // A common pattern is to first set it to false, then back to true,
-            // to force the property changed notification:
-            IsSearchFocused = false;
-            IsSearchFocused = IsSearchVisible;
-        });
-    }
-
-    #endregion COMMANDS SETUP
-
-    private void AddNewTotp()
-    {
-        try
-        {
-            var (success, item) = _totpManager.AddNewSecret();
-            if (success && item != null)
-            {
-                ResetCodeGenerationLabels();
-                AllSecrets.Add(item);
-                OnPropertyChanged(nameof(AllSecrets));
-                UpdateFilter();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, UI.ex_Adding_New_TOTP);
-            _msgService.ShowErrorMessage(UI.ex_Adding_New_TOTP + ": " + ex.Message);
-        }
-    }
-
-    private void SecretItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(SecretItem.IsBeingEdited))
-            OnPropertyChanged(nameof(ShowActionsColumn));
-    }
-
-    #region ### ObservableCollections ###
-
-    public ObservableCollection<SecretItem> AllSecrets { get; set; } = null!;
-    public ObservableCollection<SecretItem> FilteredSecrets { get; } = [];
-
-    #endregion ObservableCollections
-
-    #region ### COMMANDS ###
-
-    public ICommand ChangeLanguageCommand { get; private set; } = null!;
-    public ICommand AddNewTotpCommand { get; private set; } = null!;
-    public ICommand BeginEditCommand { get; private set; } = null!;
-    public ICommand ClearSearchCommand { get; private set; } = null!;
-    public ICommand DeleteSecretCommand { get; private set; } = null!;
-    public ICommand DoubleClickCommand { get; private set; } = null!;
-    public ICommand EndEditCommand { get; private set; } = null!;
-    public ICommand ToggleSearchBoxCommand { get; private set; } = null!;
-    public ICommand UpdateSecretCommand { get; private set; } = null!;
-
-    public ICommand SelectionChangedCommand => new AsyncCommand(OnSelectionChangedAsync);
-
-    #endregion REGION COMMANDS
-
-    #region ### SERVICES ###
-
-    private readonly ISecretsManager _secretsManager;
-    private readonly IClipboardService _clipboard;
-    private readonly IMessageService _msgService;
-    private readonly ITotpManager _totpManager;
-
-    private readonly IDebounceService _debounceService;
-
-    //private readonly DispatcherTimer _debounceTimer;
-    private readonly IQrCodeService _qrService;
-
-    private readonly IDelayService _delayService;
-    //private string _pendingSearchText;
-
-    #endregion REGION SERVICES
-
     #region ### PROPERTIES AND VARS ###
+
     private CultureDisplay _selectedCulture;
     private readonly ILogger<MainViewModel> _logger;
 
@@ -361,7 +202,172 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     #endregion
 
-    #region ### Delete Logic ###
+    #region ### Constructor ###
+
+    public MainViewModel(
+        ILogger<MainViewModel> logger,
+        IQrCodeService svcQr,
+        IMessageService msgService,
+        IClipboardService clipboard,
+        IConfiguration config,
+        ITotpManager totpManager,
+        IDebounceService debounceService,
+        IDelayService delayService,
+        ISecretsManager secretsManager) // NEW
+    {
+        _secretsManager = secretsManager;
+        _logger = logger;
+        _qrService = svcQr;
+        _delayService = delayService;
+        _msgService = msgService;
+        _debounceService = debounceService;
+        _clipboard = clipboard;
+        _totpManager = totpManager;
+
+        SetupCommandEventhandler();
+
+        LocalizationService.LanguageChanged += RefreshLocalization;
+
+        SupportedCultures =
+        [
+            new(new CultureInfo("en"), StringsConstants.EnFlag),
+            new(new CultureInfo("de-DE"), StringsConstants.DeFlag),
+        ];
+
+        var currentCulture = CultureInfo.CurrentUICulture;
+
+        var selCulture = SupportedCultures.FirstOrDefault(c => c.Culture.Name == currentCulture.Name)
+                           ?? SupportedCultures.First();
+        SelectedCulture = selCulture;
+
+        ReadAllSecrets();
+        OnPropertyChanged(nameof(ShowActionsColumn));
+        UpdateSearchFilter();
+    }
+
+    #endregion
+
+    #region ### COMMANDS EVENTHANDLER ###
+
+    private void SetupCommandEventhandler()
+    {
+        AddNewTotpCommand = new RelayCommand(AddNewSecret);
+        DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
+        UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
+        BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
+        EndEditCommand = new RelayCommand<SecretItem>(OnEndEdit);
+        DoubleClickCommand = new RelayCommand<SecretItem>(OnDoubleClick);
+
+        ToggleSearchBoxCommand = new RelayCommand(() =>
+        {
+            IsSearchVisible = !IsSearchVisible;
+            IsSearchFocused = IsSearchVisible;
+        });
+
+        ClearSearchCommand = new RelayCommand(() =>
+        {
+            SearchText = "";
+
+            // the property doesnt change if IsSearchFocused is already true
+            // so, setting true => true doesnt raise onpropertyChanged and therefore no focus occurs
+            // A common pattern is to first set it to false, then back to true,
+            // to force the property changed notification:
+            IsSearchFocused = false;
+            IsSearchFocused = IsSearchVisible;
+        });
+    }
+
+    #endregion COMMANDS SETUP
+
+    private void SecretItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SecretItem.IsBeingEdited))
+            OnPropertyChanged(nameof(ShowActionsColumn));
+    }
+
+    #region ### ObservableCollections ###
+
+    public ObservableCollection<SecretItem> AllSecrets { get; set; } = null!;
+    public ObservableCollection<SecretItem> FilteredSecrets { get; } = [];
+
+    #endregion ObservableCollections
+
+    #region ### COMMANDS DECLARATION ###
+
+    public ICommand ChangeLanguageCommand { get; private set; } = null!;
+    public ICommand AddNewTotpCommand { get; private set; } = null!;
+    public ICommand BeginEditCommand { get; private set; } = null!;
+    public ICommand ClearSearchCommand { get; private set; } = null!;
+    public ICommand DeleteSecretCommand { get; private set; } = null!;
+    public ICommand DoubleClickCommand { get; private set; } = null!;
+    public ICommand EndEditCommand { get; private set; } = null!;
+    public ICommand ToggleSearchBoxCommand { get; private set; } = null!;
+    public ICommand UpdateSecretCommand { get; private set; } = null!;
+
+    public ICommand SelectionChangedCommand => new AsyncCommand(OnSelectionChangedAsync);
+
+    #endregion REGION COMMANDS
+
+    #region ### SERVICES ###
+
+    private readonly ISecretsManager _secretsManager;
+    private readonly IClipboardService _clipboard;
+    private readonly IMessageService _msgService;
+    private readonly ITotpManager _totpManager;
+
+    private readonly IDebounceService _debounceService;
+
+    //private readonly DispatcherTimer _debounceTimer;
+    private readonly IQrCodeService _qrService;
+
+    private readonly IDelayService _delayService;
+    //private string _pendingSearchText;
+
+    #endregion REGION SERVICES
+
+    #region ### READ ALL SECRETS ###
+    private void ReadAllSecrets()
+    {
+        //var secrets = config.AsEnumerable()
+        //    .Where(kv => kv.Key != "syncfusion")
+        //    .Where(pair => pair.Value != null)
+        //    .Select(pair => new SecretItem(pair.Key, pair.Value!));
+
+        // Load secrets from file or other source
+        var secrets = _secretsManager.GetAllSecrets().Where(s => s.Platform != "syncfusion");
+
+
+        AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
+
+        foreach (var secretItem in AllSecrets)
+            secretItem.PropertyChanged += SecretItem_PropertyChanged;
+    }
+
+    #endregion
+
+    #region ### CREATE NEW SECRET ###
+    private void AddNewSecret()
+    {
+        try
+        {
+            var (success, item) = _totpManager.AddNewSecret();
+            if (success && item != null)
+            {
+                ResetCodeGenerationLabels();
+                AllSecrets.Add(item);
+                OnPropertyChanged(nameof(AllSecrets));
+                UpdateSearchFilter();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, UI.ex_Adding_New_TOTP);
+            _msgService.ShowErrorMessage(UI.ex_Adding_New_TOTP + ": " + ex.Message);
+        }
+    }
+    #endregion
+
+    #region ### DELETE SECRET ###
 
     public void DeleteSecret(SecretItem item)
     {
@@ -370,11 +376,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
         try
         {
-            if (_totpManager.DeleteSecret(item))
+            if (_totpManager.DeleteSecret(item)) // delete from storage file
             {
-                AllSecrets.Remove(item);
+                AllSecrets.Remove(item); // delete secret from grid's datasource
                 OnPropertyChanged(nameof(AllSecrets));
-                UpdateFilter();
+                UpdateSearchFilter();
                 ResetCodeGenerationLabels();
             }
         }
@@ -398,7 +404,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     #endregion
 
-    #region ### Update logic ###
+    #region ### UPDATE SECRET ###
 
     public void UpdateSecret(SecretItem updated)
     {
@@ -409,7 +415,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         {
             _totpManager.UpdateSecret(PreviousVersion, updated);
             PreviousVersion = null;
-            UpdateFilter();
+            UpdateSearchFilter();
         }
         catch (Exception ex)
         {
@@ -432,12 +438,25 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         item.IsBeingEdited = false;
         OnPropertyChanged(nameof(ShowActionsColumn));
 
-        if (PreviousVersion != null && !item.Equals(PreviousVersion)) UpdateSecret(item);
+        if (PreviousVersion != null && !item.Equals(PreviousVersion))
+        {
+            var (isValid, error) = SecretsManager.IsValid(item.Platform, item.Secret);
+
+            if (!isValid)
+            {
+                _msgService.ShowInfoMessage(error!);
+                return;
+            }
+            else
+            {
+                UpdateSecret(item);
+            }
+
+        }
         PreviousVersion = null;
     }
 
     #endregion
-
 
     #region ### Row/Field Selection Logic  ###
 
@@ -512,7 +531,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     #endregion
 
-
     #region ### TOTP Code Generation Logic ###
 
     private static int _counter;
@@ -558,7 +576,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     {
         try
         {
-            UpdateFilter();
+            UpdateSearchFilter();
         }
         catch (Exception ex)
         {
@@ -567,7 +585,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         }
     }
 
-    private void UpdateFilter()
+    private void UpdateSearchFilter()
     {
         FilteredSecrets.Clear();
         var filtered = string.IsNullOrWhiteSpace(SearchText)

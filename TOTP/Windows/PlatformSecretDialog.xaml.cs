@@ -7,11 +7,11 @@ using TOTP.Resources;
 namespace TOTP.Windows;
 
 /// <summary>
-///     Interaction logic for KeyValueDialog.xaml
+///     Interaction logic for PlatformSecretDialog.xaml
 /// </summary>
-public partial class KeyValueDialog : ChromelessWindow
+public partial class PlatformSecretDialog : ChromelessWindow
 {
-    public KeyValueDialog(IPlatformSecretDialogViewModel viewModel)
+    public PlatformSecretDialog(IPlatformSecretDialogViewModel viewModel)
     {
         InitializeComponent();
         DataContext = viewModel;
