@@ -169,6 +169,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to xcfsdfad.
+        /// </summary>
+        internal static string fake {
+            get {
+                return ResourceManager.GetString("fake", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Are you sure you want to delete the secret: {0}?.
         /// </summary>
         internal static string msg_ConfirmDeleteSecret {
@@ -223,6 +232,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Platform is required..
+        /// </summary>
+        internal static string msg_PlatformRequired {
+            get {
+                return ResourceManager.GetString("msg_PlatformRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Platform and Secret cannot be empty.
         /// </summary>
         internal static string msg_PlatformSecretNotEmpty {
@@ -241,11 +259,29 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Secret is required..
+        /// </summary>
+        internal static string msg_SecretRequired {
+            get {
+                return ResourceManager.GetString("msg_SecretRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Secret updated successfully.
         /// </summary>
         internal static string msg_SecretUpdated {
             get {
                 return ResourceManager.GetString("msg_SecretUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add new secret.
+        /// </summary>
+        internal static string tooltip_AddNew {
+            get {
+                return ResourceManager.GetString("tooltip_AddNew", resourceCulture);
             }
         }
         
@@ -273,6 +309,15 @@ namespace TOTP.Resources {
         internal static string ui_btnOK {
             get {
                 return ResourceManager.GetString("ui_btnOK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search.
+        /// </summary>
+        internal static string ui_btnSearch {
+            get {
+                return ResourceManager.GetString("ui_btnSearch", resourceCulture);
             }
         }
         

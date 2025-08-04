@@ -39,7 +39,8 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
 
     </syncfusion:ChromelessWindow.Resources>
 
-    <StackPanel Orientation="Vertical" Margin="0,5,0,0"
+    <StackPanel Orientation="Vertical"
+                Margin="0,5,0,0"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
 
@@ -47,19 +48,17 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
               Background="Transparent">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <!-- linke Seite: Buttons, Suche -->
                 <ColumnDefinition Width="Auto" />
-                <!-- rechte Seite: Sprache -->
             </Grid.ColumnDefinitions>
 
-            <!-- Linke Seite -->
+            <!-- left side -->
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         Grid.Column="0">
 
                 <!-- Add Button -->
-                <Button ToolTip="Add new"
+                <Button ToolTip="{xaml:Resx Key=tooltip_AddNew}"
                         Margin="5,5,0,0"
                         Padding="5,5"
                         Command="{Binding AddNewTotpCommand}">
@@ -68,17 +67,17 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                      Stretch="Uniform" />
                 </Button>
 
-                <!-- Such-Button -->
+                <!-- Search Button -->
                 <Button Command="{Binding ToggleSearchBoxCommand}"
+                        ToolTip="{xaml:Resx Key=ui_btnSearch}"
                         Margin="5,5,5,0"
-                        Padding="5,5"
-                        ToolTip="{xaml:Resx Key=ui_btnSearch}">
+                        Padding="5,5">
                     <svgc:SvgViewbox Source="/Assets/Icons/find-24x24.svg"
                                      Height="15"
                                      Stretch="Uniform" />
                 </Button>
 
-                <!-- Suchfeld -->
+                <!-- Search field -->
                 <syncfusion:SfTextBoxExt Width="150"
                                          Height="30"
                                          VerticalAlignment="Center"
@@ -103,7 +102,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
 
             </StackPanel>
 
-            <!-- Rechte Seite: Sprachwahl -->
+            <!-- right side: language selection -->
             <syncfusion:ComboBoxAdv Grid.Column="1"
                                     ItemsSource="{Binding SupportedCultures}"
                                     SelectedItem="{Binding SelectedCulture, Mode=TwoWay}"
@@ -123,7 +122,6 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                 </syncfusion:ComboBoxAdv.ItemTemplate>
             </syncfusion:ComboBoxAdv>
         </Grid>
-
 
 
         <Grid Margin="10,20,10,10">
@@ -147,6 +145,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                    Grid.Row="0"
                                    AllowEditing="True"
                                    AllowDeleting="True"
+                                   GridValidationMode="InView"
                                    AutoGenerateColumns="False"
                                    CanMaintainScrollPosition="True"
                                    EditTrigger="OnDoubleTap"
@@ -173,12 +172,13 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                 </i:Interaction.Triggers>
 
                 <i:Interaction.Behaviors>
+                    <behaviors:DataGridValidationBehavior />
                     <behaviors:SfDataGridEditingBehavior BeginEditCommand="{Binding BeginEditCommand}"
                                                          EndEditCommand="{Binding EndEditCommand}"
                                                          DoubleClickCommand="{Binding DoubleClickCommand}" />
 
                     <behaviors:ToggleColumnVisibilityBehavior ShowActionsColumn="{Binding ShowActionsColumn}" />
- 
+
                     <behaviors:SfDataGridContextMenuBehavior />
                 </i:Interaction.Behaviors>
 
