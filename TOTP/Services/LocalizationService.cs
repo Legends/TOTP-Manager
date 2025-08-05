@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using TOTP.Helper;
 
 namespace TOTP.Services
 {
@@ -23,14 +24,13 @@ namespace TOTP.Services
 
         private static void UpdateCultureSetting(string cultureName)
         {
-            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
 
-            var json = File.ReadAllText(configPath);
+            var json = File.ReadAllText(StringsConstants.AppSettingsJsonFilePath);
             var jObject = Newtonsoft.Json.Linq.JObject.Parse(json);
 
             jObject["Localization"]["Culture"] = cultureName;
 
-            File.WriteAllText(configPath, jObject.ToString(Newtonsoft.Json.Formatting.Indented));
+            File.WriteAllText(StringsConstants.AppSettingsJsonFilePath, jObject.ToString(Newtonsoft.Json.Formatting.Indented));
         }
 
     }

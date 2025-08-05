@@ -1,4 +1,7 @@
-﻿namespace TOTP.Helper
+﻿using System;
+using System.IO;
+
+namespace TOTP.Helper
 {
     internal static class StringsConstants
     {
@@ -10,5 +13,7 @@
 
         public const string DeFlag = "pack://application:,,,/TOTP.Manager;component/Assets/flags/de.png";
         public const string EnFlag = "pack://application:,,,/TOTP.Manager;component/Assets/flags/en.png";
+
+        public static string AppSettingsJsonFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
     }
 }
