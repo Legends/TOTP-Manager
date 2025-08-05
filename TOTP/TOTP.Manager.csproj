@@ -9,8 +9,8 @@
 		<ApplicationIcon>totp.ico</ApplicationIcon>
 		<PackageIcon>totp.ico</PackageIcon>
 		<SignAssembly>True</SignAssembly>
-		<GenerateDocumentationFile>False</GenerateDocumentationFile>
 		<AssemblyOriginatorKeyFile>totp-sign-key.snk</AssemblyOriginatorKeyFile>
+		<GenerateDocumentationFile>False</GenerateDocumentationFile>
 		<RootNamespace>TOTP</RootNamespace>
 	</PropertyGroup>
 
@@ -23,13 +23,14 @@
 		<None Remove="Assets\Icons\find-24x24.svg" />
 		<None Remove="Assets\Icons\Warning-Message.png" />
 		<None Remove="Assets\Icons\Warning-Shield.png" />
+		<None Remove="Assets\Icons\warning.png" />
 		<None Remove="Assets\Icons\Wrong.png" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="appsettings.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
+		<Content Include="appsettings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -77,31 +78,32 @@
 		<Resource Include="Assets\Icons\Info.png" />
 		<Resource Include="Assets\Icons\Lock-Add.png" />
 		<Resource Include="Assets\Icons\plus-24x24.svg">
-		  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\find-24x24.svg" />
 		<Resource Include="Assets\Icons\app.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\Warning-Message.png" />
+		<Resource Include="Assets\Icons\warning.png" />
 		<Resource Include="Assets\Icons\Wrong.png">
-		  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Resource>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Resources\UI.Designer.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>UI.resx</DependentUpon>
-	  </Compile>
+		<Compile Update="Resources\UI.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>UI.resx</DependentUpon>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Update="Resources\UI.resx">
-	    <Generator>ResXFileCodeGenerator</Generator>
-	    <LastGenOutput>UI.Designer.cs</LastGenOutput>
-	  </EmbeddedResource>
+		<EmbeddedResource Update="Resources\UI.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>UI.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
 	</ItemGroup>
 
 	<Target Name="PostBuildSign" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">

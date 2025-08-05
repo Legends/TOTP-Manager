@@ -7,7 +7,6 @@ using System.Windows.Media.Imaging;
 using TOTP.Commands;
 using TOTP.Helper;
 using TOTP.Interfaces;
-using TOTP.Services;
 
 namespace TOTP.ViewModels;
 
@@ -88,7 +87,7 @@ public class PlatformSecretDialogViewModel : INotifyPropertyChanged, IPlatformSe
 
         if (!isValid)
         {
-            _messageService.ShowInfoMessage(error!);
+            _messageService.ShowWarningMessage(error!);
             return;
         }
 

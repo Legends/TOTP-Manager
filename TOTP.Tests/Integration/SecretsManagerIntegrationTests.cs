@@ -1,7 +1,6 @@
 ﻿using Moq.AutoMock;
 using TOTP.Interfaces;
 using TOTP.Models;
-using TOTP.Services;
 
 namespace TOTP.Tests.Integration;
 
@@ -26,76 +25,76 @@ public class SecretsManagerIntegrationTests : IDisposable
     }
 
     [Fact]
-    public void FullLifecycle_AddUpdateDelete_ShouldSucceed()
+    public async Task FullLifecycle_AddUpdateDelete_ShouldSucceed()
     {
         // --- ADD ---
-        var added = _secretsManager.AddNewItem(_initial);
+        var added = await _secretsManager.AddNewItemAsync(_initial);
         Assert.True(added);
 
-        var secrets = _secretsManager.GetAllSecrets();
+        var secrets = await _secretsManager.GetAllSecretsAsync();
         Assert.Single(secrets);
         Assert.Equal(_initial.Platform, secrets[0].Platform);
 
         // --- UPDATE ---
-        var updated = _secretsManager.UpdateItem(_initial.Platform, _updated);
+        var updated = await _secretsManager.UpdateItemAsync(_initial.Platform, _updated);
         Assert.True(updated);
 
-        var updatedSecrets = _secretsManager.GetAllSecrets();
+        var updatedSecrets = await _secretsManager.GetAllSecretsAsync();
         Assert.Single(updatedSecrets);
         Assert.Equal(_updated.Secret, updatedSecrets[0].Secret);
 
         // --- DELETE ---
-        var deleted = _secretsManager.DeleteItem(_updated.Platform);
+        var deleted = await _secretsManager.DeleteItemAsync(_updated.Platform);
         Assert.True(deleted);
 
-        var afterDelete = _secretsManager.GetAllSecrets();
+        var afterDelete = await _secretsManager.GetAllSecretsAsync();
         Assert.Empty(afterDelete);
     }
 
     [Fact]
-    public void AddNewItem_ShouldPersistSecret()
+    public async Task AddNewItem_ShouldPersistSecret()
     {
-        var added = _secretsManager.AddNewItem(_initial);
+        var added = await _secretsManager.AddNewItemAsync(_initial);
         Assert.True(added);
 
-        var secrets = _secretsManager.GetAllSecrets();
+        var secrets = await _secretsManager.GetAllSecretsAsync();
         Assert.Single(secrets);
         Assert.Equal(_initial.Platform, secrets[0].Platform);
     }
 
     [Fact]
-    public void UpdateItem_ShouldReplaceSecret()
+    public async Task UpdateItem_ShouldReplaceSecret()
     {
-        _secretsManager.AddNewItem(_initial);
+        await _secretsManager.AddNewItemAsync(_initial);
 
-        var updated = _secretsManager.UpdateItem(_initial.Platform, _updated);
+        var updated = await _secretsManager.UpdateItemAsync(_initial.Platform, _updated);
         Assert.True(updated);
 
-        var secrets = _secretsManager.GetAllSecrets();
+        var secrets = await _secretsManager.GetAllSecretsAsync();
         Assert.Single(secrets);
         Assert.Equal(_updated.Secret, secrets[0].Secret);
     }
 
     [Fact]
-    public void DeleteItem_ShouldRemoveSecret()
+    public async Task DeleteItem_ShouldRemoveSecret()
     {
-        _secretsManager.AddNewItem(_initial);
-        _secretsManager.UpdateItem(_initial.Platform, _updated);
+        await _secretsManager.AddNewItemAsync(_initial);
+        await _secretsManager.UpdateItemAsync(_initial.Platform, _updated);
 
-        var deleted = _secretsManager.DeleteItem(_updated.Platform);
+        var deleted = await _secretsManager.DeleteItemAsync(_updated.Platform);
         Assert.True(deleted);
 
-        var secrets = _secretsManager.GetAllSecrets();
+        var secrets = await _secretsManager.GetAllSecretsAsync();
         Assert.Empty(secrets);
     }
 
 
     [Fact]
-    public void BackupSecretsFile_ShouldCreateBackup()
+    public async Task BackupSecretsFile_ShouldCreateBackup()
     {
-        _secretsManager.AddNewItem(_initial);
+        await _secretsManager.AddNewItemAsync(_initial);
 
-        var backupSuccess = _secretsManager.BackupSecretsFile();
+        var backupSuccess = await _secretsManager.BackupSecretsFileAsync();
         Assert.True(backupSuccess);
 
         var backupFile = _testPath + ".bak1";

@@ -61,7 +61,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                 <Button ToolTip="{xaml:Resx Key=tooltip_AddNew}"
                         Margin="5,5,0,0"
                         Padding="5,5"
-                        Command="{Binding AddNewTotpCommand}">
+                        Command="{Binding AddNewSecretCommand}">
                     <svgc:SvgViewbox Source="/Assets/Icons/plus-24x24.svg"
                                      Height="15"
                                      Stretch="Uniform" />
@@ -152,6 +152,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                    SelectedItem="{Binding SelectedSecret, Mode=TwoWay}"
                                    SelectionMode="Single"
                                    SelectionUnit="Row"
+                                   SelectionChanged="DataGrid_SelectionChanged"
                                    NavigationMode="Cell"
                                    ItemsSource="{Binding FilteredSecrets}"
                                    LiveDataUpdateMode="AllowDataShaping"
@@ -165,11 +166,17 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                    CurrentCellBorderThickness="0"
                                    HorizontalAlignment="Stretch"
                                    ColumnSizer="Star">
-                <i:Interaction.Triggers>
+                <!--<i:Interaction.Triggers>
                     <i:EventTrigger EventName="SelectionChanged">
                         <i:InvokeCommandAction Command="{Binding SelectionChangedCommand}" />
                     </i:EventTrigger>
-                </i:Interaction.Triggers>
+                </i:Interaction.Triggers>-->
+                <!--<i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <behaviors:AsyncInvokeCommandAction Command="{Binding SelectionChangedCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>-->
+
 
                 <i:Interaction.Behaviors>
                     <behaviors:DataGridValidationBehavior />

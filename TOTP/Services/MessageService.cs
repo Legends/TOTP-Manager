@@ -44,7 +44,15 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
     {
         var vm = CreateViewModel(message, caption, iconPath, UI.ui_btnOK, string.Empty);
         vm.ShowCancelButton = false;
+        //vm.IconPath
 
+        vm.IconPath = caption switch
+        {
+            CaptionType.Error => StringsConstants.ImgError,
+            CaptionType.Warning => StringsConstants.ImgWarning,
+            CaptionType.Info => StringsConstants.ImgInfo,
+            _ => string.Empty
+        };
         var dialog = new UserMessageDialog(vm)
         {
             Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive)

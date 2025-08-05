@@ -101,7 +101,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
                 _selectedSecret = value;
                 OnPropertyChanged();
-                //OnSecretSelected();
+                //OnSecretSelectedAsync();
             }
         }
     }
@@ -239,11 +239,15 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         var selCulture = SupportedCultures.FirstOrDefault(c => c.Culture.Name == currentCulture.Name)
                            ?? SupportedCultures.First();
         SelectedCulture = selCulture;
+    }
 
-        ReadAllSecrets();
+    public async Task InitializeAsync()
+    {
+        await ReadAllSecretsAsync();
         OnPropertyChanged(nameof(ShowActionsColumn));
         UpdateSearchFilter();
     }
+
 
     #endregion
 
@@ -251,11 +255,16 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     private void SetupCommandEventhandler()
     {
-        AddNewTotpCommand = new RelayCommand(AddNewSecret);
-        DeleteSecretCommand = new RelayCommand<SecretItem>(DeleteSecret);
-        UpdateSecretCommand = new RelayCommand<SecretItem>(UpdateSecret);
+        AddNewSecretCommand = new AsyncCommand(AddNewSecretAsync, null, _logger);
+        DeleteSecretCommand = new AsyncCommand<SecretItem>(DeleteSecretAsync, null, _logger);
+        UpdateSecretCommand = new AsyncCommand<SecretItem>(UpdateSecretAsync, null, _logger);
         BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
-        EndEditCommand = new RelayCommand<SecretItem>(OnEndEdit);
+        EndEditCommand = new AsyncCommand<SecretItem>(OnEndEdit); // Method must be: Task OnEndEditAsync()
+        //SelectionChangedCommand = new AsyncCommand(async _ => await OnSelectionChangedAsync());
+        SelectionChangedCommand = new AsyncCommand(OnSelectionChangedAsync);
+
+
+
         DoubleClickCommand = new RelayCommand<SecretItem>(OnDoubleClick);
 
         ToggleSearchBoxCommand = new RelayCommand(() =>
@@ -287,7 +296,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     #region ### ObservableCollections ###
 
-    public ObservableCollection<SecretItem> AllSecrets { get; set; } = null!;
+    public ObservableCollection<SecretItem> AllSecrets { get; set; } = [];
     public ObservableCollection<SecretItem> FilteredSecrets { get; } = [];
 
     #endregion ObservableCollections
@@ -295,7 +304,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     #region ### COMMANDS DECLARATION ###
 
     public ICommand ChangeLanguageCommand { get; private set; } = null!;
-    public ICommand AddNewTotpCommand { get; private set; } = null!;
+    public ICommand AddNewSecretCommand { get; private set; } = null!;
     public ICommand BeginEditCommand { get; private set; } = null!;
     public ICommand ClearSearchCommand { get; private set; } = null!;
     public ICommand DeleteSecretCommand { get; private set; } = null!;
@@ -304,7 +313,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     public ICommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
 
-    public ICommand SelectionChangedCommand => new AsyncCommand(OnSelectionChangedAsync);
+    public ICommand SelectionChangedCommand { get; private set; } = null!;
 
     #endregion REGION COMMANDS
 
@@ -326,7 +335,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     #endregion REGION SERVICES
 
     #region ### READ ALL SECRETS ###
-    private void ReadAllSecrets()
+    private async Task ReadAllSecretsAsync()
     {
         //var secrets = config.AsEnumerable()
         //    .Where(kv => kv.Key != "syncfusion")
@@ -334,8 +343,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         //    .Select(pair => new SecretItem(pair.Key, pair.Value!));
 
         // Load secrets from file or other source
-        var secrets = _secretsManager.GetAllSecrets().Where(s => s.Platform != "syncfusion");
-
+        var allSecrets = await _secretsManager.GetAllSecretsAsync();
+        var secrets = allSecrets.Where(s => s.Platform != "syncfusion").ToList();
 
         AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
 
@@ -346,11 +355,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     #endregion
 
     #region ### CREATE NEW SECRET ###
-    private void AddNewSecret()
+    private async Task AddNewSecretAsync()
     {
         try
         {
-            var (success, item) = _totpManager.AddNewSecret();
+            var (success, item) = await _totpManager.AddNewSecretAsync();
             if (success && item != null)
             {
                 ResetCodeGenerationLabels();
@@ -369,14 +378,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     #region ### DELETE SECRET ###
 
-    public void DeleteSecret(SecretItem item)
+    internal async Task DeleteSecretAsync(SecretItem item)
     {
-        if (item == null)
-            return;
-
         try
         {
-            if (_totpManager.DeleteSecret(item)) // delete from storage file
+            if (await _totpManager.DeleteSecretAsync(item)) // delete from storage file
             {
                 AllSecrets.Remove(item); // delete secret from grid's datasource
                 OnPropertyChanged(nameof(AllSecrets));
@@ -406,14 +412,14 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     #region ### UPDATE SECRET ###
 
-    public void UpdateSecret(SecretItem updated)
+    public async Task UpdateSecretAsync(SecretItem updated)
     {
         if (updated == null || PreviousVersion == null)
             return;
 
         try
         {
-            _totpManager.UpdateSecret(PreviousVersion, updated);
+            await _totpManager.UpdateSecretAsync(PreviousVersion, updated);
             PreviousVersion = null;
             UpdateSearchFilter();
         }
@@ -433,7 +439,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     // TODO: updating does not trigger validation of the secret ! add validation
 
-    private void OnEndEdit(SecretItem item)
+    private async Task OnEndEdit(SecretItem item)
     {
         item.IsBeingEdited = false;
         OnPropertyChanged(nameof(ShowActionsColumn));
@@ -449,7 +455,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
             }
             else
             {
-                UpdateSecret(item);
+                await UpdateSecretAsync(item);
             }
 
         }
@@ -462,15 +468,18 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     private bool _isDoubleClick;
 
-    private async Task OnSelectionChangedAsync()
+    public async Task OnSelectionChangedAsync()
     {
+        Debug.WriteLine(" 1.)  ==========>  root:  OnSelectionChangedAsync() ");
         var currentKey = SelectedSecret.Platform;
         await Task.Delay(300);
         try
         {
             if (currentKey == SelectedSecret.Platform && !_isDoubleClick)
-                //_msgService.ShowMessage(currentKey);
-                _ = OnSecretSelected();
+            {
+                Debug.WriteLine(" 2.)  +++++++++   OnSecretSelectedAsync() aufgerufen");
+                await OnSecretSelectedAsync();
+            }
         }
         catch (Exception e)
         {
@@ -514,7 +523,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         CurrentCodeLabel = string.Empty;
     }
 
-    private async Task OnSecretSelected()
+    internal async Task OnSecretSelectedAsync()
     {
         if (SelectedSecret != null && !SelectedSecret.IsBeingEdited && !IsContextmenuOpen)
             try
@@ -545,6 +554,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         if (_totpManager.TryComputeCode(secret.Secret, out var totpCode, out var error))
         {
             ResetCodeGenerationLabels();
+
             // if the user clicks on another row right after the currently selected row, the counter gets incremented
             // as this is an async function and we use an async delay below, we check if the counter is the same, so we know
             // the user didn't click on another row meanwhile 
@@ -555,11 +565,20 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
             CurrentCodeLabel = $"{secret.Platform}: {totpCode}";
             _clipboard.SetText(totpCode!);
             QrCodeImage = _qrService.GenerateQr(secret.Platform, secret.Secret, secret.Account);
-
+            Debug.WriteLine($"showing code labels for {secret.Platform}");
             ShowCodeLabels();
 
             await _delayService.Delay(2000);
-            if (IsCodeCopiedVisible && localCounter == _counter) IsCodeCopiedVisible = false;
+
+            if (IsCodeCopiedVisible && localCounter == _counter)
+            {
+                IsCodeCopiedVisible = false;
+                Debug.WriteLine("########## Label code hidden  #################");
+            }
+            else
+            {
+                Debug.WriteLine("########## Label code hidden  SKIPPEEDD  #################");
+            }
         }
         else
         {
@@ -585,7 +604,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         }
     }
 
-    private void UpdateSearchFilter()
+    internal void UpdateSearchFilter()
     {
         FilteredSecrets.Clear();
         var filtered = string.IsNullOrWhiteSpace(SearchText)
@@ -601,6 +620,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     public void RefreshLocalization()
     {
 
+    }
+
+    public void UpdateSecret(SecretItem updated)
+    {
+        throw new NotImplementedException();
     }
 
     ~MainViewModel()
