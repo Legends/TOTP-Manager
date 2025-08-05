@@ -208,7 +208,7 @@
     <value>Information</value>
   </data>
   <data name="ui_Caption_Warning" xml:space="preserve">
-    <value>Warnung</value>
+    <value>Achtung</value>
   </data>
   <data name="ui_Code_Copied_Clipboard" xml:space="preserve">
     <value>Code wurde in Zwischenablage kopiert!</value>

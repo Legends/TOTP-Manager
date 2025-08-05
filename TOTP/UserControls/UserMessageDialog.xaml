@@ -53,7 +53,7 @@
                            Foreground="{DynamicResource Brush.Foreground}"
                            FontSize="13"
                            MaxWidth="500"
-                           VerticalAlignment="Bottom" />
+                           VerticalAlignment="Center" />
             </Grid>
 
             <!-- Buttons -->

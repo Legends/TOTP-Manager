@@ -86,8 +86,8 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         (vm.TitleBarBackground, vm.TitleBarForeground) = caption switch
         {
             CaptionType.Error => (Brushes.Red, Brushes.White),
-            CaptionType.Warning => (Brushes.Yellow, Brushes.Black),
-            CaptionType.Info => (Brushes.LightSkyBlue, Brushes.White),
+            CaptionType.Warning => (Brushes.LightYellow, Brushes.Black),
+            CaptionType.Info => (Brushes.LightSteelBlue, Brushes.White),
             _ => (Brushes.Gray, Brushes.White)
         };
         return vm;

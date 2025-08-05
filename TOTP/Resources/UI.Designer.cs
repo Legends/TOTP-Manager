@@ -340,7 +340,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warning.
+        ///   Looks up a localized string similar to Attention.
         /// </summary>
         internal static string ui_Caption_Warning {
             get {
