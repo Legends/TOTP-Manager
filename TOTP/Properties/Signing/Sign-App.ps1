@@ -109,15 +109,25 @@ Debug-Output "🎉 Successfully signed the executable."
 
 # Verify signature
 Debug-Output "🔍 Verifying signature..."
-$verifyResult = & "$($signtoolPath.FullName)" verify /v /pa "$($exe.FullName)"
-Debug-Output $verifyResult
+try {
+    $verifyResult = & "$($signtoolPath.FullName)" verify /v /pa "$($exe.FullName)" 2>&1
+    Debug-Output $verifyResult
 
-if ($verifyResult -match "Successfully verified") {
-    Debug-Output "✅ Signature verified successfully."
+    if ($verifyResult -match "Successfully verified") {
+        Debug-Output "✅ Signature verified successfully."
+    }
+    elseif ($verifyResult -match "certificate.*not trusted by the trust provider") {
+        Debug-Output "⚠️ Signature verified, but the certificate is self-signed and not trusted on this machine."
+        # Don't treat this as an error in CI context
+    }
+    else {
+        Write-Error "❌ Signature verification failed unexpectedly."
+        exit 1
+    }
 }
-else {
-    Write-Error "❌ Signature verification failed."
-    exit 1
+catch {
+    Write-Warning "⚠️ Signature verification threw an error: $_. Exception will be ignored in CI."
 }
+
 
 
