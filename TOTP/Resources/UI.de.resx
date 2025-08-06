@@ -153,6 +153,9 @@
   <data name="ex_UpdatingSecret_0" xml:space="preserve">
     <value>Fehler beim Aktualisieren des Schlüssels: {0}</value>
   </data>
+  <data name="fake" xml:space="preserve">
+    <value>fake</value>
+  </data>
   <data name="msg_ConfirmDeleteSecret" xml:space="preserve">
     <value>Schlüssel {0} wirklich löschen?</value>
   </data>
@@ -164,6 +167,9 @@
   </data>
   <data name="msg_PlatformNotFound_0" xml:space="preserve">
     <value>Plattform '{0}' wurde nicht gefunden.</value>
+  </data>
+  <data name="msg_PlatformRequired" xml:space="preserve">
+    <value>Feld Platform darf nicht leer sein.</value>
   </data>
   <data name="msg_PlatformSecretNotEmpty" xml:space="preserve">
     <value>Plattform und Schlüssel dürfen nicht leer sein</value>
@@ -182,9 +188,6 @@
   </data>
   <data name="msg_SecretUpdated" xml:space="preserve">
     <value>Schlüssel wurde erfolgreich geändert</value>
-  </data>
-  <data name="msg_PlatformRequired" xml:space="preserve">
-    <value>Feld Platform darf nicht leer sein.</value>
   </data>
   <data name="tooltip_AddNew" xml:space="preserve">
     <value>Neuen Schlüssel hinzufügen</value>
@@ -208,7 +211,7 @@
     <value>Information</value>
   </data>
   <data name="ui_Caption_Warning" xml:space="preserve">
-    <value>Warnung</value>
+    <value>Achtung</value>
   </data>
   <data name="ui_Code_Copied_Clipboard" xml:space="preserve">
     <value>Code wurde in Zwischenablage kopiert!</value>
@@ -245,8 +248,5 @@
   </data>
   <data name="ui_Window_Title_TOTP_Manager" xml:space="preserve">
     <value>TOTP Manager</value>
-  </data>
-  <data name="fake" xml:space="preserve">
-    <value>fake</value>
   </data>
 </root>
