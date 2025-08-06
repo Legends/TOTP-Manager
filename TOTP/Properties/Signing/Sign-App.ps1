@@ -46,12 +46,20 @@ if (-not $exe) {
 Debug-Output "✅ Found executable: $($exe.FullName)"
 
 # Check if already signed and valid
-$existingSignature = & "$($signtoolPath.FullName)" verify /pa "$($exe.FullName)" 2>&1 |
-Select-String "Successfully verified"
-if ($existingSignature) {
-    Debug-Output "🔏 EXE is already signed and verified. Skipping signing step."
-    exit 0
+try {
+    $verifyOutput = & "$($signtoolPath.FullName)" verify /pa "$($exe.FullName)" 2>&1
+    if ($verifyOutput -match "Successfully verified") {
+        Debug-Output "🔏 EXE is already signed and verified. Skipping signing step."
+        exit 0
+    }
+    else {
+        Debug-Output "ℹ️ EXE is not signed yet. Proceeding with signing."
+    }
 }
+catch {
+    Debug-Output "⚠️ Signature verification threw an error (expected if unsigned). Proceeding with signing."
+}
+
 
 # Resolve PFX file
 $pfxPath = Join-Path -Path $projectRoot -ChildPath "Properties\Signing\totp-signing-cert.pfx"
