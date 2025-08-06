@@ -16,6 +16,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove=".github\**" />
+	  <EmbeddedResource Remove=".github\**" />
+	  <None Remove=".github\**" />
+	  <Page Remove=".github\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Remove="Assets\flags\de.png" />
 		<None Remove="Assets\Icons\delete-24x24.svg" />
 		<None Remove="Assets\Icons\Info.png" />
@@ -29,7 +36,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include=".github\workflows\build-and-test.yml" />
 		<Content Include="appsettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
@@ -113,10 +119,7 @@
 	</PropertyGroup>
 
 	<Target Name="PostBuildSign" AfterTargets="Build">
-		<Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;"
-		      StandardOutputImportance="High"
-		      StandardErrorImportance="High"
-		      IgnoreExitCode="false" />
+		<Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;" StandardOutputImportance="High" StandardErrorImportance="High" IgnoreExitCode="false" />
 		<Message Text="🔥 PostBuildSign target invoked" Importance="High" />
 
 		<Message Text="✅ Executable signed." Importance="High" />
