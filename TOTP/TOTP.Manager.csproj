@@ -9,7 +9,8 @@
 		<ApplicationIcon>totp.ico</ApplicationIcon>
 		<PackageIcon>totp.ico</PackageIcon>
 		<SignAssembly>True</SignAssembly>
-		<AssemblyOriginatorKeyFile>totp-sign-key.snk</AssemblyOriginatorKeyFile>
+		<AssemblyOriginatorKeyFile>Properties\Signing\totp-sign-key.snk</AssemblyOriginatorKeyFile>
+		<PublicSign>true</PublicSign>
 		<GenerateDocumentationFile>False</GenerateDocumentationFile>
 		<RootNamespace>TOTP</RootNamespace>
 	</PropertyGroup>
@@ -107,9 +108,20 @@
 		</EmbeddedResource>
 	</ItemGroup>
 
-	<Target Name="PostBuildSign" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
-		<Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;" />
+	<PropertyGroup>
+		<SigningSucceeded>false</SigningSucceeded>
+	</PropertyGroup>
+
+	<Target Name="PostBuildSign" AfterTargets="Build">
+		<Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;"
+		      StandardOutputImportance="High"
+		      StandardErrorImportance="High"
+		      IgnoreExitCode="false" />
+		<Message Text="🔥 PostBuildSign target invoked" Importance="High" />
+
+		<Message Text="✅ Executable signed." Importance="High" />
 	</Target>
+
 
 
 </Project>

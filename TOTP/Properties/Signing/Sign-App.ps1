@@ -1,49 +1,115 @@
-﻿# Change these values as needed
-# Execute in root folder "TOTP" to sign the assembly with a PFX certificate.
-# CMD: powershell -file E:\Repos\TOTP\TOTP\Properties\Signing\Sign-App.ps1
-# or:
-# PS: .\Sign-App.ps1
-$SignToolPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe"
-$CertificatePath = "totp-signing-cert.pfx"
-$CertificatePassword = "freerunner"
-$TimestampUrl = "http://timestamp.digicert.com"
+﻿# Sign-App.ps1
 
-# Search for your built .exe file dynamically
-$ExePath = Get-ChildItem -Path ".\bin\Release" -Recurse -Filter "TOTP.Manager.exe" | Select-Object -First 1
 
-#try sds
+function Debug-Output {
+    param([string]$message)
+    if ($Host.Name -like "*Visual Studio Code*") {
+        Write-Output $message
+    }
+    else {
+        Write-Host $message
+    }
+}
 
-if (-not $ExePath) {
-    Write-Error "❌ Executable not found. Did you build the project in Release mode?"
+# Signs the main application executable using Authenticode and a PFX certificate
+
+$ErrorActionPreference = 'Stop'
+
+# Determine if we're running in GitHub Actions
+$isCI = $env:GITHUB_ACTIONS -eq 'true'
+
+# Get root path of the project
+$scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Path
+$projectRoot = Resolve-Path "$scriptDir\..\.."
+
+# Resolve signtool.exe dynamically (latest x64 version)
+$signtoolPath = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse `
+    -Include signtool.exe -ErrorAction SilentlyContinue |
+Where-Object { $_.FullName -like '*x64*' } |
+Sort-Object LastWriteTime -Descending |
+Select-Object -First 1
+
+if (-not $signtoolPath) {
+    Write-Error "❌ Could not find signtool.exe"
     exit 1
 }
 
-Write-Host "✅ Found executable at:" $ExePath.FullName
+Debug-Output "✅ Using SignTool path: $($signtoolPath.FullName)"
 
-# Run SignTool
-& "$SignToolPath" sign `
-    /f "$CertificatePath" `
-    /p "$CertificatePassword" `
-    /tr "$TimestampUrl" `
-    /td sha256 `
-    /fd sha256 `
-    "$($ExePath.FullName)"
-
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "🎉 Successfully signed the executable."
-} else {
-    Write-Error "❌ Signing failed with exit code $LASTEXITCODE"
+# Locate the EXE
+$exe = Get-ChildItem -Path "$projectRoot\bin\Release" -Recurse -Filter "TOTP.Manager.exe" | Select-Object -First 1
+if (-not $exe) {
+    Write-Error "❌ Could not find the executable to sign."
+    exit 1
 }
 
-# Falls du später mehrere Dateien signieren willst (z. B. DLLs oder MSIX), kannst du das Get-ChildItem entsprechend anpassen:
-# $FilesToSign = Get-ChildItem -Path ".\bin\Release" -Recurse -Include "*.exe", "*.dll"
+Debug-Output "✅ Found executable: $($exe.FullName)"
 
-# foreach ($file in $FilesToSign) {
-#     & "$SignToolPath" sign `
-#         /f "$CertificatePath" `
-#         /p "$CertificatePassword" `
-#         /tr "$TimestampUrl" `
-#         /td sha256 `
-#         /fd sha256 `
-#         "$($file.FullName)"
-# }
+# Check if already signed and valid
+$existingSignature = & "$($signtoolPath.FullName)" verify /pa "$($exe.FullName)" 2>&1 |
+Select-String "Successfully verified"
+if ($existingSignature) {
+    Debug-Output "🔏 EXE is already signed and verified. Skipping signing step."
+    exit 0
+}
+
+# Resolve PFX file
+$pfxPath = Join-Path -Path $projectRoot -ChildPath "Properties\Signing\totp-signing-cert.pfx"
+if (-not (Test-Path $pfxPath)) {
+    Write-Error "❌ Signing certificate (.pfx) not found at $pfxPath"
+    exit 1
+}
+
+# Load password from GitHub Actions or user-secrets
+if ($isCI) {
+    $pfxPassword = $env:SIGNING_CERT_PASSWORD
+    if (-not $pfxPassword) {
+        Write-Error "❌ SIGNING_CERT_PASSWORD secret not set in GitHub Actions."
+        exit 1
+    }
+}
+else {
+    Debug-Output "`$projectRoot = $projectRoot"
+    $pfxPassword = dotnet user-secrets list --project "$projectRoot" |
+    Where-Object { $_ -match '^pfxPassword\s*=\s*(.+)$' } |
+    ForEach-Object { $matches[1].Trim() }
+
+    if (-not $pfxPassword) {
+        Write-Error "❌ No pfxPassword found in user secrets."
+        exit 1
+    }
+
+    Debug-Output "`$pfxPassword = $pfxPassword"  # DEBUG: Remove in production
+}
+
+# Sign the EXE
+Debug-Output "🔐 Signing the executable..."
+& "$($signtoolPath.FullName)" sign `
+    /f "$pfxPath" `
+    /p "$pfxPassword" `
+    /tr "http://timestamp.digicert.com" `
+    /td sha256 `
+    /fd sha256 `
+    "$($exe.FullName)"
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "❌ SignTool failed with exit code $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+Debug-Output "🎉 Successfully signed the executable."
+
+# Verify signature
+Debug-Output "🔍 Verifying signature..."
+$verifyResult = & "$($signtoolPath.FullName)" verify /v /pa "$($exe.FullName)"
+Debug-Output $verifyResult
+
+if ($verifyResult -match "Successfully verified") {
+    Debug-Output "✅ Signature verified successfully."
+}
+else {
+    Write-Error "❌ Signature verification failed."
+    exit 1
+}
+
+
