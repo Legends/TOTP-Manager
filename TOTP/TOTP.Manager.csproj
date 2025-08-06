@@ -9,7 +9,7 @@
 		<ApplicationIcon>totp.ico</ApplicationIcon>
 		<PackageIcon>totp.ico</PackageIcon>
 		<SignAssembly>True</SignAssembly>
-		<AssemblyOriginatorKeyFile>Properties\Signing\totp-sign-key.snk</AssemblyOriginatorKeyFile>
+		<AssemblyOriginatorKeyFile>totp-sign-key.snk</AssemblyOriginatorKeyFile>
 		<PublicSign>true</PublicSign>
 		<GenerateDocumentationFile>False</GenerateDocumentationFile>
 		<RootNamespace>TOTP</RootNamespace>
