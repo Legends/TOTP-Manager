@@ -1,6 +1,14 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Windows;
 
 [assembly: InternalsVisibleTo(
-    "TOTP.Tests, PublicKey=002400000480000094000000060200000024000052534131000400000100010099f4449145c5f37f4715bbfc7b3393d2fdfd569adcb13022e232f8f06c45337f89a82a346e35ed1695174781565904b34d81922c0d1fbe62febeda403133dcbe7d871c76023605d7bdd9ee6f43771b1c1e248af86424fab9f96f0aceb1d912d52e268cd125f36ff9dcf16e99c410f60a93dac22efbebc5518edf10dd160eeac7")]
+               "TOTP.Tests, PublicKey=002400000480000094000000060200000024000052534131000400000100010099f4449145c5f37f4715bbfc7b3393d2fdfd569adcb13022e232f8f06c45337f89a82a346e35ed1695174781565904b34d81922c0d1fbe62febeda403133dcbe7d871c76023605d7bdd9ee6f43771b1c1e248af86424fab9f96f0aceb1d912d52e268cd125f36ff9dcf16e99c410f60a93dac22efbebc5518edf10dd160eeac7"), ThemeInfo(
+               ResourceDictionaryLocation.None, //where theme specific resource dictionaries are located
+                                                //(used if a resource is not found in the page,
+                                                // or application resource dictionaries)
+               ResourceDictionaryLocation.SourceAssembly //where the generic resource dictionary is located
+                                                         //(used if a resource is not found in the page,
+                                                         // app, or any theme specific resource dictionaries)
+           )]
 
 //[assembly: InternalsVisibleTo("TOTP.Tests")]
