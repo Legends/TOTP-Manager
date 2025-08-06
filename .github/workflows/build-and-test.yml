@@ -23,6 +23,8 @@ jobs:
         run: dotnet restore TOTP.sln --configfile NuGet.config
 
       - name: Build solution
+        env:
+          SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
         run: dotnet build --configuration Release --no-restore
 
       - name: Run tests
