@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-test:
-    runs-on: windows-latest
+    runs-on: windows-latest #github-hosted runner
 
     steps:
     - name: Checkout repository
