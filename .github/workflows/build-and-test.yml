@@ -2,28 +2,28 @@
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   build-test:
     runs-on: windows-latest #github-hosted runner
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x' # Or your actual version: 6.0.x, 7.0.x, etc.
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x" # Or your actual version: 6.0.x, 7.0.x, etc.
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore with NuGet.config
+        run: dotnet restore TOTP.sln --configfile NuGet.config
 
-    - name: Build solution
-      run: dotnet build --configuration Release --no-restore
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
 
-    - name: Run tests
-      run: dotnet test --configuration Release --no-build --verbosity normal
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal
