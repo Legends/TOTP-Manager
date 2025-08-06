@@ -1,4 +1,4 @@
-﻿name: Build and Test TOTP Manager
+﻿name: Build and Test TOTP Manager App
 
 on:
   push:
