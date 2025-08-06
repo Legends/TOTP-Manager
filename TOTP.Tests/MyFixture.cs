@@ -5,7 +5,7 @@ namespace TOTP.Tests;
 /// <summary>
 //| Purpose               | How it works                                                     |
 //| --------------------  | ---------------------------------------------------------------- |
-//| ** Before each test** | The** constructor** of the test class is called.                 |
+//| ** Before each test** | The constructor of the test class is called.                 |
 //| ** After each test**  | The `Dispose()` method is called if you implement `IDisposable`. |
 
 /// </summary>

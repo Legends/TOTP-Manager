@@ -1,6 +1,9 @@
-﻿using Syncfusion.SfSkinManager;
+﻿using Microsoft.Extensions.Logging;
+using Syncfusion.SfSkinManager;
+using Syncfusion.UI.Xaml.Grid;
 using Syncfusion.Windows.Shared;
 using System;
+using System.Windows;
 using TOTP.Interfaces;
 using TOTP.Resources;
 
@@ -12,9 +15,23 @@ namespace TOTP;
 public partial class MainWindow : ChromelessWindow
 {
     private readonly IMainViewModel _vm;
-
-    public MainWindow(IMainViewModel vm)
+    private ILogger<MainWindow> _logger;
+    private async void DataGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
     {
+        try
+        {
+            await _vm.OnSelectionChangedAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex);
+        }
+    }
+
+
+    public MainWindow(IMainViewModel vm, ILogger<MainWindow> logger)
+    {
+        _logger = logger;
         InitializeComponent();
         // build action: Resource
         //this.Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/Icons/github.ico"));
@@ -25,5 +42,22 @@ public partial class MainWindow : ChromelessWindow
 
         _vm = vm ?? throw new ArgumentNullException(nameof(vm));
         SkinManagerHelper.SetScrollBarMode(this, ScrollBarMode.Compact);
+
+        Loaded += OnLoadedAsync;
+    }
+
+    private async void OnLoadedAsync(object sender, RoutedEventArgs e)
+    {
+        Loaded -= OnLoadedAsync; // wichtig, um Mehrfachaufrufe zu vermeiden
+
+        try
+        {
+            await _vm.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Fehler bei Initialisierung: {ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            Application.Current.Shutdown(-1);
+        }
     }
 }

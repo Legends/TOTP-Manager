@@ -7,19 +7,20 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using TOTP.Enums;
 using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Models;
 using TOTP.Resources;
 
-namespace TOTP.Services;
-
-public class SecretsManager : ISecretsManager
+public class SecretsManager : ISecretsManager, IDisposable
 {
     private readonly IMessageService _messageService;
     private readonly JsonSerializerOptions? _options = null;
     private readonly string _secretsPath;
+    private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
     public SecretsManager(IMessageService messageService, string? storageFilePath)
     {
@@ -27,71 +28,103 @@ public class SecretsManager : ISecretsManager
         _secretsPath = storageFilePath ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "TOTP-Manager", "secrets.dat");
-
-        BackupSecretsFile();
     }
 
-    public List<SecretItem> GetAllSecrets()
+    public async Task<List<SecretItem>> GetAllSecretsAsync()
     {
-        var (ok, list) = LoadSecretsFromFile();
-        return ok ? list : [];
-    }
-
-    public bool AddNewItem(SecretItem newItem)
-    {
-        var (ok, list) = LoadSecretsFromFile();
-        if (!ok) return false;
-
-        // Don't allow duplicates by platform
-        if (list.Any(x => x.Platform == newItem.Platform))
-        {
-            _messageService.ShowMessage(string.Format(UI.msg_Platform_Exists, newItem.Platform), CaptionType.Error, StringsConstants.ImgError);
-            return false;
-        }
-
-        list.Add(newItem);
-        return WriteEncryptedFile(list);
-    }
-
-    public bool DeleteItem(string platform)
-    {
-        var (ok, list) = LoadSecretsFromFile();
-        if (!ok) return false;
-
-        var existing = list.FirstOrDefault(x => x.Platform == platform);
-        if (existing == null)
-        {
-            Debug.WriteLine(string.Format(UI.msg_PlatformNotFound_0, platform));
-            return false;
-        }
-
-        list.Remove(existing);
-        return WriteEncryptedFile(list);
-    }
-
-    public bool UpdateItem(string previousPlatform, SecretItem updated)
-    {
-        var (ok, list) = LoadSecretsFromFile();
-        if (!ok) return false;
-
-        var existing = list.FirstOrDefault(x => x.Platform == previousPlatform);
-        if (existing == null)
-        {
-            _messageService.ShowMessage(UI.msg_Platform_Not_Found, CaptionType.Error, StringsConstants.ImgError);
-            return false;
-        }
-
-        list.Remove(existing);
-        list.Add(updated);
-        return WriteEncryptedFile(list);
-    }
-
-    public bool BackupSecretsFile()
-    {
+        await _semaphore.WaitAsync();
         try
         {
-            if (!File.Exists(_secretsPath)) return false;
+            var (ok, list) = await LoadSecretsFromFileAsync();
+            return ok ? list : [];
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
 
+    public async Task<bool> AddNewItemAsync(SecretItem newItem)
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            var (ok, list) = await LoadSecretsFromFileAsync();
+            if (!ok) return false;
+
+            if (list.Any(x => x.Platform == newItem.Platform))
+            {
+                _messageService.ShowMessage(string.Format(UI.msg_Platform_Exists, newItem.Platform), CaptionType.Error, StringsConstants.ImgError);
+                return false;
+            }
+
+            await BackupSecretsFileAsync();
+            list.Add(newItem);
+            return await WriteEncryptedFileAsync(list);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public async Task<bool> DeleteItemAsync(string platform)
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            var (ok, list) = await LoadSecretsFromFileAsync();
+            if (!ok) return false;
+
+            var existing = list.FirstOrDefault(x => x.Platform == platform);
+            if (existing == null)
+            {
+                Debug.WriteLine(string.Format(UI.msg_PlatformNotFound_0, platform));
+                return false;
+            }
+
+            await BackupSecretsFileAsync();
+            list.Remove(existing);
+            return await WriteEncryptedFileAsync(list);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public async Task<bool> UpdateItemAsync(string previousPlatform, SecretItem updated)
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            var (ok, list) = await LoadSecretsFromFileAsync();
+            if (!ok) return false;
+
+            var existing = list.FirstOrDefault(x => x.Platform == previousPlatform);
+            if (existing == null)
+            {
+                _messageService.ShowMessage(UI.msg_Platform_Not_Found, CaptionType.Error, StringsConstants.ImgError);
+                return false;
+            }
+
+            await BackupSecretsFileAsync();
+            list.Remove(existing);
+            list.Add(updated);
+            return await WriteEncryptedFileAsync(list);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public async Task<bool> BackupSecretsFileAsync()
+    {
+        if (!File.Exists(_secretsPath)) return false;
+
+        try
+        {
             var dir = Path.GetDirectoryName(_secretsPath)!;
             var file = Path.GetFileName(_secretsPath);
 
@@ -120,22 +153,18 @@ public class SecretsManager : ISecretsManager
         }
     }
 
-    /// <summary>
-    /// Returns a tuple indicating success and the list of secrets read from the encrypted secrets.dat file
-    /// </summary>
-    /// <returns></returns>
-    private (bool, List<SecretItem>) LoadSecretsFromFile()
+    private async Task<(bool, List<SecretItem>)> LoadSecretsFromFileAsync()
     {
         try
         {
             if (!File.Exists(_secretsPath))
                 return (true, []);
 
-            var encrypted = File.ReadAllBytes(_secretsPath);
+            var encrypted = await File.ReadAllBytesAsync(_secretsPath);
             var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
             var json = Encoding.UTF8.GetString(decrypted);
 
-            var list = JsonSerializer.Deserialize<List<SecretItem>>(json) ?? [];
+            var list = JsonSerializer.Deserialize<List<SecretItem>>(json, GetOptions()) ?? [];
             return (true, list);
         }
         catch (Exception ex)
@@ -145,14 +174,14 @@ public class SecretsManager : ISecretsManager
         }
     }
 
-    private bool WriteEncryptedFile(List<SecretItem> list)
+    private async Task<bool> WriteEncryptedFileAsync(List<SecretItem> list)
     {
         try
         {
             var json = JsonSerializer.Serialize(list, GetOptions());
             var data = Encoding.UTF8.GetBytes(json);
             var encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
-            File.WriteAllBytes(_secretsPath, encrypted);
+            await File.WriteAllBytesAsync(_secretsPath, encrypted);
             return true;
         }
         catch (Exception ex)
@@ -170,14 +199,10 @@ public class SecretsManager : ISecretsManager
     public static (bool IsValid, string? ErrorMessage) IsValid(string? platform, string? secret)
     {
         if (string.IsNullOrWhiteSpace(platform) || string.IsNullOrWhiteSpace(secret))
-        {
             return (false, UI.msg_PlatformSecretNotEmpty);
-        }
 
-        if (!SecretsManager.IsValidBase32Format(secret))
-        {
+        if (!IsValidBase32Format(secret))
             return (false, UI.msg_SecretInvalidFormat);
-        }
 
         return (true, null);
     }
@@ -193,5 +218,10 @@ public class SecretsManager : ISecretsManager
         {
             return false;
         }
+    }
+
+    public void Dispose()
+    {
+        _semaphore.Dispose();
     }
 }

@@ -21,7 +21,7 @@ namespace TOTP;
 /// <summary>
 ///     Interaction logic for App.xaml
 /// </summary>
-public partial class App : Application
+public partial class App : Application, IAsyncDisposable
 {
     private readonly IHost _host = null!;
 
@@ -30,13 +30,6 @@ public partial class App : Application
 
     public App()
     {
-
-        // Set for ALL threads
-        // for testing purposes only
-        //var culture = new CultureInfo("de-DE");
-        //CultureInfo.DefaultThreadCurrentCulture = culture;
-        //CultureInfo.DefaultThreadCurrentUICulture = culture;
-
         LoggingConfigurator.SetupEarlyLogger();
 
         try
@@ -140,6 +133,8 @@ public partial class App : Application
     }
 
 
+
+
     private void SetupUnhandledExceptionsHooks()
     {
         DispatcherUnhandledException += (s, exArgs) =>
@@ -203,25 +198,36 @@ public partial class App : Application
     private static void RegisterSyncfusionLicenseKey(IConfigurationRoot configuration)
     {
         // Register Syncfusion license
-        var syncfusionLicense = configuration["syncfusion"];
+        var syncfusionLicense = configuration["syncfusion"] ?? Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE");
         if (!string.IsNullOrEmpty(syncfusionLicense))
             SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
     }
 
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        _ = InitializeAsync(); // controlled fire-and-forget
 
-        // Start the host
-        await _host.StartAsync();
+    }
 
-        // 🔥 Resolve logger now that DI container is available
-        _logger = _host.Services.GetRequiredService<ILogger<App>>();
-        _logger.LogInformation("Application startup triggered.");
+    private async Task InitializeAsync()
+    {
+        try
+        {
+            await _host.StartAsync();
 
-        // Show the main window via DI
-        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-        mainWindow.Show();
+            _logger = _host.Services.GetRequiredService<ILogger<App>>();
+            _logger.LogInformation("Application startup triggered.");
+
+            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+            mainWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogCritical(ex, "Startup failed");
+            MessageBox.Show("Fehler beim Start: " + ex.Message, "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(-1);
+        }
     }
 
     protected override async void OnExit(ExitEventArgs e)
@@ -237,4 +243,9 @@ public partial class App : Application
         base.OnExit(e);
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        var secretsManager = _host?.Services.GetService<ISecretsManager>();
+        _ = await secretsManager?.BackupSecretsFileAsync()!;
+    }
 }

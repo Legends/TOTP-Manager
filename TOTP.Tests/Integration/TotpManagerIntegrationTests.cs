@@ -50,14 +50,14 @@ public class TotpManagerIntegrationTests : IDisposable
     }
 
     [Fact]
-    public void Add_Compute_Update_Delete_Secret_ShouldSucceed()
+    public async Task Add_Compute_Update_Delete_Secret_ShouldSucceed()
     {
         // --- ADD ---
-        var (success, item) = _totpManager.AddNewSecret();
+        var (success, item) = await _totpManager.AddNewSecretAsync();
         Assert.True(success);
         Assert.NotNull(item);
 
-        var secrets = _secretsManager.GetAllSecrets();
+        var secrets = await _secretsManager.GetAllSecretsAsync();
         Assert.Single(secrets);
         Assert.Equal(_initialSecret.Platform, secrets[0].Platform);
 
@@ -69,16 +69,16 @@ public class TotpManagerIntegrationTests : IDisposable
 
         // --- UPDATE ---
         var updated = new SecretItem(_initialSecret.Platform, "MZXW6YTBOI======");
-        _totpManager.UpdateSecret(_initialSecret, updated);
+        await _totpManager.UpdateSecretAsync(_initialSecret, updated);
 
-        var updatedSecrets = _secretsManager.GetAllSecrets();
+        var updatedSecrets = await _secretsManager.GetAllSecretsAsync();
         Assert.Single(updatedSecrets);
         Assert.Equal("MZXW6YTBOI======", updatedSecrets[0].Secret);
 
         // --- DELETE ---
-        var deleteResult = _totpManager.DeleteSecret(updated);
+        var deleteResult = await _totpManager.DeleteSecretAsync(updated);
         Assert.True(deleteResult);
-        Assert.Empty(_secretsManager.GetAllSecrets());
+        Assert.Empty(await _secretsManager.GetAllSecretsAsync());
     }
 
     public void Dispose()

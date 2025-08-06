@@ -211,7 +211,7 @@
     <value>Info</value>
   </data>
   <data name="ui_Caption_Warning" xml:space="preserve">
-    <value>Warning</value>
+    <value>Attention</value>
   </data>
   <data name="ui_Code_Copied_Clipboard" xml:space="preserve">
     <value>Code copied to clipboard!</value>

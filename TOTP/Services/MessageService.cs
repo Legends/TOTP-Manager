@@ -45,6 +45,14 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         var vm = CreateViewModel(message, caption, iconPath, UI.ui_btnOK, string.Empty);
         vm.ShowCancelButton = false;
 
+        vm.IconPath = caption switch
+        {
+            CaptionType.Error => StringsConstants.ImgError,
+            CaptionType.Warning => StringsConstants.ImgWarning,
+            CaptionType.Info => StringsConstants.ImgInfo,
+            _ => string.Empty
+        };
+
         var dialog = new UserMessageDialog(vm)
         {
             Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive)
@@ -78,8 +86,8 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         (vm.TitleBarBackground, vm.TitleBarForeground) = caption switch
         {
             CaptionType.Error => (Brushes.Red, Brushes.White),
-            CaptionType.Warning => (Brushes.Yellow, Brushes.Black),
-            CaptionType.Info => (Brushes.LightSkyBlue, Brushes.White),
+            CaptionType.Warning => (Brushes.LightYellow, Brushes.Black),
+            CaptionType.Info => (Brushes.LightSteelBlue, Brushes.White),
             _ => (Brushes.Gray, Brushes.White)
         };
         return vm;

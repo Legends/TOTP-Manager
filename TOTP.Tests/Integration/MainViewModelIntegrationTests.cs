@@ -33,7 +33,7 @@ public class MainViewModelIntegrationTests : IDisposable
 
 
     [Fact]
-    public void AddNewTotpCommand_ShouldAddSecret_WhenTotpManagerReturnsSuccess()
+    public void AddNewSecretCommand_ShouldAddSecret_WhenTotpManagerReturnsSuccess()
     {
         var services = new ServiceCollection();
         ConfigureServices(services);
@@ -45,8 +45,8 @@ public class MainViewModelIntegrationTests : IDisposable
         // Mock only TotpManager
         var secretItem = new SecretItem("MyKey", "MySecret");
         var totpManagerMock = new Mock<ITotpManager>();
-        totpManagerMock.Setup(m => m.AddNewSecret())
-            .Returns((true, secretItem));
+        totpManagerMock.Setup(m => m.AddNewSecretAsync())
+            .Returns(Task.FromResult((true, secretItem)));
         services.AddSingleton(totpManagerMock.Object);
 
         services.AddSingleton<ISecretsManager>(provider =>
@@ -81,7 +81,7 @@ public class MainViewModelIntegrationTests : IDisposable
         var initialCount = vm.AllSecrets.Count;
 
         // Act
-        vm.AddNewTotpCommand.Execute(null);
+        vm.AddNewSecretCommand.Execute(null);
 
         // Assert
         Assert.Equal(initialCount + 1, vm.AllSecrets.Count);

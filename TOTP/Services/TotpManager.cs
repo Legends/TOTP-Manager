@@ -1,5 +1,6 @@
 ﻿using OtpNet;
 using System;
+using System.Threading.Tasks;
 using TOTP.Interfaces;
 using TOTP.Models;
 using TOTP.Resources;
@@ -26,7 +27,7 @@ public class TotpManager : ITotpManager
     }
 
 
-    public (bool success, SecretItem? item) AddNewSecret()
+    public async Task<(bool success, SecretItem? item)> AddNewSecretAsync()
     {
         try
         {
@@ -38,7 +39,7 @@ public class TotpManager : ITotpManager
                 if (!success)
                     return (false, null);
 
-                if (_secretsManager.AddNewItem(new SecretItem(key!, value!)))
+                if (await _secretsManager.AddNewItemAsync(new SecretItem(key!, value!)))
                 {
                     var item = new SecretItem(key!, value!);
                     return (true, item);
@@ -75,7 +76,7 @@ public class TotpManager : ITotpManager
         }
     }
 
-    public void UpdateSecret(SecretItem previous, SecretItem updated)
+    public async Task UpdateSecretAsync(SecretItem previous, SecretItem updated)
     {
         try
         {
@@ -84,7 +85,7 @@ public class TotpManager : ITotpManager
 
             if (!previous.Equals(updated))
             {
-                _secretsManager.UpdateItem(previous.Platform, updated);
+                await _secretsManager.UpdateItemAsync(previous.Platform, updated);
                 _messageService.ShowMessage($"{UI.msg_SecretUpdated}: {previous.Platform}");
             }
         }
@@ -99,7 +100,7 @@ public class TotpManager : ITotpManager
     /// </summary>
     /// <param name="item">SecretItem</param>
     /// <returns>true/false</returns>
-    public bool DeleteSecret(SecretItem item)
+    public async Task<bool> DeleteSecretAsync(SecretItem item)
     {
         try
         {
@@ -108,16 +109,17 @@ public class TotpManager : ITotpManager
 
             if (shouldDelete)
             {
-                _secretsManager.DeleteItem(item.Platform);
-                return true;
+                await _secretsManager.DeleteItemAsync(item.Platform);
+                return await Task.FromResult(true);
             }
 
-            return false;
+            return await Task.FromResult(false);
         }
         catch (Exception ex)
         {
             _errorHandler.Handle(ex, UI.ex_DeletingSecret);
-            return false;
+            return await Task.FromResult(false);
         }
     }
+
 }

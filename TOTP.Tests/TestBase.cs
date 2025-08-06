@@ -26,13 +26,13 @@ public class TestBase
 
     //    var secretItem = new SecretItem("TestKey", "TestValue");
 
-    //    totpMock.Setup(m => m.AddNewSecret())
+    //    totpMock.Setup(m => m.AddNewSecretAsync())
     //                            .Returns((true, secretItem));
 
     //    int initialCount = vm.AllSecrets.Count;
 
     //    //Act
-    //    vm.AddNewTotpCommand.Execute(null);
+    //    vm.AddNewSecretCommand.Execute(null);
 
     //    //Assert
     //    Assert.Equal(initialCount + 1, vm.AllSecrets.Count);

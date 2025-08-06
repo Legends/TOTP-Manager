@@ -1,7 +1,6 @@
 ﻿using Moq;
 using Moq.AutoMock;
 using System.Diagnostics;
-using System.Reflection;
 using TOTP.Interfaces;
 using TOTP.Models;
 using TOTP.ViewModels;
@@ -19,7 +18,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     }
 
     [Fact]
-    public void AddNewTotpCommand_ShouldAddNewSecret_WhenManagerReturnsSuccess()
+    public void AddNewSecretCommand_ShouldAddNewSecret_WhenManagerReturnsSuccess()
     {
         var mocker = new AutoMocker();
         SetupSecretsDataSourceMock(mocker);
@@ -27,13 +26,13 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         var secretItem = new SecretItem("TestKey", "TestValue");
 
         mocker.GetMock<ITotpManager>()
-            .Setup(m => m.AddNewSecret())
-            .Returns((true, secretItem));
+            .Setup(m => m.AddNewSecretAsync())
+            .Returns(Task.FromResult((true, secretItem)));
 
         var vm = mocker.CreateInstance<MainViewModel>();
         var initialCount = vm.AllSecrets.Count;
 
-        vm.AddNewTotpCommand.Execute(null);
+        vm.AddNewSecretCommand.Execute(null);
 
         Assert.Equal(initialCount + 1, vm.AllSecrets.Count);
         Assert.Contains(secretItem, vm.AllSecrets);
@@ -48,7 +47,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         var vm = mocker.CreateInstance<MainViewModel>();
 
         var secret = new SecretItem("DeleteKey", "DeleteValue");
-        mocker.GetMock<ITotpManager>().Setup(m => m.DeleteSecret(secret)).Returns(true);
+        mocker.GetMock<ITotpManager>().Setup(m => m.DeleteSecretAsync(secret)).Returns(Task.FromResult(true));
 
         vm.AllSecrets.Add(secret);
         var initialCount = vm.AllSecrets.Count;
@@ -70,9 +69,11 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         vm.AllSecrets.Add(new SecretItem("banana", "value2"));
 
         vm.SearchText = "apple";
+        vm.UpdateSearchFilter(); // made method internal and set [assembly:InternalsVisibleTo(..) in TOTP.csproj asemblyinfo.cs
 
-        var method = typeof(MainViewModel).GetMethod("UpdateFilter", BindingFlags.NonPublic | BindingFlags.Instance);
-        method?.Invoke(vm, null);
+        // or use reflection to call the private method
+        //var method = typeof(MainViewModel).GetMethod("UpdateSearchFilter", BindingFlags.NonPublic | BindingFlags.Instance);
+        //method?.Invoke(vm, null);
 
         Assert.Single(vm.FilteredSecrets);
         Assert.Equal("apple", vm.FilteredSecrets[0].Platform);
@@ -121,7 +122,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         vm.EndEditCommand.Execute(updatedSecret);
 
-        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecret(oldSecret, updatedSecret), Times.Once);
+        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecretAsync(oldSecret, updatedSecret), Times.Once);
         Assert.Null(vm.PreviousVersion);
     }
 
@@ -169,7 +170,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         vm.PreviousVersion = old;
         vm.UpdateSecretCommand.Execute(updated);
 
-        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecret(old, updated), Times.Once);
+        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecretAsync(old, updated), Times.Once);
     }
 
     [Fact]
@@ -219,14 +220,16 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         vm.SelectedSecret = secret;
 
-        var method = vm.GetType().GetMethod("OnSecretSelected", BindingFlags.NonPublic | BindingFlags.Instance)
-                     ?? throw new InvalidOperationException("OnSecretSelected method not found.");
+        //var method = vm.GetType().GetMethod("OnSecretSelectedAsync", BindingFlags.NonPublic | BindingFlags.Instance)
+        //             ?? throw new InvalidOperationException("OnSecretSelectedAsync method not found.");
 
-        var result = method.Invoke(vm, null);
-        if (result is not Task task)
-            throw new InvalidOperationException("OnSecretSelected did not return a Task.");
+        //var result = method.Invoke(vm, null);
+        //if (result is not Task task)
+        //    throw new InvalidOperationException("OnSecretSelectedAsync did not return a Task.");
 
-        await task;
+        //await task;
+
+        await vm.OnSecretSelectedAsync();
 
         delayMock.Verify(d => d.Delay(It.IsAny<int>()), Times.Once);
 
@@ -238,7 +241,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     {
         var secrets = new List<SecretItem>();
         var secretsManagerMock = new Mock<ISecretsManager>();
-        secretsManagerMock.Setup(m => m.GetAllSecrets()).Returns(secrets);
+        secretsManagerMock.Setup(m => m.GetAllSecretsAsync()).ReturnsAsync(secrets);
         mocker.Use<ISecretsManager>(secretsManagerMock.Object);
     }
 
