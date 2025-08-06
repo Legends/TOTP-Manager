@@ -19,7 +19,7 @@ jobs:
         with:
           dotnet-version: "9.0.x" # Or your actual version: 6.0.x, 7.0.x, etc.
 
-      - name: Cache NuGet packages
+      - name: Cache NuGet packages # if the workflow fails, the cache will not be saved.
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
