@@ -198,7 +198,7 @@ public partial class App : Application, IAsyncDisposable
     private static void RegisterSyncfusionLicenseKey(IConfigurationRoot configuration)
     {
         // Register Syncfusion license
-        var syncfusionLicense = configuration["syncfusion"];
+        var syncfusionLicense = configuration["syncfusion"] ?? Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE");
         if (!string.IsNullOrEmpty(syncfusionLicense))
             SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
     }
