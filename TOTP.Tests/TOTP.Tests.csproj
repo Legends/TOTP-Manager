@@ -8,16 +8,9 @@
     <SignAssembly>True</SignAssembly>
     <DelaySign>False</DelaySign>
     <AssemblyOriginatorKeyFile>totp-sign-key.snk</AssemblyOriginatorKeyFile>
+    <PublicSign>true</PublicSign>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\TOTP\totp-sign-key.snk">
-      <Link>totp-sign-key.snk</Link>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-
+ 
   <ItemGroup>
     <PackageReference Include="AutoFixture.AutoMoq" Version="4.18.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
