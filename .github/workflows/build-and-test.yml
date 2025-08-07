@@ -34,6 +34,8 @@ jobs:
       - name: Build solution
         env:
           SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+          SYNCFUSION_LICENSE: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
+          
         run: dotnet build --configuration Release --no-restore
 
       - name: Run tests
