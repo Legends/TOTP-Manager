@@ -94,20 +94,32 @@
 		<Resource Include="Assets\backgrounds\background-main.png" />
 		<Resource Include="Assets\flags\de.png" />
 		<Resource Include="Assets\flags\en.png" />
-		<Resource Include="Assets\Icons\delete-24x24.svg" />
-		<Resource Include="Assets\Icons\Info.png" />
-		<Resource Include="Assets\Icons\Lock-Add.png" />
-		<Resource Include="Assets\Icons\plus-24x24.svg">
-			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		<Resource Include="Assets\Icons\delete-24x24.svg">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
-		<Resource Include="Assets\Icons\find-24x24.svg" />
+		<Resource Include="Assets\Icons\Info.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="Assets\Icons\Lock-Add.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="Assets\Icons\plus-24x24.svg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="Assets\Icons\find-24x24.svg">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
 		<Resource Include="Assets\Icons\app.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
-		<Resource Include="Assets\Icons\Warning-Message.png" />
-		<Resource Include="Assets\Icons\warning.png" />
+		<Resource Include="Assets\Icons\Warning-Message.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="Assets\Icons\warning.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
 		<Resource Include="Assets\Icons\Wrong.png">
-			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 	</ItemGroup>
 
