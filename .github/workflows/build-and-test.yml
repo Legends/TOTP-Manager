@@ -82,4 +82,4 @@ jobs:
         with:
           files: TOTP.Manager.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }} #repo scope token for uploading to release

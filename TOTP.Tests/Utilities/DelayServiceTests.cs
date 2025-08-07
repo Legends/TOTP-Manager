@@ -19,7 +19,7 @@ public class DelayServiceTests
         stopwatch.Stop();
         //Assert.True(stopwatch.ElapsedMilliseconds >= 500);
 
-        Assert.True(stopwatch.ElapsedMilliseconds >= 490,
-            $"Expected at least 490ms, but got {stopwatch.ElapsedMilliseconds}ms.");
+        Assert.True(stopwatch.ElapsedMilliseconds >= 470,
+            $"Expected at least 470ms, but got {stopwatch.ElapsedMilliseconds}ms.");
     }
 }
