@@ -23,6 +23,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Reference Include="WindowsFormsIntegration" />
+	</ItemGroup>
+
+
+	<ItemGroup>
 		<None Remove="Assets\flags\de.png" />
 		<None Remove="Assets\Icons\delete-24x24.svg" />
 		<None Remove="Assets\Icons\Info.png" />
