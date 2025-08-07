@@ -16,17 +16,6 @@ public partial class MainWindow : ChromelessWindow
 {
     private readonly IMainViewModel _vm;
     private ILogger<MainWindow> _logger;
-    private async void DataGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
-    {
-        try
-        {
-            await _vm.OnSelectionChangedAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex.Message, ex);
-        }
-    }
 
 
     public MainWindow(IMainViewModel vm, ILogger<MainWindow> logger)
@@ -56,8 +45,21 @@ public partial class MainWindow : ChromelessWindow
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Fehler bei Initialisierung: {ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            _logger.LogError(ex, nameof(OnLoadedAsync));
             Application.Current.Shutdown(-1);
         }
     }
+
+    private async void DataGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
+    {
+        try
+        {
+            await _vm.OnSelectionChangedAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex);
+        }
+    }
+
 }

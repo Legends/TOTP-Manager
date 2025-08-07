@@ -244,7 +244,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     public async Task InitializeAsync()
     {
         await ReadAllSecretsAsync();
-        OnPropertyChanged(nameof(ShowActionsColumn));
+        //OnPropertyChanged(nameof(ShowActionsColumn));
         UpdateSearchFilter();
     }
 
@@ -337,19 +337,23 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     #region ### READ ALL SECRETS ###
     private async Task ReadAllSecretsAsync()
     {
-        //var secrets = config.AsEnumerable()
-        //    .Where(kv => kv.Key != "syncfusion")
-        //    .Where(pair => pair.Value != null)
-        //    .Select(pair => new SecretItem(pair.Key, pair.Value!));
+        try
+        {
+            // Load secrets from file or other source
+            var allSecrets = await _secretsManager.GetAllSecretsAsync();
+            var secrets = allSecrets.Where(s => s.Platform != "syncfusion").ToList();
 
-        // Load secrets from file or other source
-        var allSecrets = await _secretsManager.GetAllSecretsAsync();
-        var secrets = allSecrets.Where(s => s.Platform != "syncfusion").ToList();
+            AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
 
-        AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
+            foreach (var secretItem in AllSecrets)
+                secretItem.PropertyChanged += SecretItem_PropertyChanged;
+        }
+        catch (Exception e)
+        {
+            _logger.LogCritical(e, nameof(ReadAllSecretsAsync));
+            System.Windows.Application.Current.Shutdown(1);
+        }
 
-        foreach (var secretItem in AllSecrets)
-            secretItem.PropertyChanged += SecretItem_PropertyChanged;
     }
 
     #endregion
