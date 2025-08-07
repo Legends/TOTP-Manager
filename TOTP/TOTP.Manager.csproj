@@ -126,8 +126,6 @@
 	<Target Name="PostBuildSign" AfterTargets="Build">
 		<Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;" StandardOutputImportance="High" StandardErrorImportance="High" IgnoreExitCode="false" />
 		<Message Text="🔥 PostBuildSign target invoked" Importance="High" />
-
-		<Message Text="✅ Executable signed." Importance="High" />
 	</Target>
 
 

@@ -1,98 +1,111 @@
 ﻿# Sign-App.ps1
 
-
-function Debug-Output {
-    param([string]$message)
-    if ($Host.Name -like "*Visual Studio Code*") {
-        Write-Output $message
-    }
-    else {
-        Write-Host $message
-    }
-}
-
-# Signs the main application executable using Authenticode and a PFX certificate
-
 $ErrorActionPreference = 'Stop'
 
-# Determine if we're running in GitHub Actions
-$isCI = $env:GITHUB_ACTIONS -eq 'true'
-
-# Get root path of the project
+# Logging setup
 $scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Path
 $projectRoot = Resolve-Path "$scriptDir\..\.."
+$logPath = "$projectRoot\signing-log.txt"
 
-# Resolve signtool.exe dynamically (latest x64 version)
+function Log {
+    param([string]$msg)
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Add-Content -Path $logPath -Value "$timestamp - $msg"
+    Write-Host $msg
+}
+
+Log "############################ SIGNING SCRIPT START ############################"
+
+# Check CI context
+$isCI = $env:GITHUB_ACTIONS -eq 'true'
+
+# Locate signtool.exe
 $signtoolPath = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse `
     -Include signtool.exe -ErrorAction SilentlyContinue |
 Where-Object { $_.FullName -like '*x64*' } |
 Sort-Object LastWriteTime -Descending |
 Select-Object -First 1
 
+Log $signtoolPath
+
 if (-not $signtoolPath) {
-    Write-Error "❌ Could not find signtool.exe"
-    exit 1
+    Log "❌ Could not find signtool.exe"
+    exit 101
 }
+Log "✅ Using SignTool path: $($signtoolPath.FullName)"
 
-Debug-Output "✅ Using SignTool path: $($signtoolPath.FullName)"
+# Locate EXE
+$exe = Get-ChildItem -Path "$projectRoot\bin\Release" -Recurse -File |
+Where-Object { $_.Name -eq "TOTP.Manager.exe" } |
+Select-Object -First 1
 
-# Locate the EXE
-$exe = Get-ChildItem -Path "$projectRoot\bin\Release" -Recurse -Filter "TOTP.Manager.exe" | Select-Object -First 1
+Log $projectroot 
+Log $exe
+
 if (-not $exe) {
-    Write-Error "❌ Could not find the executable to sign."
-    exit 1
+    Log "❌ Could not find the executable to sign."
+    exit 102
 }
+Log "✅ Found executable: $($exe.FullName)"
 
-Debug-Output "✅ Found executable: $($exe.FullName)"
-
-# Check if already signed and valid
+# Check if already signed
 try {
     $verifyOutput = & "$($signtoolPath.FullName)" verify /pa "$($exe.FullName)" 2>&1
-    if ($verifyOutput -match "Successfully verified") {
-        Debug-Output "🔏 EXE is already signed and verified. Skipping signing step."
+    $verifyExitCode = $LASTEXITCODE
+    Log "🔍 Signature check output:"
+    # Log $verifyOutput
+
+    if ($verifyExitCode -eq 0 -and $verifyOutput -match "Successfully verified") {
+        Log "🔏 EXE is already signed and verified. Skipping signing step."
         exit 0
     }
     else {
-        Debug-Output "ℹ️ EXE is not signed yet. Proceeding with signing."
+        Log "ℹ️ EXE is not signed yet. Proceeding with signing."
     }
 }
 catch {
-    Debug-Output "⚠️ Signature verification threw an error (expected if unsigned). Proceeding with signing."
+    $cleanMessage = $_.ToString() -replace "Error", "Info"
+    Log "ℹ️ EXE is unsigned (expected): $cleanMessage"
 }
 
-
-# Resolve PFX file
+# Locate PFX
 $pfxPath = Join-Path -Path $projectRoot -ChildPath "Properties\Signing\totp-signing-cert.pfx"
 if (-not (Test-Path $pfxPath)) {
-    Write-Error "❌ Signing certificate (.pfx) not found at $pfxPath"
-    exit 1
+    Log "❌ Signing certificate (.pfx) not found at $pfxPath"
+    exit 103
 }
+Log "✅ Found PFX certificate"
 
-# Load password from GitHub Actions or user-secrets
+# Load password
+$pfxPassword = $null
 if ($isCI) {
     $pfxPassword = $env:SIGNING_CERT_PASSWORD
     if (-not $pfxPassword) {
-        Write-Error "❌ SIGNING_CERT_PASSWORD secret not set in GitHub Actions."
-        exit 1
+        Log "❌ SIGNING_CERT_PASSWORD not set in GitHub Actions"
+        exit 104
     }
+    Log "✅ Loaded password from CI environment"
 }
 else {
-    Debug-Output "`$projectRoot = $projectRoot"
-    $pfxPassword = dotnet user-secrets list --project "$projectRoot" |
-    Where-Object { $_ -match '^pfxPassword\s*=\s*(.+)$' } |
-    ForEach-Object { $matches[1].Trim() }
-
-    if (-not $pfxPassword) {
-        Write-Error "❌ No pfxPassword found in user secrets."
-        exit 1
+    Log "🔍 Attempting to load password from user-secrets..."
+    $secrets = dotnet user-secrets list --project "$projectRoot" 2>&1
+    foreach ($line in $secrets) {
+        if ($line -match '^pfxPassword\s*=\s*(.+)$') {
+            $pfxPassword = $matches[1].Trim()
+            break
+        }
     }
 
-    Debug-Output "`$pfxPassword = $pfxPassword"  # DEBUG: Remove in production
+    if ([string]::IsNullOrWhiteSpace($pfxPassword)) {
+        Log "❌ No pfxPassword found in user-secrets"
+        exit 104
+    }
+    Log "✅ Loaded password from user-secrets"
 }
 
 # Sign the EXE
-Debug-Output "🔐 Signing the executable..."
-& "$($signtoolPath.FullName)" sign `
+Log "🔐 Signing the executable..."
+$signOutput = & "$($signtoolPath.FullName)" sign `
     /f "$pfxPath" `
     /p "$pfxPassword" `
     /tr "http://timestamp.digicert.com" `
@@ -100,38 +113,39 @@ Debug-Output "🔐 Signing the executable..."
     /fd sha256 `
     "$($exe.FullName)"
 
+Log "🔧 SignTool output:"
+Log $signOutput
+
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "❌ SignTool failed with exit code $LASTEXITCODE"
-    exit $LASTEXITCODE
+    Log "❌ SignTool failed with exit code $LASTEXITCODE"
+    exit 105
 }
 
-Debug-Output "🎉 Successfully signed the executable."
-
+# Verify signature (non-CI only)
 if (-not $isCI) {
-    # Perform verification
-    # Verify signature
-    Debug-Output "🔍 Verifying signature..."
+    Log "🔍 Verifying signature post-signing..."
     try {
         $verifyResult = & "$($signtoolPath.FullName)" verify /v /pa "$($exe.FullName)" 2>&1
-        Debug-Output $verifyResult
+        Log $verifyResult
 
         if ($verifyResult -match "Successfully verified") {
-            Debug-Output "✅ Signature verified successfully."
+            Log "✅ Signature verified successfully."
         }
         elseif ($verifyResult -match "certificate.*not trusted by the trust provider") {
-            Debug-Output "⚠️ Signature verified, but the certificate is self-signed and not trusted on this machine."
-            # Don't treat this as an error in CI context
+            Log "⚠️ Signature verified, but certificate is not trusted locally."
         }
         else {
-            Write-Error "❌ Signature verification failed unexpectedly."
-            exit 1
+            Log "❌ Signature verification failed unexpectedly."
+            exit 106
         }
     }
     catch {
-        Write-Warning "⚠️ Signature verification threw an error: $_. Exception will be ignored in CI."
+        Log "⚠️ Verification threw an error: $_"
     }
 }
 else {
-    Debug-Output "⚠️ Skipping signature verification in GitHub Actions (CI) for self-signed cert."
+    Log "⚠️ Skipping verification in CI context"
 }
 
+Log "🎉 Successfully signed the executable."
+Log "############################ SIGNING SCRIPT END ############################"
