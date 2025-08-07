@@ -11,4 +11,4 @@ using System.Windows;
                                                          // app, or any theme specific resource dictionaries)
            )]
 
-//[assembly: InternalsVisibleTo("TOTP.Tests")]
+//[assembly: InternalsVisibleTo("TOTP.Tests")] for unsignend assemblies only
