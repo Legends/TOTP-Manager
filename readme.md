@@ -3,7 +3,7 @@
   - [Build Status](#build-status)
   - [Features](#features)
   - [Usage](#usage)
-  - [Setup `TOTP.Manager`](#setup-totpmanager)
+  - [Setup](#setup)
 <!-- TOC-END (DO NOT REMOVE OR CHANGE COMMENT!) -->
 
 ---
@@ -35,7 +35,7 @@ Powered by:
 - **Edit** – double-click a field  
 - **Delete** – right-click an entry and select **Delete**  
 
-## Setup `TOTP.Manager`
+## Setup
 
 You can create a runnable executable in two ways:
 
