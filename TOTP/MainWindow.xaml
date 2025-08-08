@@ -227,15 +227,20 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                         <syncfusion:GridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <!-- Masked text display -->
-                                <TextBlock Text="{Binding Secret, Converter={StaticResource SecretMaskConverter}}" />
+                                <TextBlock TextAlignment="Left"
+                                           VerticalAlignment="Center"
+                                           Padding="5,2,5,0"
+                                           Text="{Binding Secret, Converter={StaticResource SecretMaskConverter}}" />
                             </DataTemplate>
                         </syncfusion:GridTemplateColumn.CellTemplate>
 
                         <!-- Edit Mode -->
                         <syncfusion:GridTemplateColumn.EditTemplate>
                             <DataTemplate>
-                                <PasswordBox behaviors:PasswordBoxHelper.BindPassword="True"
-                                             behaviors:PasswordBoxHelper.BoundPassword="{Binding Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <PasswordBox props:PasswordBoxHelper.BindPassword="True"
+                                             VerticalContentAlignment="Center"
+                                             Padding="5,2,5,0"
+                                             props:PasswordBoxHelper.BoundPassword="{Binding Secret, Mode=TwoWay,  UpdateSourceTrigger=PropertyChanged}" />
 
                             </DataTemplate>
                         </syncfusion:GridTemplateColumn.EditTemplate>

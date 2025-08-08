@@ -1,7 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace TOTP.Behaviors;
+namespace TOTP.AttachedProperties;
+
 public static class PasswordBoxHelper
 {
     public static readonly DependencyProperty BoundPasswordProperty =
