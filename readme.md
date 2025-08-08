@@ -28,8 +28,8 @@ Powered by:
 
 ## Usage
 
-- **Add new code** - click on plus symbol
-- **Generate a code** – click on row
+- **Add new platform** - click on plus symbol
+- **Generate TOTP** – click on row
 - **Edit** – double-click a field  
 - **Delete** – right-click a row **Delete**  
 
