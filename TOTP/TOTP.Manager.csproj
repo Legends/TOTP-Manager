@@ -23,9 +23,9 @@
 	  <Page Remove=".github\**" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<!--<ItemGroup>
 		<Reference Include="WindowsFormsIntegration" />
-	</ItemGroup>
+	</ItemGroup>-->
 
 	<PropertyGroup>
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
