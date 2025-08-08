@@ -474,14 +474,12 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     public async Task OnSelectionChangedAsync()
     {
-        Debug.WriteLine(" 1.)  ==========>  root:  OnSelectionChangedAsync() ");
         var currentKey = SelectedSecret.Platform;
         await Task.Delay(300);
         try
         {
             if (currentKey == SelectedSecret.Platform && !_isDoubleClick)
             {
-                Debug.WriteLine(" 2.)  +++++++++   OnSecretSelectedAsync() aufgerufen");
                 await OnSecretSelectedAsync();
             }
         }

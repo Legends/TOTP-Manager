@@ -20,7 +20,7 @@ try {
     $ProjectPath = Join-Path $SolutionDir "TOTP\TOTP.Manager.csproj"
     $OutputDir = Join-Path $SolutionDir "publish"
 
-    Log "📦 Starting publish process..."
+    Log "Starting publish process..."
 
     if (Test-Path $OutputDir) {
         Log "Cleaning existing publish directory..."
@@ -37,10 +37,10 @@ try {
         -p:PublishTrimmed=false `
         --output "$OutputDir"
 
-    Log "✅ Publish completed."
+    Log "Publish completed."
 
     if ($CertPath -and $CertPassword) {
-        Log "🔏 Signing enabled. Preparing..."
+        Log "Signing enabled. Preparing..."
         $exePath = Get-ChildItem $OutputDir -Filter "*.exe" | Select-Object -First 1
 
         if ($exePath) {
@@ -54,7 +54,7 @@ try {
             }
 
             if (-not $signtoolPath) {
-                LogError "❌ Could not find signtool.exe."
+                LogError "Could not find signtool.exe."
                 exit 1
             }
 
@@ -67,14 +67,14 @@ try {
                 /td SHA256 `
                 /v "$($exePath.FullName)"
 
-            Log "✅ Signing completed."
+            Log "Signing completed."
         }
         else {
             LogError "❌ No .exe file found in publish directory."
         }
     }
 
-    Log "📂 Opening publish folder..."
+    Log "Opening publish folder..."
     Start-Process "explorer.exe" -ArgumentList "$OutputDir"
 }
 catch {
