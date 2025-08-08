@@ -28,9 +28,10 @@ Powered by:
 
 ## Usage
 
-- **Generate a code** – click an entry  
+- **Add new code** - click on plus symbol
+- **Generate a code** – click on row
 - **Edit** – double-click a field  
-- **Delete** – right-click an entry and select **Delete**  
+- **Delete** – right-click a row **Delete**  
 
 ## Setup
 
