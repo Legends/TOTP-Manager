@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -28,7 +29,19 @@ namespace TOTP.Services
             var json = File.ReadAllText(StringsConstants.AppSettingsJsonFilePath);
             var jObject = Newtonsoft.Json.Linq.JObject.Parse(json);
 
-            jObject["Localization"]["Culture"] = cultureName;
+            if (jObject["Localization"] is JObject localization)
+            {
+                localization["Culture"] = cultureName;
+            }
+            else
+            {
+                jObject["Localization"] = new JObject
+                {
+                    ["Culture"] = cultureName
+                };
+            }
+
+            //jObject["Localization"]["Culture"] = cultureName;
 
             File.WriteAllText(StringsConstants.AppSettingsJsonFilePath, jObject.ToString(Newtonsoft.Json.Formatting.Indented));
         }

@@ -9,10 +9,10 @@ namespace TOTP.Tests.Integration;
 
 public class TotpManagerIntegrationTests : IDisposable
 {
-    private readonly string? _testPath;
-    private readonly AutoMocker? _mocker;
-    private readonly SecretsManager? _secretsManager;
-    private readonly TotpManager? _totpManager;
+    private readonly string _testPath;
+    private readonly AutoMocker _mocker;
+    private readonly SecretsManager _secretsManager;
+    private readonly TotpManager _totpManager;
 
     private readonly SecretItem _initialSecret = new("GitHub", "JBSWY3DPEHPK3PXP");
 

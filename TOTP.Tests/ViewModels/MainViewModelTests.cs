@@ -27,7 +27,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         mocker.GetMock<ITotpManager>()
             .Setup(m => m.AddNewSecretAsync())
-            .Returns(Task.FromResult((true, secretItem)));
+            .ReturnsAsync((true, secretItem));
 
         var vm = mocker.CreateInstance<MainViewModel>();
         var initialCount = vm.AllSecrets.Count;

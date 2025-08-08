@@ -58,7 +58,7 @@ public class SecretsManager : ISecretsManager, IDisposable
                 return false;
             }
 
-            await BackupSecretsFileAsync();
+            BackupSecretsFileAsync();
             list.Add(newItem);
             return await WriteEncryptedFileAsync(list);
         }
@@ -83,7 +83,7 @@ public class SecretsManager : ISecretsManager, IDisposable
                 return false;
             }
 
-            await BackupSecretsFileAsync();
+            BackupSecretsFileAsync();
             list.Remove(existing);
             return await WriteEncryptedFileAsync(list);
         }
@@ -108,7 +108,7 @@ public class SecretsManager : ISecretsManager, IDisposable
                 return false;
             }
 
-            await BackupSecretsFileAsync();
+            BackupSecretsFileAsync();
             list.Remove(existing);
             list.Add(updated);
             return await WriteEncryptedFileAsync(list);
@@ -119,7 +119,7 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
     }
 
-    public async Task<bool> BackupSecretsFileAsync()
+    public bool BackupSecretsFileAsync()
     {
         if (!File.Exists(_secretsPath)) return false;
 
@@ -223,5 +223,10 @@ public class SecretsManager : ISecretsManager, IDisposable
     public void Dispose()
     {
         _semaphore.Dispose();
+    }
+
+    Task<bool> ISecretsManager.BackupSecretsFileAsync()
+    {
+        throw new NotImplementedException();
     }
 }

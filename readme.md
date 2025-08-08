@@ -1,18 +1,23 @@
 <!-- TOC-START (DO NOT REMOVE OR CHANGE COMMENT!) -->
-**Table of Contents**
-
 - [TOTP Manager App](#totp-manager-app)
   - [Build Status](#build-status)
   - [Features](#features)
   - [Usage](#usage)
+  - [Setup `TOTP.Manager`](#setup-totpmanager)
 <!-- TOC-END (DO NOT REMOVE OR CHANGE COMMENT!) -->
+
+---
 
 # TOTP Manager App
 
-WPF app for managing TOTP secrets that generate TOTP codes and QR codes.
-Uses `Otp.NET` for generating TOTP codes and `QRCoder` for generating QR codes.
+A WPF application for managing TOTP secrets, generating TOTP codes, and creating corresponding QR codes.
 
-<img src="https://i.imgur.com/KnXttHz.png" alt="TOTP Manager" Height="450">
+Powered by:
+
+- **Otp.NET** – for TOTP code generation  
+- **QRCoder** – for QR code creation  
+
+<img src="https://i.imgur.com/KnXttHz.png" alt="TOTP Manager" height="400">
 
 ## Build Status
 
@@ -20,38 +25,43 @@ Uses `Otp.NET` for generating TOTP codes and `QRCoder` for generating QR codes.
 
 ## Features
 
-- Generate TOTP codes + QR codes
-- CRUD TOTP secrets
-- Store secrets securely
+- Generate TOTP codes and QR codes
+- Create, read, update, and delete TOTP secrets
+- Securely store secrets
 
 ## Usage
 
-- Generate a code: Click on an entry
-- Edit: double-click on a field
-- Delete: right-click the entry and select "Delete".
+- **Generate a code** – click an entry  
+- **Edit** – double-click a field  
+- **Delete** – right-click an entry and select **Delete**  
 
-## How to run: Create executable `TOTP.Manager.exe`
+## Setup `TOTP.Manager`
 
-Three ways how to create a running executable:
+You can create a runnable executable in two ways:
 
-1. Download the source code folder from [Releases section](https://github.com/Legends/TOTP-Code-Generator/releases)
+### 1. Build from Source
 
-Open Powershell and `cd` to `TOTP-Manager-App` folder and:
+- Download the source code from the [Releases](https://github.com/Legends/TOTP-Code-Generator/releases) section.
+- Open a PowerShell console, navigate to the `TOTP-Manager-App` folder, and run:
 
-Execute `publish.ps1` from inside the solution folder:
+```powershell
+.\publish.ps1
+```
 
-    .\publish.ps1
+- To create a fully signed executable (requires a valid code-signing certificate), run:
 
-Create your own fully signed executable if you have valid official certificate for signing:
+```powershell
+.\publish.ps1 -CertPath ".\certs\my-cert.pfx" -CertPassword "mypassword"
+```
 
-    .\publish.ps1 -CertPath ".\certs\my-cert.pfx" -CertPassword "mypassword"
+### 2. Use the Prebuilt Zip
 
-2. Download and unzip the `TOTP.Manager.zip` file from the [Releases section](https://github.com/Legends/TOTP-Code-Generator/releases)
-
-The zip file contains the unsigend `.exe` file.
-Accept Smart Screen prompt, because we don't have a valid signing certificate:
+- Download `TOTP.Manager.zip` from the [Releases](https://github.com/Legends/TOTP-Code-Generator/releases) section.  
+- Extract the ZIP file.  
+- Run the `.exe` file.  
+  > The executable is unsigned; you will need to accept the Windows SmartScreen prompt.
 
 <p align="center">
-  <img src="https://i.imgur.com/wIef0Os.png" alt="Smart Screen prompt" height="200">
-  <img src="https://i.imgur.com/6dz6fZa.png" alt="Smart Screen prompt" height="200">
+  <img src="https://i.imgur.com/wIef0Os.png" alt="SmartScreen prompt" height="200">
+  <img src="https://i.imgur.com/6dz6fZa.png" alt="SmartScreen prompt" height="200">
 </p>

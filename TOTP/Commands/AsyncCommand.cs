@@ -56,14 +56,14 @@ namespace TOTP.Commands
 
     public class AsyncCommand<T> : ICommand
     {
-        private readonly Func<T?, Task> _execute;
+        private readonly Func<T, Task> _execute;
         private readonly Predicate<T?>? _canExecute;
         private readonly ILogger? _logger;
         private bool _isExecuting;
 
         public event EventHandler? CanExecuteChanged;
 
-        public AsyncCommand(Func<T?, Task> execute, Predicate<T?>? canExecute = null, ILogger? logger = null)
+        public AsyncCommand(Func<T, Task> execute, Predicate<T?>? canExecute = null, ILogger? logger = null)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;

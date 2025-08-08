@@ -46,7 +46,7 @@ public class MainViewModelIntegrationTests : IDisposable
         var secretItem = new SecretItem("MyKey", "MySecret");
         var totpManagerMock = new Mock<ITotpManager>();
         totpManagerMock.Setup(m => m.AddNewSecretAsync())
-            .Returns(Task.FromResult((true, secretItem)));
+            .ReturnsAsync((true, secretItem));
         services.AddSingleton(totpManagerMock.Object);
 
         services.AddSingleton<ISecretsManager>(provider =>

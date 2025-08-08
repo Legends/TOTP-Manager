@@ -21,7 +21,7 @@ namespace TOTP;
 /// <summary>
 ///     Interaction logic for App.xaml
 /// </summary>
-public partial class App : Application, IAsyncDisposable
+public partial class App : Application, IDisposable
 {
     private readonly IHost _host = null!;
 
@@ -243,9 +243,9 @@ public partial class App : Application, IAsyncDisposable
         base.OnExit(e);
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
         var secretsManager = _host?.Services.GetService<ISecretsManager>();
-        _ = await secretsManager?.BackupSecretsFileAsync()!;
+        secretsManager?.BackupSecretsFileAsync();
     }
 }
