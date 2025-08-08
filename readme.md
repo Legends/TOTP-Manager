@@ -2,7 +2,6 @@
 
 <!-- TOC-START (DO NOT REMOVE OR CHANGE COMMENT!) -->
 - [TOTP Manager App](#totp-manager-app)
-  - [Build Status](#build-status)
   - [Features](#features)
   - [Usage](#usage)
   - [Setup](#setup)
@@ -20,10 +19,6 @@ Powered by:
 - **QRCoder** – for QR code creation  
 
 <img src="https://i.imgur.com/KnXttHz.png" alt="TOTP Manager" height="400">
-
-## Build Status
-
-![Build Status](https://github.com/Legends/TOTP-Code-Generator/actions/workflows/build-and-test.yml/badge.svg)
 
 ## Features
 
