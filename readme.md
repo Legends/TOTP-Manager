@@ -1,3 +1,5 @@
+![Build Status](https://github.com/Legends/TOTP-Code-Generator/actions/workflows/build-and-test.yml/badge.svg)
+
 <!-- TOC-START (DO NOT REMOVE OR CHANGE COMMENT!) -->
 - [TOTP Manager App](#totp-manager-app)
   - [Build Status](#build-status)
