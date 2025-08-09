@@ -15,12 +15,11 @@ public static class PasswordBoxHelper
     public static string GetBoundPassword(DependencyObject d) => (string)d.GetValue(BoundPasswordProperty);
     public static void SetBoundPassword(DependencyObject d, string value) => d.SetValue(BoundPasswordProperty, value);
 
-    public static readonly DependencyProperty BindPasswordProperty =
-        DependencyProperty.RegisterAttached(
-            "BindPassword",
-            typeof(bool),
-            typeof(PasswordBoxHelper),
-            new PropertyMetadata(false, OnBindPasswordChanged));
+    public static readonly DependencyProperty BindPasswordProperty = DependencyProperty.RegisterAttached(
+                                                                "BindPassword",
+                                                                typeof(bool),
+                                                                typeof(PasswordBoxHelper),
+                                                                new PropertyMetadata(false, OnBindPasswordChanged));
 
     public static bool GetBindPassword(DependencyObject d) => (bool)d.GetValue(BindPasswordProperty);
     public static void SetBindPassword(DependencyObject d, bool value) => d.SetValue(BindPasswordProperty, value);
