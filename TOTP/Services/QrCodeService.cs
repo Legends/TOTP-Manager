@@ -1,7 +1,7 @@
-﻿using System.Drawing.Imaging;
+﻿using QRCoder;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Media.Imaging;
-using QRCoder;
 using TOTP.Interfaces;
 
 namespace TOTP.Services;

@@ -1,7 +1,7 @@
-﻿using System.Windows;
-using System.Windows.Input;
-using Microsoft.Xaml.Behaviors;
+﻿using Microsoft.Xaml.Behaviors;
 using Syncfusion.UI.Xaml.Grid;
+using System.Windows;
+using System.Windows.Input;
 
 namespace TOTP.Behaviors;
 

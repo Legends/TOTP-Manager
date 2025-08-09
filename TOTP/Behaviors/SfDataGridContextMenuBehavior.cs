@@ -1,6 +1,6 @@
-﻿using System.Windows;
-using Microsoft.Xaml.Behaviors;
+﻿using Microsoft.Xaml.Behaviors;
 using Syncfusion.UI.Xaml.Grid;
+using System.Windows;
 using TOTP.Interfaces;
 
 namespace TOTP.Behaviors;

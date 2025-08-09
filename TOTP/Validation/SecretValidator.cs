@@ -1,5 +1,4 @@
 ﻿using TOTP.Resources;
-using TOTP.Services;
 
 namespace TOTP.Validation
 {

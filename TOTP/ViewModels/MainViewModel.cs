@@ -450,7 +450,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
         if (PreviousVersion != null && !item.Equals(PreviousVersion))
         {
-            var (isValid, error) = SecretsManager.IsValid(item.Platform, item.Secret);
+            var (isValid, error) = SecretsManager.IsValidSecretItem(item);
 
             if (!isValid)
             {

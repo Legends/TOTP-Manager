@@ -21,6 +21,7 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
         Secret = secret ?? throw new ArgumentNullException(nameof(secret));
     }
 
+
     #region IEditableObject Implementation
 
     public void BeginEdit()

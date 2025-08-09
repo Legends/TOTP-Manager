@@ -35,5 +35,5 @@ public interface ISecretsManager
     /// Creates a backup of the current secrets .dat file.
     /// </summary>
     /// <returns></returns>
-    Task<bool> BackupSecretsFileAsync();
+    bool BackupSecretsFile();
 }

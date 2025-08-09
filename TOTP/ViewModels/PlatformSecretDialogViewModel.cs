@@ -7,6 +7,7 @@ using System.Windows.Media.Imaging;
 using TOTP.Commands;
 using TOTP.Helper;
 using TOTP.Interfaces;
+using TOTP.Models;
 
 namespace TOTP.ViewModels;
 
@@ -82,28 +83,13 @@ public class PlatformSecretDialogViewModel : INotifyPropertyChanged, IPlatformSe
 
     private void ExecuteOkCommand(object? parameter)
     {
-
-        var (isValid, error) = SecretsManager.IsValid(Platform, Secret);
+        var (isValid, error) = SecretsManager.IsValidSecretItem(new SecretItem(Platform!, Secret!));
 
         if (!isValid)
         {
             _messageService.ShowWarningMessage(error!);
             return;
         }
-
-
-        //if (string.IsNullOrWhiteSpace(Platform) || string.IsNullOrWhiteSpace(Secret))
-        //{
-        //    _messageService.ShowInfoMessage(UI.msg_PlatformSecretNotEmpty);
-        //    return;
-        //}
-
-        //if (!SecretsManager.IsValidBase32Format(Secret))
-        //{
-        //    _messageService.ShowInfoMessage(UI.msg_SecretInvalidFormat);
-        //    return;
-        //}
-
 
         RequestClose?.Invoke(this, true);
     }

@@ -30,6 +30,9 @@ public class SecretsManager : ISecretsManager, IDisposable
             "TOTP-Manager", "secrets.dat");
     }
 
+
+
+
     public async Task<List<SecretItem>> GetAllSecretsAsync()
     {
         await _semaphore.WaitAsync();
@@ -58,7 +61,7 @@ public class SecretsManager : ISecretsManager, IDisposable
                 return false;
             }
 
-            BackupSecretsFileAsync();
+            BackupSecretsFile();
             list.Add(newItem);
             return await WriteEncryptedFileAsync(list);
         }
@@ -83,7 +86,7 @@ public class SecretsManager : ISecretsManager, IDisposable
                 return false;
             }
 
-            BackupSecretsFileAsync();
+            BackupSecretsFile();
             list.Remove(existing);
             return await WriteEncryptedFileAsync(list);
         }
@@ -108,7 +111,7 @@ public class SecretsManager : ISecretsManager, IDisposable
                 return false;
             }
 
-            BackupSecretsFileAsync();
+            BackupSecretsFile();
             list.Remove(existing);
             list.Add(updated);
             return await WriteEncryptedFileAsync(list);
@@ -119,7 +122,7 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
     }
 
-    public bool BackupSecretsFileAsync()
+    public bool BackupSecretsFile()
     {
         if (!File.Exists(_secretsPath)) return false;
 
@@ -196,12 +199,12 @@ public class SecretsManager : ISecretsManager, IDisposable
         return _options ?? new JsonSerializerOptions { WriteIndented = true };
     }
 
-    public static (bool IsValid, string? ErrorMessage) IsValid(string? platform, string? secret)
+    public static (bool IsValid, string? ErrorMessage) IsValidSecretItem(SecretItem item)
     {
-        if (string.IsNullOrWhiteSpace(platform) || string.IsNullOrWhiteSpace(secret))
+        if (string.IsNullOrWhiteSpace(item.Platform) || string.IsNullOrWhiteSpace(item.Secret))
             return (false, UI.msg_PlatformSecretNotEmpty);
 
-        if (!IsValidBase32Format(secret))
+        if (!IsValidBase32Format(item.Secret))
             return (false, UI.msg_SecretInvalidFormat);
 
         return (true, null);
@@ -225,8 +228,4 @@ public class SecretsManager : ISecretsManager, IDisposable
         _semaphore.Dispose();
     }
 
-    Task<bool> ISecretsManager.BackupSecretsFileAsync()
-    {
-        throw new NotImplementedException();
-    }
 }

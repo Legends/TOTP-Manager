@@ -94,7 +94,7 @@ public class SecretsManagerIntegrationTests : IDisposable
     {
         _ = await _secretsManager.AddNewItemAsync(_initial);
 
-        var backupSuccess = _secretsManager.BackupSecretsFileAsync();
+        var backupSuccess = _secretsManager.BackupSecretsFile();
         Assert.True(backupSuccess);
 
         var backupFile = _testPath + ".bak1";

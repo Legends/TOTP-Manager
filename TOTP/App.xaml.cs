@@ -246,6 +246,6 @@ public partial class App : Application, IDisposable
     public void Dispose()
     {
         var secretsManager = _host?.Services.GetService<ISecretsManager>();
-        secretsManager?.BackupSecretsFileAsync();
+        secretsManager?.BackupSecretsFile();
     }
 }
