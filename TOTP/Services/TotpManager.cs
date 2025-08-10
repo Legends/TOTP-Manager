@@ -1,6 +1,8 @@
 ﻿using OtpNet;
 using System;
 using System.Threading.Tasks;
+using TOTP.Enums;
+using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Models;
 using TOTP.Resources;
@@ -39,10 +41,27 @@ public class TotpManager : ITotpManager
                 if (!success)
                     return (false, null);
 
-                if (await _secretsManager.AddNewItemAsync(new SecretItem(key!, value!)))
+                var result = await _secretsManager.AddNewItemAsync(new SecretItem(key!, value!));
+
+                if (result.status == OperationStatus.Success)
                 {
                     var item = new SecretItem(key!, value!);
                     return (true, item);
+                }
+
+                if (result.status == OperationStatus.AlreadyExists)
+                {
+                    _messageService.ShowMessage(string.Format(UI.msg_Platform_Exists, key), CaptionType.Error, StringsConstants.ImgUrl.ImgError);
+                    continue;
+                }
+                if (result.status == OperationStatus.StorageFailed)
+                {
+                    _messageService.ShowMessage($"{UI.msg_Failed_Storage}: {key}");
+                }
+
+                if (result.status == OperationStatus.LoadingFailed)
+                {
+                    // msg_FailedLoadingSecrets
                 }
 
                 _messageService.ShowErrorMessage(string.Format(UI.msg_FailedAddingSecret, key));
@@ -72,6 +91,7 @@ public class TotpManager : ITotpManager
             error = ex is FormatException || ex is ArgumentException
                 ? UI.ex_InvalidSecret
                 : $"{UI.ex_UnexpectedError}.{Environment.NewLine}{ex.Message}";
+            _errorHandler.Handle(ex, error);
             return false;
         }
     }
@@ -85,8 +105,29 @@ public class TotpManager : ITotpManager
 
             if (!previous.Equals(updated))
             {
-                await _secretsManager.UpdateItemAsync(previous.Platform, updated);
-                _messageService.ShowMessage($"{UI.msg_SecretUpdated}: {previous.Platform}");
+                var result = await _secretsManager.UpdateItemAsync(previous.Platform, updated);
+
+                if (result.status == OperationStatus.NotFound)
+                {
+                    _messageService.ShowMessage(UI.msg_Platform_Not_Found, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
+                }
+                else if (result.status == OperationStatus.LoadingFailed)
+                {
+                    _messageService.ShowMessage(UI.msg_Failed_Loading_Secrets, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
+                }
+                else if (result.status == OperationStatus.Success)
+                {
+                    _messageService.ShowMessage($"{UI.msg_SecretUpdated}: {previous.Platform}");
+                }
+                else if (result.status == OperationStatus.StorageFailed)
+                {
+                    _messageService.ShowMessage($"{UI.msg_Failed_Storage}: {previous.Platform}");
+                }
+                else
+                {
+                    _messageService.ShowMessage(UI.msg_Failed_Updating_Secret, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
+                }
+
             }
         }
         catch (Exception ex)
@@ -109,7 +150,21 @@ public class TotpManager : ITotpManager
 
             if (shouldDelete)
             {
-                await _secretsManager.DeleteItemAsync(item.Platform);
+                var result = await _secretsManager.DeleteItemAsync(item.Platform);
+
+                if (result.status == OperationStatus.NotFound)
+                {
+                    _messageService.ShowMessage(UI.msg_Platform_Not_Found, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
+                }
+                else if (result.status == OperationStatus.LoadingFailed)
+                {
+                    _messageService.ShowMessage(UI.msg_Failed_Loading_Secrets, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
+                }
+                else if (result.status == OperationStatus.StorageFailed)
+                {
+                    _messageService.ShowMessage($"{UI.msg_Failed_Saving_Changes}: {item.Platform}");
+                }
+
                 return await Task.FromResult(true);
             }
 

@@ -187,6 +187,42 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to load secrets.
+        /// </summary>
+        internal static string msg_Failed_Loading_Secrets {
+            get {
+                return ResourceManager.GetString("msg_Failed_Loading_Secrets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save changes.
+        /// </summary>
+        internal static string msg_Failed_Saving_Changes {
+            get {
+                return ResourceManager.GetString("msg_Failed_Saving_Changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save the secret.
+        /// </summary>
+        internal static string msg_Failed_Storage {
+            get {
+                return ResourceManager.GetString("msg_Failed_Storage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed updating secret.
+        /// </summary>
+        internal static string msg_Failed_Updating_Secret {
+            get {
+                return ResourceManager.GetString("msg_Failed_Updating_Secret", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to add secret: {0}.
         /// </summary>
         internal static string msg_FailedAddingSecret {

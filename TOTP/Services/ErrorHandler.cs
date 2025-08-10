@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
-using TOTP.Enums;
-using TOTP.Helper;
+using System.Windows.Forms;
 using TOTP.Interfaces;
 
 namespace TOTP.Services;
@@ -18,14 +17,14 @@ public class ErrorHandler : IErrorHandler
 
     public void Handle(Exception exception, string userMessage)
     {
-        // 1. Show user-friendly message
-        _msgSvc.ShowMessage(
-            $"{userMessage}\n\nDetails:\n{exception.Message}",
-            CaptionType.Error, StringsConstants.ImgError
-        );
-
-        // 2. Log details (optional)
-        LogException(exception);
+        try
+        {
+            _msgSvc.ShowErrorMessage($"{userMessage}\n\nDetails:\n{exception.Message}");
+        }
+        finally
+        {
+            LogException(exception);
+        }
     }
 
     private static void LogException(Exception ex)
@@ -35,9 +34,9 @@ public class ErrorHandler : IErrorHandler
             var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
             File.AppendAllText(logPath, $"[{DateTime.Now}] {ex}\n\n");
         }
-        catch
+        catch (Exception lex)
         {
-            // Swallow logging exceptions
+            MessageBox.Show(lex.Message);
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Moq;
 using Moq.AutoMock;
 using System.Diagnostics;
+using TOTP.Core;
+using TOTP.Enums;
 using TOTP.Interfaces;
 using TOTP.Models;
 using TOTP.ViewModels;
@@ -241,7 +243,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     {
         var secrets = new List<SecretItem>();
         var secretsManagerMock = new Mock<ISecretsManager>();
-        secretsManagerMock.Setup(m => m.GetAllSecretsAsync()).ReturnsAsync(secrets);
+        secretsManagerMock.Setup(m => m.GetAllSecretsAsync()).ReturnsAsync(new OperationResult<List<SecretItem>>(OperationStatus.Success, secrets));
         mocker.Use<ISecretsManager>(secretsManagerMock.Object);
     }
 

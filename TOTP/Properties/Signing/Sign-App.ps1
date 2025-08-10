@@ -1,4 +1,5 @@
 ﻿# Sign-App.ps1
+# signs totp.manager.exe during Release mode!
 
 $ErrorActionPreference = 'Stop'
 

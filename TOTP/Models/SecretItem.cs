@@ -12,13 +12,65 @@ namespace TOTP.Models;
 
 public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEditableObject, IDataErrorInfo
 {
+
+    #region Properties
     private Dictionary<string, object>? _storedValues;
+
+
+    private bool _isBeingEdited;
+
+    [JsonIgnore]
+    public bool IsBeingEdited
+    {
+        get => _isBeingEdited;
+        set
+        {
+            _isBeingEdited = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string? _platform;
+
+    public string? Platform
+    {
+        get => _platform;
+        set
+        {
+            if (_platform != value)
+            {
+                _platform = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private string? _secret = string.Empty;
+
+    public string? Secret
+    {
+        get => _secret;
+        set
+        {
+            if (_secret != value)
+            {
+                _secret = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string? Account { get; set; }
+
+    #endregion
+
 
     [JsonConstructor]
     public SecretItem(string platform, string secret)
     {
-        _platform = platform ?? throw new ArgumentNullException(nameof(platform));
-        Secret = secret ?? throw new ArgumentNullException(nameof(secret));
+        //_platform = platform;
+        Platform = platform;
+        Secret = secret;
     }
 
 
@@ -134,52 +186,5 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
 
     #endregion
 
-    #region Properties
 
-    private bool _isBeingEdited;
-
-    [JsonIgnore]
-    public bool IsBeingEdited
-    {
-        get => _isBeingEdited;
-        set
-        {
-            _isBeingEdited = value;
-            OnPropertyChanged();
-        }
-    }
-
-    private string _platform;
-
-    public string Platform
-    {
-        get => _platform;
-        set
-        {
-            if (_platform != value)
-            {
-                _platform = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    private string _secret = string.Empty;
-
-    public string Secret
-    {
-        get => _secret;
-        set
-        {
-            if (_secret != value)
-            {
-                _secret = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    public string? Account { get; set; }
-
-    #endregion
 }

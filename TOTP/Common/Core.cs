@@ -1,5 +1,5 @@
 ﻿using TOTP.Enums;
 
-namespace TOTP.Common;
+namespace TOTP.Core;
 
-public record Result(OperationResult status, bool success);
+public record OperationResult<T>(OperationStatus status, T value);

@@ -13,31 +13,31 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
 {
     public void ShowErrorMessage(string message)
     {
-        ShowMessage(message, CaptionType.Error, StringsConstants.ImgError);
+        ShowMessage(message, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
     }
     public void ShowInfoMessage(string message)
     {
-        ShowMessage(message, CaptionType.Info, StringsConstants.ImgInfo);
+        ShowMessage(message, CaptionType.Info, StringsConstants.ImgUrl.ImgInfo);
     }
 
     public void ShowWarningMessage(string message)
     {
-        ShowMessage(message, CaptionType.Warning, StringsConstants.ImgWarning);
+        ShowMessage(message, CaptionType.Warning, StringsConstants.ImgUrl.ImgWarning);
     }
 
     public bool ShowErrorMessageDialog(string message)
     {
-        return ShowMessageDialog(message, CaptionType.Error, StringsConstants.ImgError);
+        return ShowMessageDialog(message, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
     }
     public bool ShowInfoMessageDialog(string message)
     {
 
-        return ShowMessageDialog(message, CaptionType.Info, StringsConstants.ImgInfo);
+        return ShowMessageDialog(message, CaptionType.Info, StringsConstants.ImgUrl.ImgInfo);
     }
 
     public bool ShowWarningMessageDialog(string message)
     {
-        return ShowMessageDialog(message, CaptionType.Warning, StringsConstants.ImgWarning);
+        return ShowMessageDialog(message, CaptionType.Warning, StringsConstants.ImgUrl.ImgWarning);
     }
 
     public void ShowMessage(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
@@ -47,9 +47,9 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
 
         vm.IconPath = caption switch
         {
-            CaptionType.Error => StringsConstants.ImgError,
-            CaptionType.Warning => StringsConstants.ImgWarning,
-            CaptionType.Info => StringsConstants.ImgInfo,
+            CaptionType.Error => StringsConstants.ImgUrl.ImgError,
+            CaptionType.Warning => StringsConstants.ImgUrl.ImgWarning,
+            CaptionType.Info => StringsConstants.ImgUrl.ImgInfo,
             _ => string.Empty
         };
 

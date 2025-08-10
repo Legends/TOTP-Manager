@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Syncfusion.Licensing;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Threading;
@@ -77,8 +78,6 @@ public partial class App : Application, IDisposable
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
-
-
     }
 
 
@@ -103,13 +102,12 @@ public partial class App : Application, IDisposable
 
                 services.AddSingleton<ISecretsManager>(provider =>
                 {
-                    var messageService = provider.GetRequiredService<IMessageService>();
+                    var logger = provider.GetRequiredService<ILogger<SecretsManager>>();
                     var config = provider.GetRequiredService<IConfiguration>();
-
                     var rawPath = config.GetSection("Secrets:StorageFilePath").Value;
                     var resolvedPath = Environment.ExpandEnvironmentVariables(rawPath ?? "");
 
-                    return new SecretsManager(messageService, resolvedPath);
+                    return new SecretsManager(logger, resolvedPath);
                 });
 
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
@@ -133,18 +131,23 @@ public partial class App : Application, IDisposable
     }
 
 
-
-
     private void SetupUnhandledExceptionsHooks()
     {
+        System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level =
+            System.Diagnostics.SourceLevels.Error | System.Diagnostics.SourceLevels.Critical;
+
+        System.Diagnostics.Trace.Listeners.Add(new System.Diagnostics.ConsoleTraceListener());
+        //// Or implement a TraceListener that writes to Serilog:
+        //System.Diagnostics.Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
+
+
         DispatcherUnhandledException += (s, exArgs) =>
         {
             try
             {
                 var messageService = _host?.Services.GetService<IMessageService>();
                 messageService?.ShowErrorMessageDialog(
-                    "An unexpected error occurred in the UI.\n\nYou can continue using the application, but some features may not work correctly.");
-
+                    "An unexpected error occurred.\n\nYou can continue using the application, but some features may not work correctly.");
             }
             catch
             {
@@ -152,7 +155,9 @@ public partial class App : Application, IDisposable
                 MessageBox.Show(exArgs.Exception.Message, "UI Error");
             }
 
-            _logger?.LogError(exArgs.Exception, "Unhandled UI thread exception");
+            _logger?.LogCritical(exArgs.Exception, "Unhandled UI thread exception");
+
+            //Log.Error(exArgs.Exception, "Unhandled UI thread exception2");
             exArgs.Handled = true;
             //messageService ?.ShowWarningMessage();
         };
@@ -171,7 +176,7 @@ public partial class App : Application, IDisposable
                 MessageBox.Show("A fatal error occurred. The app will shut down!", "AppDomain Error");
             }
 
-            _logger?.LogError(exArgs.ExceptionObject as Exception, "Unhandled domain exception");
+            _logger?.LogCritical(exArgs.ExceptionObject as Exception, "Unhandled domain exception");
             Environment.Exit(1);
         };
 
@@ -189,7 +194,7 @@ public partial class App : Application, IDisposable
                 MessageBox.Show("A background task failed.", "Task Error");
             }
 
-            _logger?.LogError(exArgs.Exception, "Unobserved task exception");
+            _logger?.LogCritical(exArgs.Exception, "Unobserved task exception");
             exArgs.SetObserved();
         };
     }
@@ -246,6 +251,19 @@ public partial class App : Application, IDisposable
     public void Dispose()
     {
         var secretsManager = _host?.Services.GetService<ISecretsManager>();
-        secretsManager?.BackupSecretsFile();
+
+        try
+        {
+            secretsManager?.BackupSecretsFile();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[BackupManager] Failed to create backup for secret.dat: {ex}");
+
+            _logger?.LogError(ex, "Failed to create backup for secret.dat");
+            throw;
+        }
+
+
     }
 }

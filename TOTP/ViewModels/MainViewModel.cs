@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
+using TOTP.Enums;
 using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Models;
@@ -230,8 +231,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
         SupportedCultures =
         [
-            new(new CultureInfo("en"), StringsConstants.EnFlag),
-            new(new CultureInfo("de-DE"), StringsConstants.DeFlag),
+            new(new CultureInfo("en"), StringsConstants.ImgUrl.EnFlag),
+            new(new CultureInfo("de-DE"), StringsConstants.ImgUrl.DeFlag),
         ];
 
         var currentCulture = CultureInfo.CurrentUICulture;
@@ -340,13 +341,19 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         try
         {
             // Load secrets from file or other source
-            var allSecrets = await _secretsManager.GetAllSecretsAsync();
-            var secrets = allSecrets.Where(s => s.Platform != "syncfusion").ToList();
+            var result = await _secretsManager.GetAllSecretsAsync();
 
-            AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
+            if (result.status == OperationStatus.Success)
+            {
+                var allSecrets = result.value;
+                var secrets = allSecrets.Where(s => s.Platform != "syncfusion").ToList();
 
-            foreach (var secretItem in AllSecrets)
-                secretItem.PropertyChanged += SecretItem_PropertyChanged;
+                AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
+
+                foreach (var secretItem in AllSecrets)
+                    secretItem.PropertyChanged += SecretItem_PropertyChanged;
+            }
+
         }
         catch (Exception e)
         {

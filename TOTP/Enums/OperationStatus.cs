@@ -1,8 +1,14 @@
 ﻿namespace TOTP.Enums;
 
-public enum OperationResult
+public enum OperationStatus
 {
+    Unknown,
     NotFound,
-    Ok,
+    LoadingFailed,
+    DeleteFailed,
+    UpdateFailed,
+    CreateFailed,
+    StorageFailed,
+    Success,
     AlreadyExists
 }

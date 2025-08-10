@@ -17,10 +17,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove=".github\**" />
-	  <EmbeddedResource Remove=".github\**" />
-	  <None Remove=".github\**" />
-	  <Page Remove=".github\**" />
+		<Compile Remove=".github\**" />
+		<EmbeddedResource Remove=".github\**" />
+		<None Remove=".github\**" />
+		<Page Remove=".github\**" />
 	</ItemGroup>
 
 	<!--<ItemGroup>
@@ -44,7 +44,6 @@
 		<None Remove="Assets\Icons\Warning-Message.png" />
 		<None Remove="Assets\Icons\Warning-Shield.png" />
 		<None Remove="Assets\Icons\warning.png" />
-		<None Remove="Assets\Icons\Wrong.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -95,30 +94,30 @@
 		<Resource Include="Assets\flags\de.png" />
 		<Resource Include="Assets\flags\en.png" />
 		<Resource Include="Assets\Icons\delete-24x24.svg">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\Info.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
-		<Resource Include="Assets\Icons\Lock-Add.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<Resource Include="Assets\Icons\lock-Add.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\plus-24x24.svg">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\find-24x24.svg">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\app.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\Warning-Message.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\warning.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
-		<Resource Include="Assets\Icons\Wrong.png">
+		<Resource Include="Assets\Icons\Error.png">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 	</ItemGroup>
@@ -142,7 +141,7 @@
 		<SigningSucceeded>false</SigningSucceeded>
 	</PropertyGroup>
 
-	<Target Name="PostBuildSign" AfterTargets="Build">
+	<Target Name="PostBuildSign" AfterTargets="Build"  Condition="'$(Configuration)'=='Release'">
 		<Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;" StandardOutputImportance="High" StandardErrorImportance="High" IgnoreExitCode="false" />
 		<Message Text="🔥 PostBuildSign target invoked" Importance="High" />
 	</Target>

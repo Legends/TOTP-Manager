@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
 using TOTP.Enums;
@@ -40,7 +41,7 @@ public class TotpManagerIntegrationTests : IDisposable
             .Returns(true);
 
         // Real SecretsManager with test file
-        _secretsManager = new SecretsManager(_mocker.Get<IMessageService>(), _testPath);
+        _secretsManager = new SecretsManager(_mocker.Get<ILogger<SecretsManager>>(), _testPath);
         _mocker.Use<ISecretsManager>(_secretsManager);
 
         _mocker.GetMock<IPlatformSecretDialogService>().Setup(ips => ips.ShowForm()).Returns((true, _initialSecret.Platform, _initialSecret.Secret));
@@ -58,8 +59,8 @@ public class TotpManagerIntegrationTests : IDisposable
         Assert.NotNull(item);
 
         var secrets = await _secretsManager.GetAllSecretsAsync();
-        Assert.Single(secrets);
-        Assert.Equal(_initialSecret.Platform, secrets[0].Platform);
+        Assert.Single(secrets.value);
+        Assert.Equal(_initialSecret.Platform, secrets.value[0].Platform);
 
         // --- COMPUTE ---
         var codeResult = _totpManager.TryComputeCode(_initialSecret.Secret, out var code, out var error);
@@ -72,13 +73,14 @@ public class TotpManagerIntegrationTests : IDisposable
         await _totpManager.UpdateSecretAsync(_initialSecret, updated);
 
         var updatedSecrets = await _secretsManager.GetAllSecretsAsync();
-        Assert.Single(updatedSecrets);
-        Assert.Equal("MZXW6YTBOI======", updatedSecrets[0].Secret);
+        Assert.Single(updatedSecrets.value);
+        Assert.Equal("MZXW6YTBOI======", updatedSecrets.value[0].Secret);
 
         // --- DELETE ---
         var deleteResult = await _totpManager.DeleteSecretAsync(updated);
         Assert.True(deleteResult);
-        Assert.Empty(await _secretsManager.GetAllSecretsAsync());
+        var result = await _secretsManager.GetAllSecretsAsync();
+        Assert.Empty(result.value);
     }
 
     public void Dispose()

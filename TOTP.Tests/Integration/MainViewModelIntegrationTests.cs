@@ -51,11 +51,11 @@ public class MainViewModelIntegrationTests : IDisposable
 
         services.AddSingleton<ISecretsManager>(provider =>
         {
-            var messageService = new Mock<IMessageService>();// 
+            var logger = new Mock<ILogger<SecretsManager>>();
             // Use a temp or mock path for tests
             var testPath = Path.Combine(Path.GetTempPath(), "test-secrets.dat");
 
-            return new SecretsManager(messageService.Object, testPath);
+            return new SecretsManager(logger.Object, testPath);
         });
 
         var pltfDialogMock = new Mock<IPlatformSecretDialogService>();

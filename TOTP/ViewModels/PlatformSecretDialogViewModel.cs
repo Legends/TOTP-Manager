@@ -19,7 +19,7 @@ public class PlatformSecretDialogViewModel : INotifyPropertyChanged, IPlatformSe
     private string? _account;
     private string? _platform;
     private string? _secret;
-    private ImageSource? _icon = new BitmapImage(new Uri(StringsConstants.ImgLockAdd));
+    private ImageSource? _icon = new BitmapImage(new Uri(StringsConstants.ImgUrl.ImgLockAdd));
     private readonly IMessageService _messageService;
 
     public ICommand OkCommand { get; }
@@ -83,15 +83,24 @@ public class PlatformSecretDialogViewModel : INotifyPropertyChanged, IPlatformSe
 
     private void ExecuteOkCommand(object? parameter)
     {
-        var (isValid, error) = SecretsManager.IsValidSecretItem(new SecretItem(Platform!, Secret!));
-
-        if (!isValid)
+        try
         {
-            _messageService.ShowWarningMessage(error!);
-            return;
+            var (isValid, error) = SecretsManager.IsValidSecretItem(new SecretItem(Platform, Secret));
+
+            if (!isValid)
+            {
+                _messageService.ShowWarningMessage(error!);
+                return;
+            }
+
+            RequestClose?.Invoke(this, true);
+        }
+        catch (Exception e)
+        {
+            System.Windows.Forms.MessageBox.Show(e.Message);
+            throw;
         }
 
-        RequestClose?.Invoke(this, true);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

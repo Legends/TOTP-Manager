@@ -165,6 +165,18 @@
   <data name="msg_FailedReadingSecrets" xml:space="preserve">
     <value>Failed to load secrets: {0}</value>
   </data>
+  <data name="msg_Failed_Loading_Secrets" xml:space="preserve">
+    <value>Failed to load secrets</value>
+  </data>
+  <data name="msg_Failed_Saving_Changes" xml:space="preserve">
+    <value>Failed to save changes</value>
+  </data>
+  <data name="msg_Failed_Storage" xml:space="preserve">
+    <value>Failed to save the secret</value>
+  </data>
+  <data name="msg_Failed_Updating_Secret" xml:space="preserve">
+    <value>Failed updating secret</value>
+  </data>
   <data name="msg_PlatformNotFound_0" xml:space="preserve">
     <value>Platform '{0}' not found.</value>
   </data>
