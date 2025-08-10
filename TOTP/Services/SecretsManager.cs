@@ -42,7 +42,7 @@ public class SecretsManager : ISecretsManager, IDisposable
         try
         {
             var (success, list) = await LoadSecretsFromFileAsync();
-            return new OperationResult<List<SecretItem>>((success ? OperationStatus.Success : OperationStatus.Unknown), success ? list : []);
+            return new OperationResult<List<SecretItem>>((success ? OperationStatus.Success : OperationStatus.LoadingFailed), success ? list : []);
         }
         finally
         {
