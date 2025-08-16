@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using TOTP.Enums;
+using TOTP.Events;
 using TOTP.Models;
 
 namespace TOTP.Interfaces;
@@ -23,4 +26,13 @@ public interface ITotpManager
     /// <param name="item">SecretItem</param>
     /// <returns>true/false</returns>
     Task<bool> DeleteSecretAsync(SecretItem item);
+
+    /// <summary>
+    /// Called when a message needs to be displayed
+    /// </summary>
+    event Action<object, OperationStatus, string?> OnMessageSend;
+
+    event Func<object?, AddNewPromptArgs> OnAddNewPrompt;
+
+    event Func<object?, string, bool> ConfirmDeleteRequested;
 }

@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
 using TOTP.Enums;
+using TOTP.Events;
 using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Models;
@@ -22,13 +23,13 @@ using TOTP.Services;
 
 namespace TOTP.ViewModels;
 
-public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizable
+public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocalizable
 {
     #region ### PROPERTIES AND VARS ###
 
     private CultureDisplay _selectedCulture;
     private readonly ILogger<MainViewModel> _logger;
-
+    private readonly IPlatformSecretDialogService _platformSecretDialogService;
     public ObservableCollection<CultureDisplay> SupportedCultures { get; }
 
     public CultureDisplay SelectedCulture
@@ -206,9 +207,10 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     #region ### Constructor ###
 
     public MainViewModel(
+        IPlatformSecretDialogService platformSecretDialogService,
         ILogger<MainViewModel> logger,
         IQrCodeService svcQr,
-        IMessageService msgService,
+        IMessageService messageService,
         IClipboardService clipboard,
         IConfiguration config,
         ITotpManager totpManager,
@@ -216,18 +218,22 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         IDelayService delayService,
         ISecretsManager secretsManager) // NEW
     {
+        _platformSecretDialogService = platformSecretDialogService;
         _secretsManager = secretsManager;
         _logger = logger;
         _qrService = svcQr;
         _delayService = delayService;
-        _msgService = msgService;
+        _messageService = messageService;
         _debounceService = debounceService;
         _clipboard = clipboard;
         _totpManager = totpManager;
 
-        SetupCommandEventhandler();
+        _totpManager.OnMessageSend += _totpManager_OnMessageSend;
+        _totpManager.OnAddNewPrompt += _totpManager_OnAddNewPrompt;
+        _totpManager.ConfirmDeleteRequested += _totpManager_OnDeletePrompt;
 
-        LocalizationService.LanguageChanged += RefreshLocalization;
+
+        SetupCommandEventhandler();
 
         SupportedCultures =
         [
@@ -240,6 +246,53 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         var selCulture = SupportedCultures.FirstOrDefault(c => c.Culture.Name == currentCulture.Name)
                            ?? SupportedCultures.First();
         SelectedCulture = selCulture;
+    }
+
+
+    private bool _totpManager_OnDeletePrompt(object? sender, string platform)
+    {
+        return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
+    }
+
+    private AddNewPromptArgs _totpManager_OnAddNewPrompt(object? sender)
+    {
+        var (success, key, value) = _platformSecretDialogService.ShowForm();
+        return new AddNewPromptArgs() { Success = success, Key = key, Value = value };
+    }
+
+    private void _totpManager_OnMessageSend(object sender, OperationStatus arg1, string? arg2)
+    {
+        switch (arg1)
+        {
+            case OperationStatus.Unknown:
+                _messageService.ShowErrorMessage(arg2 ?? "An unknow error has occured");
+                break;
+            case OperationStatus.NotFound:
+                _messageService.ShowErrorMessage($"{UI.msg_Platform_Not_Found}: {arg2}");
+                break;
+            case OperationStatus.LoadingFailed:
+                _messageService.ShowErrorMessage(UI.msg_Failed_Loading_Secrets);
+                break;
+            case OperationStatus.DeleteFailed:
+                break;
+            case OperationStatus.UpdateFailed:
+                _messageService.ShowErrorMessage($"{UI.msg_Failed_Updating_Secret} : {arg2}");
+                break;
+            case OperationStatus.CreateFailed:
+                _messageService.ShowErrorMessage(string.Format(UI.msg_FailedAddingSecret, arg2 ?? ""));
+                break;
+            case OperationStatus.StorageFailed:
+                _messageService.ShowErrorMessage($"{UI.msg_Failed_Storage}: {arg2 ?? ""}");
+                break;
+            case OperationStatus.Success:
+                _messageService.ShowInfoMessage($"{UI.msg_SecretUpdated}: {arg2}");
+                break;
+            case OperationStatus.AlreadyExists:
+                _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, arg2));
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(arg1), arg1, null);
+        }
     }
 
     public async Task InitializeAsync()
@@ -322,7 +375,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     private readonly ISecretsManager _secretsManager;
     private readonly IClipboardService _clipboard;
-    private readonly IMessageService _msgService;
+    private readonly IMessageService _messageService;
     private readonly ITotpManager _totpManager;
 
     private readonly IDebounceService _debounceService;
@@ -366,7 +419,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     #endregion
 
     #region ### CREATE NEW SECRET ###
-    private async Task AddNewSecretAsync()
+    public async Task AddNewSecretAsync()
     {
         try
         {
@@ -382,7 +435,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_Adding_New_TOTP);
-            _msgService.ShowErrorMessage(UI.ex_Adding_New_TOTP + ": " + ex.Message);
+            _messageService.ShowErrorMessage(UI.ex_Adding_New_TOTP + ": " + ex.Message);
         }
     }
     #endregion
@@ -404,7 +457,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_DeletingSecret);
-            _msgService.ShowErrorMessage(string.Format(UI.ex_DeletingSecret_0, ex.Message));
+            _messageService.ShowErrorMessage(string.Format(UI.ex_DeletingSecret_0, ex.Message));
         }
     }
 
@@ -437,7 +490,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_UpdatingSecret);
-            _msgService.ShowErrorMessageDialog(string.Format(UI.ex_UpdatingSecret_0, ex.Message));
+            _messageService.ShowErrorMessageDialog(string.Format(UI.ex_UpdatingSecret_0, ex.Message));
         }
     }
 
@@ -461,7 +514,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
             if (!isValid)
             {
-                _msgService.ShowInfoMessage(error!);
+                _messageService.ShowInfoMessage(error!);
                 return;
             }
             else
@@ -479,6 +532,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
 
     private bool _isDoubleClick;
 
+
     public async Task OnSelectionChangedAsync()
     {
         var currentKey = SelectedSecret.Platform;
@@ -493,7 +547,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         catch (Exception e)
         {
             _logger.LogError(e, UI.ex_Selecting_Secret);
-            _msgService.ShowErrorMessage(UI.ex_Selecting_Secret + ": " + e.Message);
+            _messageService.ShowErrorMessage(UI.ex_Selecting_Secret + ": " + e.Message);
         }
         finally
         {
@@ -543,7 +597,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
             {
                 _logger.LogError(ex, UI.ex_Error_Generating_TOTP);
                 // This is still here because it's specific to TOTP encoding
-                _msgService.ShowErrorMessage(UI.ex_Error_Generating_TOTP + ": " + ex.Message);
+                _messageService.ShowErrorMessage(UI.ex_Error_Generating_TOTP + ": " + ex.Message);
             }
     }
 
@@ -591,7 +645,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         }
         else
         {
-            _msgService.ShowErrorMessage(string.Format(UI.ex_Error_Generating_TOTP_0_0, secret.Platform, error));
+            _messageService.ShowErrorMessage(string.Format(UI.ex_Error_Generating_TOTP_0_0, secret.Platform, error));
             await Task.FromResult(error);
         }
     }
@@ -609,7 +663,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_Filtering_Secrets);
-            _msgService.ShowErrorMessage(UI.ex_Filtering_Secrets + ": " + ex.Message);
+            _messageService.ShowErrorMessage(UI.ex_Filtering_Secrets + ": " + ex.Message);
         }
     }
 
@@ -625,21 +679,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged, ILocalizabl
     }
 
     public string DeleteLabel => TOTP.Resources.UI.ui_btnDelete;
-
-    public void RefreshLocalization()
-    {
-
-    }
-
-    public void UpdateSecret(SecretItem updated)
-    {
-        throw new NotImplementedException();
-    }
-
-    ~MainViewModel()
-    {
-        LocalizationService.LanguageChanged -= RefreshLocalization;
-    }
 
     #endregion
 }

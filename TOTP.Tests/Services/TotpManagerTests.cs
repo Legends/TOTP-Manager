@@ -60,7 +60,7 @@ public class TotpManagerTests
         var errorHandler = _fixture.Freeze<Mock<IErrorHandler>>();
 
         var manager = new TotpManager(
-            dialog.Object,
+            //dialog.Object,
             messageSvc.Object,
             secretsHelper.Object,
             errorHandler.Object

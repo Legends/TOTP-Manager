@@ -67,6 +67,7 @@ public class MainViewModelIntegrationTests : IDisposable
 
         // Resolve dependencies
         var vm = new MainViewModel(
+            provider.GetRequiredService<IPlatformSecretDialogService>(),
             provider.GetRequiredService<ILogger<MainViewModel>>(),
             provider.GetRequiredService<IQrCodeService>(),
             provider.GetRequiredService<IMessageService>(),

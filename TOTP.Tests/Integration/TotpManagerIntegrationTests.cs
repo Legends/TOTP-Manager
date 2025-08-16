@@ -2,9 +2,11 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
 using TOTP.Enums;
+using TOTP.Events;
 using TOTP.Interfaces;
 using TOTP.Models;
 using TOTP.Services;
+using TOTP.ViewModels;
 
 namespace TOTP.Tests.Integration;
 
@@ -14,6 +16,7 @@ public class TotpManagerIntegrationTests : IDisposable
     private readonly AutoMocker _mocker;
     private readonly SecretsManager _secretsManager;
     private readonly TotpManager _totpManager;
+    private readonly IMainViewModel _vm;
 
     private readonly SecretItem _initialSecret = new("GitHub", "JBSWY3DPEHPK3PXP");
 
@@ -48,12 +51,24 @@ public class TotpManagerIntegrationTests : IDisposable
 
         // Create real TotpManager
         _totpManager = _mocker.CreateInstance<TotpManager>();
+        _vm = _mocker.CreateInstance<MainViewModel>();
     }
 
     [Fact]
     public async Task Add_Compute_Update_Delete_Secret_ShouldSucceed()
     {
-        // --- ADD ---
+        //// --- ADD ---
+
+        _totpManager.OnAddNewPrompt += (sender) =>
+        {
+            return new AddNewPromptArgs
+            {
+                Success = true,
+                Key = _initialSecret.Platform,
+                Value = _initialSecret.Secret
+            };
+        };
+
         var (success, item) = await _totpManager.AddNewSecretAsync();
         Assert.True(success);
         Assert.NotNull(item);
@@ -77,11 +92,19 @@ public class TotpManagerIntegrationTests : IDisposable
         Assert.Equal("MZXW6YTBOI======", updatedSecrets.value[0].Secret);
 
         // --- DELETE ---
+        _totpManager.ConfirmDeleteRequested += (arg1, arg2) =>
+            {
+                return true;
+            }
+        ;
         var deleteResult = await _totpManager.DeleteSecretAsync(updated);
         Assert.True(deleteResult);
         var result = await _secretsManager.GetAllSecretsAsync();
         Assert.Empty(result.value);
+
+
     }
+
 
     public void Dispose()
     {
