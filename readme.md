@@ -31,7 +31,7 @@ Powered by:
 - **Add new platform** - click on plus symbol
 - **Generate TOTP** – click on row
 - **Edit** – double-click a field  
-- **Delete** – right-click a row **Delete**  
+- **Delete** – right-click a row
 
 ## Setup
 

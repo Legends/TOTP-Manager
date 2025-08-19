@@ -27,5 +27,6 @@ namespace TOTP.Helper
         //public const string EnFlag = "pack://application:,,,/TOTP.Manager;component/Assets/flags/en.png";
 
         public static string AppSettingsJsonFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+        public static string Syncfusion = "syncfusion";
     }
 }

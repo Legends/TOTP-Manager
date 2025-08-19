@@ -54,14 +54,10 @@ public class TotpManagerTests
     public void TryComputeCode_ShouldReturnFalse_WhenInvalidBase32()
     {
         // Arrange
-        var dialog = _fixture.Freeze<Mock<IPlatformSecretDialogService>>();
-        var messageSvc = _fixture.Freeze<Mock<IMessageService>>();
         var secretsHelper = _fixture.Freeze<Mock<ISecretsManager>>();
         var errorHandler = _fixture.Freeze<Mock<IErrorHandler>>();
 
         var manager = new TotpManager(
-            //dialog.Object,
-            messageSvc.Object,
             secretsHelper.Object,
             errorHandler.Object
         );

@@ -399,7 +399,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             if (result.status == OperationStatus.Success)
             {
                 var allSecrets = result.value;
-                var secrets = allSecrets.Where(s => s.Platform != "syncfusion").ToList();
+                var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).ToList();
 
                 AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
 

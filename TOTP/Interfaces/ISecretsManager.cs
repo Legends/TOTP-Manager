@@ -13,14 +13,14 @@ public interface ISecretsManager
     /// Retrieves all secret items from local storage file.
     /// </summary>
     /// <returns>Success | LoadingFailed</returns>
-    Task<OperationResult<List<SecretItem>>> GetAllSecretsAsync();
+    Task<Result<List<SecretItem>>> GetAllSecretsAsync();
 
     /// <summary>
     /// Adds a new secret to the internal collection and writes it to the encrypted secrets file.
     /// </summary>
     /// <param name="item"></param>
     /// <returns>Success | AlreadyExist | LoadingFailed | StorageFailed</returns>
-    Task<OperationResult<bool>> AddNewItemAsync(SecretItem item);
+    Task<Result<bool>> AddNewItemAsync(SecretItem item);
     //Task<bool> AddNewItemAsync(SecretItem item);
 
     /// <summary>
@@ -29,14 +29,14 @@ public interface ISecretsManager
     /// <param name="previousPlatform"></param>
     /// <param name="updated"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<OperationResult<bool>> UpdateItemAsync(string previousPlatform, SecretItem updated);
+    Task<Result<bool>> UpdateItemAsync(string previousPlatform, SecretItem updated);
 
     /// <summary>
     /// Deletes a secret item from the internal collection and writes the updated collection to the encrypted secrets file.
     /// </summary>
     /// <param name="platform"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<OperationResult<bool>> DeleteItemAsync(string platform);
+    Task<Result<bool>> DeleteItemAsync(string platform);
 
     /// <summary>
     /// Creates a backup of the current secrets .dat file.

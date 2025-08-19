@@ -2,14 +2,13 @@
 using Moq.AutoMock;
 using System.Diagnostics;
 using TOTP.Core;
-using TOTP.Enums;
 using TOTP.Interfaces;
 using TOTP.Models;
 using TOTP.ViewModels;
 
 namespace TOTP.Tests.ViewModels;
 
-public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
+public class MainViewModelTests : IClassFixture<MyFixture>
 {
     private readonly MyFixture _fixture;
 
@@ -154,9 +153,6 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
         vm.DoubleClickCommand.Execute(secret);
 
         Assert.True(secret.IsBeingEdited);
-
-        //vm.DoubleClickCommand.Execute(secret);
-        //Assert.False(secret.IsBeingEdited);
     }
 
     [Fact]
@@ -222,15 +218,6 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
 
         vm.SelectedSecret = secret;
 
-        //var method = vm.GetType().GetMethod("OnSecretSelectedAsync", BindingFlags.NonPublic | BindingFlags.Instance)
-        //             ?? throw new InvalidOperationException("OnSecretSelectedAsync method not found.");
-
-        //var result = method.Invoke(vm, null);
-        //if (result is not Task task)
-        //    throw new InvalidOperationException("OnSecretSelectedAsync did not return a Task.");
-
-        //await task;
-
         await vm.OnSecretSelectedAsync();
 
         delayMock.Verify(d => d.Delay(It.IsAny<int>()), Times.Once);
@@ -243,13 +230,9 @@ public class MainViewModelTests : IClassFixture<MyFixture>, IDisposable
     {
         var secrets = new List<SecretItem>();
         var secretsManagerMock = new Mock<ISecretsManager>();
-        secretsManagerMock.Setup(m => m.GetAllSecretsAsync()).ReturnsAsync(new OperationResult<List<SecretItem>>(OperationStatus.Success, secrets));
+        secretsManagerMock.Setup(m => m.GetAllSecretsAsync()).ReturnsAsync(Result<List<SecretItem>>.Success(secrets));
         mocker.Use<ISecretsManager>(secretsManagerMock.Object);
     }
 
-    public void Dispose()
-    {
-        Debug.WriteLine("Dispose is: This method is called after each test");
-        GC.SuppressFinalize(this);
-    }
+
 }

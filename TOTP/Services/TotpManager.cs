@@ -13,17 +13,12 @@ public class TotpManager : ITotpManager
 {
     private readonly IPlatformSecretDialogService _platformSecretDialogService;
     private readonly IErrorHandler _errorHandler;
-    private readonly IMessageService _messageService;
     private readonly ISecretsManager _secretsManager;
 
     public TotpManager(
-        //IPlatformSecretDialogService platformSecretDialogService,
-        IMessageService messageService,
         ISecretsManager secretsManager,
         IErrorHandler errorHandler)
     {
-        //_platformSecretDialogService = platformSecretDialogService;
-        //_messageService = messageService;
         _secretsManager = secretsManager;
         _errorHandler = errorHandler;
     }
@@ -146,9 +141,6 @@ public class TotpManager : ITotpManager
     /// <returns>true/false</returns>
     public async Task<bool> DeleteSecretAsync(SecretItem item)
     {
-        //try
-        //{
-
         var shouldDelete = ConfirmDeleteRequested?.Invoke(this, item.Platform) ?? false;
 
         if (shouldDelete)
@@ -173,11 +165,4 @@ public class TotpManager : ITotpManager
 
         return false;
     }
-    //catch (Exception ex)
-    //{
-    //    _errorHandler.Handle(ex, UI.ex_DeletingSecret);
-    //    return await Task.FromResult(false);
-    //}
-
-
 }

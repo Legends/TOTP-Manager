@@ -35,14 +35,16 @@ public class SecretsManager : ISecretsManager, IDisposable
             "TOTP-Manager", "secrets.dat");
     }
 
-    public async Task<OperationResult<List<SecretItem>>> GetAllSecretsAsync()
+    public async Task<Result<List<SecretItem>>> GetAllSecretsAsync()
     {
 
         await _semaphore.WaitAsync();
         try
         {
             var (success, list) = await LoadSecretsFromFileAsync();
-            return new OperationResult<List<SecretItem>>((success ? OperationStatus.Success : OperationStatus.LoadingFailed), success ? list : []);
+            return success ?
+                Result<List<SecretItem>>.Success(list)
+                : Result<List<SecretItem>>.Fail(OperationStatus.LoadingFailed);
         }
         finally
         {
@@ -50,24 +52,22 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
     }
 
-    public async Task<OperationResult<bool>> AddNewItemAsync(SecretItem newItem)
+    public async Task<Result<bool>> AddNewItemAsync(SecretItem newItem)
     {
         await _semaphore.WaitAsync();
         try
         {
             var (success, list) = await LoadSecretsFromFileAsync();
-            if (!success) return new OperationResult<bool>(OperationStatus.LoadingFailed, false);
+            if (!success) return Result<bool>.Fail(OperationStatus.LoadingFailed);
 
             if (list.Any(x => x.Platform == newItem.Platform))
             {
-
-                return new OperationResult<bool>(OperationStatus.AlreadyExists, false); ;
+                return Result<bool>.Fail(OperationStatus.AlreadyExists);
             }
 
-            //BackupSecretsFile();
             list.Add(newItem);
             var result = await WriteEncryptedFileAsync(list);
-            return new OperationResult<bool>(result ? OperationStatus.Success : OperationStatus.StorageFailed, result);
+            return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
         }
         finally
         {
@@ -75,26 +75,25 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
     }
 
-    public async Task<OperationResult<bool>> DeleteItemAsync(string platform)
+    public async Task<Result<bool>> DeleteItemAsync(string platform)
     {
         await _semaphore.WaitAsync();
         try
         {
             var (success, secrets) = await LoadSecretsFromFileAsync();
             if (!success)
-                return new(OperationStatus.LoadingFailed, false);
+                return Result<bool>.Fail(OperationStatus.LoadingFailed);
 
             var item = secrets.FirstOrDefault(x => x.Platform == platform);
             if (item is null)
             {
-                return new(OperationStatus.NotFound, false);
+                return Result<bool>.Fail(OperationStatus.NotFound);
             }
 
-            //BackupSecretsFile();
             secrets.Remove(item);
 
             var result = await WriteEncryptedFileAsync(secrets);
-            return new OperationResult<bool>(result ? OperationStatus.Success : OperationStatus.StorageFailed, result);
+            return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
         }
         finally
         {
@@ -103,7 +102,7 @@ public class SecretsManager : ISecretsManager, IDisposable
     }
 
 
-    public async Task<OperationResult<bool>> UpdateItemAsync(string previousPlatform, SecretItem updated)
+    public async Task<Result<bool>> UpdateItemAsync(string previousPlatform, SecretItem updated)
     {
         await _semaphore.WaitAsync();
         try
@@ -114,14 +113,14 @@ public class SecretsManager : ISecretsManager, IDisposable
             var existing = list.FirstOrDefault(x => x.Platform == previousPlatform);
             if (existing == null)
             {
-                return new(OperationStatus.NotFound, false);
+                return Result<bool>.Fail(OperationStatus.NotFound);
             }
 
-            //BackupSecretsFile();
+
             list.Remove(existing);
             list.Add(updated);
             var result = await WriteEncryptedFileAsync(list);
-            return new OperationResult<bool>(result ? OperationStatus.Success : OperationStatus.StorageFailed, result);
+            return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
         }
         finally
         {
@@ -152,7 +151,6 @@ public class SecretsManager : ISecretsManager, IDisposable
         var firstBackup = Path.Combine(dir, $"{file}.bak1");
         File.Copy(_secretsPath, firstBackup, true);
 
-        //Debug.WriteLine($"Backup created: {firstBackup}");
         return true;
 
     }
@@ -174,7 +172,7 @@ public class SecretsManager : ISecretsManager, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, nameof(LoadSecretsFromFileAsync));
-            //_messageService.ShowMessage(string.Format(UI.msg_FailedReadingSecrets, ex.Message), CaptionType.Error, StringsConstants.ImgError);
+
             return (false, default!);
         }
     }
@@ -192,7 +190,6 @@ public class SecretsManager : ISecretsManager, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, nameof(WriteEncryptedFileAsync));
-            //_messageService.ShowMessage($"Failed to save secrets: {ex.Message}", CaptionType.Error, StringsConstants.ImgError);
             return false;
         }
     }
