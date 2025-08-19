@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace TOTP.Models
+namespace TOTP.Core.Models
 {
     public class CultureDisplay
     {

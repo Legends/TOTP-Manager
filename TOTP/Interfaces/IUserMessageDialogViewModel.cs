@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using TOTP.Enums;
+using TOTP.Core.Enums;
 using TOTP.Events;
 
 namespace TOTP.Interfaces

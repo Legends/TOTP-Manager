@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using TOTP.Enums;
+using TOTP.Core.Enums;
 using TOTP.Events;
-using TOTP.Models;
+using TOTP.ViewModels;
 
 namespace TOTP.Interfaces;
 
@@ -16,16 +16,16 @@ public interface ITotpManager
     /// It writes the new item to the secrets file and returns the item if successful.
     /// </summary>
     /// <returns></returns>
-    Task<(bool success, SecretItem? item)> AddNewSecretAsync();
+    Task<(bool success, SecretItemViewModel? item)> AddNewSecretAsync();
 
-    Task UpdateSecretAsync(SecretItem previous, SecretItem updated);
+    Task UpdateSecretAsync(SecretItemViewModel previous, SecretItemViewModel updated);
 
     /// <summary>
     ///     Deletes a secret item from the secrets.json file.
     /// </summary>
     /// <param name="item">SecretItem</param>
     /// <returns>true/false</returns>
-    Task<bool> DeleteSecretAsync(SecretItem item);
+    Task<bool> DeleteSecretAsync(SecretItemViewModel item);
 
     /// <summary>
     /// Called when a message needs to be displayed

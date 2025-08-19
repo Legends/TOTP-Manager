@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
+using TOTP.Helper;
 
 namespace TOTP.Logging;
 
@@ -9,7 +10,7 @@ public static class LoggingConfigurator
     public static void SetupEarlyLogger()
     {
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.Async(a => a.File("Logs/app-root-start.log"))
+            .WriteTo.Async(a => a.File(StringsConstants.RootLogPath))
             .CreateLogger();
     }
 
@@ -21,6 +22,6 @@ public static class LoggingConfigurator
             .ReadFrom.Services(services)
             .Enrich.FromLogContext()
             .WriteTo.Console()
-            .WriteTo.Async(a => a.File("Logs/app.log", rollingInterval: RollingInterval.Day));
+            .WriteTo.Async(a => a.File(StringsConstants.AppLogPath, rollingInterval: RollingInterval.Day));
     }
 }

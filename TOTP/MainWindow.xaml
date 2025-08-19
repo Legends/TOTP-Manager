@@ -13,7 +13,6 @@
                              xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
                              xmlns:resx="clr-namespace:TOTP.Resources"
                              xmlns:xaml="clr-namespace:TOTP.Xaml"
-                             xmlns:models="clr-namespace:TOTP.Models"
                              mc:Ignorable="d"
                              Width="350"
                              SizeToContent="Height"

@@ -1,11 +1,11 @@
 ﻿using OtpNet;
 using System;
 using System.Threading.Tasks;
-using TOTP.Enums;
+using TOTP.Core.Enums;
 using TOTP.Events;
 using TOTP.Interfaces;
-using TOTP.Models;
 using TOTP.Resources;
+using TOTP.ViewModels;
 
 namespace TOTP.Services;
 
@@ -28,7 +28,7 @@ public class TotpManager : ITotpManager
     public event Func<object?, string, bool>? ConfirmDeleteRequested;
 
 
-    public async Task<(bool success, SecretItem? item)> AddNewSecretAsync()
+    public async Task<(bool success, SecretItemViewModel? item)> AddNewSecretAsync()
     {
         try
         {
@@ -40,7 +40,7 @@ public class TotpManager : ITotpManager
                 if (!promptResult!.Success)
                     return (false, null);
 
-                var secretItem = new SecretItem(promptResult.Key!, promptResult.Value!);
+                var secretItem = new SecretItemViewModel(promptResult.Key!, promptResult.Value!);
                 var result = await _secretsManager.AddNewItemAsync(secretItem);
 
                 if (result.status == OperationStatus.Success)
@@ -94,7 +94,7 @@ public class TotpManager : ITotpManager
         }
     }
 
-    public async Task UpdateSecretAsync(SecretItem previous, SecretItem updated)
+    public async Task UpdateSecretAsync(SecretItemViewModel previous, SecretItemViewModel updated)
     {
         //try
         //{
@@ -139,7 +139,7 @@ public class TotpManager : ITotpManager
     /// </summary>
     /// <param name="item">SecretItem</param>
     /// <returns>true/false</returns>
-    public async Task<bool> DeleteSecretAsync(SecretItem item)
+    public async Task<bool> DeleteSecretAsync(SecretItemViewModel item)
     {
         var shouldDelete = ConfirmDeleteRequested?.Invoke(this, item.Platform) ?? false;
 

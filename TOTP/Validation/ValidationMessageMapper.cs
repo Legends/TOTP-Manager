@@ -1,0 +1,17 @@
+﻿using TOTP.Core.Enums;
+using TOTP.Resources;
+
+namespace TOTP.Validation
+{
+    public static class ValidationMessageMapper
+    {
+        public static string ToMessage(ValidationError error) => error switch
+        {
+            ValidationError.None => string.Empty,
+            ValidationError.PlatformRequired => UI.msg_PlatformRequired,
+            ValidationError.SecretRequired => UI.msg_SecretRequired,
+            ValidationError.SecretInvalidFormat => UI.msg_SecretInvalidFormat,
+            _ => string.Empty
+        };
+    }
+}

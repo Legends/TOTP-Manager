@@ -5,7 +5,6 @@ using Moq;
 using Serilog;
 using Serilog.Extensions.Logging;
 using TOTP.Interfaces;
-using TOTP.Models;
 using TOTP.Services;
 using TOTP.ViewModels;
 
@@ -43,7 +42,7 @@ public class MainViewModelIntegrationTests : IDisposable
         services.AddTransient<IUserMessageDialogViewModel>(sp => umdVM.Object);
 
         // Mock only TotpManager
-        var secretItem = new SecretItem("MyKey", "MySecret");
+        var secretItem = new SecretItemViewModel("MyKey", "MySecret");
         var totpManagerMock = new Mock<ITotpManager>();
         totpManagerMock.Setup(m => m.AddNewSecretAsync())
             .ReturnsAsync((true, secretItem));

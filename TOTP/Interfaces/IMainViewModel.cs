@@ -1,13 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using TOTP.Models;
+using TOTP.ViewModels;
 
 namespace TOTP.Interfaces;
 
 public interface IMainViewModel : INotifyPropertyChanged
 {
-    ObservableCollection<SecretItem> AllSecrets { get; }
+    ObservableCollection<SecretItemViewModel> AllSecrets { get; }
     //ICommand AddNewSecretCommand { get; }
     //ICommand DeleteSecretCommand { get; }
     //ICommand UpdateSecretCommand { get; }
@@ -15,7 +15,7 @@ public interface IMainViewModel : INotifyPropertyChanged
     //ICommand EndEditCommand { get; }
     //ICommand DoubleClickCommand { get; }
     Task AddNewSecretAsync();
-    SecretItem SelectedSecret { get; set; }
+    SecretItemViewModel SelectedSecret { get; set; }
     //bool ShowActionsColumn { get; }
     //string? CurrentCodeLabel { get; }
     //bool IsCodeCopiedVisible { get; }

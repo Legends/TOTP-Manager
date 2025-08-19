@@ -1,10 +1,9 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
-using TOTP.Enums;
+using TOTP.Core.Enums;
 using TOTP.Events;
 using TOTP.Interfaces;
-using TOTP.Models;
 using TOTP.Services;
 using TOTP.ViewModels;
 
@@ -18,7 +17,7 @@ public class TotpManagerIntegrationTests : IDisposable
     private readonly TotpManager _totpManager;
     private readonly IMainViewModel _vm;
 
-    private readonly SecretItem _initialSecret = new("GitHub", "JBSWY3DPEHPK3PXP");
+    private readonly SecretItemViewModel _initialSecret = new("GitHub", "JBSWY3DPEHPK3PXP");
 
     public TotpManagerIntegrationTests()
     {
@@ -84,7 +83,7 @@ public class TotpManagerIntegrationTests : IDisposable
         Assert.Null(error);
 
         // --- UPDATE ---
-        var updated = new SecretItem(_initialSecret.Platform, "MZXW6YTBOI======");
+        var updated = new SecretItemViewModel(_initialSecret.Platform, "MZXW6YTBOI======");
         await _totpManager.UpdateSecretAsync(_initialSecret, updated);
 
         var updatedSecrets = await _secretsManager.GetAllSecretsAsync();

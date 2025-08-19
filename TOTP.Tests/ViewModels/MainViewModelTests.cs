@@ -2,8 +2,8 @@
 using Moq.AutoMock;
 using System.Diagnostics;
 using TOTP.Core;
+using TOTP.Core.Common;
 using TOTP.Interfaces;
-using TOTP.Models;
 using TOTP.ViewModels;
 
 namespace TOTP.Tests.ViewModels;
@@ -24,7 +24,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         var mocker = new AutoMocker();
         SetupSecretsDataSourceMock(mocker);
 
-        var secretItem = new SecretItem("TestKey", "TestValue");
+        var secretItem = new SecretItemViewModel("TestKey", "TestValue");
 
         mocker.GetMock<ITotpManager>()
             .Setup(m => m.AddNewSecretAsync())
@@ -47,7 +47,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
 
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        var secret = new SecretItem("DeleteKey", "DeleteValue");
+        var secret = new SecretItemViewModel("DeleteKey", "DeleteValue");
         mocker.GetMock<ITotpManager>().Setup(m => m.DeleteSecretAsync(secret)).Returns(Task.FromResult(true));
 
         vm.AllSecrets.Add(secret);
@@ -66,8 +66,8 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        vm.AllSecrets.Add(new SecretItem("apple", "value1"));
-        vm.AllSecrets.Add(new SecretItem("banana", "value2"));
+        vm.AllSecrets.Add(new SecretItemViewModel("apple", "value1"));
+        vm.AllSecrets.Add(new SecretItemViewModel("banana", "value2"));
 
         vm.SearchText = "apple";
         vm.UpdateSearchFilter(); // made method internal and set [assembly:InternalsVisibleTo(..) in TOTP.csproj asemblyinfo.cs
@@ -101,7 +101,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        var secret = new SecretItem("key", "value");
+        var secret = new SecretItemViewModel("key", "value");
         vm.AllSecrets.Add(secret);
 
         vm.BeginEditCommand.Execute(secret);
@@ -116,8 +116,8 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        var oldSecret = new SecretItem("key", "old");
-        var updatedSecret = new SecretItem("key", "new");
+        var oldSecret = new SecretItemViewModel("key", "old");
+        var updatedSecret = new SecretItemViewModel("key", "new");
         vm.AllSecrets.Add(updatedSecret);
         vm.PreviousVersion = oldSecret;
 
@@ -147,7 +147,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        var secret = new SecretItem("key", "value");
+        var secret = new SecretItemViewModel("key", "value");
         vm.AllSecrets.Add(secret);
 
         vm.DoubleClickCommand.Execute(secret);
@@ -162,8 +162,8 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        var old = new SecretItem("p1", "old");
-        var updated = new SecretItem("p1", "new");
+        var old = new SecretItemViewModel("p1", "old");
+        var updated = new SecretItemViewModel("p1", "new");
 
         vm.PreviousVersion = old;
         vm.UpdateSecretCommand.Execute(updated);
@@ -193,7 +193,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
     [Fact]
     public async Task OnSecretSelected_ShouldGenerateTotp_AndCopyToClipboard()
     {
-        var secret = new SecretItem("TestPlatform", "JBSWY3DPEHPK3PXP");
+        var secret = new SecretItemViewModel("TestPlatform", "JBSWY3DPEHPK3PXP");
         var mocker = new AutoMocker();
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
@@ -228,9 +228,9 @@ public class MainViewModelTests : IClassFixture<MyFixture>
 
     private static void SetupSecretsDataSourceMock(AutoMocker mocker)
     {
-        var secrets = new List<SecretItem>();
+        var secrets = new List<SecretItemViewModel>();
         var secretsManagerMock = new Mock<ISecretsManager>();
-        secretsManagerMock.Setup(m => m.GetAllSecretsAsync()).ReturnsAsync(Result<List<SecretItem>>.Success(secrets));
+        secretsManagerMock.Setup(m => m.GetAllSecretsAsync()).ReturnsAsync(Result<List<SecretItemViewModel>>.Success(secrets));
         mocker.Use<ISecretsManager>(secretsManagerMock.Object);
     }
 

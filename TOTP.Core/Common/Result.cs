@@ -1,6 +1,6 @@
-﻿using TOTP.Enums;
+﻿using TOTP.Core.Enums;
 
-namespace TOTP.Core;
+namespace TOTP.Core.Common;
 
 public record Result<T>(OperationStatus status, T value)
 {

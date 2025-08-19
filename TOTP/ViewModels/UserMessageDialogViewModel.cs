@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using TOTP.Commands;
-using TOTP.Enums;
+using TOTP.Core.Enums;
 using TOTP.Events;
 using TOTP.Interfaces;
 using TOTP.Resources;

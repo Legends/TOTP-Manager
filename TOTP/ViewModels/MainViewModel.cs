@@ -13,11 +13,11 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
-using TOTP.Enums;
+using TOTP.Core.Enums;
+using TOTP.Core.Models;
 using TOTP.Events;
 using TOTP.Helper;
 using TOTP.Interfaces;
-using TOTP.Models;
 using TOTP.Resources;
 using TOTP.Services;
 
@@ -89,14 +89,14 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     public bool ShowActionsColumn => AllSecrets.Any(s => s.IsBeingEdited);
 
-    private SecretItem _selectedSecret = null!;
+    private SecretItemViewModel _selectedSecret = null!;
 
-    public SecretItem SelectedSecret
+    public SecretItemViewModel SelectedSecret
     {
         get => _selectedSecret;
         set
         {
-            if (!EqualityComparer<SecretItem?>.Default.Equals(_selectedSecret, value))
+            if (!EqualityComparer<SecretItemViewModel?>.Default.Equals(_selectedSecret, value))
             {
                 foreach (var item in AllSecrets)
                     item.IsBeingEdited = false;
@@ -121,7 +121,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     }
 
 
-    public SecretItem? PreviousVersion { get; set; }
+    public SecretItemViewModel? PreviousVersion { get; set; }
 
     private bool _isSearchVisible;
 
@@ -308,16 +308,16 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     private void SetupCommandEventhandler()
     {
         AddNewSecretCommand = new AsyncCommand(AddNewSecretAsync, null, _logger);
-        DeleteSecretCommand = new AsyncCommand<SecretItem>(DeleteSecretAsync, null, _logger);
-        UpdateSecretCommand = new AsyncCommand<SecretItem>(UpdateSecretAsync, null, _logger);
-        BeginEditCommand = new RelayCommand<SecretItem>(OnBeginEdit);
-        EndEditCommand = new AsyncCommand<SecretItem>(OnEndEdit); // Method must be: Task OnEndEditAsync()
+        DeleteSecretCommand = new AsyncCommand<SecretItemViewModel>(DeleteSecretAsync, null, _logger);
+        UpdateSecretCommand = new AsyncCommand<SecretItemViewModel>(UpdateSecretAsync, null, _logger);
+        BeginEditCommand = new RelayCommand<SecretItemViewModel>(OnBeginEdit);
+        EndEditCommand = new AsyncCommand<SecretItemViewModel>(OnEndEdit); // Method must be: Task OnEndEditAsync()
         //SelectionChangedCommand = new AsyncCommand(async _ => await OnSelectionChangedAsync());
         SelectionChangedCommand = new AsyncCommand(OnSelectionChangedAsync);
 
 
 
-        DoubleClickCommand = new RelayCommand<SecretItem>(OnDoubleClick);
+        DoubleClickCommand = new RelayCommand<SecretItemViewModel>(OnDoubleClick);
 
         ToggleSearchBoxCommand = new RelayCommand(() =>
         {
@@ -342,14 +342,14 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     private void SecretItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(SecretItem.IsBeingEdited))
+        if (e.PropertyName == nameof(SecretItemViewModel.IsBeingEdited))
             OnPropertyChanged(nameof(ShowActionsColumn));
     }
 
     #region ### ObservableCollections ###
 
-    public ObservableCollection<SecretItem> AllSecrets { get; private set; } = [];
-    public ObservableCollection<SecretItem> FilteredSecrets { get; } = [];
+    public ObservableCollection<SecretItemViewModel> AllSecrets { get; private set; } = [];
+    public ObservableCollection<SecretItemViewModel> FilteredSecrets { get; } = [];
 
     #endregion ObservableCollections
 
@@ -399,7 +399,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
                 var allSecrets = result.value;
                 var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).ToList();
 
-                AllSecrets = new ObservableCollection<SecretItem>(secrets ?? []);
+                AllSecrets = new ObservableCollection<SecretItemViewModel>(secrets ?? []);
 
                 foreach (var secretItem in AllSecrets)
                     secretItem.PropertyChanged += SecretItem_PropertyChanged;
@@ -440,7 +440,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #region ### DELETE SECRET ###
 
-    internal async Task DeleteSecretAsync(SecretItem item)
+    internal async Task DeleteSecretAsync(SecretItemViewModel item)
     {
         try
         {
@@ -474,7 +474,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #region ### UPDATE SECRET ###
 
-    public async Task UpdateSecretAsync(SecretItem updated)
+    public async Task UpdateSecretAsync(SecretItemViewModel updated)
     {
         if (updated == null || PreviousVersion == null)
             return;
@@ -492,16 +492,16 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         }
     }
 
-    private void OnBeginEdit(SecretItem item)
+    private void OnBeginEdit(SecretItemViewModel item)
     {
-        PreviousVersion = new SecretItem(item.Platform, item.Secret);
+        PreviousVersion = new SecretItemViewModel(item.Platform, item.Secret);
         item.IsBeingEdited = true;
         OnPropertyChanged(nameof(ShowActionsColumn));
     }
 
     // TODO: updating does not trigger validation of the secret ! add validation
 
-    private async Task OnEndEdit(SecretItem item)
+    private async Task OnEndEdit(SecretItemViewModel item)
     {
         item.IsBeingEdited = false;
         OnPropertyChanged(nameof(ShowActionsColumn));
@@ -553,7 +553,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         }
     }
 
-    private void OnDoubleClick(SecretItem item)
+    private void OnDoubleClick(SecretItemViewModel item)
     {
         _isDoubleClick = true;
         ResetCodeGenerationLabels();
@@ -610,7 +610,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         return Interlocked.Increment(ref _counter);
     }
 
-    private async Task CalculateAndDisplayTotpCode(SecretItem secret)
+    private async Task CalculateAndDisplayTotpCode(SecretItemViewModel secret)
     {
         if (_totpManager.TryComputeCode(secret.Secret, out var totpCode, out var error))
         {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq.AutoMock;
-using TOTP.Models;
+using TOTP.Services;
+using TOTP.ViewModels;
 
 namespace TOTP.Tests.Integration;
 
@@ -10,8 +11,8 @@ public class SecretsManagerIntegrationTests : IDisposable
     private readonly AutoMocker _mocker;
     private readonly SecretsManager _secretsManager;
 
-    private readonly SecretItem _initial = new("GitHub", "JBSWY3DPEHPK3PXP");
-    private readonly SecretItem _updated = new("GitHub", "MZXW6YTBOI======");
+    private readonly SecretItemViewModel _initial = new("GitHub", "JBSWY3DPEHPK3PXP");
+    private readonly SecretItemViewModel _updated = new("GitHub", "MZXW6YTBOI======");
 
     public SecretsManagerIntegrationTests()
     {

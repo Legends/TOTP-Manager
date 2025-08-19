@@ -6,11 +6,13 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using TOTP.Core.Enums;
+using TOTP.Core.Validation;
 using TOTP.Validation;
 
-namespace TOTP.Models;
+namespace TOTP.ViewModels;
 
-public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEditableObject, IDataErrorInfo
+public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItemViewModel>, IEditableObject, IDataErrorInfo
 {
 
     #region Properties
@@ -66,7 +68,7 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
 
 
     [JsonConstructor]
-    public SecretItem(string platform, string secret)
+    public SecretItemViewModel(string platform, string secret)
     {
         //_platform = platform;
         Platform = platform;
@@ -115,22 +117,22 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
         get
         {
             var errors = new List<string>();
-
+            ValidationError error;
             switch (columnName)
             {
                 case nameof(Platform):
-                    string? error = SecretValidator.ValidatePlatform(Platform);
-                    if (!string.IsNullOrWhiteSpace(error))
+                    error = SecretValidator.ValidatePlatform(Platform);
+                    if (error != ValidationError.None)
                     {
-                        errors.Add(error);
+                        errors.Add(ValidationMessageMapper.ToMessage(error));
                     }
                     break;
 
                 case nameof(Secret):
                     error = SecretValidator.ValidateSecret(Secret);
-                    if (!string.IsNullOrWhiteSpace(error))
+                    if (error != ValidationError.None)
                     {
-                        errors.Add(error);
+                        errors.Add(ValidationMessageMapper.ToMessage(error));
                     }
                     break;
             }
@@ -144,14 +146,14 @@ public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEdita
 
     #region IEquatable & Overrides
 
-    public bool Equals(SecretItem? other)
+    public bool Equals(SecretItemViewModel? other)
     {
         return other is not null &&
                Platform == other.Platform &&
                Secret == other.Secret;
     }
 
-    public override bool Equals(object? obj) => Equals(obj as SecretItem);
+    public override bool Equals(object? obj) => Equals(obj as SecretItemViewModel);
 
     public override int GetHashCode() => HashCode.Combine(Platform, Secret);
 
