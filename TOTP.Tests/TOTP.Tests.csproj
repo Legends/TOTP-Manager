@@ -35,7 +35,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TOTP\TOTP.Manager.csproj" />
+    <ProjectReference Include="..\TOTP.UI.Wpf\TOTP.UI.Wpf.csproj" />
+    <ProjectReference Include="..\TOTP.Core\TOTP.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

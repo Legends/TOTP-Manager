@@ -1,5 +1,5 @@
 ﻿# Sign-App.ps1
-# signs totp.manager.exe during Release mode!
+# signs TOTP.UI.Wpf.exe during Release mode!
 
 $ErrorActionPreference = 'Stop'
 
@@ -37,7 +37,7 @@ Log "✅ Using SignTool path: $($signtoolPath.FullName)"
 
 # Locate EXE
 $exe = Get-ChildItem -Path "$projectRoot\bin\Release" -Recurse -File |
-Where-Object { $_.Name -eq "TOTP.Manager.exe" } |
+Where-Object { $_.Name -eq "TOTP.UI.Wpf.exe" } |
 Select-Object -First 1
 
 Log $projectroot 
