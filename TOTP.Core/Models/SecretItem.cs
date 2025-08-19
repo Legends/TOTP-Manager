@@ -6,9 +6,9 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
-using TOTP.Validation;
+using TOTP.Core.Validation;
 
-namespace TOTP.Models;
+namespace TOTP.Core.Models;
 
 public class SecretItem : INotifyPropertyChanged, IEquatable<SecretItem>, IEditableObject, IDataErrorInfo
 {

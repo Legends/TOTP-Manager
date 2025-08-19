@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xaml.Behaviors;
 using Syncfusion.UI.Xaml.Grid;
-using TOTP.Models;
-using TOTP.Validation;
+using TOTP.Core.Models;
+using TOTP.Core.Validation;
 
 namespace TOTP.Behaviors;
 

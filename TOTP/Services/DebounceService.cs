@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Windows.Threading;
-using TOTP.Interfaces;
+using TOTP.Core.Interfaces;
 
 namespace TOTP.Services;
 

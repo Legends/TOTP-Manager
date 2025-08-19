@@ -1,6 +1,6 @@
 ﻿using Syncfusion.Windows.Shared;
 using TOTP.Interfaces;
-using TOTP.Resources;
+using TOTP.Core.Resources;
 
 //ControlNamespace###
 

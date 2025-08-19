@@ -1,6 +1,8 @@
-﻿using TOTP.Resources;
+using TOTP.Core.Services;
 
-namespace TOTP.Validation
+﻿using TOTP.Core.Resources;
+
+namespace TOTP.Core.Validation
 {
     public static class SecretValidator
     {

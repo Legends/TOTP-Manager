@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TOTP.Events
+namespace TOTP.Core.Events
 {
     public class AddNewPromptArgs : EventArgs
     {

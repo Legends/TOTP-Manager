@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using TOTP.Enums;
-using TOTP.Events;
-using TOTP.Models;
+using TOTP.Core.Enums;
+using TOTP.Core.Events;
+using TOTP.Core.Models;
 
-namespace TOTP.Interfaces;
+namespace TOTP.Core.Interfaces;
 
 public interface ITotpManager
 {

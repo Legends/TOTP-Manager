@@ -2,8 +2,8 @@
 using AutoFixture.AutoMoq;
 using Moq;
 using Moq.AutoMock;
-using TOTP.Interfaces;
-using TOTP.Services;
+using TOTP.Core.Interfaces;
+using TOTP.Core.Services;
 
 namespace TOTP.Tests.Services;
 

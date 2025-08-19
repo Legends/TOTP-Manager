@@ -5,8 +5,10 @@ using Moq;
 using Serilog;
 using Serilog.Extensions.Logging;
 using TOTP.Interfaces;
-using TOTP.Models;
+using TOTP.Core.Interfaces;
+using TOTP.Core.Models;
 using TOTP.Services;
+using TOTP.Core.Services;
 using TOTP.ViewModels;
 
 namespace TOTP.Tests.Integration;

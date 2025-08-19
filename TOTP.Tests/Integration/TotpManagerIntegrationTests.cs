@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
-using TOTP.Enums;
-using TOTP.Events;
-using TOTP.Interfaces;
-using TOTP.Models;
-using TOTP.Services;
+using TOTP.Core.Enums;
+using TOTP.Core.Events;
+using TOTP.Core.Interfaces;
+using TOTP.Core.Models;
+using TOTP.Core.Services;
 using TOTP.ViewModels;
 
 namespace TOTP.Tests.Integration;

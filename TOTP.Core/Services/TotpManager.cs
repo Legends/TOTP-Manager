@@ -1,13 +1,13 @@
 ﻿using OtpNet;
 using System;
 using System.Threading.Tasks;
-using TOTP.Enums;
-using TOTP.Events;
-using TOTP.Interfaces;
-using TOTP.Models;
-using TOTP.Resources;
+using TOTP.Core.Enums;
+using TOTP.Core.Events;
+using TOTP.Core.Interfaces;
+using TOTP.Core.Models;
+using TOTP.Core.Resources;
 
-namespace TOTP.Services;
+namespace TOTP.Core.Services;
 
 public class TotpManager : ITotpManager
 {

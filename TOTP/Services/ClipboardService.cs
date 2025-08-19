@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using TOTP.Interfaces;
+using TOTP.Core.Interfaces;
 
 namespace TOTP.Services;
 

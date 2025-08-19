@@ -1,6 +1,6 @@
-﻿using TOTP.Enums;
+﻿using TOTP.Core.Enums;
 
-namespace TOTP.Interfaces;
+namespace TOTP.Core.Interfaces;
 
 public interface IMessageService
 {

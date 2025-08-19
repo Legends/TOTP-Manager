@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TOTP\TOTP.Manager.csproj" />
+    <ProjectReference Include="..\TOTP.Core\TOTP.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

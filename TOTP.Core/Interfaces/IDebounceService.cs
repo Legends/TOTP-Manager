@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TOTP.Interfaces;
+namespace TOTP.Core.Interfaces;
 
 public interface IDebounceService
 {

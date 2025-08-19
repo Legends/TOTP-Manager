@@ -13,12 +13,13 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
-using TOTP.Enums;
-using TOTP.Events;
+using TOTP.Core.Enums;
+using TOTP.Core.Events;
 using TOTP.Helper;
+using TOTP.Core.Interfaces;
 using TOTP.Interfaces;
-using TOTP.Models;
-using TOTP.Resources;
+using TOTP.Core.Models;
+using TOTP.Core.Resources;
 using TOTP.Services;
 
 namespace TOTP.ViewModels;
@@ -676,7 +677,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             FilteredSecrets.Add(item);
     }
 
-    public string DeleteLabel => TOTP.Resources.UI.ui_btnDelete;
+    public string DeleteLabel => TOTP.Core.Resources.UI.ui_btnDelete;
 
     #endregion
 }

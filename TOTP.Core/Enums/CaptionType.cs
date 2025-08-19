@@ -1,4 +1,4 @@
-﻿namespace TOTP.Enums
+﻿namespace TOTP.Core.Enums
 {
     public enum CaptionType
     {

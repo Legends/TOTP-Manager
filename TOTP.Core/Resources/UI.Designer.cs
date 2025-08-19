@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace TOTP.Resources {
+namespace TOTP.Core.Resources {
     using System;
     
     
@@ -22,24 +22,24 @@ namespace TOTP.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class UI {
+    public class UI {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal UI() {
+        public UI() {
         }
         
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TOTP.Resources.UI", typeof(UI).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TOTP.Core.Resources.UI", typeof(UI).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -51,7 +51,7 @@ namespace TOTP.Resources {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error adding new TOTP.
         /// </summary>
-        internal static string ex_Adding_New_TOTP {
+        public static string ex_Adding_New_TOTP {
             get {
                 return ResourceManager.GetString("ex_Adding_New_TOTP", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Backup failed: {0}.
         /// </summary>
-        internal static string ex_BackupFailed {
+        public static string ex_BackupFailed {
             get {
                 return ResourceManager.GetString("ex_BackupFailed", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error deleting secret.
         /// </summary>
-        internal static string ex_DeletingSecret {
+        public static string ex_DeletingSecret {
             get {
                 return ResourceManager.GetString("ex_DeletingSecret", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error deleting secret:{0}.
         /// </summary>
-        internal static string ex_DeletingSecret_0 {
+        public static string ex_DeletingSecret_0 {
             get {
                 return ResourceManager.GetString("ex_DeletingSecret_0", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error generating TOTP code.
         /// </summary>
-        internal static string ex_Error_Generating_TOTP {
+        public static string ex_Error_Generating_TOTP {
             get {
                 return ResourceManager.GetString("ex_Error_Generating_TOTP", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error generating TOTP code for {0}: {1}.
         /// </summary>
-        internal static string ex_Error_Generating_TOTP_0_0 {
+        public static string ex_Error_Generating_TOTP_0_0 {
             get {
                 return ResourceManager.GetString("ex_Error_Generating_TOTP_0_0", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error filtering secrets.
         /// </summary>
-        internal static string ex_Filtering_Secrets {
+        public static string ex_Filtering_Secrets {
             get {
                 return ResourceManager.GetString("ex_Filtering_Secrets", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Invalid secret format. Please ensure it is a valid Base32 string.
         /// </summary>
-        internal static string ex_InvalidSecret {
+        public static string ex_InvalidSecret {
             get {
                 return ResourceManager.GetString("ex_InvalidSecret", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error selecting secret.
         /// </summary>
-        internal static string ex_Selecting_Secret {
+        public static string ex_Selecting_Secret {
             get {
                 return ResourceManager.GetString("ex_Selecting_Secret", resourceCulture);
             }
@@ -144,7 +144,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Unexpected error.
         /// </summary>
-        internal static string ex_UnexpectedError {
+        public static string ex_UnexpectedError {
             get {
                 return ResourceManager.GetString("ex_UnexpectedError", resourceCulture);
             }
@@ -153,7 +153,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error updating secret.
         /// </summary>
-        internal static string ex_UpdatingSecret {
+        public static string ex_UpdatingSecret {
             get {
                 return ResourceManager.GetString("ex_UpdatingSecret", resourceCulture);
             }
@@ -162,7 +162,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error updating secret:{0}.
         /// </summary>
-        internal static string ex_UpdatingSecret_0 {
+        public static string ex_UpdatingSecret_0 {
             get {
                 return ResourceManager.GetString("ex_UpdatingSecret_0", resourceCulture);
             }
@@ -171,7 +171,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to xcfsdfad.
         /// </summary>
-        internal static string fake {
+        public static string fake {
             get {
                 return ResourceManager.GetString("fake", resourceCulture);
             }
@@ -180,7 +180,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Are you sure you want to delete the secret: {0}?.
         /// </summary>
-        internal static string msg_ConfirmDeleteSecret {
+        public static string msg_ConfirmDeleteSecret {
             get {
                 return ResourceManager.GetString("msg_ConfirmDeleteSecret", resourceCulture);
             }
@@ -189,7 +189,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Failed to load secrets.
         /// </summary>
-        internal static string msg_Failed_Loading_Secrets {
+        public static string msg_Failed_Loading_Secrets {
             get {
                 return ResourceManager.GetString("msg_Failed_Loading_Secrets", resourceCulture);
             }
@@ -198,7 +198,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Failed to save changes.
         /// </summary>
-        internal static string msg_Failed_Saving_Changes {
+        public static string msg_Failed_Saving_Changes {
             get {
                 return ResourceManager.GetString("msg_Failed_Saving_Changes", resourceCulture);
             }
@@ -207,7 +207,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Failed to save the secret.
         /// </summary>
-        internal static string msg_Failed_Storage {
+        public static string msg_Failed_Storage {
             get {
                 return ResourceManager.GetString("msg_Failed_Storage", resourceCulture);
             }
@@ -216,7 +216,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Failed updating secret.
         /// </summary>
-        internal static string msg_Failed_Updating_Secret {
+        public static string msg_Failed_Updating_Secret {
             get {
                 return ResourceManager.GetString("msg_Failed_Updating_Secret", resourceCulture);
             }
@@ -225,7 +225,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Failed to add secret: {0}.
         /// </summary>
-        internal static string msg_FailedAddingSecret {
+        public static string msg_FailedAddingSecret {
             get {
                 return ResourceManager.GetString("msg_FailedAddingSecret", resourceCulture);
             }
@@ -234,7 +234,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Failed to load secrets: {0}.
         /// </summary>
-        internal static string msg_FailedReadingSecrets {
+        public static string msg_FailedReadingSecrets {
             get {
                 return ResourceManager.GetString("msg_FailedReadingSecrets", resourceCulture);
             }
@@ -243,7 +243,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Platform &apos;{0}&apos; already exists.
         /// </summary>
-        internal static string msg_Platform_Exists {
+        public static string msg_Platform_Exists {
             get {
                 return ResourceManager.GetString("msg_Platform_Exists", resourceCulture);
             }
@@ -252,7 +252,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Platform not found.
         /// </summary>
-        internal static string msg_Platform_Not_Found {
+        public static string msg_Platform_Not_Found {
             get {
                 return ResourceManager.GetString("msg_Platform_Not_Found", resourceCulture);
             }
@@ -261,7 +261,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Platform &apos;{0}&apos; not found..
         /// </summary>
-        internal static string msg_PlatformNotFound_0 {
+        public static string msg_PlatformNotFound_0 {
             get {
                 return ResourceManager.GetString("msg_PlatformNotFound_0", resourceCulture);
             }
@@ -270,7 +270,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Platform is required..
         /// </summary>
-        internal static string msg_PlatformRequired {
+        public static string msg_PlatformRequired {
             get {
                 return ResourceManager.GetString("msg_PlatformRequired", resourceCulture);
             }
@@ -279,7 +279,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Platform and Secret cannot be empty.
         /// </summary>
-        internal static string msg_PlatformSecretNotEmpty {
+        public static string msg_PlatformSecretNotEmpty {
             get {
                 return ResourceManager.GetString("msg_PlatformSecretNotEmpty", resourceCulture);
             }
@@ -288,7 +288,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Secret must be a valid Base32 string.
         /// </summary>
-        internal static string msg_SecretInvalidFormat {
+        public static string msg_SecretInvalidFormat {
             get {
                 return ResourceManager.GetString("msg_SecretInvalidFormat", resourceCulture);
             }
@@ -297,7 +297,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Secret is required..
         /// </summary>
-        internal static string msg_SecretRequired {
+        public static string msg_SecretRequired {
             get {
                 return ResourceManager.GetString("msg_SecretRequired", resourceCulture);
             }
@@ -306,7 +306,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Secret updated successfully.
         /// </summary>
-        internal static string msg_SecretUpdated {
+        public static string msg_SecretUpdated {
             get {
                 return ResourceManager.GetString("msg_SecretUpdated", resourceCulture);
             }
@@ -315,7 +315,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Add new secret.
         /// </summary>
-        internal static string tooltip_AddNew {
+        public static string tooltip_AddNew {
             get {
                 return ResourceManager.GetString("tooltip_AddNew", resourceCulture);
             }
@@ -324,7 +324,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
-        internal static string ui_btnCancel {
+        public static string ui_btnCancel {
             get {
                 return ResourceManager.GetString("ui_btnCancel", resourceCulture);
             }
@@ -333,7 +333,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
-        internal static string ui_btnDelete {
+        public static string ui_btnDelete {
             get {
                 return ResourceManager.GetString("ui_btnDelete", resourceCulture);
             }
@@ -342,7 +342,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Ok.
         /// </summary>
-        internal static string ui_btnOK {
+        public static string ui_btnOK {
             get {
                 return ResourceManager.GetString("ui_btnOK", resourceCulture);
             }
@@ -351,7 +351,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Search.
         /// </summary>
-        internal static string ui_btnSearch {
+        public static string ui_btnSearch {
             get {
                 return ResourceManager.GetString("ui_btnSearch", resourceCulture);
             }
@@ -360,7 +360,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Error.
         /// </summary>
-        internal static string ui_Caption_Error {
+        public static string ui_Caption_Error {
             get {
                 return ResourceManager.GetString("ui_Caption_Error", resourceCulture);
             }
@@ -369,7 +369,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Info.
         /// </summary>
-        internal static string ui_Caption_Info {
+        public static string ui_Caption_Info {
             get {
                 return ResourceManager.GetString("ui_Caption_Info", resourceCulture);
             }
@@ -378,7 +378,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Attention.
         /// </summary>
-        internal static string ui_Caption_Warning {
+        public static string ui_Caption_Warning {
             get {
                 return ResourceManager.GetString("ui_Caption_Warning", resourceCulture);
             }
@@ -387,7 +387,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Code copied to clipboard!.
         /// </summary>
-        internal static string ui_Code_Copied_Clipboard {
+        public static string ui_Code_Copied_Clipboard {
             get {
                 return ResourceManager.GetString("ui_Code_Copied_Clipboard", resourceCulture);
             }
@@ -396,7 +396,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to platform.
         /// </summary>
-        internal static string ui_Header_Platform {
+        public static string ui_Header_Platform {
             get {
                 return ResourceManager.GetString("ui_Header_Platform", resourceCulture);
             }
@@ -405,7 +405,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to secret.
         /// </summary>
-        internal static string ui_Header_Secret {
+        public static string ui_Header_Secret {
             get {
                 return ResourceManager.GetString("ui_Header_Secret", resourceCulture);
             }
@@ -414,7 +414,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to secret key.
         /// </summary>
-        internal static string ui_Header_Secret_Shared {
+        public static string ui_Header_Secret_Shared {
             get {
                 return ResourceManager.GetString("ui_Header_Secret_Shared", resourceCulture);
             }
@@ -423,7 +423,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to account (optional).
         /// </summary>
-        internal static string ui_label_account {
+        public static string ui_label_account {
             get {
                 return ResourceManager.GetString("ui_label_account", resourceCulture);
             }
@@ -432,7 +432,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to username or email.
         /// </summary>
-        internal static string ui_label_account_watermark {
+        public static string ui_label_account_watermark {
             get {
                 return ResourceManager.GetString("ui_label_account_watermark", resourceCulture);
             }
@@ -441,7 +441,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to base32-encoded string.
         /// </summary>
-        internal static string ui_label_base32_string {
+        public static string ui_label_base32_string {
             get {
                 return ResourceManager.GetString("ui_label_base32_string", resourceCulture);
             }
@@ -450,7 +450,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Search.
         /// </summary>
-        internal static string ui_label_Search {
+        public static string ui_label_Search {
             get {
                 return ResourceManager.GetString("ui_label_Search", resourceCulture);
             }
@@ -459,7 +459,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Search....
         /// </summary>
-        internal static string ui_label_Search_Dots {
+        public static string ui_label_Search_Dots {
             get {
                 return ResourceManager.GetString("ui_label_Search_Dots", resourceCulture);
             }
@@ -468,7 +468,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to i.e. github, msft, ....
         /// </summary>
-        internal static string ui_watermark_platform {
+        public static string ui_watermark_platform {
             get {
                 return ResourceManager.GetString("ui_watermark_platform", resourceCulture);
             }
@@ -477,7 +477,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to add new platform.
         /// </summary>
-        internal static string ui_Window_Title_PlatformSecretDialog {
+        public static string ui_Window_Title_PlatformSecretDialog {
             get {
                 return ResourceManager.GetString("ui_Window_Title_PlatformSecretDialog", resourceCulture);
             }
@@ -486,7 +486,7 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to TOTP Manager.
         /// </summary>
-        internal static string ui_Window_Title_TOTP_Manager {
+        public static string ui_Window_Title_TOTP_Manager {
             get {
                 return ResourceManager.GetString("ui_Window_Title_TOTP_Manager", resourceCulture);
             }

@@ -1,10 +1,11 @@
 ﻿using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using TOTP.Enums;
+using TOTP.Core.Enums;
 using TOTP.Helper;
+using TOTP.Core.Interfaces;
 using TOTP.Interfaces;
-using TOTP.Resources;
+using TOTP.Core.Resources;
 using TOTP.UserControls;
 
 namespace TOTP.Services;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq.AutoMock;
-using TOTP.Models;
+using TOTP.Core.Services;
+using TOTP.Core.Models;
 
 namespace TOTP.Tests.Integration;
 

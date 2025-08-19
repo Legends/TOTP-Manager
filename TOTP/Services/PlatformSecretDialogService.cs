@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Windows;
-using TOTP.Interfaces;
+using TOTP.Core.Interfaces;
 using TOTP.Windows;
 
 namespace TOTP.Services;

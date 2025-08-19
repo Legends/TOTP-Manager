@@ -4,8 +4,8 @@ using Syncfusion.UI.Xaml.Grid;
 using Syncfusion.Windows.Shared;
 using System;
 using System.Windows;
-using TOTP.Interfaces;
-using TOTP.Resources;
+using TOTP.Core.Interfaces;
+using TOTP.Core.Resources;
 
 namespace TOTP;
 

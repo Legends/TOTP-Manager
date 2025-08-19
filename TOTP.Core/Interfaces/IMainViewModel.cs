@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using TOTP.Models;
+using TOTP.Core.Models;
 
-namespace TOTP.Interfaces;
+namespace TOTP.Core.Interfaces;
 
 public interface IMainViewModel : INotifyPropertyChanged
 {

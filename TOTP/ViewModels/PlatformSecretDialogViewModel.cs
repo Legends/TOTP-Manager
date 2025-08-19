@@ -7,7 +7,9 @@ using System.Windows.Media.Imaging;
 using TOTP.Commands;
 using TOTP.Helper;
 using TOTP.Interfaces;
-using TOTP.Models;
+using TOTP.Core.Interfaces;
+using TOTP.Core.Services;
+using TOTP.Core.Models;
 
 namespace TOTP.ViewModels;
 

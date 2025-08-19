@@ -2,8 +2,8 @@
 using Moq.AutoMock;
 using System.Diagnostics;
 using TOTP.Core;
-using TOTP.Interfaces;
-using TOTP.Models;
+using TOTP.Core.Interfaces;
+using TOTP.Core.Models;
 using TOTP.ViewModels;
 
 namespace TOTP.Tests.ViewModels;

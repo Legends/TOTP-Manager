@@ -12,14 +12,14 @@ public class ResxExtension : MarkupExtension
 
     public override object ProvideValue(IServiceProvider serviceProvider)
     {
-        var value = TOTP.Resources.UI.ResourceManager.GetString(Key) ?? $"!{Key}!";
+        var value = TOTP.Core.Resources.UI.ResourceManager.GetString(Key) ?? $"!{Key}!";
 
         if (serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget targetService &&
             targetService.TargetObject is DependencyObject targetObject &&
             targetService.TargetProperty is DependencyProperty targetProperty)
         {
 
-            void Update() => targetObject.SetValue(targetProperty, TOTP.Resources.UI.ResourceManager.GetString(Key) ?? $"!{Key}!");
+            void Update() => targetObject.SetValue(targetProperty, TOTP.Core.Resources.UI.ResourceManager.GetString(Key) ?? $"!{Key}!");
 
             LocalizationService.LanguageChanged += Update;
 
