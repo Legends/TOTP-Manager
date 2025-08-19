@@ -15,11 +15,13 @@ using System.Windows.Media.Imaging;
 using TOTP.Commands;
 using TOTP.Core.Enums;
 using TOTP.Core.Events;
-using TOTP.Helper;
 using TOTP.Core.Interfaces;
-using TOTP.Interfaces;
 using TOTP.Core.Models;
 using TOTP.Core.Resources;
+using TOTP.Core.Services;
+using TOTP.Helper;
+using TOTP.Interfaces;
+using TOTP.Models;
 using TOTP.Services;
 
 namespace TOTP.ViewModels;
