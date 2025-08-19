@@ -54,7 +54,7 @@ You can create a runnable executable in two ways:
 
 ### 2. Use the Prebuilt Zip
 
-- Download `TOTP.Manager.zip` from the [Releases](https://github.com/Legends/TOTP-Code-Generator/releases) section.  
+- Download `TOTP.UI.WPF.zip` from the [Releases](https://github.com/Legends/TOTP-Code-Generator/releases) section.  
 - Extract the ZIP file.  
 - Run the `.exe` file.  
   > The executable is unsigned; you will need to accept the Windows SmartScreen prompt.

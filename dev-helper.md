@@ -31,7 +31,7 @@ Create a new shortcut manually:
 
 >Right-click desktop → New → Shortcut
 
-Point to your TOTP.Manager.exe
+Point to your TOTP.UI.WPF.exe
 
 After it's created, right-click → Properties → Confirm the icon is correct
 

@@ -6,4 +6,4 @@
   /tr http://timestamp.digicert.com ^
   /td sha256 ^
   /fd sha256 ^
-  "bin\Release\net9.0-windows7.0\TOTP.Manager.exe"
+  "bin\Release\net9.0-windows7.0\TOTP.UI.WPF.exe"

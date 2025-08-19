@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33801.468
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Manager", "TOTP\TOTP.Manager.csproj", "{73DFAD9E-6C3D-0F21-D3CE-3EF46B9D55C5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.UI.WPF", "TOTP\TOTP.UI.WPF.csproj", "{73DFAD9E-6C3D-0F21-D3CE-3EF46B9D55C5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Tests", "TOTP.Tests\TOTP.Tests.csproj", "{62E4D9EC-B6CA-5E34-51D3-4D10E1D4B5D9}"
 EndProject
