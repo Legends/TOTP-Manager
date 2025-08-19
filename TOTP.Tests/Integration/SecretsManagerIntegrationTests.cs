@@ -30,37 +30,37 @@ public class SecretsManagerIntegrationTests : IDisposable
     {
         // --- ADD ---
         var resultAdd = await _secretsManager.AddNewItemAsync(_initial);
-        Assert.True(resultAdd.value);
+        Assert.True(resultAdd.Value);
 
         var resultAllSecrets = await _secretsManager.GetAllSecretsAsync();
-        Assert.Single(resultAllSecrets.value);
-        Assert.Equal(_initial.Platform, resultAllSecrets.value[0].Platform);
+        Assert.Single(resultAllSecrets.Value);
+        Assert.Equal(_initial.Platform, resultAllSecrets.Value[0].Platform);
 
         // --- UPDATE ---
         var resultUpdated = await _secretsManager.UpdateItemAsync(_initial.Platform, _updated);
-        Assert.True(resultUpdated.value);
+        Assert.True(resultUpdated.Value);
 
         var updatedSecrets = await _secretsManager.GetAllSecretsAsync();
-        Assert.Single(updatedSecrets.value);
-        Assert.Equal(_updated.Secret, updatedSecrets.value[0].Secret);
+        Assert.Single(updatedSecrets.Value);
+        Assert.Equal(_updated.Secret, updatedSecrets.Value[0].Secret);
 
         // --- DELETE ---
         var deletedResult = await _secretsManager.DeleteItemAsync(_updated.Platform);
-        Assert.True(deletedResult.value);
+        Assert.True(deletedResult.Value);
 
         var resultAfterDelete = await _secretsManager.GetAllSecretsAsync();
-        Assert.Empty(resultAfterDelete.value);
+        Assert.Empty(resultAfterDelete.Value);
     }
 
     [Fact]
     public async Task AddNewItem_ShouldPersistSecret()
     {
         var resultAdded = await _secretsManager.AddNewItemAsync(_initial);
-        Assert.True(resultAdded.value);
+        Assert.True(resultAdded.Value);
 
         var secrets = await _secretsManager.GetAllSecretsAsync();
-        Assert.Single(secrets.value);
-        Assert.Equal(_initial.Platform, secrets.value[0].Platform);
+        Assert.Single(secrets.Value);
+        Assert.Equal(_initial.Platform, secrets.Value[0].Platform);
     }
 
     [Fact]
@@ -69,11 +69,11 @@ public class SecretsManagerIntegrationTests : IDisposable
         await _secretsManager.AddNewItemAsync(_initial);
 
         var updated = await _secretsManager.UpdateItemAsync(_initial.Platform, _updated);
-        Assert.True(updated.value);
+        Assert.True(updated.Value);
 
         var secrets = await _secretsManager.GetAllSecretsAsync();
-        Assert.Single(secrets.value);
-        Assert.Equal(_updated.Secret, secrets.value[0].Secret);
+        Assert.Single(secrets.Value);
+        Assert.Equal(_updated.Secret, secrets.Value[0].Secret);
     }
 
     [Fact]
@@ -83,10 +83,10 @@ public class SecretsManagerIntegrationTests : IDisposable
         await _secretsManager.UpdateItemAsync(_initial.Platform, _updated);
 
         var deleted = await _secretsManager.DeleteItemAsync(_updated.Platform);
-        Assert.True(deleted.value);
+        Assert.True(deleted.Value);
 
         var secrets = await _secretsManager.GetAllSecretsAsync();
-        Assert.Empty(secrets.value);
+        Assert.Empty(secrets.Value);
     }
 
 

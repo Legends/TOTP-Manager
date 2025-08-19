@@ -394,9 +394,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             // Load secrets from file or other source
             var result = await _secretsManager.GetAllSecretsAsync();
 
-            if (result.status == OperationStatus.Success)
+            if (result.Status == OperationStatus.Success)
             {
-                var allSecrets = result.value;
+                var allSecrets = result.Value;
                 var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).ToList();
 
                 AllSecrets = new ObservableCollection<SecretItemViewModel>(secrets ?? []);

@@ -73,8 +73,8 @@ public class TotpManagerIntegrationTests : IDisposable
         Assert.NotNull(item);
 
         var secrets = await _secretsManager.GetAllSecretsAsync();
-        Assert.Single(secrets.value);
-        Assert.Equal(_initialSecret.Platform, secrets.value[0].Platform);
+        Assert.Single(secrets.Value);
+        Assert.Equal(_initialSecret.Platform, secrets.Value[0].Platform);
 
         // --- COMPUTE ---
         var codeResult = _totpManager.TryComputeCode(_initialSecret.Secret, out var code, out var error);
@@ -87,8 +87,8 @@ public class TotpManagerIntegrationTests : IDisposable
         await _totpManager.UpdateSecretAsync(_initialSecret, updated);
 
         var updatedSecrets = await _secretsManager.GetAllSecretsAsync();
-        Assert.Single(updatedSecrets.value);
-        Assert.Equal("MZXW6YTBOI======", updatedSecrets.value[0].Secret);
+        Assert.Single(updatedSecrets.Value);
+        Assert.Equal("MZXW6YTBOI======", updatedSecrets.Value[0].Secret);
 
         // --- DELETE ---
         _totpManager.ConfirmDeleteRequested += (arg1, arg2) =>
@@ -99,7 +99,7 @@ public class TotpManagerIntegrationTests : IDisposable
         var deleteResult = await _totpManager.DeleteSecretAsync(updated);
         Assert.True(deleteResult);
         var result = await _secretsManager.GetAllSecretsAsync();
-        Assert.Empty(result.value);
+        Assert.Empty(result.Value);
 
 
     }

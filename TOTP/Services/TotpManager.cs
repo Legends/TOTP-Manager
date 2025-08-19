@@ -43,20 +43,20 @@ public class TotpManager : ITotpManager
                 var secretItem = new SecretItemViewModel(promptResult.Key!, promptResult.Value!);
                 var result = await _secretsManager.AddNewItemAsync(secretItem);
 
-                if (result.status == OperationStatus.Success)
+                if (result.Status == OperationStatus.Success)
                     return (true, secretItem);
 
-                if (result.status == OperationStatus.AlreadyExists)
+                if (result.Status == OperationStatus.AlreadyExists)
                 {
                     OnMessageSend?.Invoke(this, OperationStatus.AlreadyExists, promptResult.Key);
                     continue;
                 }
-                if (result.status == OperationStatus.StorageFailed)
+                if (result.Status == OperationStatus.StorageFailed)
                 {
                     OnMessageSend?.Invoke(this, OperationStatus.StorageFailed, promptResult.Key);
                 }
 
-                if (result.status == OperationStatus.LoadingFailed)
+                if (result.Status == OperationStatus.LoadingFailed)
                 {
                     OnMessageSend?.Invoke(this, OperationStatus.LoadingFailed, null);
                 }
@@ -105,19 +105,19 @@ public class TotpManager : ITotpManager
         {
             var result = await _secretsManager.UpdateItemAsync(previous.Platform, updated);
 
-            if (result.status == OperationStatus.NotFound)
+            if (result.Status == OperationStatus.NotFound)
             {
                 OnMessageSend?.Invoke(this, OperationStatus.NotFound, previous.Platform);
             }
-            else if (result.status == OperationStatus.LoadingFailed)
+            else if (result.Status == OperationStatus.LoadingFailed)
             {
                 OnMessageSend?.Invoke(this, OperationStatus.LoadingFailed, null);
             }
-            else if (result.status == OperationStatus.Success)
+            else if (result.Status == OperationStatus.Success)
             {
                 OnMessageSend?.Invoke(this, OperationStatus.Success, previous.Platform);
             }
-            else if (result.status == OperationStatus.StorageFailed)
+            else if (result.Status == OperationStatus.StorageFailed)
             {
                 OnMessageSend?.Invoke(this, OperationStatus.StorageFailed, previous.Platform);
             }
@@ -147,15 +147,15 @@ public class TotpManager : ITotpManager
         {
             var result = await _secretsManager.DeleteItemAsync(item.Platform);
 
-            if (result.status == OperationStatus.NotFound)
+            if (result.Status == OperationStatus.NotFound)
             {
                 OnMessageSend?.Invoke(this, OperationStatus.NotFound, item.Platform);
             }
-            else if (result.status == OperationStatus.LoadingFailed)
+            else if (result.Status == OperationStatus.LoadingFailed)
             {
                 OnMessageSend?.Invoke(this, OperationStatus.LoadingFailed, item.Platform);
             }
-            else if (result.status == OperationStatus.StorageFailed)
+            else if (result.Status == OperationStatus.StorageFailed)
             {
                 OnMessageSend?.Invoke(this, OperationStatus.StorageFailed, item.Platform);
             }

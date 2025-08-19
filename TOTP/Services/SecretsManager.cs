@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using OtpNet;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,8 +9,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using OtpNet;
 using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Interfaces;
@@ -21,7 +21,7 @@ public class SecretsManager : ISecretsManager, IDisposable
 {
     private readonly JsonSerializerOptions? _options = null;
     private readonly string _secretsPath;
-    private static readonly SemaphoreSlim _semaphore = new(1, 1);
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
     private readonly ILogger<SecretsManager> _logger;
 
     public SecretsManager(ILogger<SecretsManager> logger, string? storageFilePath)
@@ -40,7 +40,7 @@ public class SecretsManager : ISecretsManager, IDisposable
     public async Task<Result<List<SecretItemViewModel>>> GetAllSecretsAsync()
     {
 
-        await _semaphore.WaitAsync();
+        await Semaphore.WaitAsync();
         try
         {
             var (success, list) = await LoadSecretsFromFileAsync();
@@ -50,13 +50,13 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
         finally
         {
-            _semaphore.Release();
+            Semaphore.Release();
         }
     }
 
     public async Task<Result<bool>> AddNewItemAsync(SecretItemViewModel newItem)
     {
-        await _semaphore.WaitAsync();
+        await Semaphore.WaitAsync();
         try
         {
             var (success, list) = await LoadSecretsFromFileAsync();
@@ -73,13 +73,13 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
         finally
         {
-            _semaphore.Release();
+            Semaphore.Release();
         }
     }
 
     public async Task<Result<bool>> DeleteItemAsync(string platform)
     {
-        await _semaphore.WaitAsync();
+        await Semaphore.WaitAsync();
         try
         {
             var (success, secrets) = await LoadSecretsFromFileAsync();
@@ -99,14 +99,14 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
         finally
         {
-            _semaphore.Release();
+            Semaphore.Release();
         }
     }
 
 
     public async Task<Result<bool>> UpdateItemAsync(string previousPlatform, SecretItemViewModel updated)
     {
-        await _semaphore.WaitAsync();
+        await Semaphore.WaitAsync();
         try
         {
             var (ok, list) = await LoadSecretsFromFileAsync();
@@ -126,7 +126,7 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
         finally
         {
-            _semaphore.Release();
+            Semaphore.Release();
         }
     }
 
@@ -227,7 +227,7 @@ public class SecretsManager : ISecretsManager, IDisposable
 
     public void Dispose()
     {
-        _semaphore.Dispose();
+        Semaphore.Dispose();
     }
 
 

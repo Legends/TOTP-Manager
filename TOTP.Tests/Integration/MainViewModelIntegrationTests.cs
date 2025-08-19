@@ -37,9 +37,9 @@ public class MainViewModelIntegrationTests : IDisposable
         var services = new ServiceCollection();
         ConfigureServices(services);
 
-        var umdVM = new Mock<IUserMessageDialogViewModel>();
+        var umdVm = new Mock<IUserMessageDialogViewModel>();
         //services.AddSingleton<IUserMessageDialogViewModel>(umdVM.Object);
-        services.AddTransient<IUserMessageDialogViewModel>(sp => umdVM.Object);
+        services.AddTransient<IUserMessageDialogViewModel>(sp => umdVm.Object);
 
         // Mock only TotpManager
         var secretItem = new SecretItemViewModel("MyKey", "MySecret");
