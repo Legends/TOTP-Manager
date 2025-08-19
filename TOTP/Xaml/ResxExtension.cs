@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Markup;
 using TOTP.Services;
+using TOTP.Core.Resources;
 
 namespace TOTP.Xaml;
 
@@ -12,14 +13,14 @@ public class ResxExtension : MarkupExtension
 
     public override object ProvideValue(IServiceProvider serviceProvider)
     {
-        var value = TOTP.Core.Resources.UI.ResourceManager.GetString(Key) ?? $"!{Key}!";
+        var value = UI.ResourceManager.GetString(Key) ?? $"!{Key}!";
 
         if (serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget targetService &&
             targetService.TargetObject is DependencyObject targetObject &&
             targetService.TargetProperty is DependencyProperty targetProperty)
         {
 
-            void Update() => targetObject.SetValue(targetProperty, TOTP.Core.Resources.UI.ResourceManager.GetString(Key) ?? $"!{Key}!");
+            void Update() => targetObject.SetValue(targetProperty, UI.ResourceManager.GetString(Key) ?? $"!{Key}!");
 
             LocalizationService.LanguageChanged += Update;
 

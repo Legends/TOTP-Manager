@@ -679,7 +679,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             FilteredSecrets.Add(item);
     }
 
-    public string DeleteLabel => TOTP.Core.Resources.UI.ui_btnDelete;
+    public string DeleteLabel => UI.ui_btnDelete;
 
     #endregion
 }
