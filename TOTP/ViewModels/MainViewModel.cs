@@ -189,8 +189,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     public bool IsSearchTextNotEmpty => !string.IsNullOrEmpty(_searchText);
 
-    private readonly DebounceDispatcher _debouncer = new();
-
     #endregion REGION PROPERTIES AND VARS
 
     #region ### Events ###
@@ -350,7 +348,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #region ### ObservableCollections ###
 
-    public ObservableCollection<SecretItem> AllSecrets { get; set; } = [];
+    public ObservableCollection<SecretItem> AllSecrets { get; private set; }
     public ObservableCollection<SecretItem> FilteredSecrets { get; } = [];
 
     #endregion ObservableCollections
