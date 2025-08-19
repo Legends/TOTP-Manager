@@ -78,7 +78,7 @@ public class MainViewModelIntegrationTests : IDisposable
             provider.GetRequiredService<IDelayService>(),
             provider.GetRequiredService<ISecretsManager>()
         );
-        vm.AllSecrets = new();
+
         var initialCount = vm.AllSecrets.Count;
 
         // Act
