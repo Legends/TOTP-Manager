@@ -348,7 +348,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #region ### ObservableCollections ###
 
-    public ObservableCollection<SecretItem> AllSecrets { get; private set; }
+    public ObservableCollection<SecretItem> AllSecrets { get; private set; } = [];
     public ObservableCollection<SecretItem> FilteredSecrets { get; } = [];
 
     #endregion ObservableCollections
