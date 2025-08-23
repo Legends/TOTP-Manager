@@ -12,6 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using TOTP.Core.Interfaces;
+using TOTP.Helper;
+using TOTP.Infrastructure.AppLifecycle;
 using TOTP.Interfaces;
 using TOTP.Logging;
 using TOTP.Services;
@@ -209,8 +211,18 @@ public partial class App : Application, IDisposable
             SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
     }
 
+    private SingleInstanceGuard? _instanceGuard;
     protected override void OnStartup(StartupEventArgs e)
     {
+        _instanceGuard = new SingleInstanceGuard(StringsConstants.AssemblyNameWpf);
+
+        if (!_instanceGuard.IsFirstInstance)
+        {
+            SingleInstanceGuard.ActivateExistingWindow(StringsConstants.AssemblyNameWpf); // Your process name
+            Shutdown();
+            return;
+        }
+
         base.OnStartup(e);
         _ = InitializeAsync(); // controlled fire-and-forget
 
@@ -236,18 +248,35 @@ public partial class App : Application, IDisposable
         }
     }
 
-    protected override async void OnExit(ExitEventArgs e)
+    protected override void OnExit(ExitEventArgs e)
     {
-        // Gracefully shut down the host
-        if (_host != null)
-            await _host.StopAsync();
+        try
+        {
+            _host?.StopAsync().GetAwaiter().GetResult();
+            _host?.Dispose();
+            Log.CloseAndFlushAsync().GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            const string source = StringsConstants.AssemblyNameWpf;
+            const string logName = "Application";
 
-        _host?.Dispose();
+            if (!EventLog.SourceExists(source))
+            {
+                EventLog.CreateEventSource(source, logName);
+            }
 
-        await Log.CloseAndFlushAsync();
+            EventLog.WriteEntry(source, $"Error during shutdown: {ex}", EventLogEntryType.Error);
 
-        base.OnExit(e);
+        }
+        finally
+        {
+            _instanceGuard?.Dispose();
+            base.OnExit(e);
+        }
+
     }
+
 
     public void Dispose()
     {

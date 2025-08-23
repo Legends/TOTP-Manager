@@ -169,15 +169,6 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to xcfsdfad.
-        /// </summary>
-        internal static string fake {
-            get {
-                return ResourceManager.GetString("fake", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Are you sure you want to delete the secret: {0}?.
         /// </summary>
         internal static string msg_ConfirmDeleteSecret {
@@ -187,7 +178,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Failed to delete the secret.
         /// </summary>
         internal static string msg_Failed_Delete_Secret {
             get {

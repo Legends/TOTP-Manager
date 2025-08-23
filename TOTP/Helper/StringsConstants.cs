@@ -5,10 +5,10 @@ namespace TOTP.Helper
 {
     internal static class StringsConstants
     {
-
+        public const string AssemblyNameWpf = "TOTP.UI.WPF";
         public class ImgUrl
         {
-            private const string AssemblyNameWpf = "TOTP.UI.WPF";
+            //private const string AssemblyNameWpf = "TOTP.UI.WPF";
             public const string ImgCancel = $"pack://application:,,,/{AssemblyNameWpf};component/Assets/Icons/Cancel.png";
             public const string ImgInfo = $"pack://application:,,,/{AssemblyNameWpf};component/Assets/Icons/Info.png";
             public const string ImgWarning = $"pack://application:,,,/{AssemblyNameWpf};component/Assets/Icons/warning.png";

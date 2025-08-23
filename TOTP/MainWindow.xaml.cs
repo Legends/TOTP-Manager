@@ -1,11 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using Syncfusion.SfSkinManager;
 using Syncfusion.UI.Xaml.Grid;
-using Syncfusion.UI.Xaml.ScrollAxis;
 using Syncfusion.Windows.Shared;
 using System;
 using System.Windows;
-using System.Windows.Media;
 using TOTP.Interfaces;
 using TOTP.Resources;
 
@@ -18,35 +16,6 @@ public partial class MainWindow : ChromelessWindow
 {
     private readonly IMainViewModel _vm;
     private ILogger<MainWindow> _logger;
-
-    private void PasswordBox_LostFocus(object sender, RoutedEventArgs e)
-    {
-        var grid = FindParent<SfDataGrid>((DependencyObject)sender);
-        if (grid == null || grid.CurrentCellInfo == null) return;
-
-        // Move to another cell to trigger validation
-        var currentIndex = 1;
-        var nextIndex = currentIndex + 1 < grid.Columns.Count ? currentIndex + 1 : currentIndex - 1;
-
-        if (nextIndex >= 0 && nextIndex < grid.Columns.Count)
-        {
-            grid.MoveCurrentCell(new RowColumnIndex(0, 0), true);
-        }
-    }
-
-
-
-    public static T? FindParent<T>(DependencyObject child) where T : DependencyObject
-    {
-        DependencyObject parent = VisualTreeHelper.GetParent(child);
-        while (parent != null && parent is not T)
-        {
-            parent = VisualTreeHelper.GetParent(parent);
-        }
-        return parent as T;
-    }
-
-
 
     public MainWindow(IMainViewModel vm, ILogger<MainWindow> logger)
     {
@@ -64,16 +33,6 @@ public partial class MainWindow : ChromelessWindow
 
         Loaded += OnLoadedAsync;
     }
-
-    //private void OnAddClick(object sender, RoutedEventArgs e)
-    //{
-    //    if (SecretsGrid.View.CurrentEditItem != null)
-    //        return;
-
-    //    // now execute the VM command
-    //    (DataContext as MainViewModel)?.AddNewSecretCommand.Execute(null);
-    //}
-
 
     private async void OnLoadedAsync(object sender, RoutedEventArgs e)
     {

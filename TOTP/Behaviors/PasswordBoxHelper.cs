@@ -1,5 +1,8 @@
-﻿using System.Windows;
+﻿using Syncfusion.UI.Xaml.Grid;
+using Syncfusion.UI.Xaml.ScrollAxis;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace TOTP.AttachedProperties;
 
@@ -29,10 +32,42 @@ public static class PasswordBoxHelper
         if (d is not PasswordBox pb) return;
 
         if ((bool)e.NewValue)
+        {
             pb.PasswordChanged += PasswordChanged;
+            pb.LostFocus += OnLostFocus;
+        }
         else
+        {
             pb.PasswordChanged -= PasswordChanged;
+            pb.LostFocus -= OnLostFocus;
+        }
     }
+
+    private static void OnLostFocus(object sender, RoutedEventArgs e)
+    {
+        var grid = FindParent<SfDataGrid>((DependencyObject)sender);
+        if (grid == null || grid.CurrentCellInfo == null) return;
+
+        // Move to another cell to trigger validation
+        var currentIndex = 1;
+        var nextIndex = currentIndex + 1 < grid.Columns.Count ? currentIndex + 1 : currentIndex - 1;
+
+        if (nextIndex >= 0 && nextIndex < grid.Columns.Count)
+        {
+            grid.MoveCurrentCell(new RowColumnIndex(0, 0), true);
+        }
+    }
+
+    public static T? FindParent<T>(DependencyObject child) where T : DependencyObject
+    {
+        DependencyObject parent = VisualTreeHelper.GetParent(child);
+        while (parent != null && parent is not T)
+        {
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+        return parent as T;
+    }
+
 
     private static void OnBoundPasswordChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {

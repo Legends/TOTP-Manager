@@ -411,7 +411,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                                 ValidatesOnDataErrors=True,
                                                 NotifyOnValidationError=True}" />-->
                                 <PasswordBox VerticalContentAlignment="Center"
-                                             LostFocus="PasswordBox_LostFocus" 
+                                            
                                              Padding="5,2,5,0"
                                              props:PasswordBoxHelper.BindPassword="True"
                                              props:PasswordBoxHelper.BoundPassword="{Binding EditingSecret, Mode=TwoWay,  UpdateSourceTrigger=PropertyChanged,
