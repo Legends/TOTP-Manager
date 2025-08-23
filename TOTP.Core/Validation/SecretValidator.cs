@@ -1,4 +1,5 @@
 ﻿using TOTP.Core.Enums;
+using TOTP.Core.Models;
 
 namespace TOTP.Core.Validation;
 
@@ -11,6 +12,15 @@ public static class SecretValidator
             ? ValidationError.PlatformRequired
             : ValidationError.None;
     }
+
+    public static ValidationError CheckForPlatformDuplicates(string platform, IEnumerable<SecretItem> source)
+    {
+        // Check duplicates in the bound list (ignore the current row)
+        bool duplicate = source
+            .Any(x => string.Equals(x.Platform, platform, StringComparison.OrdinalIgnoreCase));
+        return duplicate ? ValidationError.PlatformAlreadyExists : ValidationError.None;
+    }
+
 
     public static ValidationError ValidateSecret(string? input)
     {

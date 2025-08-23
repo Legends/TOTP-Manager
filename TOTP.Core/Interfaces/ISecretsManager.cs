@@ -1,26 +1,26 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using TOTP.Core.Common;
-using TOTP.ViewModels;
+﻿using TOTP.Core.Common;
+using TOTP.Core.Models;
 
 namespace TOTP.Interfaces;
 
 public interface ISecretsManager
 {
 
+    Task<Result<SecretItem>> GetSecretByPlatformAsync(string platform);
+
     //Task<List<SecretItem>> GetAllSecretsAsync();
     /// <summary>
     /// Retrieves all secret items from local storage file.
     /// </summary>
     /// <returns>Success | LoadingFailed</returns>
-    Task<Result<List<SecretItemViewModel>>> GetAllSecretsAsync();
+    Task<Result<List<SecretItem>>> GetAllSecretsAsync();
 
     /// <summary>
     /// Adds a new secret to the internal collection and writes it to the encrypted secrets file.
     /// </summary>
     /// <param name="item"></param>
     /// <returns>Success | AlreadyExist | LoadingFailed | StorageFailed</returns>
-    Task<Result<bool>> AddNewItemAsync(SecretItemViewModel item);
+    Task<Result<bool>> AddNewItemAsync(SecretItem item);
     //Task<bool> AddNewItemAsync(SecretItem item);
 
     /// <summary>
@@ -29,7 +29,7 @@ public interface ISecretsManager
     /// <param name="previousPlatform"></param>
     /// <param name="updated"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<Result<bool>> UpdateItemAsync(string previousPlatform, SecretItemViewModel updated);
+    Task<Result<bool>> UpdateItemAsync(string previousPlatform, SecretItem updated);
 
     /// <summary>
     /// Deletes a secret item from the internal collection and writes the updated collection to the encrypted secrets file.

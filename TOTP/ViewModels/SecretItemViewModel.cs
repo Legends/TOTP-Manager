@@ -62,6 +62,8 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         }
     }
 
+    public string? EditingSecret { get; set; }
+
     public string? Account { get; set; }
 
     #endregion

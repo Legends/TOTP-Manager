@@ -1,31 +1,29 @@
-﻿using System;
-using System.Threading.Tasks;
-using TOTP.Core.Enums;
-using TOTP.Events;
-using TOTP.ViewModels;
+﻿using TOTP.Core.Enums;
+using TOTP.Core.Events;
+using TOTP.Core.Models;
 
-namespace TOTP.Interfaces;
+namespace TOTP.Core.Interfaces;
 
 public interface ITotpManager
 {
 
-    bool TryComputeCode(string secret, out string? code, out string? error);
+    bool TryComputeCode(string secret, out string? code, out Exception? exc);
 
     /// <summary>
     /// Adds a new TOTP secret item by prompting the user for key and value.
     /// It writes the new item to the secrets file and returns the item if successful.
     /// </summary>
     /// <returns></returns>
-    Task<(bool success, SecretItemViewModel? item)> AddNewSecretAsync();
+    Task<(bool success, SecretItem? item)> AddNewSecretAsync();
 
-    Task UpdateSecretAsync(SecretItemViewModel previous, SecretItemViewModel updated);
+    Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated, List<SecretItem> source);
 
     /// <summary>
     ///     Deletes a secret item from the secrets.json file.
     /// </summary>
     /// <param name="item">SecretItem</param>
     /// <returns>true/false</returns>
-    Task<bool> DeleteSecretAsync(SecretItemViewModel item);
+    Task<bool> DeleteSecretAsync(SecretItem item);
 
     /// <summary>
     /// Called when a message needs to be displayed

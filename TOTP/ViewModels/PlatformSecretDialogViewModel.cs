@@ -5,9 +5,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
+using TOTP.Core.Models;
 using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Services;
+using TOTP.Validation;
 
 namespace TOTP.ViewModels;
 
@@ -85,11 +87,11 @@ public class PlatformSecretDialogViewModel : INotifyPropertyChanged, IPlatformSe
     {
         try
         {
-            var (isValid, error) = SecretsManager.IsValidSecretItem(new SecretItemViewModel(Platform, Secret));
+            var (isValid, error) = SecretsManager.IsValidSecretItem(new SecretItem(Platform, Secret));
 
             if (!isValid)
             {
-                _messageService.ShowWarningMessage(error!);
+                _messageService.ShowWarningMessage(ValidationMessageMapper.ToMessage(error));
                 return;
             }
 

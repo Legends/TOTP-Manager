@@ -1,8 +1,10 @@
 ﻿using Moq;
 using Moq.AutoMock;
 using System.Diagnostics;
-using TOTP.Core;
 using TOTP.Core.Common;
+using TOTP.Core.Interfaces;
+using TOTP.Core.Models;
+using TOTP.Extensions;
 using TOTP.Interfaces;
 using TOTP.ViewModels;
 
@@ -28,7 +30,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
 
         mocker.GetMock<ITotpManager>()
             .Setup(m => m.AddNewSecretAsync())
-            .ReturnsAsync((true, secretItem));
+            .ReturnsAsync((true, secretItem.ToDomain()));
 
         var vm = mocker.CreateInstance<MainViewModel>();
         var initialCount = vm.AllSecrets.Count;
@@ -48,7 +50,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         var vm = mocker.CreateInstance<MainViewModel>();
 
         var secret = new SecretItemViewModel("DeleteKey", "DeleteValue");
-        mocker.GetMock<ITotpManager>().Setup(m => m.DeleteSecretAsync(secret)).Returns(Task.FromResult(true));
+        mocker.GetMock<ITotpManager>().Setup(m => m.DeleteSecretAsync(secret.ToDomain())).Returns(Task.FromResult(true));
 
         vm.AllSecrets.Add(secret);
         var initialCount = vm.AllSecrets.Count;
@@ -122,8 +124,8 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         vm.PreviousVersion = oldSecret;
 
         vm.EndEditCommand.Execute(updatedSecret);
-
-        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecretAsync(oldSecret, updatedSecret), Times.Once);
+        var secretList = vm.AllSecrets.Select(s => s.ToDomain()).ToList();
+        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecretAsync(oldSecret.ToDomain(), updatedSecret.ToDomain(), secretList), Times.Once);
         Assert.Null(vm.PreviousVersion);
     }
 
@@ -167,8 +169,8 @@ public class MainViewModelTests : IClassFixture<MyFixture>
 
         vm.PreviousVersion = old;
         vm.UpdateSecretCommand.Execute(updated);
-
-        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecretAsync(old, updated), Times.Once);
+        var secretList = vm.AllSecrets.Select(s => s.ToDomain()).ToList();
+        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecretAsync(old.ToDomain(), updated.ToDomain(), secretList), Times.Once);
     }
 
     [Fact]
@@ -190,23 +192,44 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         Assert.True(eventRaised);
     }
 
-    [Fact]
+    [StaFact]
     public async Task OnSecretSelected_ShouldGenerateTotp_AndCopyToClipboard()
     {
         var secret = new SecretItemViewModel("TestPlatform", "JBSWY3DPEHPK3PXP");
+
         var mocker = new AutoMocker();
         SetupSecretsDataSourceMock(mocker);
+
         var vm = mocker.CreateInstance<MainViewModel>();
 
         string? capturedText = null;
+
+        mocker.GetMock<IQrCodeService>()
+            .Setup(qs => qs.BuildOtpAuthUri(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns("otpauth://totp/Test:acc?secret=JBSWY3DPEHPK3PXP&issuer=Test&algorithm=SHA1&digits=6&period=30");
+
+        static byte[] OneByOnePng()
+        {
+            using var bmp = new System.Drawing.Bitmap(1, 1);
+            using var ms = new MemoryStream();
+            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            return ms.ToArray();
+        }
+
+
+        mocker.GetMock<IQrCodeService>()
+            .Setup(qs => qs.GenerateQr(It.IsAny<string>()))
+            .Returns(OneByOnePng());
+
+
         mocker.GetMock<IClipboardService>().Setup(c => c.SetText(It.IsAny<string>()))
             .Callback<string>(text => capturedText = text);
 
 #pragma warning disable CS8601
         mocker.GetMock<ITotpManager>().Setup(m =>
-                m.TryComputeCode(It.IsAny<string>(), out It.Ref<string>.IsAny, out It.Ref<string>.IsAny))
+                m.TryComputeCode(It.IsAny<string>(), out It.Ref<string>.IsAny, out It.Ref<Exception>.IsAny))
             .Returns(true)
-            .Callback((string input, out string code, out string? error) =>
+            .Callback((string input, out string code, out Exception? error) =>
             {
                 code = "123456";
                 error = null;
@@ -230,7 +253,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
     {
         var secrets = new List<SecretItemViewModel>();
         var secretsManagerMock = new Mock<ISecretsManager>();
-        secretsManagerMock.Setup(m => m.GetAllSecretsAsync()).ReturnsAsync(Result<List<SecretItemViewModel>>.Success(secrets));
+        secretsManagerMock.Setup(m => m.GetAllSecretsAsync()).ReturnsAsync(Result<List<SecretItem>>.Success(secrets.Select(sivm => sivm.ToDomain()).ToList()));
         mocker.Use<ISecretsManager>(secretsManagerMock.Object);
     }
 

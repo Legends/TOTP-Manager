@@ -4,6 +4,7 @@
     {
         None,
         PlatformRequired,
+        PlatformAlreadyExists,
         SecretRequired,
         SecretInvalidFormat
     }

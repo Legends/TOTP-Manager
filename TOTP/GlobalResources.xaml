@@ -6,6 +6,7 @@
 
     <!-- Converter -->
     <sys:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     <converters:BoolToVisibilityConverterCollapsed x:Key="BoolToVisibilityConverterCollapsed" />
 
     <!-- Brushes -->

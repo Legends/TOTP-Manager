@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Serilog;
 using Serilog.Extensions.Logging;
+using TOTP.Core.Interfaces;
+using TOTP.Extensions;
 using TOTP.Interfaces;
 using TOTP.Services;
 using TOTP.ViewModels;
@@ -45,7 +47,7 @@ public class MainViewModelIntegrationTests : IDisposable
         var secretItem = new SecretItemViewModel("MyKey", "MySecret");
         var totpManagerMock = new Mock<ITotpManager>();
         totpManagerMock.Setup(m => m.AddNewSecretAsync())
-            .ReturnsAsync((true, secretItem));
+            .ReturnsAsync((true, secretItem.ToDomain()));
         services.AddSingleton(totpManagerMock.Object);
 
         services.AddSingleton<ISecretsManager>(provider =>

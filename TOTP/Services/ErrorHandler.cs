@@ -19,7 +19,7 @@ public class ErrorHandler : IErrorHandler
     {
         try
         {
-            _msgSvc.ShowErrorMessage($"{userMessage}\n\nDetails:\n{exception.Message}");
+            _msgSvc.ShowErrorMessage($"{userMessage}\n\n\n{exception.Message}");
         }
         finally
         {

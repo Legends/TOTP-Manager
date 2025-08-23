@@ -9,13 +9,21 @@ public class QrCodeServiceTests
     public void GenerateQr_ShouldReturnBitmapImage()
     {
         // Arrange
-        var service = new QrCodeService();
+        var qrCodeService = new QrCodeService();
         string issuer = "TestPlatform";
         string secret = "JBSWY3DPEHPK3PXP";
         string account = "test@example.com";
 
         // Act
-        BitmapImage image = service.GenerateQr(issuer, secret, account);
+        var uri = qrCodeService.BuildOtpAuthUri(issuer, secret, account);
+        byte[] pngBytes = qrCodeService.GenerateQr(uri);
+
+        using MemoryStream ms = new(pngBytes);
+        BitmapImage image = new();
+        image.BeginInit();
+        image.StreamSource = ms;
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.EndInit();
 
         // Force the image to load into memory
         image.Freeze(); // optional: to make it thread-safe

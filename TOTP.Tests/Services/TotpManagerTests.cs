@@ -1,5 +1,6 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
 using TOTP.Interfaces;
@@ -54,12 +55,12 @@ public class TotpManagerTests
     public void TryComputeCode_ShouldReturnFalse_WhenInvalidBase32()
     {
         // Arrange
-        var secretsHelper = _fixture.Freeze<Mock<ISecretsManager>>();
-        var errorHandler = _fixture.Freeze<Mock<IErrorHandler>>();
+        var secretsManager = _fixture.Freeze<Mock<ISecretsManager>>();
+        var logger = _fixture.Freeze<Mock<ILogger<TotpManager>>>();
 
         var manager = new TotpManager(
-            secretsHelper.Object,
-            errorHandler.Object
+            secretsManager.Object,
+            logger.Object
         );
 
         // Act
@@ -68,7 +69,7 @@ public class TotpManagerTests
         // Assert
         Assert.False(result);
         Assert.Null(code);
-        Assert.Contains("Invalid secret format", error);
+        Assert.Contains("is not a Base32", error.Message);
     }
 
     #endregion

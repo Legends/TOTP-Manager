@@ -26,6 +26,7 @@ namespace TOTP.Commands
             return !_isExecuting && (_canExecute?.Invoke() ?? true);
         }
 
+
         public async void Execute(object? parameter)
         {
             if (!CanExecute(parameter)) return;

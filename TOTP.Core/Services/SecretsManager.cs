@@ -1,19 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
-using OtpNet;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using TOTP.Core.Common;
 using TOTP.Core.Enums;
+using TOTP.Core.Models;
+using TOTP.Core.Validation;
 using TOTP.Interfaces;
-using TOTP.Resources;
-using TOTP.ViewModels;
+
 
 namespace TOTP.Services;
 
@@ -37,7 +31,7 @@ public class SecretsManager : ISecretsManager, IDisposable
             "TOTP-Manager", "secrets.dat");
     }
 
-    public async Task<Result<List<SecretItemViewModel>>> GetAllSecretsAsync()
+    public async Task<Result<List<SecretItem>>> GetAllSecretsAsync()
     {
 
         await Semaphore.WaitAsync();
@@ -45,8 +39,8 @@ public class SecretsManager : ISecretsManager, IDisposable
         {
             var (success, list) = await LoadSecretsFromFileAsync();
             return success ?
-                Result<List<SecretItemViewModel>>.Success(list)
-                : Result<List<SecretItemViewModel>>.Fail(OperationStatus.LoadingFailed);
+                Result<List<SecretItem>>.Success(list)
+                : Result<List<SecretItem>>.Fail(OperationStatus.LoadingFailed);
         }
         finally
         {
@@ -54,7 +48,26 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
     }
 
-    public async Task<Result<bool>> AddNewItemAsync(SecretItemViewModel newItem)
+    public async Task<Result<SecretItem>> GetSecretByPlatformAsync(string platform)
+    {
+
+        await Semaphore.WaitAsync();
+        try
+        {
+            var (success, list) = await LoadSecretsFromFileAsync();
+            var secret = list.Where(s => s.Platform.ToLowerInvariant() == platform.ToLowerInvariant()).FirstOrDefault();
+            return success ?
+                Result<SecretItem>.Success(secret)
+                : Result<SecretItem>.Fail(OperationStatus.LoadingFailed);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+
+
+    public async Task<Result<bool>> AddNewItemAsync(SecretItem newItem)
     {
         await Semaphore.WaitAsync();
         try
@@ -104,7 +117,7 @@ public class SecretsManager : ISecretsManager, IDisposable
     }
 
 
-    public async Task<Result<bool>> UpdateItemAsync(string previousPlatform, SecretItemViewModel updated)
+    public async Task<Result<bool>> UpdateItemAsync(string previousPlatform, SecretItem updated)
     {
         await Semaphore.WaitAsync();
         try
@@ -157,7 +170,7 @@ public class SecretsManager : ISecretsManager, IDisposable
 
     }
 
-    private async Task<(bool, List<SecretItemViewModel>)> LoadSecretsFromFileAsync()
+    private async Task<(bool, List<SecretItem>)> LoadSecretsFromFileAsync()
     {
         try
         {
@@ -168,7 +181,7 @@ public class SecretsManager : ISecretsManager, IDisposable
             var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
             var json = Encoding.UTF8.GetString(decrypted);
 
-            var list = JsonSerializer.Deserialize<List<SecretItemViewModel>>(json, GetOptions()) ?? [];
+            var list = JsonSerializer.Deserialize<List<SecretItem>>(json, GetOptions()) ?? [];
             return (true, list);
         }
         catch (Exception ex)
@@ -179,7 +192,7 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
     }
 
-    private async Task<bool> WriteEncryptedFileAsync(List<SecretItemViewModel> list)
+    private async Task<bool> WriteEncryptedFileAsync(List<SecretItem> list)
     {
         try
         {
@@ -201,29 +214,33 @@ public class SecretsManager : ISecretsManager, IDisposable
         return _options ?? new JsonSerializerOptions { WriteIndented = true };
     }
 
-    public static (bool IsValid, string? ErrorMessage) IsValidSecretItem(SecretItemViewModel item)
+    public static (bool IsValid, ValidationError error) IsValidSecretItem(SecretItem item)
     {
-        if (string.IsNullOrWhiteSpace(item.Platform) || string.IsNullOrWhiteSpace(item.Secret))
-            return (false, UI.msg_PlatformSecretNotEmpty);
+        //if (string.IsNullOrWhiteSpace(item.Platform) || string.IsNullOrWhiteSpace(item.SecretBase32))
+        //    return (false, UI.msg_PlatformSecretNotEmpty);
 
-        if (!IsValidBase32Format(item.Secret))
-            return (false, UI.msg_SecretInvalidFormat);
+        //if (!IsValidBase32Format(item.SecretBase32))
+        //    return (false, UI.msg_SecretInvalidFormat);
 
-        return (true, null);
+        //return (true, null);
+
+
+        var result = SecretValidator.ValidatePlatform(item.Platform);
+        if (result != ValidationError.None)
+        {
+            return (false, result);
+        }
+
+
+        result = SecretValidator.ValidateSecret(item.Secret);
+        if (result != ValidationError.None)
+        {
+            return (false, result);
+        }
+
+        return (true, ValidationError.None);
     }
 
-    public static bool IsValidBase32Format(string value)
-    {
-        try
-        {
-            _ = Base32Encoding.ToBytes(value);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
     public void Dispose()
     {

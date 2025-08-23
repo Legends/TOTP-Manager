@@ -41,8 +41,6 @@ namespace TOTP.Services
                 };
             }
 
-            //jObject["Localization"]["Culture"] = cultureName;
-
             File.WriteAllText(StringsConstants.AppSettingsJsonFilePath, jObject.ToString(Newtonsoft.Json.Formatting.Indented));
         }
 

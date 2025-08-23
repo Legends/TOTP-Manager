@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -14,12 +15,15 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
 using TOTP.Core.Enums;
+using TOTP.Core.Events;
+using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
-using TOTP.Events;
+using TOTP.Extensions;
 using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Resources;
 using TOTP.Services;
+using TOTP.Validation;
 
 namespace TOTP.ViewModels;
 
@@ -31,6 +35,23 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     private readonly ILogger<MainViewModel> _logger;
     private readonly IPlatformSecretDialogService _platformSecretDialogService;
     public ObservableCollection<CultureDisplay> SupportedCultures { get; }
+
+    #region ### SERVICES ###
+
+    private readonly ISecretsManager _secretsManager;
+    private readonly IClipboardService _clipboard;
+    private readonly IMessageService _messageService;
+    private readonly ITotpManager _totpManager;
+
+    private readonly IDebounceService _debounceService;
+
+    //private readonly DispatcherTimer _debounceTimer;
+    private readonly IQrCodeService _qrService;
+
+    private readonly IDelayService _delayService;
+    //private string _pendingSearchText;
+
+    #endregion REGION SERVICES
 
     public CultureDisplay SelectedCulture
     {
@@ -82,6 +103,21 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         {
             _isSearchFocused = value;
             OnPropertyChanged();
+        }
+    }
+
+    bool _isGridInEditMode;
+    public bool IsGridEditing
+    {
+        get => _isGridInEditMode;
+        set
+        {
+            if (_isGridInEditMode == value) return;
+
+            _isGridInEditMode = value;
+            OnPropertyChanged();
+            AddNewSecretCommand.RaiseCanExecuteChanged();
+            ToggleSearchBoxCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -255,7 +291,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     private AddNewPromptArgs _totpManager_OnAddNewPrompt(object? sender)
     {
         var (success, key, value) = _platformSecretDialogService.ShowForm();
-        return new AddNewPromptArgs() { Success = success, Key = key, Value = value };
+        return new AddNewPromptArgs() { Success = success, Platform = key, Secret = value };
     }
 
     private void _totpManager_OnMessageSend(object sender, OperationStatus arg1, string? arg2)
@@ -272,6 +308,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
                 _messageService.ShowErrorMessage(UI.msg_Failed_Loading_Secrets);
                 break;
             case OperationStatus.DeleteFailed:
+                _messageService.ShowErrorMessage($"{UI.msg_Failed_Delete_Secret} : {arg2}");
                 break;
             case OperationStatus.UpdateFailed:
                 _messageService.ShowErrorMessage($"{UI.msg_Failed_Updating_Secret} : {arg2}");
@@ -307,7 +344,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     private void SetupCommandEventhandler()
     {
-        AddNewSecretCommand = new AsyncCommand(AddNewSecretAsync, null, _logger);
+        AddNewSecretCommand = new AsyncCommand(AddNewSecretAsync, () => !_isGridInEditMode, _logger);
         DeleteSecretCommand = new AsyncCommand<SecretItemViewModel>(DeleteSecretAsync, null, _logger);
         UpdateSecretCommand = new AsyncCommand<SecretItemViewModel>(UpdateSecretAsync, null, _logger);
         BeginEditCommand = new RelayCommand<SecretItemViewModel>(OnBeginEdit);
@@ -323,7 +360,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         {
             IsSearchVisible = !IsSearchVisible;
             IsSearchFocused = IsSearchVisible;
-        });
+        }, () => !IsGridEditing);
 
         ClearSearchCommand = new RelayCommand(() =>
         {
@@ -356,35 +393,19 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     #region ### COMMANDS DECLARATION ###
 
     public ICommand ChangeLanguageCommand { get; private set; } = null!;
-    public ICommand AddNewSecretCommand { get; private set; } = null!;
+    public AsyncCommand AddNewSecretCommand { get; private set; } = null!;
     public ICommand BeginEditCommand { get; private set; } = null!;
     public ICommand ClearSearchCommand { get; private set; } = null!;
     public ICommand DeleteSecretCommand { get; private set; } = null!;
     public ICommand DoubleClickCommand { get; private set; } = null!;
     public ICommand EndEditCommand { get; private set; } = null!;
-    public ICommand ToggleSearchBoxCommand { get; private set; } = null!;
+    public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
 
     public ICommand SelectionChangedCommand { get; private set; } = null!;
 
     #endregion REGION COMMANDS
 
-    #region ### SERVICES ###
-
-    private readonly ISecretsManager _secretsManager;
-    private readonly IClipboardService _clipboard;
-    private readonly IMessageService _messageService;
-    private readonly ITotpManager _totpManager;
-
-    private readonly IDebounceService _debounceService;
-
-    //private readonly DispatcherTimer _debounceTimer;
-    private readonly IQrCodeService _qrService;
-
-    private readonly IDelayService _delayService;
-    //private string _pendingSearchText;
-
-    #endregion REGION SERVICES
 
     #region ### READ ALL SECRETS ###
     private async Task ReadAllSecretsAsync()
@@ -397,9 +418,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             if (result.Status == OperationStatus.Success)
             {
                 var allSecrets = result.Value;
-                var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).ToList();
+                var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).Select(item => item.ToViewModel()).ToList();
 
-                AllSecrets = new ObservableCollection<SecretItemViewModel>(secrets ?? []);
+                AllSecrets = new ObservableCollection<SecretItemViewModel>((IEnumerable<SecretItemViewModel>)(secrets ?? []));
 
                 foreach (var secretItem in AllSecrets)
                     secretItem.PropertyChanged += SecretItem_PropertyChanged;
@@ -425,13 +446,15 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             if (success && item != null)
             {
                 ResetCodeGenerationLabels();
-                AllSecrets.Add(item);
+                AllSecrets.Add(item.ToViewModel());
                 OnPropertyChanged(nameof(AllSecrets));
                 UpdateSearchFilter();
             }
         }
         catch (Exception ex)
         {
+            //_errorHandler.Handle(ex, UI.ex_UnexpectedError);
+
             _logger.LogError(ex, UI.ex_Adding_New_TOTP);
             _messageService.ShowErrorMessage(UI.ex_Adding_New_TOTP + ": " + ex.Message);
         }
@@ -444,7 +467,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     {
         try
         {
-            if (await _totpManager.DeleteSecretAsync(item)) // delete from storage file
+            if (await _totpManager.DeleteSecretAsync(item.ToDomain())) // delete from storage file
             {
                 AllSecrets.Remove(item); // delete secret from grid's datasource
                 OnPropertyChanged(nameof(AllSecrets));
@@ -472,6 +495,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #endregion
 
+    // TODO: only one running app instance is allowed
+
     #region ### UPDATE SECRET ###
 
     public async Task UpdateSecretAsync(SecretItemViewModel updated)
@@ -481,7 +506,13 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
         try
         {
-            await _totpManager.UpdateSecretAsync(PreviousVersion, updated);
+
+            var domainSecretsList = AllSecrets.Where(sivm => !ReferenceEquals(sivm, updated)).Select(s => s.ToDomain()).ToList();
+            var success = await _totpManager.UpdateSecretAsync(PreviousVersion.ToDomain(), updated.ToDomain(), domainSecretsList);
+
+            if (!success)
+                return;
+
             PreviousVersion = null;
             UpdateSearchFilter();
         }
@@ -499,7 +530,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         OnPropertyChanged(nameof(ShowActionsColumn));
     }
 
-    // TODO: updating does not trigger validation of the secret ! add validation
+
 
     private async Task OnEndEdit(SecretItemViewModel item)
     {
@@ -508,11 +539,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
         if (PreviousVersion != null && !item.Equals(PreviousVersion))
         {
-            var (isValid, error) = SecretsManager.IsValidSecretItem(item);
+            var (isValid, error) = SecretsManager.IsValidSecretItem(item.ToDomain());
 
             if (!isValid)
             {
-                _messageService.ShowInfoMessage(error!);
+                _messageService.ShowInfoMessage(ValidationMessageMapper.ToMessage(error));
                 return;
             }
             else
@@ -612,7 +643,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     private async Task CalculateAndDisplayTotpCode(SecretItemViewModel secret)
     {
-        if (_totpManager.TryComputeCode(secret.Secret, out var totpCode, out var error))
+        if (_totpManager.TryComputeCode(secret.Secret, out var totpCode, out var exc))
         {
             ResetCodeGenerationLabels();
 
@@ -625,7 +656,23 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             // Update the UI
             CurrentCodeLabel = $"{secret.Platform}: {totpCode}";
             _clipboard.SetText(totpCode!);
-            QrCodeImage = _qrService.GenerateQr(secret.Platform, secret.Secret, secret.Account);
+
+
+            var uri = _qrService.BuildOtpAuthUri(secret.Platform, secret.Secret, secret.Account);
+            byte[] pngBytes = _qrService.GenerateQr(uri);
+
+            var bmp = new BitmapImage();
+            using (var ms = new MemoryStream(pngBytes))
+            {
+                bmp.BeginInit();
+                bmp.StreamSource = ms;
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.EndInit();
+                bmp.Freeze();
+            }
+
+            QrCodeImage = bmp;
+
             Debug.WriteLine($"showing code labels for {secret.Platform}");
             ShowCodeLabels();
 
@@ -643,8 +690,12 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         }
         else
         {
+            var error = exc is FormatException || exc is ArgumentException
+                 ? UI.ex_InvalidSecret
+                 : $"{UI.ex_UnexpectedError}.{Environment.NewLine}{exc.Message}";
+
             _messageService.ShowErrorMessage(string.Format(UI.ex_Error_Generating_TOTP_0_0, secret.Platform, error));
-            await Task.FromResult(error);
+            await Task.FromResult(exc);
         }
     }
 

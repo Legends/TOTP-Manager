@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq.AutoMock;
+using TOTP.Extensions;
 using TOTP.Services;
 using TOTP.ViewModels;
 
@@ -29,7 +30,7 @@ public class SecretsManagerIntegrationTests : IDisposable
     public async Task FullLifecycle_AddUpdateDelete_ShouldSucceed()
     {
         // --- ADD ---
-        var resultAdd = await _secretsManager.AddNewItemAsync(_initial);
+        var resultAdd = await _secretsManager.AddNewItemAsync(_initial.ToDomain());
         Assert.True(resultAdd.Value);
 
         var resultAllSecrets = await _secretsManager.GetAllSecretsAsync();
@@ -37,7 +38,7 @@ public class SecretsManagerIntegrationTests : IDisposable
         Assert.Equal(_initial.Platform, resultAllSecrets.Value[0].Platform);
 
         // --- UPDATE ---
-        var resultUpdated = await _secretsManager.UpdateItemAsync(_initial.Platform, _updated);
+        var resultUpdated = await _secretsManager.UpdateItemAsync(_initial.Platform, _updated.ToDomain());
         Assert.True(resultUpdated.Value);
 
         var updatedSecrets = await _secretsManager.GetAllSecretsAsync();
@@ -55,7 +56,7 @@ public class SecretsManagerIntegrationTests : IDisposable
     [Fact]
     public async Task AddNewItem_ShouldPersistSecret()
     {
-        var resultAdded = await _secretsManager.AddNewItemAsync(_initial);
+        var resultAdded = await _secretsManager.AddNewItemAsync(_initial.ToDomain());
         Assert.True(resultAdded.Value);
 
         var secrets = await _secretsManager.GetAllSecretsAsync();
@@ -66,9 +67,9 @@ public class SecretsManagerIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateItem_ShouldReplaceSecret()
     {
-        await _secretsManager.AddNewItemAsync(_initial);
+        await _secretsManager.AddNewItemAsync(_initial.ToDomain());
 
-        var updated = await _secretsManager.UpdateItemAsync(_initial.Platform, _updated);
+        var updated = await _secretsManager.UpdateItemAsync(_initial.Platform, _updated.ToDomain());
         Assert.True(updated.Value);
 
         var secrets = await _secretsManager.GetAllSecretsAsync();
@@ -79,8 +80,8 @@ public class SecretsManagerIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteItem_ShouldRemoveSecret()
     {
-        await _secretsManager.AddNewItemAsync(_initial);
-        await _secretsManager.UpdateItemAsync(_initial.Platform, _updated);
+        await _secretsManager.AddNewItemAsync(_initial.ToDomain());
+        await _secretsManager.UpdateItemAsync(_initial.Platform, _updated.ToDomain());
 
         var deleted = await _secretsManager.DeleteItemAsync(_updated.Platform);
         Assert.True(deleted.Value);
@@ -93,7 +94,7 @@ public class SecretsManagerIntegrationTests : IDisposable
     [Fact]
     public async Task BackupSecretsFile_ShouldCreateBackup()
     {
-        _ = await _secretsManager.AddNewItemAsync(_initial);
+        _ = await _secretsManager.AddNewItemAsync(_initial.ToDomain());
 
         var backupSuccess = _secretsManager.BackupSecretsFile();
         Assert.True(backupSuccess);

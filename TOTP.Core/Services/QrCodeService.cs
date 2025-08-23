@@ -1,7 +1,4 @@
 ﻿using QRCoder;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Windows.Media.Imaging;
 using TOTP.Interfaces;
 
 namespace TOTP.Services;
@@ -11,12 +8,19 @@ public class QrCodeService : IQrCodeService
     // otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}
     // otpauth://totp/?secret={secret}&issuer={issuer}
 
-    public BitmapImage GenerateQr(string issuer, string secret, string? account = "")
+    //public BitmapImage GenerateQr(string issuer, string secret, string? account = "")
+    //{
+    //    var uri = !string.IsNullOrWhiteSpace(account)
+    //        ? $"otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30"
+    //        : $"otpauth://totp/?secret={secret}&issuer={issuer}";
+    //    return GenerateQrCodeImage(uri);
+    //}
+
+    public string BuildOtpAuthUri(string issuer, string secret, string? account = "")
     {
-        var uri = !string.IsNullOrWhiteSpace(account)
+        return !string.IsNullOrWhiteSpace(account)
             ? $"otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30"
             : $"otpauth://totp/?secret={secret}&issuer={issuer}";
-        return GenerateQrCodeImage(uri);
     }
 
     /// <summary>
@@ -27,24 +31,15 @@ public class QrCodeService : IQrCodeService
     ///     =30";
     /// </summary>
     /// <param name="uri"></param>
-    /// <returns></returns>
-    private static BitmapImage GenerateQrCodeImage(string uri)
+    /// <returns></returns>     
+    public byte[] GenerateQr(string uri)
     {
-        QRCodeGenerator qrGenerator = new();
+        using QRCodeGenerator qrGenerator = new();
         var qrCodeData = qrGenerator.CreateQrCode(uri, QRCodeGenerator.ECCLevel.Q);
-        QRCode qrCode = new(qrCodeData);
-        var qrBitmap = qrCode.GetGraphic(20);
 
-        using MemoryStream ms = new();
-        qrBitmap.Save(ms, ImageFormat.Png);
-        ms.Position = 0;
-
-        BitmapImage bitmapImage = new();
-        bitmapImage.BeginInit();
-        bitmapImage.StreamSource = ms;
-        bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-        bitmapImage.EndInit();
-
-        return bitmapImage;
+        using PngByteQRCode qrCode = new(qrCodeData);
+        byte[] qrCodeImage = qrCode.GetGraphic(20);
+        return qrCodeImage;
     }
+
 }

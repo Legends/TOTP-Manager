@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using TOTP.Core.Interfaces;
 using TOTP.Interfaces;
 using TOTP.Logging;
 using TOTP.Services;

@@ -153,9 +153,6 @@
   <data name="ex_UpdatingSecret_0" xml:space="preserve">
     <value>Error updating secret:{0}</value>
   </data>
-  <data name="fake" xml:space="preserve">
-    <value>xcfsdfad</value>
-  </data>
   <data name="msg_ConfirmDeleteSecret" xml:space="preserve">
     <value>Are you sure you want to delete the secret: {0}?</value>
   </data>
@@ -164,6 +161,9 @@
   </data>
   <data name="msg_FailedReadingSecrets" xml:space="preserve">
     <value>Failed to load secrets: {0}</value>
+  </data>
+  <data name="msg_Failed_Delete_Secret" xml:space="preserve">
+    <value>Failed to delete the secret</value>
   </data>
   <data name="msg_Failed_Loading_Secrets" xml:space="preserve">
     <value>Failed to load secrets</value>

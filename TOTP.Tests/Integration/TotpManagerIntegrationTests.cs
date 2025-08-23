@@ -2,7 +2,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
 using TOTP.Core.Enums;
-using TOTP.Events;
+using TOTP.Core.Events;
+using TOTP.Extensions;
 using TOTP.Interfaces;
 using TOTP.Services;
 using TOTP.ViewModels;
@@ -63,8 +64,8 @@ public class TotpManagerIntegrationTests : IDisposable
             return new AddNewPromptArgs
             {
                 Success = true,
-                Key = _initialSecret.Platform,
-                Value = _initialSecret.Secret
+                Platform = _initialSecret.Platform,
+                Secret = _initialSecret.Secret
             };
         };
 
@@ -84,7 +85,7 @@ public class TotpManagerIntegrationTests : IDisposable
 
         // --- UPDATE ---
         var updated = new SecretItemViewModel(_initialSecret.Platform, "MZXW6YTBOI======");
-        await _totpManager.UpdateSecretAsync(_initialSecret, updated);
+        await _totpManager.UpdateSecretAsync(_initialSecret.ToDomain(), updated.ToDomain(), secrets.Value);
 
         var updatedSecrets = await _secretsManager.GetAllSecretsAsync();
         Assert.Single(updatedSecrets.Value);
@@ -96,7 +97,7 @@ public class TotpManagerIntegrationTests : IDisposable
                 return true;
             }
         ;
-        var deleteResult = await _totpManager.DeleteSecretAsync(updated);
+        var deleteResult = await _totpManager.DeleteSecretAsync(updated.ToDomain());
         Assert.True(deleteResult);
         var result = await _secretsManager.GetAllSecretsAsync();
         Assert.Empty(result.Value);

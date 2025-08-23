@@ -187,6 +187,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string msg_Failed_Delete_Secret {
+            get {
+                return ResourceManager.GetString("msg_Failed_Delete_Secret", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to load secrets.
         /// </summary>
         internal static string msg_Failed_Loading_Secrets {
