@@ -135,6 +135,9 @@
   <data name="ex_Error_Generating_TOTP_0_0" xml:space="preserve">
     <value>Error generating TOTP code for {0}: {1}</value>
   </data>
+  <data name="ex_FatalError" xml:space="preserve">
+    <value>A fatal application error occurred. The app must now close.\n\nSee log files for details.</value>
+  </data>
   <data name="ex_Filtering_Secrets" xml:space="preserve">
     <value>Error filtering secrets</value>
   </data>
@@ -153,8 +156,20 @@
   <data name="ex_UpdatingSecret_0" xml:space="preserve">
     <value>Error updating secret:{0}</value>
   </data>
+  <data name="msg_Application_Starting" xml:space="preserve">
+    <value>TOTP Manager is starting...</value>
+  </data>
+  <data name="msg_BackroundTaskException" xml:space="preserve">
+    <value>A background task failed. You can continue using the application.</value>
+  </data>
   <data name="msg_ConfirmDeleteSecret" xml:space="preserve">
     <value>Are you sure you want to delete the secret: {0}?</value>
+  </data>
+  <data name="msg_Error_Shutdown" xml:space="preserve">
+    <value>Error during shutdown: {0}</value>
+  </data>
+  <data name="msg_Error_Starting_App" xml:space="preserve">
+    <value>Error during startup of TOTP Manager</value>
   </data>
   <data name="msg_FailedAddingSecret" xml:space="preserve">
     <value>Failed to add secret: {0}</value>

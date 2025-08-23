@@ -115,6 +115,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A fatal application error occurred. The app must now close.\n\nSee log files for details..
+        /// </summary>
+        internal static string ex_FatalError {
+            get {
+                return ResourceManager.GetString("ex_FatalError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error filtering secrets.
         /// </summary>
         internal static string ex_Filtering_Secrets {
@@ -169,11 +178,47 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TOTP Manager is starting....
+        /// </summary>
+        internal static string msg_Application_Starting {
+            get {
+                return ResourceManager.GetString("msg_Application_Starting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A background task failed. You can continue using the application..
+        /// </summary>
+        internal static string msg_BackroundTaskException {
+            get {
+                return ResourceManager.GetString("msg_BackroundTaskException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Are you sure you want to delete the secret: {0}?.
         /// </summary>
         internal static string msg_ConfirmDeleteSecret {
             get {
                 return ResourceManager.GetString("msg_ConfirmDeleteSecret", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error during shutdown: {0}.
+        /// </summary>
+        internal static string msg_Error_Shutdown {
+            get {
+                return ResourceManager.GetString("msg_Error_Shutdown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error during startup of TOTP Manager.
+        /// </summary>
+        internal static string msg_Error_Starting_App {
+            get {
+                return ResourceManager.GetString("msg_Error_Starting_App", resourceCulture);
             }
         }
         

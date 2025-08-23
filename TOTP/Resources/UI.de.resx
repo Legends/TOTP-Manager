@@ -135,6 +135,9 @@
   <data name="ex_Error_Generating_TOTP_0_0" xml:space="preserve">
     <value>Fehler beim Generieren des TOTP Codes für {0}: {1}</value>
   </data>
+  <data name="ex_FatalError" xml:space="preserve">
+    <value>Ein fataler Anwendungsfehler ist aufgetreten. Die Anwendung wird jetzt heruntergefahren.\n\nFür nähre Details die Logfiles analysieren.</value>
+  </data>
   <data name="ex_Filtering_Secrets" xml:space="preserve">
     <value>Fehler beim Filtern der Schlüssel</value>
   </data>
@@ -153,8 +156,20 @@
   <data name="ex_UpdatingSecret_0" xml:space="preserve">
     <value>Fehler beim Aktualisieren des Schlüssels: {0}</value>
   </data>
+  <data name="msg_Application_Starting" xml:space="preserve">
+    <value>TOTP Manager startet...</value>
+  </data>
+  <data name="msg_BackroundTaskException" xml:space="preserve">
+    <value>Ein Hintergrundprozess ist fehlgeschlagen. Sie können die Anwendung weiterhin verwenden.</value>
+  </data>
   <data name="msg_ConfirmDeleteSecret" xml:space="preserve">
     <value>Schlüssel {0} wirklich löschen?</value>
+  </data>
+  <data name="msg_Error_Shutdown" xml:space="preserve">
+    <value>Fehler beim Herunterfahren: {0}</value>
+  </data>
+  <data name="msg_Error_Starting_App" xml:space="preserve">
+    <value>Fehler beim Starten der Anwendung TOTP Manager</value>
   </data>
   <data name="msg_FailedAddingSecret" xml:space="preserve">
     <value>Fehler beim Hinzufügen des Schlüssels: {0}</value>

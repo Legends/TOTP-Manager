@@ -16,6 +16,7 @@ using TOTP.Helper;
 using TOTP.Infrastructure.AppLifecycle;
 using TOTP.Interfaces;
 using TOTP.Logging;
+using TOTP.Resources;
 using TOTP.Services;
 using TOTP.ViewModels;
 using TOTP.Windows;
@@ -171,12 +172,12 @@ public partial class App : Application, IDisposable
             {
                 var messageService = _host?.Services.GetService<IMessageService>();
                 messageService?.ShowErrorMessageDialog(
-                    "A fatal application error occurred. The app must now close.\n\nSee log files for details.");
+                  UI.ex_FatalError);
 
             }
             catch
             {
-                MessageBox.Show("A fatal error occurred. The app will shut down!", "AppDomain Error");
+                MessageBox.Show(UI.ex_FatalError, "AppDomain Error");
             }
 
             _logger?.LogCritical(exArgs.ExceptionObject as Exception, "Unhandled domain exception");
@@ -189,12 +190,12 @@ public partial class App : Application, IDisposable
             {
                 var messageService = _host?.Services.GetService<IMessageService>();
                 messageService?.ShowWarningMessage(
-                    "A background task failed. You can continue using the application.");
+                    UI.msg_BackroundTaskException);
 
             }
             catch
             {
-                MessageBox.Show("A background task failed.", "Task Error");
+                MessageBox.Show(UI.msg_BackroundTaskException, "Unobserved Task Exception");
             }
 
             _logger?.LogCritical(exArgs.Exception, "Unobserved task exception");
@@ -235,15 +236,15 @@ public partial class App : Application, IDisposable
             await _host.StartAsync();
 
             _logger = _host.Services.GetRequiredService<ILogger<App>>();
-            _logger.LogInformation("Application startup triggered.");
+            _logger.LogInformation(UI.msg_Application_Starting);
 
             var mainWindow = _host.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
         }
         catch (Exception ex)
         {
-            _logger?.LogCritical(ex, "Startup failed");
-            MessageBox.Show("Fehler beim Start: " + ex.Message, "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            _logger?.LogCritical(ex, UI.msg_Error_Starting_App);
+            MessageBox.Show($"{UI.msg_Error_Starting_App}: " + ex.Message, UI.ui_Caption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(-1);
         }
     }
@@ -266,7 +267,7 @@ public partial class App : Application, IDisposable
                 EventLog.CreateEventSource(source, logName);
             }
 
-            EventLog.WriteEntry(source, $"Error during shutdown: {ex}", EventLogEntryType.Error);
+            EventLog.WriteEntry(source, string.Format(UI.msg_Error_Shutdown, ex.Message), EventLogEntryType.Error);
 
         }
         finally
@@ -288,9 +289,9 @@ public partial class App : Application, IDisposable
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[BackupManager] Failed to create backup for secret.dat: {ex}");
+            Debug.WriteLine(string.Format(UI.ex_BackupFailed, ex.Message));
 
-            _logger?.LogError(ex, "Failed to create backup for secret.dat");
+            _logger?.LogError(string.Format(UI.ex_BackupFailed, ex.Message));
             throw;
         }
 
