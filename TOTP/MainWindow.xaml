@@ -333,18 +333,7 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                                    CurrentCellBorderThickness="0"
                                    HorizontalAlignment="Stretch"
                                    ColumnSizer="Star">
-                <!--<i:Interaction.Triggers>
-                    <i:EventTrigger EventName="SelectionChanged">
-                        <i:InvokeCommandAction Command="{Binding SelectionChangedCommand}" />
-                    </i:EventTrigger>
-                </i:Interaction.Triggers>-->
-                <!--<i:Interaction.Triggers>
-                    <i:EventTrigger EventName="SelectionChanged">
-                        <behaviors:AsyncInvokeCommandAction Command="{Binding SelectionChangedCommand}" />
-                    </i:EventTrigger>
-                </i:Interaction.Triggers>-->
-
-
+             
                 <i:Interaction.Behaviors>
                     <behaviors:DataGridEditingStateBehavior IsEditing="{Binding IsGridEditing, Mode=TwoWay}" />
                     <behaviors:DataGridValidationBehavior />
@@ -391,27 +380,35 @@ https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:
                     <syncfusion:GridTemplateColumn MappingName="Secret"
                                                    HeaderText="{xaml:Resx Key=ui_Header_Secret}">
 
-                        <!-- Display Mode -->
+                        <syncfusion:GridTemplateColumn.CellStyle>
+                            <Style TargetType="sfGrid:GridCell"
+                                   BasedOn="{StaticResource {x:Type sfGrid:GridCell}}">
+                                <Setter Property="Padding"
+                                        Value="0,0,12,0" />
+                                <!-- right inset -->
+                                <Setter Property="HorizontalContentAlignment"
+                                        Value="Stretch" />
+                                <Setter Property="VerticalContentAlignment"
+                                        Value="Center" />
+                            </Style>
+                        </syncfusion:GridTemplateColumn.CellStyle>
+
+                        <!-- display -->
                         <syncfusion:GridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <!-- Masked text display -->
                                 <TextBlock TextAlignment="Left"
+Padding="5,2,5,0"
                                            VerticalAlignment="Center"
-                                           Padding="5,2,5,0"
                                            Text="{Binding Secret, Converter={StaticResource SecretMaskConverter}}" />
                             </DataTemplate>
                         </syncfusion:GridTemplateColumn.CellTemplate>
 
+                       
+
                         <!-- Edit Mode -->
                         <syncfusion:GridTemplateColumn.EditTemplate>
                             <DataTemplate>
-                                <!--<syncfusion:SfMaskedEdit VerticalContentAlignment="Center"
-                                                         Padding="5,2,5,0"
-                                                         Text="{Binding Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged,
-                                                ValidatesOnDataErrors=True,
-                                                NotifyOnValidationError=True}" />-->
                                 <PasswordBox VerticalContentAlignment="Center"
-                                            
                                              Padding="5,2,5,0"
                                              props:PasswordBoxHelper.BindPassword="True"
                                              props:PasswordBoxHelper.BoundPassword="{Binding EditingSecret, Mode=TwoWay,  UpdateSourceTrigger=PropertyChanged,

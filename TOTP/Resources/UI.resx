@@ -165,6 +165,9 @@
   <data name="msg_ConfirmDeleteSecret" xml:space="preserve">
     <value>Are you sure you want to delete the secret: {0}?</value>
   </data>
+  <data name="msg_DispatcherException" xml:space="preserve">
+    <value>An unexpected error occurred.\n\nYou can continue using the application, but some features may not work correctly.</value>
+  </data>
   <data name="msg_Error_Shutdown" xml:space="preserve">
     <value>Error during shutdown: {0}</value>
   </data>

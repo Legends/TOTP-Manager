@@ -125,7 +125,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
 
         vm.EndEditCommand.Execute(updatedSecret);
         var secretList = vm.AllSecrets.Select(s => s.ToDomain()).ToList();
-        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecretAsync(oldSecret.ToDomain(), updatedSecret.ToDomain(), secretList), Times.Once);
+        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecretAsync(oldSecret.ToDomain(), updatedSecret.ToDomain(), new List<SecretItem>()), Times.Once);
         Assert.Null(vm.PreviousVersion);
     }
 

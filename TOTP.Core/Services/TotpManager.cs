@@ -70,7 +70,8 @@ public class TotpManager : ITotpManager
     {
         try
         {
-            var totp = new Totp(Base32Encoding.ToBytes(secret));
+            var encodedSecret = Base32Encoding.ToBytes(secret);
+            var totp = new Totp(encodedSecret);
             code = totp.ComputeTotp();
             exc = null;
             return true;

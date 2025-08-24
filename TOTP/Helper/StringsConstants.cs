@@ -5,7 +5,13 @@ namespace TOTP.Helper
 {
     internal static class StringsConstants
     {
+        public const string RootLogPath = "Logs/app-root-start.log";
+        public const string AppLogPath = "Logs/app.log";
         public const string AssemblyNameWpf = "TOTP.UI.WPF";
+        public const string AppSettingsFileName = "appsettings.json";
+        public static string AppSettingsJsonFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AppSettingsFileName);
+        public static readonly string Syncfusion = "syncfusion";
+
         public class ImgUrl
         {
             //private const string AssemblyNameWpf = "TOTP.UI.WPF";
@@ -19,9 +25,5 @@ namespace TOTP.Helper
             public const string EnFlag = $"pack://application:,,,/{AssemblyNameWpf};component/Assets/flags/en.png";
         }
 
-        public const string RootLogPath = "Logs/app-root-start.log";
-        public const string AppLogPath = "Logs/app.log";
-        public static string AppSettingsJsonFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-        public static readonly string Syncfusion = "syncfusion";
     }
 }

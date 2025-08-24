@@ -165,6 +165,9 @@
   <data name="msg_ConfirmDeleteSecret" xml:space="preserve">
     <value>Schlüssel {0} wirklich löschen?</value>
   </data>
+  <data name="msg_DispatcherException" xml:space="preserve">
+    <value>Ein unerwarteter Fehler ist aufgetreten. Sie können die Anwendung weiterhin verwenden, aber einige Funktionen funktionieren möglicherweise nicht korrekt.</value>
+  </data>
   <data name="msg_Error_Shutdown" xml:space="preserve">
     <value>Fehler beim Herunterfahren: {0}</value>
   </data>

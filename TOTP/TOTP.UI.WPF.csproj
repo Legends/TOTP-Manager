@@ -14,6 +14,7 @@
 		<PublicSign>true</PublicSign>
 		<GenerateDocumentationFile>False</GenerateDocumentationFile>
 		<RootNamespace>TOTP</RootNamespace>
+		<GenerateApplicationDefinition>false</GenerateApplicationDefinition>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -31,6 +32,10 @@
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 		<_SuppressWpfTrimError>true</_SuppressWpfTrimError>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <ApplicationDefinition Remove="App.xaml" />
+	</ItemGroup>
 
 
 
@@ -91,6 +96,7 @@
 		</Content>
 		<None Include="..\dev-helper.md" Link="dev-helper.md" />
 		<None Include="..\readme.md" Link="readme.md" />
+		<Page Include="App.xaml" />
 		<ProjectReference Include="..\TOTP.Core\TOTP.Core.csproj" />
 		<ProjectReference Include="..\TOTP.Infrastructure\TOTP.Infrastructure.csproj" />
 		<Resource Include="Assets\backgrounds\background-main.png" />
@@ -142,6 +148,7 @@
 
 	<PropertyGroup>
 		<SigningSucceeded>false</SigningSucceeded>
+		<StartupObject>TOTP.Program</StartupObject>
 	</PropertyGroup>
 
 	<Target Name="PostBuildSign" AfterTargets="Build" Condition="'$(Configuration)'=='Release'">

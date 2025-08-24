@@ -348,7 +348,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         DeleteSecretCommand = new AsyncCommand<SecretItemViewModel>(DeleteSecretAsync, null, _logger);
         UpdateSecretCommand = new AsyncCommand<SecretItemViewModel>(UpdateSecretAsync, null, _logger);
         BeginEditCommand = new RelayCommand<SecretItemViewModel>(OnBeginEdit);
-        EndEditCommand = new AsyncCommand<SecretItemViewModel>(OnEndEdit); // Method must be: Task OnEndEditAsync()
+        EndEditCommand = new AsyncCommand<SecretItemViewModel>(OnEndEditAsync); // Method must be: Task OnEndEditAsync()
         //SelectionChangedCommand = new AsyncCommand(async _ => await OnSelectionChangedAsync());
         SelectionChangedCommand = new AsyncCommand(OnSelectionChangedAsync);
 
@@ -495,7 +495,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #endregion
 
-    // TODO: only one running app instance is allowed
 
     #region ### UPDATE SECRET ###
 
@@ -531,11 +530,10 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     }
 
 
-
-    private async Task OnEndEdit(SecretItemViewModel item)
+    private async Task OnEndEditAsync(SecretItemViewModel item)
     {
         item.IsBeingEdited = false;
-        OnPropertyChanged(nameof(ShowActionsColumn));
+        //OnPropertyChanged(nameof(ShowActionsColumn));
 
         if (PreviousVersion != null && !item.Equals(PreviousVersion))
         {
@@ -548,7 +546,16 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             }
             else
             {
-                await UpdateSecretAsync(item);
+                try
+                {
+                    // Update the secret if valid
+                    await UpdateSecretAsync(item);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, UI.ex_UpdatingSecret);
+                    _messageService.ShowErrorMessage(UI.ex_UpdatingSecret);
+                }
             }
 
         }

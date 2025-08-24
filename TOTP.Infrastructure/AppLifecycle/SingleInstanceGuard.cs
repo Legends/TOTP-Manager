@@ -3,26 +3,36 @@ using System.Runtime.InteropServices;
 
 namespace TOTP.Infrastructure.AppLifecycle;
 
-public class SingleInstanceGuard : IDisposable
+public sealed class SingleInstanceGuard : IDisposable
 {
-    private readonly Mutex _mutex;
-    public bool IsFirstInstance { get; }
+    private Mutex? _mutex;
+    private readonly bool _owns;
+    private bool _disposed;
 
-    public SingleInstanceGuard(string mutexName)
+    public SingleInstanceGuard(string name)
     {
-        _mutex = new Mutex(true, mutexName, out bool isNew);
-        IsFirstInstance = isNew;
+        _mutex = new Mutex(initiallyOwned: true, name: $@"Global\{name}", out bool createdNew);
+        _owns = createdNew;
     }
+
+    public bool IsFirstInstance => _owns;
 
     public void Dispose()
     {
-        if (IsFirstInstance)
-        {
-            _mutex.ReleaseMutex();
-        }
-        _mutex.Dispose();
-    }
+        if (_disposed) return;
+        _disposed = true;
 
+        var m = Interlocked.Exchange(ref _mutex, null);
+        if (m is null) return;
+
+        try
+        {
+            if (_owns)
+                m.ReleaseMutex();
+        }
+        catch (ApplicationException) { /* not owner */ }
+
+    }
     public static void ActivateExistingWindow(string processName)
     {
         var current = Process.GetCurrentProcess();

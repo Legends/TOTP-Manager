@@ -205,6 +205,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An unexpected error occurred.\n\nYou can continue using the application, but some features may not work correctly..
+        /// </summary>
+        internal static string msg_DispatcherException {
+            get {
+                return ResourceManager.GetString("msg_DispatcherException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error during shutdown: {0}.
         /// </summary>
         internal static string msg_Error_Shutdown {
