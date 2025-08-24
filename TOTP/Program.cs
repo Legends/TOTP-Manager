@@ -13,44 +13,7 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-
         Run(args).GetAwaiter().GetResult();
-        //// 1) config / culture / license
-        //var configuration = BootLoader.BuildConfiguration();         // your helper
-        //BootLoader.SetCulture(configuration);                        // your helper
-        //BootLoader.RegisterSyncfusionLicenseKey(configuration);      // your helper
-
-        //// 2) single instance (optional)
-        //using var instance = new SingleInstanceGuard(StringsConstants.AssemblyNameWpf);
-        //if (!instance.IsFirstInstance)
-        //{
-        //    SingleInstanceGuard.ActivateExistingWindow(StringsConstants.AssemblyNameWpf);
-        //    return;
-        //}
-
-
-        //var host = BootLoader.CreateHostAndConfigureServices(configuration); // your method
-
-        //// IMPORTANT: stay on STA thread (no await here)
-        //host.StartAsync().GetAwaiter().GetResult();
-
-        //// 4) WPF app
-        //var app = new App { Host = host, InstanceGuard = instance };
-        //app.InitializeComponent();
-        //BootLoader.SetupUnhandledExceptionsHooks(app, host); // your helper
-
-        //// 5) resolve & show window (explicit)
-        //var mainWindow = host.Services.GetRequiredService<MainWindow>();
-        //app.MainWindow = mainWindow;
-        //mainWindow.Show();
-
-        //// 6) run dispatcher
-        //app.Run();
-
-        //// 7) graceful shutdown
-        //host.StopAsync().GetAwaiter().GetResult();
-        //host.Dispose();
-        //Log.CloseAndFlush();
     }
 
     private static async Task Run(string[] args)
