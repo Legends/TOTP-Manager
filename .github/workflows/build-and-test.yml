@@ -65,7 +65,7 @@ jobs:
 
       - name: Publish WPF app
         run: |
-          dotnet publish TOTP/TOTP.Manager.csproj `
+          dotnet publish TOTP/TOTP.UI.WPF.csproj `
             --configuration Release `
             --runtime win-x64 `
             --self-contained true `
@@ -75,11 +75,11 @@ jobs:
             --output publish
 
       - name: Compress app into zip
-        run: Compress-Archive -Path publish\* -DestinationPath TOTP.Manager.zip
+        run: Compress-Archive -Path publish\* -DestinationPath TOTP-Manager.zip
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: TOTP.Manager.zip
+          files: TOTP-Manager.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }} #repo scope token for uploading to release
