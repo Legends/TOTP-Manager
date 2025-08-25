@@ -17,7 +17,7 @@ function LogError {
 
 try {
     $SolutionDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $ProjectPath = Join-Path $SolutionDir "TOTP\TOTP.Manager.csproj"
+    $ProjectPath = Join-Path $SolutionDir "TOTP\TOTP.UI.WPF.csproj"
     $OutputDir = Join-Path $SolutionDir "publish"
 
     Log "Starting publish process..."

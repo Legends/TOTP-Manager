@@ -70,11 +70,12 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
 
     [JsonConstructor]
-    public SecretItemViewModel(string platform, string secret)
+    public SecretItemViewModel(string platform, string secret, string? account = null)
     {
         //_platform = platform;
         Platform = platform;
         Secret = secret;
+        Account = account;
     }
 
 

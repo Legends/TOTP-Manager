@@ -10,8 +10,8 @@ public static class SecretMappingExtensions
 
     public static SecretItemViewModel ToViewModel(this SecretItem s)
         => new(
-             s.Platform,
-              s.Secret
-        //Account = s.Account
+              s.Platform,
+              s.Secret,
+              s.Account
         );
 }

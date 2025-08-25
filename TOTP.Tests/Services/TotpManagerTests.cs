@@ -8,6 +8,10 @@ using TOTP.Services;
 
 namespace TOTP.Tests.Services;
 
+// TODO:
+// add test cases for:
+// - duplicates
+// 
 public class TotpManagerTests
 {
     private readonly IFixture _fixture;

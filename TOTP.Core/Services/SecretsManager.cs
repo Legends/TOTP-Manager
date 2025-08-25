@@ -216,15 +216,6 @@ public class SecretsManager : ISecretsManager, IDisposable
 
     public static (bool IsValid, ValidationError error) IsValidSecretItem(SecretItem item)
     {
-        //if (string.IsNullOrWhiteSpace(item.Platform) || string.IsNullOrWhiteSpace(item.SecretBase32))
-        //    return (false, UI.msg_PlatformSecretNotEmpty);
-
-        //if (!IsValidBase32Format(item.SecretBase32))
-        //    return (false, UI.msg_SecretInvalidFormat);
-
-        //return (true, null);
-
-
         var result = SecretValidator.ValidatePlatform(item.Platform);
         if (result != ValidationError.None)
         {
