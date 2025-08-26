@@ -70,7 +70,14 @@ public class TotpManager : ITotpManager
     {
         try
         {
-            var encodedSecret = Base32Encoding.ToBytes(secret);
+            if (!SecretValidator.IsValidBase32Format(secret))
+            {
+                code = null;
+                exc = new FormatException($"Secret is invalid Base32 format, supplied to {nameof(TryComputeCode)}");
+                return false;
+            }
+
+            var encodedSecret = OtpNet.Base32Encoding.ToBytes(secret);
             var totp = new Totp(encodedSecret);
             code = totp.ComputeTotp();
             exc = null;
@@ -91,50 +98,34 @@ public class TotpManager : ITotpManager
         ArgumentNullException.ThrowIfNull(previous);
         ArgumentNullException.ThrowIfNull(updated);
 
-        // do update only if the item has changed
-        if (!previous.Equals(updated))
+        if (previous.Equals(updated))
+            return false;
+
+        if (!string.Equals(previous.Platform, updated.Platform, StringComparison.OrdinalIgnoreCase) &&
+            SecretValidator.CheckForPlatformDuplicates(updated.Platform, source) != ValidationError.None)
         {
-
-            // if the user has updated the platform name, we need to check if the new name already exists
-            if (previous.Platform.ToLowerInvariant() != updated.Platform.ToLowerInvariant())
-            {
-                // If the platform has changed, we need to check if the new platform already exists
-                var secret = SecretValidator.CheckForPlatformDuplicates(updated.Platform, source);
-                if (secret != ValidationError.None)
-                {
-                    OnMessageSend?.Invoke(this, OperationStatus.AlreadyExists, updated.Platform);
-                    return false;
-                }
-            }
-
-            var result = await _secretsManager.UpdateItemAsync(previous.Platform, updated);
-
-            if (result.Status == OperationStatus.Success)
-            {
-                OnMessageSend?.Invoke(this, OperationStatus.Success, previous.Platform);
-                return true;
-            }
-
-            if (result.Status == OperationStatus.NotFound)
-            {
-                OnMessageSend?.Invoke(this, OperationStatus.NotFound, previous.Platform);
-            }
-            else if (result.Status == OperationStatus.LoadingFailed)
-            {
-                OnMessageSend?.Invoke(this, OperationStatus.LoadingFailed, null);
-            }
-            else if (result.Status == OperationStatus.StorageFailed)
-            {
-                OnMessageSend?.Invoke(this, OperationStatus.StorageFailed, previous.Platform);
-            }
-            else
-            {
-                OnMessageSend?.Invoke(this, OperationStatus.UpdateFailed, previous.Platform);
-            }
+            OnMessageSend?.Invoke(this, OperationStatus.AlreadyExists, updated.Platform);
+            return false;
         }
-        return false;
 
+        var result = await _secretsManager.UpdateItemAsync(previous.Platform, updated);
+
+        var platform = result.Status == OperationStatus.LoadingFailed ? null : previous.Platform;
+
+        var status = result.Status switch
+        {
+            OperationStatus.Success => OperationStatus.Success,
+            OperationStatus.NotFound => OperationStatus.NotFound,
+            OperationStatus.LoadingFailed => OperationStatus.LoadingFailed,
+            OperationStatus.StorageFailed => OperationStatus.StorageFailed,
+            _ => OperationStatus.UpdateFailed
+        };
+
+        OnMessageSend?.Invoke(this, status, platform);
+
+        return result.Status == OperationStatus.Success;
     }
+
 
     /// <summary>
     ///     Deletes a secret item from the secrets.json file.

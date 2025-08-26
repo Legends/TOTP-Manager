@@ -3,6 +3,10 @@ using AutoFixture.AutoMoq;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
+using TOTP.Core.Common;
+using TOTP.Core.Enums;
+using TOTP.Core.Events;
+using TOTP.Core.Models;
 using TOTP.Interfaces;
 using TOTP.Services;
 
@@ -17,6 +21,49 @@ public class TotpManagerTests
     private readonly IFixture _fixture;
 
     #region Mock.AutoMock
+
+    [Fact]
+    public async Task AddNewSecretAsync_ShouldReturnAlreadyExistsOnDuplicateSecret()
+    {
+
+        var mockSecretsManager = new Mock<ISecretsManager>();
+        var mockLogger = new Mock<ILogger<TotpManager>>();
+        var totpManager = new TotpManager(mockSecretsManager.Object, mockLogger.Object);
+
+        int promptCount = 0;
+
+        // Simulate user prompt: first returns duplicate, then valid
+        totpManager.OnAddNewPrompt += (_) =>
+        {
+            promptCount++;
+            return promptCount == 1
+                ? new AddNewPromptArgs { Success = true, Platform = "DUPLICATE", Secret = "valid" }
+                : new AddNewPromptArgs { Success = true, Platform = "DUPLICATE", Secret = "valid" };
+        };
+
+        // Simulate AddNewItemAsync behavior
+        mockSecretsManager
+            .SetupSequence(m => m.AddNewItemAsync(It.IsAny<SecretItem>()))
+            .ReturnsAsync(Result<bool>.Fail(OperationStatus.AlreadyExists))
+            .ReturnsAsync(Result<bool>.Success(true));// ensure exit from loop
+
+        var receivedStatuses = new List<OperationStatus>();
+        totpManager.OnMessageSend += (_, status, _) =>
+        {
+            receivedStatuses.Add(status);
+        };
+
+        // Act
+        var (success, item) = await totpManager.AddNewSecretAsync();
+
+        // Assert
+        Assert.True(success);
+        Assert.NotNull(item);
+        Assert.Equal("DUPLICATE", item.Platform);
+        Assert.Equal("valid", item.Secret);
+        Assert.Contains(OperationStatus.AlreadyExists, receivedStatuses);
+    }
+
 
     [Fact]
     public void TryComputeCode_ShouldReturnFalse_ForInvalidBase32()
@@ -68,12 +115,12 @@ public class TotpManagerTests
         );
 
         // Act
-        var result = manager.TryComputeCode("!!!invalid!!!", out var code, out var error);
+        var result = manager.TryComputeCode("!!!invalid!!!", out var code, out var ex);
 
         // Assert
         Assert.False(result);
         Assert.Null(code);
-        Assert.Contains("is not a Base32", error.Message);
+        Assert.Contains("invalid Base32", ex?.Message);
     }
 
     #endregion

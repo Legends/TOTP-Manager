@@ -54,6 +54,10 @@ public class TotpManagerIntegrationTests : IDisposable
         _vm = _mocker.CreateInstance<MainViewModel>();
     }
 
+
+
+
+
     [Fact]
     public async Task Add_Compute_Update_Delete_Secret_ShouldSucceed()
     {

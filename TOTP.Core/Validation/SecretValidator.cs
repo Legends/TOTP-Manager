@@ -31,12 +31,12 @@ public static class SecretValidator
             : ValidationError.SecretInvalidFormat;
     }
 
-    private static bool IsValidBase32Format(string value)
+    public static bool IsValidBase32Format(string value)
     {
         try
         {
-            _ = OtpNet.Base32Encoding.ToBytes(value);
-            return true;
+            var bytes = OtpNet.Base32Encoding.ToBytes(value);
+            return bytes.Length > 0;
         }
         catch
         {
