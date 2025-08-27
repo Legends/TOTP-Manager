@@ -20,10 +20,71 @@ public class TotpManagerTests
 {
     private readonly IFixture _fixture;
 
-    #region Mock.AutoMock
+    #region ### AutoFixture.AutoMoq
+
+    public TotpManagerTests()
+    {
+        _fixture = new Fixture().Customize(new AutoMoqCustomization());
+    }
 
     [Fact]
-    public async Task AddNewSecretAsync_ShouldReturnAlreadyExistsOnDuplicateSecret()
+    public void TryComputeCode_ShouldReturnFalse_WhenInvalidBase32()
+    {
+        // Arrange
+        var secretsManager = _fixture.Freeze<Mock<ISecretsManager>>();
+        var logger = _fixture.Freeze<Mock<ILogger<TotpManager>>>();
+
+        var manager = new TotpManager(
+            secretsManager.Object,
+            logger.Object
+        );
+
+        // Act
+        var result = manager.TryComputeCode("!!!invalid!!!", out var code, out var ex);
+
+        // Assert
+        Assert.False(result);
+        Assert.Null(code);
+        Assert.Contains("invalid Base32", ex?.Message);
+    }
+
+    #endregion
+
+    #region Mock.AutoMock
+
+    // TODO: Check for duplicates when updating secret!
+
+    [Fact]
+    public async Task UpdateSecretItemShouldReturnAlreadyExists()
+    {
+
+        var mockSecretsManager = new Mock<ISecretsManager>();
+
+
+        var mockLogger = new Mock<ILogger<TotpManager>>();
+        var totpManager = new TotpManager(mockSecretsManager.Object, mockLogger.Object);
+        await Task.CompletedTask;
+        var PreviousVersion = new SecretItem("A", "dfgdsafdsf");
+
+        var domainSecretsList = new List<SecretItem>
+        {
+            PreviousVersion,
+            new("B", "sdfgsdfgsdfg"),
+            new("C", "xcvxcvxcvxcv")
+        };
+
+        var updated = new SecretItem("A", "JBSWY3DPEHPK3PXP");
+
+        mockSecretsManager
+            .Setup(m => m.UpdateItemAsync("A", It.IsAny<SecretItem>()))
+            .ReturnsAsync(Result<bool>.Fail(OperationStatus.AlreadyExists));
+
+        var success = await totpManager.UpdateSecretAsync(PreviousVersion, updated, domainSecretsList);
+        Assert.False(success);
+    }
+
+    [Fact]
+    public async Task AddNewDuplicateSecretAsync_ShouldReturnAlreadyExists()
     {
 
         var mockSecretsManager = new Mock<ISecretsManager>();
@@ -95,33 +156,5 @@ public class TotpManagerTests
 
     #endregion
 
-    #region ### AutoFixture.AutoMoq
 
-    public TotpManagerTests()
-    {
-        _fixture = new Fixture().Customize(new AutoMoqCustomization());
-    }
-
-    [Fact]
-    public void TryComputeCode_ShouldReturnFalse_WhenInvalidBase32()
-    {
-        // Arrange
-        var secretsManager = _fixture.Freeze<Mock<ISecretsManager>>();
-        var logger = _fixture.Freeze<Mock<ILogger<TotpManager>>>();
-
-        var manager = new TotpManager(
-            secretsManager.Object,
-            logger.Object
-        );
-
-        // Act
-        var result = manager.TryComputeCode("!!!invalid!!!", out var code, out var ex);
-
-        // Assert
-        Assert.False(result);
-        Assert.Null(code);
-        Assert.Contains("invalid Base32", ex?.Message);
-    }
-
-    #endregion
 }

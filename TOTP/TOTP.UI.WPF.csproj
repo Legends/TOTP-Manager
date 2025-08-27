@@ -155,7 +155,5 @@
 		<Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;" StandardOutputImportance="High" StandardErrorImportance="High" IgnoreExitCode="false" />
 		<Message Text="🔥 PostBuildSign target invoked" Importance="High" />
 	</Target>
-
-
-
+	
 </Project>

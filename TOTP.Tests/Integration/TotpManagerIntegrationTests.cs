@@ -3,6 +3,7 @@ using Moq;
 using Moq.AutoMock;
 using TOTP.Core.Enums;
 using TOTP.Core.Events;
+using TOTP.Core.Models;
 using TOTP.Extensions;
 using TOTP.Interfaces;
 using TOTP.Services;
@@ -56,7 +57,25 @@ public class TotpManagerIntegrationTests : IDisposable
 
 
 
+    // TODO : Add/Update duplicates
 
+    [Fact]
+    public async Task AddNewSecretAsync_ShouldReturnAlreadyExistsOnDuplicateSecret()
+    {
+        var existent = new SecretItem(_testPath, "test");
+        var previous = new SecretItem("A", "AAAAAAAAA");
+        var updated = new SecretItem(_testPath, "AAAAAAAAA");
+
+        var source = new List<SecretItem>
+        {
+            existent,
+            previous,
+        };
+
+        var result = await _totpManager.UpdateSecretAsync(previous, updated, source);
+        Assert.False(result);
+
+    }
 
     [Fact]
     public async Task Add_Compute_Update_Delete_Secret_ShouldSucceed()
@@ -91,16 +110,13 @@ public class TotpManagerIntegrationTests : IDisposable
         var updated = new SecretItemViewModel(_initialSecret.Platform, "MZXW6YTBOI======");
         await _totpManager.UpdateSecretAsync(_initialSecret.ToDomain(), updated.ToDomain(), secrets.Value);
 
+        // --- FETCH ---
         var updatedSecrets = await _secretsManager.GetAllSecretsAsync();
         Assert.Single(updatedSecrets.Value);
         Assert.Equal("MZXW6YTBOI======", updatedSecrets.Value[0].Secret);
 
         // --- DELETE ---
-        _totpManager.ConfirmDeleteRequested += (arg1, arg2) =>
-            {
-                return true;
-            }
-        ;
+        _totpManager.ConfirmDeleteRequested += (arg1, arg2) => true;
         var deleteResult = await _totpManager.DeleteSecretAsync(updated.ToDomain());
         Assert.True(deleteResult);
         var result = await _secretsManager.GetAllSecretsAsync();
