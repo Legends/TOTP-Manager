@@ -19,6 +19,17 @@ The workflow file is here:
 
 `git push origin v1.0.0`
 
+
+## Delete a tag local and remote
+
+local:
+	
+	git tag -d v1.0.0.0
+
+remote:
+	
+	git push origin --delete v1.0.0.0
+
 ## Windows Icon Cache Not Refreshed
 
 Windows caches icons aggressively. Try this first:
