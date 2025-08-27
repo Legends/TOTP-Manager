@@ -1,10 +1,13 @@
 ![Build Status](https://github.com/Legends/TOTP-Code-Generator/actions/workflows/build-and-test.yml/badge.svg)
 
 <!-- TOC-START (DO NOT REMOVE OR CHANGE COMMENT!) -->
+**Table of Contents**
 - [TOTP Manager App](#totp-manager-app)
   - [Features](#features)
   - [Usage](#usage)
   - [Setup](#setup)
+    - [1. Build from Source](#1-build-from-source)
+    - [2. Use the Prebuilt Zip](#2-use-the-prebuilt-zip)
 <!-- TOC-END (DO NOT REMOVE OR CHANGE COMMENT!) -->
 
 ---

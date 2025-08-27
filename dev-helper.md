@@ -1,4 +1,11 @@
-﻿## Trigger a github release via github workflow
+<!-- TOC-START (DO NOT REMOVE OR CHANGE COMMENT!) -->
+**Table of Contents**
+- [Trigger a github release via github workflow](#trigger-a-github-release-via-github-workflow)
+- [Windows Icon Cache Not Refreshed](#windows-icon-cache-not-refreshed)
+- ["Send to Desktop" Quirk](#send-to-desktop-quirk)
+<!-- TOC-END (DO NOT REMOVE OR CHANGE COMMENT!) -->
+
+## Trigger a github release via github workflow
 
 The workflow file is here:
 
