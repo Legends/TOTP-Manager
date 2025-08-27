@@ -44,9 +44,7 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <!-- RUNS TESTS ON EVERY BUILD -->
-  <Target Name="RunTests" AfterTargets="Build">
-    <Exec Command="dotnet test $(ProjectPath) --no-build" />
-  </Target>
+  
+  
 
 </Project>

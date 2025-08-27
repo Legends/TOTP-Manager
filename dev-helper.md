@@ -20,7 +20,7 @@ The workflow file is here:
 `git push origin v1.0.0`
 
 
-## Delete a tag local and remote
+## Delete a tag locally and remote
 
 local:
 	
@@ -29,6 +29,18 @@ local:
 remote:
 	
 	git push origin --delete v1.0.0.0
+
+## Re-Sign an unsigend dependency
+
+	ildasm "E:\yourpath\netstandard2.0\Moq.AutoMock.dll" /out=Moq.AutoMock.il
+
+	ilasm Moq.AutoMock.il /dll /output:Moq.AutoMock.signed.dll /key:TOTP\totp-sign-key.snk
+
+verify:
+
+	sn -v Moq.AutoMock.signed.dll
+
+copy to destination directory
 
 ## Windows Icon Cache Not Refreshed
 
