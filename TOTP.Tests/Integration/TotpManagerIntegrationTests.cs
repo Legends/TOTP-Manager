@@ -21,6 +21,7 @@ public class TotpManagerIntegrationTests : IDisposable
 
     private readonly SecretItemViewModel _initialSecret = new("GitHub", "JBSWY3DPEHPK3PXP");
 
+    // we mock only what is necessary, like prompts and dialogs
     public TotpManagerIntegrationTests()
     {
         _testPath = Path.Combine(Path.GetTempPath(), $"secrets-test-{Guid.NewGuid()}.dat");
@@ -56,11 +57,72 @@ public class TotpManagerIntegrationTests : IDisposable
     }
 
 
+    /// <summary>
+    /// We try to add the same secret twice => duplicate
+    /// The 1st time it should succeed
+    /// The 2nd time it should raise AlreadyExists once, then we cancel the operation
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="TimeoutException"></exception>
+    [Fact]
+    public async Task AddNewSecretAsync_RaisesAlreadyExists_ThenCancelsAndReturnsFalse()
+    {
+        var statuses = new List<OperationStatus>();
 
-    // TODO : Add/Update duplicates
+        var seenAlreadyExists = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        int promptCalls = 0;
+
+        _totpManager.OnAddNewPrompt += _ =>
+        {
+            promptCalls++;
+
+            // 1st call: Success=true  -> add succeeds
+            // 2nd call (first loop iter): Success=true with same secret -> AlreadyExists
+            // 3rd call (second loop iter): Success=false -> exit loop
+            bool success = promptCalls != 3;
+
+            return new AddNewPromptArgs
+            {
+                Success = success,
+                Platform = _initialSecret.Platform,
+                Secret = _initialSecret.Secret
+            };
+        };
+
+        // Called only on AlreadyExists, LoadingFailed, StorageFailed
+        // here it shoud be called only once with AlreadyExists
+        _totpManager.OnMessageSend += (_, status, __) =>
+        {
+            statuses.Add(status);
+            if (status == OperationStatus.AlreadyExists)
+                seenAlreadyExists.TrySetResult();
+        };
+
+        // 1) First add succeeds
+        var firstAddNewSecretAsyncTask = await _totpManager.AddNewSecretAsync();
+        Assert.True(firstAddNewSecretAsyncTask.isSuccess);
+
+        // 2) Second add: duplicate -> AlreadyExists once, then cancel to exit
+        // this hits AlreadyExists on first run and
+        // on second run AddNewPromptArgs returns false and quits the loop
+        var secondAddNewSecretAsyncTask = _totpManager.AddNewSecretAsync();
+
+        // Don't hang if event never comes
+        var completed = await Task.WhenAny(seenAlreadyExists.Task, Task.Delay(2000));
+        if (completed != seenAlreadyExists.Task)
+            throw new TimeoutException($"Expected AlreadyExists; saw: [{string.Join(", ", statuses)}]");
+
+        // Finish the method (third prompt returns Success=false)
+        var second = await secondAddNewSecretAsyncTask.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.False(second.isSuccess);
+
+        Assert.Contains(OperationStatus.AlreadyExists, statuses);  // from second call first iteration
+    }
+
 
     [Fact]
-    public async Task AddNewSecretAsync_ShouldReturnAlreadyExistsOnDuplicateSecret()
+    public async Task UpdateSecretAsync_ShouldReturnAlreadyExistsOnDuplicateSecret()
     {
         var existent = new SecretItem(_testPath, "test");
         var previous = new SecretItem("A", "AAAAAAAAA");

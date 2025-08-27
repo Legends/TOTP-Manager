@@ -28,7 +28,7 @@ public class TotpManager : ITotpManager
     public event Func<object?, string, bool>? ConfirmDeleteRequested;
 
 
-    public async Task<(bool success, SecretItem? item)> AddNewSecretAsync()
+    public async Task<(bool isSuccess, SecretItem? item)> AddNewSecretAsync()
     {
 
         while (true)

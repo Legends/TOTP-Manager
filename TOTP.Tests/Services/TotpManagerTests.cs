@@ -52,18 +52,15 @@ public class TotpManagerTests
 
     #region Mock.AutoMock
 
-    // TODO: Check for duplicates when updating secret!
-
     [Fact]
     public async Task UpdateSecretItemShouldReturnAlreadyExists()
     {
 
         var mockSecretsManager = new Mock<ISecretsManager>();
 
-
         var mockLogger = new Mock<ILogger<TotpManager>>();
         var totpManager = new TotpManager(mockSecretsManager.Object, mockLogger.Object);
-        await Task.CompletedTask;
+
         var PreviousVersion = new SecretItem("A", "dfgdsafdsf");
 
         var domainSecretsList = new List<SecretItem>

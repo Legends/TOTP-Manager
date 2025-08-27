@@ -14,7 +14,7 @@ public interface ITotpManager
     /// It writes the new item to the secrets file and returns the item if successful.
     /// </summary>
     /// <returns></returns>
-    Task<(bool success, SecretItem? item)> AddNewSecretAsync();
+    Task<(bool isSuccess, SecretItem? item)> AddNewSecretAsync();
 
     Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated, List<SecretItem> source);
 
