@@ -44,7 +44,12 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  
-  
+  <!-- In TOTP.Tests.csproj -->
+  <Target Name="RunTestsAfterBuild"
+          AfterTargets="Build"
+          Condition="'$(CI)' != 'true' AND '$(RunTestsOnBuild)' == 'true'">
+    <Exec Command="dotnet test &quot;$(MSBuildProjectFullPath)&quot; --configuration $(Configuration) --no-build" />
+  </Target>
+
 
 </Project>
