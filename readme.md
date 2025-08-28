@@ -12,7 +12,7 @@
 
 ---
 
-# TOTP Manager App
+# TOTP Manager
 
 A WPF application for managing TOTP secrets, generating TOTP codes, and creating corresponding QR codes.
 
@@ -21,13 +21,14 @@ Powered by:
 - **Otp.NET** – for TOTP code generation  
 - **QRCoder** – for QR code creation  
 
-<img src="https://i.imgur.com/KnXttHz.png" alt="TOTP Manager" height="400">
+<img src="https://i.imgur.com/VtJm8yP.png" alt="TOTP Manager" height="400">
 
 ## Features
 
 - Generate TOTP codes and QR codes
 - Create, read, update, and delete TOTP secrets
 - Securely store secrets
+- Search by platform name
 
 ## Usage
 
