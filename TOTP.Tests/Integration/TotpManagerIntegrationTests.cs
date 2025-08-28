@@ -69,7 +69,8 @@ public class TotpManagerIntegrationTests : IDisposable
     {
         var statuses = new List<OperationStatus>();
 
-        var seenAlreadyExists = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        // not needed here
+        var tcsHasSeenAlreadyExists = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         int promptCalls = 0;
 
@@ -95,26 +96,27 @@ public class TotpManagerIntegrationTests : IDisposable
         _totpManager.OnMessageSend += (_, status, __) =>
         {
             statuses.Add(status);
-            if (status == OperationStatus.AlreadyExists)
-                seenAlreadyExists.TrySetResult();
+            //if (status == OperationStatus.AlreadyExists)
+            //    tcsHasSeenAlreadyExists.TrySetResult();
         };
 
         // 1) First add succeeds
-        var firstAddNewSecretAsyncTask = await _totpManager.AddNewSecretAsync();
-        Assert.True(firstAddNewSecretAsyncTask.isSuccess);
+        var taskFirstAddNewSecretAsync = await _totpManager.AddNewSecretAsync();
+        Assert.True(taskFirstAddNewSecretAsync.isSuccess);
 
         // 2) Second add: duplicate -> AlreadyExists once, then cancel to exit
-        // this hits AlreadyExists on first run and
+        // this hits AlreadyExists on first run and loops back to prompt
         // on second run AddNewPromptArgs returns false and quits the loop
-        var secondAddNewSecretAsyncTask = _totpManager.AddNewSecretAsync();
+        var taskSecondAddNewSecretAsyncTask = _totpManager.AddNewSecretAsync();
 
         // Don't hang if event never comes
-        var completed = await Task.WhenAny(seenAlreadyExists.Task, Task.Delay(2000));
-        if (completed != seenAlreadyExists.Task)
+        // this is set by the OnMessageSend event above when it sees AlreadyExists
+        var completed = await Task.WhenAny(tcsHasSeenAlreadyExists.Task, Task.Delay(2000));// either the AlreadyExists or timeout
+        if (completed != tcsHasSeenAlreadyExists.Task) // if timeout
             throw new TimeoutException($"Expected AlreadyExists; saw: [{string.Join(", ", statuses)}]");
 
         // Finish the method (third prompt returns Success=false)
-        var second = await secondAddNewSecretAsyncTask.WaitAsync(TimeSpan.FromSeconds(5));
+        var second = await taskSecondAddNewSecretAsyncTask.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         Assert.False(second.isSuccess);
 
         Assert.Contains(OperationStatus.AlreadyExists, statuses);  // from second call first iteration

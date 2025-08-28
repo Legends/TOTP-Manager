@@ -34,6 +34,7 @@ public class TotpManager : ITotpManager
         while (true)
         {
             // Prompt the user for a new secret key and value
+            // This event is handled by the MainViewModel to show a dialog and gathers user input
             var promptResult = OnAddNewPrompt?.Invoke(this);
 
             if (!promptResult!.Success)
