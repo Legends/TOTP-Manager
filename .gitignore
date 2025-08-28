@@ -5,7 +5,8 @@ obj/
 [Bb]uild/
 [Bb]uilds/
 .vs/
-
+Github-Login-Legends.bat
+DeleteAllGithubWorkflowRuns.bat
 
 # Rider IDE
 .idea/
