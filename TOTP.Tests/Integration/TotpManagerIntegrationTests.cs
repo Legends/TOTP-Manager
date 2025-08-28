@@ -96,8 +96,8 @@ public class TotpManagerIntegrationTests : IDisposable
         _totpManager.OnMessageSend += (_, status, __) =>
         {
             statuses.Add(status);
-            //if (status == OperationStatus.AlreadyExists)
-            //    tcsHasSeenAlreadyExists.TrySetResult();
+            if (status == OperationStatus.AlreadyExists)
+                tcsHasSeenAlreadyExists.TrySetResult();
         };
 
         // 1) First add succeeds
