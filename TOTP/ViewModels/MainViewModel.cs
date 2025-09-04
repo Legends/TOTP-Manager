@@ -290,8 +290,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     private AddNewPromptArgs _totpManager_OnAddNewPrompt(object? sender)
     {
-        var (success, key, value) = _platformSecretDialogService.ShowForm();
-        return new AddNewPromptArgs() { Success = success, Platform = key, Secret = value };
+        var (success, key, value, account) = _platformSecretDialogService.ShowForm();
+        return new AddNewPromptArgs() { Success = success, Platform = key, Secret = value, Account = account };
     }
 
     private void _totpManager_OnMessageSend(object sender, OperationStatus arg1, string? arg2)
@@ -524,7 +524,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     private void OnBeginEdit(SecretItemViewModel item)
     {
-        PreviousVersion = new SecretItemViewModel(item.Platform, item.Secret);
+        PreviousVersion = new SecretItemViewModel(item.Platform, item.Secret, item.Account);
         item.IsBeingEdited = true;
         OnPropertyChanged(nameof(ShowActionsColumn));
     }
@@ -567,15 +567,16 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     #region ### Row/Field Selection Logic  ###
 
     private bool _isDoubleClick;
-
-
+    // Source: DataGrid_SelectionChanged in MainViewModel.xaml.cs
     public async Task OnSelectionChangedAsync()
     {
         var currentKey = SelectedSecret.Platform;
-        await Task.Delay(300);
+        await Task.Delay(300); // prevent OnSelectionChangedAsync from executing if it is a double click!
+
+        if (_isDoubleClick) return;
         try
         {
-            if (currentKey == SelectedSecret.Platform && !_isDoubleClick)
+            if (currentKey == SelectedSecret.Platform)
             {
                 await OnSecretSelectedAsync();
             }
@@ -591,6 +592,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         }
     }
 
+    // Source: OnMouseDoubleClick in SfDataGridEditingBehaviors
     private void OnDoubleClick(SecretItemViewModel item)
     {
         _isDoubleClick = true;

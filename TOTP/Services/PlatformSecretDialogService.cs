@@ -15,15 +15,15 @@ public class PlatformSecretDialogService : IPlatformSecretDialogService
         _provider = provider;
     }
 
-    public (bool success, string? key, string? value) ShowForm()
+    public (bool success, string? key, string? value, string? Account) ShowForm()
     {
         var dlg = _provider.GetRequiredService<PlatformSecretDialog>();
         dlg.Owner = Application.Current?.MainWindow;
         var result = dlg.ShowDialog() == true;
-        return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
+        return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret, dlg.ViewModel.Account);
     }
 
-    public (bool success, string? key, string? value) ShowForm(string? initialKey = null,
+    public (bool success, string? key, string? value, string? Account) ShowForm(string? initialKey = null,
         string? initialValue = null)
     {
         var dlg = _provider.GetRequiredService<PlatformSecretDialog>();
@@ -36,6 +36,6 @@ public class PlatformSecretDialogService : IPlatformSecretDialogService
             dlg.ViewModel.Secret = initialValue;
 
         var result = dlg.ShowDialog() == true;
-        return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret);
+        return (result, dlg.ViewModel.Platform, dlg.ViewModel.Secret, dlg.ViewModel.Account);
     }
 }

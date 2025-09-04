@@ -246,6 +246,9 @@
   <data name="ui_Code_Copied_Clipboard" xml:space="preserve">
     <value>Code wurde in Zwischenablage kopiert!</value>
   </data>
+  <data name="ui_Header_Account" xml:space="preserve">
+    <value>Konto</value>
+  </data>
   <data name="ui_Header_Platform" xml:space="preserve">
     <value>plattform</value>
   </data>

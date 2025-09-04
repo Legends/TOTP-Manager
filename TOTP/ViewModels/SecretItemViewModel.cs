@@ -48,7 +48,6 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
     }
 
     private string? _secret = string.Empty;
-
     public string? Secret
     {
         get => _secret;
@@ -62,9 +61,25 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         }
     }
 
-    public string? EditingSecret { get; set; }
+    public string? EditingSecret
+    {
+        get;
+        set;
+    }
 
-    public string? Account { get; set; }
+    private string? _account;
+    public string? Account
+    {
+        get => _account;
+        set
+        {
+            if (_account != value)
+            {
+                _account = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     #endregion
 
@@ -153,12 +168,13 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
     {
         return other is not null &&
                Platform == other.Platform &&
-               Secret == other.Secret;
+               Secret == other.Secret &&
+               Account == other.Account;
     }
 
     public override bool Equals(object? obj) => Equals(obj as SecretItemViewModel);
 
-    public override int GetHashCode() => HashCode.Combine(Platform, Secret);
+    public override int GetHashCode() => HashCode.Combine(Platform, Secret, Account);
 
     #endregion
 

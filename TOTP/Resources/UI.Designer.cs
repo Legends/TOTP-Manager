@@ -448,6 +448,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account.
+        /// </summary>
+        internal static string ui_Header_Account {
+            get {
+                return ResourceManager.GetString("ui_Header_Account", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to platform.
         /// </summary>
         internal static string ui_Header_Platform {

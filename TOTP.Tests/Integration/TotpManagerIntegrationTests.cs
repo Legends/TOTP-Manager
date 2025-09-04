@@ -19,7 +19,7 @@ public class TotpManagerIntegrationTests : IDisposable
     private readonly TotpManager _totpManager;
     private readonly IMainViewModel _vm;
 
-    private readonly SecretItemViewModel _initialSecret = new("GitHub", "JBSWY3DPEHPK3PXP");
+    private readonly SecretItemViewModel _initialSecret = new("GitHub", "JBSWY3DPEHPK3PXP", "user@example.com");
 
     // we mock only what is necessary, like prompts and dialogs
     public TotpManagerIntegrationTests()
@@ -31,7 +31,7 @@ public class TotpManagerIntegrationTests : IDisposable
         // Set up mocks
         _mocker.GetMock<IPlatformSecretDialogService>()
             .Setup(x => x.ShowForm(It.IsAny<string?>(), It.IsAny<string?>()))
-            .Returns((true, _initialSecret.Platform, _initialSecret.Secret));
+            .Returns((true, _initialSecret.Platform, _initialSecret.Secret, _initialSecret.Account));
 
         _mocker.GetMock<IMessageService>()
             .Setup(x => x.ShowMessageDialog(
@@ -49,7 +49,7 @@ public class TotpManagerIntegrationTests : IDisposable
         _secretsManager = new SecretsManager(_mocker.Get<ILogger<SecretsManager>>(), _testPath);
         _mocker.Use<ISecretsManager>(_secretsManager);
 
-        _mocker.GetMock<IPlatformSecretDialogService>().Setup(ips => ips.ShowForm()).Returns((true, _initialSecret.Platform, _initialSecret.Secret));
+        _mocker.GetMock<IPlatformSecretDialogService>().Setup(ips => ips.ShowForm()).Returns((true, _initialSecret.Platform, _initialSecret.Secret, _initialSecret.Account));
 
         // Create real TotpManager
         _totpManager = _mocker.CreateInstance<TotpManager>();

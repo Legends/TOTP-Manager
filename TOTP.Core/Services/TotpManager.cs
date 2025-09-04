@@ -40,7 +40,7 @@ public class TotpManager : ITotpManager
             if (!promptResult!.Success)
                 return (false, null);
 
-            var secretItem = new SecretItem(promptResult.Platform!, promptResult.Secret!);
+            var secretItem = new SecretItem(promptResult.Platform!, promptResult.Secret!, promptResult.Account);
             var result = await _secretsManager.AddNewItemAsync(secretItem);
 
             if (result.Status == OperationStatus.Success)

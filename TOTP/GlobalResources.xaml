@@ -2,7 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
                     xmlns:sys="clr-namespace:System.Windows.Controls;assembly=PresentationFramework"
-                    xmlns:converters="clr-namespace:TOTP.Converters">
+                    xmlns:s="clr-namespace:System;assembly=mscorlib"
+                    xmlns:converters="clr-namespace:TOTP.Converters"
+                    xmlns:sfGrid="clr-namespace:Syncfusion.UI.Xaml.Grid;assembly=Syncfusion.SfGrid.WPF"
+                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
 
     <!-- Converter -->
     <sys:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -22,4 +25,167 @@
                    FontSize="11"
                    Opacity="0.5" />
     </DataTemplate>
+
+    <Style TargetType="sfGrid:GridCell">
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="BorderBrush"
+                Value="Gray" />
+        <Setter Property="BorderThickness"
+                Value="0,0,1,1" />
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="VerticalContentAlignment"
+                Value="Center" />
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="sfGrid:GridCell">
+                    <Grid>
+                        <VisualStateManager.VisualStateGroups>
+
+                            <!-- Validation states -->
+                            <VisualStateGroup x:Name="IndicationStates">
+                                <!-- Error -->
+                                <VisualState x:Name="HasError">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PART_InValidCellBorder"
+                                                                       Storyboard.TargetProperty="(UIElement.Visibility)">
+                                            <DiscreteObjectKeyFrame KeyTime="0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <Visibility>Visible</Visibility>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PART_InValidCellBorder"
+                                                                       Storyboard.TargetProperty="Width">
+                                            <EasingDoubleKeyFrame KeyTime="0"
+                                                                  Value="10" />
+                                        </DoubleAnimationUsingKeyFrames>
+
+                                        <!-- Force tooltip open -->
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ValidationToolTip"
+                                                                       Storyboard.TargetProperty="IsOpen">
+                                            <DiscreteObjectKeyFrame KeyTime="0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <system:Boolean>True</system:Boolean>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+
+                                <!-- No Error -->
+                                <VisualState x:Name="NoError">
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PART_InValidCellBorder"
+                                                                       Storyboard.TargetProperty="Width">
+                                            <EasingDoubleKeyFrame KeyTime="0"
+                                                                  Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PART_InValidCellBorder"
+                                                                       Storyboard.TargetProperty="(UIElement.Visibility)">
+                                            <DiscreteObjectKeyFrame KeyTime="0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <Visibility>Collapsed</Visibility>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+
+                                        <!-- Close tooltip -->
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ValidationToolTip"
+                                                                       Storyboard.TargetProperty="IsOpen">
+                                            <DiscreteObjectKeyFrame KeyTime="0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <s:Boolean>False</s:Boolean>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+
+                            <!-- Border states -->
+                            <VisualStateGroup x:Name="BorderStates">
+                                <VisualState x:Name="NormalCell" />
+                                <VisualState x:Name="FooterColumnCell">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PART_GridCellBorder"
+                                                                       Storyboard.TargetProperty="BorderThickness">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="1,0,1,1" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="BeforeFooterColumnCell">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PART_GridCellBorder"
+                                                                       Storyboard.TargetProperty="BorderThickness">
+                                            <DiscreteObjectKeyFrame KeyTime="0"
+                                                                    Value="0,0,0,1" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+
+                        </VisualStateManager.VisualStateGroups>
+
+                        <!-- Selection border -->
+                        <Border Background="{TemplateBinding CellSelectionBrush}"
+                                Visibility="{TemplateBinding SelectionBorderVisibility}" />
+
+                        <!-- Cell border -->
+                        <Border x:Name="PART_GridCellBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid>
+                                <ContentPresenter Margin="{TemplateBinding Padding}" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Current cell highlight -->
+                        <Border Margin="0"
+                                Background="Transparent"
+                                BorderBrush="{TemplateBinding CurrentCellBorderBrush}"
+                                BorderThickness="{TemplateBinding CurrentCellBorderThickness}"
+                                IsHitTestVisible="False"
+                                Visibility="{TemplateBinding CurrentCellBorderVisibility}" />
+
+                        <!-- Validation indicator -->
+                        <Border x:Name="PART_InValidCellBorder"
+                                Width="0"
+                                Height="10"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Visibility="Collapsed">
+
+                            <ToolTipService.ToolTip>
+                                <!-- Name is crucial so storyboard can target -->
+                                <ToolTip x:Name="ValidationToolTip"
+                                         Background="#FFDB000C"
+                                         Placement="Right"
+                                         PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                         HorizontalOffset="6"
+                                         VerticalOffset="0"
+                                         StaysOpen="True">
+                                    <TextBlock Text="{TemplateBinding ErrorMessage}"
+                                               Foreground="White"
+                                               TextWrapping="Wrap"
+                                               MaxWidth="250"
+                                               Margin="5" />
+                                </ToolTip>
+                            </ToolTipService.ToolTip>
+
+                            <Path Data="M0.5,0.5 L12.652698,0.5 12.652698,12.068006 z"
+                                  Fill="Red"
+                                  Stretch="Fill" />
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

@@ -60,7 +60,7 @@ public class MainViewModelIntegrationTests : IDisposable
         });
 
         var pltfDialogMock = new Mock<IPlatformSecretDialogService>();
-        pltfDialogMock.Setup(p => p.ShowForm()).Returns((true, "MyKey", "MySecret"));
+        pltfDialogMock.Setup(p => p.ShowForm()).Returns((true, "MyKey", "MySecret", null));
         services.AddSingleton(pltfDialogMock.Object);
 
         // Build provider
