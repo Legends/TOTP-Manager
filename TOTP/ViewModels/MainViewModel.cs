@@ -570,10 +570,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     // Source: DataGrid_SelectionChanged in MainViewModel.xaml.cs
     public async Task OnSelectionChangedAsync()
     {
+        _isDoubleClick = false;
         var currentKey = SelectedSecret.Platform;
         await Task.Delay(300); // prevent OnSelectionChangedAsync from executing if it is a double click!
 
-        if (_isDoubleClick) return;
+        if (_isDoubleClick || SelectedSecret == null) return;
         try
         {
             if (currentKey == SelectedSecret.Platform)
@@ -595,6 +596,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     // Source: OnMouseDoubleClick in SfDataGridEditingBehaviors
     private void OnDoubleClick(SecretItemViewModel item)
     {
+
         _isDoubleClick = true;
         ResetCodeGenerationLabels();
 
@@ -603,6 +605,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
         item.IsBeingEdited = !item.IsBeingEdited;
         Debug.WriteLine("OnDoubleClick");
+
+
         //OnPropertyChanged(nameof(ShowActionsColumn));
     }
 
@@ -732,6 +736,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             ? AllSecrets
             : AllSecrets.Where(x =>
                 x.Platform?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false);
+
         foreach (var item in filtered)
             FilteredSecrets.Add(item);
     }

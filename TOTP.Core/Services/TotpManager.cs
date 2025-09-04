@@ -122,7 +122,8 @@ public class TotpManager : ITotpManager
             _ => OperationStatus.UpdateFailed
         };
 
-        OnMessageSend?.Invoke(this, status, platform);
+        if (status != OperationStatus.Success)
+            OnMessageSend?.Invoke(this, status, platform);
 
         return result.Status == OperationStatus.Success;
     }

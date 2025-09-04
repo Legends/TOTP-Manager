@@ -26,7 +26,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         var mocker = new AutoMocker();
         SetupSecretsDataSourceMock(mocker);
 
-        var secretItem = new SecretItemViewModel("TestKey", "TestValue");
+        var secretItem = new SecretItemViewModel("TestKey", "TestValue", "user@test.com");
 
         mocker.GetMock<ITotpManager>()
             .Setup(m => m.AddNewSecretAsync())
