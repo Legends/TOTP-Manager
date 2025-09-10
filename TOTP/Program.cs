@@ -8,6 +8,9 @@ using TOTP.Startup;
 
 namespace TOTP;
 
+/// <summary>
+/// trigger change
+/// </summary>
 internal static class Program
 {
     [STAThread]
