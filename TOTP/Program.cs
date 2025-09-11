@@ -1,16 +1,16 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
 using System.Threading.Tasks;
 using TOTP.Helper;
 using TOTP.Infrastructure.AppLifecycle;
+using TOTP.Resources;
 using TOTP.Startup;
 
 namespace TOTP;
 
-/// <summary>
-/// trigger change
-/// </summary>
+
 internal static class Program
 {
     [STAThread]
@@ -21,42 +21,58 @@ internal static class Program
 
     private static async Task Run(string[] args)
     {
-        // 1) config / culture / license
-        var configuration = BootLoader.BuildConfiguration();         // your helper
-        BootLoader.SetCulture(configuration);                        // your helper
-        BootLoader.RegisterSyncfusionLicenseKey(configuration);      // your helper
-
-        // 2) single instance (optional)
-        using var instance = new SingleInstanceGuard(StringsConstants.AssemblyNameWpf);
-        if (!instance.IsFirstInstance)
+        IHost? host = null;
+        try
         {
-            SingleInstanceGuard.ActivateExistingWindow(StringsConstants.AssemblyNameWpf);
-            return;
+
+            // 1) config / culture / license
+            var configuration = BootLoader.BuildConfiguration();         // your helper
+            BootLoader.SetCulture(configuration);                        // your helper
+            BootLoader.RegisterSyncfusionLicenseKey(configuration);      // your helper
+
+            // 2) single instance (optional)
+            using var instance = new SingleInstanceGuard(StringsConstants.AssemblyNameWpf);
+            if (!instance.IsFirstInstance)
+            {
+                SingleInstanceGuard.ActivateExistingWindow(StringsConstants.AssemblyNameWpf);
+                return;
+            }
+
+            host = BootLoader.CreateHostAndConfigureServices(configuration);
+
+            // IMPORTANT: stay on STA thread (no await here)
+            await host.StartAsync();
+
+            // 4) WPF app
+            var app = new App { Host = host, InstanceGuard = instance };
+            app.InitializeComponent();
+            BootLoader.SetupUnhandledExceptionsHooks(app, host); // your helper
+
+            // 5) resolve & show window (explicit)
+            var mainWindow = host.Services.GetRequiredService<MainWindow>();
+            app.MainWindow = mainWindow;
+            mainWindow.Show();
+
+            // 6) run dispatcher
+            app.Run();
+
+        }
+        catch (Exception e)
+        {
+            Log.Fatal(e, UI.ex_FatalError);
+            Environment.Exit(-1);
+        }
+        finally
+        {
+            // 7) graceful shutdown
+            if (host is not null)
+            {
+                await host.StopAsync();
+                host.Dispose();
+            }
+            Log.CloseAndFlush();
         }
 
-
-        var host = BootLoader.CreateHostAndConfigureServices(configuration); // your method
-
-        // IMPORTANT: stay on STA thread (no await here)
-        await host.StartAsync();
-
-        // 4) WPF app
-        var app = new App { Host = host, InstanceGuard = instance };
-        app.InitializeComponent();
-        BootLoader.SetupUnhandledExceptionsHooks(app, host); // your helper
-
-        // 5) resolve & show window (explicit)
-        var mainWindow = host.Services.GetRequiredService<MainWindow>();
-        app.MainWindow = mainWindow;
-        mainWindow.Show();
-
-        // 6) run dispatcher
-        app.Run();
-
-        // 7) graceful shutdown
-        await host.StopAsync();
-        host.Dispose();
-        Log.CloseAndFlush();
     }
 
     // -> call through to your existing helpers:

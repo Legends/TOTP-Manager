@@ -1,5 +1,7 @@
 # azure-pipelines.yml
-# Build, Test, and Publish TOTP Manager (tags -> release)
+# Build, Test and (on tags) Publish a zipped artifact for TOTP Manager
+# Source repo: GitHub (this file lives in GitHub)
+# Runner: your self-hosted Windows agent (pool below)
 
 name: $(Date:yyyyMMdd).$(Rev:.r)
 
@@ -20,16 +22,10 @@ variables:
   BuildConfiguration: Release
   # Extract tag (refs/tags/v1.2.3 -> v1.2.3). Empty on branch builds.
   TagName: $[ replace(variables['Build.SourceBranch'], 'refs/tags/', '') ]
-
-  # ===== Optional: set these in Pipeline Variables/Variable Group (secret where needed) =====
-  # SIGNING_CERT_PASSWORD: (secret)
-  # SYNCFUSION_LICENSE:    (secret)
-  # GH_PAT:                 (secret) Personal Access Token with repo scope on GitHub (only for GitHub Release upload)
-  # GitHub.Owner: Legends
-  # GitHub.Repo:  TOTP-Manager
+  ArtifactName: drop
 
 pool:
-  name: Default # your self-hosted Windows agent pool
+  name: Default # <-- your self-hosted agent pool name
 
 stages:
   # ─────────────────────────────────────────────────────────────────────────────
@@ -37,20 +33,18 @@ stages:
     displayName: Build & Test
     jobs:
       - job: Build
-        displayName: Build + Test (.NET 9, Windows)
+        displayName: Build + Test (.NET 9)
         steps:
           - checkout: self
-            fetchDepth: "0"
+            fetchDepth: "0" # must be a string in Azure DevOps
 
           - task: UseDotNet@2
             displayName: "Use .NET SDK 9.x"
             inputs:
               packageType: "sdk"
               version: "9.x"
-              performMultiLevelLookup: true
               includePreviewVersions: true
 
-          # Cache NuGet (equivalent to actions/cache)
           - task: Cache@2
             displayName: "Cache NuGet packages"
             inputs:
@@ -58,7 +52,7 @@ stages:
               restoreKeys: |
                 nuget | $(Agent.OS)
                 nuget
-              path: "$(UserProfile)/.nuget/packages"
+              path: '$(UserProfile)\.nuget\packages'
 
           - script: dotnet restore TOTP.sln --configfile NuGet.config
             displayName: "Restore with NuGet.config"
@@ -76,7 +70,7 @@ stages:
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
     jobs:
       - job: PublishJob
-        displayName: Publish WPF + Zip + (optional) GitHub Release
+        displayName: Publish WPF + Zip
         steps:
           - checkout: self
             fetchDepth: "0"
@@ -86,13 +80,11 @@ stages:
             inputs:
               packageType: "sdk"
               version: "9.x"
-              performMultiLevelLookup: true
               includePreviewVersions: true
 
           - script: dotnet restore TOTP.sln --configfile NuGet.config
             displayName: "Restore dependencies"
 
-          # Publish the WPF app (adjust project path if needed)
           - powershell: |
               dotnet publish TOTP/TOTP.UI.WPF.csproj `
                 --configuration $(BuildConfiguration) `
@@ -105,71 +97,13 @@ stages:
             displayName: "Publish WPF app (win-x64, self-contained)"
 
           - powershell: |
-              $zip = "$(Build.ArtifactStagingDirectory)\TOTP-Manager-$(TagName).zip"
+              $zip = "$(Build.ArtifactStagingDirectory)\TOTP-Manager-$([string]::IsNullOrEmpty('$(TagName)') ? 'dev' : '$(TagName)').zip"
               Compress-Archive -Path "$(Build.ArtifactStagingDirectory)\publish\*" -DestinationPath $zip -Force
-              Write-Host "##vso[task.setvariable variable=ZipPath]$zip"
             displayName: "Compress app into zip"
 
           - task: PublishBuildArtifacts@1
-            displayName: "Publish artifact: drop"
+            displayName: "Publish artifact"
             inputs:
               PathtoPublish: "$(Build.ArtifactStagingDirectory)"
-              ArtifactName: "drop"
+              ArtifactName: "$(ArtifactName)"
               publishLocation: "Container"
-
-          # ===== Optional: Create/Update a GitHub Release and upload the ZIP asset =====
-          # Provide variables: GH_PAT (secret), GitHub.Owner, GitHub.Repo
-          - powershell: |
-              if (-not "$(GH_PAT)" -or -not "$(GitHub.Owner)" -or -not "$(GitHub.Repo)") {
-                Write-Host "GitHub release upload skipped: GH_PAT/Owner/Repo not set."
-                exit 0
-              }
-
-              $owner = "$(GitHub.Owner)"
-              $repo  = "$(GitHub.Repo)"
-              $tag   = "$(TagName)"
-              $name  = "Release $tag"
-              $zip   = "$(ZipPath)"
-
-              $headers = @{ Authorization = "token $(GH_PAT)"; "User-Agent" = "azdo-pipeline" }
-
-              # 1) Try to get an existing release by tag
-              $relUrl = "https://api.github.com/repos/$owner/$repo/releases/tags/$tag"
-              $release = $null
-              try {
-                $release = Invoke-RestMethod -Uri $relUrl -Headers $headers -Method GET
-                Write-Host "Found existing release for $tag (id: $($release.id))."
-              } catch {
-                Write-Host "No existing release for $tag. Will create a new one."
-              }
-
-              # 2) Create release if missing
-              if (-not $release) {
-                $createUrl = "https://api.github.com/repos/$owner/$repo/releases"
-                $body = @{
-                  tag_name         = $tag
-                  name             = $name
-                  target_commitish = "master"
-                  draft            = $false
-                  prerelease       = $false
-                  generate_release_notes = $true
-                } | ConvertTo-Json
-                $release = Invoke-RestMethod -Uri $createUrl -Headers $headers -Method POST -ContentType "application/json" -Body $body
-                Write-Host "Created release id: $($release.id)"
-              }
-
-              # 3) Upload asset (delete existing asset with same name first)
-              $assetName = [System.IO.Path]::GetFileName($zip)
-              $exist = $release.assets | Where-Object { $_.name -eq $assetName }
-              if ($exist) {
-                $delUrl = "https://api.github.com/repos/$owner/$repo/releases/assets/$($exist.id)"
-                Invoke-RestMethod -Uri $delUrl -Headers $headers -Method DELETE
-                Write-Host "Deleted existing asset: $assetName"
-              }
-
-              $uploadUrl = $release.upload_url.Replace("{?name,label}", "?name=$([Uri]::EscapeDataString($assetName))")
-              $bytes = [System.IO.File]::ReadAllBytes($zip)
-              $resp = Invoke-RestMethod -Uri $uploadUrl -Headers $headers -Method POST -ContentType "application/zip" -Body $bytes
-              Write-Host "Uploaded asset: $($resp.name)"
-            displayName: "Upload ZIP to GitHub Release (optional)"
-            condition: succeeded()
