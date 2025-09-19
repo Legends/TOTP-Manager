@@ -101,7 +101,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
                     var secretList = (AssociatedObject.ItemsSource as IEnumerable<SecretItemViewModel>)?.Where(sivm => !ReferenceEquals(sivm, item))
                         .Select(sivm => sivm.ToDomain())
                         .ToList();
-                    var duplicate = SecretValidator.PlatformNameDuplicatesExists(e.NewValue?.ToString(), secretList);
+                    var duplicate = SecretValidator.PlatformNameDuplicateExists(e.NewValue?.ToString(), secretList);
 
                     if (duplicate == ValidationError.PlatformAlreadyExists)
                         error = ValidationMessageMapper.ToMessage(duplicate, e.NewValue?.ToString());

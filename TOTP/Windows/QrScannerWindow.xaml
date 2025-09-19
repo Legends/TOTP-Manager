@@ -1,0 +1,43 @@
+﻿<syncfusion:ChromelessWindow x:Class="TOTP.Windows.QrScannerWindow"
+                             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                             xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+                             xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
+                             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
+                             xmlns:resx="clr-namespace:TOTP.Resources"
+                             xmlns:xaml="clr-namespace:TOTP.Xaml"
+                             mc:Ignorable="d"
+                             Title="Scan QR Code"
+                             Height="420"
+                             Width="560"
+                             WindowStartupLocation="CenterOwner"
+                             Loaded="Window_Loaded"
+                             Closing="Window_Closing">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />            
+        </Grid.RowDefinitions>
+        <TextBlock Text="Point your camera at the QR code"
+                   FontSize="16"
+                   Margin="0,0,0,8" />
+        <Image x:Name="Preview"
+               Stretch="Uniform"
+               Grid.Row="1"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               Width="520"
+               Height="320" />
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="2"
+                    HorizontalAlignment="Right"
+                    Margin="0,8,0,0">
+            <Button Content="Cancel"
+                    Width="100"
+                    Click="Cancel_Click" />
+        </StackPanel>
+    </Grid>
+</syncfusion:ChromelessWindow>

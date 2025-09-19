@@ -87,6 +87,21 @@
                             VerticalAlignment="Center"
                             Grid.Column="0">
 
+                    <!--<Button Content="Scan QR Code"
+                            Width="150"
+                            Command="{Binding ScanQrAndAddCommand}" />-->
+
+                    
+                    <!-- Add Button -->
+                    <Button ToolTip="{xaml:Resx Key=ui_btnScan}"
+                            Margin="5,5,0,0"
+                            Padding="5,5"
+                            Command="{Binding ScanQrAndAddCommand}">
+                        <svgc:SvgViewbox Source="/Assets/Icons/Camera-48x48.svg"
+                                         Height="15"
+                                         Stretch="Uniform" />
+                    </Button>
+
                     <!-- Add Button -->
                     <Button ToolTip="{xaml:Resx Key=tooltip_AddNew}"
                             Margin="5,5,0,0"
@@ -180,7 +195,7 @@
                                        ItemsSource="{Binding FilteredSecrets}"
                                        LiveDataUpdateMode="AllowDataShaping"
                                        MaxHeight="200"
-                                       MaxWidth="340"
+                                       MaxWidth="160"
                                        Margin="0,0,0,20"
                                        BorderThickness="0"
                                        RowSelectionBrush="#1D3366"
@@ -293,8 +308,8 @@
                 <Image Grid.Row="1"
                        Margin="0,0,0,20"
                        Source="{Binding QrCodeImage}"
-                       Width="130"
-                       Height="130"
+                       Width="160"
+                       Height="160"
                        Visibility="{Binding IsQrVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
 
                 <Label x:Name="lblCode"

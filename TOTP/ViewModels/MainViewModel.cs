@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using OtpNet;
 using Syncfusion.Linq;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -23,9 +25,11 @@ using TOTP.Core.Validation;
 using TOTP.Extensions;
 using TOTP.Helper;
 using TOTP.Interfaces;
+using TOTP.Parser;
 using TOTP.Resources;
 using TOTP.Services;
 using TOTP.Validation;
+using TOTP.Windows;
 
 namespace TOTP.ViewModels;
 
@@ -154,9 +158,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             ToggleSearchBoxCommand.RaiseCanExecuteChanged();
         }
     }
-
-
-
 
     public bool IsContextmenuOpen { get; set; }
 
@@ -407,6 +408,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     private void SetupCommandEventhandler()
     {
+
+        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAsync);
+
         OpenEditCommand = new RelayCommand<SecretItemViewModel>(OpenEdit);
 
         SaveEditAsyncCommand = new AsyncCommand(SaveEditAsync);
@@ -459,6 +463,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #region ### COMMANDS DECLARATION ###
 
+    public AsyncCommand ScanQrAndAddCommand { get; private set; } = null!;
     public ICommand OpenEditCommand { get; private set; } = null!;
     public AsyncCommand SaveEditAsyncCommand { get; private set; } = null!;
     public ICommand CancelEditCommand { get; private set; } = null!;
@@ -700,7 +705,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             var source = AllSecrets.Where(sivm => !sivm.Equals(updated)).Select(s => s.ToDomain()).ToList();
 
             var hasPlatformNameChanged = !string.Equals(PreviousVersion.Platform, updated.Platform, StringComparison.OrdinalIgnoreCase);
-            var duplicateExists = SecretValidator.PlatformNameDuplicatesExists(updated.Platform, source) != ValidationError.None;
+            var duplicateExists = SecretValidator.PlatformNameDuplicateExists(updated.Platform, source) != ValidationError.None;
 
             if (hasPlatformNameChanged && duplicateExists)
             {
@@ -862,8 +867,15 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             CurrentCodeLabel = $"{secret.Platform}: {totpCode}";
             _clipboard.SetText(totpCode!);
 
+            // working secret: JBSWY3DPEHPK3PXP
 
-            var uri = _qrService.BuildOtpAuthUri(secret.Platform, secret.Secret, secret.Account);
+            // Google Authenticator works best with 160-bit secrets (20 bytes), but 10–32 bytes is acceptable.
+            byte[] secretBytes = RandomNumberGenerator.GetBytes(20); // 20x8 = 160 bits is ideal
+            string base32Secret = Base32Encoding.ToString(secretBytes).TrimEnd('=');
+            // Fore testing:
+            var uri = _qrService.BuildOtpAuthUri(secret.Platform, base32Secret, secret.Account);
+
+            //var uri = _qrService.BuildOtpAuthUri(secret.Platform, secret.Secret, secret.Account);
             byte[] pngBytes = _qrService.GenerateQr(uri);
 
             var bmp = new BitmapImage();
@@ -939,4 +951,61 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
 
     #endregion
+
+    public async Task ScanQrAndAddAsync()
+    {
+        var dlg = new QrScannerWindow { Owner = System.Windows.Application.Current.MainWindow };
+        if (dlg.ShowDialog() == true && !string.IsNullOrWhiteSpace(dlg.DecodedText))
+        {
+
+            var data = OtpauthParser.Parse(dlg.DecodedText);
+            await Task.Delay(0);
+            //var t = OtpauthParser.Parse(dlg.DecodedText); // your parser
+
+            var newSecretItem = new SecretItemViewModel(data.Issuer, data.SecretBase32, data.Label);
+
+            #region ### validation ###
+            var validator = new UiValidation(newSecretItem);
+            validator.ValidateAll();
+
+            if (!validator.IsValid)
+            {
+                foreach (var error in validator.Errors)
+                    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
+                return;
+            }
+
+            if (SecretValidator.PlatformNameDuplicateExists(newSecretItem.Platform, AllSecrets.Select(o => o.ToDomain()).ToList()) != ValidationError.None)
+            {
+                _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, newSecretItem.Platform));
+                return;
+            }
+            #endregion
+
+            try
+            {
+                var addResult = await _secretsManager.AddNewItemAsync(newSecretItem.ToDomain());
+                if (addResult.Status != OperationStatus.Success)
+                {
+                    showMessage(addResult.Status, newSecretItem);
+                    return;
+                }
+                if (addResult.Status == OperationStatus.Success)
+                {
+                    AllSecrets.Add(newSecretItem);
+                    //OnPropertyChanged(nameof(AllSecrets));
+                    UpdateSearchFilter();
+                }
+            }
+            finally
+            {
+                IsAddMode = false;
+                IsEditOpen = false;
+            }
+
+            //await _secretService.AddAsync(item);
+            // AllSecrets.Add(item); // if your UI doesn't auto-refresh
+        }
+    }
+
 }

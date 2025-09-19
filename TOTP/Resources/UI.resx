@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ui_btnAdd" xml:space="preserve">
-    <value>Add</value>
-  </data>
   <data name="ex_Adding_New_TOTP" xml:space="preserve">
     <value>Error adding new TOTP</value>
   </data>
@@ -225,6 +222,9 @@
   <data name="tooltip_AddNew" xml:space="preserve">
     <value>Add new secret</value>
   </data>
+  <data name="ui_btnAdd" xml:space="preserve">
+    <value>Add</value>
+  </data>
   <data name="ui_btnCancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
@@ -239,6 +239,9 @@
   </data>
   <data name="ui_btnSave" xml:space="preserve">
     <value>Save</value>
+  </data>
+  <data name="ui_btnScan" xml:space="preserve">
+    <value>Scan QR code</value>
   </data>
   <data name="ui_btnSearch" xml:space="preserve">
     <value>Search</value>

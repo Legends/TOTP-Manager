@@ -41,6 +41,7 @@
 
 	<ItemGroup>
 		<None Remove="Assets\flags\de.png" />
+		<None Remove="Assets\Icons\Camera-48x48.svg" />
 		<None Remove="Assets\Icons\delete-24x24.svg" />
 		<None Remove="Assets\Icons\Edit-48x48.svg" />
 		<None Remove="Assets\Icons\Info.png" />
@@ -67,6 +68,9 @@
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507" />
+		<PackageReference Include="OpenCvSharp4.Extensions" Version="4.11.0.20250507" />
+		<PackageReference Include="OpenCvSharp4.runtime.win" Version="4.11.0.20250507" />
 		<PackageReference Include="Otp.NET" Version="1.4.0" />
 		<PackageReference Include="QRCoder" Version="1.6.0" />
 		<PackageReference Include="Serilog" Version="4.3.0" />
@@ -89,6 +93,7 @@
 		<PackageReference Include="Syncfusion.Tools.WPF" Version="30.1.41" />
 		<PackageReference Include="syncfusion.ui.wpf.net" Version="30.1.41" />
 		<PackageReference Include="System.Drawing.Common" Version="9.0.7" />
+		<PackageReference Include="ZXing.Net" Version="0.16.10" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -102,6 +107,9 @@
 		<Resource Include="Assets\backgrounds\background-main.png" />
 		<Resource Include="Assets\flags\de.png" />
 		<Resource Include="Assets\flags\en.png" />
+		<Resource Include="Assets\Icons\Camera-48x48.svg">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
 		<Resource Include="Assets\Icons\delete-24x24.svg">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>

@@ -16,12 +16,26 @@ public class QrCodeService : IQrCodeService
     //    return GenerateQrCodeImage(uri);
     //}
 
+    //public string BuildOtpAuthUri(string issuer, string secret, string? account = "")
+    //{
+    //    return !string.IsNullOrWhiteSpace(account)
+    //        ? $"otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30"
+    //        : $"otpauth://totp/?secret={secret}&issuer={issuer}";
+    //}
+
     public string BuildOtpAuthUri(string issuer, string secret, string? account = "")
     {
-        return !string.IsNullOrWhiteSpace(account)
-            ? $"otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30"
-            : $"otpauth://totp/?secret={secret}&issuer={issuer}";
+        string label = !string.IsNullOrWhiteSpace(account)
+            ? $"{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(account)}"
+            : Uri.EscapeDataString(issuer);
+
+        string query = $"secret={Uri.EscapeDataString(secret)}" +
+                       $"&issuer={Uri.EscapeDataString(issuer)}" +
+                       $"&algorithm=SHA1&digits=6&period=30";
+
+        return $"otpauth://totp/{label}?{query}";
     }
+
 
     /// <summary>
     ///     string issuer = "platform-name";

@@ -430,6 +430,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Scan QR code.
+        /// </summary>
+        internal static string ui_btnScan {
+            get {
+                return ResourceManager.GetString("ui_btnScan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search.
         /// </summary>
         internal static string ui_btnSearch {

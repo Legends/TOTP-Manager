@@ -240,6 +240,9 @@
   <data name="ui_btnSave" xml:space="preserve">
     <value>Speichern</value>
   </data>
+  <data name="ui_btnScan" xml:space="preserve">
+    <value>QR Code scannen</value>
+  </data>
   <data name="ui_btnSearch" xml:space="preserve">
     <value>Suche</value>
   </data>
