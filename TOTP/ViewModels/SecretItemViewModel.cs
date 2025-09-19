@@ -81,6 +81,28 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         }
     }
 
+    private int remainingSeconds;
+    public int RemainingSeconds
+    {
+        get => remainingSeconds;
+        set
+        {
+            remainingSeconds = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private int remainingPercent = 10;
+    public int TotpRemainingPercent
+    {
+        get => remainingPercent;
+        set
+        {
+            remainingPercent = value;
+            OnPropertyChanged();
+        }
+    }
+
     #endregion
 
 
@@ -120,6 +142,11 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         _storedValues = null;
 
         Debug.WriteLine("End Edit Called");
+    }
+
+    public SecretItemViewModel? Copy()
+    {
+        return this.MemberwiseClone() as SecretItemViewModel;
     }
 
     #endregion
@@ -166,15 +193,25 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
     public bool Equals(SecretItemViewModel? other)
     {
-        return other is not null &&
-               Platform == other.Platform &&
-               Secret == other.Secret &&
-               Account == other.Account;
+        if (ReferenceEquals(this, other)) return true;
+        return other is not null && string.Equals(Platform, other.Platform, StringComparison.Ordinal) &&
+               string.Equals(Secret, other.Secret, StringComparison.Ordinal) &&
+               string.Equals(Account, other.Account, StringComparison.Ordinal);
     }
 
-    public override bool Equals(object? obj) => Equals(obj as SecretItemViewModel);
+    public override bool Equals(object? obj)
+    {
+        return obj is SecretItemViewModel other && Equals(other);
+    }
 
-    public override int GetHashCode() => HashCode.Combine(Platform, Secret, Account);
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(
+            Platform is null ? 0 : StringComparer.Ordinal.GetHashCode(Platform),
+            Secret is null ? 0 : StringComparer.Ordinal.GetHashCode(Secret),
+            Account is null ? 0 : StringComparer.Ordinal.GetHashCode(Account)
+        );
+    }
 
     #endregion
 

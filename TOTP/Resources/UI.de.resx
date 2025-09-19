@@ -222,14 +222,23 @@
   <data name="tooltip_AddNew" xml:space="preserve">
     <value>Neuen Schlüssel hinzufügen</value>
   </data>
+  <data name="ui_btnAdd" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
   <data name="ui_btnCancel" xml:space="preserve">
     <value>Abbrechen</value>
   </data>
   <data name="ui_btnDelete" xml:space="preserve">
     <value>Löschen</value>
   </data>
+  <data name="ui_btnEdit" xml:space="preserve">
+    <value>Ändern</value>
+  </data>
   <data name="ui_btnOK" xml:space="preserve">
     <value>Ok</value>
+  </data>
+  <data name="ui_btnSave" xml:space="preserve">
+    <value>Speichern</value>
   </data>
   <data name="ui_btnSearch" xml:space="preserve">
     <value>Suche</value>
@@ -246,8 +255,11 @@
   <data name="ui_Code_Copied_Clipboard" xml:space="preserve">
     <value>Code wurde in Zwischenablage kopiert!</value>
   </data>
+  <data name="ui_Edit_Entry" xml:space="preserve">
+    <value>Eintrag ändern</value>
+  </data>
   <data name="ui_Header_Account" xml:space="preserve">
-    <value>Konto</value>
+    <value>konto</value>
   </data>
   <data name="ui_Header_Platform" xml:space="preserve">
     <value>plattform</value>

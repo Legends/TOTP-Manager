@@ -14,7 +14,7 @@ public static class ValidationMessageMapper
         ValidationError.SecretRequired => UI.msg_SecretRequired,
         ValidationError.SecretInvalidFormat => UI.msg_SecretInvalidFormat,
         ValidationError.PlatformAlreadyExists => string.Format(UI.msg_Platform_Exists, args),
-        _ => throw new MissingMemberException($"Missing ValidationError member")
+        _ => throw new MissingMemberException($"Missing ValidationError member in class ValidationMessageMapper")
     };
 
 

@@ -376,6 +376,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add.
+        /// </summary>
+        internal static string ui_btnAdd {
+            get {
+                return ResourceManager.GetString("ui_btnAdd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         internal static string ui_btnCancel {
@@ -394,11 +403,29 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        internal static string ui_btnEdit {
+            get {
+                return ResourceManager.GetString("ui_btnEdit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ok.
         /// </summary>
         internal static string ui_btnOK {
             get {
                 return ResourceManager.GetString("ui_btnOK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save.
+        /// </summary>
+        internal static string ui_btnSave {
+            get {
+                return ResourceManager.GetString("ui_btnSave", resourceCulture);
             }
         }
         
@@ -448,7 +475,16 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account.
+        ///   Looks up a localized string similar to Change entry.
+        /// </summary>
+        internal static string ui_Edit_Entry {
+            get {
+                return ResourceManager.GetString("ui_Edit_Entry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to account.
         /// </summary>
         internal static string ui_Header_Account {
             get {

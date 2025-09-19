@@ -6,6 +6,7 @@ using System;
 using System.Windows;
 using TOTP.Interfaces;
 using TOTP.Resources;
+using TOTP.ViewModels;
 
 namespace TOTP;
 
@@ -53,6 +54,8 @@ public partial class MainWindow : ChromelessWindow
     {
         try
         {
+            var gRow = (e.AddedItems[0] as GridRowInfo);
+            _vm.SelectedSecret = gRow.RowData as SecretItemViewModel;
             await _vm.OnSelectionChangedAsync();
         }
         catch (Exception ex)

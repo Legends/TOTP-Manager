@@ -15,6 +15,7 @@
                              xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
                              xmlns:resx="clr-namespace:TOTP.Resources"
                              xmlns:xaml="clr-namespace:TOTP.Xaml"
+                             xmlns:progress="clr-namespace:Syncfusion.UI.Xaml.ProgressBar;assembly=Syncfusion.SfProgressBar.WPF"
                              mc:Ignorable="d"
                              Width="350"
                              SizeToContent="Height"
@@ -24,488 +25,419 @@
                              TitleBarForeground="{DynamicResource Brush.Foreground}"
                              WindowStartupLocation="CenterScreen">
 
-    <!--
-https://help.syncfusion.com/wpf/themes/skin-manager#themes-list:  
-        Windows11Light, 
-        MaterialLightBlue,
-        MaterialDarkBlue
--->
     <syncfusion:ChromelessWindow.Resources>
-        <!--<BoolToVisibilityConverterCollapsed x:Key="BoolToVisibilityConverterCollapsed" />-->
-
-        <Style TargetType="sfGrid:GridCell">
-            <Setter Property="Background"
-                    Value="Transparent" />
-            <Setter Property="BorderBrush"
-                    Value="Gray" />
-            <Setter Property="BorderThickness"
-                    Value="0,0,1,1" />
-            <Setter Property="Padding"
-                    Value="0" />
-            <Setter Property="VerticalContentAlignment"
-                    Value="Center" />
-
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="sfGrid:GridCell">
-                        <Grid>
-                            <VisualStateManager.VisualStateGroups>
-
-                                <!-- Validation states -->
-                                <VisualStateGroup x:Name="IndicationStates">
-                                    <!-- Error -->
-                                    <VisualState x:Name="HasError">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PART_InValidCellBorder"
-                                                                           Storyboard.TargetProperty="(UIElement.Visibility)">
-                                                <DiscreteObjectKeyFrame KeyTime="0">
-                                                    <DiscreteObjectKeyFrame.Value>
-                                                        <Visibility>Visible</Visibility>
-                                                    </DiscreteObjectKeyFrame.Value>
-                                                </DiscreteObjectKeyFrame>
-                                            </ObjectAnimationUsingKeyFrames>
-
-                                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PART_InValidCellBorder"
-                                                                           Storyboard.TargetProperty="Width">
-                                                <EasingDoubleKeyFrame KeyTime="0"
-                                                                      Value="10" />
-                                            </DoubleAnimationUsingKeyFrames>
-
-                                            <!-- Force tooltip open -->
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ValidationToolTip"
-                                                                           Storyboard.TargetProperty="IsOpen">
-                                                <DiscreteObjectKeyFrame KeyTime="0">
-                                                    <DiscreteObjectKeyFrame.Value>
-                                                        <sys:Boolean>True</sys:Boolean>
-                                                    </DiscreteObjectKeyFrame.Value>
-                                                </DiscreteObjectKeyFrame>
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-
-                                    <!-- No Error -->
-                                    <VisualState x:Name="NoError">
-                                        <Storyboard>
-                                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PART_InValidCellBorder"
-                                                                           Storyboard.TargetProperty="Width">
-                                                <EasingDoubleKeyFrame KeyTime="0"
-                                                                      Value="0" />
-                                            </DoubleAnimationUsingKeyFrames>
-
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PART_InValidCellBorder"
-                                                                           Storyboard.TargetProperty="(UIElement.Visibility)">
-                                                <DiscreteObjectKeyFrame KeyTime="0">
-                                                    <DiscreteObjectKeyFrame.Value>
-                                                        <Visibility>Collapsed</Visibility>
-                                                    </DiscreteObjectKeyFrame.Value>
-                                                </DiscreteObjectKeyFrame>
-                                            </ObjectAnimationUsingKeyFrames>
-
-                                            <!-- Close tooltip -->
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ValidationToolTip"
-                                                                           Storyboard.TargetProperty="IsOpen">
-                                                <DiscreteObjectKeyFrame KeyTime="0">
-                                                    <DiscreteObjectKeyFrame.Value>
-                                                        <sys:Boolean>False</sys:Boolean>
-                                                    </DiscreteObjectKeyFrame.Value>
-                                                </DiscreteObjectKeyFrame>
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                </VisualStateGroup>
-
-                                <!-- Border states -->
-                                <VisualStateGroup x:Name="BorderStates">
-                                    <VisualState x:Name="NormalCell" />
-                                    <VisualState x:Name="FooterColumnCell">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PART_GridCellBorder"
-                                                                           Storyboard.TargetProperty="BorderThickness">
-                                                <DiscreteObjectKeyFrame KeyTime="0"
-                                                                        Value="1,0,1,1" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="BeforeFooterColumnCell">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PART_GridCellBorder"
-                                                                           Storyboard.TargetProperty="BorderThickness">
-                                                <DiscreteObjectKeyFrame KeyTime="0"
-                                                                        Value="0,0,0,1" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                </VisualStateGroup>
-
-                            </VisualStateManager.VisualStateGroups>
-
-                            <!-- Selection border -->
-                            <Border Background="{TemplateBinding CellSelectionBrush}"
-                                    Visibility="{TemplateBinding SelectionBorderVisibility}" />
-
-                            <!-- Cell border -->
-                            <Border x:Name="PART_GridCellBorder"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}">
-                                <Grid>
-                                    <ContentPresenter Margin="{TemplateBinding Padding}" />
-                                </Grid>
-                            </Border>
-
-                            <!-- Current cell highlight -->
-                            <Border Margin="0"
-                                    Background="Transparent"
-                                    BorderBrush="{TemplateBinding CurrentCellBorderBrush}"
-                                    BorderThickness="{TemplateBinding CurrentCellBorderThickness}"
-                                    IsHitTestVisible="False"
-                                    Visibility="{TemplateBinding CurrentCellBorderVisibility}" />
-
-                            <!-- Validation indicator -->
-                            <Border x:Name="PART_InValidCellBorder"
-                                    Width="0"
-                                    Height="10"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Top"
-                                    Visibility="Collapsed">
-
-                                <ToolTipService.ToolTip>
-                                    <!-- Name is crucial so storyboard can target -->
-                                    <ToolTip x:Name="ValidationToolTip"
-                                             Background="#FFDB000C"
-                                             Placement="Right"
-                                             PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
-                                             HorizontalOffset="6"
-                                             VerticalOffset="0"
-                                             StaysOpen="True">
-                                        <TextBlock Text="{TemplateBinding ErrorMessage}"
-                                                   Foreground="White"
-                                                   TextWrapping="Wrap"
-                                                   MaxWidth="250"
-                                                   Margin="5" />
-                                    </ToolTip>
-                                </ToolTipService.ToolTip>
-
-                                <Path Data="M0.5,0.5 L12.652698,0.5 12.652698,12.068006 z"
-                                      Fill="Red"
-                                      Stretch="Fill" />
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-
         <BounceEase x:Key="BounceEase"
                     Bounces="1"
                     Bounciness="100"
                     EasingMode="EaseOut" />
         <converters:SecretMaskConverter x:Key="SecretMaskConverter" />
+
+        <!-- Slide-in animation for flyout -->
+        <Style x:Key="FlyoutHostStyle"
+               TargetType="Grid">
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <TranslateTransform X="360" />
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsEditOpen}"
+                             Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                 To="0"
+                                                 Duration="0:0:0.18" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                 To="360"
+                                                 Duration="0:0:0.18" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </syncfusion:ChromelessWindow.Resources>
 
-    <StackPanel Orientation="Vertical"
-                Margin="0,5,0,0"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch">
+    <!-- Wrap existing content in a Grid so we can overlay the flyout -->
+    <Grid>
+        <!-- ===== your existing UI (kept as-is) ===== -->
+        <StackPanel Orientation="Vertical"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch">
 
-        <Grid Height="30"
-              Background="Transparent">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+            <Grid Height="30"
+                  Background="Transparent">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-            <!-- left side -->
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        Grid.Column="0">
+                <!-- left side -->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Grid.Column="0">
 
-                <!-- Add Button -->
-                <Button ToolTip="{xaml:Resx Key=tooltip_AddNew}"
-                        Margin="5,5,0,0"
-                        Padding="5,5"
-                        Command="{Binding AddNewSecretCommand}">
-                    <svgc:SvgViewbox Source="/Assets/Icons/plus-24x24.svg"
-                                     Height="15"
-                                     Stretch="Uniform" />
-                </Button>
+                    <!-- Add Button -->
+                    <Button ToolTip="{xaml:Resx Key=tooltip_AddNew}"
+                            Margin="5,5,0,0"
+                            Padding="5,5"
+                            Command="{Binding AddNewSecretCommand}">
+                        <svgc:SvgViewbox Source="/Assets/Icons/plus-24x24.svg"
+                                         Height="15"
+                                         Stretch="Uniform" />
+                    </Button>
 
-                <!-- Search Button -->
-                <Button Command="{Binding ToggleSearchBoxCommand}"
-                        ToolTip="{xaml:Resx Key=ui_btnSearch}"
-                        Margin="5,5,5,0"
-                        Padding="5,5">
-                    <svgc:SvgViewbox Source="/Assets/Icons/find-24x24.svg"
-                                     Height="15"
-                                     Stretch="Uniform" />
-                </Button>
+                    <!-- Search Button -->
+                    <Button Command="{Binding ToggleSearchBoxCommand}"
+                            ToolTip="{xaml:Resx Key=ui_btnSearch}"
+                            Margin="5,5,5,0"
+                            Padding="5,5">
+                        <svgc:SvgViewbox Source="/Assets/Icons/find-24x24.svg"
+                                         Height="15"
+                                         Stretch="Uniform" />
+                    </Button>
 
-                <!-- Search field -->
-                <syncfusion:SfTextBoxExt Width="150"
-                                         Height="30"
-                                         VerticalAlignment="Center"
-                                         VerticalContentAlignment="Stretch"
-                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                         Watermark="{xaml:Resx Key=ui_label_Search_Dots}"
-                                         props:FocusExtension.IsFocused="{Binding IsSearchFocused}"
-                                         Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
-                                         Padding="0"
-                                         Margin="10,0,0,0" />
+                    <!-- Search field -->
+                    <syncfusion:SfTextBoxExt Width="150"
+                                             Height="30"
+                                             VerticalAlignment="Center"
+                                             VerticalContentAlignment="Stretch"
+                                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                             Watermark="{xaml:Resx Key=ui_label_Search_Dots}"
+                                             props:FocusExtension.IsFocused="{Binding IsSearchFocused}"
+                                             Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+                                             Padding="0"
+                                             Margin="10,0,0,0" />
 
-                <!-- Clear-Suche-Button -->
-                <Button Content="×"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Width="20"
-                        Height="20"
-                        VerticalAlignment="Center"
-                        Margin="-20,0,0,0"
-                        Command="{Binding ClearSearchCommand}"
-                        Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
+                    <!-- Clear-Suche-Button -->
+                    <Button Content="×"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Width="20"
+                            Height="20"
+                            VerticalAlignment="Center"
+                            Margin="-20,0,0,0"
+                            Command="{Binding ClearSearchCommand}"
+                            Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
+                </StackPanel>
 
-            </StackPanel>
+                <!-- right side: language selection -->
+                <syncfusion:ComboBoxAdv Grid.Column="1"
+                                        IsEnabled="{Binding IsGridEditing, Converter={StaticResource InverseBooleanConverter}}"
+                                        ItemsSource="{Binding SupportedCultures}"
+                                        SelectedItem="{Binding SelectedCulture, Mode=TwoWay}"
+                                        Width="50"
+                                        VerticalAlignment="Center"
+                                        Margin="2"
+                                        AllowMultiSelect="False">
+                    <syncfusion:ComboBoxAdv.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="{Binding IconPath}"
+                                       Width="20"
+                                       Height="25"
+                                       Margin="0,0,5,0" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </syncfusion:ComboBoxAdv.ItemTemplate>
+                </syncfusion:ComboBoxAdv>
+            </Grid>
 
-            <!-- right side: language selection -->
-            <syncfusion:ComboBoxAdv Grid.Column="1"
-                                    IsEnabled="{Binding IsGridEditing, Converter={StaticResource InverseBooleanConverter}}"
-                                    ItemsSource="{Binding SupportedCultures}"
-                                    SelectedItem="{Binding SelectedCulture, Mode=TwoWay}"
-                                    Width="50"
-                                    VerticalAlignment="Center"
-                                    Margin="2"
-                                    AllowMultiSelect="False">
-                <syncfusion:ComboBoxAdv.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="{Binding IconPath}"
-                                   Width="20"
-                                   Height="25"
-                                   Margin="0,0,5,0" />
-                        </StackPanel>
-                    </DataTemplate>
-                </syncfusion:ComboBoxAdv.ItemTemplate>
-            </syncfusion:ComboBoxAdv>
-        </Grid>
+            <Grid Margin="10,20,10,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
+                <syncfusion:SfDataGrid x:Name="SecretsGrid"
+                                       CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
+                                       Grid.Row="0"
+                                       AllowEditing="True"
+                                       AllowDeleting="True"
+                                       GridValidationMode="InView"
+                                       AutoGenerateColumns="False"
+                                       CanMaintainScrollPosition="True"
+                                       EditTrigger="OnDoubleTap"
+                                       SelectionMode="Single"
+                                       SelectionUnit="Row"
+                                       SelectionChanged="DataGrid_SelectionChanged"
+                                       NavigationMode="Cell"
+                                       ItemsSource="{Binding FilteredSecrets}"
+                                       LiveDataUpdateMode="AllowDataShaping"
+                                       MaxHeight="200"
+                                       MaxWidth="340"
+                                       Margin="0,0,0,20"
+                                       BorderThickness="0"
+                                       RowSelectionBrush="#1D3366"
+                                       SelectionForegroundBrush="#87CE3E"
+                                       CurrentCellBorderBrush="Transparent"
+                                       CurrentCellBorderThickness="0"
+                                       HorizontalAlignment="Stretch"
+                                       ColumnSizer="Star">
 
-        <Grid Margin="10,20,10,10">
+                    <i:Interaction.Behaviors>
+                        <behaviors:DataGridEditingStateBehavior IsEditing="{Binding IsGridEditing, Mode=TwoWay}" />
+                        <behaviors:DataGridValidationBehavior />
+                        <behaviors:SfDataGridEditingBehavior BeginEditCommand="{Binding BeginEditCommand}"
+                                                             EndEditCommand="{Binding EndEditCommand}"
+                                                             DoubleClickCommand="{Binding DoubleClickCommand}" />
+                        <behaviors:ToggleColumnVisibilityBehavior ShowActionsColumn="{Binding ShowActionsColumn}" />
+                        <behaviors:SfDataGridContextMenuBehavior />
+                        <behaviors:RowClickBehavior SelectionChangedCommand="{Binding SelectionChangedCommand}"
+                                                    RightClickCommand="{Binding PrepareContextCommand}" />
+                    </i:Interaction.Behaviors>
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <!-- Row 0: DataGrid -->
-                <RowDefinition Height="Auto" />
-                <!-- Row 1: QR Code -->
-                <RowDefinition Height="Auto" />
-                <!-- Row 2:TOTP Label -->
-                <RowDefinition Height="Auto" />
-                <!-- Row 2: Copied Label -->
+                    <syncfusion:SfDataGrid.Resources>
+                        <Style TargetType="syncfusion:GridHeaderCellControl">
+                            <Setter Property="Background"
+                                    Value="#269797" />
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource Brush.Foreground}" />
+                            <Setter Property="FontWeight"
+                                    Value="Bold" />
+                            <Setter Property="HorizontalContentAlignment"
+                                    Value="Center" />
+                        </Style>
+                    </syncfusion:SfDataGrid.Resources>
 
-            </Grid.RowDefinitions>
+                    <!-- ==== COLUMNS: Platform + TOTP countdown ==== -->
+                    <syncfusion:SfDataGrid.Columns>
+                        <!-- Platform -->
+                        <syncfusion:GridTextColumn HeaderText="{xaml:Resx Key=ui_Header_Platform}"
+                                                   MappingName="Platform" />
 
-            <syncfusion:SfDataGrid x:Name="SecretsGrid"
-                                   CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
-                                   Grid.Row="0"
-                                   AllowEditing="True"
-                                   AllowDeleting="True"
-                                   GridValidationMode="InView"
-                                   AutoGenerateColumns="False"
-                                   CanMaintainScrollPosition="True"
-                                   EditTrigger="OnDoubleTap"
-                                   SelectedItem="{Binding SelectedSecret, Mode=TwoWay}"
-                                   SelectionMode="Single"
-                                   SelectionUnit="Row"
-                                   SelectionChanged="DataGrid_SelectionChanged"
-                                   NavigationMode="Cell"
-                                   ItemsSource="{Binding FilteredSecrets}"
-                                   LiveDataUpdateMode="AllowDataShaping"
-                                   MaxHeight="200"
-                                   MaxWidth="340"
-                                   Margin="0,0,0,20"
-                                   BorderThickness="0"
-                                   RowSelectionBrush="#1D3366"
-                                   SelectionForegroundBrush="#87CE3E"
-                                   CurrentCellBorderBrush="Transparent"
-                                   CurrentCellBorderThickness="0"
-                                   HorizontalAlignment="Stretch"
-                                   ColumnSizer="Star">
-             
-                <i:Interaction.Behaviors>
-                    <behaviors:DataGridEditingStateBehavior IsEditing="{Binding IsGridEditing, Mode=TwoWay}" />
-                    <behaviors:DataGridValidationBehavior />
-                    <behaviors:SfDataGridEditingBehavior BeginEditCommand="{Binding BeginEditCommand}"
-                                                         EndEditCommand="{Binding EndEditCommand}"
-                                                         DoubleClickCommand="{Binding DoubleClickCommand}" />
+                        <!-- Circular TOTP countdown (0..100) -->
+                        <!--<syncfusion:GridTemplateColumn MappingName="TotpRemainingPercent"
+                                                       HeaderText="{xaml:Resx Key=ui_Header_Remaining}">
+                            <syncfusion:GridTemplateColumn.CellStyle>
+                                <Style TargetType="sfGrid:GridCell"
+                                       BasedOn="{StaticResource {x:Type sfGrid:GridCell}}">
+                                    <Setter Property="HorizontalContentAlignment"
+                                            Value="Center" />
+                                    <Setter Property="VerticalContentAlignment"
+                                            Value="Center" />
+                                </Style>
+                            </syncfusion:GridTemplateColumn.CellStyle>
+                            <syncfusion:GridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid Width="28"
+                                          Height="28">
+                                        <syncfusion:SfCircularProgressBar Minimum="0"
+                                                                          Maximum="100"
+                                                                          Width="28"
+                                                                          Progress="{Binding TotpRemainingPercent}"
+                                                                          ShowProgressValue="False" />
+                                        <TextBlock Text="{Binding TotpRemainingPercent, StringFormat={}{0:0}%}"
+                                                   FontSize="9"
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource Brush.Foreground}"
+                                                   Opacity="0.65" />
+                                    </Grid>
+                                </DataTemplate>
+                            </syncfusion:GridTemplateColumn.CellTemplate>
+                        </syncfusion:GridTemplateColumn>-->
+                    </syncfusion:SfDataGrid.Columns>
 
-                    <behaviors:ToggleColumnVisibilityBehavior ShowActionsColumn="{Binding ShowActionsColumn}" />
+                    <!-- Context menu: Edit + Delete -->
+                    <syncfusion:SfDataGrid.RecordContextMenu>
+                        <ContextMenu>
+                            <!-- Edit -->
+                            <MenuItem Header="{Binding DataGrid.DataContext.EditLabel}"
+                                      Foreground="{DynamicResource Brush.Foreground}"
+                                      Command="{Binding DataGrid.DataContext.OpenEditCommand}"
+                                      CommandParameter="{Binding Record}">
+                                <MenuItem.Icon>
+                                    <svgc:SvgViewbox Width="11"
+                                                     Height="11"
+                                                     Source="/Assets/Icons/Edit-48x48.svg" />
+                                </MenuItem.Icon>
+                            </MenuItem>
 
-                    <behaviors:SfDataGridContextMenuBehavior />
-                </i:Interaction.Behaviors>
+                            <Separator Background="#1D3366" />
 
-                <syncfusion:SfDataGrid.Resources>
-                    <Style TargetType="syncfusion:GridHeaderCellControl">
-                        <Setter Property="Background"
-                                Value="#269797">
-                            <!--<Setter.Value>
-                                <LinearGradientBrush StartPoint="0,0"
-                                                     EndPoint="0,1">
-                                    <GradientStop Color="#FF1976D2"
-                                                  Offset="0" />
-                                    <GradientStop Color="#FF005577"
-                                                  Offset="1" />
-                                </LinearGradientBrush>
-                            </Setter.Value>-->
-                        </Setter>
-                        <Setter Property="Foreground"
-                                Value="{DynamicResource Brush.Foreground}" />
-                        <Setter Property="FontWeight"
-                                Value="Bold" />
-                        <Setter Property="HorizontalContentAlignment"
-                                Value="Center" />
-                    </Style>
-
-                </syncfusion:SfDataGrid.Resources>
-
-                <syncfusion:SfDataGrid.Columns>
-                    <syncfusion:GridTextColumn HeaderText="{xaml:Resx Key=ui_Header_Platform}"
-                                               MappingName="Platform" />
-
-                    <!--<syncfusion:GridTextColumn HeaderText="{xaml:Resx Key=ui_Header_Secret}"
-                                               MappingName="Secret" />-->
-
-                    <syncfusion:GridTemplateColumn MappingName="Secret"
-                                                   HeaderText="{xaml:Resx Key=ui_Header_Secret}">
-
-                        <syncfusion:GridTemplateColumn.CellStyle>
-                            <Style TargetType="sfGrid:GridCell"
-                                   BasedOn="{StaticResource {x:Type sfGrid:GridCell}}">
-                                <Setter Property="Padding"
-                                        Value="0,0,12,0" />
-                                <!-- right inset -->
-                                <Setter Property="HorizontalContentAlignment"
-                                        Value="Stretch" />
-                                <Setter Property="VerticalContentAlignment"
-                                        Value="Center" />
-                            </Style>
-                        </syncfusion:GridTemplateColumn.CellStyle>
-
-                        <!-- display -->
-                        <syncfusion:GridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock TextAlignment="Left"
-Padding="5,2,5,0"
-                                           VerticalAlignment="Center"
-                                           Text="{Binding Secret, Converter={StaticResource SecretMaskConverter}}" />
-                            </DataTemplate>
-                        </syncfusion:GridTemplateColumn.CellTemplate>
-
-                       
-
-                        <!-- Edit Mode -->
-                        <syncfusion:GridTemplateColumn.EditTemplate>
-                            <DataTemplate>
-                                <PasswordBox VerticalContentAlignment="Center"
-                                             Padding="5,2,5,0"
-                                             props:PasswordBoxHelper.BindPassword="True"
-                                             props:PasswordBoxHelper.BoundPassword="{Binding EditingSecret, Mode=TwoWay,  UpdateSourceTrigger=PropertyChanged,
-                                             ValidatesOnDataErrors=True,
-                                             ValidatesOnNotifyDataErrors=True,
-                                             NotifyOnValidationError=True}" />
-
-                            </DataTemplate>
-                        </syncfusion:GridTemplateColumn.EditTemplate>
-
-                    </syncfusion:GridTemplateColumn>
-                </syncfusion:SfDataGrid.Columns>
-
-                <syncfusion:SfDataGrid.RecordContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="{Binding DataGrid.DataContext.DeleteLabel}"
-                                  Padding="0,0,2,0"
-                                  Foreground="{DynamicResource Brush.Foreground}"
-                                  Command="{Binding DataGrid.DataContext.DeleteSecretCommand}"
-                                  CommandParameter="{Binding Record}">
-                            <MenuItem.Icon>
-                                <svgc:SvgViewbox Width="11"
-                                                 Height="11"
-                                                 Source="/Assets/Icons/delete-24x24.svg" />
-                            </MenuItem.Icon>
-
-                        </MenuItem>
-                    </ContextMenu>
-                </syncfusion:SfDataGrid.RecordContextMenu>
-
-            </syncfusion:SfDataGrid>
-
-            <Label x:Name="lblCode"
-                   Grid.Row="2"
-                   Content="{Binding CurrentCodeLabel}"
-                   HorizontalContentAlignment="Center"
-                   VerticalContentAlignment="Center"
-                   Height="{Binding CodeLabelHeight}"
-                   FontWeight="Bold"
-                   Foreground="#97B0DF"
-                   FontSize="24"
-                   HorizontalAlignment="Center"
-                   Margin="0,0">
-                <Label.RenderTransform>
-                    <TranslateTransform />
-                </Label.RenderTransform>
-                <Label.Style>
-                    <Style TargetType="Label">
-                        <Setter Property="Opacity"
-                                Value="0" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsCodeLabelVisible}"
-                                         Value="True">
-                                <Setter Property="Opacity"
-                                        Value="1" />
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
-                                                             From="0"
-                                                             To="-10"
-                                                             Duration="0:0:0.2"
-                                                             AutoReverse="True"
-                                                             EasingFunction="{StaticResource BounceEase}" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Label.Style>
-            </Label>
-
-            <Image Grid.Row="1"
-                   Margin="0,0,0,20"
-                   Source="{Binding QrCodeImage}"
-                   Width="130"
-                   Height="130"
-                   Visibility="{Binding IsQrVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
+                            <!-- Delete -->
+                            <MenuItem Header="{Binding DataGrid.DataContext.DeleteLabel}"
+                                      Foreground="{DynamicResource Brush.Foreground}"
+                                      Command="{Binding DataGrid.DataContext.DeleteSecretCommand}"
+                                      CommandParameter="{Binding Record}">
+                                <MenuItem.Icon>
+                                    <svgc:SvgViewbox Width="11"
+                                                     Height="11"
+                                                     Source="/Assets/Icons/delete-24x24.svg" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </syncfusion:SfDataGrid.RecordContextMenu>
 
 
-            <TextBlock x:Name="lblCopiedToClipboard"
-                       Grid.Row="3"
-                       Margin="0,10"
-                       Text="{xaml:Resx Key=ui_Code_Copied_Clipboard}"
-                       TextAlignment="Center"
-                       FontSize="18"
+                </syncfusion:SfDataGrid>
+
+                <!-- existing QR / Code / Copied labels (unchanged) -->
+                <Image Grid.Row="1"
+                       Margin="0,0,0,20"
+                       Source="{Binding QrCodeImage}"
+                       Width="130"
+                       Height="130"
+                       Visibility="{Binding IsQrVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
+
+                <Label x:Name="lblCode"
+                       Grid.Row="2"
+                       Content="{Binding CurrentCodeLabel}"
+                       HorizontalContentAlignment="Center"
+                       VerticalContentAlignment="Center"
+                       Height="{Binding CodeLabelHeight}"
                        FontWeight="Bold"
-                       Foreground="#FF22ED20"
-                       TextWrapping="Wrap"
-                       Visibility="{Binding IsCodeCopiedVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
-                <TextBlock.Effect>
-                    <DropShadowEffect BlurRadius="10"
-                                      Color="Aqua" />
-                </TextBlock.Effect>
-            </TextBlock>
+                       Foreground="#97B0DF"
+                       FontSize="24"
+                       HorizontalAlignment="Center"
+                       Margin="0,0">
+                    <Label.RenderTransform>
+                        <TranslateTransform />
+                    </Label.RenderTransform>
+                    <Label.Style>
+                        <Style TargetType="Label">
+                            <Setter Property="Opacity"
+                                    Value="0" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCodeLabelVisible}"
+                                             Value="True">
+                                    <Setter Property="Opacity"
+                                            Value="1" />
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                                 From="0"
+                                                                 To="-10"
+                                                                 Duration="0:0:0.2"
+                                                                 AutoReverse="True"
+                                                                 EasingFunction="{StaticResource BounceEase}" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Label.Style>
+                </Label>
 
+                <TextBlock x:Name="lblCopiedToClipboard"
+                           Grid.Row="3"
+                           Margin="0,10"
+                           Text="{xaml:Resx Key=ui_Code_Copied_Clipboard}"
+                           TextAlignment="Center"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="#FF22ED20"
+                           TextWrapping="Wrap"
+                           Visibility="{Binding IsCodeCopiedVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="10"
+                                          Color="Aqua" />
+                    </TextBlock.Effect>
+                </TextBlock>
+
+            </Grid>
+        </StackPanel>
+
+        <!-- ===== Flyout overlay (edit) ===== -->
+        <!-- Dim background -->
+        <Border Background="#66000000"
+                Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+                Panel.ZIndex="10" />
+
+        <!-- Right slide-in -->
+        <Grid Width="360"
+              HorizontalAlignment="Right"
+              Panel.ZIndex="11"
+              Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+              Style="{StaticResource FlyoutHostStyle}"
+              FocusManager.IsFocusScope="True">
+            
+            <Border Background="#152549"
+                    Padding="16"
+                    BorderBrush="#394B74"
+                    BorderThickness="1">
+                <StackPanel Margin="10,10,0,10">
+                    <!--Edit Header Panel-->
+                    <DockPanel Margin="0,0,0,10">
+                        <TextBlock Text="{Binding EditPanelTitle}"
+                                   Foreground="White"
+                                   FontWeight="Bold"
+                                   FontSize="16" />
+                        <Button Content="✕"
+                                Foreground="White"
+                                Width="26"
+                                Height="26"
+                                Command="{Binding CancelEditCommand}"
+                                HorizontalAlignment="Right"
+                                DockPanel.Dock="Right" />
+                    </DockPanel>
+
+                    <!--Platform-->
+                    <TextBlock Text="{xaml:Resx Key=ui_Header_Platform}"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               Margin="0,6,0,2" />
+                    <TextBox x:Name="PlatformBox"
+                             Text="{Binding EditingSecret.Platform, UpdateSourceTrigger=PropertyChanged}"
+                             Height="30"
+                             props:FocusExtension.IsFocused="{Binding IsEditPlatformFocused}" />
+
+
+                    <!--Secret-->
+                    <TextBlock Text="{xaml:Resx Key=ui_Header_Secret}"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               Margin="0,10,0,2" />
+                    <PasswordBox Height="30"
+                                 props:PasswordBoxHelper.BindPassword="True"
+                                 props:PasswordBoxHelper.BoundPassword="{Binding EditingSecret.Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <!--Account-->
+                    <TextBlock Text="{xaml:Resx Key=ui_Header_Account}"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               Margin="0,10,0,2" />
+                    <TextBox Text="{Binding EditingSecret.Account, UpdateSourceTrigger=PropertyChanged}"
+                             Height="30" />
+
+
+                    <!--Save, Cancel-->
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,16,0,0"
+                                HorizontalAlignment="Right">
+                        <Button Content="{Binding SaveButtonLabel}"
+                                FontWeight="Bold"
+                                Foreground="White"
+                                Command="{Binding SaveEditAsyncCommand}"
+                                Margin="0,0,8,0"
+                                Padding="14,6" />
+                        <Button Content="{Binding CancelButtonLabel}"
+                                Foreground="White"
+                                FontWeight="Bold"
+                                Command="{Binding CancelEditCommand}"
+                                Padding="14,6" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </Grid>
-    </StackPanel>
+    </Grid>
 </syncfusion:ChromelessWindow>

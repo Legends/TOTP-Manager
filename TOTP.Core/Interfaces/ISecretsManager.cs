@@ -24,7 +24,7 @@ public interface ISecretsManager
     //Task<bool> AddNewItemAsync(SecretItem item);
 
     /// <summary>
-    /// Updates an existing secret item in the internal collection and writes it to the encrypted secrets file.
+    /// Updates an existing secret item in the encrypted secrets file.
     /// </summary>
     /// <param name="previousPlatform"></param>
     /// <param name="updated"></param>

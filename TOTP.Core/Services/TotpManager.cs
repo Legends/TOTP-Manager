@@ -102,12 +102,14 @@ public class TotpManager : ITotpManager
         if (previous.Equals(updated))
             return false;
 
-        if (!string.Equals(previous.Platform, updated.Platform, StringComparison.OrdinalIgnoreCase) &&
-            SecretValidator.CheckForPlatformDuplicates(updated.Platform, source) != ValidationError.None)
-        {
-            OnMessageSend?.Invoke(this, OperationStatus.AlreadyExists, updated.Platform);
-            return false;
-        }
+        //var hasPlatformNameChanged = !string.Equals(previous.Platform, updated.Platform, StringComparison.OrdinalIgnoreCase);
+
+        //if (hasPlatformNameChanged &&
+        //    SecretValidator.PlatformNameDuplicatesExists(updated.Platform, source) != ValidationError.None)
+        //{
+        //    OnMessageSend?.Invoke(this, OperationStatus.AlreadyExists, updated.Platform);
+        //    return false;
+        //}
 
         var result = await _secretsManager.UpdateItemAsync(previous.Platform, updated);
 

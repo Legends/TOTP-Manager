@@ -122,19 +122,18 @@ public class SecretsManager : ISecretsManager, IDisposable
         await Semaphore.WaitAsync();
         try
         {
-            var (ok, list) = await LoadSecretsFromFileAsync();
+            var (ok, listStore) = await LoadSecretsFromFileAsync();
             if (!ok) return new(OperationStatus.LoadingFailed, ok);
 
-            var existing = list.FirstOrDefault(x => x.Platform == previousPlatform);
+            var existing = listStore.FirstOrDefault(x => x.Platform == previousPlatform);
             if (existing == null)
             {
                 return Result<bool>.Fail(OperationStatus.NotFound);
             }
 
-
-            list.Remove(existing);
-            list.Add(updated);
-            var result = await WriteEncryptedFileAsync(list);
+            listStore.Remove(existing);
+            listStore.Add(updated);
+            var result = await WriteEncryptedFileAsync(listStore);
             return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
         }
         finally

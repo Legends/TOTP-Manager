@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Syncfusion.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,6 +19,7 @@ using TOTP.Core.Enums;
 using TOTP.Core.Events;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
+using TOTP.Core.Validation;
 using TOTP.Extensions;
 using TOTP.Helper;
 using TOTP.Interfaces;
@@ -34,24 +36,56 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     private CultureDisplay _selectedCulture;
     private readonly ILogger<MainViewModel> _logger;
     private readonly IPlatformSecretDialogService _platformSecretDialogService;
-    public ObservableCollection<CultureDisplay> SupportedCultures { get; }
 
-    #region ### SERVICES ###
 
-    private readonly ISecretsManager _secretsManager;
-    private readonly IClipboardService _clipboard;
-    private readonly IMessageService _messageService;
-    private readonly ITotpManager _totpManager;
+    #region ### FLYOUT PANEL ###
+    public bool IsAddMode
+    {
+        get => _isAddMode;
+        private set
+        {
+            _isAddMode = value;
+            //IsEditPlatformFocused = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(EditPanelTitle));
+            OnPropertyChanged(nameof(SaveButtonLabel));
+            OnPropertyChanged(nameof(CancelButtonLabel));
+        }
+    }
+    private bool _isAddMode;
 
-    private readonly IDebounceService _debounceService;
+    public string EditPanelTitle => IsAddMode ? UI.tooltip_AddNew : UI.ui_Edit_Entry;
+    public string SaveButtonLabel => IsAddMode ? UI.ui_btnAdd : UI.ui_btnSave;
+    public string CancelButtonLabel => UI.ui_btnCancel;
 
-    //private readonly DispatcherTimer _debounceTimer;
-    private readonly IQrCodeService _qrService;
+    private bool _isEditPlatformFocused;
+    public bool IsEditPlatformFocused
+    {
+        get => _isEditPlatformFocused;
+        set { _isEditPlatformFocused = value; OnPropertyChanged(); }
+    }
 
-    private readonly IDelayService _delayService;
-    //private string _pendingSearchText;
+    // Flyout state + editable copy
+    private bool _isEditOpen;
+    public bool IsEditOpen
+    {
+        get => _isEditOpen;
+        set
+        {
+            _isEditOpen = value;
+            IsEditPlatformFocused = value;
+            OnPropertyChanged();
+        }
+    }
 
-    #endregion REGION SERVICES
+    private SecretItemViewModel _editingSecret;
+    public SecretItemViewModel? EditingSecret
+    {
+        get => _editingSecret;
+        set { _editingSecret = value; OnPropertyChanged(); }
+    }
+
+    #endregion
 
     public CultureDisplay SelectedCulture
     {
@@ -120,6 +154,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             ToggleSearchBoxCommand.RaiseCanExecuteChanged();
         }
     }
+
+
+
 
     public bool IsContextmenuOpen { get; set; }
 
@@ -227,6 +264,32 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #endregion REGION PROPERTIES AND VARS
 
+    #region ### ObservableCollections ###
+
+    public ObservableCollection<SecretItemViewModel> AllSecrets { get; private set; } = [];
+    public ObservableCollection<SecretItemViewModel> FilteredSecrets { get; } = [];
+    public ObservableCollection<CultureDisplay> SupportedCultures { get; }
+
+    #endregion ObservableCollections
+
+    #region ### SERVICES DECLARATIONS ###
+
+    private readonly ISecretsManager _secretsManager;
+    private readonly IClipboardService _clipboard;
+    private readonly IMessageService _messageService;
+    private readonly ITotpManager _totpManager;
+
+    private readonly IDebounceService _debounceService;
+
+    //private readonly DispatcherTimer _debounceTimer;
+    private readonly IQrCodeService _qrService;
+
+    private readonly IDelayService _delayService;
+
+    //private string _pendingSearchText;
+
+    #endregion REGION SERVICES
+
     #region ### Events ###
     //public event EventHandler<CultureInfo>? LanguageChanged;
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -262,7 +325,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         _clipboard = clipboard;
         _totpManager = totpManager;
 
-        _totpManager.OnMessageSend += _totpManager_OnMessageSend;
+        //_totpManager.OnMessageSend += _totpManager_OnMessageSend;
         _totpManager.OnAddNewPrompt += _totpManager_OnAddNewPrompt;
         _totpManager.ConfirmDeleteRequested += _totpManager_OnDeletePrompt;
 
@@ -294,36 +357,36 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         return new AddNewPromptArgs() { Success = success, Platform = key, Secret = value, Account = account };
     }
 
-    private void _totpManager_OnMessageSend(object sender, OperationStatus arg1, string? arg2)
+    private void showMessage(OperationStatus arg1, SecretItemViewModel item)
     {
         switch (arg1)
         {
             case OperationStatus.Unknown:
-                _messageService.ShowErrorMessage(arg2 ?? "An unknow error has occured");
+                _messageService.ShowErrorMessage(item.Error ?? "An unknow error has occured");
                 break;
             case OperationStatus.NotFound:
-                _messageService.ShowErrorMessage($"{UI.msg_Platform_Not_Found}: {arg2}");
+                _messageService.ShowErrorMessage($"{UI.msg_Platform_Not_Found}: {item.Platform}");
                 break;
             case OperationStatus.LoadingFailed:
                 _messageService.ShowErrorMessage(UI.msg_Failed_Loading_Secrets);
                 break;
             case OperationStatus.DeleteFailed:
-                _messageService.ShowErrorMessage($"{UI.msg_Failed_Delete_Secret} : {arg2}");
+                _messageService.ShowErrorMessage($"{UI.msg_Failed_Delete_Secret} : {item.Platform}");
                 break;
             case OperationStatus.UpdateFailed:
-                _messageService.ShowErrorMessage($"{UI.msg_Failed_Updating_Secret} : {arg2}");
+                _messageService.ShowErrorMessage($"{UI.msg_Failed_Updating_Secret} : {item.Platform}");
                 break;
             case OperationStatus.CreateFailed:
-                _messageService.ShowErrorMessage(string.Format(UI.msg_FailedAddingSecret, arg2 ?? ""));
+                _messageService.ShowErrorMessage(string.Format(UI.msg_FailedAddingSecret, item.Platform ?? ""));
                 break;
             case OperationStatus.StorageFailed:
-                _messageService.ShowErrorMessage($"{UI.msg_Failed_Storage}: {arg2 ?? ""}");
+                _messageService.ShowErrorMessage($"{UI.msg_Failed_Storage}: {item.Platform ?? ""}");
                 break;
             case OperationStatus.Success:
-                _messageService.ShowInfoMessage($"{UI.msg_SecretUpdated}: {arg2}");
+                //_messageService.ShowInfoMessage($"{UI.msg_SecretUpdated}: {item.Platform}");
                 break;
             case OperationStatus.AlreadyExists:
-                _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, arg2));
+                _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, item.Platform));
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(arg1), arg1, null);
@@ -344,6 +407,17 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     private void SetupCommandEventhandler()
     {
+        OpenEditCommand = new RelayCommand<SecretItemViewModel>(OpenEdit);
+
+        SaveEditAsyncCommand = new AsyncCommand(SaveEditAsync);
+
+        CancelEditCommand = new RelayCommand(() =>
+        {
+            IsEditOpen = false;
+            IsAddMode = false;
+            EditingSecret = null;
+        });
+
         AddNewSecretCommand = new AsyncCommand(AddNewSecretAsync, () => !_isGridInEditMode, _logger);
         DeleteSecretCommand = new AsyncCommand<SecretItemViewModel>(DeleteSecretAsync, null, _logger);
         UpdateSecretCommand = new AsyncCommand<SecretItemViewModel>(UpdateSecretAsync, null, _logger);
@@ -351,8 +425,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         EndEditCommand = new AsyncCommand<SecretItemViewModel>(OnEndEditAsync); // Method must be: Task OnEndEditAsync()
         //SelectionChangedCommand = new AsyncCommand(async _ => await OnSelectionChangedAsync());
         SelectionChangedCommand = new AsyncCommand(OnSelectionChangedAsync);
-
-
 
         DoubleClickCommand = new RelayCommand<SecretItemViewModel>(OnDoubleClick);
 
@@ -383,29 +455,25 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             OnPropertyChanged(nameof(ShowActionsColumn));
     }
 
-    #region ### ObservableCollections ###
 
-    public ObservableCollection<SecretItemViewModel> AllSecrets { get; private set; } = [];
-    public ObservableCollection<SecretItemViewModel> FilteredSecrets { get; } = [];
-
-    #endregion ObservableCollections
 
     #region ### COMMANDS DECLARATION ###
 
+    public ICommand OpenEditCommand { get; private set; } = null!;
+    public AsyncCommand SaveEditAsyncCommand { get; private set; } = null!;
+    public ICommand CancelEditCommand { get; private set; } = null!;
     public ICommand ChangeLanguageCommand { get; private set; } = null!;
     public AsyncCommand AddNewSecretCommand { get; private set; } = null!;
     public ICommand BeginEditCommand { get; private set; } = null!;
+    public ICommand EndEditCommand { get; private set; } = null!;
     public ICommand ClearSearchCommand { get; private set; } = null!;
     public ICommand DeleteSecretCommand { get; private set; } = null!;
     public ICommand DoubleClickCommand { get; private set; } = null!;
-    public ICommand EndEditCommand { get; private set; } = null!;
     public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
-
     public ICommand SelectionChangedCommand { get; private set; } = null!;
 
     #endregion REGION COMMANDS
-
 
     #region ### READ ALL SECRETS ###
     private async Task ReadAllSecretsAsync()
@@ -442,14 +510,18 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     {
         try
         {
-            var (success, item) = await _totpManager.AddNewSecretAsync();
-            if (success && item != null)
-            {
-                ResetCodeGenerationLabels();
-                AllSecrets.Add(item.ToViewModel());
-                OnPropertyChanged(nameof(AllSecrets));
-                UpdateSearchFilter();
-            }
+            //var (success, item) = await _totpManager.AddNewSecretAsync();
+
+            IsAddMode = true;
+            IsEditOpen = true;
+            EditingSecret = new SecretItemViewModel(null, null, null);
+            //if (success && item != null)
+            //{
+            //    ResetCodeGenerationLabels();
+            //    AllSecrets.Add(item.ToViewModel());
+            //    OnPropertyChanged(nameof(AllSecrets));
+            //    UpdateSearchFilter();
+            //}
         }
         catch (Exception ex)
         {
@@ -482,17 +554,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         }
     }
 
-    //// working, but no mvvm
-    //public void DeleteSecret2(object item) // but here you get a reference to GridRecordContextMenuInfo
-    //{
-    //    ArgumentNullException.ThrowIfNull(item, nameof(item));
-
-    //    _msgService.ShowMessage(item.ToString() ?? "Null");
-
-
-    //    // Your deletion logic
-    //}
-
     #endregion
 
 
@@ -500,17 +561,35 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     public async Task UpdateSecretAsync(SecretItemViewModel updated)
     {
-        if (updated == null || PreviousVersion == null)
-            return;
+        //PreviousVersion = SelectedSecret.Copy();
+
+        //if (updated == null || PreviousVersion == null)
+        //    return;
 
         try
         {
+            //var domainSecretsList = AllSecrets.Where(sivm => !ReferenceEquals(sivm, updated)).Select(s => s.ToDomain()).ToList();
+            var domainSecretsList = AllSecrets.Where(sivm => !sivm.Equals(updated)).Select(s => s.ToDomain()).ToList();
 
-            var domainSecretsList = AllSecrets.Where(sivm => !ReferenceEquals(sivm, updated)).Select(s => s.ToDomain()).ToList();
+
             var success = await _totpManager.UpdateSecretAsync(PreviousVersion.ToDomain(), updated.ToDomain(), domainSecretsList);
 
             if (!success)
                 return;
+
+            // does when using behaviour inline editing the change directly persist into the AllSecrets?
+            // then no  allExceptOld.Add(updated); should happen, we get it twice then
+            var allExceptOld = AllSecrets.Where(sivm => sivm.Platform != PreviousVersion.Platform).ToList();
+
+            #region ### Update internal secrets collection ###
+            if (IsEditOpen)
+            {
+                allExceptOld.Add(updated); // only add when not inline editing
+            }
+
+            AllSecrets = allExceptOld.ToObservableCollection();
+            OnPropertyChanged(nameof(AllSecrets));
+            #endregion
 
             PreviousVersion = null;
             UpdateSearchFilter();
@@ -522,9 +601,122 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         }
     }
 
+
+    public void OpenEdit(SecretItemViewModel item)
+    {
+        if (item == null) return;
+
+        IsAddMode = false;
+        EditingSecret = item.Copy();
+        IsEditOpen = true;
+        //SaveEditCommand.RaiseCanExecuteChanged();
+    }
+
+    public async Task SaveEditAsync()
+    {
+
+        if (IsAddMode) // add new mode
+        {
+
+            var validator = new UiValidation(EditingSecret);
+            validator.ValidateAll();
+
+            if (!validator.IsValid)
+            {
+                foreach (var error in validator.Errors)
+                    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
+                return;
+            }
+
+
+            try
+            {
+                var addResult = await _secretsManager.AddNewItemAsync(EditingSecret.ToDomain());
+
+                if (addResult.Status != OperationStatus.Success)
+                {
+                    showMessage(addResult.Status, EditingSecret); return;
+                }
+
+                //if (result.Status == OperationStatus.Success)
+                //    return (true, secretItem);
+
+                //if (result.Status == OperationStatus.AlreadyExists)
+                //{
+                //    OnMessageSend?.Invoke(this, OperationStatus.AlreadyExists, promptResult.Platform);
+                //    continue;
+                //}
+                //if (result.Status == OperationStatus.StorageFailed)
+                //{
+                //    OnMessageSend?.Invoke(this, OperationStatus.StorageFailed, promptResult.Platform);
+                //}
+
+                //if (result.Status == OperationStatus.LoadingFailed)
+                //{
+                //    OnMessageSend?.Invoke(this, OperationStatus.LoadingFailed, null);
+                //}
+
+                //OnMessageSend?.Invoke(this, OperationStatus.CreateFailed, promptResult.Platform);
+
+                if (addResult.Status == OperationStatus.Success)
+                {
+                    AllSecrets.Add(EditingSecret.Copy());
+                    //OnPropertyChanged(nameof(AllSecrets));
+                    UpdateSearchFilter();
+                    EditingSecret = null;
+                }
+            }
+            finally
+            {
+                IsAddMode = false;
+                IsEditOpen = false;
+            }
+
+
+        }
+        else // Edit mode
+        {
+
+            PreviousVersion = SelectedSecret.Copy();
+            var updated = EditingSecret.Copy();
+            if (updated == null || PreviousVersion == null)
+                return;
+
+            var validationResult = SecretValidator.ValidatePlatform(updated.Platform);
+
+            if (validationResult != ValidationError.None)
+            {
+                _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(validationResult));
+                return;
+            }
+
+            validationResult = SecretValidator.ValidatePlatform(updated.Secret);
+            if (validationResult != ValidationError.None)
+            {
+                _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(validationResult));
+                return;
+            }
+
+            var source = AllSecrets.Where(sivm => !sivm.Equals(updated)).Select(s => s.ToDomain()).ToList();
+
+            var hasPlatformNameChanged = !string.Equals(PreviousVersion.Platform, updated.Platform, StringComparison.OrdinalIgnoreCase);
+            var duplicateExists = SecretValidator.PlatformNameDuplicatesExists(updated.Platform, source) != ValidationError.None;
+
+            if (hasPlatformNameChanged && duplicateExists)
+            {
+                _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, updated.Platform));
+                return;
+            }
+
+
+            await UpdateSecretAsync(EditingSecret);
+            IsEditOpen = false;
+        }
+    }
+
     private void OnBeginEdit(SecretItemViewModel item)
     {
-        PreviousVersion = new SecretItemViewModel(item.Platform, item.Secret, item.Account);
+        PreviousVersion = item.Copy();
         item.IsBeingEdited = true;
         OnPropertyChanged(nameof(ShowActionsColumn));
     }
@@ -742,6 +934,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     }
 
     public string DeleteLabel => TOTP.Resources.UI.ui_btnDelete;
+    public string EditLabel => TOTP.Resources.UI.ui_btnEdit;
+
+
 
     #endregion
 }

@@ -2,7 +2,7 @@
 using Syncfusion.UI.Xaml.ScrollAxis;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using TOTP.Helper;
 
 namespace TOTP.AttachedProperties;
 
@@ -45,7 +45,7 @@ public static class PasswordBoxHelper
 
     private static void OnLostFocus(object sender, RoutedEventArgs e)
     {
-        var grid = FindParent<SfDataGrid>((DependencyObject)sender);
+        var grid = Common.FindParent<SfDataGrid>((DependencyObject)sender);
         if (grid == null || grid.CurrentCellInfo == null) return;
 
         // Move to another cell to trigger validation
@@ -57,17 +57,6 @@ public static class PasswordBoxHelper
             grid.MoveCurrentCell(new RowColumnIndex(0, 0), true);
         }
     }
-
-    public static T? FindParent<T>(DependencyObject child) where T : DependencyObject
-    {
-        DependencyObject parent = VisualTreeHelper.GetParent(child);
-        while (parent != null && parent is not T)
-        {
-            parent = VisualTreeHelper.GetParent(parent);
-        }
-        return parent as T;
-    }
-
 
     private static void OnBoundPasswordChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
