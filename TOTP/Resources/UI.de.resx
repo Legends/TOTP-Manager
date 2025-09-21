@@ -249,6 +249,9 @@
   <data name="ui_btnSearch" xml:space="preserve">
     <value>Suche</value>
   </data>
+  <data name="ui_CameraInit" xml:space="preserve">
+    <value>Kamera wird initialisiert...</value>
+  </data>
   <data name="ui_Caption_Error" xml:space="preserve">
     <value>Fehler</value>
   </data>
@@ -259,7 +262,7 @@
     <value>Achtung</value>
   </data>
   <data name="ui_Code_Copied_Clipboard" xml:space="preserve">
-    <value>Code wurde in Zwischenablage kopiert!</value>
+    <value>Kopiert!</value>
   </data>
   <data name="ui_Edit_Entry" xml:space="preserve">
     <value>Eintrag ändern</value>
@@ -269,6 +272,9 @@
   </data>
   <data name="ui_Header_Platform" xml:space="preserve">
     <value>plattform</value>
+  </data>
+  <data name="ui_Header_QR_Window" xml:space="preserve">
+    <value>Richten Sie Ihren QR-Code auf die Kamera</value>
   </data>
   <data name="ui_Header_Secret" xml:space="preserve">
     <value>schlüssel</value>
@@ -290,6 +296,9 @@
   </data>
   <data name="ui_label_Search_Dots" xml:space="preserve">
     <value>Suche...</value>
+  </data>
+  <data name="ui_ScanQR" xml:space="preserve">
+    <value>QR Code scannen</value>
   </data>
   <data name="ui_watermark_platform" xml:space="preserve">
     <value>z.b. github, msft, ...</value>

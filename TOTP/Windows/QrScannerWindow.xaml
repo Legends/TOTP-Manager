@@ -9,35 +9,65 @@
                              xmlns:resx="clr-namespace:TOTP.Resources"
                              xmlns:xaml="clr-namespace:TOTP.Xaml"
                              mc:Ignorable="d"
-                             Title="Scan QR Code"
+                             Title="{xaml:Resx Key=ui_ScanQR}"
                              Height="420"
                              Width="560"
                              WindowStartupLocation="CenterOwner"
                              Loaded="Window_Loaded"
                              Closing="Window_Closing">
+
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />            
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Text="Point your camera at the QR code"
+
+        <TextBlock Text="{xaml:Resx Key=ui_Header_QR_Window}"
                    FontSize="16"
                    Margin="0,0,0,8" />
+
         <Image x:Name="Preview"
-               Stretch="Uniform"
                Grid.Row="1"
+               Stretch="Uniform"
                HorizontalAlignment="Center"
                VerticalAlignment="Center"
                Width="520"
                Height="320" />
-        <StackPanel Orientation="Horizontal"
-                    Grid.Row="2"
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,8,0,0">
-            <Button Content="Cancel"
+            <Button Content="{xaml:Resx Key=ui_btnCancel}"
                     Width="100"
                     Click="Cancel_Click" />
         </StackPanel>
+
+        <!-- Loading overlay (sits on top of rows 0..2) -->
+        <Border x:Name="Overlay"
+                Grid.RowSpan="3"
+                Background="#80000000"
+                CornerRadius="6"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Padding="16"
+                Visibility="Visible"
+                Panel.ZIndex="9999">
+            <StackPanel Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <ProgressBar IsIndeterminate="True"
+                             Width="120"
+                             Height="12"
+                             Margin="0,0,12,0" />
+                <TextBlock Text="{xaml:Resx Key=ui_CameraInit}"
+                           Foreground="White"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
     </Grid>
 </syncfusion:ChromelessWindow>
+
+ 
+

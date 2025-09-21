@@ -17,13 +17,12 @@
                              xmlns:xaml="clr-namespace:TOTP.Xaml"
                              xmlns:progress="clr-namespace:Syncfusion.UI.Xaml.ProgressBar;assembly=Syncfusion.SfProgressBar.WPF"
                              mc:Ignorable="d"
-                             Width="350"
+                             Width="300"
                              SizeToContent="Height"
                              Icon="/Assets/Icons/app.ico"
                              Title="TOTP Manager"
                              TitleBarBackground="#7D7FF4"
-                             TitleBarForeground="{DynamicResource Brush.Foreground}"
-                             WindowStartupLocation="CenterScreen">
+                             TitleBarForeground="{DynamicResource Brush.Foreground}">
 
     <syncfusion:ChromelessWindow.Resources>
         <BounceEase x:Key="BounceEase"
@@ -37,7 +36,7 @@
                TargetType="Grid">
             <Setter Property="RenderTransform">
                 <Setter.Value>
-                    <TranslateTransform X="360" />
+                    <TranslateTransform X="300" />
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
@@ -56,7 +55,7 @@
                         <BeginStoryboard>
                             <Storyboard>
                                 <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                                 To="360"
+                                                 To="300"
                                                  Duration="0:0:0.18" />
                             </Storyboard>
                         </BeginStoryboard>
@@ -118,7 +117,7 @@
                     </Button>
 
                     <!-- Search field -->
-                    <syncfusion:SfTextBoxExt Width="150"
+                    <syncfusion:SfTextBoxExt Width="120"
                                              Height="30"
                                              VerticalAlignment="Center"
                                              VerticalContentAlignment="Stretch"
@@ -300,7 +299,7 @@
 
                 </syncfusion:SfDataGrid>
 
-                <!-- existing QR / Code / Copied labels (unchanged) -->
+                <!-- QR Code image -->
                 <Image Grid.Row="1"
                        Margin="0,0,0,20"
                        Source="{Binding QrCodeImage}"
@@ -308,6 +307,7 @@
                        Height="160"
                        Visibility="{Binding IsQrVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
 
+                <!--Generated TOTP code label-->
                 <Label x:Name="lblCode"
                        Grid.Row="2"
                        Content="{Binding CurrentCodeLabel}"
@@ -349,6 +349,7 @@
                     </Label.Style>
                 </Label>
 
+                <!--Copied! label-->
                 <TextBlock x:Name="lblCopiedToClipboard"
                            Grid.Row="3"
                            Margin="0,10"
@@ -375,7 +376,7 @@
                 Panel.ZIndex="10" />
 
         <!-- Right slide-in -->
-        <Grid Width="360"
+        <Grid Width="300"
               HorizontalAlignment="Right"
               Panel.ZIndex="11"
               Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
@@ -386,7 +387,7 @@
                     Padding="16"
                     BorderBrush="#394B74"
                     BorderThickness="1">
-                <StackPanel Margin="10,10,0,10">
+                <StackPanel Margin="0,10,0,10">
                     <!--Edit Header Panel-->
                     <DockPanel Margin="0,0,0,10">
                         <TextBlock Text="{Binding EditPanelTitle}"

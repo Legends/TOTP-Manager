@@ -1,18 +1,13 @@
 ﻿using OpenCvSharp;
 using Syncfusion.Windows.Shared;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using TOTP.Extensions;
 
 namespace TOTP.Windows
 {
-    /// <summary>
-    /// Interaction logic for QrScannerWindow.xaml
-    /// </summary>
     public partial class QrScannerWindow : ChromelessWindow
     {
         private CancellationTokenSource? _cts;
@@ -22,18 +17,37 @@ namespace TOTP.Windows
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            Overlay.Visibility = Visibility.Visible;     // show “initializing” immediately
             _cts = new CancellationTokenSource();
-            _ = RunCameraAsync(_cts.Token);
+            _ = RunCameraAsync(_cts.Token);              // fire-and-forget; don’t block UI thread
         }
 
         private async Task RunCameraAsync(CancellationToken token)
         {
-            // 0 = default (internal laptop camera in most cases)
-            using var cap = new VideoCapture(0, VideoCaptureAPIs.ANY);
-
-            if (!cap.Open(0))
+            // 1) Open the camera on a background thread so the window can paint instantly
+            var cap = await Task.Run(() =>
             {
-                Dispatcher.Invoke(() =>
+                try
+                {
+                    // Prefer DirectShow on Windows; fall back to default
+                    var c = new VideoCapture(0, VideoCaptureAPIs.DSHOW);
+                    if (!c.IsOpened()) c.Open(0);
+                    if (!c.IsOpened()) return null;
+
+                    c.Set(VideoCaptureProperties.FrameWidth, 1280);
+                    c.Set(VideoCaptureProperties.FrameHeight, 720);
+                    c.Set(VideoCaptureProperties.Fps, 30);
+                    try { c.Set(VideoCaptureProperties.FourCC, FourCC.MJPG); } catch { }
+                    try { c.Set(VideoCaptureProperties.BufferSize, 1); } catch { }
+
+                    return c;
+                }
+                catch { return null; }
+            });
+
+            if (cap == null)
+            {
+                await Dispatcher.InvokeAsync(() =>
                 {
                     MessageBox.Show("No camera found.", "Camera", MessageBoxButton.OK, MessageBoxImage.Warning);
                     DialogResult = false;
@@ -42,38 +56,51 @@ namespace TOTP.Windows
                 return;
             }
 
-            // Set some reasonable defaults (not all cams respect these)
-            cap.Set(VideoCaptureProperties.FrameWidth, 1280);
-            cap.Set(VideoCaptureProperties.FrameHeight, 720);
-            cap.Set(VideoCaptureProperties.Fps, 30);
-
-            using var frame = new Mat();
-            var detector = new QRCodeDetector();
-
-            while (!token.IsCancellationRequested)
+            try
             {
-                if (!cap.Read(frame) || frame.Empty())
-                    continue;
+                using var frame = new Mat();
+                var detector = new QRCodeDetector();
+                bool firstFrameShown = false;
 
-                // Try decoding QR
-                string decoded = detector.DetectAndDecode(frame, out _);
-                if (!string.IsNullOrEmpty(decoded))
+                // 2) Capture/Decode loop runs on this background Task
+                while (!token.IsCancellationRequested)
                 {
-                    DecodedText = decoded;
-                    Dispatcher.Invoke(() =>
+                    if (!cap.Read(frame) || frame.Empty())
+                        continue;
+
+                    // Try decoding QR (your original fast path)
+                    string decoded = detector.DetectAndDecode(frame, out _);
+                    if (!string.IsNullOrEmpty(decoded))
                     {
-                        DialogResult = true;
-                        Close();
-                    });
-                    return;
+                        DecodedText = decoded;
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            DialogResult = true;
+                            Close();
+                        });
+                        return;
+                    }
+
+                    // Preview: convert to BitmapSource off-UI, then assign on UI
+                    var bmp = frame.ToBitmapSource(); // your extension
+                    bmp.Freeze();
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        Preview.Source = bmp;
+                        if (!firstFrameShown)
+                        {
+                            Overlay.Visibility = Visibility.Collapsed; // hide loading once first frame is visible
+                            firstFrameShown = true;
+                        }
+                    }, DispatcherPriority.Render, token);
+
+                    await Task.Delay(10, token);
                 }
-
-                // Show preview (Mat → BitmapSource via our helper)
-                var bmp = frame.ToBitmapSource();
-                bmp.Freeze(); // cross-thread use
-                Dispatcher.Invoke(() => Preview.Source = bmp);
-
-                await Task.Delay(10, token);
+            }
+            finally
+            {
+                try { cap.Release(); } catch { }
+                cap.Dispose();
             }
         }
 
@@ -90,74 +117,4 @@ namespace TOTP.Windows
             _cts?.Dispose();
         }
     }
-
-
-
-
-    public static class MatExtensions
-    {
-        public static BitmapSource ToBitmapSource(this Mat mat)
-        {
-            if (mat is null) throw new ArgumentNullException(nameof(mat));
-            if (mat.Empty()) throw new ArgumentException("Empty Mat.", nameof(mat));
-
-            // Choose WPF pixel format based on channels
-            PixelFormat wpfFormat;
-            Mat src = mat;
-
-            switch (mat.Type().Channels)
-            {
-                case 1:
-                    wpfFormat = PixelFormats.Gray8;
-                    if (mat.Type() != MatType.CV_8UC1)
-                    {
-                        var tmp = new Mat();
-                        mat.ConvertTo(tmp, MatType.CV_8UC1);
-                        src = tmp;
-                    }
-                    break;
-
-                case 3:
-                    wpfFormat = PixelFormats.Bgr24;
-                    if (mat.Type() != MatType.CV_8UC3)
-                    {
-                        var tmp = new Mat();
-                        mat.ConvertTo(tmp, MatType.CV_8UC3);
-                        src = tmp;
-                    }
-                    break;
-
-                case 4:
-                    wpfFormat = PixelFormats.Bgra32;
-                    if (mat.Type() != MatType.CV_8UC4)
-                    {
-                        var tmp = new Mat();
-                        mat.ConvertTo(tmp, MatType.CV_8UC4);
-                        src = tmp;
-                    }
-                    break;
-
-                default:
-                    // Fallback: convert to BGR24
-                    wpfFormat = PixelFormats.Bgr24;
-                    var conv = new Mat();
-                    if (mat.Channels() == 2) Cv2.CvtColor(mat, conv, ColorConversionCodes.BGR5652BGR);
-                    else Cv2.CvtColor(mat, conv, ColorConversionCodes.BGRA2BGR);
-                    src = conv;
-                    break;
-            }
-
-            // Create BitmapSource directly from Mat buffer (zero-copy-ish; respects stride)
-            return BitmapSource.Create(
-                src.Width,
-                src.Height,
-                96, 96,
-                wpfFormat,
-                null,
-                src.Data,
-                (int)(src.Step() * src.Height),
-                (int)src.Step());
-        }
-    }
-
 }

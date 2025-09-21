@@ -22,6 +22,18 @@ public partial class MainWindow : ChromelessWindow
     {
         _logger = logger;
         InitializeComponent();
+
+        double screenWidth = SystemParameters.PrimaryScreenWidth;
+        double screenHeight = SystemParameters.PrimaryScreenHeight;
+
+        double windowWidth = this.Width;
+        double windowHeight = this.Height;
+
+        // Center horizontally, 1/4 from top
+        this.Left = (screenWidth - windowWidth) / 2;
+        this.Top = screenHeight / 4;
+
+
         // build action: Resource
         //this.Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/Icons/github.ico"));
         //this.Icon = new BitmapImage(new Uri("pack://application:,,,/totp.ico"));

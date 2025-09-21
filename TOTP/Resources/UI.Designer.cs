@@ -457,6 +457,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Initializing camera....
+        /// </summary>
+        internal static string ui_CameraInit {
+            get {
+                return ResourceManager.GetString("ui_CameraInit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error.
         /// </summary>
         internal static string ui_Caption_Error {
@@ -484,7 +493,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code copied to clipboard!.
+        ///   Looks up a localized string similar to Copied!.
         /// </summary>
         internal static string ui_Code_Copied_Clipboard {
             get {
@@ -516,6 +525,15 @@ namespace TOTP.Resources {
         internal static string ui_Header_Platform {
             get {
                 return ResourceManager.GetString("ui_Header_Platform", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Point your QR code at the camera.
+        /// </summary>
+        internal static string ui_Header_QR_Window {
+            get {
+                return ResourceManager.GetString("ui_Header_QR_Window", resourceCulture);
             }
         }
         
@@ -579,6 +597,15 @@ namespace TOTP.Resources {
         internal static string ui_label_Search_Dots {
             get {
                 return ResourceManager.GetString("ui_label_Search_Dots", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scan QR Code.
+        /// </summary>
+        internal static string ui_ScanQR {
+            get {
+                return ResourceManager.GetString("ui_ScanQR", resourceCulture);
             }
         }
         
