@@ -87,12 +87,7 @@
                             VerticalAlignment="Center"
                             Grid.Column="0">
 
-                    <!--<Button Content="Scan QR Code"
-                            Width="150"
-                            Command="{Binding ScanQrAndAddCommand}" />-->
-
-                    
-                    <!-- Add Button -->
+                    <!-- Scan Button -->
                     <Button ToolTip="{xaml:Resx Key=ui_btnScan}"
                             Margin="5,5,0,0"
                             Padding="5,5"
@@ -134,7 +129,7 @@
                                              Padding="0"
                                              Margin="10,0,0,0" />
 
-                    <!-- Clear-Suche-Button -->
+                    <!-- Clear-Search-Button -->
                     <Button Content="×"
                             Background="Transparent"
                             BorderThickness="0"
@@ -146,7 +141,7 @@
                             Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
                 </StackPanel>
 
-                <!-- right side: language selection -->
+                <!-- right side: language selector -->
                 <syncfusion:ComboBoxAdv Grid.Column="1"
                                         IsEnabled="{Binding IsGridEditing, Converter={StaticResource InverseBooleanConverter}}"
                                         ItemsSource="{Binding SupportedCultures}"
@@ -179,6 +174,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
+                <!--SECRET GRID-->
                 <syncfusion:SfDataGrid x:Name="SecretsGrid"
                                        CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
                                        Grid.Row="0"
@@ -385,7 +381,7 @@
               Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
               Style="{StaticResource FlyoutHostStyle}"
               FocusManager.IsFocusScope="True">
-            
+
             <Border Background="#152549"
                     Padding="16"
                     BorderBrush="#394B74"

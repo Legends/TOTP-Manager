@@ -958,9 +958,19 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         if (dlg.ShowDialog() == true && !string.IsNullOrWhiteSpace(dlg.DecodedText))
         {
 
-            var data = OtpauthParser.Parse(dlg.DecodedText);
-            await Task.Delay(0);
-            //var t = OtpauthParser.Parse(dlg.DecodedText); // your parser
+            OtpauthParser.TOTPData? data = null;
+
+            try
+            {
+                data = OtpauthParser.Parse(dlg.DecodedText);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, null, null);
+                _messageService.ShowErrorMessage(UI.msg_ErrorParsingOtpUrl);
+                return;
+            }
+
 
             var newSecretItem = new SecretItemViewModel(data.Issuer, data.SecretBase32, data.Label);
 
@@ -1002,9 +1012,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
                 IsAddMode = false;
                 IsEditOpen = false;
             }
-
-            //await _secretService.AddAsync(item);
-            // AllSecrets.Add(item); // if your UI doesn't auto-refresh
         }
     }
 

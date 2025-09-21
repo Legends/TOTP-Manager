@@ -168,6 +168,9 @@
   <data name="msg_DispatcherException" xml:space="preserve">
     <value>An unexpected error occurred.\n\nYou can continue using the application, but some features may not work correctly.</value>
   </data>
+  <data name="msg_ErrorParsingOtpUrl" xml:space="preserve">
+    <value>Error parsing OTP URL</value>
+  </data>
   <data name="msg_Error_Shutdown" xml:space="preserve">
     <value>Error during shutdown: {0}</value>
   </data>

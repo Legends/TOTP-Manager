@@ -24,7 +24,7 @@ internal static class Program
         IHost? host = null;
         try
         {
-
+            //await QrWarmupService.WarmUpAsync();
             // 1) config / culture / license
             var configuration = BootLoader.BuildConfiguration();         // your helper
             BootLoader.SetCulture(configuration);                        // your helper

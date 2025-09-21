@@ -232,6 +232,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error parsing OTP URL.
+        /// </summary>
+        internal static string msg_ErrorParsingOtpUrl {
+            get {
+                return ResourceManager.GetString("msg_ErrorParsingOtpUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to delete the secret.
         /// </summary>
         internal static string msg_Failed_Delete_Secret {
