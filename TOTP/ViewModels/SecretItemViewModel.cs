@@ -19,6 +19,21 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
     private Dictionary<string, object>? _storedValues;
 
 
+
+    bool _IsHighlighted;
+    public bool IsHighlighted
+    {
+        get => _IsHighlighted;
+        set
+        {
+            if (_IsHighlighted != value)
+            {
+                _IsHighlighted = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     private bool _isBeingEdited;
 
     [JsonIgnore]
@@ -244,5 +259,7 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
     #endregion
 
+    public void UpdateSelf(SecretItemViewModel changed)
+    {
 
 }

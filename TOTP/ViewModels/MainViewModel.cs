@@ -582,17 +582,9 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             if (!success)
                 return;
 
-            // does when using behaviour inline editing the change directly persist into the AllSecrets?
-            // then no  allExceptOld.Add(updated); should happen, we get it twice then
-            var allExceptOld = AllSecrets.Where(sivm => sivm.Platform != PreviousVersion.Platform).ToList();
+            var itemToBeUpdated = AllSecrets.Where(s => string.Equals(s.Platform, PreviousVersion.Platform, StringComparison.Ordinal)).FirstOrDefault();
 
-            #region ### Update internal secrets collection ###
-            if (IsEditOpen)
-            {
-                allExceptOld.Add(updated); // only add when not inline editing
-            }
-
-            AllSecrets = allExceptOld.ToObservableCollection();
+            itemToBeUpdated?.UpdateSelf(updated); // only update when in flyout edit mode
             OnPropertyChanged(nameof(AllSecrets));
             #endregion
 
@@ -665,8 +657,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
                 if (addResult.Status == OperationStatus.Success)
                 {
-                    AllSecrets.Add(EditingSecret.Copy());
-                    //OnPropertyChanged(nameof(AllSecrets));
+                    var itemToAdd = EditingSecret.Copy();
+                    //itemToAdd.IsNewlyAdded = true;
+
+                    AllSecrets.Add(itemToAdd);
+                    OnPropertyChanged(nameof(AllSecrets));
                     UpdateSearchFilter();
                     EditingSecret = null;
                 }
@@ -1002,6 +997,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
                 }
                 if (addResult.Status == OperationStatus.Success)
                 {
+                    //newSecretItem.IsNewlyAdded = true;
                     AllSecrets.Add(newSecretItem);
                     //OnPropertyChanged(nameof(AllSecrets));
                     UpdateSearchFilter();

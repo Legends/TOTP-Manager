@@ -12,7 +12,7 @@ namespace TOTP.Behaviors
             DependencyProperty.Register(nameof(SelectionChangedCommand), typeof(ICommand),
                 typeof(RowClickBehavior), new PropertyMetadata(null));
 
-        public static readonly DependencyProperty RightClickCommandProperty =
+
             DependencyProperty.Register(nameof(RightClickCommand), typeof(ICommand),
                 typeof(RowClickBehavior), new PropertyMetadata(null));
 
@@ -22,11 +22,6 @@ namespace TOTP.Behaviors
             set => SetValue(SelectionChangedCommandProperty, value);
         }
 
-        public ICommand RightClickCommand
-        {
-            get => (ICommand)GetValue(RightClickCommandProperty);
-            set => SetValue(RightClickCommandProperty, value);
-        }
 
         protected override void OnAttached()
         {

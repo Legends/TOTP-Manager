@@ -208,8 +208,7 @@
                                                              DoubleClickCommand="{Binding DoubleClickCommand}" />
                         <behaviors:ToggleColumnVisibilityBehavior ShowActionsColumn="{Binding ShowActionsColumn}" />
                         <behaviors:SfDataGridContextMenuBehavior />
-                        <behaviors:RowClickBehavior SelectionChangedCommand="{Binding SelectionChangedCommand}"
-                                                    RightClickCommand="{Binding PrepareContextCommand}" />
+                        <behaviors:RowClickBehavior SelectionChangedCommand="{Binding SelectionChangedCommand}" />
                     </i:Interaction.Behaviors>
 
                     <syncfusion:SfDataGrid.Resources>
@@ -225,44 +224,46 @@
                         </Style>
                     </syncfusion:SfDataGrid.Resources>
 
-                    <!-- ==== COLUMNS: Platform + TOTP countdown ==== -->
+                    <!-- ==== COLUMNS: Platform ==== -->
                     <syncfusion:SfDataGrid.Columns>
                         <!-- Platform -->
                         <syncfusion:GridTextColumn HeaderText="{xaml:Resx Key=ui_Header_Platform}"
-                                                   MappingName="Platform" />
-
-                        <!-- Circular TOTP countdown (0..100) -->
-                        <!--<syncfusion:GridTemplateColumn MappingName="TotpRemainingPercent"
-                                                       HeaderText="{xaml:Resx Key=ui_Header_Remaining}">
-                            <syncfusion:GridTemplateColumn.CellStyle>
+                                                   MappingName="Platform">
+                            <syncfusion:GridTextColumn.CellStyle>
                                 <Style TargetType="sfGrid:GridCell"
                                        BasedOn="{StaticResource {x:Type sfGrid:GridCell}}">
-                                    <Setter Property="HorizontalContentAlignment"
-                                            Value="Center" />
-                                    <Setter Property="VerticalContentAlignment"
-                                            Value="Center" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsHighlighted}"
+                                                     Value="True">
+                                            <DataTrigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <!-- Animate background -->
+                                                        <ColorAnimation Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+                                                                        To="#66FFD54F"
+                                                                        Duration="0:0:1" />
+                                                        <!-- Animate foreground -->
+                                                        <ColorAnimation Storyboard.TargetProperty="(Control.Foreground).(SolidColorBrush.Color)"
+                                                                        To="#87CE3E"
+                                                                        Duration="0:0:1" />
+                                                        <!-- Fade background back -->
+                                                        <ColorAnimation BeginTime="0:0:1"
+                                                                        Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+                                                                        To="#00FFFFFF"
+                                                                        Duration="0:0:1" />
+                                                        <!-- Fade foreground back -->
+                                                        <ColorAnimation BeginTime="0:0:1"
+                                                                        Storyboard.TargetProperty="(Control.Foreground).(SolidColorBrush.Color)"
+                                                                        To="#97B0DF"
+                                                                        Duration="0:0:1" />
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </DataTrigger.EnterActions>
+                                        </DataTrigger>
+                                    </Style.Triggers>
                                 </Style>
-                            </syncfusion:GridTemplateColumn.CellStyle>
-                            <syncfusion:GridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Grid Width="28"
-                                          Height="28">
-                                        <syncfusion:SfCircularProgressBar Minimum="0"
-                                                                          Maximum="100"
-                                                                          Width="28"
-                                                                          Progress="{Binding TotpRemainingPercent}"
-                                                                          ShowProgressValue="False" />
-                                        <TextBlock Text="{Binding TotpRemainingPercent, StringFormat={}{0:0}%}"
-                                                   FontSize="9"
-                                                   FontWeight="Bold"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource Brush.Foreground}"
-                                                   Opacity="0.65" />
-                                    </Grid>
-                                </DataTemplate>
-                            </syncfusion:GridTemplateColumn.CellTemplate>
-                        </syncfusion:GridTemplateColumn>-->
+                            </syncfusion:GridTextColumn.CellStyle>
+                        </syncfusion:GridTextColumn>
                     </syncfusion:SfDataGrid.Columns>
 
                     <!-- Context menu: Edit + Delete -->

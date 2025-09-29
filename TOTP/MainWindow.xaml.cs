@@ -42,7 +42,7 @@ public partial class MainWindow : ChromelessWindow
         Title = UI.ui_Window_Title_TOTP_Manager;
 
         _vm = vm ?? throw new ArgumentNullException(nameof(vm));
-        SkinManagerHelper.SetScrollBarMode(this, ScrollBarMode.Compact);
+        SkinManagerHelper.SetScrollBarMode(this, ScrollBarMode.Default);
 
         Loaded += OnLoadedAsync;
     }
