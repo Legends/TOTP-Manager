@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿#region ### USINGS ###
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OtpNet;
 using Syncfusion.Linq;
@@ -17,6 +18,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
+using TOTP.Comparer;
 using TOTP.Core.Enums;
 using TOTP.Core.Events;
 using TOTP.Core.Interfaces;
@@ -30,6 +32,7 @@ using TOTP.Resources;
 using TOTP.Services;
 using TOTP.Validation;
 using TOTP.Windows;
+#endregion
 
 namespace TOTP.ViewModels;
 
@@ -170,15 +173,15 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         get => _selectedSecret;
         set
         {
-            if (!EqualityComparer<SecretItemViewModel?>.Default.Equals(_selectedSecret, value))
-            {
-                foreach (var item in AllSecrets)
-                    item.IsBeingEdited = false;
+            //if (!EqualityComparer<SecretItemViewModel?>.Default.Equals(_selectedSecret, value))
+            //{
+            foreach (var item in AllSecrets)
+                item.IsBeingEdited = false;
 
-                _selectedSecret = value;
-                OnPropertyChanged();
-                //OnSecretSelectedAsync();
-            }
+            _selectedSecret = value;
+            OnPropertyChanged();
+            //OnSecretSelectedAsync();
+            //}
         }
     }
 
@@ -267,8 +270,36 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #region ### ObservableCollections ###
 
-    public ObservableCollection<SecretItemViewModel> AllSecrets { get; private set; } = [];
-    public ObservableCollection<SecretItemViewModel> FilteredSecrets { get; } = [];
+    private ObservableCollection<SecretItemViewModel> _allSecrets = new();
+    public ObservableCollection<SecretItemViewModel> AllSecrets
+    {
+        get => _allSecrets;
+        private set
+        {
+            if (ReferenceEquals(_allSecrets, value)) return;
+            _allSecrets = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public Action? RequestGridFilterRefresh { get; set; }  // <-- the view sets this
+
+
+
+
+    private bool DoFilterGrid(object obj)
+    {
+        return obj is SecretItemViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
+    /// <summary>
+    /// For bulk changes, wrap in using (_view?.DeferRefresh()) { /* add/remove many items */ } to avoid multiple re-filters.
+    /// </summary>
+    void RefreshView()
+    {
+        RequestGridFilterRefresh?.Invoke();
+    }
+
     public ObservableCollection<CultureDisplay> SupportedCultures { get; }
 
     #endregion ObservableCollections
@@ -397,8 +428,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     public async Task InitializeAsync()
     {
         await ReadAllSecretsAsync();
-        //OnPropertyChanged(nameof(ShowActionsColumn));
-        UpdateSearchFilter();
     }
 
 
@@ -453,11 +482,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #endregion COMMANDS SETUP
 
-    private void SecretItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(SecretItemViewModel.IsBeingEdited))
-            OnPropertyChanged(nameof(ShowActionsColumn));
-    }
 
 
 
@@ -495,8 +519,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
                 AllSecrets = new ObservableCollection<SecretItemViewModel>((IEnumerable<SecretItemViewModel>)(secrets ?? []));
 
-                foreach (var secretItem in AllSecrets)
-                    secretItem.PropertyChanged += SecretItem_PropertyChanged;
             }
 
         }
@@ -519,7 +541,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
             IsAddMode = true;
             IsEditOpen = true;
-            EditingSecret = new SecretItemViewModel(null, null, null);
+            EditingSecret = new SecretItemViewModel(Guid.NewGuid(), null, null, null);
             //if (success && item != null)
             //{
             //    ResetCodeGenerationLabels();
@@ -548,7 +570,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             {
                 AllSecrets.Remove(item); // delete secret from grid's datasource
                 OnPropertyChanged(nameof(AllSecrets));
-                UpdateSearchFilter();
+                //ApplySearchFilter();
                 ResetCodeGenerationLabels();
             }
         }
@@ -586,10 +608,10 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
             itemToBeUpdated?.UpdateSelf(updated); // only update when in flyout edit mode
             OnPropertyChanged(nameof(AllSecrets));
-            #endregion
+
 
             PreviousVersion = null;
-            UpdateSearchFilter();
+            //ApplySearchFilter();
         }
         catch (Exception ex)
         {
@@ -611,7 +633,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     public async Task SaveEditAsync()
     {
-
         if (IsAddMode) // add new mode
         {
 
@@ -661,8 +682,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
                     //itemToAdd.IsNewlyAdded = true;
 
                     AllSecrets.Add(itemToAdd);
-                    OnPropertyChanged(nameof(AllSecrets));
-                    UpdateSearchFilter();
+                    //OnPropertyChanged(nameof(AllSecrets));
+                    //ApplySearchFilter();
                     EditingSecret = null;
                 }
             }
@@ -725,9 +746,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     private async Task OnEndEditAsync(SecretItemViewModel item)
     {
         item.IsBeingEdited = false;
-        //OnPropertyChanged(nameof(ShowActionsColumn));
 
-        if (PreviousVersion != null && !item.Equals(PreviousVersion))
+        if (!SecretItemValueComparer.Default.Equals(item, PreviousVersion))
         {
             var (isValid, error) = SecretsManager.IsValidSecretItem(item.ToDomain());
 
@@ -919,7 +939,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     {
         try
         {
-            UpdateSearchFilter();
+            // when SearchText changes:
+            RefreshView();
         }
         catch (Exception ex)
         {
@@ -928,17 +949,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         }
     }
 
-    internal void UpdateSearchFilter()
-    {
-        FilteredSecrets.Clear();
-        var filtered = string.IsNullOrWhiteSpace(SearchText)
-            ? AllSecrets
-            : AllSecrets.Where(x =>
-                x.Platform?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false);
-
-        foreach (var item in filtered)
-            FilteredSecrets.Add(item);
-    }
 
     public string DeleteLabel => TOTP.Resources.UI.ui_btnDelete;
     public string EditLabel => TOTP.Resources.UI.ui_btnEdit;
@@ -967,7 +977,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             }
 
 
-            var newSecretItem = new SecretItemViewModel(data.Issuer, data.SecretBase32, data.Label);
+            var newSecretItem = new SecretItemViewModel(Guid.NewGuid(), data.Issuer, data.SecretBase32, data.Label);
 
             #region ### validation ###
             var validator = new UiValidation(newSecretItem);
@@ -1000,7 +1010,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
                     //newSecretItem.IsNewlyAdded = true;
                     AllSecrets.Add(newSecretItem);
                     //OnPropertyChanged(nameof(AllSecrets));
-                    UpdateSearchFilter();
+                    //ApplySearchFilter();
                 }
             }
             finally
@@ -1011,4 +1021,8 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         }
     }
 
+    bool IMainViewModel.DoFilterGrid(object obj)
+    {
+        return DoFilterGrid(obj);
+    }
 }

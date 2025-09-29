@@ -12,8 +12,9 @@ public class SecretsManagerIntegrationTests : IDisposable
     private readonly AutoMocker _mocker;
     private readonly SecretsManager _secretsManager;
 
-    private readonly SecretItemViewModel _initial = new("GitHub", "JBSWY3DPEHPK3PXP");
-    private readonly SecretItemViewModel _updated = new("GitHub", "MZXW6YTBOI======");
+    static Guid _id = Guid.NewGuid();
+    private readonly SecretItemViewModel _initial = new(_id, "GitHub", "JBSWY3DPEHPK3PXP");
+    private readonly SecretItemViewModel _updated = new(_id, "GitHub", "MZXW6YTBOI======");
 
     public SecretsManagerIntegrationTests()
     {

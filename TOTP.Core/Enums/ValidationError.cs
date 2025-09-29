@@ -6,6 +6,7 @@
         PlatformRequired,
         PlatformAlreadyExists,
         SecretRequired,
-        SecretInvalidFormat
+        SecretInvalidFormat,
+        IdRequired
     }
 }

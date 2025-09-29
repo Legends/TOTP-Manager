@@ -26,7 +26,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         var mocker = new AutoMocker();
         SetupSecretsDataSourceMock(mocker);
 
-        var secretItem = new SecretItemViewModel("TestKey", "TestValue", "user@test.com");
+        var secretItem = new SecretItemViewModel(Guid.NewGuid(), "TestKey", "TestValue", "user@test.com");
 
         mocker.GetMock<ITotpManager>()
             .Setup(m => m.AddNewSecretAsync())
@@ -49,7 +49,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
 
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        var secret = new SecretItemViewModel("DeleteKey", "DeleteValue");
+        var secret = new SecretItemViewModel(Guid.NewGuid(), "DeleteKey", "DeleteValue");
         mocker.GetMock<ITotpManager>().Setup(m => m.DeleteSecretAsync(secret.ToDomain())).Returns(Task.FromResult(true));
 
         vm.AllSecrets.Add(secret);
@@ -68,11 +68,11 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        vm.AllSecrets.Add(new SecretItemViewModel("apple", "value1"));
-        vm.AllSecrets.Add(new SecretItemViewModel("banana", "value2"));
+        vm.AllSecrets.Add(new SecretItemViewModel(Guid.NewGuid(), "apple", "value1"));
+        vm.AllSecrets.Add(new SecretItemViewModel(Guid.NewGuid(), "banana", "value2"));
 
         vm.SearchText = "apple";
-        vm.UpdateSearchFilter(); // made method internal and set [assembly:InternalsVisibleTo(..) in TOTP.csproj asemblyinfo.cs
+        vm.ApplySearchFilter(); // made method internal and set [assembly:InternalsVisibleTo(..) in TOTP.csproj asemblyinfo.cs
 
         // or use reflection to call the private method
         //var method = typeof(MainViewModel).GetMethod("UpdateSearchFilter", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -103,7 +103,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        var secret = new SecretItemViewModel("key", "value");
+        var secret = new SecretItemViewModel(Guid.NewGuid(), "key", "value");
         vm.AllSecrets.Add(secret);
 
         vm.BeginEditCommand.Execute(secret);
@@ -118,8 +118,8 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        var oldSecret = new SecretItemViewModel("key", "old");
-        var updatedSecret = new SecretItemViewModel("key", "new");
+        var oldSecret = new SecretItemViewModel(Guid.NewGuid(), "key", "old");
+        var updatedSecret = new SecretItemViewModel(oldSecret.ID, "key", "new");
         vm.AllSecrets.Add(updatedSecret);
         vm.PreviousVersion = oldSecret;
 
@@ -149,7 +149,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        var secret = new SecretItemViewModel("key", "value");
+        var secret = new SecretItemViewModel(Guid.NewGuid(), "key", "value");
         vm.AllSecrets.Add(secret);
 
         vm.DoubleClickCommand.Execute(secret);
@@ -164,8 +164,8 @@ public class MainViewModelTests : IClassFixture<MyFixture>
         SetupSecretsDataSourceMock(mocker);
         var vm = mocker.CreateInstance<MainViewModel>();
 
-        var old = new SecretItemViewModel("p1", "old");
-        var updated = new SecretItemViewModel("p1", "new");
+        var old = new SecretItemViewModel(Guid.NewGuid(), "p1", "old");
+        var updated = new SecretItemViewModel(old.ID, "p1", "new");
 
         vm.PreviousVersion = old;
         vm.UpdateSecretCommand.Execute(updated);
@@ -195,7 +195,7 @@ public class MainViewModelTests : IClassFixture<MyFixture>
     [StaFact]
     public async Task OnSecretSelected_ShouldGenerateTotp_AndCopyToClipboard()
     {
-        var secret = new SecretItemViewModel("TestPlatform", "JBSWY3DPEHPK3PXP");
+        var secret = new SecretItemViewModel(Guid.NewGuid(), "TestPlatform", "JBSWY3DPEHPK3PXP");
 
         var mocker = new AutoMocker();
         SetupSecretsDataSourceMock(mocker);

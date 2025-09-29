@@ -18,7 +18,7 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
     #region Properties
     private Dictionary<string, object>? _storedValues;
 
-
+    public Guid ID { get; set; }
 
     bool _IsHighlighted;
     public bool IsHighlighted
@@ -122,9 +122,9 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
 
     [JsonConstructor]
-    public SecretItemViewModel(string platform, string secret, string? account = null)
+    public SecretItemViewModel(Guid id, string platform, string secret, string? account = null)
     {
-        //_platform = platform;
+        ID = id;
         Platform = platform;
         Secret = secret;
         Account = account;
@@ -206,27 +206,9 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
     #region IEquatable & Overrides
 
-    public bool Equals(SecretItemViewModel? other)
-    {
-        if (ReferenceEquals(this, other)) return true;
-        return other is not null && string.Equals(Platform, other.Platform, StringComparison.Ordinal) &&
-               string.Equals(Secret, other.Secret, StringComparison.Ordinal) &&
-               string.Equals(Account, other.Account, StringComparison.Ordinal);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is SecretItemViewModel other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(
-            Platform is null ? 0 : StringComparer.Ordinal.GetHashCode(Platform),
-            Secret is null ? 0 : StringComparer.Ordinal.GetHashCode(Secret),
-            Account is null ? 0 : StringComparer.Ordinal.GetHashCode(Account)
-        );
-    }
+    public bool Equals(SecretItemViewModel? other) => other is not null && ID == other.ID;
+    public override bool Equals(object? obj) => obj is SecretItemViewModel o && Equals(o);
+    public override int GetHashCode() => ID.GetHashCode();
 
     #endregion
 
@@ -261,5 +243,9 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
     public void UpdateSelf(SecretItemViewModel changed)
     {
+        this.Platform = changed.Platform;
+        this.Secret = changed.Secret;
+        this.Account = changed.Account;
+    }
 
 }

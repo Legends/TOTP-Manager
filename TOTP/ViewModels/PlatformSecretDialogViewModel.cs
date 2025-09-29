@@ -37,6 +37,8 @@ public class PlatformSecretDialogViewModel : INotifyPropertyChanged, IPlatformSe
         }
     }
 
+    public Guid ID { get; } = Guid.NewGuid();
+
     public string? Platform
     {
         get => _platform;
@@ -87,7 +89,7 @@ public class PlatformSecretDialogViewModel : INotifyPropertyChanged, IPlatformSe
     {
         try
         {
-            var (isValid, error) = SecretsManager.IsValidSecretItem(new SecretItem(Platform, Secret));
+            var (isValid, error) = SecretsManager.IsValidSecretItem(new SecretItem(ID, Platform, Secret));
 
             if (!isValid)
             {

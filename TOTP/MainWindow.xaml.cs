@@ -20,6 +20,8 @@ public partial class MainWindow : ChromelessWindow
 
     public MainWindow(IMainViewModel vm, ILogger<MainWindow> logger)
     {
+
+
         _logger = logger;
         InitializeComponent();
 
@@ -45,6 +47,10 @@ public partial class MainWindow : ChromelessWindow
         SkinManagerHelper.SetScrollBarMode(this, ScrollBarMode.Default);
 
         Loaded += OnLoadedAsync;
+        DataContextChanged += (_, __) => WireGridFiltering();
+
+        SecretsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
+
     }
 
     private async void OnLoadedAsync(object sender, RoutedEventArgs e)
@@ -54,12 +60,43 @@ public partial class MainWindow : ChromelessWindow
         try
         {
             await _vm.InitializeAsync();
+            WireGridFiltering();
+
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, nameof(OnLoadedAsync));
             Application.Current.Shutdown(-1);
         }
+    }
+    private void SecretsGrid_ItemsSourceChanged(object? sender, GridItemsSourceChangedEventArgs e)
+    {
+        // Re-attach the filter when the ItemsSource instance changes
+        if (DataContext is IMainViewModel vm)
+        {
+            SecretsGrid.View.Filter = vm.DoFilterGrid;
+            SecretsGrid.View.RefreshFilter();
+        }
+    }
+
+    private void WireGridFiltering()
+    {
+        if (DataContext is not IMainViewModel vm) return;
+
+        // 1) Point Syncfusion filter to your VM's predicate
+        SecretsGrid.View.Filter = vm.DoFilterGrid;
+
+        // 2) Let the VM ask the grid to refresh (debounced via ExecuteSearch/RefreshView)
+        vm.RequestGridFilterRefresh = () =>
+        {
+            if (!Dispatcher.CheckAccess())
+                Dispatcher.BeginInvoke(new Action(() => SecretsGrid.View.RefreshFilter()));
+            else
+                SecretsGrid.View.RefreshFilter();
+        };
+
+        // Initial apply
+        SecretsGrid.View.RefreshFilter();
     }
 
     private async void DataGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)

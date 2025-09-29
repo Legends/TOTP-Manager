@@ -19,7 +19,7 @@ public class TotpManagerIntegrationTests : IDisposable
     private readonly TotpManager _totpManager;
     private readonly IMainViewModel _vm;
 
-    private readonly SecretItemViewModel _initialSecret = new("GitHub", "JBSWY3DPEHPK3PXP", "user@example.com");
+    private readonly SecretItemViewModel _initialSecret = new(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "user@example.com");
 
     // we mock only what is necessary, like prompts and dialogs
     public TotpManagerIntegrationTests()
@@ -126,9 +126,11 @@ public class TotpManagerIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateSecretAsync_ShouldReturnAlreadyExistsOnDuplicateSecret()
     {
-        var existent = new SecretItem(_testPath, "test");
-        var previous = new SecretItem("A", "AAAAAAAAA");
-        var updated = new SecretItem(_testPath, "AAAAAAAAA");
+
+        var id = Guid.NewGuid();
+        var existent = new SecretItem(id, _testPath, "test");
+        var previous = new SecretItem(id, "A", "AAAAAAAAA");
+        var updated = new SecretItem(id, _testPath, "AAAAAAAAA");
 
         var source = new List<SecretItem>
         {
@@ -171,7 +173,8 @@ public class TotpManagerIntegrationTests : IDisposable
         Assert.Null(error);
 
         // --- UPDATE ---
-        var updated = new SecretItemViewModel(_initialSecret.Platform, "MZXW6YTBOI======");
+
+        var updated = new SecretItemViewModel(_initialSecret.ID, _initialSecret.Platform, "MZXW6YTBOI======");
         await _totpManager.UpdateSecretAsync(_initialSecret.ToDomain(), updated.ToDomain(), secrets.Value);
 
         // --- FETCH ---

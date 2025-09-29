@@ -61,16 +61,17 @@ public class TotpManagerTests
         var mockLogger = new Mock<ILogger<TotpManager>>();
         var totpManager = new TotpManager(mockSecretsManager.Object, mockLogger.Object);
 
-        var PreviousVersion = new SecretItem("A", "dfgdsafdsf");
+        var id = Guid.NewGuid();
+        var PreviousVersion = new SecretItem(id, "A", "dfgdsafdsf");
 
         var domainSecretsList = new List<SecretItem>
         {
             PreviousVersion,
-            new("B", "sdfgsdfgsdfg"),
-            new("C", "xcvxcvxcvxcv")
+            new(Guid.NewGuid(), "B", "sdfgsdfgsdfg"),
+            new(Guid.NewGuid(), "C", "xcvxcvxcvxcv")
         };
 
-        var updated = new SecretItem("A", "JBSWY3DPEHPK3PXP");
+        var updated = new SecretItem(id, "A", "JBSWY3DPEHPK3PXP");
 
         mockSecretsManager
             .Setup(m => m.UpdateItemAsync("A", It.IsAny<SecretItem>()))

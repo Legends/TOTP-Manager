@@ -40,7 +40,7 @@ public class TotpManager : ITotpManager
             if (!promptResult!.Success)
                 return (false, null);
 
-            var secretItem = new SecretItem(promptResult.Platform!, promptResult.Secret!, promptResult.Account);
+            var secretItem = new SecretItem(Guid.NewGuid(), promptResult.Platform!, promptResult.Secret!, promptResult.Account);
             var result = await _secretsManager.AddNewItemAsync(secretItem);
 
             if (result.Status == OperationStatus.Success)
@@ -99,8 +99,8 @@ public class TotpManager : ITotpManager
         ArgumentNullException.ThrowIfNull(previous);
         ArgumentNullException.ThrowIfNull(updated);
 
-        if (previous.Equals(updated))
-            return false;
+        //if (previous.Equals(updated))
+        //    return false;
 
         //var hasPlatformNameChanged = !string.Equals(previous.Platform, updated.Platform, StringComparison.OrdinalIgnoreCase);
 

@@ -43,6 +43,11 @@ public static class SecretValidator
             return false;
         }
     }
+
+    public static ValidationError ValidateID(Guid iD)
+    {
+        return iD == Guid.Empty ? ValidationError.IdRequired : ValidationError.None;
+    }
 }
 
 

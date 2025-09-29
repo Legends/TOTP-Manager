@@ -13,8 +13,7 @@ namespace TOTP.Behaviors
                 typeof(RowClickBehavior), new PropertyMetadata(null));
 
 
-            DependencyProperty.Register(nameof(RightClickCommand), typeof(ICommand),
-                typeof(RowClickBehavior), new PropertyMetadata(null));
+
 
         public ICommand SelectionChangedCommand
         {

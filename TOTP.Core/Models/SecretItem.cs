@@ -6,25 +6,23 @@
         public string Secret { get; }
         public string? Account { get; }
 
-        public SecretItem(string platform, string secret, string? account = null)
+        public Guid ID { get; set; }
+
+        public SecretItem(Guid id, string platform, string secret, string? account = null)
         {
             //if (string.IsNullOrWhiteSpace(platform))
             //    throw new ArgumentException(nameof(platform));
             //if (string.IsNullOrWhiteSpace(secret))
             //    throw new ArgumentException(nameof(secret));
-
+            ID = id;
             Platform = platform;
             Secret = secret;
             Account = account;
         }
 
-        public bool Equals(SecretItem? other) =>
-            other is not null &&
-            Platform == other.Platform &&
-            Secret == other.Secret &&
-            Account == other.Account;
+        public bool Equals(SecretItem? other) => other is not null && ID == other.ID;
 
         public override bool Equals(object? obj) => Equals(obj as SecretItem);
-        public override int GetHashCode() => HashCode.Combine(Platform, Secret, Account);
+        public override int GetHashCode() => ID.GetHashCode();
     }
 }

@@ -20,7 +20,7 @@ internal class UiValidation
 
     public UiValidation ValidateAll()
     {
-        ValidatePlatform().ValidateSecret();
+        ValidatePlatform().ValidateSecret().ValidateID();
         return this;
     }
 
@@ -35,6 +35,14 @@ internal class UiValidation
     public UiValidation ValidateSecret()
     {
         var error = SecretValidator.ValidateSecret(_item.Secret);
+        if (error != ValidationError.None)
+            _errors.Add(error);
+        return this;
+    }
+
+    public UiValidation ValidateID()
+    {
+        var error = SecretValidator.ValidateID(_item.ID);
         if (error != ValidationError.None)
             _errors.Add(error);
         return this;

@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -18,7 +19,8 @@ public interface IMainViewModel : INotifyPropertyChanged
     ICommand DoubleClickCommand { get; }
     Task AddNewSecretAsync();
     SecretItemViewModel SelectedSecret { get; set; }
-
+    Action? RequestGridFilterRefresh { get; set; }
+    bool DoFilterGrid(object obj);
     bool IsContextmenuOpen { get; set; }
     Task InitializeAsync();
     Task OnSelectionChangedAsync();

@@ -67,7 +67,7 @@
 
     <!-- Wrap existing content in a Grid so we can overlay the flyout -->
     <Grid>
-        <!-- ===== your existing UI (kept as-is) ===== -->
+        <!-- ===== DataGrid & Toolbar ===== -->
         <StackPanel Orientation="Vertical"
                     Margin="0,5,0,0"
                     HorizontalAlignment="Stretch"
@@ -174,9 +174,12 @@
                 </Grid.RowDefinitions>
 
                 <!--SECRET GRID-->
+                <!--SelectedItem="SelectedSecret"-->
                 <syncfusion:SfDataGrid x:Name="SecretsGrid"
+                                       ItemsSource="{Binding AllSecrets}"
                                        CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
                                        Grid.Row="0"
+                                       AllowSorting="True"
                                        AllowEditing="True"
                                        AllowDeleting="True"
                                        GridValidationMode="InView"
@@ -187,7 +190,6 @@
                                        SelectionUnit="Row"
                                        SelectionChanged="DataGrid_SelectionChanged"
                                        NavigationMode="Cell"
-                                       ItemsSource="{Binding FilteredSecrets}"
                                        LiveDataUpdateMode="AllowDataShaping"
                                        MaxHeight="200"
                                        MaxWidth="160"
@@ -200,7 +202,13 @@
                                        HorizontalAlignment="Stretch"
                                        ColumnSizer="Star">
 
+                    <syncfusion:SfDataGrid.SortColumnDescriptions>
+                        <syncfusion:SortColumnDescription ColumnName="Platform"
+                                                          SortDirection="Ascending" />
+                    </syncfusion:SfDataGrid.SortColumnDescriptions>
+
                     <i:Interaction.Behaviors>
+                        <behaviors:ScrollOnNewOrUpdatedItemBehavior />
                         <behaviors:DataGridEditingStateBehavior IsEditing="{Binding IsGridEditing, Mode=TwoWay}" />
                         <behaviors:DataGridValidationBehavior />
                         <behaviors:SfDataGridEditingBehavior BeginEditCommand="{Binding BeginEditCommand}"
