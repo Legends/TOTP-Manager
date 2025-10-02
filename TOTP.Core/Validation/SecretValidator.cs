@@ -22,11 +22,11 @@ public static class SecretValidator
     }
 
 
-    public static ValidationError ValidateSecret(string? input)
+    public static ValidationError ValidateSecret(string? secret)
     {
-        return string.IsNullOrWhiteSpace(input)
+        return string.IsNullOrWhiteSpace(secret)
             ? ValidationError.SecretRequired
-            : IsValidBase32Format(input)
+            : IsValidBase32Format(secret)
             ? ValidationError.None
             : ValidationError.SecretInvalidFormat;
     }

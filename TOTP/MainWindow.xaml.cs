@@ -47,8 +47,6 @@ public partial class MainWindow : ChromelessWindow
         SkinManagerHelper.SetScrollBarMode(this, ScrollBarMode.Default);
 
         Loaded += OnLoadedAsync;
-        DataContextChanged += (_, __) => WireGridFiltering();
-
         SecretsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
 
     }
@@ -60,8 +58,6 @@ public partial class MainWindow : ChromelessWindow
         try
         {
             await _vm.InitializeAsync();
-            WireGridFiltering();
-
         }
         catch (Exception ex)
         {
@@ -69,35 +65,35 @@ public partial class MainWindow : ChromelessWindow
             Application.Current.Shutdown(-1);
         }
     }
-    private void SecretsGrid_ItemsSourceChanged(object? sender, GridItemsSourceChangedEventArgs e)
+
+    private bool _filterWiredOnce;
+
+    private void SecretsGrid_ItemsSourceChanged(object? sender, Syncfusion.UI.Xaml.Grid.GridItemsSourceChangedEventArgs e)
     {
-        // Re-attach the filter when the ItemsSource instance changes
-        if (DataContext is IMainViewModel vm)
+        if (_filterWiredOnce) return;                // already done
+
+        if (DataContext is IMainViewModel vm && SecretsGrid.View != null)
         {
+            // wire once
             SecretsGrid.View.Filter = vm.DoFilterGrid;
+
+            vm.RequestGridFilterRefresh = () =>
+            {
+                if (!Dispatcher.CheckAccess())
+                    Dispatcher.BeginInvoke(new Action(() => SecretsGrid.View?.RefreshFilter()));
+                else
+                    SecretsGrid.View?.RefreshFilter();
+            };
+
             SecretsGrid.View.RefreshFilter();
+
+            _filterWiredOnce = true;
+
+            // IMPORTANT: unsubscribe so this never runs again
+            SecretsGrid.ItemsSourceChanged -= SecretsGrid_ItemsSourceChanged;
         }
     }
 
-    private void WireGridFiltering()
-    {
-        if (DataContext is not IMainViewModel vm) return;
-
-        // 1) Point Syncfusion filter to your VM's predicate
-        SecretsGrid.View.Filter = vm.DoFilterGrid;
-
-        // 2) Let the VM ask the grid to refresh (debounced via ExecuteSearch/RefreshView)
-        vm.RequestGridFilterRefresh = () =>
-        {
-            if (!Dispatcher.CheckAccess())
-                Dispatcher.BeginInvoke(new Action(() => SecretsGrid.View.RefreshFilter()));
-            else
-                SecretsGrid.View.RefreshFilter();
-        };
-
-        // Initial apply
-        SecretsGrid.View.RefreshFilter();
-    }
 
     private async void DataGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
     {
@@ -105,7 +101,7 @@ public partial class MainWindow : ChromelessWindow
         {
             var gRow = (e.AddedItems[0] as GridRowInfo);
             _vm.SelectedSecret = gRow.RowData as SecretItemViewModel;
-            await _vm.OnSelectionChangedAsync();
+            await _vm.OnRowSelectionChangedAsync();
         }
         catch (Exception ex)
         {

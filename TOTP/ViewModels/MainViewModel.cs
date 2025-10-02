@@ -36,9 +36,9 @@ using TOTP.Windows;
 
 namespace TOTP.ViewModels;
 
-public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocalizable
+public class MainViewModel : IMainViewModel
 {
-    #region ### PROPERTIES AND VARS ###
+    #region ### COMMON PROPS AND VARS ###
 
     private CultureDisplay _selectedCulture;
     private readonly ILogger<MainViewModel> _logger;
@@ -103,9 +103,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             {
                 _selectedCulture = value;
                 LocalizationService.ChangeCulture(value.Culture.Name);
-
                 OnPropertyChanged();
-                //LanguageChanged?.Invoke(this, value.Culture);
             }
         }
     }
@@ -157,7 +155,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
             _isGridInEditMode = value;
             OnPropertyChanged();
-            AddNewSecretCommand.RaiseCanExecuteChanged();
+            OpenFlyoutAddModeCommand.RaiseCanExecuteChanged();
             ToggleSearchBoxCommand.RaiseCanExecuteChanged();
         }
     }
@@ -256,7 +254,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         get => _searchText;
         set
         {
-            ResetCodeGenerationLabels();
+            ClearCodeGenerationOutput();
             _searchText = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsSearchTextNotEmpty));
@@ -270,7 +268,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #region ### ObservableCollections ###
 
-    private ObservableCollection<SecretItemViewModel> _allSecrets = new();
+    private ObservableCollection<SecretItemViewModel> _allSecrets;// = new();
     public ObservableCollection<SecretItemViewModel> AllSecrets
     {
         get => _allSecrets;
@@ -284,21 +282,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     public Action? RequestGridFilterRefresh { get; set; }  // <-- the view sets this
 
-
-
-
-    private bool DoFilterGrid(object obj)
-    {
-        return obj is SecretItemViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText, StringComparison.OrdinalIgnoreCase) >= 0);
-    }
-
-    /// <summary>
-    /// For bulk changes, wrap in using (_view?.DeferRefresh()) { /* add/remove many items */ } to avoid multiple re-filters.
-    /// </summary>
-    void RefreshView()
-    {
-        RequestGridFilterRefresh?.Invoke();
-    }
 
     public ObservableCollection<CultureDisplay> SupportedCultures { get; }
 
@@ -321,17 +304,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     //private string _pendingSearchText;
 
     #endregion REGION SERVICES
-
-    #region ### Events ###
-    //public event EventHandler<CultureInfo>? LanguageChanged;
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    #endregion
 
     #region ### Constructor ###
 
@@ -433,6 +405,34 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #endregion
 
+    #region ### OnPropertyChanged ###
+    //public event EventHandler<CultureInfo>? LanguageChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    #endregion  
+
+    #region ### COMMANDS DECLARATION ###
+    public AsyncCommand ScanQrAndAddCommand { get; private set; } = null!;
+    public ICommand CancelFlyoutCommand { get; private set; } = null!;
+    public AsyncCommand SaveEditFlyoutAsyncCommand { get; private set; } = null!;
+    public ICommand OpenFlyoutEditModeCommand { get; private set; } = null!;
+    public RelayCommand OpenFlyoutAddModeCommand { get; private set; } = null!;
+    public ICommand BeginEditCommand { get; private set; } = null!;
+    public ICommand EndEditCommand { get; private set; } = null!;
+    public ICommand ClearSearchCommand { get; private set; } = null!;
+    public ICommand DeleteSecretCommand { get; private set; } = null!;
+    public ICommand DoubleClickCommand { get; private set; } = null!;
+    public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
+    public ICommand UpdateSecretCommand { get; private set; } = null!;
+    public ICommand RowSelectionChangedCommand { get; private set; } = null!;
+
+    #endregion REGION COMMANDS
+
     #region ### COMMANDS EVENTHANDLER ###
 
     private void SetupCommandEventhandler()
@@ -440,25 +440,15 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
         ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAsync);
 
-        OpenEditCommand = new RelayCommand<SecretItemViewModel>(OpenEdit);
+        OpenFlyoutEditModeCommand = new RelayCommand<SecretItemViewModel>(OpenFlyoutEditMode);
+        OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
+        SaveEditFlyoutAsyncCommand = new AsyncCommand(UpdateOrAddAsync);
+        CancelFlyoutCommand = new RelayCommand(CancelFlyout);
 
-        SaveEditAsyncCommand = new AsyncCommand(SaveEditAsync);
-
-        CancelEditCommand = new RelayCommand(() =>
-        {
-            IsEditOpen = false;
-            IsAddMode = false;
-            EditingSecret = null;
-        });
-
-        AddNewSecretCommand = new AsyncCommand(AddNewSecretAsync, () => !_isGridInEditMode, _logger);
+        RowSelectionChangedCommand = new AsyncCommand(OnRowSelectionChangedAsync);
         DeleteSecretCommand = new AsyncCommand<SecretItemViewModel>(DeleteSecretAsync, null, _logger);
-        UpdateSecretCommand = new AsyncCommand<SecretItemViewModel>(UpdateSecretAsync, null, _logger);
         BeginEditCommand = new RelayCommand<SecretItemViewModel>(OnBeginEdit);
-        EndEditCommand = new AsyncCommand<SecretItemViewModel>(OnEndEditAsync); // Method must be: Task OnEndEditAsync()
-        //SelectionChangedCommand = new AsyncCommand(async _ => await OnSelectionChangedAsync());
-        SelectionChangedCommand = new AsyncCommand(OnSelectionChangedAsync);
-
+        EndEditCommand = new AsyncCommand<SecretItemViewModel>(OnEndEditAsync);
         DoubleClickCommand = new RelayCommand<SecretItemViewModel>(OnDoubleClick);
 
         ToggleSearchBoxCommand = new RelayCommand(() =>
@@ -482,29 +472,12 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #endregion COMMANDS SETUP
 
+    #region ### READ ALL SECRETS FROM STORAGE FILE ###
 
-
-
-    #region ### COMMANDS DECLARATION ###
-
-    public AsyncCommand ScanQrAndAddCommand { get; private set; } = null!;
-    public ICommand OpenEditCommand { get; private set; } = null!;
-    public AsyncCommand SaveEditAsyncCommand { get; private set; } = null!;
-    public ICommand CancelEditCommand { get; private set; } = null!;
-    public ICommand ChangeLanguageCommand { get; private set; } = null!;
-    public AsyncCommand AddNewSecretCommand { get; private set; } = null!;
-    public ICommand BeginEditCommand { get; private set; } = null!;
-    public ICommand EndEditCommand { get; private set; } = null!;
-    public ICommand ClearSearchCommand { get; private set; } = null!;
-    public ICommand DeleteSecretCommand { get; private set; } = null!;
-    public ICommand DoubleClickCommand { get; private set; } = null!;
-    public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
-    public ICommand UpdateSecretCommand { get; private set; } = null!;
-    public ICommand SelectionChangedCommand { get; private set; } = null!;
-
-    #endregion REGION COMMANDS
-
-    #region ### READ ALL SECRETS ###
+    /// <summary>
+    /// Reads all secrets from the storage file and populates the AllSecrets collection
+    /// </summary>
+    /// <returns></returns>
     private async Task ReadAllSecretsAsync()
     {
         try
@@ -515,10 +488,12 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             if (result.Status == OperationStatus.Success)
             {
                 var allSecrets = result.Value;
+                AllSecrets = new ObservableCollection<SecretItemViewModel>((allSecrets.Select(item => item.ToViewModel()) ?? []));
+#if DEBUG
+                // for dev purposes, exclude Syncfusion entry
                 var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).Select(item => item.ToViewModel()).ToList();
-
                 AllSecrets = new ObservableCollection<SecretItemViewModel>((IEnumerable<SecretItemViewModel>)(secrets ?? []));
-
+#endif
             }
 
         }
@@ -532,36 +507,61 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #endregion
 
-    #region ### CREATE NEW SECRET ###
-    public async Task AddNewSecretAsync()
+    #region ### OPEN FLYOUT IN ADD MODE ###
+    /// <summary>
+    /// Opens the flyout panel to add a new secret
+    /// Sets IsAddMode to true and creates a new EditingSecret instance
+    /// </summary>
+    public void OpenFlyoutAddMode()
     {
         try
         {
-            //var (success, item) = await _totpManager.AddNewSecretAsync();
-
             IsAddMode = true;
             IsEditOpen = true;
             EditingSecret = new SecretItemViewModel(Guid.NewGuid(), null, null, null);
-            //if (success && item != null)
-            //{
-            //    ResetCodeGenerationLabels();
-            //    AllSecrets.Add(item.ToViewModel());
-            //    OnPropertyChanged(nameof(AllSecrets));
-            //    UpdateSearchFilter();
-            //}
         }
         catch (Exception ex)
         {
-            //_errorHandler.Handle(ex, UI.ex_UnexpectedError);
-
             _logger.LogError(ex, UI.ex_Adding_New_TOTP);
             _messageService.ShowErrorMessage(UI.ex_Adding_New_TOTP + ": " + ex.Message);
         }
     }
     #endregion
 
+    #region ### OPEN FLYOUT IN EDIT MODE ###
+    /// <summary>
+    /// Triggered by contextmenu Edit button
+    /// Opens the flyout panel and sets IsAddMode to false
+    /// </summary>
+    /// <param name="item"></param>
+    public void OpenFlyoutEditMode(SecretItemViewModel item)
+    {
+        if (item == null) return;
+
+        IsAddMode = false;
+        EditingSecret = item.Copy();
+        IsEditOpen = true;
+    }
+
+    #endregion
+
+    #region ### CLOSE/CANCEL FLYOUT ###
+
+    void CancelFlyout()
+    {
+        IsEditOpen = false;
+        IsAddMode = false;
+        EditingSecret = null;
+    }
+    #endregion
+
     #region ### DELETE SECRET ###
 
+    /// <summary>
+    /// Contextmenu delete command execution
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
     internal async Task DeleteSecretAsync(SecretItemViewModel item)
     {
         try
@@ -571,7 +571,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
                 AllSecrets.Remove(item); // delete secret from grid's datasource
                 OnPropertyChanged(nameof(AllSecrets));
                 //ApplySearchFilter();
-                ResetCodeGenerationLabels();
+                ClearCodeGenerationOutput();
             }
         }
         catch (Exception ex)
@@ -583,35 +583,32 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #endregion
 
-
     #region ### UPDATE SECRET ###
 
+    /// <summary>
+    /// Called when inline editing ends or when save button in flyout panel is clicked
+    /// </summary>
+    /// <param name="updated"></param>
+    /// <returns></returns>
     public async Task UpdateSecretAsync(SecretItemViewModel updated)
     {
-        //PreviousVersion = SelectedSecret.Copy();
-
-        //if (updated == null || PreviousVersion == null)
-        //    return;
-
         try
         {
-            //var domainSecretsList = AllSecrets.Where(sivm => !ReferenceEquals(sivm, updated)).Select(s => s.ToDomain()).ToList();
+            // filter out the current item from the list to avoid false positive duplicate detection
             var domainSecretsList = AllSecrets.Where(sivm => !sivm.Equals(updated)).Select(s => s.ToDomain()).ToList();
-
 
             var success = await _totpManager.UpdateSecretAsync(PreviousVersion.ToDomain(), updated.ToDomain(), domainSecretsList);
 
             if (!success)
                 return;
 
+            // Update the item in the ObservableCollection to reflect changes in the UI
             var itemToBeUpdated = AllSecrets.Where(s => string.Equals(s.Platform, PreviousVersion.Platform, StringComparison.Ordinal)).FirstOrDefault();
 
             itemToBeUpdated?.UpdateSelf(updated); // only update when in flyout edit mode
             OnPropertyChanged(nameof(AllSecrets));
 
-
             PreviousVersion = null;
-            //ApplySearchFilter();
         }
         catch (Exception ex)
         {
@@ -621,17 +618,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     }
 
 
-    public void OpenEdit(SecretItemViewModel item)
-    {
-        if (item == null) return;
-
-        IsAddMode = false;
-        EditingSecret = item.Copy();
-        IsEditOpen = true;
-        //SaveEditCommand.RaiseCanExecuteChanged();
-    }
-
-    public async Task SaveEditAsync()
+    /// <summary>
+    /// Triggered by save button in flyout panel
+    /// </summary>
+    /// <returns></returns>
+    public async Task UpdateOrAddAsync()
     {
         if (IsAddMode) // add new mode
         {
@@ -697,44 +688,44 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         }
         else // Edit mode
         {
-
             PreviousVersion = SelectedSecret.Copy();
             var updated = EditingSecret.Copy();
+
             if (updated == null || PreviousVersion == null)
                 return;
 
-            var validationResult = SecretValidator.ValidatePlatform(updated.Platform);
+            #region VALIDATION OF EDITED SECRET
+            var validator = new UiValidation(updated);
+            validator.ValidateAll();
 
-            if (validationResult != ValidationError.None)
+            if (!validator.IsValid)
             {
-                _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(validationResult));
-                return;
-            }
-
-            validationResult = SecretValidator.ValidatePlatform(updated.Secret);
-            if (validationResult != ValidationError.None)
-            {
-                _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(validationResult));
+                foreach (var error in validator.Errors)
+                    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
                 return;
             }
 
             var source = AllSecrets.Where(sivm => !sivm.Equals(updated)).Select(s => s.ToDomain()).ToList();
 
-            var hasPlatformNameChanged = !string.Equals(PreviousVersion.Platform, updated.Platform, StringComparison.OrdinalIgnoreCase);
-            var duplicateExists = SecretValidator.PlatformNameDuplicateExists(updated.Platform, source) != ValidationError.None;
+            validator.PlatformNameDuplicateExists(updated.Platform, source);
 
-            if (hasPlatformNameChanged && duplicateExists)
+            if (!validator.IsValid)
             {
                 _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, updated.Platform));
                 return;
             }
-
+            #endregion
 
             await UpdateSecretAsync(EditingSecret);
             IsEditOpen = false;
         }
     }
 
+    #region ### INLINE EDITING LOGIC FOR SYNCFUSION DATAGRID ###
+    /// <summary>
+    /// SfDataGridEditingBehavior: Triggered by SfDataGrid's cell edit begin event
+    /// </summary>
+    /// <param name="item"></param>
     private void OnBeginEdit(SecretItemViewModel item)
     {
         PreviousVersion = item.Copy();
@@ -742,7 +733,11 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         OnPropertyChanged(nameof(ShowActionsColumn));
     }
 
-
+    /// <summary>
+    /// SfDataGridEditingBehavior: Triggered by SfDataGrid's cell edit end event
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
     private async Task OnEndEditAsync(SecretItemViewModel item)
     {
         item.IsBeingEdited = false;
@@ -774,24 +769,54 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         PreviousVersion = null;
     }
 
+    /// <summary>
+    /// Triggered by SfDataGrid's Row MouseDoubleClick event
+    /// </summary>
+    /// <param name="item"></param>
+    private void OnDoubleClick(SecretItemViewModel item)
+    {
+        _isDoubleClick = true;
+        ClearCodeGenerationOutput();
+
+        foreach (var s in AllSecrets)
+            s.IsBeingEdited = false;
+
+        item.IsBeingEdited = !item.IsBeingEdited;
+        Debug.WriteLine("OnDoubleClick");
+    }
+    #endregion
+
     #endregion
 
     #region ### Row/Field Selection Logic  ###
 
     private bool _isDoubleClick;
-    // Source: DataGrid_SelectionChanged in MainViewModel.xaml.cs
-    public async Task OnSelectionChangedAsync()
+    /// <summary>
+    /// Triggered by SfDataGrid's SelectionChanged event in code-behind: DataGrid_SelectionChanged
+    /// </summary>
+    /// <returns></returns>
+    public async Task OnRowSelectionChangedAsync()
     {
         _isDoubleClick = false;
         var currentKey = SelectedSecret.Platform;
-        await Task.Delay(300); // prevent OnSelectionChangedAsync from executing if it is a double click!
+        await Task.Delay(300); // prevent OnRowSelectionChangedAsync from executing if it is a double click!
 
         if (_isDoubleClick || SelectedSecret == null) return;
         try
         {
             if (currentKey == SelectedSecret.Platform)
             {
-                await OnSecretSelectedAsync();
+                if (SelectedSecret != null && !SelectedSecret.IsBeingEdited && !IsContextmenuOpen)
+                    try
+                    {
+                        await CalculateAndDisplayTotpCode(SelectedSecret);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, UI.ex_Error_Generating_TOTP);
+                        // This is still here because it's specific to TOTP encoding
+                        _messageService.ShowErrorMessage(UI.ex_Error_Generating_TOTP + ": " + ex.Message);
+                    }
             }
         }
         catch (Exception e)
@@ -803,56 +828,6 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         {
             _isDoubleClick = false;
         }
-    }
-
-    // Source: OnMouseDoubleClick in SfDataGridEditingBehaviors
-    private void OnDoubleClick(SecretItemViewModel item)
-    {
-
-        _isDoubleClick = true;
-        ResetCodeGenerationLabels();
-
-        foreach (var s in AllSecrets)
-            s.IsBeingEdited = false;
-
-        item.IsBeingEdited = !item.IsBeingEdited;
-        Debug.WriteLine("OnDoubleClick");
-
-
-        //OnPropertyChanged(nameof(ShowActionsColumn));
-    }
-
-    private void ShowCodeLabels()
-    {
-        CodeLabelHeight = 40;
-        IsCodeCopiedVisible = true;
-        IsCodeLabelVisible = true;
-        IsQrVisible = true;
-    }
-
-    private void ResetCodeGenerationLabels()
-    {
-        CodeLabelHeight = 0;
-        IsCodeCopiedVisible = false;
-        IsQrVisible = false;
-        IsCodeLabelVisible = false;
-        QrCodeImage = null;
-        CurrentCodeLabel = string.Empty;
-    }
-
-    internal async Task OnSecretSelectedAsync()
-    {
-        if (SelectedSecret != null && !SelectedSecret.IsBeingEdited && !IsContextmenuOpen)
-            try
-            {
-                await CalculateAndDisplayTotpCode(SelectedSecret);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, UI.ex_Error_Generating_TOTP);
-                // This is still here because it's specific to TOTP encoding
-                _messageService.ShowErrorMessage(UI.ex_Error_Generating_TOTP + ": " + ex.Message);
-            }
     }
 
     #endregion
@@ -870,7 +845,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
     {
         if (_totpManager.TryComputeCode(secret.Secret, out var totpCode, out var exc))
         {
-            ResetCodeGenerationLabels();
+            ClearCodeGenerationOutput();
 
             // if the user clicks on another row right after the currently selected row, the counter gets incremented
             // as this is an async function and we use an async delay below, we check if the counter is the same, so we know
@@ -906,7 +881,7 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
             QrCodeImage = bmp;
 
             Debug.WriteLine($"showing code labels for {secret.Platform}");
-            ShowCodeLabels();
+            ShowCodeGenerationOutput();
 
             await _delayService.Delay(2000);
 
@@ -933,8 +908,20 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #endregion
 
-    #region ### Search Logic ###
+    #region ### Search/Filter Logic ###
 
+    bool IMainViewModel.DoFilterGrid(object obj)
+    {
+        return obj is SecretItemViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
+    /// <summary>
+    /// For bulk changes, wrap in using (_view?.DeferRefresh()) { /* add/remove many items */ } to avoid multiple re-filters.
+    /// </summary>
+    void RefreshView()
+    {
+        RequestGridFilterRefresh?.Invoke();
+    }
     private void ExecuteSearch()
     {
         try
@@ -957,6 +944,12 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
 
     #endregion
 
+    #region ### QR Code Scanning and Adding ###
+
+    /// <summary>
+    ///  Triggered by the "Scan QR" camera button
+    /// </summary>
+    /// <returns></returns>
     public async Task ScanQrAndAddAsync()
     {
         var dlg = new QrScannerWindow { Owner = System.Windows.Application.Current.MainWindow };
@@ -1021,8 +1014,25 @@ public class MainViewModel : IMainViewModel, INotifyPropertyChanged //, ILocaliz
         }
     }
 
-    bool IMainViewModel.DoFilterGrid(object obj)
+    #endregion
+
+
+    private void ShowCodeGenerationOutput()
     {
-        return DoFilterGrid(obj);
+        CodeLabelHeight = 40;
+        IsCodeCopiedVisible = true;
+        IsCodeLabelVisible = true;
+        IsQrVisible = true;
     }
+
+    private void ClearCodeGenerationOutput()
+    {
+        CodeLabelHeight = 0;
+        IsCodeCopiedVisible = false;
+        IsQrVisible = false;
+        IsCodeLabelVisible = false;
+        QrCodeImage = null;
+        CurrentCodeLabel = string.Empty;
+    }
+
 }

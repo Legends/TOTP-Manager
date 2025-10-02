@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using TOTP.Core.Enums;
+using TOTP.Core.Models;
 using TOTP.Core.Validation;
 using TOTP.ViewModels;
 
@@ -45,6 +48,17 @@ internal class UiValidation
         var error = SecretValidator.ValidateID(_item.ID);
         if (error != ValidationError.None)
             _errors.Add(error);
+        return this;
+    }
+
+    public UiValidation PlatformNameDuplicateExists(string platform, IEnumerable<SecretItem> source)
+    {
+        // Check duplicates in the bound list (ignore the current row)
+        bool duplicate = source
+            .Any(x => string.Equals(x.Platform, platform, StringComparison.OrdinalIgnoreCase));
+
+        if (duplicate)
+            _errors.Add(ValidationError.PlatformAlreadyExists);
         return this;
     }
 

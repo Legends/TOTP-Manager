@@ -10,6 +10,9 @@ using TOTP.ViewModels;
 
 namespace TOTP.Behaviors;
 
+/// <summary>
+/// INLINE EDITING BEHAVIOR
+/// </summary>
 public class DataGridValidationBehavior : Behavior<SfDataGrid>
 {
     protected override void OnAttached()

@@ -28,7 +28,9 @@ public class RelayCommand<T>(Action<T> execute, Func<T, bool>? canExecute = null
 public class RelayCommand : ICommand
 {
     private readonly Action<object?> _execute;
+    private readonly Action _action;
     private readonly Func<bool>? _canExecute;
+
 
     public RelayCommand(Action<object?> execute, Func<bool>? canExecute = null)
     {

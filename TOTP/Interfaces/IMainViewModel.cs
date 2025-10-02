@@ -11,18 +11,18 @@ namespace TOTP.Interfaces;
 public interface IMainViewModel : INotifyPropertyChanged
 {
     ObservableCollection<SecretItemViewModel> AllSecrets { get; }
-    AsyncCommand AddNewSecretCommand { get; }
+    RelayCommand OpenFlyoutAddModeCommand { get; }
     ICommand DeleteSecretCommand { get; }
     ICommand UpdateSecretCommand { get; }
     ICommand BeginEditCommand { get; }
     ICommand EndEditCommand { get; }
     ICommand DoubleClickCommand { get; }
-    Task AddNewSecretAsync();
+    void OpenFlyoutAddMode();
     SecretItemViewModel SelectedSecret { get; set; }
     Action? RequestGridFilterRefresh { get; set; }
     bool DoFilterGrid(object obj);
     bool IsContextmenuOpen { get; set; }
     Task InitializeAsync();
-    Task OnSelectionChangedAsync();
+    Task OnRowSelectionChangedAsync();
 
 }
