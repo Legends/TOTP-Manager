@@ -438,7 +438,7 @@ public class MainViewModel : IMainViewModel
     private void SetupCommandEventhandler()
     {
 
-        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAsync);
+        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAsync, () => !_isGridInEditMode);
 
         OpenFlyoutEditModeCommand = new RelayCommand<SecretItemViewModel>(OpenFlyoutEditMode);
         OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);

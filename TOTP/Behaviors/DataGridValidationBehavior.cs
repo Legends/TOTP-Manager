@@ -45,18 +45,6 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
     {
         if (AssociatedObject.CurrentItem is not SecretItemViewModel vm)
             return;
-
-        // init staging for PasswordBox column
-        //vm.EditingSecret = vm.Secret;
-
-        //// Validate the in-edit value (see staging note below)
-        //var candidate = vm.EditingSecret ?? vm.Secret; // if you add a staging prop
-        //var result = SecretValidator.ValidateSecret(candidate);
-
-        //if (result != ValidationError.None)
-        //{
-        //    e.Cancel // ⬅️ keep the cell in edit mode
-        //}
     }
 
     private void OnRowValidating(object? sender, RowValidatingEventArgs e)
@@ -70,6 +58,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
         if (result != ValidationError.None)
         {
             e.IsValid = false;
+
 
             // IMPORTANT: use the column MappingName exactly ("Secret")
             var msg = ValidationMessageMapper.ToMessage(result);
