@@ -730,7 +730,7 @@ public class MainViewModel : IMainViewModel
     {
         PreviousVersion = item.Copy();
         item.IsBeingEdited = true;
-        OnPropertyChanged(nameof(ShowActionsColumn));
+
     }
 
     /// <summary>

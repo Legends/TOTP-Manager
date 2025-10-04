@@ -45,6 +45,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
     {
         if (AssociatedObject.CurrentItem is not SecretItemViewModel vm)
             return;
+
     }
 
     private void OnRowValidating(object? sender, RowValidatingEventArgs e)
