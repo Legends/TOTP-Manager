@@ -173,7 +173,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!--SECRET GRID-->
+                <!-- =====  SECRETS GRID   ===== -->
                 <!--SelectedItem="SelectedSecret"-->
                 <syncfusion:SfDataGrid x:Name="SecretsGrid"
                                        ItemsSource="{Binding AllSecrets}"
