@@ -54,19 +54,8 @@ namespace TOTP.Behaviors
 
                     if (e.ChangedButton == MouseButton.Right)
                     {
-                        // Ensure the row becomes selected before context menu opens
-                        grid.SelectedItem = item;
-                        grid.CurrentItem = item;
-
-                        //var menu = grid.RecordContextMenu;
-                        //if (menu == null) return;
-
-                        //menu.PlacementTarget = grid;                // lets us bind via PlacementTarget in XAML
-                        //menu.Placement = PlacementMode.MousePoint;  // show at cursor
-                        //menu.IsOpen = true;
-
-                        //if (RightClickCommand != null && RightClickCommand.CanExecute(item))
-                        //    RightClickCommand.Execute(item);
+                        //grid.SelectedItem = item;
+                        //grid.CurrentItem = item;
 
                         // Let the ContextMenu open normally
                     }
