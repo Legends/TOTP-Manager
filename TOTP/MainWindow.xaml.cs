@@ -66,15 +66,12 @@ public partial class MainWindow : ChromelessWindow
         }
     }
 
-    private bool _filterWiredOnce;
 
     private void SecretsGrid_ItemsSourceChanged(object? sender, Syncfusion.UI.Xaml.Grid.GridItemsSourceChangedEventArgs e)
     {
-        if (_filterWiredOnce) return;                // already done
 
-        if (DataContext is IMainViewModel vm && SecretsGrid.View != null)
+        if (DataContext is IMainViewModel vm && SecretsGrid.View != null && SecretsGrid.View.Filter == null)
         {
-            // wire once
             SecretsGrid.View.Filter = vm.DoFilterGrid;
 
             vm.RequestGridFilterRefresh = () =>
@@ -87,10 +84,6 @@ public partial class MainWindow : ChromelessWindow
 
             SecretsGrid.View.RefreshFilter();
 
-            _filterWiredOnce = true;
-
-            // IMPORTANT: unsubscribe so this never runs again
-            SecretsGrid.ItemsSourceChanged -= SecretsGrid_ItemsSourceChanged;
         }
     }
 

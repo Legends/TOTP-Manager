@@ -268,7 +268,7 @@ public class MainViewModel : IMainViewModel
 
     #region ### ObservableCollections ###
 
-    private ObservableCollection<SecretItemViewModel> _allSecrets;// = new();
+    private ObservableCollection<SecretItemViewModel> _allSecrets;
     public ObservableCollection<SecretItemViewModel> AllSecrets
     {
         get => _allSecrets;
@@ -910,9 +910,14 @@ public class MainViewModel : IMainViewModel
 
     #region ### Search/Filter Logic ###
 
+    /// <summary>
+    /// Filter the platform column if search filter NOT Is Null Or WhiteSpace
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
     bool IMainViewModel.DoFilterGrid(object obj)
     {
-        return obj is SecretItemViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText, StringComparison.OrdinalIgnoreCase) >= 0);
+        return obj is SecretItemViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     /// <summary>
