@@ -94,22 +94,10 @@ public class TotpManager : ITotpManager
         }
     }
 
-    public async Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated, List<SecretItem> source)
+    public async Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated)
     {
         ArgumentNullException.ThrowIfNull(previous);
         ArgumentNullException.ThrowIfNull(updated);
-
-        //if (previous.Equals(updated))
-        //    return false;
-
-        //var hasPlatformNameChanged = !string.Equals(previous.Platform, updated.Platform, StringComparison.OrdinalIgnoreCase);
-
-        //if (hasPlatformNameChanged &&
-        //    SecretValidator.PlatformNameDuplicatesExists(updated.Platform, source) != ValidationError.None)
-        //{
-        //    OnMessageSend?.Invoke(this, OperationStatus.AlreadyExists, updated.Platform);
-        //    return false;
-        //}
 
         var result = await _secretsManager.UpdateItemAsync(previous.Platform, updated);
 

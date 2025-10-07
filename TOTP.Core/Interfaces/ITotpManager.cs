@@ -16,7 +16,7 @@ public interface ITotpManager
     /// <returns></returns>
     Task<(bool isSuccess, SecretItem? item)> AddNewSecretAsync();
 
-    Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated, List<SecretItem> source);
+    Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated);
 
     /// <summary>
     ///     Deletes a secret item from the secrets.json file.

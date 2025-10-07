@@ -88,6 +88,7 @@ public class ScrollOnNewOrUpdatedItemBehavior : Behavior<SfDataGrid>
     private void DoScroll(SfDataGrid grid, object item, Action onFinally)
     {
         int rowIndex = grid.ResolveToRowIndex(item);
+        if (rowIndex < 0) return;// cancel if not found (filter applied)
         var rci = new RowColumnIndex(rowIndex, 0);
         grid.ScrollInView(rci);
         onFinally?.Invoke();

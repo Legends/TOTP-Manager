@@ -23,7 +23,6 @@ using TOTP.Core.Enums;
 using TOTP.Core.Events;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
-using TOTP.Core.Validation;
 using TOTP.Extensions;
 using TOTP.Helper;
 using TOTP.Interfaces;
@@ -86,7 +85,11 @@ public class MainViewModel : IMainViewModel
     }
 
     private SecretItemViewModel _editingSecret;
-    public SecretItemViewModel? EditingSecret
+
+    /// <summary>
+    /// Can contain a new secret (in add mode) or a copy of the selected secret (in edit mode)
+    /// </summary>
+    public SecretItemViewModel? CurrentSecretBeingEditedOrAdded
     {
         get => _editingSecret;
         set { _editingSecret = value; OnPropertyChanged(); }
@@ -518,7 +521,7 @@ public class MainViewModel : IMainViewModel
         {
             IsAddMode = true;
             IsEditOpen = true;
-            EditingSecret = new SecretItemViewModel(Guid.NewGuid(), null, null, null);
+            CurrentSecretBeingEditedOrAdded = new SecretItemViewModel(Guid.NewGuid(), null, null, null);
         }
         catch (Exception ex)
         {
@@ -539,7 +542,7 @@ public class MainViewModel : IMainViewModel
         if (item == null) return;
 
         IsAddMode = false;
-        EditingSecret = item.Copy();
+        CurrentSecretBeingEditedOrAdded = item.Copy();
         IsEditOpen = true;
     }
 
@@ -551,7 +554,7 @@ public class MainViewModel : IMainViewModel
     {
         IsEditOpen = false;
         IsAddMode = false;
-        EditingSecret = null;
+        CurrentSecretBeingEditedOrAdded = null;
     }
     #endregion
 
@@ -594,10 +597,8 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            // filter out the current item from the list to avoid false positive duplicate detection
-            var domainSecretsList = AllSecrets.Where(sivm => !sivm.Equals(updated)).Select(s => s.ToDomain()).ToList();
 
-            var success = await _totpManager.UpdateSecretAsync(PreviousVersion.ToDomain(), updated.ToDomain(), domainSecretsList);
+            var success = await _totpManager.UpdateSecretAsync(PreviousVersion.ToDomain(), updated.ToDomain());
 
             if (!success)
                 return;
@@ -626,28 +627,15 @@ public class MainViewModel : IMainViewModel
     {
         if (IsAddMode) // add new mode
         {
-            var validator = new UiValidation(EditingSecret);
-            validator.ValidateAll().PlatformNameDuplicateExists(AllSecrets);
-
-            if (!validator.IsValid)
-            {
-                foreach (var error in validator.Errors)
-                {
-                    if (error == ValidationError.PlatformAlreadyExists)
-                        _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error, EditingSecret.Platform));
-                    else
-                        _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
-                }
-                return;
-            }
+            if (!IsValidSecretItem(CurrentSecretBeingEditedOrAdded)) return;
 
             try
             {
-                var addResult = await _secretsManager.AddNewItemAsync(EditingSecret.ToDomain());
+                var addResult = await _secretsManager.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
 
                 if (addResult.Status != OperationStatus.Success)
                 {
-                    showMessage(addResult.Status, EditingSecret); return;
+                    showMessage(addResult.Status, CurrentSecretBeingEditedOrAdded); return;
                 }
 
                 //if (result.Status == OperationStatus.Success)
@@ -672,13 +660,13 @@ public class MainViewModel : IMainViewModel
 
                 if (addResult.Status == OperationStatus.Success)
                 {
-                    var itemToAdd = EditingSecret.Copy();
+                    var itemToAdd = CurrentSecretBeingEditedOrAdded.Copy();
                     //itemToAdd.IsNewlyAdded = true;
 
                     AllSecrets.Add(itemToAdd);
                     //OnPropertyChanged(nameof(AllSecrets));
                     //ApplySearchFilter();
-                    EditingSecret = null;
+                    CurrentSecretBeingEditedOrAdded = null;
                     IsAddMode = false;
                     IsEditOpen = false;
                 }
@@ -693,7 +681,7 @@ public class MainViewModel : IMainViewModel
         else // Edit mode
         {
             PreviousVersion = SelectedSecret.Copy();
-            var updated = EditingSecret.Copy();
+            var updated = CurrentSecretBeingEditedOrAdded.Copy();
 
             if (updated == null || PreviousVersion == null)
                 return;
@@ -720,7 +708,7 @@ public class MainViewModel : IMainViewModel
             }
             #endregion
 
-            await UpdateSecretAsync(EditingSecret);
+            await UpdateSecretAsync(CurrentSecretBeingEditedOrAdded);
             IsEditOpen = false;
         }
     }
@@ -982,21 +970,9 @@ public class MainViewModel : IMainViewModel
             var newSecretItem = new SecretItemViewModel(Guid.NewGuid(), data.Issuer, data.SecretBase32, data.Label);
 
             #region ### validation ###
-            var validator = new UiValidation(newSecretItem);
-            validator.ValidateAll();
 
-            if (!validator.IsValid)
-            {
-                foreach (var error in validator.Errors)
-                    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
-                return;
-            }
+            if (!IsValidSecretItem(newSecretItem)) return;
 
-            if (SecretValidator.PlatformNameDuplicateExists(newSecretItem.Platform, AllSecrets.Select(o => o.ToDomain()).ToList()) != ValidationError.None)
-            {
-                _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, newSecretItem.Platform));
-                return;
-            }
             #endregion
 
             try
@@ -1009,10 +985,7 @@ public class MainViewModel : IMainViewModel
                 }
                 if (addResult.Status == OperationStatus.Success)
                 {
-                    //newSecretItem.IsNewlyAdded = true;
                     AllSecrets.Add(newSecretItem);
-                    //OnPropertyChanged(nameof(AllSecrets));
-                    //ApplySearchFilter();
                 }
             }
             finally
@@ -1021,6 +994,25 @@ public class MainViewModel : IMainViewModel
                 IsEditOpen = false;
             }
         }
+    }
+
+    private bool IsValidSecretItem(SecretItemViewModel newSecretItem)
+    {
+        var validator = new UiValidation(newSecretItem);
+        validator.ValidateAll().PlatformNameDuplicateExists(AllSecrets);
+
+        if (!validator.IsValid)
+        {
+            foreach (var error in validator.Errors)
+            {
+                if (error == ValidationError.PlatformAlreadyExists)
+                    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error, newSecretItem.Platform));
+                else
+                    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
+            }
+        }
+
+        return validator.IsValid;
     }
 
     #endregion
