@@ -42,7 +42,7 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
 
     public void ShowMessage(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
     {
-        var vm = CreateViewModel(message, caption, iconPath, UI.ui_btnOK, string.Empty);
+        var vm = CreateUserMessageDialogViewModel(message, caption, iconPath, UI.ui_btnOK, string.Empty);
         vm.ShowCancelButton = false;
 
         vm.IconPath = caption switch
@@ -62,7 +62,7 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
 
     public bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
     {
-        var vm = CreateViewModel(message, caption, iconPath, UI.ui_btnOK, UI.ui_btnCancel);
+        var vm = CreateUserMessageDialogViewModel(message, caption, iconPath, UI.ui_btnOK, UI.ui_btnCancel);
 
         var dialog = new UserMessageDialog(vm)
         {
@@ -72,7 +72,7 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         return dialog.Result;
     }
 
-    private IUserMessageDialogViewModel CreateViewModel(string message, CaptionType caption, string iconPath,
+    private IUserMessageDialogViewModel CreateUserMessageDialogViewModel(string message, CaptionType caption, string iconPath,
         string btnOkText, string btnCancelText)
     {
         var vm = userMessageDialogViewModel;

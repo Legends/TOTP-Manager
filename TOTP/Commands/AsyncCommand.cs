@@ -36,6 +36,7 @@ namespace TOTP.Commands
 
             try
             {
+                // executes the AsyncCommand handler
                 await _execute();
             }
             catch (Exception ex)

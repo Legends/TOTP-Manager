@@ -626,17 +626,20 @@ public class MainViewModel : IMainViewModel
     {
         if (IsAddMode) // add new mode
         {
-
             var validator = new UiValidation(EditingSecret);
-            validator.ValidateAll();
+            validator.ValidateAll().PlatformNameDuplicateExists(AllSecrets);
 
             if (!validator.IsValid)
             {
                 foreach (var error in validator.Errors)
-                    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
+                {
+                    if (error == ValidationError.PlatformAlreadyExists)
+                        _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error, EditingSecret.Platform));
+                    else
+                        _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
+                }
                 return;
             }
-
 
             try
             {
@@ -676,12 +679,13 @@ public class MainViewModel : IMainViewModel
                     //OnPropertyChanged(nameof(AllSecrets));
                     //ApplySearchFilter();
                     EditingSecret = null;
+                    IsAddMode = false;
+                    IsEditOpen = false;
                 }
             }
             finally
             {
-                IsAddMode = false;
-                IsEditOpen = false;
+
             }
 
 
@@ -705,9 +709,9 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-            var source = AllSecrets.Where(sivm => !sivm.Equals(updated)).Select(s => s.ToDomain()).ToList();
+            var source = AllSecrets.Where(sivm => !sivm.Equals(updated));
 
-            validator.PlatformNameDuplicateExists(updated.Platform, source);
+            validator.PlatformNameDuplicateExists(source);
 
             if (!validator.IsValid)
             {

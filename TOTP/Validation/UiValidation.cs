@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using TOTP.Core.Enums;
-using TOTP.Core.Models;
 using TOTP.Core.Validation;
 using TOTP.ViewModels;
 
@@ -51,7 +50,7 @@ internal class UiValidation
         return this;
     }
 
-    public UiValidation PlatformNameDuplicateExists(string platform, IEnumerable<SecretItem> source)
+    public UiValidation PlatformNameDuplicateExists(string platform, IEnumerable<SecretItemViewModel> source)
     {
         // Check duplicates in the bound list (ignore the current row)
         bool duplicate = source
@@ -62,13 +61,18 @@ internal class UiValidation
         return this;
     }
 
-    //public UiValidation ValidateAccount()
-    //{
-    //    var error = SecretValidator.ValidateAccount(_item.Account);
-    //    if (error != ValidationError.None)
-    //        _errors.Add(error);
-    //    return this;
-    //}
+
+    public UiValidation PlatformNameDuplicateExists(IEnumerable<SecretItemViewModel> source)
+    {
+        // Check duplicates in the bound list (ignore the current row)
+        bool duplicate = source
+            .Any(x => string.Equals(x.Platform, _item.Platform, StringComparison.OrdinalIgnoreCase));
+
+        if (duplicate)
+            _errors.Add(ValidationError.PlatformAlreadyExists);
+        return this;
+    }
+
 
     public bool IsValid => _errors.Count == 0;
     public IReadOnlyList<ValidationError> Errors => _errors;

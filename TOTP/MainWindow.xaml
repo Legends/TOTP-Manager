@@ -407,7 +407,7 @@
                                 Foreground="White"
                                 Width="26"
                                 Height="26"
-                                Command="{Binding CancelEditCommand}"
+                                Command="{Binding CancelFlyoutCommand}"
                                 HorizontalAlignment="Right"
                                 DockPanel.Dock="Right" />
                     </DockPanel>
@@ -454,7 +454,7 @@
                         <Button Content="{Binding CancelButtonLabel}"
                                 Foreground="White"
                                 FontWeight="Bold"
-                                Command="{Binding CancelEditCommand}"
+                                Command="{Binding CancelFlyoutCommand}"
                                 Padding="14,6" />
                     </StackPanel>
                 </StackPanel>
