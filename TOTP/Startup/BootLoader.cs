@@ -18,7 +18,6 @@ using TOTP.Logging;
 using TOTP.Resources;
 using TOTP.Services;
 using TOTP.ViewModels;
-using TOTP.Windows;
 
 namespace TOTP.Startup;
 
@@ -68,9 +67,9 @@ public static class BootLoader
                 services.AddSingleton<IQrCodeService, QrCodeService>();
 
                 // dialogs
-                services.AddSingleton<IPlatformSecretDialogService, PlatformSecretDialogService>();
-                services.AddTransient<PlatformSecretDialog>();
-                services.AddTransient<IPlatformSecretDialogViewModel, PlatformSecretDialogViewModel>();
+                //services.AddSingleton<IPlatformSecretDialogService, PlatformSecretDialogService>();
+                //services.AddTransient<PlatformSecretDialog>();
+                //services.AddTransient<IPlatformSecretDialogViewModel, PlatformSecretDialogViewModel>();
                 services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
 
                 // app services

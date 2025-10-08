@@ -20,7 +20,6 @@ using System.Windows.Media.Imaging;
 using TOTP.Commands;
 using TOTP.Comparer;
 using TOTP.Core.Enums;
-using TOTP.Core.Events;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
 using TOTP.Extensions;
@@ -41,7 +40,7 @@ public class MainViewModel : IMainViewModel
 
     private CultureDisplay _selectedCulture;
     private readonly ILogger<MainViewModel> _logger;
-    private readonly IPlatformSecretDialogService _platformSecretDialogService;
+
 
 
     #region ### FLYOUT PANEL ###
@@ -311,7 +310,7 @@ public class MainViewModel : IMainViewModel
     #region ### Constructor ###
 
     public MainViewModel(
-        IPlatformSecretDialogService platformSecretDialogService,
+
         ILogger<MainViewModel> logger,
         IQrCodeService svcQr,
         IMessageService messageService,
@@ -322,7 +321,7 @@ public class MainViewModel : IMainViewModel
         IDelayService delayService,
         ISecretsManager secretsManager) // NEW
     {
-        _platformSecretDialogService = platformSecretDialogService;
+
         _secretsManager = secretsManager;
         _logger = logger;
         _qrService = svcQr;
@@ -333,7 +332,7 @@ public class MainViewModel : IMainViewModel
         _totpManager = totpManager;
 
         //_totpManager.OnMessageSend += _totpManager_OnMessageSend;
-        _totpManager.OnAddNewPrompt += _totpManager_OnAddNewPrompt;
+        //_totpManager.OnAddNewPrompt += _totpManager_OnAddNewPrompt;
         _totpManager.ConfirmDeleteRequested += _totpManager_OnDeletePrompt;
 
 
@@ -358,11 +357,11 @@ public class MainViewModel : IMainViewModel
         return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
     }
 
-    private AddNewPromptArgs _totpManager_OnAddNewPrompt(object? sender)
-    {
-        var (success, key, value, account) = _platformSecretDialogService.ShowForm();
-        return new AddNewPromptArgs() { Success = success, Platform = key, Secret = value, Account = account };
-    }
+    //private AddNewPromptArgs _totpManager_OnAddNewPrompt(object? sender)
+    //{
+    //    var (success, key, value, account) = _platformSecretDialogService.ShowForm();
+    //    return new AddNewPromptArgs() { Success = success, Platform = key, Secret = value, Account = account };
+    //}
 
     private void showMessage(OperationStatus arg1, SecretItemViewModel item)
     {

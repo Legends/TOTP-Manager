@@ -196,7 +196,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Are you sure you want to delete the secret: {0}?.
+        ///   Looks up a localized string similar to Delete secret: {0}?.
         /// </summary>
         internal static string msg_ConfirmDeleteSecret {
             get {

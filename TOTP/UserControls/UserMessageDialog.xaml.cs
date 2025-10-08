@@ -1,5 +1,8 @@
 ﻿using Syncfusion.Windows.Shared;
 using System;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using TOTP.Events;
 using TOTP.Helper;
@@ -14,37 +17,70 @@ public partial class UserMessageDialog : ChromelessWindow
     public UserMessageDialog(IUserMessageDialogViewModel vm)
     {
         InitializeComponent();
+        Opacity = 0; // start transparent
+
         DataContext = vm;
 
-        // Bind ViewModel-provided values
         TitleBarBackground = vm.TitleBarBackground;
         if (!string.IsNullOrWhiteSpace(vm.IconPath) && Common.PackUriExists(vm.IconPath))
-        {
             Icon = new BitmapImage(new Uri(vm.IconPath));
-        }
-        // Subscribe to close request
+
         vm.RequestClose += OnRequestClose;
-        Closed += (_, _) => vm.RequestClose -= OnRequestClose; // ! Important ! otherwise you get loops and unhandled exceptions
+        Closed += (_, _) => vm.RequestClose -= OnRequestClose;
+
+        ContentRendered += (_, _) => BeginFadeIn();
     }
 
-    private void OnRequestClose(object? sender, DialogCloseRequestedEventArgs e)
+    private void BeginFadeIn()
     {
-        DialogResult = Result = e.DialogResult;
+        var fadeIn = new DoubleAnimation
+        {
+            From = 0,
+            To = 1,
+            Duration = TimeSpan.FromSeconds(0.35),
+            EasingFunction = new QuadraticEase()
+        };
+        BeginAnimation(Window.OpacityProperty, fadeIn);
+    }
+
+    private async Task BeginFadeOutAsync()
+    {
+        var fadeOut = new DoubleAnimation
+        {
+            From = Opacity,
+            To = 0,
+            Duration = TimeSpan.FromSeconds(0.25),
+            EasingFunction = new QuadraticEase()
+        };
+
+        var tcs = new TaskCompletionSource();
+        fadeOut.Completed += (_, _) => tcs.SetResult();
+
+        BeginAnimation(Window.OpacityProperty, fadeOut);
+        await tcs.Task; // wait for fade to complete
+    }
+
+    private async void OnRequestClose(object? sender, DialogCloseRequestedEventArgs e)
+    {
+        Result = e.DialogResult;
+        DialogResult = e.DialogResult;
+
+        await BeginFadeOutAsync();
         Close();
     }
 
-    //private void Ok_Click(object sender, RoutedEventArgs e)
-    //{
-    //    Result = true;
-    //    DialogResult = true; // ← important
-    //    Close();
-    //}
+    protected override async void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        // only fade out if still visible
+        if (Opacity > 0.1 && !_isClosingFromAnimation)
+        {
+            e.Cancel = true;
+            await BeginFadeOutAsync();
+            _isClosingFromAnimation = true;
+            Close();
+        }
+        base.OnClosing(e);
+    }
 
-    //private void Cancel_Click(object sender, RoutedEventArgs e)
-    //{
-    //    Result = false;
-    //    DialogResult = false; // ← important
-    //    Close();
-    //}
-
+    private bool _isClosingFromAnimation;
 }

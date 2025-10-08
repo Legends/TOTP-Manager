@@ -7,6 +7,7 @@
                              WindowStartupLocation="CenterOwner"
                              ResizeMode="NoResize"
                              SizeToContent="WidthAndHeight"
+                             Opacity="0"
                              MinWidth="300"
                              MinHeight="150"
                              MaxWidth="600"
@@ -16,7 +17,8 @@
                              Title="{Binding CaptionString}"
                              BorderBrush="{Binding TitleBarBackground}"
                              UseNativeChrome="False"
-                             ShowInTaskbar="False">
+                             ShowInTaskbar="False"
+                             >
 
     <Border Padding="16"
             Background="{DynamicResource Brush.Background}">
