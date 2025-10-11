@@ -30,6 +30,8 @@ using TOTP.Resources;
 using TOTP.Services;
 using TOTP.Validation;
 using TOTP.Windows;
+using ValidationError = TOTP.Core.Enums.ValidationError;
+
 #endregion
 
 namespace TOTP.ViewModels;
@@ -444,7 +446,7 @@ public class MainViewModel : IMainViewModel
 
         OpenFlyoutEditModeCommand = new RelayCommand<SecretItemViewModel>(OpenFlyoutEditMode);
         OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
-        SaveEditFlyoutAsyncCommand = new AsyncCommand(UpdateOrAddAsync);
+        SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateAsync);
         CancelFlyoutCommand = new RelayCommand(CancelFlyout);
 
         RowSelectionChangedCommand = new AsyncCommand(OnRowSelectionChangedAsync);
@@ -620,13 +622,19 @@ public class MainViewModel : IMainViewModel
 
     /// <summary>
     /// Triggered by save button in flyout panel
+    /// Adding/Updating a SecretItem
     /// </summary>
     /// <returns></returns>
-    public async Task UpdateOrAddAsync()
+    public async Task AddOrUpdateAsync()
     {
         if (IsAddMode) // add new mode
         {
-            if (!IsValidSecretItem(CurrentSecretBeingEditedOrAdded)) return;
+            var validation = IsValidSecretItem(CurrentSecretBeingEditedOrAdded);
+            if (!validation.IsValid)
+            {
+                CurrentSecretBeingEditedOrAdded.RefreshValidation();
+                return;
+            }
 
             try
             {
@@ -634,7 +642,8 @@ public class MainViewModel : IMainViewModel
 
                 if (addResult.Status != OperationStatus.Success)
                 {
-                    showMessage(addResult.Status, CurrentSecretBeingEditedOrAdded); return;
+                    return;
+                    //showMessage(addResult.Status, CurrentSecretBeingEditedOrAdded); return;
                 }
 
                 //if (result.Status == OperationStatus.Success)
@@ -691,9 +700,13 @@ public class MainViewModel : IMainViewModel
 
             if (!validator.IsValid)
             {
-                foreach (var error in validator.Errors)
-                    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
+                //foreach (var error in validator.Errors)
+                //    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
+
+                CurrentSecretBeingEditedOrAdded.RefreshValidation();
                 return;
+
+
             }
 
             var source = AllSecrets.Where(sivm => !sivm.Equals(updated));
@@ -702,7 +715,8 @@ public class MainViewModel : IMainViewModel
 
             if (!validator.IsValid)
             {
-                _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, updated.Platform));
+                //_messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, updated.Platform));
+                CurrentSecretBeingEditedOrAdded.RefreshValidation();
                 return;
             }
             #endregion
@@ -883,7 +897,7 @@ public class MainViewModel : IMainViewModel
             }
             else
             {
-                Debug.WriteLine("########## Label code hidden  SKIPPEEDD  #################");
+                Debug.WriteLine("########## Label code hidden  SKIPPED  #################");
             }
         }
         else
@@ -970,7 +984,22 @@ public class MainViewModel : IMainViewModel
 
             #region ### validation ###
 
-            if (!IsValidSecretItem(newSecretItem)) return;
+            var validator = IsValidSecretItem(newSecretItem);
+            if (!validator.IsValid)
+            {
+
+                foreach (var error in validator.Errors)
+                {
+                    if (error == ValidationError.PlatformAlreadyExists)
+                    {
+                        _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error, newSecretItem.Platform));
+                    }
+                    else
+                        _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
+                }
+
+                return;
+            }
 
             #endregion
 
@@ -995,23 +1024,23 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    private bool IsValidSecretItem(SecretItemViewModel newSecretItem)
+    private UiValidation IsValidSecretItem(SecretItemViewModel newSecretItem)
     {
         var validator = new UiValidation(newSecretItem);
         validator.ValidateAll().PlatformNameDuplicateExists(AllSecrets);
 
-        if (!validator.IsValid)
-        {
-            foreach (var error in validator.Errors)
-            {
-                if (error == ValidationError.PlatformAlreadyExists)
-                    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error, newSecretItem.Platform));
-                else
-                    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
-            }
-        }
+        //if (!validator.IsValid)
+        //{
+        //    foreach (var error in validator.Errors)
+        //    {
+        //        if (error == ValidationError.PlatformAlreadyExists)
+        //            _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error, newSecretItem.Platform));
+        //        else
+        //            _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
+        //    }
+        //}
 
-        return validator.IsValid;
+        return validator;
     }
 
     #endregion

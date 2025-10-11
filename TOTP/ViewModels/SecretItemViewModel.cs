@@ -248,4 +248,64 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         this.Account = changed.Account;
     }
 
+    #region Inline Error Properties (for flyout binding)
+
+    private string? _platformError;
+    [JsonIgnore]
+    public string? PlatformError
+    {
+        get => _platformError;
+        private set
+        {
+            if (_platformError != value)
+            {
+                _platformError = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private string? _secretError;
+    [JsonIgnore]
+    public string? SecretError
+    {
+        get => _secretError;
+        private set
+        {
+            if (_secretError != value)
+            {
+                _secretError = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private string? _accountError;
+    [JsonIgnore]
+    public string? AccountError
+    {
+        get => _accountError;
+        private set
+        {
+            if (_accountError != value)
+            {
+                _accountError = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Re-runs IDataErrorInfo validation and updates inline error bindings.
+    /// </summary>
+    public void RefreshValidation()
+    {
+        PlatformError = this[nameof(Platform)];
+        SecretError = this[nameof(Secret)];
+        AccountError = this[nameof(Account)];
+    }
+
+    #endregion
+
+
 }
