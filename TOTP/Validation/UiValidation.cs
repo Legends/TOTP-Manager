@@ -20,6 +20,10 @@ internal class UiValidation
         _item = item;
     }
 
+    /// <summary>
+    /// Validates all fields of the SecretItemViewModel except duplicates
+    /// </summary>
+    /// <returns></returns>
     public UiValidation ValidateAll()
     {
         ValidatePlatform().ValidateSecret().ValidateID();

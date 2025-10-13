@@ -199,19 +199,19 @@
     <value>Fehler beim Ändern des Schlüssels</value>
   </data>
   <data name="msg_PlatformNotFound_0" xml:space="preserve">
-    <value>Plattform '{0}' wurde nicht gefunden.</value>
+    <value>plattform '{0}' wurde nicht gefunden.</value>
   </data>
   <data name="msg_PlatformRequired" xml:space="preserve">
-    <value>Feld Platform darf nicht leer sein.</value>
+    <value>Feld platform darf nicht leer sein.</value>
   </data>
   <data name="msg_PlatformSecretNotEmpty" xml:space="preserve">
-    <value>Plattform und Schlüssel dürfen nicht leer sein</value>
+    <value>plattform und Schlüssel dürfen nicht leer sein</value>
   </data>
   <data name="msg_Platform_Exists" xml:space="preserve">
-    <value>Plattform '{0}' ist bereits vorhanden</value>
+    <value>plattform '{0}' ist bereits vorhanden</value>
   </data>
   <data name="msg_Platform_Not_Found" xml:space="preserve">
-    <value>Plattform nicht gefunden</value>
+    <value>plattform nicht gefunden</value>
   </data>
   <data name="msg_SecretInvalidFormat" xml:space="preserve">
     <value>Der Schlüssel muss im Base32 Format sein</value>

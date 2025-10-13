@@ -120,6 +120,11 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
     #endregion
 
+    private Func<SecretItemViewModel, ValidationError>? _duplicateCheck;
+
+    public void SetDuplicateCheck(Func<SecretItemViewModel, ValidationError> duplicateCheck)
+        => _duplicateCheck = duplicateCheck;
+
 
     [JsonConstructor]
     public SecretItemViewModel(Guid id, string platform, string secret, string? account = null)
@@ -180,12 +185,18 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
             ValidationError error;
             switch (columnName)
             {
-                case nameof(Platform):
+                case nameof(Platform): // TODO: Add duplicate check here!
                     error = SecretValidator.ValidatePlatform(Platform);
                     if (error != ValidationError.None)
                     {
                         errors.Add(ValidationMessageMapper.ToMessage(error));
                     }
+
+                    // cross-item duplicate check (injected)
+                    // TODO: we have to wire new items with duplicateCheck handler ! soemthing wrong here
+                    var isDuplicate = _duplicateCheck?.Invoke(this);
+                    if (isDuplicate == ValidationError.PlatformAlreadyExists)
+                        errors.Add(ValidationMessageMapper.ToMessage(isDuplicate.Value, this.Platform));
                     break;
 
                 case nameof(Secret):

@@ -199,19 +199,19 @@
     <value>Failed updating secret</value>
   </data>
   <data name="msg_PlatformNotFound_0" xml:space="preserve">
-    <value>Platform '{0}' not found.</value>
+    <value>platform '{0}' not found.</value>
   </data>
   <data name="msg_PlatformRequired" xml:space="preserve">
-    <value>Platform is required.</value>
+    <value>platform is required.</value>
   </data>
   <data name="msg_PlatformSecretNotEmpty" xml:space="preserve">
-    <value>Platform and Secret cannot be empty</value>
+    <value>platform and Secret cannot be empty</value>
   </data>
   <data name="msg_Platform_Exists" xml:space="preserve">
-    <value>Platform '{0}' already exists</value>
+    <value>platform '{0}' already exists</value>
   </data>
   <data name="msg_Platform_Not_Found" xml:space="preserve">
-    <value>Platform not found</value>
+    <value>platform not found</value>
   </data>
   <data name="msg_SecretInvalidFormat" xml:space="preserve">
     <value>Secret must be a valid Base32 string</value>

@@ -22,6 +22,7 @@ using TOTP.Comparer;
 using TOTP.Core.Enums;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
+using TOTP.Core.Validation;
 using TOTP.Extensions;
 using TOTP.Helper;
 using TOTP.Interfaces;
@@ -404,8 +405,36 @@ public class MainViewModel : IMainViewModel
     public async Task InitializeAsync()
     {
         await ReadAllSecretsAsync();
+
+        AllSecrets.CollectionChanged += Source_CollectionChanged;
+
     }
 
+    private void Source_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+        {
+            foreach (SecretItemViewModel item in e.NewItems)
+            {
+                item.SetDuplicateCheck(DuplicateCheck);
+
+            }
+        }
+
+        //if (e.OldItems != null)
+        //{
+        //    foreach (SecretItemViewModel vm in e.OldItems)
+        //    {
+        //        vm.PropertyChanged -= Item_PropertyChanged;
+        //    }
+        //}
+
+    }
+
+    private ValidationError DuplicateCheck(SecretItemViewModel si)
+    {
+        return SecretValidator.PlatformNameDuplicateExists(si.Platform, AllSecrets.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
+    }
 
     #endregion
 
@@ -482,7 +511,7 @@ public class MainViewModel : IMainViewModel
     /// Reads all secrets from the storage file and populates the AllSecrets collection
     /// </summary>
     /// <returns></returns>
-    private async Task ReadAllSecretsAsync()
+    private async Task<ObservableCollection<SecretItemViewModel>?> ReadAllSecretsAsync()
     {
         try
         {
@@ -496,8 +525,18 @@ public class MainViewModel : IMainViewModel
 #if DEBUG
                 // for dev purposes, exclude Syncfusion entry
                 var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).Select(item => item.ToViewModel()).ToList();
+
                 AllSecrets = new ObservableCollection<SecretItemViewModel>((IEnumerable<SecretItemViewModel>)(secrets ?? []));
 #endif
+                foreach (var item in AllSecrets)
+                {
+                    item.SetDuplicateCheck(DuplicateCheck);
+                }
+                return AllSecrets;
+            }
+            else
+            {
+                showMessage(result.Status, new SecretItemViewModel(Guid.Empty, null!, null!));
             }
 
         }
@@ -506,7 +545,7 @@ public class MainViewModel : IMainViewModel
             _logger.LogCritical(e, nameof(ReadAllSecretsAsync));
             System.Windows.Application.Current.Shutdown(1);
         }
-
+        return null;
     }
 
     #endregion
@@ -629,6 +668,7 @@ public class MainViewModel : IMainViewModel
     {
         if (IsAddMode) // add new mode
         {
+            CurrentSecretBeingEditedOrAdded.SetDuplicateCheck(DuplicateCheck);
             var validation = IsValidSecretItem(CurrentSecretBeingEditedOrAdded);
             if (!validation.IsValid)
             {
@@ -636,53 +676,23 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-            try
+            var addResult = await _secretsManager.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
+
+            if (addResult.Status != OperationStatus.Success)
             {
-                var addResult = await _secretsManager.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
-
-                if (addResult.Status != OperationStatus.Success)
-                {
-                    return;
-                    //showMessage(addResult.Status, CurrentSecretBeingEditedOrAdded); return;
-                }
-
-                //if (result.Status == OperationStatus.Success)
-                //    return (true, secretItem);
-
-                //if (result.Status == OperationStatus.AlreadyExists)
-                //{
-                //    OnMessageSend?.Invoke(this, OperationStatus.AlreadyExists, promptResult.Platform);
-                //    continue;
-                //}
-                //if (result.Status == OperationStatus.StorageFailed)
-                //{
-                //    OnMessageSend?.Invoke(this, OperationStatus.StorageFailed, promptResult.Platform);
-                //}
-
-                //if (result.Status == OperationStatus.LoadingFailed)
-                //{
-                //    OnMessageSend?.Invoke(this, OperationStatus.LoadingFailed, null);
-                //}
-
-                //OnMessageSend?.Invoke(this, OperationStatus.CreateFailed, promptResult.Platform);
-
-                if (addResult.Status == OperationStatus.Success)
-                {
-                    var itemToAdd = CurrentSecretBeingEditedOrAdded.Copy();
-                    //itemToAdd.IsNewlyAdded = true;
-
-                    AllSecrets.Add(itemToAdd);
-                    //OnPropertyChanged(nameof(AllSecrets));
-                    //ApplySearchFilter();
-                    CurrentSecretBeingEditedOrAdded = null;
-                    IsAddMode = false;
-                    IsEditOpen = false;
-                }
+                showMessage(addResult.Status, CurrentSecretBeingEditedOrAdded);
+                return;
             }
-            finally
-            {
 
-            }
+            var itemToAdd = CurrentSecretBeingEditedOrAdded.Copy();
+            //itemToAdd.IsNewlyAdded = true;
+
+            AllSecrets.Add(itemToAdd);
+            //OnPropertyChanged(nameof(AllSecrets));
+            //ApplySearchFilter();
+            CurrentSecretBeingEditedOrAdded = null;
+            IsAddMode = false;
+            IsEditOpen = false;
 
 
         }

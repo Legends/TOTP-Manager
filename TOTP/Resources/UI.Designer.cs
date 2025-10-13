@@ -304,7 +304,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Platform &apos;{0}&apos; already exists.
+        ///   Looks up a localized string similar to platform &apos;{0}&apos; already exists.
         /// </summary>
         internal static string msg_Platform_Exists {
             get {
@@ -313,7 +313,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Platform not found.
+        ///   Looks up a localized string similar to platform not found.
         /// </summary>
         internal static string msg_Platform_Not_Found {
             get {
@@ -322,7 +322,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Platform &apos;{0}&apos; not found..
+        ///   Looks up a localized string similar to platform &apos;{0}&apos; not found..
         /// </summary>
         internal static string msg_PlatformNotFound_0 {
             get {
@@ -331,7 +331,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Platform is required..
+        ///   Looks up a localized string similar to platform is required..
         /// </summary>
         internal static string msg_PlatformRequired {
             get {
@@ -340,7 +340,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Platform and Secret cannot be empty.
+        ///   Looks up a localized string similar to platform and Secret cannot be empty.
         /// </summary>
         internal static string msg_PlatformSecretNotEmpty {
             get {
