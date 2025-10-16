@@ -7,7 +7,7 @@ using TOTP.Core.Models;
 using TOTP.Core.Validation;
 using TOTP.Interfaces;
 
-namespace TOTP.Services;
+namespace TOTP.Core.Services;
 
 public class TotpManager : ITotpManager
 {
@@ -23,7 +23,7 @@ public class TotpManager : ITotpManager
         _logger = logger;
     }
 
-    public event Action<Object?, OperationStatus, string?> OnMessageSend;
+    public event Action<object?, OperationStatus, string?> OnMessageSend;
     public event Func<object?, AddNewPromptArgs>? OnAddNewPrompt;
     public event Func<object?, string, bool>? ConfirmDeleteRequested;
 
@@ -78,7 +78,7 @@ public class TotpManager : ITotpManager
                 return false;
             }
 
-            var encodedSecret = OtpNet.Base32Encoding.ToBytes(secret);
+            var encodedSecret = Base32Encoding.ToBytes(secret);
             var totp = new Totp(encodedSecret);
             code = totp.ComputeTotp();
             exc = null;
@@ -99,21 +99,12 @@ public class TotpManager : ITotpManager
         ArgumentNullException.ThrowIfNull(previous);
         ArgumentNullException.ThrowIfNull(updated);
 
-        var result = await _secretsManager.UpdateItemAsync(previous.Platform, updated);
+        var result = await _secretsManager.UpdateItemAsync(previous, updated);
 
         var platform = result.Status == OperationStatus.LoadingFailed ? null : previous.Platform;
 
-        var status = result.Status switch
-        {
-            OperationStatus.Success => OperationStatus.Success,
-            OperationStatus.NotFound => OperationStatus.NotFound,
-            OperationStatus.LoadingFailed => OperationStatus.LoadingFailed,
-            OperationStatus.StorageFailed => OperationStatus.StorageFailed,
-            _ => OperationStatus.UpdateFailed
-        };
-
-        if (status != OperationStatus.Success)
-            OnMessageSend?.Invoke(this, status, platform);
+        if (result.Status != OperationStatus.Success)
+            OnMessageSend?.Invoke(this, result.Status, platform);
 
         return result.Status == OperationStatus.Success;
     }

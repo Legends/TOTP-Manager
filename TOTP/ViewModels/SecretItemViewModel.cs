@@ -143,6 +143,7 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         _storedValues = BackUp();
     }
 
+
     public void CancelEdit()
     {
         if (_storedValues == null)

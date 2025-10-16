@@ -22,6 +22,7 @@ using TOTP.Comparer;
 using TOTP.Core.Enums;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
+using TOTP.Core.Services;
 using TOTP.Core.Validation;
 using TOTP.Extensions;
 using TOTP.Helper;
@@ -745,16 +746,22 @@ public class MainViewModel : IMainViewModel
     {
         PreviousVersion = item.Copy();
         item.IsBeingEdited = true;
-
+        IsInlineEditing = true;
     }
 
+    public bool IsInlineEditing { get; set; }
+
     /// <summary>
+    /// Inline Editing End Event
     /// SfDataGridEditingBehavior: Triggered by SfDataGrid's cell edit end event
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
     private async Task OnEndEditAsync(SecretItemViewModel item)
     {
+        if (item.ID != PreviousVersion.ID)
+            return;
+
         item.IsBeingEdited = false;
 
         if (!SecretItemValueComparer.Default.Equals(item, PreviousVersion))
@@ -779,9 +786,11 @@ public class MainViewModel : IMainViewModel
                     _messageService.ShowErrorMessage(UI.ex_UpdatingSecret);
                 }
             }
-
         }
+
         PreviousVersion = null;
+
+
     }
 
     /// <summary>
@@ -812,6 +821,10 @@ public class MainViewModel : IMainViewModel
     /// <returns></returns>
     public async Task OnRowSelectionChangedAsync()
     {
+
+        if (IsGridEditing || IsInlineEditing)
+            return;
+
         _isDoubleClick = false;
         var currentKey = SelectedSecret.Platform;
         await Task.Delay(300); // prevent OnRowSelectionChangedAsync from executing if it is a double click!

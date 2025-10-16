@@ -3,7 +3,6 @@ using TOTP.Core.Models;
 
 namespace TOTP.Core.Validation;
 
-
 public static class SecretValidator
 {
     public static ValidationError ValidatePlatform(string? input)

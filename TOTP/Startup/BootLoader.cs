@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using TOTP.Core.Interfaces;
+using TOTP.Core.Services;
 using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Logging;

@@ -10,5 +10,6 @@ public enum OperationStatus
     CreateFailed,
     StorageFailed,
     Success,
-    AlreadyExists
+    AlreadyExists,
+    ItemIdMismatch
 }

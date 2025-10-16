@@ -2,6 +2,8 @@
 using Syncfusion.UI.Xaml.Grid;
 using System.Windows;
 using System.Windows.Input;
+using CurrentCellBeginEditEventArgs = Syncfusion.UI.Xaml.Grid.CurrentCellBeginEditEventArgs;
+using CurrentCellEndEditEventArgs = Syncfusion.UI.Xaml.Grid.CurrentCellEndEditEventArgs;
 
 namespace TOTP.Behaviors;
 
@@ -34,9 +36,12 @@ public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
         set => SetValue(DoubleClickCommandProperty, value);
     }
 
+
     protected override void OnAttached()
     {
         base.OnAttached();
+
+
         AssociatedObject.CurrentCellBeginEdit += OnBeginEdit;
         AssociatedObject.CurrentCellEndEdit += OnEndEdit;
         AssociatedObject.MouseDoubleClick += OnMouseDoubleClick;
@@ -45,6 +50,7 @@ public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
     protected override void OnDetaching()
     {
         base.OnDetaching();
+
         AssociatedObject.CurrentCellBeginEdit -= OnBeginEdit;
         AssociatedObject.CurrentCellEndEdit -= OnEndEdit;
         AssociatedObject.MouseDoubleClick -= OnMouseDoubleClick;
@@ -54,13 +60,23 @@ public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
     {
         if (AssociatedObject.SelectedItem != null &&
             BeginEditCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
+        {
             BeginEditCommand.Execute(AssociatedObject.SelectedItem);
+        }
     }
 
     private void OnEndEdit(object? sender, CurrentCellEndEditEventArgs e)
     {
         if (AssociatedObject.SelectedItem != null && EndEditCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
+        {
             EndEditCommand.Execute(AssociatedObject.SelectedItem);
+
+            //AssociatedObject.Dispatcher.BeginInvoke(new Action(() =>
+            //{
+            //    // prevents next row selection after inline edit of a field has finished
+            //    (AssociatedObject.DataContext as MainViewModel).IsInlineEditing = false;
+            //}), DispatcherPriority.Background);
+        }
     }
 
     private void OnMouseDoubleClick(object sender, MouseButtonEventArgs e)

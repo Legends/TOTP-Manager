@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
-using TOTP.Interfaces;
+﻿using TOTP.Interfaces;
 
-namespace TOTP.Services;
+namespace TOTP.Core.Services;
 
 public class DelayService : IDelayService
 {

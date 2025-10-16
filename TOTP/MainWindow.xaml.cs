@@ -21,7 +21,6 @@ public partial class MainWindow : ChromelessWindow
     public MainWindow(IMainViewModel vm, ILogger<MainWindow> logger)
     {
 
-
         _logger = logger;
         InitializeComponent();
 
@@ -35,7 +34,6 @@ public partial class MainWindow : ChromelessWindow
         this.Left = (screenWidth - windowWidth) / 2;
         this.Top = screenHeight / 4;
 
-
         // build action: Resource
         //this.Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/Icons/github.ico"));
         //this.Icon = new BitmapImage(new Uri("pack://application:,,,/totp.ico"));
@@ -48,7 +46,6 @@ public partial class MainWindow : ChromelessWindow
 
         Loaded += OnLoadedAsync;
         SecretsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
-
     }
 
     private async void OnLoadedAsync(object sender, RoutedEventArgs e)
@@ -66,14 +63,15 @@ public partial class MainWindow : ChromelessWindow
         }
     }
 
-
     private void SecretsGrid_ItemsSourceChanged(object? sender, Syncfusion.UI.Xaml.Grid.GridItemsSourceChangedEventArgs e)
     {
 
         if (DataContext is IMainViewModel vm && SecretsGrid.View != null && SecretsGrid.View.Filter == null)
         {
+            // Attach filtering handler
             SecretsGrid.View.Filter = vm.DoFilterGrid;
 
+            // Setup RefreshFilter callable from View
             vm.RequestGridFilterRefresh = () =>
             {
                 if (!Dispatcher.CheckAccess())
@@ -82,8 +80,8 @@ public partial class MainWindow : ChromelessWindow
                     SecretsGrid.View?.RefreshFilter();
             };
 
+            // Filters the grid datasource based on vm.DoFilterGrid
             SecretsGrid.View.RefreshFilter();
-
         }
     }
 

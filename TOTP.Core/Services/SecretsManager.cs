@@ -9,7 +9,7 @@ using TOTP.Core.Validation;
 using TOTP.Interfaces;
 
 
-namespace TOTP.Services;
+namespace TOTP.Core.Services;
 
 public class SecretsManager : ISecretsManager, IDisposable
 {
@@ -90,6 +90,35 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
     }
 
+    public async Task<Result<bool>> UpdateItemAsync(SecretItem previous, SecretItem updated)
+    {
+
+        if (previous.ID != updated.ID)
+            return Result<bool>.Fail(OperationStatus.ItemIdMismatch);
+
+        await Semaphore.WaitAsync();
+        try
+        {
+            var (ok, listStore) = await LoadSecretsFromFileAsync();
+            if (!ok) return new(OperationStatus.LoadingFailed, ok);
+
+            var existing = listStore.FirstOrDefault(x => x.Platform == previous.Platform);
+            if (existing == null)
+            {
+                return Result<bool>.Fail(OperationStatus.NotFound);
+            }
+
+            listStore.Remove(existing);
+            listStore.Add(updated);
+            var result = await WriteEncryptedFileAsync(listStore);
+            return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+
     public async Task<Result<bool>> DeleteItemAsync(string platform)
     {
         await Semaphore.WaitAsync();
@@ -108,32 +137,6 @@ public class SecretsManager : ISecretsManager, IDisposable
             secrets.Remove(item);
 
             var result = await WriteEncryptedFileAsync(secrets);
-            return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
-        }
-        finally
-        {
-            Semaphore.Release();
-        }
-    }
-
-
-    public async Task<Result<bool>> UpdateItemAsync(string previousPlatform, SecretItem updated)
-    {
-        await Semaphore.WaitAsync();
-        try
-        {
-            var (ok, listStore) = await LoadSecretsFromFileAsync();
-            if (!ok) return new(OperationStatus.LoadingFailed, ok);
-
-            var existing = listStore.FirstOrDefault(x => x.Platform == previousPlatform);
-            if (existing == null)
-            {
-                return Result<bool>.Fail(OperationStatus.NotFound);
-            }
-
-            listStore.Remove(existing);
-            listStore.Add(updated);
-            var result = await WriteEncryptedFileAsync(listStore);
             return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
         }
         finally
@@ -236,6 +239,5 @@ public class SecretsManager : ISecretsManager, IDisposable
     {
         Semaphore.Dispose();
     }
-
 
 }

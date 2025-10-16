@@ -24,5 +24,7 @@ public interface IMainViewModel : INotifyPropertyChanged
     bool IsContextmenuOpen { get; set; }
     Task InitializeAsync();
     Task OnRowSelectionChangedAsync();
+    bool IsGridEditing { get; set; }
+    bool IsInlineEditing { get; set; }
 
 }

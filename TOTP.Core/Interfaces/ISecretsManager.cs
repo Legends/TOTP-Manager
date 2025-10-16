@@ -29,7 +29,7 @@ public interface ISecretsManager
     /// <param name="previousPlatform"></param>
     /// <param name="updated"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<Result<bool>> UpdateItemAsync(string previousPlatform, SecretItem updated);
+    Task<Result<bool>> UpdateItemAsync(SecretItem previousPlatform, SecretItem updated);
 
     /// <summary>
     /// Deletes a secret item from the internal collection and writes the updated collection to the encrypted secrets file.
