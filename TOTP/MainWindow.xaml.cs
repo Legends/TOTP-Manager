@@ -55,6 +55,8 @@ public partial class MainWindow : ChromelessWindow
         try
         {
             await _vm.InitializeAsync();
+
+
         }
         catch (Exception ex)
         {

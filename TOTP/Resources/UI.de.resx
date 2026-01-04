@@ -225,6 +225,9 @@
   <data name="tooltip_AddNew" xml:space="preserve">
     <value>Neuen Schlüssel hinzufügen</value>
   </data>
+  <data name="tooltip_AuthenticatorAppScan" xml:space="preserve">
+    <value>Scanne den Kode mit deiner Authenticator-App</value>
+  </data>
   <data name="ui_btnAdd" xml:space="preserve">
     <value>Hinzufügen</value>
   </data>
@@ -267,6 +270,9 @@
   <data name="ui_Edit_Entry" xml:space="preserve">
     <value>Eintrag ändern</value>
   </data>
+  <data name="ui_Export" xml:space="preserve">
+    <value>Alle Schlüssel in eine Datei exportieren</value>
+  </data>
   <data name="ui_Header_Account" xml:space="preserve">
     <value>konto</value>
   </data>
@@ -296,6 +302,9 @@
   </data>
   <data name="ui_label_Search_Dots" xml:space="preserve">
     <value>Suche...</value>
+  </data>
+  <data name="ui_Options" xml:space="preserve">
+    <value>Optionen</value>
   </data>
   <data name="ui_ScanQR" xml:space="preserve">
     <value>QR Code scannen</value>

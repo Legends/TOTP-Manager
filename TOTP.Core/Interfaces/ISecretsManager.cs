@@ -31,6 +31,9 @@ public interface ISecretsManager
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
     Task<Result<bool>> UpdateItemAsync(SecretItem previousPlatform, SecretItem updated);
 
+    Task<Result<bool>> UpdateItemAdminOnlyAsync(SecretItem item);
+
+
     /// <summary>
     /// Deletes a secret item from the internal collection and writes the updated collection to the encrypted secrets file.
     /// </summary>

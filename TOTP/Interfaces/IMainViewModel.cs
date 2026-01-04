@@ -26,5 +26,6 @@ public interface IMainViewModel : INotifyPropertyChanged
     Task OnRowSelectionChangedAsync();
     bool IsGridEditing { get; set; }
     bool IsInlineEditing { get; set; }
+    bool IsSecretVisible { get; set; }
 
 }

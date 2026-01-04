@@ -64,7 +64,7 @@ public static class BootLoader
                 services.AddSingleton<IDelayService, DelayService>();
                 services.AddSingleton<IDebounceService, DebounceService>();
                 services.AddSingleton<IMessageService, MessageService>();
-
+                services.AddTransient<IFileDialogService, FileDialogService>();
                 services.AddSingleton<IQrCodeService, QrCodeService>();
 
                 // dialogs

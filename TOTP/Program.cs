@@ -50,6 +50,7 @@ internal static class Program
 
             // 5) resolve & show window (explicit)
             var mainWindow = host.Services.GetRequiredService<MainWindow>();
+            mainWindow.ResizeMode = System.Windows.ResizeMode.NoResize;
             app.MainWindow = mainWindow;
             mainWindow.Show();
 

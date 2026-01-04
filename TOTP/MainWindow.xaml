@@ -22,7 +22,9 @@
                              Icon="/Assets/Icons/app.ico"
                              Title="TOTP Manager"
                              TitleBarBackground="#7D7FF4"
-                             TitleBarForeground="{DynamicResource Brush.Foreground}">
+                             TitleBarForeground="{DynamicResource Brush.Foreground}"
+                             xmlns:Microsoft_Windows_Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero"
+                             xmlns:local="clr-namespace:Syncfusion.Windows.Shared;assembly=Syncfusion.Shared.WPF">
 
     <syncfusion:ChromelessWindow.Resources>
         <BounceEase x:Key="BounceEase"
@@ -32,6 +34,51 @@
         <converters:SecretMaskConverter x:Key="SecretMaskConverter" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverterCollapsed"
                                                 Collapse="True" />
+
+        <Style x:Key="IconToggleButtonStyle"
+               TargetType="{x:Type ToggleButton}">
+            <Setter Property="Background"
+                    Value="Transparent" />
+            <Setter Property="BorderBrush"
+                    Value="Transparent" />
+            <Setter Property="BorderThickness"
+                    Value="0" />
+            <Setter Property="Padding"
+                    Value="0" />
+            <Setter Property="Focusable"
+                    Value="False" />
+            <Setter Property="FocusVisualStyle"
+                    Value="{x:Null}" />
+            <Setter Property="Cursor"
+                    Value="Hand" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <!-- Always transparent; no trigger-driven box -->
+                        <Border Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+
+                        <!-- Optional: if you still want subtle feedback, uncomment:
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Opacity" Value="0.85"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter Property="Opacity" Value="0.75"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+                -->
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
 
         <Style x:Key="InlineErrorTextStyle"
                TargetType="TextBlock">
@@ -44,7 +91,6 @@
             <Setter Property="FontWeight"
                     Value="SemiBold" />
         </Style>
-
 
         <!-- Slide-in animation for flyout -->
         <Style x:Key="FlyoutHostStyle"
@@ -78,6 +124,196 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <SolidColorBrush x:Key="MenuItemHoverBackgroundBrushKey"
+                         Color="Transparent" />
+        <LinearGradientBrush x:Key="MenuItemSelectedBackgroundBrushKey"
+                             EndPoint="0.5,1"
+                             StartPoint="0.5,0">
+            <GradientStop Color="Gainsboro"
+                          Offset="0.127" />
+            <GradientStop Color="#FFD4D3D3"
+                          Offset="0.133" />
+            <GradientStop Color="#FFBDBBBB"
+                          Offset="0.8" />
+            <GradientStop Color="#FFB1AFAF"
+                          Offset="0.873" />
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="MenuItemSelectedBorderBrushKey"
+                         Color="#FF807F7F" />
+        <SolidColorBrush x:Key="MenuItemSelectedInnerBorderBrushKey"
+                         Color="#FF9B9A9A" />
+        <SolidColorBrush x:Key="ExtendButtonFillKey"
+                         Color="Black" />
+        <SolidColorBrush x:Key="MenuItemForegroundBrushKey"
+                         Color="Black" />
+        <SolidColorBrush x:Key="MenuItemDisabledForegroundBrush"
+                         Color="Gray" />
+        <LinearGradientBrush x:Key="MenuItemMouseHoverBackgroundBrushKey"
+                             EndPoint="0.5,1"
+                             StartPoint="0.5,0">
+            <GradientStop Color="#FF4381C2"
+                          Offset="0" />
+            <GradientStop Color="#FF3399FF"
+                          Offset="0.028" />
+            <GradientStop Color="#FF3399FF"
+                          Offset="0.972" />
+            <GradientStop Color="#FF6D98C3"
+                          Offset="1" />
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="MenuItemMouseHoverBorderBrushKey"
+                         Color="#FFABAAAA" />
+        <LinearGradientBrush x:Key="SubItemMouseHoverBackgroundBrushKey"
+                             EndPoint="0,1"
+                             StartPoint="0,0">
+            <GradientStop Color="#34C5EBFF"
+                          Offset="0" />
+            <GradientStop Color="#3481D8FF"
+                          Offset="1" />
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="SubItemMouseHoverBorderBrushKey"
+                         Color="#FFAEDFF4" />
+        <SolidColorBrush x:Key="PopUpBackgroundBrush"
+                         Color="#FFF5F5F5" />
+        <SolidColorBrush x:Key="PopUpBorderBrush"
+                         Color="#FF959595" />
+        <SolidColorBrush x:Key="PopUpLeftBackgroundBrush"
+                         Color="#FFF1F1F1" />
+        <SolidColorBrush x:Key="ScrollerBackgroundBrush"
+                         Color="#FFC8CBD1" />
+        <SolidColorBrush x:Key="ScrollBtnPathFillKey"
+                         Color="Black" />
+        <SolidColorBrush x:Key="ChkBoxBackgroundBrushKey"
+                         Color="#EDF2F7" />
+        <SolidColorBrush x:Key="ChkBoxBorderBrushKey"
+                         Color="#AECFF7" />
+        <SolidColorBrush x:Key="ChkBoxPathFillKey"
+                         Color="#FF0C12A1" />
+        <SolidColorBrush x:Key="RadioBtnBackgroundBrushKey"
+                         Color="#EDF2F7" />
+        <SolidColorBrush x:Key="RadioBtnBorderBrushKey"
+                         Color="#AECFF7" />
+        <Style x:Key="TopScrollButtonStyleKey"
+               TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <Border x:Name="TopButtonScroll"
+                                    Background="{StaticResource ScrollerBackgroundBrush}"
+                                    BorderBrush="{StaticResource ScrollerBackgroundBrush}"
+                                    BorderThickness="1">
+                                <Path Data="F0 M 0,0 L 4,4 8,0 Z"
+                                      Fill="{StaticResource ScrollBtnPathFillKey}"
+                                      HorizontalAlignment="Center"
+                                      RenderTransformOrigin="0.5,0.5"
+                                      VerticalAlignment="Center">
+                                    <Path.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform />
+                                            <SkewTransform />
+                                            <RotateTransform Angle="180" />
+                                            <TranslateTransform />
+                                        </TransformGroup>
+                                    </Path.RenderTransform>
+                                </Path>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BottomScrollButtonStyleKey"
+               TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <Border x:Name="BottomButtonScroll"
+                                    Background="{StaticResource ScrollerBackgroundBrush}"
+                                    BorderBrush="{StaticResource ScrollerBackgroundBrush}"
+                                    BorderThickness="1">
+                                <Path Data="F0 M 0,0 L 4,4 8,0 Z"
+                                      Fill="{StaticResource ScrollBtnPathFillKey}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CheckBoxStyleKey"
+               TargetType="{x:Type CheckBox}">
+            <Setter Property="Margin"
+                    Value="3" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type CheckBox}">
+                        <Grid>
+                            <Border x:Name="ChkBoxBorder"
+                                    Background="{StaticResource ChkBoxBackgroundBrushKey}"
+                                    BorderBrush="{StaticResource ChkBoxBorderBrushKey}"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    Height="22"
+                                    Width="22">
+                                <Path x:Name="Glyph"
+                                      Data="M 2,10 L 8,16 L 18,4"
+                                      Stroke="{StaticResource ChkBoxPathFillKey}"
+                                      StrokeThickness="2"
+                                      Fill="Transparent"
+                                      Height="11"
+                                      Width="16" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="RadioButtonStyleKey"
+               TargetType="{x:Type RadioButton}">
+            <Setter Property="Margin"
+                    Value="3" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
+                        <Grid>
+                            <Border x:Name="RadioBtnBorder"
+                                    Background="{StaticResource RadioBtnBackgroundBrushKey}"
+                                    BorderBrush="{StaticResource RadioBtnBorderBrushKey}"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    Height="22"
+                                    Width="22">
+                                <Ellipse x:Name="EllipsePath"
+                                         Height="8"
+                                         Margin="1"
+                                         StrokeThickness="1"
+                                         Width="8">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush Center="0.65625,0.218746"
+                                                             GradientOrigin="0.65625,0.218746">
+                                            <RadialGradientBrush.RelativeTransform>
+                                                <TransformGroup>
+                                                    <RotateTransform Angle="120.379"
+                                                                     CenterY="0.218746"
+                                                                     CenterX="0.65625" />
+                                                </TransformGroup>
+                                            </RadialGradientBrush.RelativeTransform>
+                                            <GradientStop Color="#FFCCCCED"
+                                                          Offset="0" />
+                                            <GradientStop Color="#FF16186D"
+                                                          Offset="1" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </syncfusion:ChromelessWindow.Resources>
 
     <!-- Wrap existing content in a Grid so we can overlay the flyout -->
@@ -131,8 +367,8 @@
                                          Stretch="Uniform" />
                     </Button>
 
-                    <!-- Search field -->
-                    <syncfusion:SfTextBoxExt Width="120"
+                    <!-- Search Textbox -->
+                    <syncfusion:SfTextBoxExt Width="80"
                                              Height="30"
                                              VerticalAlignment="Center"
                                              VerticalContentAlignment="Stretch"
@@ -140,10 +376,10 @@
                                              Watermark="{xaml:Resx Key=ui_label_Search_Dots}"
                                              props:FocusExtension.IsFocused="{Binding IsSearchFocused}"
                                              Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
-                                             Padding="0"
+                                             Padding="0,0,20,0"
                                              Margin="10,0,0,0" />
 
-                    <!-- Clear-Search-Button -->
+                    <!-- Search-Clear-Button -->
                     <Button Content="×"
                             Background="Transparent"
                             BorderThickness="0"
@@ -155,26 +391,83 @@
                             Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
                 </StackPanel>
 
-                <!-- right side: language selector -->
-                <syncfusion:ComboBoxAdv Grid.Column="1"
-                                        IsEnabled="{Binding IsGridEditing, Converter={StaticResource InverseBooleanConverter}}"
-                                        ItemsSource="{Binding SupportedCultures}"
-                                        SelectedItem="{Binding SelectedCulture, Mode=TwoWay}"
-                                        Width="50"
+                <!-- right side: language selector + Options Gear Icon-->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Grid.Column="1">
+                    <syncfusion:ComboBoxAdv Grid.Column="1"
+                                            IsEnabled="{Binding IsGridEditing, Converter={StaticResource InverseBooleanConverter}}"
+                                            ItemsSource="{Binding SupportedCultures}"
+                                            SelectedItem="{Binding SelectedCulture, Mode=TwoWay}"
+                                            Width="50"
+                                            VerticalAlignment="Center"
+                                            Margin="2"
+                                            AllowMultiSelect="False">
+                        <syncfusion:ComboBoxAdv.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{Binding IconPath}"
+                                           Width="20"
+                                           Height="25"
+                                           Margin="0,0,5,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </syncfusion:ComboBoxAdv.ItemTemplate>
+                    </syncfusion:ComboBoxAdv>
+
+                    <!-- Gear-Options -->
+                    <syncfusion:MenuAdv Height="25"
+                                        Margin="2,5,5,0"
+                                        Padding="0"
+                                        Width="23"
                                         VerticalAlignment="Center"
-                                        Margin="2"
-                                        AllowMultiSelect="False">
-                    <syncfusion:ComboBoxAdv.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Image Source="{Binding IconPath}"
-                                       Width="20"
-                                       Height="25"
-                                       Margin="0,0,5,0" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </syncfusion:ComboBoxAdv.ItemTemplate>
-                </syncfusion:ComboBoxAdv>
+                                        Orientation="Horizontal"
+                                        ExpandMode="ExpandOnClick">
+
+                        <!-- Main entry point: Gear icon -->
+                        <syncfusion:MenuItemAdv Header=" "
+                                                Width="32"
+                                                Padding="0"
+                                                ToolTip="{xaml:Resx Key=ui_Options}"
+                                                HorizontalContentAlignment="Center"
+                                                VerticalContentAlignment="Center">
+
+
+                            <syncfusion:MenuItemAdv.Icon>
+                                <svgc:SvgViewbox Source="/Assets/Icons/Gear--03WF-48x48.svg"
+                                                 Height="15"
+                                                 Stretch="Uniform" />
+                            </syncfusion:MenuItemAdv.Icon>
+
+                            <syncfusion:MenuItemAdv Header="Export"
+                                                    ToolTip="{xaml:Resx Key=ui_Export}"
+                                                    Command="{Binding ExportSecretsCommand}" />
+
+                            <!-- Your menu opens vertically under the gear -->
+                            <syncfusion:MenuItemAdv Header="WPF">
+                                <syncfusion:MenuItemAdv Header="Tools" />
+                                <syncfusion:MenuItemAdv Header="Chart" />
+                                <syncfusion:MenuItemAdv Header="Grid" />
+                                <syncfusion:MenuItemAdv Header="Diagram" />
+                                <syncfusion:MenuItemAdv Header="Gauge" />
+                                <syncfusion:MenuItemAdv Header="Schedule" />
+                                <syncfusion:MenuItemAdv Header="Edit" />
+                            </syncfusion:MenuItemAdv>
+
+
+                            <syncfusion:MenuItemAdv Header="Reporting" />
+
+                            <!-- Optional: actual settings command as a clickable leaf item -->
+                            <syncfusion:MenuItemAdv Header="Settings"
+                                                    Command="{Binding OpenSettingsCommand}" />
+                        </syncfusion:MenuItemAdv>
+
+                    </syncfusion:MenuAdv>
+
+
+                </StackPanel>
+
             </Grid>
 
             <!--  === SECRETS DATAGRID CONTAINER === -->
@@ -208,7 +501,6 @@
                                        NavigationMode="Cell"
                                        LiveDataUpdateMode="AllowDataShaping"
                                        MaxHeight="200"
-                                       MaxWidth="160"
                                        Margin="0,0,0,20"
                                        BorderThickness="0"
                                        RowSelectionBrush="#1D3366"
@@ -326,6 +618,7 @@
 
                 <!-- QR Code image -->
                 <Image Grid.Row="1"
+                       ToolTip="{xaml:Resx Key=tooltip_AuthenticatorAppScan}"
                        Margin="0,0,0,20"
                        Source="{Binding QrCodeImage}"
                        Width="160"
@@ -452,11 +745,61 @@
                                FontWeight="Bold"
                                Foreground="White"
                                Margin="0,10,0,-4" />
-                    <PasswordBox Height="30"
-                                 props:PasswordBoxHelper.BindPassword="True"
-                                 props:PasswordBoxHelper.BoundPassword="{Binding CurrentSecretBeingEditedOrAdded.Secret,
-                                                             Mode=TwoWay,
-                                                             UpdateSourceTrigger=PropertyChanged}" />
+
+
+                    <!-- VISIBLE (TextBox) -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <!--<ColumnDefinition Width="Auto"></ColumnDefinition>-->
+                        </Grid.ColumnDefinitions>
+                        <PasswordBox Height="30"
+                                     props:PasswordBoxHelper.BindPassword="True"
+                                     props:PasswordBoxHelper.BoundPassword="{Binding CurrentSecretBeingEditedOrAdded.Secret,
+              Mode=TwoWay,
+              UpdateSourceTrigger=PropertyChanged}"
+                                     Visibility="{Binding IsSecretVisible, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                        <TextBox Grid.Column="0"
+                                 Height="30"
+                                 Padding="0,0,6,0"
+                                 VerticalContentAlignment="Center"
+                                 Text="{Binding CurrentSecretBeingEditedOrAdded.Secret,
+                            Mode=TwoWay,
+                            UpdateSourceTrigger=PropertyChanged}"
+                                 Visibility="{Binding IsSecretVisible,
+                                  Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                        <!-- Eye button -->
+                        <ToggleButton Grid.Column="0" HorizontalAlignment="Right"
+                                      Style="{StaticResource IconToggleButtonStyle}"
+                                      Width="32"
+                                      Height="30"
+                                      Margin="4,0,0,0"
+                                      IsChecked="{Binding IsSecretVisible, Mode=TwoWay}"
+                                      ToolTip="{xaml:Resx Key=ui_btnShowHideSecret}"
+                                      Background="Transparent"
+                                      BorderThickness="0"
+                                      Focusable="False">
+
+                            <ToggleButton.Content>
+                                <Grid Width="16"
+                                      Height="16">
+                                    <!-- eye-open icon when visible -->
+                                    <svgc:SvgViewbox Source="/Assets/Icons/Eye-Closed-48x48.svg"
+                                                     Stretch="Uniform"
+                                                     Visibility="{Binding IsSecretVisible,
+                                                      Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                                    <!-- eye-closed icon when hidden -->
+                                    <svgc:SvgViewbox Source="/Assets/Icons/Eye-Open-48x48.svg"
+                                                     Stretch="Uniform"
+                                                     Visibility="{Binding IsSecretVisible,
+                                                      Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                </Grid>
+                            </ToggleButton.Content>
+                        </ToggleButton>
+                    </Grid>
+
                     <!--Error Field Secret-->
                     <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.SecretError}"
                                Style="{StaticResource InlineErrorTextStyle}"

@@ -9,7 +9,8 @@
 
     <!-- Converter -->
     <sys:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
     <converters:BoolToVisibilityConverterCollapsed x:Key="BoolToVisibilityConverterCollapsed" />
 
     <!-- Brushes -->

@@ -385,6 +385,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Scan the code with your authenticator app.
+        /// </summary>
+        internal static string tooltip_AuthenticatorAppScan {
+            get {
+                return ResourceManager.GetString("tooltip_AuthenticatorAppScan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add.
         /// </summary>
         internal static string ui_btnAdd {
@@ -511,6 +520,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export all secrets to file.
+        /// </summary>
+        internal static string ui_Export {
+            get {
+                return ResourceManager.GetString("ui_Export", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to account.
         /// </summary>
         internal static string ui_Header_Account {
@@ -597,6 +615,15 @@ namespace TOTP.Resources {
         internal static string ui_label_Search_Dots {
             get {
                 return ResourceManager.GetString("ui_label_Search_Dots", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Options.
+        /// </summary>
+        internal static string ui_Options {
+            get {
+                return ResourceManager.GetString("ui_Options", resourceCulture);
             }
         }
         

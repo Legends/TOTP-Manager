@@ -44,6 +44,11 @@
 		<None Remove="Assets\Icons\Camera-48x48.svg" />
 		<None Remove="Assets\Icons\delete-24x24.svg" />
 		<None Remove="Assets\Icons\Edit-48x48.svg" />
+		<None Remove="Assets\Icons\Eye - 02-48x48.svg" />
+		<None Remove="Assets\Icons\Eye - 07-48x48.svg" />
+		<None Remove="Assets\Icons\Eye-Closed-48x48.svg" />
+		<None Remove="Assets\Icons\Eye-Open-48x48.svg" />
+		<None Remove="Assets\Icons\Gear--03WF-48x48.svg" />
 		<None Remove="Assets\Icons\Info.png" />
 		<None Remove="Assets\Icons\Lock-Add.png" />
 		<None Remove="Assets\Icons\plus-24x24.svg" />
@@ -114,6 +119,15 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\Edit-48x48.svg">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="Assets\Icons\Eye-Closed-48x48.svg">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="Assets\Icons\Eye-Open-48x48.svg">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="Assets\Icons\Gear--03WF-48x48.svg">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\Info.png">

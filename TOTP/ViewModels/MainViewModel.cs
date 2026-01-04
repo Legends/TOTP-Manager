@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -48,6 +49,19 @@ public class MainViewModel : IMainViewModel
 
 
     #region ### FLYOUT PANEL ###
+
+    private bool _isSecretVisible;
+    public bool IsSecretVisible
+    {
+        get => _isSecretVisible;
+        set
+        {
+            if (_isSecretVisible == value) return;
+            _isSecretVisible = value;
+            OnPropertyChanged();
+        }
+    }
+
     public bool IsAddMode
     {
         get => _isAddMode;
@@ -304,8 +318,8 @@ public class MainViewModel : IMainViewModel
 
     //private readonly DispatcherTimer _debounceTimer;
     private readonly IQrCodeService _qrService;
-
     private readonly IDelayService _delayService;
+    private readonly IFileDialogService _fileDialogService;
 
     //private string _pendingSearchText;
 
@@ -323,9 +337,10 @@ public class MainViewModel : IMainViewModel
         ITotpManager totpManager,
         IDebounceService debounceService,
         IDelayService delayService,
-        ISecretsManager secretsManager) // NEW
+        ISecretsManager secretsManager,
+        IFileDialogService fileDialogService) // NEW
     {
-
+        _fileDialogService = fileDialogService;
         _secretsManager = secretsManager;
         _logger = logger;
         _qrService = svcQr;
@@ -353,6 +368,7 @@ public class MainViewModel : IMainViewModel
         var selCulture = SupportedCultures.FirstOrDefault(c => c.Culture.Name == currentCulture.Name)
                            ?? SupportedCultures.First();
         SelectedCulture = selCulture;
+
     }
 
 
@@ -367,36 +383,36 @@ public class MainViewModel : IMainViewModel
     //    return new AddNewPromptArgs() { Success = success, Platform = key, Secret = value, Account = account };
     //}
 
-    private void showMessage(OperationStatus arg1, SecretItemViewModel item)
+    private void ShowMessage(OperationStatus arg1, SecretItemViewModel? item)
     {
         switch (arg1)
         {
             case OperationStatus.Unknown:
-                _messageService.ShowErrorMessage(item.Error ?? "An unknow error has occured");
+                _messageService.ShowErrorMessage(item?.Error ?? "An unknow error has occured");
                 break;
             case OperationStatus.NotFound:
-                _messageService.ShowErrorMessage($"{UI.msg_Platform_Not_Found}: {item.Platform}");
+                _messageService.ShowErrorMessage($"{UI.msg_Platform_Not_Found}: {item?.Platform}");
                 break;
             case OperationStatus.LoadingFailed:
                 _messageService.ShowErrorMessage(UI.msg_Failed_Loading_Secrets);
                 break;
             case OperationStatus.DeleteFailed:
-                _messageService.ShowErrorMessage($"{UI.msg_Failed_Delete_Secret} : {item.Platform}");
+                _messageService.ShowErrorMessage($"{UI.msg_Failed_Delete_Secret} : {item?.Platform}");
                 break;
             case OperationStatus.UpdateFailed:
-                _messageService.ShowErrorMessage($"{UI.msg_Failed_Updating_Secret} : {item.Platform}");
+                _messageService.ShowErrorMessage($"{UI.msg_Failed_Updating_Secret} : {item?.Platform}");
                 break;
             case OperationStatus.CreateFailed:
-                _messageService.ShowErrorMessage(string.Format(UI.msg_FailedAddingSecret, item.Platform ?? ""));
+                _messageService.ShowErrorMessage(string.Format(UI.msg_FailedAddingSecret, item?.Platform ?? ""));
                 break;
             case OperationStatus.StorageFailed:
-                _messageService.ShowErrorMessage($"{UI.msg_Failed_Storage}: {item.Platform ?? ""}");
+                _messageService.ShowErrorMessage($"{UI.msg_Failed_Storage}: {item?.Platform ?? ""}");
                 break;
             case OperationStatus.Success:
                 //_messageService.ShowInfoMessage($"{UI.msg_SecretUpdated}: {item.Platform}");
                 break;
             case OperationStatus.AlreadyExists:
-                _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, item.Platform));
+                _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, item?.Platform));
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(arg1), arg1, null);
@@ -408,6 +424,18 @@ public class MainViewModel : IMainViewModel
         await ReadAllSecretsAsync();
 
         AllSecrets.CollectionChanged += Source_CollectionChanged;
+
+        //var secrets = AllSecrets;
+
+        //foreach (var item in secrets)
+        //{
+
+        //    if (item.ID == Guid.Empty)
+        //    {
+        //        item.ID = Guid.NewGuid();
+        //        await _secretsManager.UpdateItemAdminOnlyAsync(item.ToDomain());
+        //    }
+        //}
 
     }
 
@@ -448,9 +476,10 @@ public class MainViewModel : IMainViewModel
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    #endregion  
+    #endregion
 
     #region ### COMMANDS DECLARATION ###
+    public AsyncCommand ExportSecretsCommand { get; private set; } = null!;
     public AsyncCommand ScanQrAndAddCommand { get; private set; } = null!;
     public ICommand CancelFlyoutCommand { get; private set; } = null!;
     public AsyncCommand SaveEditFlyoutAsyncCommand { get; private set; } = null!;
@@ -471,7 +500,32 @@ public class MainViewModel : IMainViewModel
 
     private void SetupCommandEventhandler()
     {
+        ExportSecretsCommand = new AsyncCommand(async () =>
+        {
+            var path = _fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Secrets");
 
+            if (path == null) // canceled
+                return;
+
+            var secrets = await _secretsManager.GetAllSecretsAsync();
+            if (secrets.Status != OperationStatus.Success)
+            {
+                ShowMessage(secrets.Status, null);
+                return;
+            }
+            secrets.Value.Sort(new Comparison<SecretItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(secrets.Value, options));
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            };
+
+            Process.Start(psi);
+
+        });
         ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAsync, () => !_isGridInEditMode);
 
         OpenFlyoutEditModeCommand = new RelayCommand<SecretItemViewModel>(OpenFlyoutEditMode);
@@ -521,10 +575,13 @@ public class MainViewModel : IMainViewModel
 
             if (result.Status == OperationStatus.Success)
             {
+                result.Value.Sort(new Comparison<SecretItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
+
                 var allSecrets = result.Value;
                 AllSecrets = new ObservableCollection<SecretItemViewModel>((allSecrets.Select(item => item.ToViewModel()) ?? []));
 #if DEBUG
-                // for dev purposes, exclude Syncfusion entry
+                //for dev purposes, exclude Syncfusion entry
+
                 var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).Select(item => item.ToViewModel()).ToList();
 
                 AllSecrets = new ObservableCollection<SecretItemViewModel>((IEnumerable<SecretItemViewModel>)(secrets ?? []));
@@ -533,11 +590,14 @@ public class MainViewModel : IMainViewModel
                 {
                     item.SetDuplicateCheck(DuplicateCheck);
                 }
+
+
+
                 return AllSecrets;
             }
             else
             {
-                showMessage(result.Status, new SecretItemViewModel(Guid.Empty, null!, null!));
+                ShowMessage(result.Status, new SecretItemViewModel(Guid.Empty, null!, null!));
             }
 
         }
@@ -667,6 +727,8 @@ public class MainViewModel : IMainViewModel
     /// <returns></returns>
     public async Task AddOrUpdateAsync()
     {
+        IsSecretVisible = false;
+
         if (IsAddMode) // add new mode
         {
             CurrentSecretBeingEditedOrAdded.SetDuplicateCheck(DuplicateCheck);
@@ -681,7 +743,7 @@ public class MainViewModel : IMainViewModel
 
             if (addResult.Status != OperationStatus.Success)
             {
-                showMessage(addResult.Status, CurrentSecretBeingEditedOrAdded);
+                ShowMessage(addResult.Status, CurrentSecretBeingEditedOrAdded);
                 return;
             }
 
@@ -789,7 +851,7 @@ public class MainViewModel : IMainViewModel
         }
 
         PreviousVersion = null;
-
+        IsInlineEditing = false;
 
     }
 
@@ -815,6 +877,8 @@ public class MainViewModel : IMainViewModel
     #region ### Row/Field Selection Logic  ###
 
     private bool _isDoubleClick;
+
+
     /// <summary>
     /// Triggered by SfDataGrid's SelectionChanged event in code-behind: DataGrid_SelectionChanged
     /// </summary>
@@ -1031,7 +1095,7 @@ public class MainViewModel : IMainViewModel
                 var addResult = await _secretsManager.AddNewItemAsync(newSecretItem.ToDomain());
                 if (addResult.Status != OperationStatus.Success)
                 {
-                    showMessage(addResult.Status, newSecretItem);
+                    ShowMessage(addResult.Status, newSecretItem);
                     return;
                 }
                 if (addResult.Status == OperationStatus.Success)
