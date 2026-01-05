@@ -118,35 +118,6 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
     }
 
-#if DEBUG
-
-    public async Task<Result<bool>> UpdateItemAdminOnlyAsync(SecretItem item)
-    {
-
-        await Semaphore.WaitAsync();
-        try
-        {
-            var (ok, listStore) = await LoadSecretsFromFileAsync();
-            if (!ok) return new(OperationStatus.LoadingFailed, ok);
-
-            var existing = listStore.FirstOrDefault(x => x.Platform == item.Platform);
-            if (existing == null)
-            {
-                return Result<bool>.Fail(OperationStatus.NotFound);
-            }
-
-            listStore.Remove(existing);
-            listStore.Add(item);
-            var result = await WriteEncryptedFileAsync(listStore);
-            return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
-        }
-        finally
-        {
-            Semaphore.Release();
-        }
-    }
-
-#endif
 
     public async Task<Result<bool>> DeleteItemAsync(string platform)
     {
