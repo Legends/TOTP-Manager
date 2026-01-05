@@ -369,8 +369,20 @@ public class MainViewModel : IMainViewModel
                            ?? SupportedCultures.First();
         SelectedCulture = selCulture;
 
+        LocalizationService.LanguageChanged += LocalizationService_LanguageChanged;
+
     }
 
+    /// <summary>
+    /// Put all localizations updates here if not captured in xaml using:
+    /// for example:
+    ///  -  ToolTip="{xaml:Resx Key=ui_Options}"
+    ///  -  ToolTip="{xaml:Resx Key=ui_btnCancel}"
+    /// </summary>
+    private void LocalizationService_LanguageChanged()
+    {
+        OnPropertyChanged(nameof(ExportToolTip));
+    }
 
     private bool _totpManager_OnDeletePrompt(object? sender, string platform)
     {
@@ -1036,6 +1048,10 @@ public class MainViewModel : IMainViewModel
 
     public string DeleteLabel => TOTP.Resources.UI.ui_btnDelete;
     public string EditLabel => TOTP.Resources.UI.ui_btnEdit;
+
+
+    public string ExportToolTip => Resources.UI.ui_Export; // or your resource accessor
+
 
 
 

@@ -441,12 +441,13 @@
                             </syncfusion:MenuItemAdv.Icon>
 
                             <syncfusion:MenuItemAdv Header="Export"
-                                                    ToolTip="{xaml:Resx Key=ui_Export}"
+                                                    ToolTip="{Binding ExportToolTip}"
                                                     Command="{Binding ExportSecretsCommand}" />
 
                             <!-- Your menu opens vertically under the gear -->
                             <syncfusion:MenuItemAdv Header="WPF">
-                                <syncfusion:MenuItemAdv Header="Tools" />
+                                <syncfusion:MenuItemAdv Header="Tools"
+                                                        ToolTip="{xaml:Resx Key=ui_btnCancel}" />
                                 <syncfusion:MenuItemAdv Header="Chart" />
                                 <syncfusion:MenuItemAdv Header="Grid" />
                                 <syncfusion:MenuItemAdv Header="Diagram" />
