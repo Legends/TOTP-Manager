@@ -1,5 +1,4 @@
-﻿using Syncfusion.Windows.Shared;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Animation;
@@ -10,7 +9,7 @@ using TOTP.Interfaces;
 
 namespace TOTP.UserControls;
 
-public partial class UserMessageDialog : ChromelessWindow
+public partial class UserMessageDialog : Window
 {
     public bool Result { get; private set; }
 
@@ -21,7 +20,7 @@ public partial class UserMessageDialog : ChromelessWindow
 
         DataContext = vm;
 
-        TitleBarBackground = vm.TitleBarBackground;
+        //TitleBarBackground = vm.TitleBarBackground;
         if (!string.IsNullOrWhiteSpace(vm.IconPath) && Common.PackUriExists(vm.IconPath))
             Icon = new BitmapImage(new Uri(vm.IconPath));
 

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using TOTP.Core.Enums;
 using TOTP.Helper;
 using TOTP.Interfaces;
@@ -57,7 +58,20 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         {
             Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive)
         };
-        dialog.ShowDialog();
+        var oldOpacity = dialog.Owner.Opacity;
+        var oldEffect = dialog.Owner.Effect;
+
+        try
+        {
+            dialog.Owner.Opacity = 0.65;      // dim the owner
+            dialog.Owner.Effect = new BlurEffect { Radius = 6 };
+            dialog.ShowDialog();
+        }
+        finally
+        {
+            dialog.Owner.Opacity = oldOpacity;
+            dialog.Owner.Effect = oldEffect;
+        }
     }
 
     public bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
@@ -68,7 +82,20 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         {
             Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive)
         };
-        dialog.ShowDialog();
+        var oldOpacity = dialog.Owner.Opacity;
+        var oldEffect = dialog.Owner.Effect;
+
+        try
+        {
+            dialog.Owner.Opacity = 0.65;      // dim the owner
+            dialog.Owner.Effect = new BlurEffect { Radius = 6 };
+            dialog.ShowDialog();
+        }
+        finally
+        {
+            dialog.Owner.Opacity = oldOpacity;
+            dialog.Owner.Effect = oldEffect;
+        }
         return dialog.Result;
     }
 
