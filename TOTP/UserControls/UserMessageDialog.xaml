@@ -38,7 +38,7 @@
                         <Setter Property="BorderBrush"
                                 Value="#2A3C6A" />
                         <Setter Property="Foreground"
-                                Value="#E8EEFF" />
+                                Value="White" />
                         <Setter Property="BorderThickness"
                                 Value="1" />
 
@@ -88,8 +88,8 @@
                         </Setter>
                 </Style>
 
-                <!-- Primary/OK button -->
-                <Style x:Key="DialogPrimaryButtonStyle"
+                <!-- OK button -->
+                <Style x:Key="DialogOkButtonStyle"
                        TargetType="Button"
                        BasedOn="{StaticResource DialogButtonStyle}">
                         <Setter Property="Background"
@@ -122,7 +122,7 @@
                        TargetType="Button">
                         <Setter Property="Width"
                                 Value="12" />
-                        
+
                         <Setter Property="Height"
                                 Value="12" />
                         <Setter Property="Background"
@@ -215,8 +215,9 @@
                                         VerticalAlignment="Top"
                                         Visibility="{Binding IconVisibility}">
                                         <Image Source="{Binding IconPath}"
-                                               Width="18"
-                                               Height="18"
+                                               Width="22"
+                                               Height="22"
+                                               Margin="0,2,0,0"
                                                Stretch="Uniform"
                                                RenderOptions.BitmapScalingMode="HighQuality"
                                                VerticalAlignment="Center"
@@ -262,7 +263,7 @@
                                         IsCancel="True"
                                         Command="{Binding CancelCommand}" />
 
-                                <Button Style="{StaticResource DialogPrimaryButtonStyle}"
+                                <Button Style="{StaticResource DialogOkButtonStyle}"
                                         Content="{Binding OkButtonText}"
                                         IsDefault="True"
                                         Command="{Binding OkCommand}" />

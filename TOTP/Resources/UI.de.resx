@@ -163,7 +163,7 @@
     <value>Ein Hintergrundprozess ist fehlgeschlagen. Sie können die Anwendung weiterhin verwenden.</value>
   </data>
   <data name="msg_ConfirmDeleteSecret" xml:space="preserve">
-    <value>Schlüssel {0} löschen?</value>
+    <value>Schlüssel "{0}" löschen?</value>
   </data>
   <data name="msg_DispatcherException" xml:space="preserve">
     <value>Ein unerwarteter Fehler ist aufgetreten. Sie können die Anwendung weiterhin verwenden, aber einige Funktionen funktionieren möglicherweise nicht korrekt.</value>
