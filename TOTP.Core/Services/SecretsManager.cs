@@ -47,6 +47,7 @@ public class SecretsManager : ISecretsManager, IDisposable
         }
     }
 
+
     public async Task<Result<SecretItem>> GetSecretByPlatformAsync(string platform)
     {
 

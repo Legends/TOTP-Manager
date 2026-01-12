@@ -1,7 +1,6 @@
 ﻿#region ### USINGS ###
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using OtpNet;
 using Syncfusion.Linq;
 using System;
 using System.Collections.Generic;
@@ -12,7 +11,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -303,7 +301,7 @@ public class MainViewModel : IMainViewModel
     public Action? RequestGridFilterRefresh { get; set; }  // <-- the view sets this
 
 
-    public ObservableCollection<CultureDisplay> SupportedCultures { get; }
+    public ObservableCollection<CultureDisplay> SupportedCultures { get; set; }
 
     #endregion ObservableCollections
 
@@ -350,13 +348,17 @@ public class MainViewModel : IMainViewModel
         _clipboard = clipboard;
         _totpManager = totpManager;
 
-        //_totpManager.OnMessageSend += _totpManager_OnMessageSend;
-        //_totpManager.OnAddNewPrompt += _totpManager_OnAddNewPrompt;
         _totpManager.ConfirmDeleteRequested += _totpManager_OnDeletePrompt;
-
 
         SetupCommandEventhandler();
 
+        SetupLocalization();
+    }
+
+    #region ### LOCALIZATION SETUP ###
+
+    private void SetupLocalization()
+    {
         SupportedCultures =
         [
             new(new CultureInfo("en"), StringsConstants.ImgUrl.EnFlag),
@@ -366,11 +368,10 @@ public class MainViewModel : IMainViewModel
         var currentCulture = CultureInfo.CurrentUICulture;
 
         var selCulture = SupportedCultures.FirstOrDefault(c => c.Culture.Name == currentCulture.Name)
-                           ?? SupportedCultures.First();
+                         ?? SupportedCultures.First();
         SelectedCulture = selCulture;
 
         LocalizationService.LanguageChanged += LocalizationService_LanguageChanged;
-
     }
 
     /// <summary>
@@ -384,16 +385,13 @@ public class MainViewModel : IMainViewModel
         OnPropertyChanged(nameof(ExportToolTip));
     }
 
+    #endregion
+
+
     private bool _totpManager_OnDeletePrompt(object? sender, string platform)
     {
         return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
     }
-
-    //private AddNewPromptArgs _totpManager_OnAddNewPrompt(object? sender)
-    //{
-    //    var (success, key, value, account) = _platformSecretDialogService.ShowForm();
-    //    return new AddNewPromptArgs() { Success = success, Platform = key, Secret = value, Account = account };
-    //}
 
     private void ShowMessage(OperationStatus arg1, SecretItemViewModel? item)
     {
@@ -436,19 +434,6 @@ public class MainViewModel : IMainViewModel
         await ReadAllSecretsAsync();
 
         AllSecrets.CollectionChanged += Source_CollectionChanged;
-
-        //var secrets = AllSecrets;
-
-        //foreach (var item in secrets)
-        //{
-
-        //    if (item.ID == Guid.Empty)
-        //    {
-        //        item.ID = Guid.NewGuid();
-        //        await _secretsManager.UpdateItemAdminOnlyAsync(item.ToDomain());
-        //    }
-        //}
-
     }
 
     private void Source_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -512,32 +497,8 @@ public class MainViewModel : IMainViewModel
 
     private void SetupCommandEventhandler()
     {
-        ExportSecretsCommand = new AsyncCommand(async () =>
-        {
-            var path = _fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Secrets");
 
-            if (path == null) // canceled
-                return;
-
-            var secrets = await _secretsManager.GetAllSecretsAsync();
-            if (secrets.Status != OperationStatus.Success)
-            {
-                ShowMessage(secrets.Status, null);
-                return;
-            }
-            secrets.Value.Sort(new Comparison<SecretItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(secrets.Value, options));
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = path,
-                UseShellExecute = true
-            };
-
-            Process.Start(psi);
-
-        });
+        ExportSecretsCommand = new AsyncCommand(ExportSecretsToFile);
         ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAsync, () => !_isGridInEditMode);
 
         OpenFlyoutEditModeCommand = new RelayCommand<SecretItemViewModel>(OpenFlyoutEditMode);
@@ -569,6 +530,8 @@ public class MainViewModel : IMainViewModel
             IsSearchFocused = IsSearchVisible;
         });
     }
+
+
 
     #endregion COMMANDS SETUP
 
@@ -684,9 +647,8 @@ public class MainViewModel : IMainViewModel
         {
             if (await _totpManager.DeleteSecretAsync(item.ToDomain())) // delete from storage file
             {
-                AllSecrets.Remove(item); // delete secret from grid's datasource
+                AllSecrets.Remove(item); // delete secret from internal list
                 OnPropertyChanged(nameof(AllSecrets));
-                //ApplySearchFilter();
                 ClearCodeGenerationOutput();
             }
         }
@@ -710,14 +672,13 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-
             var success = await _totpManager.UpdateSecretAsync(PreviousVersion.ToDomain(), updated.ToDomain());
 
             if (!success)
                 return;
 
             // Update the item in the ObservableCollection to reflect changes in the UI
-            var itemToBeUpdated = AllSecrets.Where(s => string.Equals(s.Platform, PreviousVersion.Platform, StringComparison.Ordinal)).FirstOrDefault();
+            var itemToBeUpdated = AllSecrets.FirstOrDefault(s => string.Equals(s.Platform, PreviousVersion.Platform, StringComparison.Ordinal));
 
             itemToBeUpdated?.UpdateSelf(updated); // only update when in flyout edit mode
             OnPropertyChanged(nameof(AllSecrets));
@@ -743,7 +704,7 @@ public class MainViewModel : IMainViewModel
 
         if (IsAddMode) // add new mode
         {
-            CurrentSecretBeingEditedOrAdded.SetDuplicateCheck(DuplicateCheck);
+            CurrentSecretBeingEditedOrAdded?.SetDuplicateCheck(DuplicateCheck);
             var validation = IsValidSecretItem(CurrentSecretBeingEditedOrAdded);
             if (!validation.IsValid)
             {
@@ -886,7 +847,7 @@ public class MainViewModel : IMainViewModel
 
     #endregion
 
-    #region ### Row/Field Selection Logic  ###
+    #region ### Row/Field Grid Selection  ###
 
     private bool _isDoubleClick;
 
@@ -936,18 +897,11 @@ public class MainViewModel : IMainViewModel
 
     #endregion
 
-    #region ### TOTP Code Generation Logic ###
+    #region ### TOTP Code Generation ###
 
-    private static int _counter;
-
-    public static int Increment()
+    private async Task CalculateAndDisplayTotpCode(SecretItemViewModel vmSecretItem)
     {
-        return Interlocked.Increment(ref _counter);
-    }
-
-    private async Task CalculateAndDisplayTotpCode(SecretItemViewModel secret)
-    {
-        if (_totpManager.TryComputeCode(secret.Secret, out var totpCode, out var exc))
+        if (_totpManager.TryComputeTotpCode(vmSecretItem.Secret, out var totpCode, out var remainingSeconds, out var exc))
         {
             ClearCodeGenerationOutput();
 
@@ -958,33 +912,21 @@ public class MainViewModel : IMainViewModel
             var localCounter = Increment(); // Increment the counter
 
             // Update the UI
-            CurrentCodeLabel = $"{secret.Platform}: {totpCode}";
+            CurrentCodeLabel = $"{vmSecretItem.Platform}: {totpCode}";
             _clipboard.SetText(totpCode!);
 
-            // working secret: JBSWY3DPEHPK3PXP
+            // working example secret: JBSWY3DPEHPK3PXP
 
             // Google Authenticator works best with 160-bit secrets (20 bytes), but 10–32 bytes is acceptable.
-            byte[] secretBytes = RandomNumberGenerator.GetBytes(20); // 20x8 = 160 bits is ideal
-            string base32Secret = Base32Encoding.ToString(secretBytes).TrimEnd('=');
-            // Fore testing:
-            var uri = _qrService.BuildOtpAuthUri(secret.Platform, base32Secret, secret.Account);
+            //byte[] secretBytes = RandomNumberGenerator.GetBytes(20); // 20x8 = 160 bits is ideal
+            //string base32Secret = Base32Encoding.ToString(secretBytes).TrimEnd('=');
 
-            //var uri = _qrService.BuildOtpAuthUri(secret.Platform, secret.Secret, secret.Account);
-            byte[] pngBytes = _qrService.GenerateQr(uri);
 
-            var bmp = new BitmapImage();
-            using (var ms = new MemoryStream(pngBytes))
-            {
-                bmp.BeginInit();
-                bmp.StreamSource = ms;
-                bmp.CacheOption = BitmapCacheOption.OnLoad;
-                bmp.EndInit();
-                bmp.Freeze();
-            }
+            var bmp = GenerateQRCodeImage(vmSecretItem);
 
             QrCodeImage = bmp;
 
-            Debug.WriteLine($"showing code labels for {secret.Platform}");
+            Debug.WriteLine($"showing code labels for {vmSecretItem.Platform}");
             ShowCodeGenerationOutput();
 
             await _delayService.Delay(2000);
@@ -1005,9 +947,37 @@ public class MainViewModel : IMainViewModel
                  ? UI.ex_InvalidSecret
                  : $"{UI.ex_UnexpectedError}.{Environment.NewLine}{exc.Message}";
 
-            _messageService.ShowErrorMessage(string.Format(UI.ex_Error_Generating_TOTP_0_0, secret.Platform, error));
+            _messageService.ShowErrorMessage(string.Format(UI.ex_Error_Generating_TOTP_0_0, vmSecretItem.Platform, error));
             await Task.FromResult(exc);
         }
+    }
+
+    private BitmapImage GenerateQRCodeImage(SecretItemViewModel item)
+    {
+        var normalizedSecret = OtpauthParser.NormalizeBase32SecretForUri(item.Secret);
+        // For testing:
+        var uri = _qrService.BuildOtpAuthUri(item.Platform, normalizedSecret, item.Account); // base32Secret
+
+        //var uri = _qrService.BuildOtpAuthUri(secret.Platform, secret.Secret, secret.Account);
+        byte[] pngBytes = _qrService.GenerateQr(uri);
+
+        var bmp = new BitmapImage();
+        using (var ms = new MemoryStream(pngBytes))
+        {
+            bmp.BeginInit();
+            bmp.StreamSource = ms;
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.EndInit();
+            bmp.Freeze();
+        }
+
+        return bmp;
+    }
+
+    private static int _counter;
+    public static int Increment()
+    {
+        return Interlocked.Increment(ref _counter);
     }
 
     #endregion
@@ -1129,25 +1099,40 @@ public class MainViewModel : IMainViewModel
 
     private UiValidation IsValidSecretItem(SecretItemViewModel newSecretItem)
     {
+        ArgumentNullException.ThrowIfNull(newSecretItem, nameof(newSecretItem));
+
         var validator = new UiValidation(newSecretItem);
         validator.ValidateAll().PlatformNameDuplicateExists(AllSecrets);
-
-        //if (!validator.IsValid)
-        //{
-        //    foreach (var error in validator.Errors)
-        //    {
-        //        if (error == ValidationError.PlatformAlreadyExists)
-        //            _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error, newSecretItem.Platform));
-        //        else
-        //            _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
-        //    }
-        //}
 
         return validator;
     }
 
     #endregion
 
+    #region ### EXPORT SECRETS TO EXTERNAL FILE ###
+    private async Task ExportSecretsToFile()
+    {
+        var path = _fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Secrets");
+
+        if (path == null) // canceled
+            return;
+
+        var secrets = await _secretsManager.GetAllSecretsAsync();
+        if (secrets.Status != OperationStatus.Success)
+        {
+            ShowMessage(secrets.Status, null);
+            return;
+        }
+
+        secrets.Value.Sort(new Comparison<SecretItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(secrets.Value, options));
+
+        var psi = new ProcessStartInfo { FileName = path, UseShellExecute = true };
+
+        Process.Start(psi);
+    }
+    #endregion
 
     private void ShowCodeGenerationOutput()
     {

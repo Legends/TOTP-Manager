@@ -3,9 +3,21 @@ using TOTP.Core.Models;
 
 namespace TOTP.Interfaces;
 
+
+/// <summary>
+/// - Responsible for CRUD operations on secret items stored in an encrypted local file.
+/// - Secret validation via SecretValidator.cs
+/// - Secrets file backup
+/// 
+/// </summary>
 public interface ISecretsManager
 {
 
+    /// <summary>
+    /// Loads secret by platform name (case insensitive) from storage.
+    /// </summary>
+    /// <param name="platform"></param>
+    /// <returns>Result&lt;SecretItem&gt;</returns>
     Task<Result<SecretItem>> GetSecretByPlatformAsync(string platform);
 
     //Task<List<SecretItem>> GetAllSecretsAsync();

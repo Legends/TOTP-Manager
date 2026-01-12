@@ -11,7 +11,7 @@ namespace TOTP.Core.Services;
 
 public class TotpManager : ITotpManager
 {
-    //private readonly IPlatformSecretDialogService _platformSecretDialogService;
+
     private readonly ILogger<TotpManager> _logger;
     private readonly ISecretsManager _secretsManager;
 
@@ -34,11 +34,11 @@ public class TotpManager : ITotpManager
         while (true)
         {
             // Prompt the user for a new secret key and value
-            // This event is handled by the MainViewModel to show a dialog and gathers user input
+            // The OnAddNewPrompt event is triggered here and handled by the MainViewModel to show a dialog and gathers user input
             var promptResult = OnAddNewPrompt?.Invoke(this);
 
             if (!promptResult!.Success)
-                return (false, null);
+                return (false, null); // user cancelled
 
             var secretItem = new SecretItem(Guid.NewGuid(), promptResult.Platform!, promptResult.Secret!, promptResult.Account);
             var result = await _secretsManager.AddNewItemAsync(secretItem);
@@ -46,48 +46,41 @@ public class TotpManager : ITotpManager
             if (result.Status == OperationStatus.Success)
                 return (true, secretItem);
 
-            if (result.Status == OperationStatus.AlreadyExists)
+            if (result.Status == OperationStatus.AlreadyExists) // platform name already exists
             {
                 OnMessageSend?.Invoke(this, OperationStatus.AlreadyExists, promptResult.Platform);
                 continue;
             }
-            if (result.Status == OperationStatus.StorageFailed)
-            {
-                OnMessageSend?.Invoke(this, OperationStatus.StorageFailed, promptResult.Platform);
-            }
 
-            if (result.Status == OperationStatus.LoadingFailed)
-            {
-                OnMessageSend?.Invoke(this, OperationStatus.LoadingFailed, null);
-            }
-
+            OnMessageSend?.Invoke(this, result.Status, promptResult.Platform);
             OnMessageSend?.Invoke(this, OperationStatus.CreateFailed, promptResult.Platform);
 
             return (false, null);
         }
     }
 
-    public bool TryComputeCode(string secret, out string? code, out Exception? exc)
+    public bool TryComputeTotpCode(string secret, out string? code, out int remainingSeconds, out Exception? exc)
     {
+        code = null;
+        remainingSeconds = 0;
+
         try
         {
             if (!SecretValidator.IsValidBase32Format(secret))
             {
-                code = null;
-                exc = new FormatException($"Secret is invalid Base32 format, supplied to {nameof(TryComputeCode)}");
+                exc = new FormatException($"Secret is invalid Base32 format, supplied to {nameof(TryComputeTotpCode)}");
                 return false;
             }
 
             var encodedSecret = Base32Encoding.ToBytes(secret);
             var totp = new Totp(encodedSecret);
             code = totp.ComputeTotp();
+            remainingSeconds = totp.RemainingSeconds();
             exc = null;
             return true;
         }
         catch (Exception ex)
         {
-            code = null;
-
             exc = ex;
             _logger.LogError(ex.Message, ex);
             return false;

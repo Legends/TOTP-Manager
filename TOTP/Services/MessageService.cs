@@ -87,7 +87,7 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
 
         try
         {
-            dialog.Owner.Opacity = 0.65;      // dim the owner
+            dialog.Owner.Opacity = 0.55;      // dim the owner
             dialog.Owner.Effect = new BlurEffect { Radius = 6 };
             dialog.ShowDialog();
         }

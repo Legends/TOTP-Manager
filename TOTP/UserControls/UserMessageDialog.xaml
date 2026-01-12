@@ -1,6 +1,7 @@
 ﻿<Window x:Class="TOTP.UserControls.UserMessageDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -12,71 +13,145 @@
 
         <Window.Resources>
 
-                <!-- Base dialog button: modern, no default WPF chrome -->
-                <Style x:Key="DialogButtonStyle"
+                <!-- =========================================================
+             PALETTE (warning dialog compatible with your app)
+             ========================================================= -->
+
+                <!-- Surfaces -->
+                <Color x:Key="Dlg.Bg1">#FF0C1C33</Color>
+                <Color x:Key="Dlg.Bg2">#FF122A4B</Color>
+                <Color x:Key="Dlg.Panel">#FF102440</Color>
+                <Color x:Key="Dlg.Border">#FF2C4B70</Color>
+
+                <!-- Text -->
+                <Color x:Key="Dlg.TextPrimary">#FFF3F7FF</Color>
+                <Color x:Key="Dlg.TextSecondary">#FFC8D6EA</Color>
+
+                <!-- Warning accent -->
+                <Color x:Key="Dlg.Warning1">#FFFFD24A</Color>
+                <Color x:Key="Dlg.Warning2">#FFFFB400</Color>
+
+                <!-- Buttons (neutral) -->
+                <Color x:Key="Dlg.BtnNeutralBg">#FF3A4A63</Color>
+                <Color x:Key="Dlg.BtnNeutralBgHover">#FF465A78</Color>
+                <Color x:Key="Dlg.BtnNeutralBgPressed">#FF2F3C52</Color>
+                <Color x:Key="Dlg.BtnNeutralBorder">#FF566A86</Color>
+
+                <!-- Buttons (danger) -->
+                <Color x:Key="Dlg.BtnDangerBg">#FFB1151D</Color>
+                <Color x:Key="Dlg.BtnDangerBgHover">#FFC61C26</Color>
+                <Color x:Key="Dlg.BtnDangerBgPressed">#FF8F1016</Color>
+                <Color x:Key="Dlg.BtnDangerBorder">#FFD25B61</Color>
+
+                <!-- =========================================================
+             BRUSHES (WPF setters need brushes, not colors)
+             ========================================================= -->
+
+                <SolidColorBrush x:Key="Dlg.TextPrimaryBrush"
+                                 Color="{StaticResource Dlg.TextPrimary}" />
+                <SolidColorBrush x:Key="Dlg.TextSecondaryBrush"
+                                 Color="{StaticResource Dlg.TextSecondary}" />
+                <SolidColorBrush x:Key="Dlg.PanelBrush"
+                                 Color="{StaticResource Dlg.Panel}" />
+                <SolidColorBrush x:Key="Dlg.BorderBrush"
+                                 Color="{StaticResource Dlg.Border}" />
+
+                <LinearGradientBrush x:Key="Dlg.BackgroundBrush"
+                                     StartPoint="0,0"
+                                     EndPoint="0,1">
+                        <GradientStop Color="{StaticResource Dlg.Bg2}"
+                                      Offset="0" />
+                        <GradientStop Color="{StaticResource Dlg.Bg1}"
+                                      Offset="1" />
+                </LinearGradientBrush>
+
+                <LinearGradientBrush x:Key="Dlg.WarningBrush"
+                                     StartPoint="0,0"
+                                     EndPoint="1,1">
+                        <GradientStop Color="{StaticResource Dlg.Warning1}"
+                                      Offset="0" />
+                        <GradientStop Color="{StaticResource Dlg.Warning2}"
+                                      Offset="1" />
+                </LinearGradientBrush>
+
+                <!-- Brushes (NEUTRAL) -->
+                <SolidColorBrush x:Key="Dlg.BtnNeutralBgBrush"
+                                 Color="{StaticResource Dlg.BtnNeutralBg}" />
+                <SolidColorBrush x:Key="Dlg.BtnNeutralBgHoverBrush"
+                                 Color="{StaticResource Dlg.BtnNeutralBgHover}" />
+                <SolidColorBrush x:Key="Dlg.BtnNeutralBgPressedBrush"
+                                 Color="{StaticResource Dlg.BtnNeutralBgPressed}" />
+                <SolidColorBrush x:Key="Dlg.BtnNeutralBorderBrush"
+                                 Color="{StaticResource Dlg.BtnNeutralBorder}" />
+
+                <!-- Brushes (DANGER) -->
+                <SolidColorBrush x:Key="Dlg.BtnDangerBgBrush"
+                                 Color="{StaticResource Dlg.BtnDangerBg}" />
+                <SolidColorBrush x:Key="Dlg.BtnDangerBgHoverBrush"
+                                 Color="{StaticResource Dlg.BtnDangerBgHover}" />
+                <SolidColorBrush x:Key="Dlg.BtnDangerBgPressedBrush"
+                                 Color="{StaticResource Dlg.BtnDangerBgPressed}" />
+                <SolidColorBrush x:Key="Dlg.BtnDangerBorderBrush"
+                                 Color="{StaticResource Dlg.BtnDangerBorder}" />
+
+                <!-- =========================================================
+             TYPOGRAPHY (your requirement: 12 normal, 16 headers)
+             ========================================================= -->
+                <sys:Double x:Key="Dlg.Font.Normal">12</sys:Double>
+                <sys:Double x:Key="Dlg.Font.Header">16</sys:Double>
+
+                <!-- =========================================================
+             BUTTONS
+             ========================================================= -->
+
+                <Style x:Key="DialogButtonBaseStyle"
                        TargetType="Button">
-                        <!--<Setter Property="MinWidth"
-                    Value="110" />
-            <Setter Property="Height"
-                    Value="34" />-->
                         <Setter Property="Padding"
-                                Value="5,3" />
+                                Value="11,6" />
                         <Setter Property="FontSize"
-                                Value="10" />
+                                Value="{StaticResource Dlg.Font.Normal}" />
                         <Setter Property="FontWeight"
                                 Value="SemiBold" />
                         <Setter Property="Cursor"
                                 Value="Hand" />
-
-                        <!-- Remove dotted/blue focus visuals -->
                         <Setter Property="FocusVisualStyle"
                                 Value="{x:Null}" />
-
-                        <!-- Secondary look -->
-                        <Setter Property="Background"
-                                Value="#223A73" />
-                        <Setter Property="BorderBrush"
-                                Value="#2A3C6A" />
-                        <Setter Property="Foreground"
-                                Value="White" />
                         <Setter Property="BorderThickness"
                                 Value="1" />
-
-                        <!--Buttons Template-->
+                        <Setter Property="Foreground"
+                                Value="{StaticResource Dlg.TextPrimaryBrush}" />
                         <Setter Property="Template">
                                 <Setter.Value>
                                         <ControlTemplate TargetType="Button">
                                                 <Border x:Name="Bd"
-                                                        CornerRadius="2"
+                                                        CornerRadius="6"
                                                         Background="{TemplateBinding Background}"
                                                         BorderBrush="{TemplateBinding BorderBrush}"
                                                         BorderThickness="{TemplateBinding BorderThickness}">
+                                                        <Border.Effect>
+                                                                <DropShadowEffect Color="#000000"
+                                                                                  Opacity="0.35"
+                                                                                  BlurRadius="10"
+                                                                                  ShadowDepth="2" />
+                                                        </Border.Effect>
                                                         <ContentPresenter HorizontalAlignment="Center"
                                                                           VerticalAlignment="Center"
                                                                           Margin="{TemplateBinding Padding}" />
                                                 </Border>
 
                                                 <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver"
-                                                                 Value="True">
-                                                                <Setter TargetName="Bd"
-                                                                        Property="Background"
-                                                                        Value="#2B4B8C" />
-                                                                <Setter TargetName="Bd"
-                                                                        Property="BorderBrush"
-                                                                        Value="#36579E" />
-                                                        </Trigger>
-
                                                         <Trigger Property="IsPressed"
                                                                  Value="True">
                                                                 <Setter TargetName="Bd"
-                                                                        Property="Background"
-                                                                        Value="#1C3363" />
+                                                                        Property="Opacity"
+                                                                        Value="0.92" />
                                                                 <Setter TargetName="Bd"
-                                                                        Property="BorderBrush"
-                                                                        Value="#1C3363" />
+                                                                        Property="RenderTransform">
+                                                                        <Setter.Value>
+                                                                                <TranslateTransform Y="1" />
+                                                                        </Setter.Value>
+                                                                </Setter>
                                                         </Trigger>
-
                                                         <Trigger Property="IsEnabled"
                                                                  Value="False">
                                                                 <Setter Property="Opacity"
@@ -88,55 +163,71 @@
                         </Setter>
                 </Style>
 
-                <!-- OK button -->
-                <Style x:Key="DialogOkButtonStyle"
+                <!-- Cancel / secondary -->
+                <Style x:Key="DialogCancelButtonStyle"
                        TargetType="Button"
-                       BasedOn="{StaticResource DialogButtonStyle}">
+                       BasedOn="{StaticResource DialogButtonBaseStyle}">
                         <Setter Property="Background"
-                                Value="#2F6FED" />
+                                Value="{StaticResource Dlg.BtnNeutralBgBrush}" />
                         <Setter Property="BorderBrush"
-                                Value="#2F6FED" />
-                        <Setter Property="Foreground"
-                                Value="White" />
-
+                                Value="{StaticResource Dlg.BtnNeutralBorderBrush}" />
                         <Style.Triggers>
                                 <Trigger Property="IsMouseOver"
                                          Value="True">
                                         <Setter Property="Background"
-                                                Value="#3A7BFF" />
-                                        <Setter Property="BorderBrush"
-                                                Value="#3A7BFF" />
+                                                Value="{StaticResource Dlg.BtnNeutralBgHoverBrush}" />
                                 </Trigger>
                                 <Trigger Property="IsPressed"
                                          Value="True">
                                         <Setter Property="Background"
-                                                Value="#245DCC" />
-                                        <Setter Property="BorderBrush"
-                                                Value="#245DCC" />
+                                                Value="{StaticResource Dlg.BtnNeutralBgPressedBrush}" />
                                 </Trigger>
                         </Style.Triggers>
                 </Style>
 
-                <!-- Close button (X) - no old-school button chrome -->
+                <!-- Destructive -->
+                <Style x:Key="DialogDangerButtonStyle"
+                       TargetType="Button"
+                       BasedOn="{StaticResource DialogButtonBaseStyle}">
+                        <Setter Property="Background"
+                                Value="{StaticResource Dlg.BtnDangerBgBrush}" />
+                        <Setter Property="BorderBrush"
+                                Value="{StaticResource Dlg.BtnDangerBorderBrush}" />
+                        <Style.Triggers>
+                                <Trigger Property="IsMouseOver"
+                                         Value="True">
+                                        <Setter Property="Background"
+                                                Value="{StaticResource Dlg.BtnDangerBgHoverBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsPressed"
+                                         Value="True">
+                                        <Setter Property="Background"
+                                                Value="{StaticResource Dlg.BtnDangerBgPressedBrush}" />
+                                </Trigger>
+                        </Style.Triggers>
+                </Style>
+
+                <!-- Close button (X) -->
                 <Style x:Key="DialogCloseButtonStyle"
                        TargetType="Button">
                         <Setter Property="Width"
-                                Value="12" />
-
+                                Value="26" />
                         <Setter Property="Height"
-                                Value="12" />
+                                Value="26" />
                         <Setter Property="Background"
                                 Value="Transparent" />
                         <Setter Property="BorderThickness"
                                 Value="0" />
                         <Setter Property="Foreground"
-                                Value="#B8C6F2" />
+                                Value="{StaticResource Dlg.TextSecondaryBrush}" />
                         <Setter Property="Cursor"
                                 Value="Hand" />
                         <Setter Property="Focusable"
                                 Value="False" />
                         <Setter Property="FocusVisualStyle"
                                 Value="{x:Null}" />
+                        <Setter Property="FontSize"
+                                Value="{StaticResource Dlg.Font.Normal}" />
                         <Setter Property="Template">
                                 <Setter.Value>
                                         <ControlTemplate TargetType="Button">
@@ -147,18 +238,19 @@
                                                                           VerticalAlignment="Center" />
                                                 </Border>
                                                 <ControlTemplate.Triggers>
-                                                        <!-- subtle hover only (optional) -->
                                                         <Trigger Property="IsMouseOver"
                                                                  Value="True">
                                                                 <Setter TargetName="Bd"
                                                                         Property="Background"
-                                                                        Value="#1AFFFFFF" />
+                                                                        Value="#22FFFFFF" />
+                                                                <Setter Property="Foreground"
+                                                                        Value="{StaticResource Dlg.TextPrimaryBrush}" />
                                                         </Trigger>
                                                         <Trigger Property="IsPressed"
                                                                  Value="True">
                                                                 <Setter TargetName="Bd"
                                                                         Property="Background"
-                                                                        Value="#2AFFFFFF" />
+                                                                        Value="#33FFFFFF" />
                                                         </Trigger>
                                                         <Trigger Property="IsEnabled"
                                                                  Value="False">
@@ -174,22 +266,19 @@
         </Window.Resources>
 
         <!-- Card only (NO overlay here) -->
-        <Border CornerRadius="14"
-                Background="#14264F"
+        <Border CornerRadius="10"
+                Background="{StaticResource Dlg.BackgroundBrush}"
                 BorderThickness="1"
-                BorderBrush="#2A3C6A"
+                BorderBrush="{StaticResource Dlg.BorderBrush}"
                 Padding="18"
                 SnapsToDevicePixels="True">
 
                 <Border.Effect>
-                        <DropShadowEffect BlurRadius="22"
-                                          ShadowDepth="0"
-                                          Opacity="0.45" />
+                        <DropShadowEffect BlurRadius="24"
+                                          ShadowDepth="8"
+                                          Opacity="0.55" />
                 </Border.Effect>
 
-
-                <!--MinWidth="300"
-                MaxWidth="460"-->
                 <Grid>
                         <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -197,45 +286,46 @@
                                 <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!-- Icon - Header - CLose X -->
+                        <!-- Icon - Header - Close X -->
                         <Grid Grid.Row="0"
-                              Margin="0,0,0,15">
+                              Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <!--Attention Icon-->
+                                <!-- Attention Icon -->
                                 <Border Grid.Column="0"
-                                        Width="30"
-                                        Height="30"
+                                        Width="38"
+                                        Height="38"
                                         CornerRadius="19"
-                                        Background="#223A73"
+                                        Background="{StaticResource Dlg.PanelBrush}"
+                                        BorderBrush="{StaticResource Dlg.BorderBrush}"
+                                        BorderThickness="1"
                                         VerticalAlignment="Top"
                                         Visibility="{Binding IconVisibility}">
                                         <Image Source="{Binding IconPath}"
                                                Width="22"
                                                Height="22"
-                                               Margin="0,2,0,0"
                                                Stretch="Uniform"
                                                RenderOptions.BitmapScalingMode="HighQuality"
                                                VerticalAlignment="Center"
                                                HorizontalAlignment="Center" />
                                 </Border>
 
-                                <!--Header - Achtung -->
+                                <!-- Header -->
                                 <TextBlock Grid.Column="1"
                                            Text="{Binding CaptionString}"
-                                           Margin="12,5,0,0"
-                                           FontSize="14"
+                                           Margin="10,7,0,0"
+                                           FontSize="{StaticResource Dlg.Font.Header}"
                                            FontWeight="SemiBold"
-                                           Foreground="#E8EEFF"
+                                           Foreground="{StaticResource Dlg.WarningBrush}"
                                            VerticalAlignment="Top" />
 
                                 <!-- Close -->
                                 <Button Grid.Column="2"
-                                        Margin="8,-40,-10,0"
+                                        Margin="6,-2,-2,0"
                                         Content="✕"
                                         Style="{StaticResource DialogCloseButtonStyle}"
                                         IsCancel="True"
@@ -244,26 +334,32 @@
                         </Grid>
 
                         <!-- Message -->
-                        <TextBlock Grid.Row="1"
-                                   Text="{Binding Message}"
-                                   TextWrapping="Wrap"
-                                   Foreground="#B8C6F2"
-                                   FontSize="13"
-                                   LineHeight="20"
-                                   Margin="0,0,0,18" />
+                        <Border Grid.Row="1"
+                                Background="{StaticResource Dlg.PanelBrush}"
+                                BorderBrush="{StaticResource Dlg.BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="14"
+                                Margin="0,0,0,14">
+                                <TextBlock Text="{Binding Message}"
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource Dlg.TextPrimaryBrush}"
+                                           FontSize="{StaticResource Dlg.Font.Normal}"
+                                           LineHeight="20" />
+                        </Border>
 
                         <!-- Buttons -->
                         <StackPanel Grid.Row="2"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Right">
-                                <Button Style="{StaticResource DialogButtonStyle}"
+                                <Button Style="{StaticResource DialogCancelButtonStyle}"
                                         Margin="0,0,10,0"
                                         Content="{Binding CancelButtonText}"
                                         Visibility="{Binding CancelButtonVisibility}"
                                         IsCancel="True"
                                         Command="{Binding CancelCommand}" />
 
-                                <Button Style="{StaticResource DialogOkButtonStyle}"
+                                <Button Style="{StaticResource DialogDangerButtonStyle}"
                                         Content="{Binding OkButtonText}"
                                         IsDefault="True"
                                         Command="{Binding OkCommand}" />
