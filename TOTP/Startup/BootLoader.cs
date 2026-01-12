@@ -68,23 +68,20 @@ public static class BootLoader
                 services.AddSingleton<IQrCodeService, QrCodeService>();
 
                 // dialogs
-                //services.AddSingleton<IPlatformSecretDialogService, PlatformSecretDialogService>();
-                //services.AddTransient<PlatformSecretDialog>();
-                //services.AddTransient<IPlatformSecretDialogViewModel, PlatformSecretDialogViewModel>();
                 services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
 
                 // app services
-                services.AddSingleton<ISecretsManager>(provider =>
+                services.AddSingleton<ISecretsDAL>(provider =>
                 {
-                    var logger = provider.GetRequiredService<ILogger<SecretsManager>>();
+                    var logger = provider.GetRequiredService<ILogger<SecretsDAL>>();
                     var config = provider.GetRequiredService<IConfiguration>();
                     var rawPath = config.GetSection("Secrets:StorageFilePath").Value;
                     var resolvedPath = Environment.ExpandEnvironmentVariables(rawPath ?? "");
-                    return new SecretsManager(logger, resolvedPath);
+                    return new SecretsDAL(logger, resolvedPath);
                 });
 
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
-                services.AddSingleton<ITotpManager, TotpManager>();
+                services.AddSingleton<ISecretsManager, SecretsManager>();
 
                 // VMs
                 services.AddSingleton<IMainViewModel, MainViewModel>();

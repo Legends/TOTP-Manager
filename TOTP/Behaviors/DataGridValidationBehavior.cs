@@ -103,7 +103,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
                 break;
             case nameof(SecretItemViewModel.Secret):
-                validationResult = SecretValidator.ValidateSecret(e.NewValue?.ToString());
+                validationResult = SecretValidator.ValidateSecretValue(e.NewValue?.ToString());
                 error = ValidationMessageMapper.ToMessage(validationResult);
                 break;
         }

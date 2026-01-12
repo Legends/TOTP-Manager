@@ -47,6 +47,34 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         }
     }
 
+    string _totpCode;
+    public string TotpCode
+    {
+        get => _totpCode;
+        set
+        {
+            if (_totpCode != value)
+            {
+                _totpCode = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private double _progress;
+    public double Progress
+    {
+        get => _progress;
+        set
+        {
+            if (_progress != value)
+            {
+                _progress = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     private string? _platform;
 
     public string? Platform
@@ -107,16 +135,7 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         }
     }
 
-    private int remainingPercent = 10;
-    public int TotpRemainingPercent
-    {
-        get => remainingPercent;
-        set
-        {
-            remainingPercent = value;
-            OnPropertyChanged();
-        }
-    }
+
 
     #endregion
 
@@ -201,7 +220,7 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
                     break;
 
                 case nameof(Secret):
-                    error = SecretValidator.ValidateSecret(Secret);
+                    error = SecretValidator.ValidateSecretValue(Secret);
                     if (error != ValidationError.None)
                     {
                         errors.Add(ValidationMessageMapper.ToMessage(error));
@@ -320,4 +339,48 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
     #endregion
 
 
+}
+
+
+/// <summary>
+/// Compares SecretItemViewModel by value (Platform, Account, Secret),
+/// case-insensitive, ignoring whitespace/padding in Secret.
+/// </summary>
+public sealed class SecretItemViewModelValueComparer : IEqualityComparer<SecretItemViewModel>
+{
+    public static readonly SecretItemViewModelValueComparer Default = new();
+
+    public bool Equals(SecretItemViewModel? x, SecretItemViewModel? y)
+    {
+        return ReferenceEquals(x, y) || x is not null && y is not null && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.Platform), Norm(y.Platform))
+            && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.Account), Norm(y.Account))
+            && SecretsEqual(x.Secret, y.Secret);
+    }
+
+    public int GetHashCode(SecretItemViewModel obj)
+    {
+        var hc = new HashCode();
+
+        hc.Add(Norm(obj.Platform), StringComparer.OrdinalIgnoreCase);
+        hc.Add(Norm(obj.Account), StringComparer.OrdinalIgnoreCase);
+        hc.Add(NormSecret(obj.Secret), StringComparer.OrdinalIgnoreCase);
+
+        return hc.ToHashCode();
+    }
+
+    private static string Norm(string? s) => (s ?? string.Empty).Trim();
+
+    // Normalize Base32-like secret: remove spaces/hyphens, trim '=', uppercase.
+    private static string NormSecret(string? s) =>
+        new string((s ?? "").Where(ch => !char.IsWhiteSpace(ch) && ch != '-').ToArray())
+            .TrimEnd('=')
+            .ToUpperInvariant();
+
+    private static bool SecretsEqual(string? a, string? b)
+    {
+        var sa = NormSecret(a);
+        var sb = NormSecret(b);
+
+        return StringComparer.Ordinal.Equals(sa, sb);
+    }
 }

@@ -171,6 +171,11 @@
 		</EmbeddedResource>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="UserControls\" />
+	  <Folder Include="Windows\" />
+	</ItemGroup>
+
 	<PropertyGroup>
 		<SigningSucceeded>false</SigningSucceeded>
 		<StartupObject>TOTP.Program</StartupObject>

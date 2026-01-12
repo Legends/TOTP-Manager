@@ -1,6 +1,7 @@
 ﻿#region ### USINGS ###
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using OtpNet;
 using Syncfusion.Linq;
 using System;
 using System.Collections.Generic;
@@ -16,12 +17,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using TOTP.Commands;
-using TOTP.Comparer;
 using TOTP.Core.Enums;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
-using TOTP.Core.Services;
 using TOTP.Core.Validation;
 using TOTP.Extensions;
 using TOTP.Helper;
@@ -44,6 +44,10 @@ public class MainViewModel : IMainViewModel
     private CultureDisplay _selectedCulture;
     private readonly ILogger<MainViewModel> _logger;
 
+    // Totp generation timer
+    private readonly DispatcherTimer _totpUiTimer;
+    private Totp? _activeTotp;
+    private long _activeStep = -1;
 
 
     #region ### FLYOUT PANEL ###
@@ -307,10 +311,10 @@ public class MainViewModel : IMainViewModel
 
     #region ### SERVICES DECLARATIONS ###
 
-    private readonly ISecretsManager _secretsManager;
+    private readonly ISecretsDAL _secretsDal;
     private readonly IClipboardService _clipboard;
     private readonly IMessageService _messageService;
-    private readonly ITotpManager _totpManager;
+    private readonly ISecretsManager _secretsManager;
 
     private readonly IDebounceService _debounceService;
 
@@ -332,27 +336,34 @@ public class MainViewModel : IMainViewModel
         IMessageService messageService,
         IClipboardService clipboard,
         IConfiguration config,
-        ITotpManager totpManager,
+        ISecretsManager totpManager,
         IDebounceService debounceService,
         IDelayService delayService,
-        ISecretsManager secretsManager,
+        ISecretsDAL secretsDal,
         IFileDialogService fileDialogService) // NEW
     {
         _fileDialogService = fileDialogService;
-        _secretsManager = secretsManager;
+        _secretsDal = secretsDal;
         _logger = logger;
         _qrService = svcQr;
         _delayService = delayService;
         _messageService = messageService;
         _debounceService = debounceService;
         _clipboard = clipboard;
-        _totpManager = totpManager;
+        _secretsManager = totpManager;
 
-        _totpManager.ConfirmDeleteRequested += _totpManager_OnDeletePrompt;
+        _secretsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
 
         SetupCommandEventhandler();
 
         SetupLocalization();
+
+        // Setup TOTP generation timer
+        //_totpUiTimer = new DispatcherTimer(DispatcherPriority.Background)
+        //{
+        //    Interval = TimeSpan.FromMilliseconds(100) // smooth enough for a small pie
+        //};
+        //_totpUiTimer.Tick += (_, __) => TickTotp();
     }
 
     #region ### LOCALIZATION SETUP ###
@@ -388,7 +399,7 @@ public class MainViewModel : IMainViewModel
     #endregion
 
 
-    private bool _totpManager_OnDeletePrompt(object? sender, string platform)
+    private bool _secretsManager_OnDeletePrompt(object? sender, string platform)
     {
         return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
     }
@@ -546,7 +557,7 @@ public class MainViewModel : IMainViewModel
         try
         {
             // Load secrets from file or other source
-            var result = await _secretsManager.GetAllSecretsAsync();
+            var result = await _secretsDal.GetAllSecretsAsync();
 
             if (result.Status == OperationStatus.Success)
             {
@@ -645,7 +656,7 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            if (await _totpManager.DeleteSecretAsync(item.ToDomain())) // delete from storage file
+            if (await _secretsManager.DeleteSecretAsync(item.ToDomain())) // delete from storage file
             {
                 AllSecrets.Remove(item); // delete secret from internal list
                 OnPropertyChanged(nameof(AllSecrets));
@@ -672,7 +683,7 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            var success = await _totpManager.UpdateSecretAsync(PreviousVersion.ToDomain(), updated.ToDomain());
+            var success = await _secretsManager.UpdateSecretAsync(PreviousVersion.ToDomain(), updated.ToDomain());
 
             if (!success)
                 return;
@@ -712,7 +723,7 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-            var addResult = await _secretsManager.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
+            var addResult = await _secretsDal.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
 
             if (addResult.Status != OperationStatus.Success)
             {
@@ -799,13 +810,21 @@ public class MainViewModel : IMainViewModel
 
         item.IsBeingEdited = false;
 
-        if (!SecretItemValueComparer.Default.Equals(item, PreviousVersion))
+        if (!SecretItemViewModelValueComparer.Default.Equals(item, PreviousVersion))
         {
-            var (isValid, error) = SecretsManager.IsValidSecretItem(item.ToDomain());
+            //var (isValid, error) = SecretsDAL.IsValidSecretItem(item.ToDomain());
+            var validation = new UiValidation(item);
+            validation.ValidateAll();
 
-            if (!isValid)
+
+            //if (!isValid)
+            //{
+            //    _messageService.ShowInfoMessage(ValidationMessageMapper.ToMessage(error));
+            //    return;
+            //}
+            if (!validation.IsValid)
             {
-                _messageService.ShowInfoMessage(ValidationMessageMapper.ToMessage(error));
+                _messageService.ShowInfoMessage(ValidationMessageMapper.ToMessage(validation.Errors.FirstOrDefault()));
                 return;
             }
             else
@@ -867,6 +886,7 @@ public class MainViewModel : IMainViewModel
         await Task.Delay(300); // prevent OnRowSelectionChangedAsync from executing if it is a double click!
 
         if (_isDoubleClick || SelectedSecret == null) return;
+
         try
         {
             if (currentKey == SelectedSecret.Platform)
@@ -901,7 +921,13 @@ public class MainViewModel : IMainViewModel
 
     private async Task CalculateAndDisplayTotpCode(SecretItemViewModel vmSecretItem)
     {
-        if (_totpManager.TryComputeTotpCode(vmSecretItem.Secret, out var totpCode, out var remainingSeconds, out var exc))
+
+        // Totp pie chart reset
+        _totpUiTimer.Stop();
+        _activeTotp = null;
+        _activeStep = -1;
+
+        if (_secretsManager.TryComputeTotpCode(vmSecretItem.Secret, out var totpCode, out var remainingSeconds, out var exc))
         {
             ClearCodeGenerationOutput();
 
@@ -914,6 +940,11 @@ public class MainViewModel : IMainViewModel
             // Update the UI
             CurrentCodeLabel = $"{vmSecretItem.Platform}: {totpCode}";
             _clipboard.SetText(totpCode!);
+
+            // totp progress logic
+            vmSecretItem.RemainingSeconds = remainingSeconds;
+            //TickTotp();
+            //_totpUiTimer.Start();
 
             // working example secret: JBSWY3DPEHPK3PXP
 
@@ -951,6 +982,31 @@ public class MainViewModel : IMainViewModel
             await Task.FromResult(exc);
         }
     }
+
+    //private void TickTotp()
+    //{
+    //    if (_activeTotp is null || _activeItem is null)
+    //        return;
+
+    //    var now = DateTime.UtcNow;
+
+    //    // Remaining seconds (0..PeriodSeconds)
+    //    int remaining = _activeTotp.RemainingSeconds(now);
+    //    _activeItem.RemainingSeconds = remaining;
+
+    //    int period = _activeItem.PeriodSeconds <= 0 ? 30 : _activeItem.PeriodSeconds;
+    //    _activeItem.Progress = Math.Clamp(remaining / (double)period, 0.0, 1.0);
+
+    //    // Detect time-step change -> regenerate code exactly when needed
+    //    long unix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    //    long step = unix / period;
+
+    //    if (step != _activeStep)
+    //    {
+    //        _activeStep = step;
+    //        _activeItem.TotpCode = _activeTotp.ComputeTotp(now);
+    //    }
+    //}
 
     private BitmapImage GenerateQRCodeImage(SecretItemViewModel item)
     {
@@ -1078,7 +1134,7 @@ public class MainViewModel : IMainViewModel
 
             try
             {
-                var addResult = await _secretsManager.AddNewItemAsync(newSecretItem.ToDomain());
+                var addResult = await _secretsDal.AddNewItemAsync(newSecretItem.ToDomain());
                 if (addResult.Status != OperationStatus.Success)
                 {
                     ShowMessage(addResult.Status, newSecretItem);
@@ -1117,7 +1173,7 @@ public class MainViewModel : IMainViewModel
         if (path == null) // canceled
             return;
 
-        var secrets = await _secretsManager.GetAllSecretsAsync();
+        var secrets = await _secretsDal.GetAllSecretsAsync();
         if (secrets.Status != OperationStatus.Success)
         {
             ShowMessage(secrets.Status, null);

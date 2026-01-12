@@ -21,7 +21,7 @@ public static class SecretValidator
     }
 
 
-    public static ValidationError ValidateSecret(string? secret)
+    public static ValidationError ValidateSecretValue(string? secret)
     {
         return string.IsNullOrWhiteSpace(secret)
             ? ValidationError.SecretRequired

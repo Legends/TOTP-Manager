@@ -40,7 +40,7 @@ internal class UiValidation
 
     public UiValidation ValidateSecret()
     {
-        var error = SecretValidator.ValidateSecret(_item.Secret);
+        var error = SecretValidator.ValidateSecretValue(_item.Secret);
         if (error != ValidationError.None)
             _errors.Add(error);
         return this;
