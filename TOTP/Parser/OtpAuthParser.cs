@@ -6,6 +6,20 @@ namespace TOTP.Parser
 {
     public static class OtpauthParser
     {
+
+        public static string NormalizeBase32SecretForUri(string secret)
+        {
+            if (secret is null) throw new ArgumentNullException(nameof(secret));
+
+            // common copy/paste hygiene
+            var s = secret.Trim()
+                .Replace(" ", "")
+                .Replace("-", "")
+                .ToUpperInvariant()
+                .TrimEnd('=');
+
+            return s;
+        }
         public sealed class TOTPData
         {
             /// <summary>
