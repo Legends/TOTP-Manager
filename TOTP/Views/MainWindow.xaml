@@ -1,4 +1,4 @@
-﻿<syncfusion:ChromelessWindow x:Class="TOTP.MainWindow"
+﻿<syncfusion:ChromelessWindow x:Class="TOTP.Views.MainWindow"
                              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -16,15 +16,15 @@
                              xmlns:resx="clr-namespace:TOTP.Resources"
                              xmlns:xaml="clr-namespace:TOTP.Xaml"
                              xmlns:progress="clr-namespace:Syncfusion.UI.Xaml.ProgressBar;assembly=Syncfusion.SfProgressBar.WPF"
+                             xmlns:Microsoft_Windows_Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero"
+                             xmlns:local="clr-namespace:Syncfusion.Windows.Shared;assembly=Syncfusion.Shared.WPF"
                              mc:Ignorable="d"
                              Width="300"
                              SizeToContent="Height"
                              Icon="/Assets/Icons/app.ico"
                              Title="TOTP Manager"
                              TitleBarBackground="#7D7FF4"
-                             TitleBarForeground="{DynamicResource Brush.Foreground}"
-                             xmlns:Microsoft_Windows_Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero"
-                             xmlns:local="clr-namespace:Syncfusion.Windows.Shared;assembly=Syncfusion.Shared.WPF">
+                             TitleBarForeground="{DynamicResource Brush.Foreground}">
 
     <syncfusion:ChromelessWindow.Resources>
         <BounceEase x:Key="BounceEase"
@@ -32,8 +32,30 @@
                     Bounciness="100"
                     EasingMode="EaseOut" />
         <converters:SecretMaskConverter x:Key="SecretMaskConverter" />
+        <converters:ProgressValueToBrushConverter x:Key="ProgressValueToBrushConverter" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverterCollapsed"
                                                 Collapse="True" />
+
+        <Storyboard x:Key="BlinkAnimation">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                             From="1"
+                             To="0"
+                             Duration="0:0:0.3"
+                             AutoReverse="True" />
+        </Storyboard>
+
+        <Style x:Key="CopySymbolStyle"
+               TargetType="svgc:SvgViewbox">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ShowCopySymbol}"
+                             Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard Storyboard="{StaticResource BlinkAnimation}" />
+                    </DataTrigger.EnterActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
 
         <Style x:Key="IconToggleButtonStyle"
                TargetType="{x:Type ToggleButton}">
@@ -316,7 +338,7 @@
 
     </syncfusion:ChromelessWindow.Resources>
 
-    <!-- Wrap existing content in a Grid so we can overlay the flyout -->
+    <!-- We wrap the existing content in a Grid so we can overlay the flyout -->
     <Grid>
         <!-- ===== DataGrid & Toolbar ===== -->
         <StackPanel Orientation="Vertical"
@@ -485,6 +507,7 @@
 
                 <!-- =====  SECRETS GRID   ===== -->
                 <!--SelectedItem="SelectedSecret"-->
+                <!--SelectionChanged="DataGrid_SelectionChanged"-->
                 <syncfusion:SfDataGrid x:Name="SecretsGrid"
                                        ItemsSource="{Binding AllSecrets}"
                                        CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
@@ -498,7 +521,6 @@
                                        EditTrigger="OnDoubleTap"
                                        SelectionMode="Single"
                                        SelectionUnit="Row"
-                                       SelectionChanged="DataGrid_SelectionChanged"
                                        NavigationMode="Cell"
                                        LiveDataUpdateMode="AllowDataShaping"
                                        MaxHeight="200"
@@ -511,6 +533,7 @@
                                        HorizontalAlignment="Stretch"
                                        ColumnSizer="Star">
 
+                   
                     <syncfusion:SfDataGrid.SortColumnDescriptions>
                         <syncfusion:SortColumnDescription ColumnName="Platform"
                                                           SortDirection="Ascending" />
@@ -549,6 +572,8 @@
                             <syncfusion:GridTextColumn.CellStyle>
                                 <Style TargetType="sfGrid:GridCell"
                                        BasedOn="{StaticResource {x:Type sfGrid:GridCell}}">
+                                    <Setter Property="FrameworkElement.Cursor"
+                                            Value="Hand" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsHighlighted}"
                                                      Value="True">
@@ -617,82 +642,130 @@
 
                 </syncfusion:SfDataGrid>
 
-                <!-- QR Code image -->
-                <Image Grid.Row="1"
-                       ToolTip="{xaml:Resx Key=tooltip_AuthenticatorAppScan}"
-                       Margin="0,0,0,20"
-                       Source="{Binding QrCodeImage}"
-                       Width="160"
-                       Height="160"
-                       Visibility="{Binding IsQrVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
 
-                <!--Generated TOTP code label-->
-                <Label x:Name="lblCode"
-                       Grid.Row="2"
-                       Content="{Binding CurrentCodeLabel}"
-                       HorizontalContentAlignment="Center"
-                       VerticalContentAlignment="Center"
-                       Height="{Binding CodeLabelHeight}"
-                       FontWeight="Bold"
-                       Foreground="#97B0DF"
-                       FontSize="24"
-                       HorizontalAlignment="Center"
-                       Margin="0,0">
-                    <Label.RenderTransform>
-                        <TranslateTransform />
-                    </Label.RenderTransform>
-                    <Label.Style>
-                        <Style TargetType="Label">
-                            <Setter Property="Opacity"
-                                    Value="0" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsCodeLabelVisible}"
-                                             Value="True">
-                                    <Setter Property="Opacity"
-                                            Value="1" />
-                                    <DataTrigger.EnterActions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-                                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
-                                                                 From="0"
-                                                                 To="-10"
-                                                                 Duration="0:0:0.2"
-                                                                 AutoReverse="True"
-                                                                 EasingFunction="{StaticResource BounceEase}" />
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </DataTrigger.EnterActions>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Label.Style>
-                </Label>
 
-                <!--Copied! label-->
-                <TextBlock x:Name="lblCopiedToClipboard"
-                           Grid.Row="3"
-                           Margin="0,10"
-                           Text="{xaml:Resx Key=ui_Code_Copied_Clipboard}"
-                           TextAlignment="Center"
-                           FontSize="18"
+
+                <!-- === TOTP Code and Progress Pie Chart === -->
+                <StackPanel Grid.Row="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Center">
+
+                    <Viewbox Width="10">
+                        <svgc:SvgViewbox Source="/Assets/Icons/Copy-48x48.svg"
+                                         Stretch="Uniform"
+                                         Style="{StaticResource CopySymbolStyle}"
+                                         Visibility="{Binding ShowCopySymbol,
+                                  Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    </Viewbox>
+
+
+                    <!-- TOTP code value   Grid.Row="2" Content="CurrentCodeLabel"-->
+                    <Label x:Name="lblCode"
+                           Cursor="Hand"
+                           Content="{Binding SelectedSecret.TotpCode }"
+                           HorizontalContentAlignment="Center"
+                           Height="{Binding CodeLabelHeight}"
                            FontWeight="Bold"
-                           Foreground="#FF22ED20"
-                           TextWrapping="Wrap"
-                           Visibility="{Binding IsCodeCopiedVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
-                    <TextBlock.Effect>
-                        <DropShadowEffect BlurRadius="10"
-                                          Color="Aqua" />
-                    </TextBlock.Effect>
-                </TextBlock>
+                           Foreground="#97B0DF"
+                           FontSize="24"
+                           HorizontalAlignment="Center"
+                           Margin="0,0">
+                        <Label.InputBindings>
+                            <MouseBinding Gesture="LeftClick"
+                                          Command="{Binding CopyCodeCommand}" />
+                        </Label.InputBindings>
+                        <Label.RenderTransform>
+                            <TranslateTransform />
+                        </Label.RenderTransform>
+                        <Label.Style>
+                            <Style TargetType="Label">
+                                <Setter Property="Opacity"
+                                        Value="0" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsCodeLabelVisible}"
+                                                 Value="True">
+                                        <Setter Property="Opacity"
+                                                Value="1" />
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                                     From="0"
+                                                                     To="-10"
+                                                                     Duration="0:0:0.2"
+                                                                     AutoReverse="True"
+                                                                     EasingFunction="{StaticResource BounceEase}" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Label.Style>
+                    </Label>
+
+
+                    <Viewbox Height="30">
+                        <syncfusion:SfCircularProgressBar x:Name="ProgressBar"
+                                                          Visibility="{Binding IsProgressPieChartVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                          Minimum="0"
+                                                          IndicatorOuterRadius="0.90"
+                                                          IndicatorInnerRadius="0.70"
+                                                          TrackOuterRadius="0.90"
+                                                          TrackInnerRadius="0.70"
+                                                          Margin="10,0,0,0"
+                                                          Maximum="{Binding SelectedSecret.PeriodSeconds}"
+                                                          Progress="{Binding SelectedSecret.ElapsedSeconds}"
+                                                          IsIndeterminate="False"
+                                                          SegmentCount="1"
+                                                          ProgressColor="#B9C6DF"
+                                                          TrackColor="{Binding Progress,
+                                        ElementName=ProgressBar,
+                                        Converter={StaticResource ProgressValueToBrushConverter}}">
+
+                            <syncfusion:SfCircularProgressBar.ProgressContent>
+                                <TextBlock Text="{Binding SelectedSecret.RemainingSeconds}"
+                                           FontSize="40"
+                                           Padding="0"
+                                           Margin="-5,0,0,0"
+                                           FontWeight="Bold"
+                                           Foreground="{Binding Progress,
+ElementName=ProgressBar,
+Converter={StaticResource ProgressValueToBrushConverter}}"
+                                           VerticalAlignment="Center"
+                                           TextAlignment="Center" />
+                            </syncfusion:SfCircularProgressBar.ProgressContent>
+                        </syncfusion:SfCircularProgressBar>
+                    </Viewbox>
+                </StackPanel>
+                <!--</Grid>-->
+
+                <StackPanel Grid.Row="2">
+                    <!-- Generate QR code link -->
+                    <TextBlock HorizontalAlignment="Center"
+                               Margin="0,10,0,8"
+                               Visibility="{Binding ShowGenerateQrCodeLink, Converter={StaticResource BooleanToVisibilityConverter}}"> <Hyperlink Command="{Binding GenerateQrCommand}"> Generate QR Code </Hyperlink></TextBlock>
+
+                    <!-- === QR Code Placeholder === -->
+                    <Image ToolTip="{xaml:Resx Key=tooltip_AuthenticatorAppScan}"
+                           Margin="0,10,0,10"
+                           Source="{Binding QrCodeImage}"
+                           Width="160"
+                           Height="Auto"
+                           Visibility="{Binding IsQrVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
+                </StackPanel>
 
             </Grid>
         </StackPanel>
 
-        <!-- ===== Flyout Border overlay (edit) ===== -->
+        <!-- ===== Flyout Border overlay (ADD + UPDATE) ===== -->
         <!-- Dim background -->
         <Border Background="#66000000"
                 Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
-                Panel.ZIndex="10" />
+                Panel.ZIndex="10">
+
+        </Border>
 
         <!-- === FLYOUT CONTAINER === -->
         <Grid Width="300"
@@ -771,7 +844,8 @@
                                   Converter={StaticResource BooleanToVisibilityConverter}}" />
 
                         <!-- Eye button -->
-                        <ToggleButton Grid.Column="0" HorizontalAlignment="Right"
+                        <ToggleButton Grid.Column="0"
+                                      HorizontalAlignment="Right"
                                       Style="{StaticResource IconToggleButtonStyle}"
                                       Width="32"
                                       Height="30"

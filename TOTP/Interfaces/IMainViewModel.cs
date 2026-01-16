@@ -23,7 +23,7 @@ public interface IMainViewModel : INotifyPropertyChanged
     bool DoFilterGrid(object obj);
     bool IsContextmenuOpen { get; set; }
     Task InitializeAsync();
-    Task OnRowSelectionChangedAsync();
+    Task OnRowSelectionChangedAsync(SecretItemViewModel item);
     bool IsGridEditing { get; set; }
     bool IsInlineEditing { get; set; }
     bool IsSecretVisible { get; set; }

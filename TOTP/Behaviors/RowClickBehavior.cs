@@ -12,9 +12,6 @@ namespace TOTP.Behaviors
             DependencyProperty.Register(nameof(SelectionChangedCommand), typeof(ICommand),
                 typeof(RowClickBehavior), new PropertyMetadata(null));
 
-
-
-
         public ICommand SelectionChangedCommand
         {
             get => (ICommand)GetValue(SelectionChangedCommandProperty);

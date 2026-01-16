@@ -30,7 +30,7 @@ using TOTP.Parser;
 using TOTP.Resources;
 using TOTP.Services;
 using TOTP.Validation;
-using TOTP.Windows;
+using TOTP.Views;
 using ValidationError = TOTP.Core.Enums.ValidationError;
 
 #endregion
@@ -45,7 +45,7 @@ public class MainViewModel : IMainViewModel
     private readonly ILogger<MainViewModel> _logger;
 
     // Totp generation timer
-    private readonly DispatcherTimer _totpUiTimer;
+    private System.Threading.Timer? _totpUiTimer;
     private Totp? _activeTotp;
     private long _activeStep = -1;
 
@@ -115,6 +115,49 @@ public class MainViewModel : IMainViewModel
     }
 
     #endregion
+
+    private bool _showCopySymbol;
+    public bool ShowCopySymbol
+    {
+        get => _showCopySymbol;
+        set
+        {
+            _showCopySymbol = value;
+            OnPropertyChanged();
+
+            if (value)
+            {
+                // Reset after animation finishes
+                Task.Delay(1100).ContinueWith(_ =>
+                {
+                    ShowCopySymbol = false;
+                });
+            }
+        }
+    }
+
+
+    bool _showGenerateQrCodeLink;
+    public bool ShowGenerateQrCodeLink
+    {
+        get => _showGenerateQrCodeLink;
+        set
+        {
+            _showGenerateQrCodeLink = value;
+            OnPropertyChanged();
+        }
+    }
+
+    bool _isProgressPieChartVisible;
+    public bool IsProgressPieChartVisible
+    {
+        get => _isProgressPieChartVisible;
+        set
+        {
+            _isProgressPieChartVisible = value;
+            OnPropertyChanged();
+        }
+    }
 
     public CultureDisplay SelectedCulture
     {
@@ -193,15 +236,18 @@ public class MainViewModel : IMainViewModel
         get => _selectedSecret;
         set
         {
-            //if (!EqualityComparer<SecretItemViewModel?>.Default.Equals(_selectedSecret, value))
-            //{
-            foreach (var item in AllSecrets)
-                item.IsBeingEdited = false;
 
-            _selectedSecret = value;
-            OnPropertyChanged();
-            //OnSecretSelectedAsync();
-            //}
+            if (_selectedSecret == null || _selectedSecret.ID != value.ID)
+            {
+                //IsInlineEditing = false;
+
+                foreach (var item in AllSecrets)
+                    item.IsBeingEdited = false;
+
+                _selectedSecret = value;
+                OnPropertyChanged();
+                //IsProgressPieChartVisible = false;
+            }
         }
     }
 
@@ -232,14 +278,14 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    private bool _isCodeCopiedVisible;
+    private bool _isCodeCopiedLabelVisible;
 
-    public bool IsCodeCopiedVisible
+    public bool IsCodeCopiedLabelVisible
     {
-        get => _isCodeCopiedVisible;
+        get => _isCodeCopiedLabelVisible;
         set
         {
-            _isCodeCopiedVisible = value;
+            _isCodeCopiedLabelVisible = value;
             OnPropertyChanged();
         }
     }
@@ -358,12 +404,8 @@ public class MainViewModel : IMainViewModel
 
         SetupLocalization();
 
-        // Setup TOTP generation timer
-        //_totpUiTimer = new DispatcherTimer(DispatcherPriority.Background)
-        //{
-        //    Interval = TimeSpan.FromMilliseconds(100) // smooth enough for a small pie
-        //};
-        //_totpUiTimer.Tick += (_, __) => TickTotp();
+        //Setup TOTP generation timer
+        _totpUiTimer = new System.Threading.Timer(_ => StartTotpTick(), null, Timeout.Infinite, 500);
     }
 
     #region ### LOCALIZATION SETUP ###
@@ -487,6 +529,10 @@ public class MainViewModel : IMainViewModel
     #endregion
 
     #region ### COMMANDS DECLARATION ###
+
+    public ICommand CopyCodeCommand { get; private set; } = null!;
+
+    public ICommand GenerateQrCommand { get; private set; } = null!;
     public AsyncCommand ExportSecretsCommand { get; private set; } = null!;
     public AsyncCommand ScanQrAndAddCommand { get; private set; } = null!;
     public ICommand CancelFlyoutCommand { get; private set; } = null!;
@@ -500,7 +546,7 @@ public class MainViewModel : IMainViewModel
     public ICommand DoubleClickCommand { get; private set; } = null!;
     public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
-    public ICommand RowSelectionChangedCommand { get; private set; } = null!;
+    public AsyncCommand<SecretItemViewModel> RowSelectionChangedCommand { get; private set; } = null!;
 
     #endregion REGION COMMANDS
 
@@ -508,7 +554,8 @@ public class MainViewModel : IMainViewModel
 
     private void SetupCommandEventhandler()
     {
-
+        CopyCodeCommand = new RelayCommand<SecretItemViewModel>(model => CopyCode());
+        GenerateQrCommand = new RelayCommand<SecretItemViewModel>(model => GenerateQrCodeImage());
         ExportSecretsCommand = new AsyncCommand(ExportSecretsToFile);
         ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAsync, () => !_isGridInEditMode);
 
@@ -517,7 +564,7 @@ public class MainViewModel : IMainViewModel
         SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateAsync);
         CancelFlyoutCommand = new RelayCommand(CancelFlyout);
 
-        RowSelectionChangedCommand = new AsyncCommand(OnRowSelectionChangedAsync);
+        RowSelectionChangedCommand = new AsyncCommand<SecretItemViewModel>(OnRowSelectionChangedAsync);
         DeleteSecretCommand = new AsyncCommand<SecretItemViewModel>(DeleteSecretAsync, null, _logger);
         BeginEditCommand = new RelayCommand<SecretItemViewModel>(OnBeginEdit);
         EndEditCommand = new AsyncCommand<SecretItemViewModel>(OnEndEditAsync);
@@ -854,7 +901,9 @@ public class MainViewModel : IMainViewModel
     private void OnDoubleClick(SecretItemViewModel item)
     {
         _isDoubleClick = true;
-        ClearCodeGenerationOutput();
+        //_totpUiTimer?.Dispose();
+
+        //ClearCodeGenerationOutput();
 
         foreach (var s in AllSecrets)
             s.IsBeingEdited = false;
@@ -872,20 +921,36 @@ public class MainViewModel : IMainViewModel
 
 
     /// <summary>
-    /// Triggered by SfDataGrid's SelectionChanged event in code-behind: DataGrid_SelectionChanged
+    /// Triggered in RowClickBehavior.cs under behaviours
     /// </summary>
+    /// <param name="selectedSecretItem"></param>
     /// <returns></returns>
-    public async Task OnRowSelectionChangedAsync()
+    public async Task OnRowSelectionChangedAsync(SecretItemViewModel selectedSecretItem)
     {
 
-        if (IsGridEditing || IsInlineEditing)
+        if (SelectedSecret != null && IsInlineEditing && SelectedSecret.ID != selectedSecretItem.ID)
+            IsInlineEditing = false;
+
+        if (IsGridEditing || IsInlineEditing || selectedSecretItem == null || (SelectedSecret?.ID == selectedSecretItem.ID && _isDoubleClick == false))
+        {
+            Debug.WriteLine("OnRowSelectionChangedAsync - early return");
             return;
+        }
 
         _isDoubleClick = false;
-        var currentKey = SelectedSecret.Platform;
         await Task.Delay(300); // prevent OnRowSelectionChangedAsync from executing if it is a double click!
 
-        if (_isDoubleClick || SelectedSecret == null) return;
+        SelectedSecret = ComputeTotpCode(selectedSecretItem, out _activeTotp); // pre-compute TOTP code for the selected item
+        _clipboard.SetText(SelectedSecret.TotpCode!);
+
+        var currentKey = SelectedSecret.Platform;
+
+        if (_isDoubleClick)
+        {
+            _totpUiTimer?.Dispose();
+            IsProgressPieChartVisible = false;
+            return;
+        }
 
         try
         {
@@ -894,7 +959,7 @@ public class MainViewModel : IMainViewModel
                 if (SelectedSecret != null && !SelectedSecret.IsBeingEdited && !IsContextmenuOpen)
                     try
                     {
-                        await CalculateAndDisplayTotpCode(SelectedSecret);
+                        OnRowSelectionImplementation();
                     }
                     catch (Exception ex)
                     {
@@ -919,94 +984,159 @@ public class MainViewModel : IMainViewModel
 
     #region ### TOTP Code Generation ###
 
-    private async Task CalculateAndDisplayTotpCode(SecretItemViewModel vmSecretItem)
+    /// <summary>
+    /// StepSize ist die Gültigkeitsdauer eines TOTP-Codes in Sekunden. Standardmäßig beträgt sie 30 Sekunden.
+    /// </summary>
+    /// <param name="secret"></param>
+    /// <param name="code"></param>
+    /// <param name="remainingSeconds"></param>
+    /// <param name="exc"></param>
+    /// <returns></returns>
+    public bool TryComputeTotpCode(string secret, out string code, out Totp? totpInstance, out Exception? exc)
     {
+        code = null;
+        totpInstance = null;
 
-        // Totp pie chart reset
-        _totpUiTimer.Stop();
-        _activeTotp = null;
-        _activeStep = -1;
-
-        if (_secretsManager.TryComputeTotpCode(vmSecretItem.Secret, out var totpCode, out var remainingSeconds, out var exc))
+        try
         {
-            ClearCodeGenerationOutput();
-
-            // if the user clicks on another row right after the currently selected row, the counter gets incremented
-            // as this is an async function and we use an async delay below, we check if the counter is the same, so we know
-            // the user didn't click on another row meanwhile 
-            // we can therefore make the label lblCopiedCode invisible otherwise we don't
-            var localCounter = Increment(); // Increment the counter
-
-            // Update the UI
-            CurrentCodeLabel = $"{vmSecretItem.Platform}: {totpCode}";
-            _clipboard.SetText(totpCode!);
-
-            // totp progress logic
-            vmSecretItem.RemainingSeconds = remainingSeconds;
-            //TickTotp();
-            //_totpUiTimer.Start();
-
-            // working example secret: JBSWY3DPEHPK3PXP
-
-            // Google Authenticator works best with 160-bit secrets (20 bytes), but 10–32 bytes is acceptable.
-            //byte[] secretBytes = RandomNumberGenerator.GetBytes(20); // 20x8 = 160 bits is ideal
-            //string base32Secret = Base32Encoding.ToString(secretBytes).TrimEnd('=');
-
-
-            var bmp = GenerateQRCodeImage(vmSecretItem);
-
-            QrCodeImage = bmp;
-
-            Debug.WriteLine($"showing code labels for {vmSecretItem.Platform}");
-            ShowCodeGenerationOutput();
-
-            await _delayService.Delay(2000);
-
-            if (IsCodeCopiedVisible && localCounter == _counter)
+            if (!SecretValidator.IsValidBase32Format(secret))
             {
-                IsCodeCopiedVisible = false;
-                Debug.WriteLine("########## Label code hidden  #################");
+                exc = new FormatException($"Secret is invalid Base32 format, supplied to {nameof(TryComputeTotpCode)}");
+                return false;
             }
-            else
-            {
-                Debug.WriteLine("########## Label code hidden  SKIPPED  #################");
-            }
+
+            var encodedSecret = Base32Encoding.ToBytes(secret);
+            totpInstance = new Totp(encodedSecret);
+            code = totpInstance.ComputeTotp();
+
+            exc = null;
+            return true;
         }
-        else
+        catch (Exception ex)
         {
-            var error = exc is FormatException || exc is ArgumentException
-                 ? UI.ex_InvalidSecret
-                 : $"{UI.ex_UnexpectedError}.{Environment.NewLine}{exc.Message}";
-
-            _messageService.ShowErrorMessage(string.Format(UI.ex_Error_Generating_TOTP_0_0, vmSecretItem.Platform, error));
-            await Task.FromResult(exc);
+            exc = ex;
+            _logger.LogError(ex.Message, ex);
+            return false;
         }
     }
 
-    //private void TickTotp()
-    //{
-    //    if (_activeTotp is null || _activeItem is null)
-    //        return;
+    public SecretItemViewModel ComputeTotpCode(SecretItemViewModel item, out Totp totpInstance)
+    {
 
-    //    var now = DateTime.UtcNow;
+        if (!SecretValidator.IsValidBase32Format(item.Secret))
+            throw new FormatException($"Secret is invalid Base32 format, supplied to {nameof(ComputeTotpCode)}");
 
-    //    // Remaining seconds (0..PeriodSeconds)
-    //    int remaining = _activeTotp.RemainingSeconds(now);
-    //    _activeItem.RemainingSeconds = remaining;
+        var encodedSecret = Base32Encoding.ToBytes(item.Secret);
+        totpInstance = new Totp(encodedSecret);
+        item.TotpCode = totpInstance.ComputeTotp();
+        item.RemainingSeconds = totpInstance.RemainingSeconds();
+        return item;
+    }
 
-    //    int period = _activeItem.PeriodSeconds <= 0 ? 30 : _activeItem.PeriodSeconds;
-    //    _activeItem.Progress = Math.Clamp(remaining / (double)period, 0.0, 1.0);
+    SecretItemViewModel _lastSelected;
+    private void OnRowSelectionImplementation()
+    {
 
-    //    // Detect time-step change -> regenerate code exactly when needed
-    //    long unix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-    //    long step = unix / period;
 
-    //    if (step != _activeStep)
-    //    {
-    //        _activeStep = step;
-    //        _activeItem.TotpCode = _activeTotp.ComputeTotp(now);
-    //    }
-    //}
+        Debug.WriteLine("CalculateAndDisplayTotpCode");
+        // Totp pie chart reset
+        if (_totpUiTimer != null)
+            _totpUiTimer.Dispose();
+
+        ClearCodeGenerationOutput();
+        StartTotpTick();
+
+        // if the user clicks on another row right after the currently selected row, the counter gets incremented
+        // as this is an async function and we use an async delay below, we check if the counter is the same, so we know
+        // the user didn't click on another row meanwhile 
+        // we can therefore make the label lblCopiedCode invisible otherwise we don't
+        //var localCounter = Increment(); // Increment the counter
+
+
+        // Update the UI
+        //CurrentCodeLabel = $"{SelectedSecret.Platform}: {totpCode}";
+
+        //SelectedSecret.TotpCode = totpCode;
+        //SelectedSecret.RemainingSeconds = totpInstance.RemainingSeconds();
+
+        _clipboard.SetText(SelectedSecret.TotpCode!);
+        ShowCopySymbol = true;
+
+        // working example secret: JBSWY3DPEHPK3PXP
+        // Google Authenticator works best with 160-bit secrets (20 bytes), but 10–32 bytes is acceptable.
+        //byte[] secretBytes = RandomNumberGenerator.GetBytes(20); // 20x8 = 160 bits is ideal
+        //string base32Secret = Base32Encoding.ToString(secretBytes).TrimEnd('=');
+
+
+        //var bmp = GenerateQRCodeImage(SelectedSecret);
+
+        //QrCodeImage = bmp;
+
+        //Debug.WriteLine($"showing code labels for {SelectedSecret.Platform}");
+        ShowCodeGenerationOutput();
+
+
+
+        //await _delayService.Delay(2000); // clear the "code copied" label after 2 seconds
+
+        //if (IsCodeCopiedLabelVisible && localCounter == _counter)
+        //    IsCodeCopiedLabelVisible = false;
+        //}
+        //else
+        //{
+        //    var error = exc is FormatException || exc is ArgumentException
+        //        ? UI.ex_InvalidSecret
+        //        : $"{UI.ex_UnexpectedError}.{Environment.NewLine}{exc.Message}";
+
+        //    _messageService.ShowErrorMessage(string.Format(UI.ex_Error_Generating_TOTP_0_0, SelectedSecret.Platform,
+        //        error));
+        //    await Task.FromResult(exc);
+        //}
+
+    }
+
+    //private int _lastRemaining = -1;
+    Guid _lastItemGuid = Guid.Empty;
+
+    private void StartTotpTick()
+    {
+        _totpUiTimer?.Dispose();
+        _totpUiTimer = new System.Threading.Timer(_ =>
+        {
+            if (_activeTotp is null || SelectedSecret is null)
+            {
+                return;
+            }
+
+            Debug.WriteLine("#######  Timer is running  #####");
+
+            if (_activeTotp is null || SelectedSecret is null) throw new NullReferenceException(nameof(_activeTotp));
+
+            const int period = 30;
+            long unix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long step = unix / period;// example: 58944862, 58944863, ... 58944891, 58944892, 58944893, ...
+
+            //if (step != _activeStep)
+            //{
+            //    Debug.WriteLine("##################   step != _activeStep    ##################################");
+            _activeStep = step;
+            var now = DateTime.UtcNow;
+
+            // Coalesce: only update UI if it actually changed (per second)
+            //if (remaining == _lastRemaining) return;
+            //_lastRemaining = remaining;
+
+            System.Windows.Application.Current.Dispatcher.BeginInvoke(
+                DispatcherPriority.Render,
+                new Action(() =>
+                {
+                    SelectedSecret.TotpCode = _activeTotp.ComputeTotp();
+                    SelectedSecret.RemainingSeconds = _activeTotp.RemainingSeconds();
+                    IsProgressPieChartVisible = true;
+                }));
+
+        }, null, dueTime: 0, period: 800); // 20 fps tick, UI updates only once/sec due to coalesce
+    }
 
     private BitmapImage GenerateQRCodeImage(SecretItemViewModel item)
     {
@@ -1083,7 +1213,21 @@ public class MainViewModel : IMainViewModel
 
     #endregion
 
-    #region ### QR Code Scanning and Adding ###
+    private void CopyCode()
+    {
+        _clipboard.SetText(SelectedSecret.TotpCode!);
+        ShowCopySymbol = true;
+    }
+
+    #region ### QR Code - Create - Scan - Add ###
+
+    private void GenerateQrCodeImage()
+    {
+        var bmp = GenerateQRCodeImage(SelectedSecret);
+        QrCodeImage = bmp;
+        ShowGenerateQrCodeLink = false;
+        IsQrVisible = true;
+    }
 
     /// <summary>
     ///  Triggered by the "Scan QR" camera button
@@ -1190,22 +1334,27 @@ public class MainViewModel : IMainViewModel
     }
     #endregion
 
+
     private void ShowCodeGenerationOutput()
     {
         CodeLabelHeight = 40;
-        IsCodeCopiedVisible = true;
+        IsCodeCopiedLabelVisible = true;
         IsCodeLabelVisible = true;
         IsQrVisible = true;
+        ShowGenerateQrCodeLink = true;
     }
 
     private void ClearCodeGenerationOutput()
     {
         CodeLabelHeight = 0;
-        IsCodeCopiedVisible = false;
+        IsCodeCopiedLabelVisible = false;
         IsQrVisible = false;
+        IsProgressPieChartVisible = false;
         IsCodeLabelVisible = false;
         QrCodeImage = null;
         CurrentCodeLabel = string.Empty;
+        ShowGenerateQrCodeLink = false;
+        IsQrVisible = false;
     }
 
 }

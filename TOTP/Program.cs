@@ -7,6 +7,7 @@ using TOTP.Helper;
 using TOTP.Infrastructure.AppLifecycle;
 using TOTP.Resources;
 using TOTP.Startup;
+using TOTP.Views;
 
 namespace TOTP;
 

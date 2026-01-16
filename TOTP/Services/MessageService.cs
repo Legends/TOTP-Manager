@@ -6,7 +6,7 @@ using TOTP.Core.Enums;
 using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Resources;
-using TOTP.UserControls;
+using TOTP.Views;
 
 namespace TOTP.Services;
 

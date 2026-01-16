@@ -47,6 +47,10 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         }
     }
 
+
+
+    #region TOTP Progress
+
     string _totpCode;
     public string TotpCode
     {
@@ -74,6 +78,24 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
             }
         }
     }
+    public int PeriodSeconds { get; } = 30;
+
+    int _remainingSeconds;
+    public int RemainingSeconds
+    {
+        get => _remainingSeconds;
+        set
+        {
+            _remainingSeconds = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ElapsedSeconds));
+        }
+    }
+
+    public int ElapsedSeconds => PeriodSeconds - RemainingSeconds;
+
+    #endregion
+
 
     private string? _platform;
 
@@ -124,16 +146,7 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         }
     }
 
-    private int remainingSeconds;
-    public int RemainingSeconds
-    {
-        get => remainingSeconds;
-        set
-        {
-            remainingSeconds = value;
-            OnPropertyChanged();
-        }
-    }
+
 
 
 
@@ -180,8 +193,8 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
     {
         _storedValues?.Clear();
         _storedValues = null;
-
-        Debug.WriteLine("End Edit Called");
+        IsHighlighted = true; // Doesnt work: TODO: highlight the currently edited item, not the next one, event to mainviewmodel?
+        Debug.WriteLine("SecretItemViewModel - EndEdit() Called");
     }
 
     public SecretItemViewModel? Copy()

@@ -35,7 +35,13 @@ public class DataGridEditingStateBehavior : Behavior<SfDataGrid>
 
     }
 
-    private void OnBegin(object? s, CurrentCellBeginEditEventArgs e) => IsEditing = true;
-    private void OnEnd(object? s, CurrentCellEndEditEventArgs e) => IsEditing = false;
+    private void OnBegin(object? s, CurrentCellBeginEditEventArgs e)
+    {
+        IsEditing = true;
+    }
+    private void OnEnd(object? s, CurrentCellEndEditEventArgs e)
+    {
+        IsEditing = false;
+    }
 }
 
