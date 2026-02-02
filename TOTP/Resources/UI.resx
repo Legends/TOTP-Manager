@@ -223,7 +223,7 @@
     <value>Secret updated successfully</value>
   </data>
   <data name="tooltip_AddNew" xml:space="preserve">
-    <value>Add new secret</value>
+    <value>Add new account</value>
   </data>
   <data name="tooltip_AuthenticatorAppScan" xml:space="preserve">
     <value>Scan the code with your authenticator app</value>
@@ -271,7 +271,7 @@
     <value>Change entry</value>
   </data>
   <data name="ui_Export" xml:space="preserve">
-    <value>Export all secrets to file</value>
+    <value>Export all accounts to file</value>
   </data>
   <data name="ui_Header_Account" xml:space="preserve">
     <value>account</value>

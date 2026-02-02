@@ -19,7 +19,7 @@ namespace TOTP.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class UI {
@@ -376,7 +376,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add new secret.
+        ///   Looks up a localized string similar to Add new account.
         /// </summary>
         internal static string tooltip_AddNew {
             get {
@@ -520,7 +520,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export all secrets to file.
+        ///   Looks up a localized string similar to Export all accounts to file.
         /// </summary>
         internal static string ui_Export {
             get {

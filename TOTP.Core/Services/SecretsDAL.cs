@@ -203,9 +203,22 @@ public class SecretsDAL : ISecretsDAL, IDisposable
         try
         {
             if (!File.Exists(_secretsPath))
-                return (true, []);
+            {
+                // Ensure directory exists
+                var directory = Path.GetDirectoryName(_secretsPath);
+
+                if (!string.IsNullOrEmpty(directory))
+                    Directory.CreateDirectory(directory);
+
+                // Create empty file (or write initial content)
+                File.WriteAllText(_secretsPath, string.Empty);
+            }
+
 
             var encrypted = await File.ReadAllBytesAsync(_secretsPath);
+            if (encrypted.Length == 0)
+                return (true, []);
+
             var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
             var json = Encoding.UTF8.GetString(decrypted);
 

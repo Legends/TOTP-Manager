@@ -235,7 +235,7 @@ public class MainViewModel : IMainViewModel
     }
 
     public bool IsContextmenuOpen { get; set; }
-    
+
     private SecretItemViewModel _selectedSecret = null!;
 
     public SecretItemViewModel SelectedSecret
@@ -447,6 +447,11 @@ public class MainViewModel : IMainViewModel
 
     #endregion
 
+    // todo: https://chatgpt.com/c/6980aa8e-87f0-8396-88d2-a7334f839168
+    // todo: use svg and show a zoomed version on click:
+    //  <Image ToolTip="{xaml:Resx Key=tooltip_AuthenticatorAppScan}"
+   
+
 
     private bool _secretsManager_OnDeletePrompt(object? sender, string platform)
     {
@@ -538,8 +543,8 @@ public class MainViewModel : IMainViewModel
 
     #region ### COMMANDS DECLARATION ###
 
+    public ICommand ClearSearchTextCommand => new RelayCommand(() => { SearchText = string.Empty; });
     public ICommand CopyCodeCommand { get; private set; } = null!;
-
     public ICommand GenerateQrCommand { get; private set; } = null!;
     public AsyncCommand ExportSecretsCommand { get; private set; } = null!;
     public AsyncCommand ScanQrAndAddCommand { get; private set; } = null!;
@@ -1066,7 +1071,7 @@ public class MainViewModel : IMainViewModel
         get => _TotpCode;
         set
         {
-            _TotpCode=value;
+            _TotpCode = value;
             OnPropertyChanged();
         }
     }

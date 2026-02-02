@@ -223,7 +223,7 @@
     <value>Schlüssel wurde erfolgreich geändert</value>
   </data>
   <data name="tooltip_AddNew" xml:space="preserve">
-    <value>Neuen Schlüssel hinzufügen</value>
+    <value>Neues Konto hinzufügen</value>
   </data>
   <data name="tooltip_AuthenticatorAppScan" xml:space="preserve">
     <value>Scanne den Kode mit deiner Authenticator-App</value>
@@ -271,7 +271,7 @@
     <value>Eintrag ändern</value>
   </data>
   <data name="ui_Export" xml:space="preserve">
-    <value>Alle Schlüssel in eine Datei exportieren</value>
+    <value>Alle Konten in eine Datei exportieren</value>
   </data>
   <data name="ui_Header_Account" xml:space="preserve">
     <value>konto</value>

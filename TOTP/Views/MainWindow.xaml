@@ -399,7 +399,14 @@
                                              props:FocusExtension.IsFocused="{Binding IsSearchFocused}"
                                              Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
                                              Padding="0,0,20,0"
-                                             Margin="10,0,0,0" />
+                                             Margin="10,0,0,0" >
+                        <syncfusion:SfTextBoxExt.InputBindings>
+                            <KeyBinding
+                                Key="Escape"
+                                Command="{Binding ClearSearchTextCommand}" />
+                        </syncfusion:SfTextBoxExt.InputBindings>
+
+                    </syncfusion:SfTextBoxExt>
 
                     <!-- Search-Clear-Button -->
                     <Button Content="×"
@@ -786,6 +793,12 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
               Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
               Style="{StaticResource FlyoutHostStyle}"
               FocusManager.IsFocusScope="True">
+
+            <Grid.InputBindings>
+                <KeyBinding
+                    Key="Escape"
+                    Command="{Binding CancelFlyoutCommand}" />
+            </Grid.InputBindings>
 
             <Border Background="#152549"
                     Padding="16"
