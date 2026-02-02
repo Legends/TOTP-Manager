@@ -42,6 +42,7 @@
 	<ItemGroup>
 		<None Remove="Assets\flags\de.png" />
 		<None Remove="Assets\Icons\Camera-48x48.svg" />
+		<None Remove="Assets\Icons\Copy-48x48.svg" />
 		<None Remove="Assets\Icons\delete-24x24.svg" />
 		<None Remove="Assets\Icons\Edit-48x48.svg" />
 		<None Remove="Assets\Icons\Eye - 02-48x48.svg" />
@@ -113,6 +114,9 @@
 		<Resource Include="Assets\flags\de.png" />
 		<Resource Include="Assets\flags\en.png" />
 		<Resource Include="Assets\Icons\Camera-48x48.svg">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="Assets\Icons\Copy-48x48.svg">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Assets\Icons\delete-24x24.svg">

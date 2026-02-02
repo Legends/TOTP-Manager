@@ -19,6 +19,7 @@ using TOTP.Logging;
 using TOTP.Resources;
 using TOTP.Services;
 using TOTP.ViewModels;
+using TOTP.Views;
 
 namespace TOTP.Startup;
 

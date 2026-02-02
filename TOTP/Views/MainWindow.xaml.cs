@@ -1,14 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Windows;
+using Microsoft.Extensions.Logging;
 using Syncfusion.SfSkinManager;
 using Syncfusion.UI.Xaml.Grid;
 using Syncfusion.Windows.Shared;
-using System;
-using System.Windows;
 using TOTP.Interfaces;
 using TOTP.Resources;
-using TOTP.ViewModels;
 
-namespace TOTP;
+namespace TOTP.Views;
 
 /// <summary>
 ///     Interaction logic for MainWindow.xaml
@@ -55,8 +54,6 @@ public partial class MainWindow : ChromelessWindow
         try
         {
             await _vm.InitializeAsync();
-
-
         }
         catch (Exception ex)
         {
@@ -88,13 +85,13 @@ public partial class MainWindow : ChromelessWindow
     }
 
 
-    private async void DataGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
+    private void DataGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
     {
         try
         {
-            var gRow = (e.AddedItems[0] as GridRowInfo);
-            _vm.SelectedSecret = gRow.RowData as SecretItemViewModel;
-            await _vm.OnRowSelectionChangedAsync();
+            //var gRow = (e.AddedItems[0] as GridRowInfo);
+            //_vm.SelectedSecret = gRow.RowData as SecretItemViewModel;
+            //await _vm.OnRowSelectionChangedAsync();
         }
         catch (Exception ex)
         {

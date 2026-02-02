@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using OtpNet;
 using TOTP.Core.Enums;
 using TOTP.Core.Events;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
-using TOTP.Core.Validation;
 using TOTP.Interfaces;
 
 namespace TOTP.Core.Services;
@@ -59,33 +57,6 @@ public class SecretsManager : ISecretsManager
         }
     }
 
-    public bool TryComputeTotpCode(string secret, out string? code, out int remainingSeconds, out Exception? exc)
-    {
-        code = null;
-        remainingSeconds = 0;
-
-        try
-        {
-            if (!SecretValidator.IsValidBase32Format(secret))
-            {
-                exc = new FormatException($"Secret is invalid Base32 format, supplied to {nameof(TryComputeTotpCode)}");
-                return false;
-            }
-
-            var encodedSecret = Base32Encoding.ToBytes(secret);
-            var totp = new Totp(encodedSecret);
-            code = totp.ComputeTotp();
-            remainingSeconds = totp.RemainingSeconds();
-            exc = null;
-            return true;
-        }
-        catch (Exception ex)
-        {
-            exc = ex;
-            _logger.LogError(ex.Message, ex);
-            return false;
-        }
-    }
 
     public async Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated)
     {
@@ -135,5 +106,8 @@ public class SecretsManager : ISecretsManager
         return false;
     }
 
-
+    public bool TryComputeTotpCode(string secret, out string? code, out int remainingSeconds, out Exception? exc)
+    {
+        throw new NotImplementedException();
+    }
 }

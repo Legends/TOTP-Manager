@@ -10,22 +10,12 @@ namespace TOTP.Core.Interfaces;
 /// Add new
 /// Update
 /// Delete
-/// Generates TOTP code
 /// </summary>
 public interface ISecretsManager
 {
-    /// <summary>
-    /// Tries to compute the TOTP code for the given secret.
-    /// </summary>
-    /// <param name="secret"></param>
-    /// <param name="code"></param>
-    /// <param name="remainingSeconds"></param>
-    /// <param name="exc"></param>
-    /// <returns></returns>
-    bool TryComputeTotpCode(string secret, out string? code, out int remainingSeconds, out Exception? exc);
 
     /// <summary>
-    /// Adds a new TOTP secret item by prompting the user for key and value.
+    /// Adds a new secret item by prompting the user for key and value.
     /// It writes the new item to the secrets file and returns the item if successful.
     /// </summary>
     /// <returns></returns>

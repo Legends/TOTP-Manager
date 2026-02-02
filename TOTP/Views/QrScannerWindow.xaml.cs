@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Threading;
 using TOTP.Extensions;
 
-namespace TOTP.Windows
+namespace TOTP.Views
 {
     public partial class QrScannerWindow : ChromelessWindow
     {

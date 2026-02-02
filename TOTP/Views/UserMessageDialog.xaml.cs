@@ -7,7 +7,7 @@ using TOTP.Events;
 using TOTP.Helper;
 using TOTP.Interfaces;
 
-namespace TOTP.UserControls;
+namespace TOTP.Views;
 
 public partial class UserMessageDialog : Window
 {
