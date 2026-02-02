@@ -38,10 +38,9 @@ public interface ISecretsDAL
     /// <summary>
     /// Updates an existing secret item in the encrypted secrets file.
     /// </summary>
-    /// <param name="previousPlatform"></param>
     /// <param name="updated"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<Result<bool>> UpdateItemAsync(SecretItem previousPlatform, SecretItem updated);
+    Task<Result<bool>> UpdateItemAsync(SecretItem updated);
 
 
     /// <summary>

@@ -340,7 +340,7 @@
 
     <!-- We wrap the existing content in a Grid so we can overlay the flyout -->
     <Grid>
-        <!-- ===== DataGrid & Toolbar ===== -->
+        <!-- ===== DataGrid & Toolbar Container ===== -->
         <StackPanel Orientation="Vertical"
                     Margin="0,5,0,0"
                     HorizontalAlignment="Stretch"
@@ -533,7 +533,7 @@
                                        HorizontalAlignment="Stretch"
                                        ColumnSizer="Star">
 
-                   
+
                     <syncfusion:SfDataGrid.SortColumnDescriptions>
                         <syncfusion:SortColumnDescription ColumnName="Platform"
                                                           SortDirection="Ascending" />
@@ -541,11 +541,12 @@
 
                     <i:Interaction.Behaviors>
                         <behaviors:ScrollOnNewOrUpdatedItemBehavior />
-                        <behaviors:DataGridEditingStateBehavior IsEditing="{Binding IsGridEditing, Mode=TwoWay}" />
+                        <!--<behaviors:DataGridEditingStateBehavior IsEditing="{Binding IsGridEditing, Mode=TwoWay}" />-->
                         <behaviors:DataGridValidationBehavior />
-                        <behaviors:SfDataGridEditingBehavior BeginEditCommand="{Binding BeginEditCommand}"
-                                                             EndEditCommand="{Binding EndEditCommand}"
-                                                             DoubleClickCommand="{Binding DoubleClickCommand}" />
+                        <behaviors:SfDataGridEditingBehavior  IsEditing="{Binding IsGridEditing, Mode=TwoWay}"
+                                                              BeginEditCommand="{Binding BeginEditCommand}"
+                                                              EndEditCommand="{Binding EndEditCommand}"
+                                                              DoubleClickCommand="{Binding DoubleClickCommand}" />
 
                         <behaviors:SfDataGridContextMenuBehavior />
                         <behaviors:RowClickBehavior SelectionChangedCommand="{Binding RowSelectionChangedCommand}" />
@@ -639,31 +640,38 @@
                         </ContextMenu>
                     </syncfusion:SfDataGrid.RecordContextMenu>
 
-
                 </syncfusion:SfDataGrid>
 
+                <StackPanel Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Center">
+                    <Label x:Name="lblSelectedPlatformName" Content="{Binding SelectedSecret.Platform }"
+                           VerticalContentAlignment="Center"
+                           HorizontalContentAlignment="Center"
+                           HorizontalAlignment="Center"
+                         FontWeight="Bold" FontSize="15"
+Height="{Binding CodeLabelHeight}"
+                         />
 
-
-
-                <!-- === TOTP Code and Progress Pie Chart === -->
-                <StackPanel Grid.Row="1"
+                    <!-- === TOTP Code and Progress Pie Chart === -->
+                    <StackPanel 
                             Orientation="Horizontal"
                             VerticalAlignment="Top"
                             HorizontalAlignment="Center">
 
-                    <Viewbox Width="10">
-                        <svgc:SvgViewbox Source="/Assets/Icons/Copy-48x48.svg"
+                        <!-- copy symbol -->
+                        <Viewbox x:Name="vbCopySymbol" Width="10" Margin="0,0,0,2">
+                            <svgc:SvgViewbox Source="/Assets/Icons/Copy-48x48.svg"
                                          Stretch="Uniform"
                                          Style="{StaticResource CopySymbolStyle}"
                                          Visibility="{Binding ShowCopySymbol,
-                                  Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    </Viewbox>
+                                         Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        </Viewbox>
 
 
-                    <!-- TOTP code value   Grid.Row="2" Content="CurrentCodeLabel"-->
-                    <Label x:Name="lblCode"
+                        <!-- TOTP code value   Grid.Row="2" Content="CurrentCodeLabel"-->
+                        <!--Content="{Binding SelectedSecret.TotpCode }"-->
+                        <Label x:Name="lblCode"  
                            Cursor="Hand"
-                           Content="{Binding SelectedSecret.TotpCode }"
+                           Content="{Binding TotpCode }"
                            HorizontalContentAlignment="Center"
                            Height="{Binding CodeLabelHeight}"
                            FontWeight="Bold"
@@ -671,43 +679,43 @@
                            FontSize="24"
                            HorizontalAlignment="Center"
                            Margin="0,0">
-                        <Label.InputBindings>
-                            <MouseBinding Gesture="LeftClick"
+                            <Label.InputBindings>
+                                <MouseBinding Gesture="LeftClick"
                                           Command="{Binding CopyCodeCommand}" />
-                        </Label.InputBindings>
-                        <Label.RenderTransform>
-                            <TranslateTransform />
-                        </Label.RenderTransform>
-                        <Label.Style>
-                            <Style TargetType="Label">
-                                <Setter Property="Opacity"
+                            </Label.InputBindings>
+                            <Label.RenderTransform>
+                                <TranslateTransform />
+                            </Label.RenderTransform>
+                            <Label.Style>
+                                <Style TargetType="Label">
+                                    <Setter Property="Opacity"
                                         Value="0" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsCodeLabelVisible}"
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsCodeLabelVisible}"
                                                  Value="True">
-                                        <Setter Property="Opacity"
+                                            <Setter Property="Opacity"
                                                 Value="1" />
-                                        <DataTrigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                            <DataTrigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
                                                                      From="0"
                                                                      To="-10"
                                                                      Duration="0:0:0.2"
                                                                      AutoReverse="True"
                                                                      EasingFunction="{StaticResource BounceEase}" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.EnterActions>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Label.Style>
-                    </Label>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </DataTrigger.EnterActions>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Label.Style>
+                        </Label>
 
-
-                    <Viewbox Height="30">
-                        <syncfusion:SfCircularProgressBar x:Name="ProgressBar"
+                        <!-- Progress Pie Chart -->
+                        <Viewbox x:Name="vbProgressPieChart" Height="25">
+                            <syncfusion:SfCircularProgressBar x:Name="ProgressBar"
                                                           Visibility="{Binding IsProgressPieChartVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                                           Minimum="0"
                                                           IndicatorOuterRadius="0.90"
@@ -715,17 +723,17 @@
                                                           TrackOuterRadius="0.90"
                                                           TrackInnerRadius="0.70"
                                                           Margin="10,0,0,0"
-                                                          Maximum="{Binding SelectedSecret.PeriodSeconds}"
-                                                          Progress="{Binding SelectedSecret.ElapsedSeconds}"
+                                                          Maximum="{Binding PeriodSeconds}"
+                                                          Progress="{Binding ElapsedSeconds}"
                                                           IsIndeterminate="False"
                                                           SegmentCount="1"
-                                                          ProgressColor="#B9C6DF"
+                                                          ProgressColor="#152549"
                                                           TrackColor="{Binding Progress,
                                         ElementName=ProgressBar,
                                         Converter={StaticResource ProgressValueToBrushConverter}}">
 
-                            <syncfusion:SfCircularProgressBar.ProgressContent>
-                                <TextBlock Text="{Binding SelectedSecret.RemainingSeconds}"
+                                <syncfusion:SfCircularProgressBar.ProgressContent>
+                                    <TextBlock Text="{Binding RemainingSeconds}"
                                            FontSize="40"
                                            Padding="0"
                                            Margin="-5,0,0,0"
@@ -735,11 +743,15 @@ ElementName=ProgressBar,
 Converter={StaticResource ProgressValueToBrushConverter}}"
                                            VerticalAlignment="Center"
                                            TextAlignment="Center" />
-                            </syncfusion:SfCircularProgressBar.ProgressContent>
-                        </syncfusion:SfCircularProgressBar>
-                    </Viewbox>
+                                </syncfusion:SfCircularProgressBar.ProgressContent>
+                            </syncfusion:SfCircularProgressBar>
+                        </Viewbox>
+                    </StackPanel>
+
+
                 </StackPanel>
-                <!--</Grid>-->
+
+
 
                 <StackPanel Grid.Row="2">
                     <!-- Generate QR code link -->

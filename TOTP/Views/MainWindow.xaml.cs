@@ -23,15 +23,7 @@ public partial class MainWindow : ChromelessWindow
         _logger = logger;
         InitializeComponent();
 
-        double screenWidth = SystemParameters.PrimaryScreenWidth;
-        double screenHeight = SystemParameters.PrimaryScreenHeight;
-
-        double windowWidth = this.Width;
-        double windowHeight = this.Height;
-
-        // Center horizontally, 1/4 from top
-        this.Left = (screenWidth - windowWidth) / 2;
-        this.Top = screenHeight / 4;
+        SetupWindowPositionAtStartup();
 
         // build action: Resource
         //this.Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/Icons/github.ico"));
@@ -45,6 +37,19 @@ public partial class MainWindow : ChromelessWindow
 
         Loaded += OnLoadedAsync;
         SecretsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
+    }
+
+    private void SetupWindowPositionAtStartup()
+    {
+        double screenWidth = SystemParameters.PrimaryScreenWidth;
+        double screenHeight = SystemParameters.PrimaryScreenHeight;
+
+        double windowWidth = this.Width;
+        double windowHeight = this.Height;
+
+        // Center horizontally, 1/5 from top
+        this.Left = (screenWidth - windowWidth) / 2;
+        this.Top = screenHeight / 5;
     }
 
     private async void OnLoadedAsync(object sender, RoutedEventArgs e)
@@ -69,6 +74,8 @@ public partial class MainWindow : ChromelessWindow
         {
             // Attach filtering handler
             SecretsGrid.View.Filter = vm.DoFilterGrid;
+            //SecretsGrid.View.RefreshFilter(true); 
+
 
             // Setup RefreshFilter callable from View
             vm.RequestGridFilterRefresh = () =>
@@ -85,18 +92,18 @@ public partial class MainWindow : ChromelessWindow
     }
 
 
-    private void DataGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
-    {
-        try
-        {
-            //var gRow = (e.AddedItems[0] as GridRowInfo);
-            //_vm.SelectedSecret = gRow.RowData as SecretItemViewModel;
-            //await _vm.OnRowSelectionChangedAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex.Message, ex);
-        }
-    }
+    //private void DataGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
+    //{
+    //    try
+    //    {
+    //        //var gRow = (e.AddedItems[0] as GridRowInfo);
+    //        //_vm.SelectedSecret = gRow.RowData as SecretItemViewModel;
+    //        //await _vm.OnRowSelectionChangedAsync();
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex.Message, ex);
+    //    }
+    //}
 
 }

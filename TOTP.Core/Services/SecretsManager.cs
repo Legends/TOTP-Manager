@@ -57,21 +57,35 @@ public class SecretsManager : ISecretsManager
         }
     }
 
-
     public async Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated)
     {
-        ArgumentNullException.ThrowIfNull(previous);
+        //ArgumentNullException.ThrowIfNull(previous);
         ArgumentNullException.ThrowIfNull(updated);
 
-        var result = await _secretsDal.UpdateItemAsync(previous, updated);
+        var result = await _secretsDal.UpdateItemAsync(updated);
 
-        var platform = result.Status == OperationStatus.LoadingFailed ? null : previous.Platform;
+        var platform = result.Status == OperationStatus.LoadingFailed ? null : previous?.Platform;
 
         if (result.Status != OperationStatus.Success)
-            OnMessageSend?.Invoke(this, result.Status, platform);
+            OnMessageSend?.Invoke(this, result.Status, platform ?? string.Empty);
 
         return result.Status == OperationStatus.Success;
     }
+
+    //public async Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated)
+    //{
+    //    ArgumentNullException.ThrowIfNull(previous);
+    //    ArgumentNullException.ThrowIfNull(updated);
+
+    //    var result = await _secretsDal.UpdateItemAsync(previous, updated);
+
+    //    var platform = result.Status == OperationStatus.LoadingFailed ? null : previous.Platform;
+
+    //    if (result.Status != OperationStatus.Success)
+    //        OnMessageSend?.Invoke(this, result.Status, platform);
+
+    //    return result.Status == OperationStatus.Success;
+    //}
 
 
     /// <summary>

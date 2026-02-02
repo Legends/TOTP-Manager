@@ -90,19 +90,15 @@ public class SecretsDAL : ISecretsDAL, IDisposable
         }
     }
 
-    public async Task<Result<bool>> UpdateItemAsync(SecretItem previous, SecretItem updated)
+    public async Task<Result<bool>> UpdateItemAsync(SecretItem updated)
     {
-
-        if (previous.ID != updated.ID)
-            return Result<bool>.Fail(OperationStatus.ItemIdMismatch);
-
         await Semaphore.WaitAsync();
         try
         {
             var (ok, listStore) = await LoadSecretsFromFileAsync();
             if (!ok) return new(OperationStatus.LoadingFailed, ok);
 
-            var existing = listStore.FirstOrDefault(x => x.Platform == previous.Platform);
+            var existing = listStore.FirstOrDefault(x => x.ID == updated.ID);
             if (existing == null)
             {
                 return Result<bool>.Fail(OperationStatus.NotFound);
@@ -118,6 +114,35 @@ public class SecretsDAL : ISecretsDAL, IDisposable
             Semaphore.Release();
         }
     }
+
+    //public async Task<Result<bool>> UpdateItemAsync(SecretItem previous, SecretItem updated)
+    //{
+
+    //    if (previous.ID != updated.ID)
+    //        return Result<bool>.Fail(OperationStatus.ItemIdMismatch);
+
+    //    await Semaphore.WaitAsync();
+    //    try
+    //    {
+    //        var (ok, listStore) = await LoadSecretsFromFileAsync();
+    //        if (!ok) return new(OperationStatus.LoadingFailed, ok);
+
+    //        var existing = listStore.FirstOrDefault(x => x.ID == previous.ID);
+    //        if (existing == null)
+    //        {
+    //            return Result<bool>.Fail(OperationStatus.NotFound);
+    //        }
+
+    //        listStore.Remove(existing);
+    //        listStore.Add(updated);
+    //        var result = await WriteEncryptedFileAsync(listStore);
+    //        return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
+    //    }
+    //    finally
+    //    {
+    //        Semaphore.Release();
+    //    }
+    //}
 
 
     public async Task<Result<bool>> DeleteItemAsync(string platform)

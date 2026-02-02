@@ -9,6 +9,20 @@ namespace TOTP.Behaviors;
 
 public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
 {
+
+    public static readonly DependencyProperty IsEditingProperty =
+        DependencyProperty.Register(
+            nameof(IsEditing),
+            typeof(bool),
+            typeof(SfDataGridEditingBehavior),
+            new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
+    public bool IsEditing
+    {
+        get => (bool)GetValue(IsEditingProperty);
+        set => SetValue(IsEditingProperty, value);
+    }
+
     public static readonly DependencyProperty BeginEditCommandProperty =
         DependencyProperty.Register(nameof(BeginEditCommand), typeof(ICommand), typeof(SfDataGridEditingBehavior));
 
@@ -58,6 +72,8 @@ public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
 
     private void OnBeginEdit(object? sender, CurrentCellBeginEditEventArgs e)
     {
+        IsEditing = true;
+
         if (AssociatedObject.SelectedItem != null &&
             BeginEditCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
         {
@@ -67,6 +83,8 @@ public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
 
     private void OnEndEdit(object? sender, CurrentCellEndEditEventArgs e)
     {
+        IsEditing = false;
+
         if (AssociatedObject.SelectedItem != null && EndEditCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
         {
             EndEditCommand.Execute(AssociatedObject.SelectedItem);
@@ -81,8 +99,7 @@ public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
 
     private void OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (AssociatedObject.SelectedItem != null &&
-            DoubleClickCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
+        if (AssociatedObject.SelectedItem != null && DoubleClickCommand?.CanExecute(AssociatedObject.SelectedItem) == true)
             DoubleClickCommand.Execute(AssociatedObject.SelectedItem);
     }
 }

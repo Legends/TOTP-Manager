@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Syncfusion.DocIO.DLS.XML;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -43,7 +44,7 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         set
         {
             _isBeingEdited = value;
-            OnPropertyChanged();
+            //OnPropertyChanged();
         }
     }
 
@@ -51,48 +52,50 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
     #region TOTP Progress
 
-    string _totpCode;
-    public string TotpCode
-    {
-        get => _totpCode;
-        set
-        {
-            if (_totpCode != value)
-            {
-                _totpCode = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+    //string _totpCode;
+    //public string TotpCode
+    //{
+    //    get => _totpCode;
+    //    set
+    //    {
+    //        if (_totpCode != value)
+    //        {
+    //            _totpCode = value;
+    //            OnPropertyChanged();
+    //        }
+    //    }
+    //}
 
-    private double _progress;
-    public double Progress
-    {
-        get => _progress;
-        set
-        {
-            if (_progress != value)
-            {
-                _progress = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-    public int PeriodSeconds { get; } = 30;
+    //private double _progress;
+    //public double Progress
+    //{
+    //    get => _progress;
+    //    set
+    //    {
+    //        if (_progress != value)
+    //        {
+    //            _progress = value;
+    //            OnPropertyChanged();
+    //        }
+    //    }
+    //}
 
-    int _remainingSeconds;
-    public int RemainingSeconds
-    {
-        get => _remainingSeconds;
-        set
-        {
-            _remainingSeconds = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(ElapsedSeconds));
-        }
-    }
+    //// ToDo: Remove from secretItemViewmodel !!! settings these props in timer repeatedely causes the filter logic to execute permanentlz!!
+    //public int PeriodSeconds { get; } = 30;
 
-    public int ElapsedSeconds => PeriodSeconds - RemainingSeconds;
+    //int _remainingSeconds;
+    //public int RemainingSeconds
+    //{
+    //    get => _remainingSeconds;
+    //    set
+    //    {
+    //        _remainingSeconds = value;
+    //        OnPropertyChanged();
+    //        OnPropertyChanged(nameof(ElapsedSeconds));
+    //    }
+    //}
+
+    //public int ElapsedSeconds => PeriodSeconds - RemainingSeconds;
 
     #endregion
 
@@ -262,6 +265,9 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
     protected void OnPropertyChanged([CallerMemberName] string? name = null)
     {
+        //if (name == nameof(IsBeingEdited))
+        //    return;
+
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 

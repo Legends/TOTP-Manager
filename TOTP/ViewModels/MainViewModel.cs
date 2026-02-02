@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
@@ -45,7 +46,15 @@ public class MainViewModel : IMainViewModel
     private readonly ILogger<MainViewModel> _logger;
 
     // Totp generation timer
-    private System.Threading.Timer? _totpUiTimer;
+    private Timer? _totpUiTimer;
+    public Timer? TotpUiTimer
+    {
+        get => _totpUiTimer;
+        set
+        {
+            _totpUiTimer = value;
+        }
+    }
     private Totp? _activeTotp;
     private long _activeStep = -1;
 
@@ -226,9 +235,7 @@ public class MainViewModel : IMainViewModel
     }
 
     public bool IsContextmenuOpen { get; set; }
-
-    public bool ShowActionsColumn => AllSecrets.Any(s => s.IsBeingEdited);
-
+    
     private SecretItemViewModel _selectedSecret = null!;
 
     public SecretItemViewModel SelectedSecret
@@ -322,7 +329,7 @@ public class MainViewModel : IMainViewModel
         get => _searchText;
         set
         {
-            ClearCodeGenerationOutput();
+            //ClearCodeGenerationOutput();
             _searchText = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsSearchTextNotEmpty));
@@ -405,7 +412,7 @@ public class MainViewModel : IMainViewModel
         SetupLocalization();
 
         //Setup TOTP generation timer
-        _totpUiTimer = new System.Threading.Timer(_ => StartTotpTick(), null, Timeout.Infinite, 500);
+        TotpUiTimer = new System.Threading.Timer(_ => StartTotpTick(), null, Timeout.Infinite, 500);
     }
 
     #region ### LOCALIZATION SETUP ###
@@ -523,6 +530,7 @@ public class MainViewModel : IMainViewModel
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
+
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
@@ -707,7 +715,12 @@ public class MainViewModel : IMainViewModel
             {
                 AllSecrets.Remove(item); // delete secret from internal list
                 OnPropertyChanged(nameof(AllSecrets));
-                ClearCodeGenerationOutput();
+                if (item.ID == SelectedSecret.ID)
+                {
+                    StopTOTPTimer();
+                    ClearCodeGenerationOutput();
+                }
+
             }
         }
         catch (Exception ex)
@@ -730,16 +743,19 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            var success = await _secretsManager.UpdateSecretAsync(PreviousVersion.ToDomain(), updated.ToDomain());
+            var success = await _secretsManager.UpdateSecretAsync(PreviousVersion?.ToDomain(), updated.ToDomain());
 
             if (!success)
                 return;
 
-            // Update the item in the ObservableCollection to reflect changes in the UI
-            var itemToBeUpdated = AllSecrets.FirstOrDefault(s => string.Equals(s.Platform, PreviousVersion.Platform, StringComparison.Ordinal));
+            //todo: not needed as the item is already update by ref
+            var itemToBeUpdated = AllSecrets.FirstOrDefault(s => s.ID == updated.ID);
 
             itemToBeUpdated?.UpdateSelf(updated); // only update when in flyout edit mode
             OnPropertyChanged(nameof(AllSecrets));
+
+            if (updated.ID == SelectedSecret.ID && !ShowGenerateQrCodeLink) // update the QR code if it is visible already
+                UpdateQRCode();
 
             PreviousVersion = null;
         }
@@ -748,6 +764,11 @@ public class MainViewModel : IMainViewModel
             _logger.LogError(ex, UI.ex_UpdatingSecret);
             _messageService.ShowErrorMessageDialog(string.Format(UI.ex_UpdatingSecret_0, ex.Message));
         }
+    }
+
+    private void UpdateQRCode()
+    {
+        QrCodeImage = GenerateQRCodeImage(SelectedSecret);
     }
 
 
@@ -792,10 +813,11 @@ public class MainViewModel : IMainViewModel
         }
         else // Edit mode
         {
-            PreviousVersion = SelectedSecret.Copy();
+            //PreviousVersion = SelectedSecret.Copy(); // TODO: you can also edit non selected items via flyout !!! we dont need previousversion here!
             var updated = CurrentSecretBeingEditedOrAdded.Copy();
 
-            if (updated == null || PreviousVersion == null)
+            //if (updated == null || PreviousVersion == null)
+            if (updated == null)
                 return;
 
             #region VALIDATION OF EDITED SECRET
@@ -863,12 +885,6 @@ public class MainViewModel : IMainViewModel
             var validation = new UiValidation(item);
             validation.ValidateAll();
 
-
-            //if (!isValid)
-            //{
-            //    _messageService.ShowInfoMessage(ValidationMessageMapper.ToMessage(error));
-            //    return;
-            //}
             if (!validation.IsValid)
             {
                 _messageService.ShowInfoMessage(ValidationMessageMapper.ToMessage(validation.Errors.FirstOrDefault()));
@@ -901,6 +917,7 @@ public class MainViewModel : IMainViewModel
     private void OnDoubleClick(SecretItemViewModel item)
     {
         _isDoubleClick = true;
+        Debug.WriteLine("***** _isDoubleClick = true;  ***");
         //_totpUiTimer?.Dispose();
 
         //ClearCodeGenerationOutput();
@@ -931,7 +948,8 @@ public class MainViewModel : IMainViewModel
         if (SelectedSecret != null && IsInlineEditing && SelectedSecret.ID != selectedSecretItem.ID)
             IsInlineEditing = false;
 
-        if (IsGridEditing || IsInlineEditing || selectedSecretItem == null || (SelectedSecret?.ID == selectedSecretItem.ID && _isDoubleClick == false))
+        //if (IsGridEditing || IsInlineEditing || selectedSecretItem == null || (SelectedSecret?.ID == selectedSecretItem.ID && _isDoubleClick == false))
+        if (IsGridEditing || IsInlineEditing || selectedSecretItem == null)
         {
             Debug.WriteLine("OnRowSelectionChangedAsync - early return");
             return;
@@ -940,17 +958,24 @@ public class MainViewModel : IMainViewModel
         _isDoubleClick = false;
         await Task.Delay(300); // prevent OnRowSelectionChangedAsync from executing if it is a double click!
 
+        if (_isDoubleClick)
+        {
+            if (SelectedSecret == null)
+                TotpUiTimer?.Dispose();
+            //IsProgressPieChartVisible = false;
+            return; // ondouble-click we dont execute any selelction logic
+        }
+
+        if (SelectedSecret?.ID == selectedSecretItem.ID) // dont execute selection logic if the secret is already selected
+            return;
+
         SelectedSecret = ComputeTotpCode(selectedSecretItem, out _activeTotp); // pre-compute TOTP code for the selected item
-        _clipboard.SetText(SelectedSecret.TotpCode!);
+        //_clipboard.SetText(SelectedSecret.TotpCode!);
+        _clipboard.SetText(TotpCode!);
 
         var currentKey = SelectedSecret.Platform;
 
-        if (_isDoubleClick)
-        {
-            _totpUiTimer?.Dispose();
-            IsProgressPieChartVisible = false;
-            return;
-        }
+
 
         try
         {
@@ -1028,10 +1053,39 @@ public class MainViewModel : IMainViewModel
 
         var encodedSecret = Base32Encoding.ToBytes(item.Secret);
         totpInstance = new Totp(encodedSecret);
-        item.TotpCode = totpInstance.ComputeTotp();
-        item.RemainingSeconds = totpInstance.RemainingSeconds();
+        //item.TotpCode = totpInstance.ComputeTotp();
+        TotpCode = totpInstance.ComputeTotp();
+        //item.RemainingSeconds =  totpInstance.RemainingSeconds();
+        RemainingSeconds = totpInstance.RemainingSeconds();
         return item;
     }
+
+    private string _TotpCode;
+    public string TotpCode
+    {
+        get => _TotpCode;
+        set
+        {
+            _TotpCode=value;
+            OnPropertyChanged();
+        }
+    }
+
+    public int PeriodSeconds { get; } = 30;
+
+    int _remainingSeconds;
+    public int RemainingSeconds
+    {
+        get => _remainingSeconds;
+        set
+        {
+            _remainingSeconds = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ElapsedSeconds));
+        }
+    }
+
+    public int ElapsedSeconds => PeriodSeconds - RemainingSeconds;
 
     SecretItemViewModel _lastSelected;
     private void OnRowSelectionImplementation()
@@ -1040,8 +1094,8 @@ public class MainViewModel : IMainViewModel
 
         Debug.WriteLine("CalculateAndDisplayTotpCode");
         // Totp pie chart reset
-        if (_totpUiTimer != null)
-            _totpUiTimer.Dispose();
+        if (TotpUiTimer != null)
+            TotpUiTimer.Dispose();
 
         ClearCodeGenerationOutput();
         StartTotpTick();
@@ -1059,7 +1113,8 @@ public class MainViewModel : IMainViewModel
         //SelectedSecret.TotpCode = totpCode;
         //SelectedSecret.RemainingSeconds = totpInstance.RemainingSeconds();
 
-        _clipboard.SetText(SelectedSecret.TotpCode!);
+        //_clipboard.SetText(SelectedSecret.TotpCode!);
+        _clipboard.SetText(TotpCode!);
         ShowCopySymbol = true;
 
         // working example secret: JBSWY3DPEHPK3PXP
@@ -1100,8 +1155,8 @@ public class MainViewModel : IMainViewModel
 
     private void StartTotpTick()
     {
-        _totpUiTimer?.Dispose();
-        _totpUiTimer = new System.Threading.Timer(_ =>
+        TotpUiTimer?.Dispose();
+        TotpUiTimer = new System.Threading.Timer(_ =>
         {
             if (_activeTotp is null || SelectedSecret is null)
             {
@@ -1130,9 +1185,12 @@ public class MainViewModel : IMainViewModel
                 DispatcherPriority.Render,
                 new Action(() =>
                 {
-                    SelectedSecret.TotpCode = _activeTotp.ComputeTotp();
-                    SelectedSecret.RemainingSeconds = _activeTotp.RemainingSeconds();
-                    IsProgressPieChartVisible = true;
+                    //SelectedSecret.TotpCode = _activeTotp.ComputeTotp();
+                    TotpCode = _activeTotp.ComputeTotp();
+                    //SelectedSecret.RemainingSeconds = _activeTotp.RemainingSeconds();
+                    RemainingSeconds = _activeTotp.RemainingSeconds();
+                    if (!IsProgressPieChartVisible)
+                        IsProgressPieChartVisible = true;
                 }));
 
         }, null, dueTime: 0, period: 800); // 20 fps tick, UI updates only once/sec due to coalesce
@@ -1171,12 +1229,16 @@ public class MainViewModel : IMainViewModel
     #region ### Search/Filter Logic ###
 
     /// <summary>
-    /// Filter the platform column if search filter NOT Is Null Or WhiteSpace
+    /// Displays the row if the obj is of type SecretItemViewModel and
+    /// if the search text is empty return every row
+    /// or
+    /// the platform property of the current object contains the search text
     /// </summary>
     /// <param name="obj"></param>
     /// <returns></returns>
     bool IMainViewModel.DoFilterGrid(object obj)
     {
+        Debug.WriteLine("---  DoFilterGrid   ----");
         return obj is SecretItemViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
@@ -1212,12 +1274,6 @@ public class MainViewModel : IMainViewModel
 
 
     #endregion
-
-    private void CopyCode()
-    {
-        _clipboard.SetText(SelectedSecret.TotpCode!);
-        ShowCopySymbol = true;
-    }
 
     #region ### QR Code - Create - Scan - Add ###
 
@@ -1334,6 +1390,12 @@ public class MainViewModel : IMainViewModel
     }
     #endregion
 
+    private void CopyCode()
+    {
+        //_clipboard.SetText(SelectedSecret.TotpCode!);
+        _clipboard.SetText(TotpCode!);
+        ShowCopySymbol = true;
+    }
 
     private void ShowCodeGenerationOutput()
     {
@@ -1355,6 +1417,11 @@ public class MainViewModel : IMainViewModel
         CurrentCodeLabel = string.Empty;
         ShowGenerateQrCodeLink = false;
         IsQrVisible = false;
+    }
+
+    void StopTOTPTimer()
+    {
+        TotpUiTimer?.Dispose();
     }
 
 }
