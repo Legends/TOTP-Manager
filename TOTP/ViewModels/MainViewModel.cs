@@ -29,6 +29,7 @@ using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Parser;
 using TOTP.Resources;
+using TOTP.Security;
 using TOTP.Services;
 using TOTP.Validation;
 using TOTP.Views;
@@ -357,6 +358,9 @@ public class MainViewModel : IMainViewModel
 
     public Action? RequestGridFilterRefresh { get; set; }  // <-- the view sets this
 
+    public UnlockViewModel Unlock { get; }
+
+    public bool IsUnlocked => _authorization.State.IsUnlocked;
 
     public ObservableCollection<CultureDisplay> SupportedCultures { get; set; }
 
@@ -375,6 +379,10 @@ public class MainViewModel : IMainViewModel
     private readonly IQrCodeService _qrService;
     private readonly IDelayService _delayService;
     private readonly IFileDialogService _fileDialogService;
+    private readonly IAuthorizationService _authorization;
+
+    private bool _secretsLoaded;
+    private bool _collectionHooked;
 
     //private string _pendingSearchText;
 
@@ -393,7 +401,8 @@ public class MainViewModel : IMainViewModel
         IDebounceService debounceService,
         IDelayService delayService,
         ISecretsDAL secretsDal,
-        IFileDialogService fileDialogService) // NEW
+        IFileDialogService fileDialogService,
+        IAuthorizationService authorization)
     {
         _fileDialogService = fileDialogService;
         _secretsDal = secretsDal;
@@ -404,8 +413,13 @@ public class MainViewModel : IMainViewModel
         _debounceService = debounceService;
         _clipboard = clipboard;
         _secretsManager = totpManager;
+        _authorization = authorization;
+
+        AllSecrets = new ObservableCollection<SecretItemViewModel>();
+        Unlock = new UnlockViewModel(_authorization);
 
         _secretsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
+        _authorization.State.Changed += AuthorizationState_Changed;
 
         SetupCommandEventhandler();
 
@@ -496,9 +510,38 @@ public class MainViewModel : IMainViewModel
 
     public async Task InitializeAsync()
     {
+        if (IsUnlocked)
+        {
+            await EnsureSecretsLoadedAsync();
+        }
+    }
+
+    private async void AuthorizationState_Changed(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(IsUnlocked));
+
+        if (IsUnlocked)
+        {
+            await EnsureSecretsLoadedAsync();
+        }
+    }
+
+    private async Task EnsureSecretsLoadedAsync()
+    {
+        if (_secretsLoaded)
+        {
+            return;
+        }
+
         await ReadAllSecretsAsync();
 
-        AllSecrets.CollectionChanged += Source_CollectionChanged;
+        if (!_collectionHooked)
+        {
+            AllSecrets.CollectionChanged += Source_CollectionChanged;
+            _collectionHooked = true;
+        }
+
+        _secretsLoaded = true;
     }
 
     private void Source_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

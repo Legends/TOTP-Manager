@@ -72,6 +72,7 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.26100.3916" />
 		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507" />

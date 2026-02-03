@@ -1,3 +1,5 @@
+<UserControl x:Class="TOTP.Views.HelloUnlockView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 <UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Button Content="Unlock with Windows Hello"

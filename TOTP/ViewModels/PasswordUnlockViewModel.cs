@@ -20,6 +20,8 @@ public sealed class PasswordUnlockViewModel
         UnlockCommand = new RelayCommand(Unlock);
     }
 
+    public AuthorizationResult Unlock()
+        => _auth.UnlockWithPassword(Password);
     private void Unlock()
     {
         UnlockResult = _auth.UnlockWithPassword(Password);
