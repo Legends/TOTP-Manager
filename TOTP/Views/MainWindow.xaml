@@ -18,6 +18,8 @@
                              xmlns:progress="clr-namespace:Syncfusion.UI.Xaml.ProgressBar;assembly=Syncfusion.SfProgressBar.WPF"
                              xmlns:Microsoft_Windows_Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero"
                              xmlns:local="clr-namespace:Syncfusion.Windows.Shared;assembly=Syncfusion.Shared.WPF"
+                             xmlns:viewModels="clr-namespace:TOTP.ViewModels"
+                             xmlns:views="clr-namespace:TOTP.Views"
                              mc:Ignorable="d"
                              Width="300"
                              SizeToContent="Height"
@@ -113,6 +115,16 @@
             <Setter Property="FontWeight"
                     Value="SemiBold" />
         </Style>
+
+        <DataTemplate DataType="{x:Type viewModels:UnlockViewModel}">
+            <views:UnlockView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:HelloUnlockViewModel}">
+            <views:HelloUnlockView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:PasswordUnlockViewModel}">
+            <views:PasswordUnlockView />
+        </DataTemplate>
 
         <!-- Slide-in animation for flyout -->
         <Style x:Key="FlyoutHostStyle"
@@ -344,7 +356,8 @@
         <StackPanel Orientation="Vertical"
                     Margin="0,5,0,0"
                     HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch">
+                    VerticalAlignment="Stretch"
+                    Visibility="{Binding IsUnlocked, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
 
             <Grid Height="30"
                   Background="Transparent">
@@ -937,6 +950,13 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                     </StackPanel>
                 </StackPanel>
             </Border>
+        </Grid>
+
+        <Grid Background="#CC0C1C33"
+              Visibility="{Binding IsUnlocked, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+            <ContentControl Content="{Binding Unlock}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
         </Grid>
     </Grid>
 </syncfusion:ChromelessWindow>

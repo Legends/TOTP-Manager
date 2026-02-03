@@ -17,6 +17,7 @@ using TOTP.Helper;
 using TOTP.Interfaces;
 using TOTP.Logging;
 using TOTP.Resources;
+using TOTP.Security;
 using TOTP.Services;
 using TOTP.ViewModels;
 using TOTP.Views;
@@ -83,6 +84,10 @@ public static class BootLoader
 
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
                 services.AddSingleton<ISecretsManager, SecretsManager>();
+                services.AddSingleton<IHelloService, HelloService>();
+                services.AddSingleton<IPasswordService>(_ =>
+                    new PasswordService(new PasswordRecord([], [], 100_000)));
+                services.AddSingleton<IAuthorizationService, AuthorizationService>();
 
                 // VMs
                 services.AddSingleton<IMainViewModel, MainViewModel>();
