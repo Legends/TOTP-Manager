@@ -637,8 +637,6 @@ public class MainViewModel : IMainViewModel
                     item.SetDuplicateCheck(DuplicateCheck);
                 }
 
-
-
                 return AllSecrets;
             }
             else

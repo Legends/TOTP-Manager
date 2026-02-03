@@ -115,35 +115,6 @@ public class SecretsDAL : ISecretsDAL, IDisposable
         }
     }
 
-    //public async Task<Result<bool>> UpdateItemAsync(SecretItem previous, SecretItem updated)
-    //{
-
-    //    if (previous.ID != updated.ID)
-    //        return Result<bool>.Fail(OperationStatus.ItemIdMismatch);
-
-    //    await Semaphore.WaitAsync();
-    //    try
-    //    {
-    //        var (ok, listStore) = await LoadSecretsFromFileAsync();
-    //        if (!ok) return new(OperationStatus.LoadingFailed, ok);
-
-    //        var existing = listStore.FirstOrDefault(x => x.ID == previous.ID);
-    //        if (existing == null)
-    //        {
-    //            return Result<bool>.Fail(OperationStatus.NotFound);
-    //        }
-
-    //        listStore.Remove(existing);
-    //        listStore.Add(updated);
-    //        var result = await WriteEncryptedFileAsync(listStore);
-    //        return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
-    //    }
-    //    finally
-    //    {
-    //        Semaphore.Release();
-    //    }
-    //}
-
 
     public async Task<Result<bool>> DeleteItemAsync(string platform)
     {
@@ -202,18 +173,7 @@ public class SecretsDAL : ISecretsDAL, IDisposable
     {
         try
         {
-            if (!File.Exists(_secretsPath))
-            {
-                // Ensure directory exists
-                var directory = Path.GetDirectoryName(_secretsPath);
-
-                if (!string.IsNullOrEmpty(directory))
-                    Directory.CreateDirectory(directory);
-
-                // Create empty file (or write initial content)
-                File.WriteAllText(_secretsPath, string.Empty);
-            }
-
+            EnsureStorageFileExists();
 
             var encrypted = await File.ReadAllBytesAsync(_secretsPath);
             if (encrypted.Length == 0)
@@ -230,6 +190,24 @@ public class SecretsDAL : ISecretsDAL, IDisposable
             _logger.LogError(ex, nameof(LoadSecretsFromFileAsync));
 
             return (false, default!);
+        }
+    }
+
+    /// <summary>
+    /// If storage file does not exist it creates a new one
+    /// </summary>
+    private void EnsureStorageFileExists()
+    {
+        if (!File.Exists(_secretsPath))
+        {
+            // Ensure directory exists
+            var directory = Path.GetDirectoryName(_secretsPath);
+
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
+
+            // Create empty file (or write initial content)
+            File.WriteAllText(_secretsPath, string.Empty);
         }
     }
 
