@@ -84,9 +84,9 @@ public static class BootLoader
 
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
                 services.AddSingleton<ISecretsManager, SecretsManager>();
+
                 services.AddSingleton<IHelloService, HelloService>();
-                services.AddSingleton<IPasswordService>(_ =>
-                    new PasswordService(new PasswordRecord([], [], 100_000)));
+                services.AddSingleton<IPasswordService>(_ => new PasswordService(new PasswordRecord([], [], 100_000)));
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
 
                 // VMs

@@ -91,19 +91,4 @@ public partial class MainWindow : ChromelessWindow
         }
     }
 
-
-    //private void DataGrid_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
-    //{
-    //    try
-    //    {
-    //        //var gRow = (e.AddedItems[0] as GridRowInfo);
-    //        //_vm.SelectedSecret = gRow.RowData as SecretItemViewModel;
-    //        //await _vm.OnRowSelectionChangedAsync();
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex.Message, ex);
-    //    }
-    //}
-
 }

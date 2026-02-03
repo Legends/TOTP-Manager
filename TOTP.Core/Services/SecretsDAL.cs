@@ -145,8 +145,7 @@ public class SecretsDAL : ISecretsDAL, IDisposable
     public bool BackupSecretsFile()
     {
         if (!File.Exists(_secretsPath)) return false;
-
-
+        
         var dir = Path.GetDirectoryName(_secretsPath)!;
         var file = Path.GetFileName(_secretsPath);
 
