@@ -3,56 +3,72 @@ using System.Windows.Input;
 
 namespace TOTP.Commands;
 
-public class RelayCommand<T>(Action<T> execute, Func<T, bool>? canExecute = null) : ICommand
+public class RelayCommand<T> : ICommand
 {
-    private readonly Func<T, bool>? _canExecute = canExecute;
-    private readonly Action<T> _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+    private readonly Action<T> _execute;
+    private readonly Func<T, bool>? _canExecute;
 
     public event EventHandler? CanExecuteChanged;
 
-    public bool CanExecute(object? parameter)
-    {
-        return _canExecute == null || _canExecute((T)parameter!);
-    }
-
-    public void Execute(object? parameter)
-    {
-        _execute((T)parameter!);
-    }
-
-    public void RaiseCanExecuteChanged()
-    {
-        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
-    }
-}
-public class RelayCommand : ICommand
-{
-    private readonly Action<object?> _execute;
-    private readonly Func<bool>? _canExecute;
-
-
-    public RelayCommand(Action<object?> execute, Func<bool>? canExecute = null)
+    public RelayCommand(Action<T> execute, Func<T, bool>? canExecute = null)
     {
         _execute = execute ?? throw new ArgumentNullException(nameof(execute));
         _canExecute = canExecute;
     }
 
-    public RelayCommand(Action execute, Func<bool>? canExecute = null)
+    public bool CanExecute(object? parameter)
     {
-        _execute = _ => execute();
-        _canExecute = canExecute;
+        if (_canExecute is null)
+            return true;
+
+        if (parameter is T t)
+            return _canExecute(t);
+
+        // allow null for reference types / Nullable<T>
+        if (parameter is null && default(T) is null)
+            return _canExecute(default!);
+
+        return false;
     }
+
+    public void Execute(object? parameter)
+    {
+        if (parameter is T t)
+        {
+            _execute(t);
+            return;
+        }
+
+        if (parameter is null && default(T) is null)
+        {
+            _execute(default!);
+            return;
+        }
+
+        throw new InvalidCastException($"Invalid command parameter. Expected {typeof(T)}, got {parameter?.GetType()}");
+    }
+
     public void RaiseCanExecuteChanged()
+        => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+}
+
+public sealed class RelayCommand : RelayCommand<object?>
+{
+    // Keeps compatibility with: new RelayCommand(() => ...)
+    public RelayCommand(Action execute, Func<bool>? canExecute = null)
+        : base(
+            _ => execute(),
+            _ => canExecute?.Invoke() ?? true)
     {
-        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        if (execute is null) throw new ArgumentNullException(nameof(execute));
     }
 
-
-
-    public event EventHandler? CanExecuteChanged;
-
-    public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;
-
-    public void Execute(object? parameter) => _execute(parameter);
-
+    // Keeps compatibility with: new RelayCommand(p => ...)
+    // Your existing API uses Func<bool> (no parameter) for canExecute — preserved here.
+    public RelayCommand(Action<object?> execute, Func<bool>? canExecute = null)
+        : base(
+            execute ?? throw new ArgumentNullException(nameof(execute)),
+            _ => canExecute?.Invoke() ?? true)
+    {
+    }
 }

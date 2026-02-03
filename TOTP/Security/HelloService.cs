@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Windows.Security.Credentials.UI;
 
 namespace TOTP.Security;

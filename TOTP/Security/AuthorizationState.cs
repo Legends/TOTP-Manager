@@ -1,3 +1,5 @@
+using System;
+
 namespace TOTP.Security;
 
 public sealed class AuthorizationState
