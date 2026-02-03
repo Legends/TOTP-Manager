@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net9.0-windows7.0</TargetFramework>
+		<TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
@@ -177,7 +177,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="UserControls\" />
 	  <Folder Include="Windows\" />
 	</ItemGroup>
 

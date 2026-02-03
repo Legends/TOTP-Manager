@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace TOTP.Security;
 
 public interface IAuthorizationService

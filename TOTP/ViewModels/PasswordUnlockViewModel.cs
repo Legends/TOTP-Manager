@@ -12,6 +12,8 @@ public sealed class PasswordUnlockViewModel
 
     public ICommand UnlockCommand { get; }
 
+    public AuthorizationResult? UnlockResult { get; private set; }
+
     public PasswordUnlockViewModel(IAuthorizationService auth)
     {
         _auth = auth;
@@ -20,4 +22,11 @@ public sealed class PasswordUnlockViewModel
 
     public AuthorizationResult Unlock()
         => _auth.UnlockWithPassword(Password);
+    private void Unlock()
+    {
+        UnlockResult = _auth.UnlockWithPassword(Password);
+
+        // TODO: raise PropertyChanged if you use INotifyPropertyChanged
+        // OnPropertyChanged(nameof(UnlockResult));
+    }
 }
