@@ -20,6 +20,7 @@
                              xmlns:local="clr-namespace:Syncfusion.Windows.Shared;assembly=Syncfusion.Shared.WPF"
                              xmlns:viewModels="clr-namespace:TOTP.ViewModels"
                              xmlns:views="clr-namespace:TOTP.Views"
+                             xmlns:userControls="clr-namespace:TOTP.UserControls"
                              mc:Ignorable="d"
                              Width="300"
                              SizeToContent="Height"
@@ -38,85 +39,7 @@
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverterCollapsed"
                                                 Collapse="True" />
 
-        <Storyboard x:Key="BlinkAnimation">
-            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                             From="1"
-                             To="0"
-                             Duration="0:0:0.3"
-                             AutoReverse="True" />
-        </Storyboard>
-
-        <Style x:Key="CopySymbolStyle"
-               TargetType="svgc:SvgViewbox">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding ShowCopySymbol}"
-                             Value="True">
-                    <DataTrigger.EnterActions>
-                        <BeginStoryboard Storyboard="{StaticResource BlinkAnimation}" />
-                    </DataTrigger.EnterActions>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-
-
-        <Style x:Key="IconToggleButtonStyle"
-               TargetType="{x:Type ToggleButton}">
-            <Setter Property="Background"
-                    Value="Transparent" />
-            <Setter Property="BorderBrush"
-                    Value="Transparent" />
-            <Setter Property="BorderThickness"
-                    Value="0" />
-            <Setter Property="Padding"
-                    Value="0" />
-            <Setter Property="Focusable"
-                    Value="False" />
-            <Setter Property="FocusVisualStyle"
-                    Value="{x:Null}" />
-            <Setter Property="Cursor"
-                    Value="Hand" />
-
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ToggleButton}">
-                        <!-- Always transparent; no trigger-driven box -->
-                        <Border Background="Transparent"
-                                BorderBrush="Transparent"
-                                BorderThickness="0"
-                                SnapsToDevicePixels="True">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center" />
-                        </Border>
-
-                        <!-- Optional: if you still want subtle feedback, uncomment:
-                <ControlTemplate.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Opacity" Value="0.85"/>
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Opacity" Value="0.75"/>
-                    </Trigger>
-                </ControlTemplate.Triggers>
-                -->
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-
-        <Style x:Key="InlineErrorTextStyle"
-               TargetType="TextBlock">
-            <Setter Property="Foreground"
-                    Value="#FFEF5350" />
-            <Setter Property="FontSize"
-                    Value="12" />
-            <Setter Property="Margin"
-                    Value="0,2,0,0" />
-            <Setter Property="FontWeight"
-                    Value="SemiBold" />
-        </Style>
-
-        <DataTemplate DataType="{x:Type viewModels:UnlockViewModel}">
+       <DataTemplate DataType="{x:Type viewModels:UnlockViewModel}">
             <views:UnlockView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:HelloUnlockViewModel}">
@@ -126,228 +49,7 @@
             <views:PasswordUnlockView />
         </DataTemplate>
 
-        <!-- Slide-in animation for flyout -->
-        <Style x:Key="FlyoutHostStyle"
-               TargetType="Grid">
-            <Setter Property="RenderTransform">
-                <Setter.Value>
-                    <TranslateTransform X="300" />
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsEditOpen}"
-                             Value="True">
-                    <DataTrigger.EnterActions>
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                                 To="0"
-                                                 Duration="0:0:0.18" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </DataTrigger.EnterActions>
-                    <DataTrigger.ExitActions>
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                                 To="300"
-                                                 Duration="0:0:0.18" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </DataTrigger.ExitActions>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <SolidColorBrush x:Key="MenuItemHoverBackgroundBrushKey"
-                         Color="Transparent" />
-        <LinearGradientBrush x:Key="MenuItemSelectedBackgroundBrushKey"
-                             EndPoint="0.5,1"
-                             StartPoint="0.5,0">
-            <GradientStop Color="Gainsboro"
-                          Offset="0.127" />
-            <GradientStop Color="#FFD4D3D3"
-                          Offset="0.133" />
-            <GradientStop Color="#FFBDBBBB"
-                          Offset="0.8" />
-            <GradientStop Color="#FFB1AFAF"
-                          Offset="0.873" />
-        </LinearGradientBrush>
-        <SolidColorBrush x:Key="MenuItemSelectedBorderBrushKey"
-                         Color="#FF807F7F" />
-        <SolidColorBrush x:Key="MenuItemSelectedInnerBorderBrushKey"
-                         Color="#FF9B9A9A" />
-        <SolidColorBrush x:Key="ExtendButtonFillKey"
-                         Color="Black" />
-        <SolidColorBrush x:Key="MenuItemForegroundBrushKey"
-                         Color="Black" />
-        <SolidColorBrush x:Key="MenuItemDisabledForegroundBrush"
-                         Color="Gray" />
-        <LinearGradientBrush x:Key="MenuItemMouseHoverBackgroundBrushKey"
-                             EndPoint="0.5,1"
-                             StartPoint="0.5,0">
-            <GradientStop Color="#FF4381C2"
-                          Offset="0" />
-            <GradientStop Color="#FF3399FF"
-                          Offset="0.028" />
-            <GradientStop Color="#FF3399FF"
-                          Offset="0.972" />
-            <GradientStop Color="#FF6D98C3"
-                          Offset="1" />
-        </LinearGradientBrush>
-        <SolidColorBrush x:Key="MenuItemMouseHoverBorderBrushKey"
-                         Color="#FFABAAAA" />
-        <LinearGradientBrush x:Key="SubItemMouseHoverBackgroundBrushKey"
-                             EndPoint="0,1"
-                             StartPoint="0,0">
-            <GradientStop Color="#34C5EBFF"
-                          Offset="0" />
-            <GradientStop Color="#3481D8FF"
-                          Offset="1" />
-        </LinearGradientBrush>
-        <SolidColorBrush x:Key="SubItemMouseHoverBorderBrushKey"
-                         Color="#FFAEDFF4" />
-        <SolidColorBrush x:Key="PopUpBackgroundBrush"
-                         Color="#FFF5F5F5" />
-        <SolidColorBrush x:Key="PopUpBorderBrush"
-                         Color="#FF959595" />
-        <SolidColorBrush x:Key="PopUpLeftBackgroundBrush"
-                         Color="#FFF1F1F1" />
-        <SolidColorBrush x:Key="ScrollerBackgroundBrush"
-                         Color="#FFC8CBD1" />
-        <SolidColorBrush x:Key="ScrollBtnPathFillKey"
-                         Color="Black" />
-        <SolidColorBrush x:Key="ChkBoxBackgroundBrushKey"
-                         Color="#EDF2F7" />
-        <SolidColorBrush x:Key="ChkBoxBorderBrushKey"
-                         Color="#AECFF7" />
-        <SolidColorBrush x:Key="ChkBoxPathFillKey"
-                         Color="#FF0C12A1" />
-        <SolidColorBrush x:Key="RadioBtnBackgroundBrushKey"
-                         Color="#EDF2F7" />
-        <SolidColorBrush x:Key="RadioBtnBorderBrushKey"
-                         Color="#AECFF7" />
-        <Style x:Key="TopScrollButtonStyleKey"
-               TargetType="{x:Type Button}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Grid>
-                            <Border x:Name="TopButtonScroll"
-                                    Background="{StaticResource ScrollerBackgroundBrush}"
-                                    BorderBrush="{StaticResource ScrollerBackgroundBrush}"
-                                    BorderThickness="1">
-                                <Path Data="F0 M 0,0 L 4,4 8,0 Z"
-                                      Fill="{StaticResource ScrollBtnPathFillKey}"
-                                      HorizontalAlignment="Center"
-                                      RenderTransformOrigin="0.5,0.5"
-                                      VerticalAlignment="Center">
-                                    <Path.RenderTransform>
-                                        <TransformGroup>
-                                            <ScaleTransform />
-                                            <SkewTransform />
-                                            <RotateTransform Angle="180" />
-                                            <TranslateTransform />
-                                        </TransformGroup>
-                                    </Path.RenderTransform>
-                                </Path>
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="BottomScrollButtonStyleKey"
-               TargetType="{x:Type Button}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Grid>
-                            <Border x:Name="BottomButtonScroll"
-                                    Background="{StaticResource ScrollerBackgroundBrush}"
-                                    BorderBrush="{StaticResource ScrollerBackgroundBrush}"
-                                    BorderThickness="1">
-                                <Path Data="F0 M 0,0 L 4,4 8,0 Z"
-                                      Fill="{StaticResource ScrollBtnPathFillKey}"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center" />
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="CheckBoxStyleKey"
-               TargetType="{x:Type CheckBox}">
-            <Setter Property="Margin"
-                    Value="3" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type CheckBox}">
-                        <Grid>
-                            <Border x:Name="ChkBoxBorder"
-                                    Background="{StaticResource ChkBoxBackgroundBrushKey}"
-                                    BorderBrush="{StaticResource ChkBoxBorderBrushKey}"
-                                    BorderThickness="1"
-                                    CornerRadius="3"
-                                    Height="22"
-                                    Width="22">
-                                <Path x:Name="Glyph"
-                                      Data="M 2,10 L 8,16 L 18,4"
-                                      Stroke="{StaticResource ChkBoxPathFillKey}"
-                                      StrokeThickness="2"
-                                      Fill="Transparent"
-                                      Height="11"
-                                      Width="16" />
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="RadioButtonStyleKey"
-               TargetType="{x:Type RadioButton}">
-            <Setter Property="Margin"
-                    Value="3" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type RadioButton}">
-                        <Grid>
-                            <Border x:Name="RadioBtnBorder"
-                                    Background="{StaticResource RadioBtnBackgroundBrushKey}"
-                                    BorderBrush="{StaticResource RadioBtnBorderBrushKey}"
-                                    BorderThickness="1"
-                                    CornerRadius="3"
-                                    Height="22"
-                                    Width="22">
-                                <Ellipse x:Name="EllipsePath"
-                                         Height="8"
-                                         Margin="1"
-                                         StrokeThickness="1"
-                                         Width="8">
-                                    <Ellipse.Fill>
-                                        <RadialGradientBrush Center="0.65625,0.218746"
-                                                             GradientOrigin="0.65625,0.218746">
-                                            <RadialGradientBrush.RelativeTransform>
-                                                <TransformGroup>
-                                                    <RotateTransform Angle="120.379"
-                                                                     CenterY="0.218746"
-                                                                     CenterX="0.65625" />
-                                                </TransformGroup>
-                                            </RadialGradientBrush.RelativeTransform>
-                                            <GradientStop Color="#FFCCCCED"
-                                                          Offset="0" />
-                                            <GradientStop Color="#FF16186D"
-                                                          Offset="1" />
-                                        </RadialGradientBrush>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
+    
     </syncfusion:ChromelessWindow.Resources>
 
     <!-- We wrap the existing content in a Grid so we can overlay the flyout -->
@@ -835,108 +537,66 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
 
                     <!--  ===  FLYOUT FORM FIELDS  ===  -->
 
-                    <!-- PLATFORM -->
+                    <!-- HEADER PLATFORM -->
                     <TextBlock Text="{xaml:Resx Key=ui_Header_Platform}"
                                FontWeight="Bold"
                                Foreground="White"
                                Margin="0,6,0,2" />
+
+                    <!--PLATFORM TEXTBOX-->
                     <TextBox x:Name="PlatformBox"
                              Text="{Binding CurrentSecretBeingEditedOrAdded.Platform,
                         UpdateSourceTrigger=PropertyChanged}"
                              Height="30"
                              props:FocusExtension.IsFocused="{Binding IsEditPlatformFocused}" />
 
-                    <!--Error Field Platform-->
+                    <!--ERROR DISPLAY FOR PLATFORM TEXTBOX-->
                     <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.PlatformError}"
                                Style="{StaticResource InlineErrorTextStyle}"
                                Visibility="{Binding CurrentSecretBeingEditedOrAdded.PlatformError,
                                 Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
 
-                    <!-- SECRET -->
+                    <!-- HEADER SECRET -->
                     <TextBlock Text="{xaml:Resx Key=ui_Header_Secret}"
                                FontWeight="Bold"
                                Foreground="White"
                                Margin="0,10,0,-4" />
 
-
-                    <!-- VISIBLE (TextBox) -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                            <!--<ColumnDefinition Width="Auto"></ColumnDefinition>-->
-                        </Grid.ColumnDefinitions>
-                        <PasswordBox Height="30"
-                                     props:PasswordBoxHelper.BindPassword="True"
-                                     props:PasswordBoxHelper.BoundPassword="{Binding CurrentSecretBeingEditedOrAdded.Secret,
-                          Mode=TwoWay,
-                          UpdateSourceTrigger=PropertyChanged}"
-                        Visibility="{Binding IsSecretVisible, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
-                        <TextBox Grid.Column="0"
-                                 Height="30"
-                                 Padding="0,0,6,0"
-                                 VerticalContentAlignment="Center"
-                                 Text="{Binding CurrentSecretBeingEditedOrAdded.Secret,
-                            Mode=TwoWay,
-                            UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding IsSecretVisible,
-                                  Converter={StaticResource BooleanToVisibilityConverter}}" />
-
-                        <!-- Eye button -->
-                        <ToggleButton Grid.Column="0"
-                                      HorizontalAlignment="Right"
-                                      Style="{StaticResource IconToggleButtonStyle}"
-                                      Width="32"
-                                      Height="30"
-                                      Margin="4,0,0,0"
-                                      IsChecked="{Binding IsSecretVisible, Mode=TwoWay}"
-                                      ToolTip="{xaml:Resx Key=ui_btnShowHideSecret}"
-                                      Background="Transparent"
-                                      BorderThickness="0"
-                                      Focusable="False">
-
-                            <ToggleButton.Content>
-                                <Grid Width="16"
-                                      Height="16">
-                                    <!-- eye-open icon when visible -->
-                                    <svgc:SvgViewbox Source="/Assets/Icons/Eye-Closed-48x48.svg"
-                                                     Stretch="Uniform"
-                                                     Visibility="{Binding IsSecretVisible,
-                                                      Converter={StaticResource BooleanToVisibilityConverter}}" />
-
-                                    <!-- eye-closed icon when hidden -->
-                                    <svgc:SvgViewbox Source="/Assets/Icons/Eye-Open-48x48.svg"
-                                                     Stretch="Uniform"
-                                                     Visibility="{Binding IsSecretVisible,
-                                                      Converter={StaticResource InverseBoolToVisibilityConverter}}" />
-                                </Grid>
-                            </ToggleButton.Content>
-                        </ToggleButton>
-                    </Grid>
-
-                    <!--Error Field Secret-->
+                 <!-- SECRET TEXTBOX -->
+                    <userControls:RevealableSecretBox
+                        Secret="{Binding CurrentSecretBeingEditedOrAdded.Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        IsSecretVisible="{Binding IsSecretVisible, Mode=TwoWay}"
+                        ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
+                        ToggleToolTip="{xaml:Resx Key=ui_btnShowHideSecret}" />
+              
+                   <!--ERROR DISPLAY FOR SECRET TEXTBOX-->
                     <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.SecretError}"
                                Style="{StaticResource InlineErrorTextStyle}"
                                Visibility="{Binding CurrentSecretBeingEditedOrAdded.SecretError,
                                 Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
 
-                    <!-- ACCOUNT -->
+                    <!-- ACCOUNT HEADER -->
                     <TextBlock Text="{xaml:Resx Key=ui_Header_Account}"
                                FontWeight="Bold"
                                Foreground="White"
                                Margin="0,10,0,2" />
+
+                    <!--ACCOUNT TEXTBOX-->
                     <TextBox Text="{Binding CurrentSecretBeingEditedOrAdded.Account,
                         UpdateSourceTrigger=PropertyChanged}"
                              Height="30" />
+                    <!--ERROR DISPLAY FOR ACCOUNT TEXTBOX-->
                     <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.AccountError}"
                                Style="{StaticResource InlineErrorTextStyle}"
                                Visibility="{Binding CurrentSecretBeingEditedOrAdded.AccountError,
                                 Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
 
-                    <!-- Save, Cancel BUTTONS -->
+                    <!-- SAVE, CANCEL BUTTONS -->
                     <StackPanel Orientation="Horizontal"
                                 Margin="0,16,0,0"
                                 HorizontalAlignment="Right">
                         <Button Content="{Binding SaveButtonLabel}"
+                                IsDefault="{Binding IsEditOpen}"
                                 FontWeight="Bold"
                                 Foreground="White"
                                 Command="{Binding SaveEditFlyoutAsyncCommand}"

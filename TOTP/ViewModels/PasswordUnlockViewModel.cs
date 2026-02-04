@@ -70,7 +70,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         {
             var cfg = await _auth.ConfigurePasswordAsync(Password ?? "", ConfirmPassword ?? "");
             if (cfg != AuthorizationResult.Success)
-            {
+            { 
                 Message = "Password setup failed (min length 8, and both fields must match).";
                 return;
             }
@@ -87,6 +87,8 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
             Message = "Wrong password.";
         else if (result != AuthorizationResult.Success)
             Message = "Unlock failed.";
+
+        Password = string.Empty; // reset pwd field !
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

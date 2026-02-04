@@ -256,7 +256,7 @@ public class MainViewModel : IMainViewModel
         set
         {
 
-            if (_selectedSecret == null || _selectedSecret.ID != value.ID)
+            if (_selectedSecret == null || _selectedSecret.ID != value?.ID)
             {
                 //IsInlineEditing = false;
 
@@ -473,7 +473,7 @@ public class MainViewModel : IMainViewModel
     // todo: https://chatgpt.com/c/6980aa8e-87f0-8396-88d2-a7334f839168
     // todo: use svg and show a zoomed version on click:
     //  <Image ToolTip="{xaml:Resx Key=tooltip_AuthenticatorAppScan}"
-    
+
     private bool _secretsManager_OnDeletePrompt(object? sender, string platform)
     {
         return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
@@ -559,6 +559,7 @@ public class MainViewModel : IMainViewModel
 
         StopTOTPTimer();
         ClearCodeGenerationOutput();
+        //SelectedSecret = null; // todo: check flag, was soll bei einem session lock passieren mit dem katuellen zustand
     }
     public void Lock()
     {
@@ -842,7 +843,7 @@ public class MainViewModel : IMainViewModel
             {
                 AllSecrets.Remove(item); // delete secret from internal list
                 OnPropertyChanged(nameof(AllSecrets));
-                if (item.ID == SelectedSecret.ID)
+                if (item.ID == SelectedSecret?.ID)
                 {
                     StopTOTPTimer();
                     ClearCodeGenerationOutput();
@@ -1228,20 +1229,7 @@ public class MainViewModel : IMainViewModel
         ClearCodeGenerationOutput();
         StartTotpTick();
 
-        // if the user clicks on another row right after the currently selected row, the counter gets incremented
-        // as this is an async function and we use an async delay below, we check if the counter is the same, so we know
-        // the user didn't click on another row meanwhile 
-        // we can therefore make the label lblCopiedCode invisible otherwise we don't
-        //var localCounter = Increment(); // Increment the counter
-
-
-        // Update the UI
-        //CurrentCodeLabel = $"{SelectedSecret.Platform}: {totpCode}";
-
-        //SelectedSecret.TotpCode = totpCode;
-        //SelectedSecret.RemainingSeconds = totpInstance.RemainingSeconds();
-
-        //_clipboard.SetText(SelectedSecret.TotpCode!);
+        IsProgressPieChartVisible = true;
         _clipboard.SetText(TotpCode!);
         ShowCopySymbol = true;
 
@@ -1250,32 +1238,7 @@ public class MainViewModel : IMainViewModel
         //byte[] secretBytes = RandomNumberGenerator.GetBytes(20); // 20x8 = 160 bits is ideal
         //string base32Secret = Base32Encoding.ToString(secretBytes).TrimEnd('=');
 
-
-        //var bmp = GenerateQRCodeImage(SelectedSecret);
-
-        //QrCodeImage = bmp;
-
-        //Debug.WriteLine($"showing code labels for {SelectedSecret.Platform}");
         ShowCodeGenerationOutput();
-
-
-
-        //await _delayService.Delay(2000); // clear the "code copied" label after 2 seconds
-
-        //if (IsCodeCopiedLabelVisible && localCounter == _counter)
-        //    IsCodeCopiedLabelVisible = false;
-        //}
-        //else
-        //{
-        //    var error = exc is FormatException || exc is ArgumentException
-        //        ? UI.ex_InvalidSecret
-        //        : $"{UI.ex_UnexpectedError}.{Environment.NewLine}{exc.Message}";
-
-        //    _messageService.ShowErrorMessage(string.Format(UI.ex_Error_Generating_TOTP_0_0, SelectedSecret.Platform,
-        //        error));
-        //    await Task.FromResult(exc);
-        //}
-
     }
 
     //private int _lastRemaining = -1;
@@ -1317,8 +1280,8 @@ public class MainViewModel : IMainViewModel
                     TotpCode = _activeTotp.ComputeTotp();
                     //SelectedSecret.RemainingSeconds = _activeTotp.RemainingSeconds();
                     RemainingSeconds = _activeTotp.RemainingSeconds();
-                    if (!IsProgressPieChartVisible)
-                        IsProgressPieChartVisible = true;
+                    //if (!IsProgressPieChartVisible)
+                    //    IsProgressPieChartVisible = true;
                 }));
 
         }, null, dueTime: 0, period: 800); // 20 fps tick, UI updates only once/sec due to coalesce
@@ -1544,7 +1507,6 @@ public class MainViewModel : IMainViewModel
         QrCodeImage = null;
         CurrentCodeLabel = string.Empty;
         ShowGenerateQrCodeLink = false;
-        IsQrVisible = false;
     }
 
     void StopTOTPTimer()
