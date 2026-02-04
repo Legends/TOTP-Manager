@@ -7,19 +7,27 @@ public sealed class AuthorizationState
     public event EventHandler? Changed;
 
     public bool IsUnlocked { get; private set; }
-    public DateTimeOffset? LastUnlockedAt { get; private set; }
+    public bool IsConfigured { get; private set; }
+    public AuthorizationGateKind ConfiguredGate { get; private set; } = AuthorizationGateKind.None;
+
+    public void SetProfile(AuthorizationProfile? profile)
+    {
+        IsConfigured = profile?.IsConfigured == true;
+        ConfiguredGate = profile?.Gate ?? AuthorizationGateKind.None;
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
 
     public void Unlock()
     {
+        if (IsUnlocked) return;
         IsUnlocked = true;
-        LastUnlockedAt = DateTimeOffset.UtcNow;
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public void Lock()
     {
+        if (!IsUnlocked) return;
         IsUnlocked = false;
-        LastUnlockedAt = null;
         Changed?.Invoke(this, EventArgs.Empty);
     }
 }

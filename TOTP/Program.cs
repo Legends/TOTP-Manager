@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TOTP.Helper;
 using TOTP.Infrastructure.AppLifecycle;
 using TOTP.Resources;
+using TOTP.Security;
 using TOTP.Startup;
 using TOTP.Views;
 
@@ -39,13 +40,13 @@ internal static class Program
                 return;
             }
 
-            host = BootLoader.CreateHostAndConfigureServices(configuration);
+            host = BootLoader.BuildHostAndConfigureServices(configuration);
 
             // IMPORTANT: stay on STA thread (no await here)
             await host.StartAsync();
 
             // 4) WPF app
-            var app = new App { Host = host, InstanceGuard = instance };
+            var app = new App { Host = host, InstanceGuard = instance, AuthorizationService = host.Services.GetRequiredService <IAuthorizationService>()};
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host); // your helper
 

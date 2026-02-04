@@ -868,9 +868,9 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                         <PasswordBox Height="30"
                                      props:PasswordBoxHelper.BindPassword="True"
                                      props:PasswordBoxHelper.BoundPassword="{Binding CurrentSecretBeingEditedOrAdded.Secret,
-              Mode=TwoWay,
-              UpdateSourceTrigger=PropertyChanged}"
-                                     Visibility="{Binding IsSecretVisible, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                          Mode=TwoWay,
+                          UpdateSourceTrigger=PropertyChanged}"
+                        Visibility="{Binding IsSecretVisible, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                         <TextBox Grid.Column="0"
                                  Height="30"
                                  Padding="0,0,6,0"

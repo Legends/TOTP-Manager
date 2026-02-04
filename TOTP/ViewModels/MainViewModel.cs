@@ -43,6 +43,17 @@ public class MainViewModel : IMainViewModel
 {
     #region ### COMMON PROPS AND VARS ###
 
+
+    #region ### SECURITY
+
+    public UnlockViewModel Unlock { get; }
+    public bool IsUnlocked => _authorization.State.IsUnlocked;
+    private DispatcherTimer? _autoLockTimer;
+    private readonly TimeSpan _autoLockTimeout = TimeSpan.FromMinutes(10);
+
+    #endregion
+
+
     private CultureDisplay _selectedCulture;
     private readonly ILogger<MainViewModel> _logger;
 
@@ -335,6 +346,7 @@ public class MainViewModel : IMainViewModel
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsSearchTextNotEmpty));
             _debounceService.Debounce("Search", 300, () => ExecuteSearch());
+            _debounceService.Debounce("TouchActivity", 1000, TouchActivity);
         }
     }
 
@@ -357,10 +369,6 @@ public class MainViewModel : IMainViewModel
     }
 
     public Action? RequestGridFilterRefresh { get; set; }  // <-- the view sets this
-
-    public UnlockViewModel Unlock { get; }
-
-    public bool IsUnlocked => _authorization.State.IsUnlocked;
 
     public ObservableCollection<CultureDisplay> SupportedCultures { get; set; }
 
@@ -402,7 +410,8 @@ public class MainViewModel : IMainViewModel
         IDelayService delayService,
         ISecretsDAL secretsDal,
         IFileDialogService fileDialogService,
-        IAuthorizationService authorization)
+        IAuthorizationService authorization,
+        UnlockViewModel unlock)
     {
         _fileDialogService = fileDialogService;
         _secretsDal = secretsDal;
@@ -416,7 +425,7 @@ public class MainViewModel : IMainViewModel
         _authorization = authorization;
 
         AllSecrets = new ObservableCollection<SecretItemViewModel>();
-        Unlock = new UnlockViewModel(_authorization);
+        Unlock = unlock;
 
         _secretsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
         _authorization.State.Changed += AuthorizationState_Changed;
@@ -464,9 +473,7 @@ public class MainViewModel : IMainViewModel
     // todo: https://chatgpt.com/c/6980aa8e-87f0-8396-88d2-a7334f839168
     // todo: use svg and show a zoomed version on click:
     //  <Image ToolTip="{xaml:Resx Key=tooltip_AuthenticatorAppScan}"
-   
-
-
+    
     private bool _secretsManager_OnDeletePrompt(object? sender, string platform)
     {
         return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
@@ -510,10 +517,17 @@ public class MainViewModel : IMainViewModel
 
     public async Task InitializeAsync()
     {
-        if (IsUnlocked)
-        {
-            await EnsureSecretsLoadedAsync();
-        }
+        // Always start locked. The overlay unlock view is visible when IsUnlocked == false.
+        OnPropertyChanged(nameof(IsUnlocked));
+
+        await _authorization.InitializeAsync();
+
+        // This triggers the gate every start:
+        // - If configured gate is Hello -> it prompts immediately
+        // - If password -> returns RequiresUserInput (stays on auth UI)
+        await _authorization.TryUnlockOnStartupAsync();
+
+        // Success path is handled by AuthorizationState_Changed → OnUnlockedAsync()
     }
 
     private async void AuthorizationState_Changed(object? sender, EventArgs e)
@@ -522,9 +536,74 @@ public class MainViewModel : IMainViewModel
 
         if (IsUnlocked)
         {
-            await EnsureSecretsLoadedAsync();
+            await OnUnlockedAsync();
+        }
+        else
+        {
+            OnLocked();
         }
     }
+
+    private async Task OnUnlockedAsync()
+    {
+        await EnsureSecretsLoadedAsync();
+        StartAutoLock();
+    }
+
+    private void OnLocked()
+    {
+        StopAutoLock();
+
+        _secretsLoaded = false;
+        AllSecrets.Clear();
+
+        StopTOTPTimer();
+        ClearCodeGenerationOutput();
+    }
+    public void Lock()
+    {
+        // 1. Tell the authorization layer to lock
+        _authorization.Lock();
+
+        // 2. Everything else happens via AuthorizationState_Changed
+    }
+
+
+    private void StartAutoLock()
+    {
+        StopAutoLock();
+
+        _autoLockTimer = new DispatcherTimer
+        {
+            Interval = _autoLockTimeout
+        };
+
+        _autoLockTimer.Tick += (_, _) =>
+        {
+            _authorization.Lock();
+        };
+
+        _autoLockTimer.Start();
+    }
+
+    private void StopAutoLock()
+    {
+        if (_autoLockTimer != null)
+        {
+            _autoLockTimer.Stop();
+            _autoLockTimer = null;
+        }
+    }
+
+    private void TouchActivity()
+    {
+        if (!IsUnlocked || _autoLockTimer == null)
+            return;
+
+        _autoLockTimer.Stop();
+        _autoLockTimer.Start();
+    }
+
 
     private async Task EnsureSecretsLoadedAsync()
     {
@@ -707,6 +786,7 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
+            TouchActivity();
             IsAddMode = true;
             IsEditOpen = true;
             CurrentSecretBeingEditedOrAdded = new SecretItemViewModel(Guid.NewGuid(), null, null, null);
@@ -727,6 +807,7 @@ public class MainViewModel : IMainViewModel
     /// <param name="item"></param>
     public void OpenFlyoutEditMode(SecretItemViewModel item)
     {
+        TouchActivity();
         if (item == null) return;
 
         IsAddMode = false;
@@ -990,6 +1071,7 @@ public class MainViewModel : IMainViewModel
     /// <returns></returns>
     public async Task OnRowSelectionChangedAsync(SecretItemViewModel selectedSecretItem)
     {
+        TouchActivity();
 
         if (SelectedSecret != null && IsInlineEditing && SelectedSecret.ID != selectedSecretItem.ID)
             IsInlineEditing = false;

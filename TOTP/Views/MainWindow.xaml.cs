@@ -1,11 +1,12 @@
-﻿using System;
-using System.Windows;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Syncfusion.SfSkinManager;
 using Syncfusion.UI.Xaml.Grid;
 using Syncfusion.Windows.Shared;
+using System;
+using System.Windows;
 using TOTP.Interfaces;
 using TOTP.Resources;
+using TOTP.ViewModels;
 
 namespace TOTP.Views;
 
@@ -90,5 +91,17 @@ public partial class MainWindow : ChromelessWindow
             SecretsGrid.View.RefreshFilter();
         }
     }
+
+    protected override void OnStateChanged(EventArgs e)
+    {
+        base.OnStateChanged(e);
+
+        if (WindowState == WindowState.Minimized)
+        {
+            if (DataContext is MainViewModel vm)
+                vm.Lock();
+        }
+    }
+
 
 }

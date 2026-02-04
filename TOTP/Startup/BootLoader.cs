@@ -7,6 +7,7 @@ using Syncfusion.Licensing;
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,7 +54,7 @@ public static class BootLoader
             SyncfusionLicenseProvider.RegisterLicense(key);
     }
 
-    public static IHost CreateHostAndConfigureServices(IConfiguration configuration)
+    public static IHost BuildHostAndConfigureServices(IConfiguration configuration)
         => Host.CreateDefaultBuilder()
             .UseSerilog(LoggingConfigurator.ConfigureWithHostContext, true)
             .ConfigureServices((_, services) =>
@@ -85,9 +86,19 @@ public static class BootLoader
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
                 services.AddSingleton<ISecretsManager, SecretsManager>();
 
-                services.AddSingleton<IHelloService, HelloService>();
-                services.AddSingleton<IPasswordService>(_ => new PasswordService(new PasswordRecord([], [], 100_000)));
+                // Security
+                var folder = Path.GetDirectoryName(configuration.GetSection("Secrets:StorageFilePath").Value);
+
+                services.AddSingleton<IAuthorizationProfileStore>(_ => new FileAuthorizationProfileStore(folder));
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
+                services.AddSingleton<UnlockViewModel>();
+
+                services.AddSingleton<HelloUnlockViewModel>();
+                services.AddSingleton<PasswordUnlockViewModel>();
+
+                services.AddSingleton<IHelloGate, HelloGate>();
+                services.AddSingleton<IPasswordService>(_ => new PasswordService(new PasswordRecord([], [], 100_000)));
+                
 
                 // VMs
                 services.AddSingleton<IMainViewModel, MainViewModel>();

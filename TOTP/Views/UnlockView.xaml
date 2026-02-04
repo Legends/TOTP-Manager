@@ -1,13 +1,45 @@
 <UserControl x:Class="TOTP.Views.UnlockView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
-        <StackPanel VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    Width="300">
-            <ContentControl Content="{Binding Hello}" />
-            <Separator Margin="0,12" />
-            <ContentControl Content="{Binding Password}" />
+
+    <Grid Width="260">
+        <StackPanel>
+
+            <!-- First-run setup chooser -->
+            <StackPanel Visibility="{Binding IsConfigured, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+
+                <!-- Phase 1: show chooser only if no gate selected yet -->
+                <StackPanel Visibility="{Binding HasSelectedSetupGate, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                    <TextBlock Text="Set up authorization"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Margin="0,0,0,12"
+                               Foreground="White"/>
+
+                    <Button Content="Use Windows Hello"
+                            Command="{Binding ChooseHelloCommand}"
+                            Margin="0,0,0,8"/>
+
+                    <Button Content="Use Password"
+                            Command="{Binding ChoosePasswordCommand}"
+                            Margin="0,0,0,8"/>
+
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="#FFEF5350"
+                               TextWrapping="Wrap"
+                               Margin="0,10,0,0"/>
+                </StackPanel>
+
+                <!-- Phase 2: show selected gate UI for setup -->
+                <ContentControl Content="{Binding CurrentGate}"
+                                Visibility="{Binding HasSelectedSetupGate, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+            </StackPanel>
+
+            <!-- Normal configured gate UI (every app start) -->
+            <ContentControl Content="{Binding CurrentGate}"
+                            Visibility="{Binding IsConfigured, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
         </StackPanel>
     </Grid>
 </UserControl>

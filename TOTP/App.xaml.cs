@@ -1,10 +1,13 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 using System;
+using System.Net;
 using System.Windows;
 using TOTP.Infrastructure.AppLifecycle;
 using TOTP.Interfaces;
 using TOTP.Resources;
+using TOTP.Security;
 
 namespace TOTP;
 
@@ -12,6 +15,22 @@ public partial class App : Application
 {
     public IHost Host { get; set; } = default!;
     public SingleInstanceGuard? InstanceGuard { get; set; }
+    
+    public IAuthorizationService? AuthorizationService{ get; set; }
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        SystemEvents.SessionSwitch += (_, e) =>
+        {
+            if (e.Reason == SessionSwitchReason.SessionLock)
+            {
+                AuthorizationService.Lock();
+            }
+        };
+
+    }
 
     protected override void OnExit(ExitEventArgs e)
     {
@@ -32,4 +51,7 @@ public partial class App : Application
             base.OnExit(e);
         }
     }
+
+   
+
 }
