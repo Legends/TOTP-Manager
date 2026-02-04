@@ -1,15 +1,17 @@
-﻿using System.Windows;
+﻿using System;
+using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace TOTP.UserControls
 {
     public partial class RevealableSecretBox : UserControl
     {
-        public RevealableSecretBox()
-        {
-            InitializeComponent();
-        }
+
+        #region ### PROPERTIES ###
 
         // ===== Data =====
 
@@ -26,12 +28,15 @@ namespace TOTP.UserControls
             set => SetValue(SecretProperty, value);
         }
 
+        // === DP: IsSecretVisible ===
         public static readonly DependencyProperty IsSecretVisibleProperty =
             DependencyProperty.Register(
                 nameof(IsSecretVisible),
                 typeof(bool),
                 typeof(RevealableSecretBox),
-                new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+                new FrameworkPropertyMetadata(false,
+                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                    OnIsSecretVisibleChanged));
 
         public bool IsSecretVisible
         {
@@ -213,6 +218,71 @@ namespace TOTP.UserControls
         {
             get => (string)GetValue(EyeOpenIconSourceProperty);
             set => SetValue(EyeOpenIconSourceProperty, value);
+        }
+
+        #endregion
+
+
+        public RevealableSecretBox()
+        {
+            InitializeComponent();
+
+            IsVisibleChanged += (_, __) =>
+            {
+                // Wenn wir sichtbar werden und Password-Modus aktiv ist -> fokussieren
+                if (IsVisible && !IsSecretVisible)
+                    FocusPasswordBox();
+            };
+
+        }
+
+      
+        private static void OnIsSecretVisibleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var ctrl = (RevealableSecretBox)d;
+            
+            if (ctrl.IsSecretVisible == false)
+                ctrl.FocusPasswordBox();
+            else
+            {
+                ctrl.FocusPasswordBoxVisible();
+            }
+        }
+
+        private void FocusPasswordBoxVisible()
+        {
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (PartPasswordBoxVisible.Visibility != Visibility.Visible)
+                    return;
+
+                PartPasswordBoxVisible.SelectionStart = PartPasswordBoxVisible.Text.Length;
+                PartPasswordBoxVisible.SelectionLength = 0; // Optional: ensures no text is highlighted
+                PartPasswordBoxVisible.Focus();             // Optional: sets focus to the TextBox
+
+               
+                //PartPasswordBoxVisible.cur
+                Keyboard.Focus(PartPasswordBoxVisible);
+            }), DispatcherPriority.Input);
+           
+
+        }
+        private void FocusPasswordBox()
+        {
+            // Nur fokussieren, wenn das Control wirklich sichtbar/aktiv ist
+            if (!IsVisible || !IsEnabled)
+                return;
+
+            // Wichtig: erst nach Layout/Visibility-Update
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (PartPasswordBox.Visibility != Visibility.Visible)
+                    return;
+
+                PartPasswordBox.Focus();
+                Keyboard.Focus(PartPasswordBox);
+            }), DispatcherPriority.Input);
         }
     }
 }

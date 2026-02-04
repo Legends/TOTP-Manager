@@ -44,7 +44,7 @@ public class MainViewModel : IMainViewModel
     #region ### COMMON PROPS AND VARS ###
 
 
-    #region ### SECURITY
+    #region ### SECURITY Fields & Props
 
     public UnlockViewModel Unlock { get; }
     public bool IsUnlocked => _authorization.State.IsUnlocked;
@@ -438,6 +438,8 @@ public class MainViewModel : IMainViewModel
         TotpUiTimer = new System.Threading.Timer(_ => StartTotpTick(), null, Timeout.Infinite, 500);
     }
 
+    #endregion
+
     #region ### LOCALIZATION SETUP ###
 
     private void SetupLocalization()
@@ -474,6 +476,8 @@ public class MainViewModel : IMainViewModel
     // todo: use svg and show a zoomed version on click:
     //  <Image ToolTip="{xaml:Resx Key=tooltip_AuthenticatorAppScan}"
 
+
+    #region ### USER MESSAGES ###
     private bool _secretsManager_OnDeletePrompt(object? sender, string platform)
     {
         return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
@@ -515,6 +519,9 @@ public class MainViewModel : IMainViewModel
         }
     }
 
+    #endregion
+
+    #region ###  ENTRY-POINT  ###
     public async Task InitializeAsync()
     {
         // Always start locked. The overlay unlock view is visible when IsUnlocked == false.
@@ -529,6 +536,46 @@ public class MainViewModel : IMainViewModel
 
         // Success path is handled by AuthorizationState_Changed → OnUnlockedAsync()
     }
+
+    #endregion
+
+    private async Task EnsureSecretsLoadedAsync()
+    {
+        if (_secretsLoaded)
+        {
+            return;
+        }
+
+        await ReadAllSecretsAsync();
+
+        if (!_collectionHooked)
+        {
+            AllSecrets.CollectionChanged += Source_CollectionChanged;
+            _collectionHooked = true;
+        }
+
+        _secretsLoaded = true;
+    }
+
+    private void Source_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+        {
+            foreach (SecretItemViewModel item in e.NewItems)
+            {
+                item.SetDuplicateCheck(DuplicateCheck);
+
+            }
+        }
+    }
+
+    private ValidationError DuplicateCheck(SecretItemViewModel si)
+    {
+        return SecretValidator.PlatformNameDuplicateExists(si.Platform, AllSecrets.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
+    }
+
+
+    #region ### AUTHORIZATION ###
 
     private async void AuthorizationState_Changed(object? sender, EventArgs e)
     {
@@ -550,6 +597,10 @@ public class MainViewModel : IMainViewModel
         StartAutoLock();
     }
 
+    /// <summary>
+    /// We reset the application when it enters the locked state.
+    /// This ensures that secrets are not accessible in memory and that the app returns to a clean state.
+    /// </summary>
     private void OnLocked()
     {
         StopAutoLock();
@@ -559,7 +610,11 @@ public class MainViewModel : IMainViewModel
 
         StopTOTPTimer();
         ClearCodeGenerationOutput();
-        //SelectedSecret = null; // todo: check flag, was soll bei einem session lock passieren mit dem katuellen zustand
+        ClearSearchTextbox();
+        CancelFlyout();
+        IsSecretVisible = false;
+        IsGridEditing = IsInlineEditing = false;
+        SelectedSecret = null; // todo: check flag, was soll bei einem session lock passieren mit dem katuellen zustand
     }
     public void Lock()
     {
@@ -596,6 +651,9 @@ public class MainViewModel : IMainViewModel
         }
     }
 
+    /// <summary>
+    /// Restarts the in-activity timer when we interact with the app
+    /// </summary>
     private void TouchActivity()
     {
         if (!IsUnlocked || _autoLockTimer == null)
@@ -603,51 +661,6 @@ public class MainViewModel : IMainViewModel
 
         _autoLockTimer.Stop();
         _autoLockTimer.Start();
-    }
-
-
-    private async Task EnsureSecretsLoadedAsync()
-    {
-        if (_secretsLoaded)
-        {
-            return;
-        }
-
-        await ReadAllSecretsAsync();
-
-        if (!_collectionHooked)
-        {
-            AllSecrets.CollectionChanged += Source_CollectionChanged;
-            _collectionHooked = true;
-        }
-
-        _secretsLoaded = true;
-    }
-
-    private void Source_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-    {
-        if (e.NewItems != null)
-        {
-            foreach (SecretItemViewModel item in e.NewItems)
-            {
-                item.SetDuplicateCheck(DuplicateCheck);
-
-            }
-        }
-
-        //if (e.OldItems != null)
-        //{
-        //    foreach (SecretItemViewModel vm in e.OldItems)
-        //    {
-        //        vm.PropertyChanged -= Item_PropertyChanged;
-        //    }
-        //}
-
-    }
-
-    private ValidationError DuplicateCheck(SecretItemViewModel si)
-    {
-        return SecretValidator.PlatformNameDuplicateExists(si.Platform, AllSecrets.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
     }
 
     #endregion
@@ -712,17 +725,7 @@ public class MainViewModel : IMainViewModel
             IsSearchFocused = IsSearchVisible;
         }, () => !IsGridEditing);
 
-        ClearSearchCommand = new RelayCommand(() =>
-        {
-            SearchText = "";
-
-            // the property doesnt change if IsSearchFocused is already true
-            // so, setting true => true doesnt raise onpropertyChanged and therefore no focus occurs
-            // A common pattern is to first set it to false, then back to true,
-            // to force the property changed notification:
-            IsSearchFocused = false;
-            IsSearchFocused = IsSearchVisible;
-        });
+        ClearSearchCommand = new RelayCommand(ClearSearchTextbox);
     }
 
 
@@ -1077,7 +1080,6 @@ public class MainViewModel : IMainViewModel
         if (SelectedSecret != null && IsInlineEditing && SelectedSecret.ID != selectedSecretItem.ID)
             IsInlineEditing = false;
 
-        //if (IsGridEditing || IsInlineEditing || selectedSecretItem == null || (SelectedSecret?.ID == selectedSecretItem.ID && _isDoubleClick == false))
         if (IsGridEditing || IsInlineEditing || selectedSecretItem == null)
         {
             Debug.WriteLine("OnRowSelectionChangedAsync - early return");
@@ -1087,15 +1089,15 @@ public class MainViewModel : IMainViewModel
         _isDoubleClick = false;
         await Task.Delay(300); // prevent OnRowSelectionChangedAsync from executing if it is a double click!
 
-        if (_isDoubleClick)
+        if (_isDoubleClick) // on double-click we dont execute any selection logic
         {
             if (SelectedSecret == null)
                 TotpUiTimer?.Dispose();
-            //IsProgressPieChartVisible = false;
-            return; // ondouble-click we dont execute any selelction logic
+
+            return;
         }
 
-        if (SelectedSecret?.ID == selectedSecretItem.ID) // dont execute selection logic if the secret is already selected
+        if (SelectedSecret?.ID == selectedSecretItem?.ID) // dont execute selection logic if the secret is already selected
             return;
 
         SelectedSecret = ComputeTotpCode(selectedSecretItem, out _activeTotp); // pre-compute TOTP code for the selected item
@@ -1103,8 +1105,6 @@ public class MainViewModel : IMainViewModel
         _clipboard.SetText(TotpCode!);
 
         var currentKey = SelectedSecret.Platform;
-
-
 
         try
         {
@@ -1317,7 +1317,7 @@ public class MainViewModel : IMainViewModel
 
     #endregion
 
-    #region ### Search/Filter Logic ###
+    #region ### Grid Filter Logic ###
 
     /// <summary>
     /// Displays the row if the obj is of type SecretItemViewModel and
@@ -1480,6 +1480,17 @@ public class MainViewModel : IMainViewModel
         Process.Start(psi);
     }
     #endregion
+
+    void ClearSearchTextbox()
+    {
+        SearchText = "";
+        // the property doesn't change if IsSearchFocused is already true
+        // so, setting true => true doesn't raise onpropertyChanged and therefore no focus occurs
+        // A common pattern is to first set it to false, then back to true,
+        // to force the property changed notification:
+        IsSearchFocused = false;
+        IsSearchFocused = IsSearchVisible;
+    }
 
     private void CopyCode()
     {
