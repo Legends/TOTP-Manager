@@ -827,6 +827,7 @@ public class MainViewModel : IMainViewModel
     {
         IsEditOpen = false;
         IsAddMode = false;
+        IsSecretVisible = false;
         CurrentSecretBeingEditedOrAdded = null;
     }
     #endregion

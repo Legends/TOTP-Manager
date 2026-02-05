@@ -88,7 +88,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         else if (result != AuthorizationResult.Success)
             Message = "Unlock failed.";
 
-        Password = string.Empty; // reset pwd field !
+        //Password = string.Empty; // reset pwd field !
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

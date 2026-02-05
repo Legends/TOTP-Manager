@@ -261,7 +261,7 @@ namespace TOTP.UserControls
             // delay until bindings + layout have applied visibility changes
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                var action = (System.Action)(IsSecretVisible ? FocusPasswordIsVisible : FocusPasswordIsHidden);
+                var action = (System.Action)(IsSecretVisible ? FocusPasswordVisibleBox : FocusPasswordHiddenBox);
                 action();
 
             }), DispatcherPriority.Input);
@@ -278,18 +278,18 @@ namespace TOTP.UserControls
         {
             var ctrl = (RevealableSecretBox)d;
 
-            if (ctrl.AutoFocus)
-            {
+            //if (ctrl.AutoFocus)
+            //{
                 if (ctrl.IsSecretVisible)
-                    ctrl.FocusPasswordIsVisible();
+                    ctrl.FocusPasswordVisibleBox();
                 else
                 {
-                    ctrl.FocusPasswordIsHidden();
+                    ctrl.FocusPasswordHiddenBox();
                 }
-            }
+            //}
         }
 
-        private void FocusPasswordIsVisible()
+        private void FocusPasswordVisibleBox()
         {
 
             Dispatcher.BeginInvoke(new Action(() =>
@@ -306,7 +306,7 @@ namespace TOTP.UserControls
 
 
         }
-        private void FocusPasswordIsHidden()
+        private void FocusPasswordHiddenBox()
         {
             if (!IsVisible || !IsEnabled)
                 return;
@@ -317,8 +317,9 @@ namespace TOTP.UserControls
                 if (PartPasswordBox.Visibility != Visibility.Visible)
                     return;
 
-                PartPasswordBox.Focus();
+               PartPasswordBox.Focus();
                 Keyboard.Focus(PartPasswordBox);
+                //PartPasswordBox.SelectAll();
             }), DispatcherPriority.Input);
         }
     }
