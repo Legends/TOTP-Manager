@@ -9,6 +9,7 @@ namespace TOTP.ViewModels;
 
 public sealed class HelloUnlockViewModel : INotifyPropertyChanged
 {
+    #region Props and Vars
     private readonly IAuthorizationService _auth;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -21,6 +22,8 @@ public sealed class HelloUnlockViewModel : INotifyPropertyChanged
     }
 
     public ICommand UnlockWithHelloCommand { get; }
+
+    #endregion
 
     public HelloUnlockViewModel(IAuthorizationService auth)
     {

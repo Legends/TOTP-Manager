@@ -30,13 +30,13 @@
                                Margin="0,10,0,0"/>
                 </StackPanel>
 
-                <!-- Phase 2: show selected gate UI for setup -->
+                <!-- Phase 2: show selected gate UI for initial setup -->
                 <ContentControl Content="{Binding CurrentGate}"
                                 Visibility="{Binding HasSelectedSetupGate, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
             </StackPanel>
 
-            <!-- Normal configured gate UI (every app start) -->
+            <!-- Once configured, every app start show configured gate UI Hello/PWD -->
             <ContentControl Content="{Binding CurrentGate}"
                             Visibility="{Binding IsConfigured, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 

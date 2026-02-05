@@ -10,6 +10,9 @@ namespace TOTP.ViewModels;
 
 public sealed class UnlockViewModel : INotifyPropertyChanged
 {
+
+    #region PROPS AND VARS
+
     private readonly IAuthorizationService _auth;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -37,17 +40,19 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         }
     }
 
-    public HelloUnlockViewModel Hello { get; }
+    public HelloUnlockViewModel HelloVmUnlockViewModel { get; }
     public PasswordUnlockViewModel Password { get; }
 
     public ICommand ChooseHelloCommand { get; }
     public ICommand ChoosePasswordCommand { get; }
 
+    #endregion
+
     public UnlockViewModel(IAuthorizationService auth, HelloUnlockViewModel helloVM, PasswordUnlockViewModel pwdVM)
     {
         _auth = auth;
 
-        Hello = helloVM;
+        HelloVmUnlockViewModel = helloVM;
         Password = pwdVM;
 
         ChooseHelloCommand = new AsyncCommand(ChooseHelloAsync);
@@ -75,7 +80,7 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         // configured: show the configured gate
         CurrentGate = ConfiguredGate switch
         {
-            AuthorizationGateKind.WindowsHello => Hello,
+            AuthorizationGateKind.WindowsHello => HelloVmUnlockViewModel,
             AuthorizationGateKind.Password => Password,
             _ => null
         };

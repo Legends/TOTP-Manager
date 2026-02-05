@@ -59,6 +59,25 @@ namespace TOTP.UserControls
             set => SetValue(FieldHeightProperty, value);
         }
 
+        public static readonly DependencyProperty AutoFocusProperty =
+            DependencyProperty.Register(
+                nameof(AutoFocus),
+                typeof(bool),
+                typeof(RevealableSecretBox),
+                new PropertyMetadata(false, OnAutoFocusChanged));
+
+        public bool AutoFocus
+        {
+            get => (bool)GetValue(AutoFocusProperty);
+            set => SetValue(AutoFocusProperty, value);
+        }
+
+        private static void OnAutoFocusChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var ctrl = (RevealableSecretBox)d;
+            ctrl.TryAutoFocus();
+        }
+
         public static readonly DependencyProperty TextPaddingProperty =
             DependencyProperty.Register(
                 nameof(TextPadding),
@@ -227,29 +246,50 @@ namespace TOTP.UserControls
         {
             InitializeComponent();
 
-            IsVisibleChanged += (_, __) =>
-            {
-                // Wenn wir sichtbar werden und Password-Modus aktiv ist -> fokussieren
-                if (IsVisible && !IsSecretVisible)
-                    FocusPasswordBox();
-            };
+            ////Framework event
+            //IsVisibleChanged += (_, __) =>
+            //                   {
+            //                       // Wenn wir sichtbar werden und Password-Modus aktiv ist -> fokussieren
+            //                       if (IsVisible && !IsSecretVisible)
+            //                           FocusPasswordIsHidden();
+            //                   };
 
         }
 
-      
+        private void TryAutoFocus()
+        {
+            // delay until bindings + layout have applied visibility changes
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var action = (System.Action)(IsSecretVisible ? FocusPasswordIsVisible : FocusPasswordIsHidden);
+                action();
+
+            }), DispatcherPriority.Input);
+        }
+
+
+        /// <summary>
+        /// Called when the IsSecretVisible property changes by toggling the eye.
+        /// Focuses the appropriate input box based on the new visibility state.
+        /// </summary>
+        /// <param name="d"></param>
+        /// <param name="e"></param>
         private static void OnIsSecretVisibleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var ctrl = (RevealableSecretBox)d;
-            
-            if (ctrl.IsSecretVisible == false)
-                ctrl.FocusPasswordBox();
-            else
+
+            if (ctrl.AutoFocus)
             {
-                ctrl.FocusPasswordBoxVisible();
+                if (ctrl.IsSecretVisible)
+                    ctrl.FocusPasswordIsVisible();
+                else
+                {
+                    ctrl.FocusPasswordIsHidden();
+                }
             }
         }
 
-        private void FocusPasswordBoxVisible()
+        private void FocusPasswordIsVisible()
         {
 
             Dispatcher.BeginInvoke(new Action(() =>
@@ -261,16 +301,13 @@ namespace TOTP.UserControls
                 PartPasswordBoxVisible.SelectionLength = 0; // Optional: ensures no text is highlighted
                 PartPasswordBoxVisible.Focus();             // Optional: sets focus to the TextBox
 
-               
-                //PartPasswordBoxVisible.cur
                 Keyboard.Focus(PartPasswordBoxVisible);
             }), DispatcherPriority.Input);
-           
+
 
         }
-        private void FocusPasswordBox()
+        private void FocusPasswordIsHidden()
         {
-            // Nur fokussieren, wenn das Control wirklich sichtbar/aktiv ist
             if (!IsVisible || !IsEnabled)
                 return;
 

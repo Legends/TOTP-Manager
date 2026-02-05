@@ -78,7 +78,7 @@ public static class BootLoader
                 {
                     var logger = provider.GetRequiredService<ILogger<SecretsDAL>>();
                     var config = provider.GetRequiredService<IConfiguration>();
-                    var rawPath = config.GetSection("Secrets:StorageFilePath").Value;
+                    var rawPath = config.GetSection(StringsConstants.AppSettingsJsonAccountsStoragePropertyPath).Value;
                     var resolvedPath = Environment.ExpandEnvironmentVariables(rawPath ?? "");
                     return new SecretsDAL(logger, resolvedPath);
                 });
@@ -87,19 +87,18 @@ public static class BootLoader
                 services.AddSingleton<ISecretsManager, SecretsManager>();
 
                 // Security
-                var folder = Path.GetDirectoryName(configuration.GetSection("Secrets:StorageFilePath").Value);
+                var folder = Path.GetDirectoryName(configuration.GetSection(StringsConstants.AppSettingsJsonAccountsStoragePropertyPath).Value);
 
                 services.AddSingleton<IAuthorizationProfileStore>(_ => new FileAuthorizationProfileStore(folder));
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
-                services.AddSingleton<UnlockViewModel>();
 
+                services.AddSingleton<UnlockViewModel>();
                 services.AddSingleton<HelloUnlockViewModel>();
-                services.AddSingleton<PasswordUnlockViewModel>();
+                services.AddSingleton<PasswordUnlockViewModel>(); 
 
                 services.AddSingleton<IHelloGate, HelloGate>();
                 services.AddSingleton<IPasswordService>(_ => new PasswordService(new PasswordRecord([], [], 100_000)));
                 
-
                 // VMs
                 services.AddSingleton<IMainViewModel, MainViewModel>();
 

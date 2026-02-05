@@ -46,7 +46,7 @@
             <views:HelloUnlockView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:PasswordUnlockViewModel}">
-            <views:PasswordUnlockView />
+            <views:PasswordUnlockView AutoFocus="True"/>
         </DataTemplate>
 
 
@@ -565,7 +565,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                                Margin="0,10,0,-4" />
 
                     <!-- SECRET TEXTBOX -->
-                    <userControls:RevealableSecretBox
+                    <userControls:RevealableSecretBox AutoFocus="False"
                         Secret="{Binding CurrentSecretBeingEditedOrAdded.Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsSecretVisible="{Binding IsSecretVisible, Mode=TwoWay}"
                         ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
@@ -614,6 +614,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
             </Border>
         </Grid>
 
+       <!--   UnlockView.xaml   -->
         <Grid Background="#CC0C1C33"
               Visibility="{Binding IsUnlocked, Converter={StaticResource InverseBoolToVisibilityConverter}}">
             <ContentControl Content="{Binding Unlock}"

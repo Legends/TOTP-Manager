@@ -5,8 +5,8 @@ namespace TOTP.Security;
 
 public sealed class AuthorizationService : IAuthorizationService
 {
-    private readonly IHelloGate _hello; // your existing hello abstraction
-    private readonly IAuthorizationProfileStore _store;
+    private readonly IHelloGate _helloGate; // your existing hello abstraction
+    private readonly IAuthorizationProfileStore _authorizationProfileStore;
 
     private AuthorizationProfile? _profile;
 
@@ -14,13 +14,13 @@ public sealed class AuthorizationService : IAuthorizationService
 
     public AuthorizationService(IHelloGate hello, IAuthorizationProfileStore store)
     {
-        _hello = hello;
-        _store = store;
+        _helloGate = hello;
+        _authorizationProfileStore = store;
     }
 
     public async Task InitializeAsync()
     {
-        _profile = await _store.LoadAsync().ConfigureAwait(false);
+        _profile = await _authorizationProfileStore.LoadAsync().ConfigureAwait(false);
         State.SetProfile(_profile);
 
         // Always start locked.
@@ -43,11 +43,11 @@ public sealed class AuthorizationService : IAuthorizationService
 
     public async Task<AuthorizationResult> ConfigureHelloAsync()
     {
-        if (!await _hello.IsAvailableAsync().ConfigureAwait(false))
+        if (!await _helloGate.IsAvailableAsync().ConfigureAwait(false))
             return AuthorizationResult.NotAvailable;
 
         _profile = new AuthorizationProfile { Gate = AuthorizationGateKind.WindowsHello };
-        await _store.SaveAsync(_profile).ConfigureAwait(false);
+        await _authorizationProfileStore.SaveAsync(_profile).ConfigureAwait(false);
 
         State.SetProfile(_profile);
         return AuthorizationResult.Success; // “configured ok” (not “unlocked yet”)
@@ -70,7 +70,7 @@ public sealed class AuthorizationService : IAuthorizationService
             PasswordHash = hash
         };
 
-        await _store.SaveAsync(_profile).ConfigureAwait(false);
+        await _authorizationProfileStore.SaveAsync(_profile).ConfigureAwait(false);
         State.SetProfile(_profile);
 
         return AuthorizationResult.Success; // configured ok
@@ -80,10 +80,10 @@ public sealed class AuthorizationService : IAuthorizationService
     {
         try
         {
-            if (!await _hello.IsAvailableAsync().ConfigureAwait(false))
+            if (!await _helloGate.IsAvailableAsync().ConfigureAwait(false))
                 return AuthorizationResult.NotAvailable;
 
-            var result = await _hello.RequestVerificationAsync().ConfigureAwait(false);
+            var result = await _helloGate.RequestVerificationAsync().ConfigureAwait(false);
             if (result == AuthorizationResult.Success)
                 State.Unlock();
 
