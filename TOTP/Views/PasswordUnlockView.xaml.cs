@@ -22,6 +22,6 @@ public partial class PasswordUnlockView : UserControl
     public PasswordUnlockView()
     {
         InitializeComponent();
-        Loaded += (_, __) => System.Diagnostics.Debug.WriteLine($"PasswordUnlockView.AutoFocus={AutoFocus}");
+        //Loaded += (_, __) => System.Diagnostics.Debug.WriteLine($"PasswordUnlockView.AutoFocus={AutoFocus}");
     }
 }
