@@ -346,7 +346,7 @@ public class MainViewModel : IMainViewModel
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsSearchTextNotEmpty));
             _debounceService.Debounce("Search", 300, () => ExecuteSearch());
-            _debounceService.Debounce("TouchActivity", 1000, TouchActivity);
+            _debounceService.Debounce("TouchActivity", 2000, TouchActivity);
         }
     }
 

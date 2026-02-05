@@ -39,7 +39,7 @@
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverterCollapsed"
                                                 Collapse="True" />
 
-       <DataTemplate DataType="{x:Type viewModels:UnlockViewModel}">
+        <DataTemplate DataType="{x:Type viewModels:UnlockViewModel}">
             <views:UnlockView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:HelloUnlockViewModel}">
@@ -49,7 +49,7 @@
             <views:PasswordUnlockView />
         </DataTemplate>
 
-    
+
     </syncfusion:ChromelessWindow.Resources>
 
     <!-- We wrap the existing content in a Grid so we can overlay the flyout -->
@@ -215,7 +215,7 @@
 
             </Grid>
 
-            <!--  === SECRETS DATAGRID CONTAINER === -->
+            <!--  === ACCOUNTS DATAGRID CONTAINER === -->
             <Grid Margin="10,20,10,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -227,7 +227,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- =====  SECRETS GRID   ===== -->
+                <!-- =====  ACCOUNTS GRID   ===== -->
                 <!--SelectedItem="SelectedSecret"-->
                 <!--SelectionChanged="DataGrid_SelectionChanged"-->
                 <syncfusion:SfDataGrid x:Name="SecretsGrid"
@@ -331,7 +331,7 @@
                         </syncfusion:GridTextColumn>
                     </syncfusion:SfDataGrid.Columns>
 
-                    <!-- Context menu: Edit + Delete -->
+                    <!-- DataGridRow Context Menu: Edit + Delete -->
                     <syncfusion:SfDataGrid.RecordContextMenu>
                         <ContextMenu>
                             <!-- Edit -->
@@ -364,6 +364,7 @@
 
                 </syncfusion:SfDataGrid>
 
+                <!--  TOTP-CODE, PLATFORM-NAME, PROGRESS, GENERATE-QR-CODE-LINK     CONTAINER   -->
                 <StackPanel Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Center">
                     <Label x:Name="lblSelectedPlatformName" Content="{Binding SelectedSecret.Platform }"
                            VerticalContentAlignment="Center"
@@ -474,7 +475,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                 </StackPanel>
 
 
-
+                <!--QR CODE CONTAINER-->
                 <StackPanel Grid.Row="2">
                     <!-- Generate QR code link -->
                     <TextBlock HorizontalAlignment="Center"
@@ -492,6 +493,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
 
             </Grid>
         </StackPanel>
+
 
         <!-- ===== Flyout Border overlay (ADD + UPDATE) ===== -->
         <!-- Dim background -->
@@ -562,14 +564,14 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                                Foreground="White"
                                Margin="0,10,0,-4" />
 
-                 <!-- SECRET TEXTBOX -->
+                    <!-- SECRET TEXTBOX -->
                     <userControls:RevealableSecretBox
                         Secret="{Binding CurrentSecretBeingEditedOrAdded.Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsSecretVisible="{Binding IsSecretVisible, Mode=TwoWay}"
                         ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
                         ToggleToolTip="{xaml:Resx Key=ui_btnShowHideSecret}" />
-              
-                   <!--ERROR DISPLAY FOR SECRET TEXTBOX-->
+
+                    <!--ERROR DISPLAY FOR SECRET TEXTBOX-->
                     <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.SecretError}"
                                Style="{StaticResource InlineErrorTextStyle}"
                                Visibility="{Binding CurrentSecretBeingEditedOrAdded.SecretError,

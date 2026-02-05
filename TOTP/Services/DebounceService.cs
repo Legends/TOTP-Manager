@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Windows;
 using System.Windows.Threading;
 using TOTP.Interfaces;
 
@@ -17,7 +18,8 @@ public class DebounceService : IDebounceService
         }
         else
         {
-            timer = new DispatcherTimer();
+            // make sure we are on the UI Dispatcher
+            timer = new DispatcherTimer( DispatcherPriority.Normal, Application.Current.Dispatcher);
             _timers[key] = timer;
         }
 
