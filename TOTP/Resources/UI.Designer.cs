@@ -529,6 +529,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show QR code.
+        /// </summary>
+        internal static string ui_GenerateQR_Code {
+            get {
+                return ResourceManager.GetString("ui_GenerateQR_Code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to account.
         /// </summary>
         internal static string ui_Header_Account {
@@ -633,6 +642,114 @@ namespace TOTP.Resources {
         internal static string ui_ScanQR {
             get {
                 return ResourceManager.GetString("ui_ScanQR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lock session when ....
+        /// </summary>
+        internal static string ui_Settings_Auth_Lock_Session {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_Lock_Session", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authorization type.
+        /// </summary>
+        internal static string ui_Settings_Auth_Method {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        internal static string ui_Settings_Auth_Password {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_Password", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change password.
+        /// </summary>
+        internal static string ui_Settings_Auth_Password_SetChange {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_Password_SetChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows Hello.
+        /// </summary>
+        internal static string ui_Settings_Auth_WindowsHello {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_WindowsHello", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear clipboard.
+        /// </summary>
+        internal static string ui_Settings_ClearClipboard {
+            get {
+                return ResourceManager.GetString("ui_Settings_ClearClipboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to after.
+        /// </summary>
+        internal static string ui_Settings_ClearClipboard_After {
+            get {
+                return ResourceManager.GetString("ui_Settings_ClearClipboard_After", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to seconds.
+        /// </summary>
+        internal static string ui_Settings_ClearClipboard_Seconds {
+            get {
+                return ResourceManager.GetString("ui_Settings_ClearClipboard_Seconds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows lock screen.
+        /// </summary>
+        internal static string ui_Settings_LockOnWindowsLock {
+            get {
+                return ResourceManager.GetString("ui_Settings_LockOnWindowsLock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authorization.
+        /// </summary>
+        internal static string ui_Settings_Tab_Authorization {
+            get {
+                return ResourceManager.GetString("ui_Settings_Tab_Authorization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export.
+        /// </summary>
+        internal static string ui_Settings_Tab_Export {
+            get {
+                return ResourceManager.GetString("ui_Settings_Tab_Export", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Options.
+        /// </summary>
+        internal static string ui_Settings_Title {
+            get {
+                return ResourceManager.GetString("ui_Settings_Title", resourceCulture);
             }
         }
         

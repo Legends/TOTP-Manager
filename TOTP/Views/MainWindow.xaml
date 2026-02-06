@@ -170,7 +170,7 @@
                                         ExpandMode="ExpandOnClick">
 
                         <!-- Main entry point: Gear icon -->
-                        <syncfusion:MenuItemAdv Header=" "
+                        <syncfusion:MenuItemAdv Header="Settings"
                                                 Width="32"
                                                 Padding="0"
                                                 ToolTip="{xaml:Resx Key=ui_Options}"
@@ -184,19 +184,18 @@
                                                  Stretch="Uniform" />
                             </syncfusion:MenuItemAdv.Icon>
 
+                            <syncfusion:MenuItemAdv Header="Settings"
+                                                    Command="{Binding OpenSettingsCommand}" />
+
                             <syncfusion:MenuItemAdv Header="Export"
                                                     ToolTip="{Binding ExportToolTip}"
                                                     Command="{Binding ExportSecretsCommand}" />
 
                             <!-- Your menu opens vertically under the gear -->
                             <syncfusion:MenuItemAdv Header="WPF">
-                                <syncfusion:MenuItemAdv Header="Tools"
-                                                        ToolTip="{xaml:Resx Key=ui_btnCancel}" />
+                                <syncfusion:MenuItemAdv Header="Tools" ToolTip="{xaml:Resx Key=ui_btnCancel}" />
                                 <syncfusion:MenuItemAdv Header="Chart" />
                                 <syncfusion:MenuItemAdv Header="Grid" />
-                                <syncfusion:MenuItemAdv Header="Diagram" />
-                                <syncfusion:MenuItemAdv Header="Gauge" />
-                                <syncfusion:MenuItemAdv Header="Schedule" />
                                 <syncfusion:MenuItemAdv Header="Edit" />
                             </syncfusion:MenuItemAdv>
 
@@ -204,8 +203,7 @@
                             <syncfusion:MenuItemAdv Header="Reporting" />
 
                             <!-- Optional: actual settings command as a clickable leaf item -->
-                            <syncfusion:MenuItemAdv Header="Settings"
-                                                    Command="{Binding OpenSettingsCommand}" />
+                         
                         </syncfusion:MenuItemAdv>
 
                     </syncfusion:MenuAdv>
@@ -215,7 +213,7 @@
 
             </Grid>
 
-            <!--  === ACCOUNTS DATAGRID CONTAINER === -->
+            <!--  === ACCOUNTS SFDATAGRID CONTAINER === -->
             <Grid Margin="10,20,10,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -480,7 +478,12 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                     <!-- Generate QR code link -->
                     <TextBlock HorizontalAlignment="Center"
                                Margin="0,10,0,8"
-                               Visibility="{Binding ShowGenerateQrCodeLink, Converter={StaticResource BooleanToVisibilityConverter}}"> <Hyperlink Command="{Binding GenerateQrCommand}"> Generate QR Code </Hyperlink></TextBlock>
+                               Visibility="{Binding ShowGenerateQrCodeLink, 
+                                Converter={StaticResource BooleanToVisibilityConverter}}">
+                         <Hyperlink Command="{Binding GenerateQrCommand}">
+                             <TextBlock Text="{xaml:Resx Key=ui_GenerateQR_Code}"/>
+                         </Hyperlink>
+                    </TextBlock>
 
                     <!-- === QR Code Placeholder === -->
                     <Image ToolTip="{xaml:Resx Key=tooltip_AuthenticatorAppScan}"
@@ -495,12 +498,11 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
         </StackPanel>
 
 
-        <!-- ===== Flyout Border overlay (ADD + UPDATE) ===== -->
+        <!-- ===== Flyout Border overlay (ADD + UPDATE ACCOUNTS) ===== -->
         <!-- Dim background -->
         <Border Background="#66000000"
                 Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
                 Panel.ZIndex="10">
-
         </Border>
 
         <!-- === FLYOUT CONTAINER === -->
@@ -614,12 +616,36 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
             </Border>
         </Grid>
 
-       <!--   UnlockView.xaml   -->
+        <!-- ===== dim background Settings ===== -->
+        <Border Background="#66000000"
+                Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+                Panel.ZIndex="20"/>
+
+        <!-- =====  Flyout Settings ===== -->
+        <Grid Width="320"
+              HorizontalAlignment="Right"
+              Panel.ZIndex="21"
+              Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+         
+              FocusManager.IsFocusScope="True">
+            <!--Style="{StaticResource FlyoutHostStyle}"-->
+
+            <Grid.InputBindings>
+                <KeyBinding Key="Escape" Command="{Binding CloseSettingsCommand}" />
+            </Grid.InputBindings>
+
+            <Border Background="#152549" Padding="16" BorderBrush="#394B74" BorderThickness="1">
+                <views:SettingsView DataContext="{Binding Settings}" />
+            </Border>
+        </Grid>
+
+        <!--   UnlockView.xaml   -->
         <Grid Background="#CC0C1C33"
               Visibility="{Binding IsUnlocked, Converter={StaticResource InverseBoolToVisibilityConverter}}">
             <ContentControl Content="{Binding Unlock}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center" />
         </Grid>
+
     </Grid>
 </syncfusion:ChromelessWindow>

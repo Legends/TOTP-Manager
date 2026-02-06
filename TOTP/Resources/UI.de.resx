@@ -247,7 +247,7 @@
     <value>Speichern</value>
   </data>
   <data name="ui_btnScan" xml:space="preserve">
-    <value>QR Code scannen</value>
+    <value>QR Kode scannen</value>
   </data>
   <data name="ui_btnSearch" xml:space="preserve">
     <value>Suche</value>
@@ -272,6 +272,9 @@
   </data>
   <data name="ui_Export" xml:space="preserve">
     <value>Alle Konten in eine Datei exportieren</value>
+  </data>
+  <data name="ui_GenerateQR_Code" xml:space="preserve">
+    <value>QR Kode anzeigen</value>
   </data>
   <data name="ui_Header_Account" xml:space="preserve">
     <value>konto</value>
@@ -307,7 +310,43 @@
     <value>Optionen</value>
   </data>
   <data name="ui_ScanQR" xml:space="preserve">
-    <value>QR Code scannen</value>
+    <value>QR Kode scannen</value>
+  </data>
+  <data name="ui_Settings_Auth_Lock_Session" xml:space="preserve">
+    <value>Sitzung sperren wenn ...</value>
+  </data>
+  <data name="ui_Settings_Auth_Method" xml:space="preserve">
+    <value>Authorisierungtyp</value>
+  </data>
+  <data name="ui_Settings_Auth_Password" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="ui_Settings_Auth_Password_SetChange" xml:space="preserve">
+    <value>Passwort ändern</value>
+  </data>
+  <data name="ui_Settings_Auth_WindowsHello" xml:space="preserve">
+    <value>Windows Hello</value>
+  </data>
+  <data name="ui_Settings_ClearClipboard" xml:space="preserve">
+    <value>Zwischenablage löschen</value>
+  </data>
+  <data name="ui_Settings_ClearClipboard_After" xml:space="preserve">
+    <value>nach</value>
+  </data>
+  <data name="ui_Settings_ClearClipboard_Seconds" xml:space="preserve">
+    <value>Sekunden</value>
+  </data>
+  <data name="ui_Settings_LockOnWindowsLock" xml:space="preserve">
+    <value>Windows Sperrbildschrim</value>
+  </data>
+  <data name="ui_Settings_Tab_Authorization" xml:space="preserve">
+    <value>Authorisierung</value>
+  </data>
+  <data name="ui_Settings_Tab_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="ui_Settings_Title" xml:space="preserve">
+    <value>Optionen</value>
   </data>
   <data name="ui_watermark_platform" xml:space="preserve">
     <value>z.b. github, msft, ...</value>

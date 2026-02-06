@@ -43,6 +43,18 @@ public class MainViewModel : IMainViewModel
 {
     #region ### COMMON PROPS AND VARS ###
 
+    #region SETTINGS
+
+    private bool _isSettingsOpen;
+    public bool IsSettingsOpen
+    {
+        get => _isSettingsOpen;
+        set { _isSettingsOpen = value; OnPropertyChanged(); }
+    }
+
+    public SettingsViewModel Settings { get; }
+
+    #endregion
 
     #region ### SECURITY Fields & Props
 
@@ -436,9 +448,26 @@ public class MainViewModel : IMainViewModel
 
         //Setup TOTP generation timer
         TotpUiTimer = new System.Threading.Timer(_ => StartTotpTick(), null, Timeout.Infinite, 500);
+
+        Settings = new SettingsViewModel(
+            close: () => IsSettingsOpen = false,
+            save: ApplySettings,          // stub for now
+            exportTest: TestExport        // stub for now
+        );
     }
 
     #endregion
+
+    private void ApplySettings()
+    {
+        // For now just close; later we persist + enforce auth change policy.
+        IsSettingsOpen = false;
+    }
+
+    private void TestExport()
+    {
+        // stub
+    }
 
     #region ### LOCALIZATION SETUP ###
 
@@ -527,11 +556,14 @@ public class MainViewModel : IMainViewModel
         // Always start locked. The overlay unlock view is visible when IsUnlocked == false.
         OnPropertyChanged(nameof(IsUnlocked));
 
+        // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
         await _authorization.InitializeAsync();
 
         // This triggers the gate every start:
         // - If configured gate is Hello -> it prompts immediately
         // - If password -> returns RequiresUserInput (stays on auth UI)
+
+        // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
         await _authorization.TryUnlockOnStartupAsync();
 
         // Success path is handled by AuthorizationState_Changed → OnUnlockedAsync()
@@ -612,8 +644,10 @@ public class MainViewModel : IMainViewModel
         ClearCodeGenerationOutput();
         ClearSearchTextbox();
         CancelFlyout();
+        IsSettingsOpen = false;
         IsSecretVisible = false;
-        IsGridEditing = IsInlineEditing = false;
+        IsGridEditing = false;
+        IsInlineEditing = false;
         SelectedSecret = null; // todo: check flag, was soll bei einem session lock passieren mit dem katuellen zustand
     }
     public void Lock()
@@ -679,6 +713,8 @@ public class MainViewModel : IMainViewModel
 
     #region ### COMMANDS DECLARATION ###
 
+    public ICommand OpenSettingsCommand { get; private set; } = null!;
+    public ICommand CloseSettingsCommand { get; private set; } = null!;
     public ICommand ClearSearchTextCommand => new RelayCommand(() => { SearchText = string.Empty; });
     public ICommand CopyCodeCommand { get; private set; } = null!;
     public ICommand GenerateQrCommand { get; private set; } = null!;
@@ -703,6 +739,8 @@ public class MainViewModel : IMainViewModel
 
     private void SetupCommandEventhandler()
     {
+        CloseSettingsCommand = new RelayCommand(_ => IsSettingsOpen = false);
+        OpenSettingsCommand = new RelayCommand(_ => IsSettingsOpen = true);
         CopyCodeCommand = new RelayCommand<SecretItemViewModel>(model => CopyCode());
         GenerateQrCommand = new RelayCommand<SecretItemViewModel>(model => GenerateQrCodeImage());
         ExportSecretsCommand = new AsyncCommand(ExportSecretsToFile);

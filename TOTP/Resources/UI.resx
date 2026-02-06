@@ -273,6 +273,9 @@
   <data name="ui_Export" xml:space="preserve">
     <value>Export all accounts to file</value>
   </data>
+  <data name="ui_GenerateQR_Code" xml:space="preserve">
+    <value>Show QR code</value>
+  </data>
   <data name="ui_Header_Account" xml:space="preserve">
     <value>account</value>
   </data>
@@ -308,6 +311,42 @@
   </data>
   <data name="ui_ScanQR" xml:space="preserve">
     <value>Scan QR Code</value>
+  </data>
+  <data name="ui_Settings_Auth_Lock_Session" xml:space="preserve">
+    <value>Lock session when ...</value>
+  </data>
+  <data name="ui_Settings_Auth_Method" xml:space="preserve">
+    <value>Authorization type</value>
+  </data>
+  <data name="ui_Settings_Auth_Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="ui_Settings_Auth_Password_SetChange" xml:space="preserve">
+    <value>Change password</value>
+  </data>
+  <data name="ui_Settings_Auth_WindowsHello" xml:space="preserve">
+    <value>Windows Hello</value>
+  </data>
+  <data name="ui_Settings_ClearClipboard" xml:space="preserve">
+    <value>Clear clipboard</value>
+  </data>
+  <data name="ui_Settings_ClearClipboard_After" xml:space="preserve">
+    <value>after</value>
+  </data>
+  <data name="ui_Settings_ClearClipboard_Seconds" xml:space="preserve">
+    <value>seconds</value>
+  </data>
+  <data name="ui_Settings_LockOnWindowsLock" xml:space="preserve">
+    <value>Windows lock screen</value>
+  </data>
+  <data name="ui_Settings_Tab_Authorization" xml:space="preserve">
+    <value>Authorization</value>
+  </data>
+  <data name="ui_Settings_Tab_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="ui_Settings_Title" xml:space="preserve">
+    <value>Options</value>
   </data>
   <data name="ui_watermark_platform" xml:space="preserve">
     <value>i.e. github, msft, ...</value>
