@@ -271,6 +271,9 @@
     <value>Change entry</value>
   </data>
   <data name="ui_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="ui_Export_Accounts" xml:space="preserve">
     <value>Export all accounts to file</value>
   </data>
   <data name="ui_GenerateQR_Code" xml:space="preserve">
@@ -311,6 +314,9 @@
   </data>
   <data name="ui_ScanQR" xml:space="preserve">
     <value>Scan QR Code</value>
+  </data>
+  <data name="ui_Settings" xml:space="preserve">
+    <value>Settings</value>
   </data>
   <data name="ui_Settings_Auth_Lock_Session" xml:space="preserve">
     <value>Lock session when ...</value>

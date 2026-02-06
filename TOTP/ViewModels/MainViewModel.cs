@@ -1398,7 +1398,7 @@ public class MainViewModel : IMainViewModel
     public string EditLabel => TOTP.Resources.UI.ui_btnEdit;
 
 
-    public string ExportToolTip => Resources.UI.ui_Export; // or your resource accessor
+    public string ExportToolTip => Resources.UI.ui_Export_Accounts; // or your resource accessor
 
 
 

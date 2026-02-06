@@ -520,11 +520,20 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export all accounts to file.
+        ///   Looks up a localized string similar to Export.
         /// </summary>
         internal static string ui_Export {
             get {
                 return ResourceManager.GetString("ui_Export", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export all accounts to file.
+        /// </summary>
+        internal static string ui_Export_Accounts {
+            get {
+                return ResourceManager.GetString("ui_Export_Accounts", resourceCulture);
             }
         }
         
@@ -642,6 +651,15 @@ namespace TOTP.Resources {
         internal static string ui_ScanQR {
             get {
                 return ResourceManager.GetString("ui_ScanQR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        internal static string ui_Settings {
+            get {
+                return ResourceManager.GetString("ui_Settings", resourceCulture);
             }
         }
         

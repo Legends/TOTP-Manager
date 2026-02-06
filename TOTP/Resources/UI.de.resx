@@ -271,6 +271,9 @@
     <value>Eintrag ändern</value>
   </data>
   <data name="ui_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="ui_Export_Accounts" xml:space="preserve">
     <value>Alle Konten in eine Datei exportieren</value>
   </data>
   <data name="ui_GenerateQR_Code" xml:space="preserve">
@@ -311,6 +314,9 @@
   </data>
   <data name="ui_ScanQR" xml:space="preserve">
     <value>QR Kode scannen</value>
+  </data>
+  <data name="ui_Settings" xml:space="preserve">
+    <value>Einstellungen</value>
   </data>
   <data name="ui_Settings_Auth_Lock_Session" xml:space="preserve">
     <value>Sitzung sperren wenn ...</value>

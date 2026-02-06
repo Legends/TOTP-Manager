@@ -29,14 +29,7 @@
                              TitleBarForeground="{DynamicResource Brush.Foreground}">
 
     <syncfusion:ChromelessWindow.Resources>
-        <BounceEase x:Key="BounceEase"
-                    Bounces="1"
-                    Bounciness="100"
-                    EasingMode="EaseOut" />
-        <converters:SecretMaskConverter x:Key="SecretMaskConverter" />
-        <converters:ProgressValueToBrushConverter x:Key="ProgressValueToBrushConverter" />
-        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverterCollapsed"
-                                                Collapse="True" />
+       
 
         <DataTemplate DataType="{x:Type viewModels:UnlockViewModel}">
             <views:UnlockView />
@@ -166,7 +159,7 @@
                                         Orientation="Horizontal"
                                         ExpandMode="ExpandOnClick">
 
-                        <syncfusion:MenuItemAdv Header="Settings"
+                        <syncfusion:MenuItemAdv Header="{xaml:Resx Key=ui_Options}"
                                                 Width="32"
                                                 Padding="0"
                                                 ToolTip="{xaml:Resx Key=ui_Options}"
@@ -178,10 +171,10 @@
                                                  Stretch="Uniform" />
                             </syncfusion:MenuItemAdv.Icon>
 
-                            <syncfusion:MenuItemAdv Header="Settings"
+                            <syncfusion:MenuItemAdv Header="{xaml:Resx Key=ui_Settings}"
                                                     Command="{Binding OpenSettingsCommand}" />
 
-                            <syncfusion:MenuItemAdv Header="Export"
+                            <syncfusion:MenuItemAdv Header="{xaml:Resx Key=ui_Export}"
                                                     ToolTip="{Binding ExportToolTip}"
                                                     Command="{Binding ExportSecretsCommand}" />
 
@@ -445,8 +438,8 @@
         <!-- FLYOUT 1: ADD / EDIT / UPDATE (IsEditOpen)                 -->
         <!-- ========================================================= -->
 
-        <!-- Dim background + click closes -->
-        <Border Style="{StaticResource FlyoutOverlayStyle}"
+        <!-- Dim background ==> useful ? -->
+        <Border Style="{StaticResource FlyoutOverlayStyle}" Background="#152549" Opacity="1"
                 Panel.ZIndex="100"
                 Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
                 IsHitTestVisible="{Binding IsEditOpen}">
@@ -564,7 +557,7 @@
         <!-- FLYOUT 2: SETTINGS (IsSettingsOpen)                        -->
         <!-- ========================================================= -->
 
-        <!-- Dim background + click closes -->
+        <!-- Dim background ==> useful ? -->
         <Border Style="{StaticResource FlyoutOverlayStyle}"
                 Panel.ZIndex="200"
                 Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"

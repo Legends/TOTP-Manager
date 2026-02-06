@@ -13,6 +13,14 @@
     <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
     <converters:BoolToVisibilityConverterCollapsed x:Key="BoolToVisibilityConverterCollapsed" />
 
+    <BounceEase x:Key="BounceEase"
+                Bounces="1"
+                Bounciness="100"
+                EasingMode="EaseOut" />
+    <converters:SecretMaskConverter x:Key="SecretMaskConverter" />
+    <converters:ProgressValueToBrushConverter x:Key="ProgressValueToBrushConverter" />
+    <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverterCollapsed"
+                                            Collapse="True" />
 
     <!-- Brushes -->
     <SolidColorBrush x:Key="Brush.Foreground"
@@ -328,7 +336,7 @@
             <Trigger Property="props:Flyout.IsOpen" Value="True">
                 <Setter Property="Visibility" Value="Visible"/>
                 <Setter Property="IsHitTestVisible" Value="True"/>
-
+                
                 <Trigger.EnterActions>
                     <BeginStoryboard>
                         <Storyboard>
