@@ -4,7 +4,6 @@
                              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
-                             xmlns:sys="clr-namespace:System;assembly=mscorlib"
                              xmlns:sfGrid="clr-namespace:Syncfusion.UI.Xaml.Grid;assembly=Syncfusion.SfGrid.WPF"
                              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                              xmlns:behaviors="clr-namespace:TOTP.Behaviors"
@@ -48,12 +47,11 @@
         <DataTemplate DataType="{x:Type viewModels:PasswordUnlockViewModel}">
             <views:PasswordUnlockView AutoFocus="True"/>
         </DataTemplate>
-
-
     </syncfusion:ChromelessWindow.Resources>
 
-    <!-- We wrap the existing content in a Grid so we can overlay the flyout -->
+    <!-- Root overlay grid -->
     <Grid>
+
         <!-- ===== DataGrid & Toolbar Container ===== -->
         <StackPanel Orientation="Vertical"
                     Margin="0,5,0,0"
@@ -116,11 +114,9 @@
                                              Padding="0,0,20,0"
                                              Margin="10,0,0,0" >
                         <syncfusion:SfTextBoxExt.InputBindings>
-                            <KeyBinding
-                                Key="Escape"
-                                Command="{Binding ClearSearchTextCommand}" />
+                            <KeyBinding Key="Escape"
+                                        Command="{Binding ClearSearchTextCommand}" />
                         </syncfusion:SfTextBoxExt.InputBindings>
-
                     </syncfusion:SfTextBoxExt>
 
                     <!-- Search-Clear-Button -->
@@ -140,6 +136,7 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             Grid.Column="1">
+
                     <syncfusion:ComboBoxAdv Grid.Column="1"
                                             IsEnabled="{Binding IsGridEditing, Converter={StaticResource InverseBooleanConverter}}"
                                             ItemsSource="{Binding SupportedCultures}"
@@ -169,15 +166,12 @@
                                         Orientation="Horizontal"
                                         ExpandMode="ExpandOnClick">
 
-                        <!-- Main entry point: Gear icon -->
                         <syncfusion:MenuItemAdv Header="Settings"
                                                 Width="32"
                                                 Padding="0"
                                                 ToolTip="{xaml:Resx Key=ui_Options}"
                                                 HorizontalContentAlignment="Center"
                                                 VerticalContentAlignment="Center">
-
-
                             <syncfusion:MenuItemAdv.Icon>
                                 <svgc:SvgViewbox Source="/Assets/Icons/Gear--03WF-48x48.svg"
                                                  Height="15"
@@ -191,7 +185,6 @@
                                                     ToolTip="{Binding ExportToolTip}"
                                                     Command="{Binding ExportSecretsCommand}" />
 
-                            <!-- Your menu opens vertically under the gear -->
                             <syncfusion:MenuItemAdv Header="WPF">
                                 <syncfusion:MenuItemAdv Header="Tools" ToolTip="{xaml:Resx Key=ui_btnCancel}" />
                                 <syncfusion:MenuItemAdv Header="Chart" />
@@ -199,18 +192,10 @@
                                 <syncfusion:MenuItemAdv Header="Edit" />
                             </syncfusion:MenuItemAdv>
 
-
                             <syncfusion:MenuItemAdv Header="Reporting" />
-
-                            <!-- Optional: actual settings command as a clickable leaf item -->
-                         
                         </syncfusion:MenuItemAdv>
-
                     </syncfusion:MenuAdv>
-
-
                 </StackPanel>
-
             </Grid>
 
             <!--  === ACCOUNTS SFDATAGRID CONTAINER === -->
@@ -226,8 +211,6 @@
                 </Grid.RowDefinitions>
 
                 <!-- =====  ACCOUNTS GRID   ===== -->
-                <!--SelectedItem="SelectedSecret"-->
-                <!--SelectionChanged="DataGrid_SelectionChanged"-->
                 <syncfusion:SfDataGrid x:Name="SecretsGrid"
                                        ItemsSource="{Binding AllSecrets}"
                                        CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
@@ -253,7 +236,6 @@
                                        HorizontalAlignment="Stretch"
                                        ColumnSizer="Star">
 
-
                     <syncfusion:SfDataGrid.SortColumnDescriptions>
                         <syncfusion:SortColumnDescription ColumnName="Platform"
                                                           SortDirection="Ascending" />
@@ -261,60 +243,46 @@
 
                     <i:Interaction.Behaviors>
                         <behaviors:ScrollOnNewOrUpdatedItemBehavior />
-                        <!--<behaviors:DataGridEditingStateBehavior IsEditing="{Binding IsGridEditing, Mode=TwoWay}" />-->
                         <behaviors:DataGridValidationBehavior />
                         <behaviors:SfDataGridEditingBehavior  IsEditing="{Binding IsGridEditing, Mode=TwoWay}"
                                                               BeginEditCommand="{Binding BeginEditCommand}"
                                                               EndEditCommand="{Binding EndEditCommand}"
                                                               DoubleClickCommand="{Binding DoubleClickCommand}" />
-
                         <behaviors:SfDataGridContextMenuBehavior />
                         <behaviors:RowClickBehavior SelectionChangedCommand="{Binding RowSelectionChangedCommand}" />
                     </i:Interaction.Behaviors>
 
                     <syncfusion:SfDataGrid.Resources>
                         <Style TargetType="syncfusion:GridHeaderCellControl">
-                            <Setter Property="Background"
-                                    Value="#269797" />
-                            <Setter Property="Foreground"
-                                    Value="{DynamicResource Brush.Foreground}" />
-                            <Setter Property="FontWeight"
-                                    Value="Bold" />
-                            <Setter Property="HorizontalContentAlignment"
-                                    Value="Center" />
+                            <Setter Property="Background" Value="#269797" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Foreground}" />
+                            <Setter Property="FontWeight" Value="Bold" />
+                            <Setter Property="HorizontalContentAlignment" Value="Center" />
                         </Style>
                     </syncfusion:SfDataGrid.Resources>
 
-                    <!-- ==== COLUMNS: Platform ==== -->
                     <syncfusion:SfDataGrid.Columns>
-                        <!-- Platform -->
                         <syncfusion:GridTextColumn HeaderText="{xaml:Resx Key=ui_Header_Platform}"
                                                    MappingName="Platform">
                             <syncfusion:GridTextColumn.CellStyle>
                                 <Style TargetType="sfGrid:GridCell"
                                        BasedOn="{StaticResource {x:Type sfGrid:GridCell}}">
-                                    <Setter Property="FrameworkElement.Cursor"
-                                            Value="Hand" />
+                                    <Setter Property="FrameworkElement.Cursor" Value="Hand" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsHighlighted}"
-                                                     Value="True">
+                                        <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
                                             <DataTrigger.EnterActions>
                                                 <BeginStoryboard>
                                                     <Storyboard>
-                                                        <!-- Animate background -->
                                                         <ColorAnimation Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
                                                                         To="#66FFD54F"
                                                                         Duration="0:0:1" />
-                                                        <!-- Animate foreground -->
                                                         <ColorAnimation Storyboard.TargetProperty="(Control.Foreground).(SolidColorBrush.Color)"
                                                                         To="#87CE3E"
                                                                         Duration="0:0:1" />
-                                                        <!-- Fade background back -->
                                                         <ColorAnimation BeginTime="0:0:1"
                                                                         Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
                                                                         To="#00FFFFFF"
                                                                         Duration="0:0:1" />
-                                                        <!-- Fade foreground back -->
                                                         <ColorAnimation BeginTime="0:0:1"
                                                                         Storyboard.TargetProperty="(Control.Foreground).(SolidColorBrush.Color)"
                                                                         To="#97B0DF"
@@ -329,10 +297,8 @@
                         </syncfusion:GridTextColumn>
                     </syncfusion:SfDataGrid.Columns>
 
-                    <!-- DataGridRow Context Menu: Edit + Delete -->
                     <syncfusion:SfDataGrid.RecordContextMenu>
                         <ContextMenu>
-                            <!-- Edit -->
                             <MenuItem Header="{Binding DataGrid.DataContext.EditLabel}"
                                       Foreground="{DynamicResource Brush.Foreground}"
                                       Command="{Binding DataGrid.DataContext.OpenFlyoutEditModeCommand}"
@@ -346,7 +312,6 @@
 
                             <Separator Background="#1D3366" />
 
-                            <!-- Delete -->
                             <MenuItem Header="{Binding DataGrid.DataContext.DeleteLabel}"
                                       Foreground="{DynamicResource Brush.Foreground}"
                                       Command="{Binding DataGrid.DataContext.DeleteSecretCommand}"
@@ -362,69 +327,61 @@
 
                 </syncfusion:SfDataGrid>
 
-                <!--  TOTP-CODE, PLATFORM-NAME, PROGRESS, GENERATE-QR-CODE-LINK     CONTAINER   -->
+                <!--  TOTP-CODE, PLATFORM-NAME, PROGRESS, GENERATE-QR-CODE-LINK CONTAINER   -->
                 <StackPanel Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Center">
-                    <Label x:Name="lblSelectedPlatformName" Content="{Binding SelectedSecret.Platform }"
+                    <Label x:Name="lblSelectedPlatformName"
+                           Content="{Binding SelectedSecret.Platform }"
                            VerticalContentAlignment="Center"
                            HorizontalContentAlignment="Center"
                            HorizontalAlignment="Center"
-                         FontWeight="Bold" FontSize="15"
-Height="{Binding CodeLabelHeight}"
-                         />
+                           FontWeight="Bold"
+                           FontSize="15"
+                           Height="{Binding CodeLabelHeight}" />
 
-                    <!-- === TOTP Code and Progress Pie Chart === -->
-                    <StackPanel 
-                            Orientation="Horizontal"
-                            VerticalAlignment="Top"
-                            HorizontalAlignment="Center">
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Top"
+                                HorizontalAlignment="Center">
 
-                        <!-- copy symbol -->
                         <Viewbox x:Name="vbCopySymbol" Width="10" Margin="0,0,0,2">
                             <svgc:SvgViewbox Source="/Assets/Icons/Copy-48x48.svg"
-                                         Stretch="Uniform"
-                                         Style="{StaticResource CopySymbolStyle}"
-                                         Visibility="{Binding ShowCopySymbol,
-                                         Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                             Stretch="Uniform"
+                                             Style="{StaticResource CopySymbolStyle}"
+                                             Visibility="{Binding ShowCopySymbol,
+                                                Converter={StaticResource BooleanToVisibilityConverter}}" />
                         </Viewbox>
 
-
-                        <!-- TOTP code value   Grid.Row="2" Content="CurrentCodeLabel"-->
-                        <!--Content="{Binding SelectedSecret.TotpCode }"-->
-                        <Label x:Name="lblCode"  
-                           Cursor="Hand"
-                           Content="{Binding TotpCode }"
-                           HorizontalContentAlignment="Center"
-                           Height="{Binding CodeLabelHeight}"
-                           FontWeight="Bold"
-                           Foreground="#97B0DF"
-                           FontSize="24"
-                           HorizontalAlignment="Center"
-                           Margin="0,0">
+                        <Label x:Name="lblCode"
+                               Cursor="Hand"
+                               Content="{Binding TotpCode }"
+                               HorizontalContentAlignment="Center"
+                               Height="{Binding CodeLabelHeight}"
+                               FontWeight="Bold"
+                               Foreground="#97B0DF"
+                               FontSize="24"
+                               HorizontalAlignment="Center"
+                               Margin="0,0">
                             <Label.InputBindings>
                                 <MouseBinding Gesture="LeftClick"
-                                          Command="{Binding CopyCodeCommand}" />
+                                              Command="{Binding CopyCodeCommand}" />
                             </Label.InputBindings>
                             <Label.RenderTransform>
                                 <TranslateTransform />
                             </Label.RenderTransform>
                             <Label.Style>
                                 <Style TargetType="Label">
-                                    <Setter Property="Opacity"
-                                        Value="0" />
+                                    <Setter Property="Opacity" Value="0" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsCodeLabelVisible}"
-                                                 Value="True">
-                                            <Setter Property="Opacity"
-                                                Value="1" />
+                                        <DataTrigger Binding="{Binding IsCodeLabelVisible}" Value="True">
+                                            <Setter Property="Opacity" Value="1" />
                                             <DataTrigger.EnterActions>
                                                 <BeginStoryboard>
                                                     <Storyboard>
                                                         <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
-                                                                     From="0"
-                                                                     To="-10"
-                                                                     Duration="0:0:0.2"
-                                                                     AutoReverse="True"
-                                                                     EasingFunction="{StaticResource BounceEase}" />
+                                                                         From="0"
+                                                                         To="-10"
+                                                                         Duration="0:0:0.2"
+                                                                         AutoReverse="True"
+                                                                         EasingFunction="{StaticResource BounceEase}" />
                                                     </Storyboard>
                                                 </BeginStoryboard>
                                             </DataTrigger.EnterActions>
@@ -434,58 +391,46 @@ Height="{Binding CodeLabelHeight}"
                             </Label.Style>
                         </Label>
 
-                        <!-- Progress Pie Chart -->
                         <Viewbox x:Name="vbProgressPieChart" Height="25">
                             <syncfusion:SfCircularProgressBar x:Name="ProgressBar"
-                                                          Visibility="{Binding IsProgressPieChartVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                                          Minimum="0"
-                                                          IndicatorOuterRadius="0.90"
-                                                          IndicatorInnerRadius="0.70"
-                                                          TrackOuterRadius="0.90"
-                                                          TrackInnerRadius="0.70"
-                                                          Margin="10,0,0,0"
-                                                          Maximum="{Binding PeriodSeconds}"
-                                                          Progress="{Binding ElapsedSeconds}"
-                                                          IsIndeterminate="False"
-                                                          SegmentCount="1"
-                                                          ProgressColor="#152549"
-                                                          TrackColor="{Binding Progress,
-                                        ElementName=ProgressBar,
-                                        Converter={StaticResource ProgressValueToBrushConverter}}">
-
+                                                              Visibility="{Binding IsProgressPieChartVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                              Minimum="0"
+                                                              IndicatorOuterRadius="0.90"
+                                                              IndicatorInnerRadius="0.70"
+                                                              TrackOuterRadius="0.90"
+                                                              TrackInnerRadius="0.70"
+                                                              Margin="10,0,0,0"
+                                                              Maximum="{Binding PeriodSeconds}"
+                                                              Progress="{Binding ElapsedSeconds}"
+                                                              IsIndeterminate="False"
+                                                              SegmentCount="1"
+                                                              ProgressColor="#152549"
+                                                              TrackColor="{Binding Progress, ElementName=ProgressBar, Converter={StaticResource ProgressValueToBrushConverter}}">
                                 <syncfusion:SfCircularProgressBar.ProgressContent>
                                     <TextBlock Text="{Binding RemainingSeconds}"
-                                           FontSize="40"
-                                           Padding="0"
-                                           Margin="-5,0,0,0"
-                                           FontWeight="Bold"
-                                           Foreground="{Binding Progress,
-ElementName=ProgressBar,
-Converter={StaticResource ProgressValueToBrushConverter}}"
-                                           VerticalAlignment="Center"
-                                           TextAlignment="Center" />
+                                               FontSize="40"
+                                               Padding="0"
+                                               Margin="-5,0,0,0"
+                                               FontWeight="Bold"
+                                               Foreground="{Binding Progress, ElementName=ProgressBar, Converter={StaticResource ProgressValueToBrushConverter}}"
+                                               VerticalAlignment="Center"
+                                               TextAlignment="Center" />
                                 </syncfusion:SfCircularProgressBar.ProgressContent>
                             </syncfusion:SfCircularProgressBar>
                         </Viewbox>
                     </StackPanel>
-
-
                 </StackPanel>
-
 
                 <!--QR CODE CONTAINER-->
                 <StackPanel Grid.Row="2">
-                    <!-- Generate QR code link -->
                     <TextBlock HorizontalAlignment="Center"
                                Margin="0,10,0,8"
-                               Visibility="{Binding ShowGenerateQrCodeLink, 
-                                Converter={StaticResource BooleanToVisibilityConverter}}">
-                         <Hyperlink Command="{Binding GenerateQrCommand}">
-                             <TextBlock Text="{xaml:Resx Key=ui_GenerateQR_Code}"/>
-                         </Hyperlink>
+                               Visibility="{Binding ShowGenerateQrCodeLink, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Hyperlink Command="{Binding GenerateQrCommand}">
+                            <TextBlock Text="{xaml:Resx Key=ui_GenerateQR_Code}"/>
+                        </Hyperlink>
                     </TextBlock>
 
-                    <!-- === QR Code Placeholder === -->
                     <Image ToolTip="{xaml:Resx Key=tooltip_AuthenticatorAppScan}"
                            Margin="0,10,0,10"
                            Source="{Binding QrCodeImage}"
@@ -493,30 +438,38 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                            Height="Auto"
                            Visibility="{Binding IsQrVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
                 </StackPanel>
-
             </Grid>
         </StackPanel>
 
+        <!-- ========================================================= -->
+        <!-- FLYOUT 1: ADD / EDIT / UPDATE (IsEditOpen)                 -->
+        <!-- ========================================================= -->
 
-        <!-- ===== Flyout Border overlay (ADD + UPDATE ACCOUNTS) ===== -->
-        <!-- Dim background -->
-        <Border Background="#66000000"
+        <!-- Dim background + click closes -->
+        <Border Style="{StaticResource FlyoutOverlayStyle}"
+                Panel.ZIndex="100"
                 Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
-                Panel.ZIndex="10">
+                IsHitTestVisible="{Binding IsEditOpen}">
+            <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="{Binding CancelFlyoutCommand}" />
+            </Border.InputBindings>
         </Border>
 
-        <!-- === FLYOUT CONTAINER === -->
+
+        <!-- Flyout container (slides via FlyoutHostStyle) -->
         <Grid Width="300"
               HorizontalAlignment="Right"
-              Panel.ZIndex="11"
-              Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+              VerticalAlignment="Stretch"
+              Panel.ZIndex="101"
               Style="{StaticResource FlyoutHostStyle}"
-              FocusManager.IsFocusScope="True">
+              FocusManager.IsFocusScope="True"
+              props:Flyout.IsOpen="{Binding IsEditOpen, Mode=TwoWay}"
+              props:Flyout.ClosedX="300"
+              props:Flyout.CloseOnEsc="True">
 
+            <!-- Keep your command-based ESC as well (fine) -->
             <Grid.InputBindings>
-                <KeyBinding
-                    Key="Escape"
-                    Command="{Binding CancelFlyoutCommand}" />
+                <KeyBinding Key="Escape" Command="{Binding CancelFlyoutCommand}" />
             </Grid.InputBindings>
 
             <Border Background="#152549"
@@ -524,7 +477,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                     BorderBrush="#394B74"
                     BorderThickness="1">
                 <StackPanel Margin="0,10,0,10">
-                    <!-- === FLYOUT HEADER  === -->
+                    <!-- Header -->
                     <DockPanel Margin="0,0,0,10">
                         <TextBlock Text="{Binding EditPanelTitle}"
                                    Foreground="White"
@@ -539,63 +492,54 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                                 DockPanel.Dock="Right" />
                     </DockPanel>
 
-                    <!--  ===  FLYOUT FORM FIELDS  ===  -->
-
-                    <!-- HEADER PLATFORM -->
+                    <!-- Platform -->
                     <TextBlock Text="{xaml:Resx Key=ui_Header_Platform}"
                                FontWeight="Bold"
                                Foreground="White"
                                Margin="0,6,0,2" />
 
-                    <!--PLATFORM TEXTBOX-->
                     <TextBox x:Name="PlatformBox"
-                             Text="{Binding CurrentSecretBeingEditedOrAdded.Platform,
-                        UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding CurrentSecretBeingEditedOrAdded.Platform, UpdateSourceTrigger=PropertyChanged}"
                              Height="30"
                              props:FocusExtension.IsFocused="{Binding IsEditPlatformFocused}" />
 
-                    <!--ERROR DISPLAY FOR PLATFORM TEXTBOX-->
                     <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.PlatformError}"
                                Style="{StaticResource InlineErrorTextStyle}"
                                Visibility="{Binding CurrentSecretBeingEditedOrAdded.PlatformError,
-                                Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
+                                    Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
 
-                    <!-- HEADER SECRET -->
+                    <!-- Secret -->
                     <TextBlock Text="{xaml:Resx Key=ui_Header_Secret}"
                                FontWeight="Bold"
                                Foreground="White"
                                Margin="0,10,0,-4" />
 
-                    <!-- SECRET TEXTBOX -->
                     <userControls:RevealableSecretBox AutoFocus="False"
-                        Secret="{Binding CurrentSecretBeingEditedOrAdded.Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        IsSecretVisible="{Binding IsSecretVisible, Mode=TwoWay}"
-                        ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
-                        ToggleToolTip="{xaml:Resx Key=ui_btnShowHideSecret}" />
+                                                     Secret="{Binding CurrentSecretBeingEditedOrAdded.Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                     IsSecretVisible="{Binding IsSecretVisible, Mode=TwoWay}"
+                                                     ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
+                                                     ToggleToolTip="{xaml:Resx Key=ui_btnShowHideSecret}" />
 
-                    <!--ERROR DISPLAY FOR SECRET TEXTBOX-->
                     <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.SecretError}"
                                Style="{StaticResource InlineErrorTextStyle}"
                                Visibility="{Binding CurrentSecretBeingEditedOrAdded.SecretError,
-                                Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
+                                    Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
 
-                    <!-- ACCOUNT HEADER -->
+                    <!-- Account -->
                     <TextBlock Text="{xaml:Resx Key=ui_Header_Account}"
                                FontWeight="Bold"
                                Foreground="White"
                                Margin="0,10,0,2" />
 
-                    <!--ACCOUNT TEXTBOX-->
-                    <TextBox Text="{Binding CurrentSecretBeingEditedOrAdded.Account,
-                        UpdateSourceTrigger=PropertyChanged}"
+                    <TextBox Text="{Binding CurrentSecretBeingEditedOrAdded.Account, UpdateSourceTrigger=PropertyChanged}"
                              Height="30" />
-                    <!--ERROR DISPLAY FOR ACCOUNT TEXTBOX-->
+
                     <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.AccountError}"
                                Style="{StaticResource InlineErrorTextStyle}"
                                Visibility="{Binding CurrentSecretBeingEditedOrAdded.AccountError,
-                                Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
+                                    Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
 
-                    <!-- SAVE, CANCEL BUTTONS -->
+                    <!-- Buttons -->
                     <StackPanel Orientation="Horizontal"
                                 Margin="0,16,0,0"
                                 HorizontalAlignment="Right">
@@ -616,31 +560,49 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
             </Border>
         </Grid>
 
-        <!-- ===== dim background Settings ===== -->
-        <Border Background="#66000000"
-                Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
-                Panel.ZIndex="20"/>
+        <!-- ========================================================= -->
+        <!-- FLYOUT 2: SETTINGS (IsSettingsOpen)                        -->
+        <!-- ========================================================= -->
 
-        <!-- =====  Flyout Settings ===== -->
+        <!-- Dim background + click closes -->
+        <Border Style="{StaticResource FlyoutOverlayStyle}"
+                Panel.ZIndex="200"
+                Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+                IsHitTestVisible="{Binding IsSettingsOpen}">
+            <Border.InputBindings>
+                <MouseBinding MouseAction="LeftClick" Command="{Binding CloseSettingsCommand}" />
+            </Border.InputBindings>
+        </Border>
+
+
+        <!-- Settings flyout (now ALSO uses FlyoutHostStyle + slide animation) -->
         <Grid Width="320"
               HorizontalAlignment="Right"
-              Panel.ZIndex="21"
-              Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
-         
-              FocusManager.IsFocusScope="True">
-            <!--Style="{StaticResource FlyoutHostStyle}"-->
+              VerticalAlignment="Stretch"
+              Panel.ZIndex="201"
+              Style="{StaticResource FlyoutHostStyle}"
+              FocusManager.IsFocusScope="True"
+              props:Flyout.IsOpen="{Binding IsSettingsOpen, Mode=TwoWay}"
+              props:Flyout.ClosedX="320"
+              props:Flyout.CloseOnEsc="True">
 
             <Grid.InputBindings>
                 <KeyBinding Key="Escape" Command="{Binding CloseSettingsCommand}" />
             </Grid.InputBindings>
 
-            <Border Background="#152549" Padding="16" BorderBrush="#394B74" BorderThickness="1">
+            <Border Background="#152549"
+                    Padding="16"
+                    BorderBrush="#394B74"
+                    BorderThickness="1">
                 <views:SettingsView DataContext="{Binding Settings}" />
             </Border>
         </Grid>
 
-        <!--   UnlockView.xaml   -->
+        <!-- ========================================================= -->
+        <!-- UnlockView overlay                                         -->
+        <!-- ========================================================= -->
         <Grid Background="#CC0C1C33"
+              Panel.ZIndex="1000"
               Visibility="{Binding IsUnlocked, Converter={StaticResource InverseBoolToVisibilityConverter}}">
             <ContentControl Content="{Binding Unlock}"
                             HorizontalAlignment="Center"
