@@ -505,7 +505,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                 Panel.ZIndex="10">
         </Border>
 
-        <!-- === FLYOUT CONTAINER === -->
+        <!-- === FLYOUT EDIT/UPDATE CONTAINER === -->
         <Grid Width="300"
               HorizontalAlignment="Right"
               Panel.ZIndex="11"
