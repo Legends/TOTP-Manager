@@ -9,7 +9,10 @@
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
     <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
     <converters:BoolToVisibilityConverterCollapsed x:Key="BoolToVisibilityConverterCollapsed" />
-
+    <converters:SecretMaskConverter x:Key="SecretMaskConverter" />
+    <converters:ProgressValueToBrushConverter x:Key="ProgressValueToBrushConverter" />
+    <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverterCollapsed"
+                                            Collapse="True" />
     <!-- Brushes -->
     <SolidColorBrush x:Key="Brush.Foreground"
                      Color="White" />

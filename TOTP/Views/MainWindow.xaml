@@ -33,10 +33,7 @@
                     Bounces="1"
                     Bounciness="100"
                     EasingMode="EaseOut" />
-        <converters:SecretMaskConverter x:Key="SecretMaskConverter" />
-        <converters:ProgressValueToBrushConverter x:Key="ProgressValueToBrushConverter" />
-        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverterCollapsed"
-                                                Collapse="True" />
+ 
 
         <DataTemplate DataType="{x:Type viewModels:UnlockViewModel}">
             <views:UnlockView />
