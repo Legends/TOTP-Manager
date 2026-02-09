@@ -3,6 +3,7 @@ using Syncfusion.SfSkinManager;
 using Syncfusion.UI.Xaml.Grid;
 using Syncfusion.Windows.Shared;
 using System;
+using System.ComponentModel;
 using System.Windows;
 using TOTP.Interfaces;
 using TOTP.Resources;
@@ -16,12 +17,15 @@ namespace TOTP.Views;
 public partial class MainWindow : ChromelessWindow
 {
     private readonly IMainViewModel _vm;
+    private readonly IInputActivityMonitor _activityMonitor;
+    private bool _isActivityMonitorAttached;
     private ILogger<MainWindow> _logger;
 
-    public MainWindow(IMainViewModel vm, ILogger<MainWindow> logger)
+    public MainWindow(IMainViewModel vm, IInputActivityMonitor activityMonitor, ILogger<MainWindow> logger)
     {
 
         _logger = logger;
+        _activityMonitor = activityMonitor;
         InitializeComponent();
 
         SetupWindowPositionAtStartup();
@@ -38,6 +42,8 @@ public partial class MainWindow : ChromelessWindow
 
         Loaded += OnLoadedAsync;
         SecretsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
+        Closed += OnClosed;
+        _vm.PropertyChanged += OnViewModelPropertyChanged;
     }
 
     private void SetupWindowPositionAtStartup()
@@ -60,6 +66,7 @@ public partial class MainWindow : ChromelessWindow
         try
         {
             await _vm.InitializeAsync();
+            UpdateActivityMonitorState();
         }
         catch (Exception ex)
         {
@@ -90,6 +97,54 @@ public partial class MainWindow : ChromelessWindow
             // Filters the grid datasource based on vm.DoFilterGrid
             SecretsGrid.View.RefreshFilter();
         }
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        Closed -= OnClosed;
+        _vm.PropertyChanged -= OnViewModelPropertyChanged;
+        DetachActivityMonitor();
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(MainViewModel.IsUnlocked))
+            return;
+
+        UpdateActivityMonitorState();
+    }
+
+    private void UpdateActivityMonitorState()
+    {
+        if (_vm is not MainViewModel vm)
+            return;
+
+        if (vm.IsUnlocked)
+        {
+            AttachActivityMonitor();
+        }
+        else
+        {
+            DetachActivityMonitor();
+        }
+    }
+
+    private void AttachActivityMonitor()
+    {
+        if (_isActivityMonitorAttached)
+            return;
+
+        _activityMonitor.Attach(this);
+        _isActivityMonitorAttached = true;
+    }
+
+    private void DetachActivityMonitor()
+    {
+        if (!_isActivityMonitorAttached)
+            return;
+
+        _activityMonitor.Detach();
+        _isActivityMonitorAttached = false;
     }
 
     protected override void OnStateChanged(EventArgs e)
