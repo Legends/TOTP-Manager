@@ -14,7 +14,7 @@ namespace TOTP;
 public partial class App : Application
 {
     public IHost Host { get; set; } = default!;
-    public SingleInstanceGuard? InstanceGuard { get; set; }
+    //public SingleInstanceGuard? InstanceGuard { get; set; }
     
     public IAuthorizationService? AuthorizationService{ get; set; }
 

@@ -46,7 +46,7 @@ internal static class Program
             await host.StartAsync();
 
             // 4) WPF app
-            var app = new App { Host = host, InstanceGuard = instance, AuthorizationService = host.Services.GetRequiredService <IAuthorizationService>()};
+            var app = new App { Host = host, /*InstanceGuard = instance,*/ AuthorizationService = host.Services.GetRequiredService <IAuthorizationService>()};
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host); // your helper
 
