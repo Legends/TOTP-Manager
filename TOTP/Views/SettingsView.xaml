@@ -33,7 +33,10 @@
         </DockPanel>
 
         <!-- Tabs -->
-        <syncfusionTools:TabControlExt TabItemHoverBackground="Transparent" TabItemHoverForeground="AliceBlue"  Grid.Row="1"   CloseButtonType="Hide"
+        <syncfusionTools:TabControlExt TabItemHoverBorderBrush="AliceBlue" 
+                                       TabItemHoverBackground="Transparent" 
+                                       TabItemHoverForeground="AliceBlue"  
+                                       Grid.Row="1"   CloseButtonType="Hide"
                                        Margin="0,0,0,12"
                                        TabStripPlacement="Top">
             <!-- AUTHORIZATION -->
@@ -64,7 +67,7 @@
                                          IsChecked="{Binding IsPasswordSelected, Mode=TwoWay}"/>
                         </StackPanel>
 
-                        <Border Height="1" Background="#394B74" Margin="0,14,0,14"/>
+                        <Border Height="1" Background="Transparent" Margin="0,0,0,14"/>
 
                         <!-- Password management block (only show when Password is selected) -->
                         <StackPanel Visibility="{Binding IsPasswordSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -83,11 +86,11 @@
                                        Visibility="{Binding HasAuthError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                         </StackPanel>
 
-                        <Border Height="1" Background="#394B74" Margin="0,14,0,14"/>
+                        <Border Visibility="{Binding IsPasswordSelected, Converter={StaticResource InverseBoolToVisibilityConverter}}" Height="1" Background="#394B74" Margin="0,0,0,14"/>
                         <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Lock_Session}"
                                    Foreground="White"
                                    FontWeight="SemiBold"
-                                   Margin="0,0,0,6"/>
+                                   Margin="0,5,0,6"/>
                         <!-- Lock policy -->
                         <CheckBox Content="{xaml:Resx Key=ui_Settings_LockOnWindowsLock}"
                                   Foreground="White"

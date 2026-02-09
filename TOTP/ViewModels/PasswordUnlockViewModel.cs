@@ -52,6 +52,13 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         _auth = auth;
         UnlockCommand = new AsyncCommand(UnlockAsync);
         IsSetup = false; // default: unlock mode
+
+        _auth.State.Changed += State_Changed;
+    }
+
+    private void State_Changed(object? sender, System.EventArgs e)
+    {
+        Password = null;
     }
 
     public void EnterSetupMode()
@@ -70,7 +77,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         {
             var cfg = await _auth.ConfigurePasswordAsync(Password ?? "", ConfirmPassword ?? "");
             if (cfg != AuthorizationResult.Success)
-            { 
+            {
                 Message = "Password setup failed (min length 8, and both fields must match).";
                 return;
             }
