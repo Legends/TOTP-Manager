@@ -87,9 +87,9 @@ public static class BootLoader
                 services.AddSingleton<ISecretsManager, SecretsManager>();
 
                 // Security
-                var folder = Path.GetDirectoryName(configuration.GetSection(StringsConstants.AppSettingsJsonAccountsStoragePropertyPath).Value);
-
-                services.AddSingleton<IGlobalProfileStore>(_ => new FileGlobalProfileStore(folder));
+                var rawProfilePath = configuration.GetSection(StringsConstants.AppSettingsJsonProfileStoragePropertyPath).Value;
+                var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? "");
+                services.AddSingleton<IGlobalProfileStore>(_ => new FileGlobalProfileStore(resolvedProfilePath));
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
                 services.AddSingleton<IUserActivityService, UserActivityService>();
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();
