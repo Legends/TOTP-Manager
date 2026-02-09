@@ -18,7 +18,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using TOTP.Commands;
 using TOTP.Core.Enums;
 using TOTP.Core.Interfaces;
@@ -60,8 +59,6 @@ public class MainViewModel : IMainViewModel
 
     public UnlockViewModel Unlock { get; }
     public bool IsUnlocked => _authorization.State.IsUnlocked;
-    private DispatcherTimer? _autoLockTimer;
-    private readonly TimeSpan _autoLockTimeout = TimeSpan.FromMinutes(10);
 
     #endregion
 
@@ -358,7 +355,6 @@ public class MainViewModel : IMainViewModel
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsSearchTextNotEmpty));
             _debounceService.Debounce("Search", 300, () => ExecuteSearch());
-            _debounceService.Debounce("TouchActivity", 2000, TouchActivity);
         }
     }
 
@@ -400,6 +396,7 @@ public class MainViewModel : IMainViewModel
     private readonly IDelayService _delayService;
     private readonly IFileDialogService _fileDialogService;
     private readonly IAuthorizationService _authorization;
+    private readonly IUserActivityService _activityService;
 
     private bool _secretsLoaded;
     private bool _collectionHooked;
@@ -423,6 +420,7 @@ public class MainViewModel : IMainViewModel
         ISecretsDAL secretsDal,
         IFileDialogService fileDialogService,
         IAuthorizationService authorization,
+        IUserActivityService activityService,
         UnlockViewModel unlock)
     {
         _fileDialogService = fileDialogService;
@@ -435,12 +433,14 @@ public class MainViewModel : IMainViewModel
         _clipboard = clipboard;
         _secretsManager = totpManager;
         _authorization = authorization;
+        _activityService = activityService;
 
         AllSecrets = new ObservableCollection<SecretItemViewModel>();
         Unlock = unlock;
 
         _secretsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
         _authorization.State.Changed += AuthorizationState_Changed;
+        _activityService.LockRequested += ActivityService_LockRequested;
 
         SetupCommandEventhandler();
 
@@ -661,40 +661,17 @@ public class MainViewModel : IMainViewModel
 
     private void StartAutoLock()
     {
-        StopAutoLock();
-
-        _autoLockTimer = new DispatcherTimer
-        {
-            Interval = _autoLockTimeout
-        };
-
-        _autoLockTimer.Tick += (_, _) =>
-        {
-            _authorization.Lock();
-        };
-
-        _autoLockTimer.Start();
+        _activityService.StartMonitoring();
     }
 
     private void StopAutoLock()
     {
-        if (_autoLockTimer != null)
-        {
-            _autoLockTimer.Stop();
-            _autoLockTimer = null;
-        }
+        _activityService.StopMonitoring();
     }
 
-    /// <summary>
-    /// Restarts the in-activity timer when we interact with the app
-    /// </summary>
-    private void TouchActivity()
+    private void ActivityService_LockRequested(object? sender, EventArgs e)
     {
-        if (!IsUnlocked || _autoLockTimer == null)
-            return;
-
-        _autoLockTimer.Stop();
-        _autoLockTimer.Start();
+        _authorization.Lock();
     }
 
     #endregion
@@ -828,7 +805,6 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            TouchActivity();
             IsAddMode = true;
             IsEditOpen = true;
             CurrentSecretBeingEditedOrAdded = new SecretItemViewModel(Guid.NewGuid(), null, null, null);
@@ -849,7 +825,6 @@ public class MainViewModel : IMainViewModel
     /// <param name="item"></param>
     public void OpenFlyoutEditMode(SecretItemViewModel item)
     {
-        TouchActivity();
         if (item == null) return;
 
         IsAddMode = false;
@@ -1114,8 +1089,6 @@ public class MainViewModel : IMainViewModel
     /// <returns></returns>
     public async Task OnRowSelectionChangedAsync(SecretItemViewModel selectedSecretItem)
     {
-        TouchActivity();
-
         if (SelectedSecret != null && IsInlineEditing && SelectedSecret.ID != selectedSecretItem.ID)
             IsInlineEditing = false;
 
