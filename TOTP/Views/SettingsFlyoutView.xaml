@@ -4,15 +4,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:TOTP.Views"
+             xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
+             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
              mc:Ignorable="d">
     <Grid>
-        <!-- ===== dim background Settings ===== -->
+         <!--===== dim background Settings =====--> 
         <Border Background="#66000000"
                 Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
                 Panel.ZIndex="20" />
 
-        <!-- =====  Flyout Settings ===== -->
-        <Grid Width="320"
+         <!--=====  Flyout Settings =====--> 
+        <Grid Width="300"
               HorizontalAlignment="Right"
               Panel.ZIndex="21"
               Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"

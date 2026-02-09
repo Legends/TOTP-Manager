@@ -135,6 +135,7 @@
 			</DataTrigger>
 		</Style.Triggers>
 	</Style>
+
 	<SolidColorBrush x:Key="MenuItemHoverBackgroundBrushKey"
 					 Color="Transparent" />
 	<LinearGradientBrush x:Key="MenuItemSelectedBackgroundBrushKey"
