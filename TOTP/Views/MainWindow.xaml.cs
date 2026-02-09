@@ -16,12 +16,14 @@ namespace TOTP.Views;
 public partial class MainWindow : ChromelessWindow
 {
     private readonly IMainViewModel _vm;
+    private readonly IInputActivityMonitor _activityMonitor;
     private ILogger<MainWindow> _logger;
 
-    public MainWindow(IMainViewModel vm, ILogger<MainWindow> logger)
+    public MainWindow(IMainViewModel vm, IInputActivityMonitor activityMonitor, ILogger<MainWindow> logger)
     {
 
         _logger = logger;
+        _activityMonitor = activityMonitor;
         InitializeComponent();
 
         SetupWindowPositionAtStartup();
@@ -38,6 +40,9 @@ public partial class MainWindow : ChromelessWindow
 
         Loaded += OnLoadedAsync;
         SecretsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
+        Closed += OnClosed;
+
+        _activityMonitor.Attach(this);
     }
 
     private void SetupWindowPositionAtStartup()
@@ -90,6 +95,12 @@ public partial class MainWindow : ChromelessWindow
             // Filters the grid datasource based on vm.DoFilterGrid
             SecretsGrid.View.RefreshFilter();
         }
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        Closed -= OnClosed;
+        _activityMonitor.Detach();
     }
 
     protected override void OnStateChanged(EventArgs e)

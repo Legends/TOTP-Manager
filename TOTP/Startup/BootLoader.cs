@@ -91,6 +91,8 @@ public static class BootLoader
 
                 services.AddSingleton<IAuthorizationProfileStore>(_ => new FileAuthorizationProfileStore(folder));
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
+                services.AddSingleton<IUserActivityService, UserActivityService>();
+                services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();
 
                 services.AddSingleton<UnlockViewModel>();
                 services.AddSingleton<HelloUnlockViewModel>();
