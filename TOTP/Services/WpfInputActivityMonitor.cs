@@ -4,12 +4,13 @@ using System.Windows;
 using System.Windows.Input;
 using TOTP.Interfaces;
 using TOTP.Security;
+using ActivityKind = TOTP.Security.ActivityKind;
 
 namespace TOTP.Services;
 
 public sealed class WpfInputActivityMonitor : IInputActivityMonitor
 {
-    private static readonly TimeSpan MouseMoveThrottle = TimeSpan.FromMilliseconds(200);
+    private static readonly TimeSpan MouseMoveThrottle = TimeSpan.FromMilliseconds(5000);
 
     private readonly IUserActivityService _activityService;
     private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
