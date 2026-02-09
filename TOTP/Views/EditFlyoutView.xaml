@@ -1,0 +1,129 @@
+<UserControl x:Class="TOTP.Views.EditFlyoutView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:props="clr-namespace:TOTP.AttachedProperties"
+             xmlns:userControls="clr-namespace:TOTP.UserControls"
+             xmlns:xaml="clr-namespace:TOTP.Xaml"
+             mc:Ignorable="d">
+    <Grid>
+        <!-- ===== Flyout Border overlay (ADD + UPDATE ACCOUNTS) ===== -->
+        <!-- Dim background -->
+        <Border Background="#66000000"
+                Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+                Panel.ZIndex="10">
+        </Border>
+
+        <!-- === FLYOUT EDIT/UPDATE CONTAINER === -->
+        <Grid Width="300"
+              HorizontalAlignment="Right"
+              Panel.ZIndex="11"
+              Visibility="{Binding IsEditOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+              Style="{StaticResource FlyoutHostStyle}"
+              FocusManager.IsFocusScope="True">
+
+            <Grid.InputBindings>
+                <KeyBinding
+                    Key="Escape"
+                    Command="{Binding CancelFlyoutCommand}" />
+            </Grid.InputBindings>
+
+            <Border Background="#152549"
+                    Padding="16"
+                    BorderBrush="#394B74"
+                    BorderThickness="1">
+                <StackPanel Margin="0,10,0,10">
+                    <!-- === FLYOUT HEADER  === -->
+                    <DockPanel Margin="0,0,0,10">
+                        <TextBlock Text="{Binding EditPanelTitle}"
+                                   Foreground="White"
+                                   FontWeight="Bold"
+                                   FontSize="16" />
+                        <Button Content="✕"
+                                Foreground="White"
+                                Width="26"
+                                Height="26"
+                                Command="{Binding CancelFlyoutCommand}"
+                                HorizontalAlignment="Right"
+                                DockPanel.Dock="Right" />
+                    </DockPanel>
+
+                    <!--  ===  FLYOUT FORM FIELDS  ===  -->
+
+                    <!-- HEADER PLATFORM -->
+                    <TextBlock Text="{xaml:Resx Key=ui_Header_Platform}"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               Margin="0,6,0,2" />
+
+                    <!--PLATFORM TEXTBOX-->
+                    <TextBox x:Name="PlatformBox"
+                             Text="{Binding CurrentSecretBeingEditedOrAdded.Platform,
+                        UpdateSourceTrigger=PropertyChanged}"
+                             Height="30"
+                             props:FocusExtension.IsFocused="{Binding IsEditPlatformFocused}" />
+
+                    <!--ERROR DISPLAY FOR PLATFORM TEXTBOX-->
+                    <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.PlatformError}"
+                               Style="{StaticResource InlineErrorTextStyle}"
+                               Visibility="{Binding CurrentSecretBeingEditedOrAdded.PlatformError,
+                                Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
+
+                    <!-- HEADER SECRET -->
+                    <TextBlock Text="{xaml:Resx Key=ui_Header_Secret}"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               Margin="0,10,0,-4" />
+
+                    <!-- SECRET TEXTBOX -->
+                    <userControls:RevealableSecretBox AutoFocus="False"
+                        Secret="{Binding CurrentSecretBeingEditedOrAdded.Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        IsSecretVisible="{Binding IsSecretVisible, Mode=TwoWay}"
+                        ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
+                        ToggleToolTip="{xaml:Resx Key=ui_btnShowHideSecret}" />
+
+                    <!--ERROR DISPLAY FOR SECRET TEXTBOX-->
+                    <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.SecretError}"
+                               Style="{StaticResource InlineErrorTextStyle}"
+                               Visibility="{Binding CurrentSecretBeingEditedOrAdded.SecretError,
+                                Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
+
+                    <!-- ACCOUNT HEADER -->
+                    <TextBlock Text="{xaml:Resx Key=ui_Header_Account}"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               Margin="0,10,0,2" />
+
+                    <!--ACCOUNT TEXTBOX-->
+                    <TextBox Text="{Binding CurrentSecretBeingEditedOrAdded.Account,
+                        UpdateSourceTrigger=PropertyChanged}"
+                             Height="30" />
+                    <!--ERROR DISPLAY FOR ACCOUNT TEXTBOX-->
+                    <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.AccountError}"
+                               Style="{StaticResource InlineErrorTextStyle}"
+                               Visibility="{Binding CurrentSecretBeingEditedOrAdded.AccountError,
+                                Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
+
+                    <!-- SAVE, CANCEL BUTTONS -->
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,16,0,0"
+                                HorizontalAlignment="Right">
+                        <Button Content="{Binding SaveButtonLabel}"
+                                IsDefault="{Binding IsEditOpen}"
+                                FontWeight="Bold"
+                                Foreground="White"
+                                Command="{Binding SaveEditFlyoutAsyncCommand}"
+                                Margin="0,0,8,0"
+                                Padding="14,6" />
+                        <Button Content="{Binding CancelButtonLabel}"
+                                Foreground="White"
+                                FontWeight="Bold"
+                                Command="{Binding CancelFlyoutCommand}"
+                                Padding="14,6" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

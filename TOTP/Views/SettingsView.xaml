@@ -6,10 +6,9 @@
              xmlns:syncfusionTools="http://schemas.syncfusion.com/wpf"
              xmlns:xaml="clr-namespace:TOTP.Xaml"
              mc:Ignorable="d"
-             
              d:DesignHeight="500" d:DesignWidth="500">
 
-    <Grid Margin="20,0,0,0">
+    <Grid Margin="0,0,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -34,7 +33,7 @@
         </DockPanel>
 
         <!-- Tabs -->
-        <syncfusionTools:TabControlExt Grid.Row="1"   CloseButtonType="Hide"
+        <syncfusionTools:TabControlExt TabItemHoverBackground="Transparent" TabItemHoverForeground="AliceBlue"  Grid.Row="1"   CloseButtonType="Hide"
                                        Margin="0,0,0,12"
                                        TabStripPlacement="Top">
             <!-- AUTHORIZATION -->
