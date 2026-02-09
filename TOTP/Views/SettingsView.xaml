@@ -33,7 +33,8 @@
         </DockPanel>
 
         <!-- Tabs -->
-        <syncfusionTools:TabControlExt TabItemHoverBorderBrush="AliceBlue" 
+        <syncfusionTools:TabControlExt TabItemHoverBorderBrush="AliceBlue"  
+                                       EnableLabelEdit="False"
                                        TabItemHoverBackground="Transparent" 
                                        TabItemHoverForeground="AliceBlue"  
                                        Grid.Row="1"   CloseButtonType="Hide"

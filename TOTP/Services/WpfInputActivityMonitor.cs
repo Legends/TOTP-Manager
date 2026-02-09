@@ -10,7 +10,7 @@ namespace TOTP.Services;
 
 public sealed class WpfInputActivityMonitor : IInputActivityMonitor
 {
-    private static readonly TimeSpan MouseMoveThrottle = TimeSpan.FromMilliseconds(5000);
+    private static readonly TimeSpan MouseMoveThrottle = TimeSpan.FromMilliseconds(2000);
 
     private readonly IUserActivityService _activityService;
     private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
@@ -91,13 +91,21 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
 
         var elapsedTicks = _stopwatch.ElapsedTicks;
         var delta = TimeSpan.FromTicks(elapsedTicks - _lastMouseMoveTicks);
+        
         if (delta < MouseMoveThrottle)
+        {
+            Debug.WriteLine($"Delta: {delta} break;");
             return;
-
+        }
+        Debug.WriteLine($"Delta: {delta} went through;");
         _lastMouseMoveTicks = elapsedTicks;
         _activityService.NotifyActivity(ActivityKind.MouseMove);
     }
 
     private bool ShouldIgnoreActivity()
-        => _window == null || !_window.IsActive;
+    {
+        var shouldIgnore = _window == null || !_window.IsActive;
+        Debug.WriteLine($"Should ignore activity: {shouldIgnore}");
+        return shouldIgnore;
+    }
 }
