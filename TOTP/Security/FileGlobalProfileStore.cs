@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace TOTP.Security;
 
-public sealed class FileAuthorizationProfileStore : IAuthorizationProfileStore
+public sealed class FileGlobalProfileStore : IGlobalProfileStore
 {
     private readonly string _path;
 
-    public FileAuthorizationProfileStore(string baseDir)
+    public FileGlobalProfileStore(string baseDir)
     {
         Directory.CreateDirectory(baseDir);
         _path = Path.Combine(baseDir, "auth.profile");
     }
 
-    public async Task<AuthorizationProfile?> LoadAsync()
+    public async Task<GlobalProfile?> LoadAsync()
     {
         if (!File.Exists(_path))
             return null;
@@ -29,23 +29,30 @@ public sealed class FileAuthorizationProfileStore : IAuthorizationProfileStore
         var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
         var json = Encoding.UTF8.GetString(decrypted);
 
-        return JsonSerializer.Deserialize<AuthorizationProfile>(json);
+        try
+        {
+            var globalProfile = JsonSerializer.Deserialize<GlobalProfile>(json);
+            if (globalProfile is not null)
+                return globalProfile;
+        }
+        catch (JsonException)
+        {
+            // ignored - fall back to legacy profile format
+        }
+
+        var legacyProfile = JsonSerializer.Deserialize<AuthorizationProfile>(json);
+        if (legacyProfile is null)
+            return null;
+
+        return new GlobalProfile { Authorization = legacyProfile };
     }
 
-    public async Task SaveAsync(AuthorizationProfile profile)
+    public async Task SaveAsync(GlobalProfile profile)
     {
         var json = JsonSerializer.Serialize(profile, new JsonSerializerOptions { WriteIndented = true });
         var bytes = Encoding.UTF8.GetBytes(json);
 
         var encrypted = ProtectedData.Protect(bytes, null, DataProtectionScope.CurrentUser);
         await File.WriteAllBytesAsync(_path, encrypted).ConfigureAwait(false);
-    }
-
-    public Task ClearAsync()
-    {
-        if (File.Exists(_path))
-            File.Delete(_path);
-
-        return Task.CompletedTask;
     }
 }

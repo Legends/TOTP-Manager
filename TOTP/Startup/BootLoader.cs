@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+ï»¿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -89,7 +89,7 @@ public static class BootLoader
                 // Security
                 var folder = Path.GetDirectoryName(configuration.GetSection(StringsConstants.AppSettingsJsonAccountsStoragePropertyPath).Value);
 
-                services.AddSingleton<IAuthorizationProfileStore>(_ => new FileAuthorizationProfileStore(folder));
+                services.AddSingleton<IGlobalProfileStore>(_ => new FileGlobalProfileStore(folder));
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
                 services.AddSingleton<IUserActivityService, UserActivityService>();
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();

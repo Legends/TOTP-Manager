@@ -6,7 +6,6 @@ namespace TOTP.Security;
 
 public sealed class UserActivityService : IUserActivityService
 {
-    private static readonly TimeSpan DefaultIdleTimeout = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan DefaultTickInterval = TimeSpan.FromSeconds(1);
 
     private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
@@ -19,10 +18,14 @@ public sealed class UserActivityService : IUserActivityService
 
     public event EventHandler? LockRequested;
 
-    public UserActivityService()
+    public UserActivityService(IGlobalProfileStore profileStore)
     {
-        _idleTimeout = DefaultIdleTimeout;
+        var profile = profileStore.LoadAsync().GetAwaiter().GetResult();
+        _idleTimeout = profile?.IdleTimeout ?? GlobalProfile.DefaultIdleTimeout;
         _lastActivityTicks = _stopwatch.ElapsedTicks;
+
+        if (_idleTimeout <= TimeSpan.Zero)
+            _idleTimeout = GlobalProfile.DefaultIdleTimeout;
 
         _timer = new DispatcherTimer
         {

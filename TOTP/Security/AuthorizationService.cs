@@ -6,21 +6,23 @@ namespace TOTP.Security;
 public sealed class AuthorizationService : IAuthorizationService
 {
     private readonly IHelloGate _helloGate; // your existing hello abstraction
-    private readonly IAuthorizationProfileStore _authorizationProfileStore;
+    private readonly IGlobalProfileStore _globalProfileStore;
 
+    private GlobalProfile _globalProfile = new();
     private AuthorizationProfile? _profile;
 
     public AuthorizationState State { get; } = new();
 
-    public AuthorizationService(IHelloGate hello, IAuthorizationProfileStore store)
+    public AuthorizationService(IHelloGate hello, IGlobalProfileStore store)
     {
         _helloGate = hello;
-        _authorizationProfileStore = store;
+        _globalProfileStore = store;
     }
 
     public async Task InitializeAsync()
     {
-        _profile = await _authorizationProfileStore.LoadAsync().ConfigureAwait(false);
+        _globalProfile = await _globalProfileStore.LoadAsync().ConfigureAwait(false) ?? new GlobalProfile();
+        _profile = _globalProfile.Authorization;
         State.SetProfile(_profile);
 
         // Always start locked.
@@ -47,10 +49,11 @@ public sealed class AuthorizationService : IAuthorizationService
             return AuthorizationResult.NotAvailable;
 
         _profile = new AuthorizationProfile { Gate = AuthorizationGateKind.WindowsHello };
-        await _authorizationProfileStore.SaveAsync(_profile).ConfigureAwait(false);
+        _globalProfile.Authorization = _profile;
+        await _globalProfileStore.SaveAsync(_globalProfile).ConfigureAwait(false);
 
         State.SetProfile(_profile);
-        return AuthorizationResult.Success; // “configured ok” (not “unlocked yet”)
+        return AuthorizationResult.Success; // Â“configured okÂ” (not Â“unlocked yetÂ”)
     }
 
     public async Task<AuthorizationResult> ConfigurePasswordAsync(string password, string confirmPassword)
@@ -70,7 +73,8 @@ public sealed class AuthorizationService : IAuthorizationService
             PasswordHash = hash
         };
 
-        await _authorizationProfileStore.SaveAsync(_profile).ConfigureAwait(false);
+        _globalProfile.Authorization = _profile;
+        await _globalProfileStore.SaveAsync(_globalProfile).ConfigureAwait(false);
         State.SetProfile(_profile);
 
         return AuthorizationResult.Success; // configured ok
