@@ -18,6 +18,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using TOTP.Commands;
 using TOTP.Core.Enums;
 using TOTP.Core.Interfaces;
