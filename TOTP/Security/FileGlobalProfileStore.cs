@@ -11,10 +11,15 @@ public sealed class FileGlobalProfileStore : IGlobalProfileStore
 {
     private readonly string _path;
 
-    public FileGlobalProfileStore(string baseDir)
+    public FileGlobalProfileStore(string storageFilePath)
     {
-        Directory.CreateDirectory(baseDir);
-        _path = Path.Combine(baseDir, "auth.profile");
+        if (string.IsNullOrWhiteSpace(storageFilePath))
+            throw new ArgumentException("Profile storage path must be provided.", nameof(storageFilePath));
+
+        _path = storageFilePath;
+        var directory = Path.GetDirectoryName(_path);
+        if (!string.IsNullOrWhiteSpace(directory))
+            Directory.CreateDirectory(directory);
     }
 
     public async Task<GlobalProfile?> LoadAsync()

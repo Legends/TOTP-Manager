@@ -245,16 +245,7 @@ namespace TOTP.UserControls
         public RevealableSecretBox()
         {
             InitializeComponent();
-
-            ////Framework event
-            //IsVisibleChanged += (_, __) =>
-            //                   {
-            //                       // Wenn wir sichtbar werden und Password-Modus aktiv ist -> fokussieren
-            //                       if (IsVisible && !IsSecretVisible)
-            //                           FocusPasswordIsHidden();
-            //                   };
-
-        }
+            }
 
         private void TryAutoFocus()
         {

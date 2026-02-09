@@ -59,6 +59,8 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     private void State_Changed(object? sender, System.EventArgs e)
     {
         Password = null;
+        var state = (sender as AuthorizationState);
+        if (!state.IsConfigured) IsSetup = true;
     }
 
     public void EnterSetupMode()
