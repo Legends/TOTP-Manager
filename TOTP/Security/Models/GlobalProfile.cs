@@ -1,6 +1,6 @@
 using System;
 
-namespace TOTP.Security;
+namespace TOTP.Security.Models;
 
 public sealed class GlobalProfile
 {

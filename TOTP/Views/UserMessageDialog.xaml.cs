@@ -5,7 +5,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using TOTP.Events;
 using TOTP.Helper;
-using TOTP.Interfaces;
+using TOTP.Services.Interfaces;
 
 namespace TOTP.Views;
 

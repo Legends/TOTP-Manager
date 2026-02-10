@@ -1,8 +1,7 @@
-﻿using TOTP.Interfaces;
-
-namespace TOTP.Services
+﻿namespace TOTP.Services
 {
     using Microsoft.Win32;
+    using TOTP.Services.Interfaces;
 
     public sealed class FileDialogService : IFileDialogService
     {

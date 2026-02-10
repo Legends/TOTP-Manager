@@ -1,4 +1,6 @@
 using System.Security.Cryptography;
+using TOTP.Security.Interfaces;
+using TOTP.Security.Models;
 
 namespace TOTP.Security;
 

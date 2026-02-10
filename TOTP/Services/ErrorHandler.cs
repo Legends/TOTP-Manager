@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Forms;
-using TOTP.Interfaces;
+using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;
 

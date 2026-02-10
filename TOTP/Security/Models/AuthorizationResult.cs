@@ -1,4 +1,4 @@
-namespace TOTP.Security;
+namespace TOTP.Security.Models;
 
 public enum AuthorizationResult
 {

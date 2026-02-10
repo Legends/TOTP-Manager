@@ -1,9 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TOTP.Security.Interfaces;
 using Windows.Security.Credentials.UI;
 
-namespace TOTP.Security;
+namespace TOTP.Security.Models;
 
 public sealed class HelloGate : IHelloGate
 {

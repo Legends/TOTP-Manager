@@ -4,8 +4,8 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using TOTP.Core.Enums;
 using TOTP.Helper;
-using TOTP.Interfaces;
 using TOTP.Resources;
+using TOTP.Services.Interfaces;
 using TOTP.Views;
 
 namespace TOTP.Services;

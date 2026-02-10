@@ -6,7 +6,7 @@ using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.ViewModels;
 
-namespace TOTP.Interfaces;
+namespace TOTP.Services.Interfaces;
 
 public interface IMainViewModel : INotifyPropertyChanged
 {

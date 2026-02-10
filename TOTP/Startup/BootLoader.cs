@@ -19,7 +19,10 @@ using TOTP.Interfaces;
 using TOTP.Logging;
 using TOTP.Resources;
 using TOTP.Security;
+using TOTP.Security.Interfaces;
+using TOTP.Security.Models;
 using TOTP.Services;
+using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 using TOTP.Views;
 

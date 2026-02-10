@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xaml.Behaviors;
 using Syncfusion.UI.Xaml.Grid;
 using System.Windows;
-using TOTP.Interfaces;
+using TOTP.Services.Interfaces;
 
 namespace TOTP.Behaviors;
 

@@ -1,4 +1,4 @@
-namespace TOTP.Security;
+namespace TOTP.Security.Interfaces;
 
 public interface IPasswordService
 {

@@ -7,9 +7,9 @@ using System.Windows.Media;
 using TOTP.Commands;
 using TOTP.Core.Enums;
 using TOTP.Events;
-using TOTP.Interfaces;
 using TOTP.Resources;
 using TOTP.Services;
+using TOTP.Services.Interfaces;
 
 namespace TOTP.ViewModels;
 

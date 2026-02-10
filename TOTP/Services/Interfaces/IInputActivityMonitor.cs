@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace TOTP.Interfaces;
+namespace TOTP.Services.Interfaces;
 
 public interface IInputActivityMonitor
 {

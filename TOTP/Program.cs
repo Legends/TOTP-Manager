@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using TOTP.Helper;
 using TOTP.Infrastructure.AppLifecycle;
 using TOTP.Resources;
-using TOTP.Security;
+using TOTP.Security.Interfaces;
 using TOTP.Startup;
 using TOTP.Views;
 

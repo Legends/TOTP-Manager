@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
- 
 
-namespace TOTP.Security;
+
+namespace TOTP.Security.Models;
 
 public enum AuthorizationGateKind
 {

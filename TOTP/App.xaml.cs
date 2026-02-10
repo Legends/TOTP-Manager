@@ -7,7 +7,7 @@ using System.Windows;
 using TOTP.Infrastructure.AppLifecycle;
 using TOTP.Interfaces;
 using TOTP.Resources;
-using TOTP.Security;
+using TOTP.Security.Interfaces;
 
 namespace TOTP;
 

@@ -2,9 +2,9 @@ using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
-using TOTP.Interfaces;
-using TOTP.Security;
-using ActivityKind = TOTP.Security.ActivityKind;
+using TOTP.Security.Interfaces;
+using TOTP.Services.Interfaces;
+using ActivityKind = TOTP.Security.Models.ActivityKind;
 
 namespace TOTP.Services;
 

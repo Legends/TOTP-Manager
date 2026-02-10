@@ -1,7 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using TOTP.Security.Models;
 
-namespace TOTP.Security;
+namespace TOTP.Security.Interfaces;
 
 public interface IHelloGate
 {

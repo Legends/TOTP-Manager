@@ -4,8 +4,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using TOTP.Security.Interfaces;
 
-namespace TOTP.Security;
+namespace TOTP.Security.Models;
 
 public sealed class FileGlobalProfileStore : IGlobalProfileStore
 {

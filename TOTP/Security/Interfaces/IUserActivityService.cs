@@ -1,6 +1,7 @@
 using System;
+using TOTP.Security.Models;
 
-namespace TOTP.Security;
+namespace TOTP.Security.Interfaces;
 
 public interface IUserActivityService
 {

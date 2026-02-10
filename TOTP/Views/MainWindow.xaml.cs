@@ -5,8 +5,8 @@ using Syncfusion.Windows.Shared;
 using System;
 using System.ComponentModel;
 using System.Windows;
-using TOTP.Interfaces;
 using TOTP.Resources;
+using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 
 namespace TOTP.Views;

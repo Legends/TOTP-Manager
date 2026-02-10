@@ -1,5 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using TOTP.Security.Interfaces;
+using TOTP.Security.Models;
 
 namespace TOTP.Security;
 

@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using TOTP.Commands;
-using TOTP.Security;
+using TOTP.Security.Interfaces;
+using TOTP.Security.Models;
 using TOTP.UserControls;
 using TOTP.Views;
 

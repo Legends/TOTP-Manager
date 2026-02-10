@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace TOTP.Security;
+namespace TOTP.Security.Models;
 
 public static class PasswordHasher
 {

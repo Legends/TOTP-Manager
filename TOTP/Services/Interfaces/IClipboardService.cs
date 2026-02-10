@@ -1,4 +1,4 @@
-﻿namespace TOTP.Interfaces;
+﻿namespace TOTP.Services.Interfaces;
 
 public interface IClipboardService
 {

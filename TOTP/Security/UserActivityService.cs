@@ -1,7 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.Windows.Threading;
-
+using TOTP.Security.Interfaces;
+using TOTP.Security.Models;
+using ActivityKind = TOTP.Security.Models.ActivityKind;
 namespace TOTP.Security;
 
 public sealed class UserActivityService : IUserActivityService

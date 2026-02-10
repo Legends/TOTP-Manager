@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TOTP.Interfaces;
+namespace TOTP.Services.Interfaces;
 
 public interface IErrorHandler
 {
