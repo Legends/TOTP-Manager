@@ -23,9 +23,9 @@
               FocusManager.IsFocusScope="True">
             <!--Style="{StaticResource FlyoutHostStyle}"-->
 
-            <Grid.InputBindings>
+            <!--<Grid.InputBindings>
                 <KeyBinding Key="Escape" Command="{Binding CloseSettingsCommand}" />
-            </Grid.InputBindings>
+            </Grid.InputBindings>-->
 
             <Border Background="#152549" Padding="16" BorderBrush="#394B74" BorderThickness="1">
                 <views:SettingsView DataContext="{Binding Settings}" />

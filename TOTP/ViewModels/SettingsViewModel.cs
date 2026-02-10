@@ -91,6 +91,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public bool HasAuthError => !string.IsNullOrWhiteSpace(AuthError);
 
+    // bound to SettingsView.xaml uc
     public ICommand SaveCommand { get; }
     public ICommand CloseCommand { get; }
     public ICommand ExportTestCommand { get; }
