@@ -58,7 +58,7 @@ public class MainViewModel : IMainViewModel
 
     #region ### SECURITY Fields & Props
 
-    public UnlockViewModel Unlock { get; }
+    public UnlockViewModel UnlockViewModel { get; }
     public bool IsUnlocked => _authorization.State.IsUnlocked;
 
     #endregion
@@ -422,7 +422,7 @@ public class MainViewModel : IMainViewModel
         IFileDialogService fileDialogService,
         IAuthorizationService authorization,
         IUserActivityService activityService,
-        UnlockViewModel unlock)
+        UnlockViewModel unlockVM)
     {
         _fileDialogService = fileDialogService;
         _secretsDal = secretsDal;
@@ -437,7 +437,7 @@ public class MainViewModel : IMainViewModel
         _activityService = activityService;
 
         AllSecrets = new ObservableCollection<SecretItemViewModel>();
-        Unlock = unlock;
+        UnlockViewModel = unlockVM;
 
         _secretsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
         _authorization.State.Changed += AuthorizationState_Changed;

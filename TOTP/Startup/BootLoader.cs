@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -78,18 +78,20 @@ public static class BootLoader
                 {
                     var logger = provider.GetRequiredService<ILogger<SecretsDAL>>();
                     var config = provider.GetRequiredService<IConfiguration>();
-                    var rawPath = config.GetSection(StringsConstants.AppSettingsJsonAccountsStoragePropertyPath).Value;
-                    var resolvedPath = Environment.ExpandEnvironmentVariables(rawPath ?? "");
+                    // default is:  "%AppData%\\TOTP-Manager\\secrets.dat"
+                    var filePathAccounts = config.GetSection(StringsConstants.AccountsStorageFilePath).Value;
+                    var resolvedPath = Environment.ExpandEnvironmentVariables(filePathAccounts ?? "");
                     return new SecretsDAL(logger, resolvedPath);
                 });
 
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
                 services.AddSingleton<ISecretsManager, SecretsManager>();
 
-                // Security
-                var folder = Path.GetDirectoryName(configuration.GetSection(StringsConstants.AppSettingsJsonAccountsStoragePropertyPath).Value);
+                var rawProfilePath = configuration.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
+                var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? "");
+                services.AddSingleton<IGlobalProfileStore>(_ => new FileGlobalProfileStore(resolvedProfilePath));
 
-                services.AddSingleton<IAuthorizationProfileStore>(_ => new FileAuthorizationProfileStore(folder));
+
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
                 services.AddSingleton<IUserActivityService, UserActivityService>();
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();

@@ -245,15 +245,6 @@ namespace TOTP.UserControls
         public RevealableSecretBox()
         {
             InitializeComponent();
-
-            ////Framework event
-            //IsVisibleChanged += (_, __) =>
-            //                   {
-            //                       // Wenn wir sichtbar werden und Password-Modus aktiv ist -> fokussieren
-            //                       if (IsVisible && !IsSecretVisible)
-            //                           FocusPasswordIsHidden();
-            //                   };
-
         }
 
         private void TryAutoFocus()
@@ -280,16 +271,16 @@ namespace TOTP.UserControls
 
             //if (ctrl.AutoFocus)
             //{
-                if (ctrl.IsSecretVisible)
-                    ctrl.FocusPasswordVisibleBox();
-                else
-                {
-                    ctrl.FocusPasswordHiddenBox();
-                }
+            if (ctrl.IsSecretVisible)
+                ctrl.FocusPasswordVisibleBox();
+            else
+            {
+                ctrl.FocusPasswordHiddenBox();
+            }
             //}
         }
 
-        private void FocusPasswordVisibleBox()
+        public void FocusPasswordVisibleBox()
         {
 
             Dispatcher.BeginInvoke(new Action(() =>
@@ -306,7 +297,7 @@ namespace TOTP.UserControls
 
 
         }
-        private void FocusPasswordHiddenBox()
+        public void FocusPasswordHiddenBox()
         {
             if (!IsVisible || !IsEnabled)
                 return;
@@ -317,7 +308,7 @@ namespace TOTP.UserControls
                 if (PartPasswordBox.Visibility != Visibility.Visible)
                     return;
 
-               PartPasswordBox.Focus();
+                PartPasswordBox.Focus();
                 Keyboard.Focus(PartPasswordBox);
                 //PartPasswordBox.SelectAll();
             }), DispatcherPriority.Input);
