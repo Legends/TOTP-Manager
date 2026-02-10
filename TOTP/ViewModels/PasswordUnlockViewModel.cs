@@ -61,7 +61,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         IsSetup = false; // default: unlock mode
         SavePasswordCommand = new AsyncCommand(SavePassword, CanSavePassword);
     
-    _auth.State.Changed += State_Changed;
+    //_auth.State.Changed += State_Changed;
     }
 
     private bool CanSavePassword()
@@ -100,11 +100,11 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         //AutoFocus = false;
     }
 
-    private void State_Changed(object? sender, System.EventArgs e)
-    {
-        //Password = null;
+    //private void State_Changed(object? sender, System.EventArgs e)
+    //{
+    //    //Password = null;
     
-    }
+    //}
 
     public void EnterSetupMode()
     {
