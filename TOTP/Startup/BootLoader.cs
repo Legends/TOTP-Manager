@@ -7,7 +7,6 @@ using Syncfusion.Licensing;
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -101,11 +100,11 @@ public static class BootLoader
 
                 services.AddSingleton<UnlockViewModel>();
                 services.AddSingleton<HelloUnlockViewModel>();
-                services.AddSingleton<PasswordUnlockViewModel>(); 
+                services.AddSingleton<PasswordUnlockViewModel>();
 
                 services.AddSingleton<IHelloGate, HelloGate>();
                 services.AddSingleton<IPasswordService>(_ => new PasswordService(new PasswordRecord([], [], 100_000)));
-                
+
                 // VMs
                 services.AddSingleton<IMainViewModel, MainViewModel>();
 

@@ -92,7 +92,7 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
 
         var elapsedTicks = _stopwatch.ElapsedTicks;
         var delta = TimeSpan.FromTicks(elapsedTicks - _lastMouseMoveTicks);
-        
+
         if (delta < MouseMoveThrottle)
         {
             //Debug.WriteLine($"Delta: {delta} break;");
@@ -106,7 +106,7 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
     private bool ShouldIgnoreActivity()
     {
         var shouldIgnore = _window == null || !_window.IsActive;
-       
+
         return shouldIgnore;
     }
 }

@@ -1,13 +1,10 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
-using TOTP.UserControls;
-using TOTP.Views;
 
 namespace TOTP.ViewModels;
 
@@ -16,7 +13,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     #region Props and Vars
 
     // === DP: IsSecretVisible ===
-   
+
 
     private readonly IAuthorizationService _auth;
 
@@ -61,8 +58,8 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         UnlockCommand = new AsyncCommand(UnlockAsync);
         IsSetup = false; // default: unlock mode
         SavePasswordCommand = new AsyncCommand(SavePassword, CanSavePassword);
-    
-    //_auth.State.Changed += State_Changed;
+
+        //_auth.State.Changed += State_Changed;
     }
 
     private bool CanSavePassword()
@@ -104,7 +101,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     //private void State_Changed(object? sender, System.EventArgs e)
     //{
     //    //Password = null;
-    
+
     //}
 
     public void EnterSetupMode()

@@ -19,7 +19,7 @@ public class DebounceService : IDebounceService
         else
         {
             // make sure we are on the UI Dispatcher
-            timer = new DispatcherTimer( DispatcherPriority.Normal, Application.Current.Dispatcher);
+            timer = new DispatcherTimer(DispatcherPriority.Normal, Application.Current.Dispatcher);
             _timers[key] = timer;
         }
 

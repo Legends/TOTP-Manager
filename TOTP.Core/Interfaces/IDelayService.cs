@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace TOTP.Interfaces;
+﻿namespace TOTP.Interfaces;
 
 public interface IDelayService
 {

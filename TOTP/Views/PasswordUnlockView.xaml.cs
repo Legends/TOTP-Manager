@@ -1,12 +1,11 @@
 using System.Windows;
 using System.Windows.Controls;
-using TOTP.UserControls;
 
 namespace TOTP.Views;
 
 public partial class PasswordUnlockView : UserControl
 {
-    
+
     public static readonly DependencyProperty AutoFocusProperty =
         DependencyProperty.Register(
             nameof(AutoFocus),

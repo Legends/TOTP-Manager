@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Syncfusion.SfSkinManager;
-using Syncfusion.UI.Xaml.Grid;
 using Syncfusion.Windows.Shared;
 using System;
 using System.ComponentModel;
