@@ -722,7 +722,7 @@ public class MainViewModel : IMainViewModel
         CopyCodeCommand = new RelayCommand<SecretItemViewModel>(model => CopyCode());
         GenerateQrCommand = new RelayCommand<SecretItemViewModel>(model => GenerateQrCodeImage());
         ExportSecretsCommand = new AsyncCommand(ExportSecretsToFile);
-        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAsync, () => !_isGridInEditMode);
+        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);
 
         OpenFlyoutEditModeCommand = new RelayCommand<SecretItemViewModel>(OpenFlyoutEditMode);
         OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
@@ -1393,7 +1393,7 @@ public class MainViewModel : IMainViewModel
     ///  Triggered by the "Scan QR" camera button
     /// </summary>
     /// <returns></returns>
-    public async Task ScanQrAndAddAsync()
+    public async Task ScanQrAndAddAccountAsync()
     {
         var dlg = new QrScannerWindow { Owner = System.Windows.Application.Current.MainWindow };
         if (dlg.ShowDialog() == true && !string.IsNullOrWhiteSpace(dlg.DecodedText))
