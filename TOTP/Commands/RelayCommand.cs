@@ -8,9 +8,7 @@ public class RelayCommand<T> : ICommand
     private readonly Action<T> _execute;
     private readonly Func<T, bool>? _canExecute;
 
-    public event EventHandler? CanExecuteChanged;
-
-    public RelayCommand(Action<T> execute, Func<T, bool>? canExecute = null)
+   public RelayCommand(Action<T> execute, Func<T, bool>? canExecute = null)
     {
         _execute = execute ?? throw new ArgumentNullException(nameof(execute));
         _canExecute = canExecute;
@@ -48,8 +46,21 @@ public class RelayCommand<T> : ICommand
         throw new InvalidCastException($"Invalid command parameter. Expected {typeof(T)}, got {parameter?.GetType()}");
     }
 
-    public void RaiseCanExecuteChanged()
-        => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+    public event EventHandler? CanExecuteChanged;
+
+    public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+
+    //public event EventHandler? CanExecuteChanged
+    //{
+    //    add => CommandManager.RequerySuggested += value;
+    //    remove => CommandManager.RequerySuggested -= value;
+    //}
+
+    // Optional: force a refresh immediately
+    //public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
+
+    //public void RaiseCanExecuteChanged()
+    //    => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }
 
 public sealed class RelayCommand : RelayCommand<object?>

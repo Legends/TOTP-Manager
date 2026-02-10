@@ -263,6 +263,7 @@ public class MainViewModel : IMainViewModel
             OnPropertyChanged();
             OpenFlyoutAddModeCommand.RaiseCanExecuteChanged();
             ToggleSearchBoxCommand.RaiseCanExecuteChanged();
+            ScanQrAndAddCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -314,6 +315,8 @@ public class MainViewModel : IMainViewModel
         {
             _isSearchVisible = value;
             OnPropertyChanged();
+
+            ClearSearchCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -473,7 +476,7 @@ public class MainViewModel : IMainViewModel
 
     public ICommand OpenSettingsCommand { get; private set; } = null!;
     public ICommand CloseSettingsCommand { get; private set; } = null!;
-    public ICommand ClearSearchTextCommand => new RelayCommand(() => { SearchText = string.Empty; });
+    //public ICommand ClearSearchTextCommand => new RelayCommand(() => { SearchText = string.Empty; });
     public ICommand CopyCodeCommand { get; private set; } = null!;
     public ICommand GenerateQrCommand { get; private set; } = null!;
     public AsyncCommand ExportSecretsCommand { get; private set; } = null!;
@@ -484,7 +487,7 @@ public class MainViewModel : IMainViewModel
     public RelayCommand OpenFlyoutAddModeCommand { get; private set; } = null!;
     public ICommand BeginEditCommand { get; private set; } = null!;
     public ICommand EndEditCommand { get; private set; } = null!;
-    public ICommand ClearSearchCommand { get; private set; } = null!;
+    public RelayCommand ClearSearchCommand { get; private set; } = null!;
     public ICommand DeleteSecretCommand { get; private set; } = null!;
     public ICommand DoubleClickCommand { get; private set; } = null!;
     public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
@@ -525,8 +528,11 @@ public class MainViewModel : IMainViewModel
             IsSearchFocused = IsSearchVisible;
         }, () => !IsGridEditing);
 
-        ClearSearchCommand = new RelayCommand(ClearSearchTextbox);
+        //ClearSearchCommand = new RelayCommand(ClearSearchTextbox);
+
+        ClearSearchCommand = new RelayCommand(ClearSearchTextbox, ()=> IsSearchVisible);
     }
+ 
 
     private void OpenSettingsView()
     {

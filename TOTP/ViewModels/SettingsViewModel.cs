@@ -2,12 +2,14 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using Microsoft.Extensions.DependencyModel;
 using TOTP.Commands;
 
 namespace TOTP.ViewModels;
 
 public sealed class SettingsViewModel : INotifyPropertyChanged
 {
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private bool _isHelloSelected = true;
