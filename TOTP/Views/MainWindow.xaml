@@ -28,12 +28,17 @@
                              TitleBarBackground="#7D7FF4"
                              TitleBarForeground="{DynamicResource Brush.Foreground}">
 
+    <Window.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CloseSettingsCommand}" />
+    </Window.InputBindings>
+
+
     <syncfusion:ChromelessWindow.Resources>
         <BounceEase x:Key="BounceEase"
                     Bounces="1"
                     Bounciness="100"
                     EasingMode="EaseOut" />
- 
+
 
         <DataTemplate DataType="{x:Type viewModels:UnlockViewModel}">
             <views:UnlockView />
@@ -57,6 +62,7 @@
                     VerticalAlignment="Stretch"
                     Visibility="{Binding IsUnlocked, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
 
+            <!--TOOLBAR - SCAN - ADD NEW ACOUNT - LANGUAGE SELECTOR - OPTIONS MENU-->
             <Grid Height="30"
                   Background="Transparent">
                 <Grid.ColumnDefinitions>
@@ -64,7 +70,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- left side -->
+                <!-- left side SCAN / ADD / SEARCH -->
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -131,11 +137,12 @@
                             Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
                 </StackPanel>
 
-                <!-- right side: language selector + Options Gear Icon-->
+                <!-- right side: language selector + Options MENU - Gear Icon-->
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             Grid.Column="1">
+                    <!--LANGUAGE SELECTOR-->
                     <syncfusion:ComboBoxAdv Grid.Column="1"
                                             IsEnabled="{Binding IsGridEditing, Converter={StaticResource InverseBooleanConverter}}"
                                             ItemsSource="{Binding SupportedCultures}"
@@ -156,7 +163,7 @@
                         </syncfusion:ComboBoxAdv.ItemTemplate>
                     </syncfusion:ComboBoxAdv>
 
-                    <!-- Gear-Options -->
+                    <!-- MENU Gear-Options -->
                     <syncfusion:MenuAdv Height="25"
                                         Margin="2,5,5,0"
                                         Padding="0"
@@ -179,7 +186,7 @@
                                                  Height="15"
                                                  Stretch="Uniform" />
                             </syncfusion:MenuItemAdv.Icon>
-
+                            <!--SETTINGS MENU ENTRY-->
                             <syncfusion:MenuItemAdv Header="Settings"
                                                     Command="{Binding OpenSettingsCommand}" />
 
@@ -199,7 +206,7 @@
                             <syncfusion:MenuItemAdv Header="Reporting" />
 
                             <!-- Optional: actual settings command as a clickable leaf item -->
-                         
+
                         </syncfusion:MenuItemAdv>
 
                     </syncfusion:MenuAdv>

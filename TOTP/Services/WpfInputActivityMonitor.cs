@@ -70,6 +70,7 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
+        Debug.WriteLine($"[Monitor] Key={e.Key}, Handled={e.Handled}, Focus={Keyboard.FocusedElement}");
         if (ShouldIgnoreActivity())
             return;
 
@@ -94,10 +95,10 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
         
         if (delta < MouseMoveThrottle)
         {
-            Debug.WriteLine($"Delta: {delta} break;");
+            //Debug.WriteLine($"Delta: {delta} break;");
             return;
         }
-        Debug.WriteLine($"Delta: {delta} went through;");
+        //Debug.WriteLine($"Delta: {delta} went through;");
         _lastMouseMoveTicks = elapsedTicks;
         _activityService.NotifyActivity(ActivityKind.MouseMove);
     }
@@ -105,7 +106,7 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
     private bool ShouldIgnoreActivity()
     {
         var shouldIgnore = _window == null || !_window.IsActive;
-        Debug.WriteLine($"Should ignore activity: {shouldIgnore}");
+       
         return shouldIgnore;
     }
 }

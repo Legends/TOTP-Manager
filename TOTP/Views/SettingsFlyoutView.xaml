@@ -7,13 +7,15 @@
              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
              mc:Ignorable="d">
-    <Grid>
-         <!--===== dim background Settings =====--> 
+
+    <Grid  FocusManager.IsFocusScope="True"
+           Focusable="True">
+        <!--===== dim background Settings =====-->
         <Border Background="#66000000"
                 Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
                 Panel.ZIndex="20" />
 
-         <!--=====  Flyout Settings =====--> 
+        <!--=====  Flyout Settings =====-->
         <Grid Width="300"
               HorizontalAlignment="Right"
               Panel.ZIndex="21"

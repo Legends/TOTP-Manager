@@ -21,37 +21,6 @@ namespace TOTP.Views
     /// </summary>
     public partial class PasswordSetupView : UserControl
     {
-
-        //public static readonly DependencyProperty IsSecretVisibleProperty =
-        //    DependencyProperty.Register(
-        //        nameof(IsSecretVisible),
-        //        typeof(bool),
-        //        typeof(PasswordSetupView),
-        //        new FrameworkPropertyMetadata(false,
-        //            FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
-        //            OnIsSecretVisibleChanged));
-
-        //public bool IsSecretVisible
-        //{
-        //    get => (bool)GetValue(IsSecretVisibleProperty);
-        //    set => SetValue(IsSecretVisibleProperty, value);
-        //}
-
-        //private static void OnIsSecretVisibleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        //{
-        //    var ctrl = (RevealableSecretBox)d;
-            
-        //    //if (ctrl.AutoFocus)
-        //    //{
-        //    if (ctrl.IsSecretVisible)
-        //        ctrl.FocusPasswordVisibleBox();
-        //    else
-        //    {
-        //        ctrl.FocusPasswordHiddenBox();
-        //    }
-        //    //}
-        //}
-
         public PasswordSetupView()
         {
             InitializeComponent();

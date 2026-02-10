@@ -95,12 +95,17 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public ICommand CloseCommand { get; }
     public ICommand ExportTestCommand { get; }
 
-    public SettingsViewModel(Action close, Action save, Action exportTest)
+    public SettingsViewModel(ICommand cmdClose, Action save, Action exportTest)
     {
-        CloseCommand = new RelayCommand(_ => close());
+        CloseCommand = cmdClose; //new RelayCommand(CloseSWMOdelMethod(close));
         SaveCommand = new RelayCommand(_ => save());
         ExportTestCommand = new RelayCommand(_ => exportTest());
     }
+
+    //private static Action<object?> CloseSWMOdelMethod(Action close)
+    //{
+    //    return _ => close();
+    //}
 
     private bool Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
     {

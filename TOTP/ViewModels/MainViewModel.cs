@@ -452,13 +452,84 @@ public class MainViewModel : IMainViewModel
         TotpUiTimer = new System.Threading.Timer(_ => StartTotpTick(), null, Timeout.Infinite, 500);
 
         Settings = new SettingsViewModel(
-            close: () => IsSettingsOpen = false,
+            cmdClose: CloseSettingsCommand,
             save: ApplySettings,          // stub for now
             exportTest: TestExport        // stub for now
         );
     }
 
     #endregion
+
+    #region ### COMMANDS DECLARATION ###
+
+    public ICommand OpenSettingsCommand { get; private set; } = null!;
+    public ICommand CloseSettingsCommand { get; private set; } = null!;
+    public ICommand ClearSearchTextCommand => new RelayCommand(() => { SearchText = string.Empty; });
+    public ICommand CopyCodeCommand { get; private set; } = null!;
+    public ICommand GenerateQrCommand { get; private set; } = null!;
+    public AsyncCommand ExportSecretsCommand { get; private set; } = null!;
+    public AsyncCommand ScanQrAndAddCommand { get; private set; } = null!;
+    public ICommand CancelFlyoutCommand { get; private set; } = null!;
+    public AsyncCommand SaveEditFlyoutAsyncCommand { get; private set; } = null!;
+    public ICommand OpenFlyoutEditModeCommand { get; private set; } = null!;
+    public RelayCommand OpenFlyoutAddModeCommand { get; private set; } = null!;
+    public ICommand BeginEditCommand { get; private set; } = null!;
+    public ICommand EndEditCommand { get; private set; } = null!;
+    public ICommand ClearSearchCommand { get; private set; } = null!;
+    public ICommand DeleteSecretCommand { get; private set; } = null!;
+    public ICommand DoubleClickCommand { get; private set; } = null!;
+    public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
+    public ICommand UpdateSecretCommand { get; private set; } = null!;
+    public AsyncCommand<SecretItemViewModel> RowSelectionChangedCommand { get; private set; } = null!;
+
+    #endregion REGION COMMANDS
+
+    #region ### COMMANDS EVENTHANDLER ###
+
+    private void SetupCommandEventhandler()
+    {
+        CloseSettingsCommand = new RelayCommand(
+             CloseSettingsView,
+             () => IsSettingsOpen);
+
+        OpenSettingsCommand = new RelayCommand(OpenSettingsView);
+
+        CopyCodeCommand = new RelayCommand<SecretItemViewModel>(model => CopyCode());
+        GenerateQrCommand = new RelayCommand<SecretItemViewModel>(model => GenerateQrCodeImage());
+        ExportSecretsCommand = new AsyncCommand(ExportSecretsToFile);
+        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);
+
+        OpenFlyoutEditModeCommand = new RelayCommand<SecretItemViewModel>(OpenFlyoutEditMode);
+        OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
+        SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateAsync);
+        CancelFlyoutCommand = new RelayCommand(CancelFlyout);
+
+        RowSelectionChangedCommand = new AsyncCommand<SecretItemViewModel>(OnRowSelectionChangedAsync);
+        DeleteSecretCommand = new AsyncCommand<SecretItemViewModel>(DeleteSecretAsync, null, _logger);
+        BeginEditCommand = new RelayCommand<SecretItemViewModel>(OnBeginEdit);
+        EndEditCommand = new AsyncCommand<SecretItemViewModel>(OnEndEditAsync);
+        DoubleClickCommand = new RelayCommand<SecretItemViewModel>(OnDoubleClick);
+
+        ToggleSearchBoxCommand = new RelayCommand(() =>
+        {
+            IsSearchVisible = !IsSearchVisible;
+            IsSearchFocused = IsSearchVisible;
+        }, () => !IsGridEditing);
+
+        ClearSearchCommand = new RelayCommand(ClearSearchTextbox);
+    }
+
+    private void OpenSettingsView()
+    {
+        IsSettingsOpen = true;
+    }
+
+    private void CloseSettingsView()
+    {
+        IsSettingsOpen = false;
+    }
+
+    #endregion COMMANDS SETUP
 
     private void ApplySettings()
     {
@@ -690,64 +761,7 @@ public class MainViewModel : IMainViewModel
 
     #endregion
 
-    #region ### COMMANDS DECLARATION ###
 
-    public ICommand OpenSettingsCommand { get; private set; } = null!;
-    public ICommand CloseSettingsCommand { get; private set; } = null!;
-    public ICommand ClearSearchTextCommand => new RelayCommand(() => { SearchText = string.Empty; });
-    public ICommand CopyCodeCommand { get; private set; } = null!;
-    public ICommand GenerateQrCommand { get; private set; } = null!;
-    public AsyncCommand ExportSecretsCommand { get; private set; } = null!;
-    public AsyncCommand ScanQrAndAddCommand { get; private set; } = null!;
-    public ICommand CancelFlyoutCommand { get; private set; } = null!;
-    public AsyncCommand SaveEditFlyoutAsyncCommand { get; private set; } = null!;
-    public ICommand OpenFlyoutEditModeCommand { get; private set; } = null!;
-    public RelayCommand OpenFlyoutAddModeCommand { get; private set; } = null!;
-    public ICommand BeginEditCommand { get; private set; } = null!;
-    public ICommand EndEditCommand { get; private set; } = null!;
-    public ICommand ClearSearchCommand { get; private set; } = null!;
-    public ICommand DeleteSecretCommand { get; private set; } = null!;
-    public ICommand DoubleClickCommand { get; private set; } = null!;
-    public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
-    public ICommand UpdateSecretCommand { get; private set; } = null!;
-    public AsyncCommand<SecretItemViewModel> RowSelectionChangedCommand { get; private set; } = null!;
-
-    #endregion REGION COMMANDS
-
-    #region ### COMMANDS EVENTHANDLER ###
-
-    private void SetupCommandEventhandler()
-    {
-        CloseSettingsCommand = new RelayCommand(_ => IsSettingsOpen = false);
-        OpenSettingsCommand = new RelayCommand(_ => IsSettingsOpen = true);
-        CopyCodeCommand = new RelayCommand<SecretItemViewModel>(model => CopyCode());
-        GenerateQrCommand = new RelayCommand<SecretItemViewModel>(model => GenerateQrCodeImage());
-        ExportSecretsCommand = new AsyncCommand(ExportSecretsToFile);
-        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);
-
-        OpenFlyoutEditModeCommand = new RelayCommand<SecretItemViewModel>(OpenFlyoutEditMode);
-        OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
-        SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateAsync);
-        CancelFlyoutCommand = new RelayCommand(CancelFlyout);
-
-        RowSelectionChangedCommand = new AsyncCommand<SecretItemViewModel>(OnRowSelectionChangedAsync);
-        DeleteSecretCommand = new AsyncCommand<SecretItemViewModel>(DeleteSecretAsync, null, _logger);
-        BeginEditCommand = new RelayCommand<SecretItemViewModel>(OnBeginEdit);
-        EndEditCommand = new AsyncCommand<SecretItemViewModel>(OnEndEditAsync);
-        DoubleClickCommand = new RelayCommand<SecretItemViewModel>(OnDoubleClick);
-
-        ToggleSearchBoxCommand = new RelayCommand(() =>
-        {
-            IsSearchVisible = !IsSearchVisible;
-            IsSearchFocused = IsSearchVisible;
-        }, () => !IsGridEditing);
-
-        ClearSearchCommand = new RelayCommand(ClearSearchTextbox);
-    }
-
-
-
-    #endregion COMMANDS SETUP
 
     #region ### READ ALL SECRETS FROM STORAGE FILE ###
 
