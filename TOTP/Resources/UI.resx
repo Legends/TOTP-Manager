@@ -163,7 +163,7 @@
     <value>A background task failed. You can continue using the application.</value>
   </data>
   <data name="msg_ConfirmDeleteSecret" xml:space="preserve">
-    <value>Delete secret: "{0}"?</value>
+    <value>Delete account: "{0}"?</value>
   </data>
   <data name="msg_DispatcherException" xml:space="preserve">
     <value>An unexpected error occurred.\n\nYou can continue using the application, but some features may not work correctly.</value>
