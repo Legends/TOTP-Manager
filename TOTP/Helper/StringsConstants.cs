@@ -11,8 +11,8 @@ namespace TOTP.Helper
         public const string AppSettingsFileName = "appsettings.json";
         public static string AppSettingsJsonFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AppSettingsFileName);
         public static readonly string Syncfusion = "syncfusion";
-        public const string AppSettingsJsonAccountsStoragePropertyPath = "Accounts:StorageFilePath";
-        public const string AppSettingsJsonProfileStoragePropertyPath = "Profiles:StorageFilePath";
+        public const string AccountsStorageFilePath = "Accounts:StorageFilePath";
+        public const string GlobalSettingsProfileStorageFilePath = "Profiles:StorageFilePath";
 
         public class ImgUrl
         {

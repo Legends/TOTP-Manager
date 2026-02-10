@@ -19,6 +19,9 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
 
     public bool HasSelectedSetupGate => CurrentGate != null;
 
+    /// <summary>
+    /// A gate has been chosen Pwd or Hello
+    /// </summary>
     public bool IsConfigured => _auth.State.IsConfigured;
     public AuthorizationGateKind ConfiguredGate => _auth.State.ConfiguredGate;
 
@@ -40,8 +43,8 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         }
     }
 
-    public HelloUnlockViewModel HelloVmUnlockViewModel { get; }
-    public PasswordUnlockViewModel Password { get; }
+    public HelloUnlockViewModel HelloUnlockVM { get; }
+    public PasswordUnlockViewModel PasswordUnlockVM { get; }
 
     public ICommand ChooseHelloCommand { get; }
     public ICommand ChoosePasswordCommand { get; }
@@ -52,8 +55,8 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
     {
         _auth = auth;
 
-        HelloVmUnlockViewModel = helloVM;
-        Password = pwdVM;
+        HelloUnlockVM = helloVM;
+        PasswordUnlockVM = pwdVM;
 
         ChooseHelloCommand = new AsyncCommand(ChooseHelloAsync);
         ChoosePasswordCommand = new RelayCommand(ChoosePassword);
@@ -80,8 +83,8 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         // configured: show the configured gate
         CurrentGate = ConfiguredGate switch
         {
-            AuthorizationGateKind.WindowsHello => HelloVmUnlockViewModel,
-            AuthorizationGateKind.Password => Password,
+            AuthorizationGateKind.WindowsHello => HelloUnlockVM,
+            AuthorizationGateKind.Password => PasswordUnlockVM, // should be PasswordSetupGate
             _ => null
         };
     }
@@ -111,8 +114,8 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
     private void ChoosePassword()
     {
         StatusMessage = null;
-        Password.EnterSetupMode();     // shows confirm field etc.
-        CurrentGate = Password;
+        PasswordUnlockVM.EnterSetupMode();     // shows confirm field etc.
+        CurrentGate = PasswordUnlockVM;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
