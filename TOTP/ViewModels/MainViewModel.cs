@@ -50,7 +50,16 @@ public class MainViewModel : IMainViewModel
     public bool IsSettingsOpen
     {
         get => _isSettingsOpen;
-        set { _isSettingsOpen = value; OnPropertyChanged(); }
+        set
+        {
+            if (_isSettingsOpen == value) return;
+
+            _isSettingsOpen = value;
+            OnPropertyChanged();
+
+            if (CloseSettingsCommand is RelayCommand closeCmd)
+                closeCmd.RaiseCanExecuteChanged();
+        }
     }
 
     public SettingsViewModel Settings { get; }
