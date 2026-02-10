@@ -11,7 +11,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
@@ -530,9 +529,9 @@ public class MainViewModel : IMainViewModel
 
         //ClearSearchCommand = new RelayCommand(ClearSearchTextbox);
 
-        ClearSearchCommand = new RelayCommand(ClearSearchTextbox, ()=> IsSearchVisible);
+        ClearSearchCommand = new RelayCommand(ClearSearchTextbox, () => IsSearchVisible);
     }
- 
+
 
     private void OpenSettingsView()
     {
