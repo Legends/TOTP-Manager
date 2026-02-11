@@ -506,13 +506,17 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
             <userControls:FlyoutHost IsOpen="{Binding IsEditOpen}"
                                      CloseCommand="{Binding CancelFlyoutCommand}"
                                      PanelWidth="300">
-                <views:EditAddAccountFlyoutView />
+                <userControls:FlyoutHost.FlyoutContent>
+                    <views:EditAddAccountFlyoutView />
+                </userControls:FlyoutHost.FlyoutContent>
             </userControls:FlyoutHost>
 
             <!-- Settings flyout -->
-            <userControls:FlyoutHost Tag="{Binding}" IsOpen="{Binding IsSettingsOpen}"
-                                                    CloseCommand="{Binding CloseSettingsCommand}">
-                <views:AppSettingsFlyoutView DataContext="{Binding Settings}" />
+            <userControls:FlyoutHost IsOpen="{Binding IsSettingsOpen}"
+                                     CloseCommand="{Binding CloseSettingsCommand}">
+                <userControls:FlyoutHost.FlyoutContent>
+                    <views:AppSettingsFlyoutView DataContext="{Binding Settings}" />
+                </userControls:FlyoutHost.FlyoutContent>
             </userControls:FlyoutHost>
 
         </Grid>

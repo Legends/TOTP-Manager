@@ -46,7 +46,7 @@
                     BorderThickness="{Binding PanelBorderThickness, ElementName=root}">
 
                 <!-- Inject the real view here -->
-                <ContentPresenter Content="{Binding Content, ElementName=root}" />
+                <ContentPresenter Content="{Binding FlyoutContent, ElementName=root}" />
             </Border>
         </Grid>
     </Grid>
