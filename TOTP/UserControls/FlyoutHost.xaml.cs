@@ -12,25 +12,25 @@ public partial class FlyoutHost : UserControl
     public FlyoutHost()
     {
         InitializeComponent();
-        DataContextChanged += (_, _) => Dump("DataContextChanged");
-        void Dump(string tag)
-        {
-            System.Diagnostics.Debug.WriteLine($"[{tag}] IsOpen effective = {GetValue(IsOpenProperty)}");
+        //DataContextChanged += (_, _) => Dump("DataContextChanged");
+        //void Dump(string tag)
+        //{
+        //    System.Diagnostics.Debug.WriteLine($"[{tag}] IsOpen effective = {GetValue(IsOpenProperty)}");
 
-            var be = System.Windows.Data.BindingOperations.GetBindingExpression(this, IsOpenProperty);
-            System.Diagnostics.Debug.WriteLine(be is null
-                ? $"[{tag}] IsOpen has NO binding expression"
-                : $"[{tag}] IsOpen binding status = {be.Status}, path = {be.ParentBinding?.Path?.Path}");
-        }
-        Loaded += (_, _) =>
-            {
-                Debug.WriteLine($"FlyoutHost loaded. IsOpen effective = {GetValue(IsOpenProperty)}");
+        //    var be = System.Windows.Data.BindingOperations.GetBindingExpression(this, IsOpenProperty);
+        //    System.Diagnostics.Debug.WriteLine(be is null
+        //        ? $"[{tag}] IsOpen has NO binding expression"
+        //        : $"[{tag}] IsOpen binding status = {be.Status}, path = {be.ParentBinding?.Path?.Path}");
+        //}
+        //Loaded += (_, _) =>
+        //    {
+        //        Debug.WriteLine($"FlyoutHost loaded. IsOpen effective = {GetValue(IsOpenProperty)}");
 
-                var be = BindingOperations.GetBindingExpression(this, IsOpenProperty);
-                Debug.WriteLine(be is null
-                    ? "IsOpen has NO binding expression"
-                    : $"IsOpen binding status = {be.Status}, parentBinding = {be.ParentBinding?.Path?.Path}");
-            };
+        //        var be = BindingOperations.GetBindingExpression(this, IsOpenProperty);
+        //        Debug.WriteLine(be is null
+        //            ? "IsOpen has NO binding expression"
+        //            : $"IsOpen binding status = {be.Status}, parentBinding = {be.ParentBinding?.Path?.Path}");
+        //    };
     }
 
     public static readonly DependencyProperty IsOpenProperty =
