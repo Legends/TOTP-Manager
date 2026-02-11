@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -12,25 +11,6 @@ public partial class FlyoutHost : UserControl
     public FlyoutHost()
     {
         InitializeComponent();
-        DataContextChanged += (_, _) => Dump("DataContextChanged");
-        void Dump(string tag)
-        {
-            System.Diagnostics.Debug.WriteLine($"[{tag}] IsOpen effective = {GetValue(IsOpenProperty)}");
-
-            var be = System.Windows.Data.BindingOperations.GetBindingExpression(this, IsOpenProperty);
-            System.Diagnostics.Debug.WriteLine(be is null
-                ? $"[{tag}] IsOpen has NO binding expression"
-                : $"[{tag}] IsOpen binding status = {be.Status}, path = {be.ParentBinding?.Path?.Path}");
-        }
-        Loaded += (_, _) =>
-            {
-                Debug.WriteLine($"FlyoutHost loaded. IsOpen effective = {GetValue(IsOpenProperty)}");
-
-                var be = BindingOperations.GetBindingExpression(this, IsOpenProperty);
-                Debug.WriteLine(be is null
-                    ? "IsOpen has NO binding expression"
-                    : $"IsOpen binding status = {be.Status}, parentBinding = {be.ParentBinding?.Path?.Path}");
-            };
     }
 
     public static readonly DependencyProperty IsOpenProperty =
@@ -38,20 +18,46 @@ public partial class FlyoutHost : UserControl
             nameof(IsOpen),
             typeof(bool),
             typeof(FlyoutHost),
-            new FrameworkPropertyMetadata(false, OnIsOpenChanged));
-
-    private static void OnIsOpenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        // Put breakpoint here
-        var host = (FlyoutHost)d;
-        var newValue = (bool)e.NewValue;
-    }
-
+            new FrameworkPropertyMetadata(false));
 
     public bool IsOpen
     {
         get => (bool)GetValue(IsOpenProperty);
         set => SetValue(IsOpenProperty, value);
+    }
+
+    public static readonly DependencyProperty FlyoutContentProperty =
+        DependencyProperty.Register(nameof(FlyoutContent), typeof(object), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(null, OnFlyoutContentChanged));
+
+    public object? FlyoutContent
+    {
+        get => GetValue(FlyoutContentProperty);
+        set => SetValue(FlyoutContentProperty, value);
+    }
+
+    private static void OnFlyoutContentChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var host = (FlyoutHost)d;
+        host.ApplyInheritedDataContext(e.NewValue);
+    }
+
+    private void ApplyInheritedDataContext(object? content)
+    {
+        if (content is not FrameworkElement element)
+        {
+            return;
+        }
+
+        if (element.ReadLocalValue(DataContextProperty) != DependencyProperty.UnsetValue)
+        {
+            return;
+        }
+
+        BindingOperations.SetBinding(
+            element,
+            DataContextProperty,
+            new Binding(nameof(DataContext)) { Source = this, Mode = BindingMode.OneWay });
     }
 
     public static readonly DependencyProperty CloseCommandProperty =
