@@ -32,10 +32,12 @@ Powered by:
 
 ## Usage
 
-- **Add new platform** - click on plus symbol
-- **Generate TOTP** – click on row
-- **Edit** – double-click a field  
-- **Delete** – right-click a row
+- **Add new platform:**  click on plus symbol
+- **Generate TOTP:** click on datagrid row
+- **Edit:** 
+    * double-click a field for changing the account name only
+    * right-click a datagrid row and select "Edit" for changing all fields
+- **Delete:** right-click a datagrid row and select "Delete"
 
 ## Setup
 
