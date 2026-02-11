@@ -44,18 +44,18 @@ public class MainViewModel : IMainViewModel
 
     #region SETTINGS
 
-    private bool _isSettingsOpen;
-    public bool IsSettingsOpen
+    private bool _isSettingsViewOpen;
+    public bool IsSettingsViewOpen
     {
-        get => _isSettingsOpen;
+        get => _isSettingsViewOpen;
         set
         {
-            if (_isSettingsOpen == value) return;
+            if (_isSettingsViewOpen == value) return;
 
-            _isSettingsOpen = value;
+            _isSettingsViewOpen = value;
             OnPropertyChanged();
 
-            if (CloseSettingsCommand is RelayCommand closeCmd)
+            if (CloseSettingsViewCommand is RelayCommand closeCmd)
                 closeCmd.RaiseCanExecuteChanged();
         }
     }
@@ -130,24 +130,24 @@ public class MainViewModel : IMainViewModel
     }
 
     // Flyout state + editable copy
-    private bool _isEditOpen;
-    public bool IsEditOpen
+    private bool _isEditFlyoutOpen;
+    public bool IsEditAddFlyoutOpen
     {
-        get => _isEditOpen;
+        get => _isEditFlyoutOpen;
         set
         {
-            _isEditOpen = value;
+            _isEditFlyoutOpen = value;
             IsEditPlatformFocused = value;
             OnPropertyChanged();
         }
     }
 
-    private SecretItemViewModel _editingSecret;
+    private AccountViewModel _editingSecret;
 
     /// <summary>
     /// Can contain a new secret (in add mode) or a copy of the selected secret (in edit mode)
     /// </summary>
-    public SecretItemViewModel? CurrentSecretBeingEditedOrAdded
+    public AccountViewModel? CurrentSecretBeingEditedOrAdded
     {
         get => _editingSecret;
         set { _editingSecret = value; OnPropertyChanged(); }
@@ -267,9 +267,9 @@ public class MainViewModel : IMainViewModel
 
     public bool IsContextmenuOpen { get; set; }
 
-    private SecretItemViewModel _selectedSecret = null!;
+    private AccountViewModel _selectedSecret = null!;
 
-    public SecretItemViewModel? SelectedSecret
+    public AccountViewModel? SelectedSecret
     {
         get => _selectedSecret;
         set
@@ -302,7 +302,7 @@ public class MainViewModel : IMainViewModel
     }
 
 
-    public SecretItemViewModel? PreviousVersion { get; set; }
+    public AccountViewModel? PreviousVersion { get; set; }
 
     private bool _isSearchVisible;
 
@@ -376,8 +376,8 @@ public class MainViewModel : IMainViewModel
 
     #region ### ObservableCollections ###
 
-    private ObservableCollection<SecretItemViewModel> _allSecrets;
-    public ObservableCollection<SecretItemViewModel> AllSecrets
+    private ObservableCollection<AccountViewModel> _allSecrets;
+    public ObservableCollection<AccountViewModel> AllSecrets
     {
         get => _allSecrets;
         private set
@@ -447,7 +447,7 @@ public class MainViewModel : IMainViewModel
         _authorization = authorization;
         _activityService = activityService;
 
-        AllSecrets = new ObservableCollection<SecretItemViewModel>();
+        AllSecrets = new ObservableCollection<AccountViewModel>();
         UnlockViewModel = unlockVM;
 
         _secretsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
@@ -467,8 +467,8 @@ public class MainViewModel : IMainViewModel
     private void SetupSettingsViewModel()
     {
         Settings = new SettingsViewModel(
-            cmdClose: CloseSettingsCommand,
-            save: ApplySettings,          // stub for now
+            closeCommand: CloseSettingsViewCommand,
+            saveAction: SaveSettingsView,          // stub for now
             exportTest: TestExport        // stub for now
         );
     }
@@ -479,19 +479,18 @@ public class MainViewModel : IMainViewModel
 
     public ICommand OpenSettingsCommand { get; private set; } = null!;
 
-    private ICommand _CloseSettingsCommand;
+    private ICommand _closeSettingsViewCommand;
 
-    public ICommand CloseSettingsCommand
+    public ICommand CloseSettingsViewCommand
     {
-        get => _CloseSettingsCommand;
+        get => _closeSettingsViewCommand;
         private set
         {
-            _CloseSettingsCommand = value;
+            _closeSettingsViewCommand = value;
             OnPropertyChanged();
         }
     }
-
-    //public ICommand ClearSearchTextCommand => new RelayCommand(() => { SearchText = string.Empty; });
+    
     public ICommand CopyCodeCommand { get; private set; } = null!;
     public ICommand GenerateQrCommand { get; private set; } = null!;
     public AsyncCommand ExportSecretsCommand { get; private set; } = null!;
@@ -507,7 +506,7 @@ public class MainViewModel : IMainViewModel
     public ICommand DoubleClickCommand { get; private set; } = null!;
     public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
-    public AsyncCommand<SecretItemViewModel> RowSelectionChangedCommand { get; private set; } = null!;
+    public AsyncCommand<AccountViewModel> RowSelectionChangedCommand { get; private set; } = null!;
 
     #endregion REGION COMMANDS
 
@@ -515,56 +514,54 @@ public class MainViewModel : IMainViewModel
 
     private void SetupCommandEventhandler()
     {
-        CloseSettingsCommand = new RelayCommand(
+        CloseSettingsViewCommand = new RelayCommand(
              CloseSettingsView,
-             () => IsSettingsOpen);
+             () => IsSettingsViewOpen);
 
         OpenSettingsCommand = new RelayCommand(OpenSettingsView);
 
-        CopyCodeCommand = new RelayCommand<SecretItemViewModel>(model => CopyCode());
-        GenerateQrCommand = new RelayCommand<SecretItemViewModel>(model => GenerateQrCodeImage());
+        CopyCodeCommand = new RelayCommand<AccountViewModel>(model => CopyCode());
+        GenerateQrCommand = new RelayCommand<AccountViewModel>(model => GenerateQrCodeImage());
         ExportSecretsCommand = new AsyncCommand(ExportSecretsToFile);
         ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);
 
-        OpenFlyoutEditModeCommand = new RelayCommand<SecretItemViewModel>(OpenFlyoutEditMode);
+        OpenFlyoutEditModeCommand = new RelayCommand<AccountViewModel>(OpenFlyoutEditMode);
         OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
         SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateAsync);
         CancelFlyoutCommand = new RelayCommand(CancelFlyout);
 
-        RowSelectionChangedCommand = new AsyncCommand<SecretItemViewModel>(OnRowSelectionChangedAsync);
-        DeleteSecretCommand = new AsyncCommand<SecretItemViewModel>(DeleteSecretAsync, null, _logger);
-        BeginEditCommand = new RelayCommand<SecretItemViewModel>(OnBeginEdit);
-        EndEditCommand = new AsyncCommand<SecretItemViewModel>(OnEndEditAsync);
-        DoubleClickCommand = new RelayCommand<SecretItemViewModel>(OnDoubleClick);
+        RowSelectionChangedCommand = new AsyncCommand<AccountViewModel>(OnRowSelectionChangedAsync);
+        DeleteSecretCommand = new AsyncCommand<AccountViewModel>(DeleteSecretAsync, null, _logger);
+        BeginEditCommand = new RelayCommand<AccountViewModel>(OnBeginEdit);
+        EndEditCommand = new AsyncCommand<AccountViewModel>(OnEndEditAsync);
+        DoubleClickCommand = new RelayCommand<AccountViewModel>(OnDoubleClick);
 
         ToggleSearchBoxCommand = new RelayCommand(() =>
         {
             IsSearchVisible = !IsSearchVisible;
             IsSearchFocused = IsSearchVisible;
         }, () => !IsGridEditing);
-
-        //ClearSearchCommand = new RelayCommand(ClearSearchTextbox);
-
+        
         ClearSearchCommand = new RelayCommand(ClearSearchTextbox, () => IsSearchVisible);
     }
 
 
     private void OpenSettingsView()
     {
-        IsSettingsOpen = true;
+        IsSettingsViewOpen = true;
     }
 
     private void CloseSettingsView()
     {
-        IsSettingsOpen = false;
+        IsSettingsViewOpen = false;
     }
 
     #endregion COMMANDS SETUP
 
-    private void ApplySettings()
+    private void SaveSettingsView()
     {
         // For now just close; later we persist + enforce auth change policy.
-        IsSettingsOpen = false;
+        IsSettingsViewOpen = false;
     }
 
     private void TestExport()
@@ -615,7 +612,7 @@ public class MainViewModel : IMainViewModel
         return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
     }
 
-    private void ShowMessage(OperationStatus arg1, SecretItemViewModel? item)
+    private void ShowMessage(OperationStatus arg1, AccountViewModel? item)
     {
         switch (arg1)
         {
@@ -696,7 +693,7 @@ public class MainViewModel : IMainViewModel
     {
         if (e.NewItems != null)
         {
-            foreach (SecretItemViewModel item in e.NewItems)
+            foreach (AccountViewModel item in e.NewItems)
             {
                 item.SetDuplicateCheck(DuplicateCheck);
 
@@ -704,7 +701,7 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    private ValidationError DuplicateCheck(SecretItemViewModel si)
+    private ValidationError DuplicateCheck(AccountViewModel si)
     {
         return SecretValidator.PlatformNameDuplicateExists(si.Platform, AllSecrets.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
     }
@@ -747,7 +744,7 @@ public class MainViewModel : IMainViewModel
         ClearCodeGenerationOutput();
         ClearSearchTextbox();
         CancelFlyout();
-        IsSettingsOpen = false;
+        IsSettingsViewOpen = false;
         IsSecretVisible = false;
         IsGridEditing = false;
         IsInlineEditing = false;
@@ -799,7 +796,7 @@ public class MainViewModel : IMainViewModel
     /// Reads all secrets from the storage file and populates the AllSecrets collection
     /// </summary>
     /// <returns></returns>
-    private async Task<ObservableCollection<SecretItemViewModel>?> ReadAllSecretsAsync()
+    private async Task<ObservableCollection<AccountViewModel>?> ReadAllSecretsAsync()
     {
         try
         {
@@ -811,13 +808,13 @@ public class MainViewModel : IMainViewModel
                 result.Value.Sort(new Comparison<SecretItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
 
                 var allSecrets = result.Value;
-                AllSecrets = new ObservableCollection<SecretItemViewModel>((allSecrets.Select(item => item.ToViewModel()) ?? []));
+                AllSecrets = new ObservableCollection<AccountViewModel>((allSecrets.Select(item => item.ToViewModel()) ?? []));
 #if DEBUG
                 //for dev purposes, exclude Syncfusion entry
 
                 var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).Select(item => item.ToViewModel()).ToList();
 
-                AllSecrets = new ObservableCollection<SecretItemViewModel>((IEnumerable<SecretItemViewModel>)(secrets ?? []));
+                AllSecrets = new ObservableCollection<AccountViewModel>((IEnumerable<AccountViewModel>)(secrets ?? []));
 #endif
                 foreach (var item in AllSecrets)
                 {
@@ -828,7 +825,7 @@ public class MainViewModel : IMainViewModel
             }
             else
             {
-                ShowMessage(result.Status, new SecretItemViewModel(Guid.Empty, null!, null!));
+                ShowMessage(result.Status, new AccountViewModel(Guid.Empty, null!, null!));
             }
 
         }
@@ -852,8 +849,8 @@ public class MainViewModel : IMainViewModel
         try
         {
             IsAddMode = true;
-            IsEditOpen = true;
-            CurrentSecretBeingEditedOrAdded = new SecretItemViewModel(Guid.NewGuid(), null, null, null);
+            IsEditAddFlyoutOpen = true;
+            CurrentSecretBeingEditedOrAdded = new AccountViewModel(Guid.NewGuid(), null, null, null);
         }
         catch (Exception ex)
         {
@@ -869,13 +866,13 @@ public class MainViewModel : IMainViewModel
     /// Opens the flyout panel and sets IsAddMode to false
     /// </summary>
     /// <param name="item"></param>
-    public void OpenFlyoutEditMode(SecretItemViewModel item)
+    public void OpenFlyoutEditMode(AccountViewModel item)
     {
         if (item == null) return;
 
         IsAddMode = false;
         CurrentSecretBeingEditedOrAdded = item.Copy();
-        IsEditOpen = true;
+        IsEditAddFlyoutOpen = true;
     }
 
     #endregion
@@ -884,7 +881,7 @@ public class MainViewModel : IMainViewModel
 
     void CancelFlyout()
     {
-        IsEditOpen = false;
+        IsEditAddFlyoutOpen = false;
         IsAddMode = false;
         IsSecretVisible = false;
         CurrentSecretBeingEditedOrAdded = null;
@@ -898,7 +895,7 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    internal async Task DeleteSecretAsync(SecretItemViewModel item)
+    internal async Task DeleteSecretAsync(AccountViewModel item)
     {
         try
         {
@@ -930,7 +927,7 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     /// <param name="updated"></param>
     /// <returns></returns>
-    public async Task UpdateSecretAsync(SecretItemViewModel updated)
+    public async Task UpdateSecretAsync(AccountViewModel updated)
     {
         try
         {
@@ -998,7 +995,7 @@ public class MainViewModel : IMainViewModel
             //ApplySearchFilter();
             CurrentSecretBeingEditedOrAdded = null;
             IsAddMode = false;
-            IsEditOpen = false;
+            IsEditAddFlyoutOpen = false;
 
 
         }
@@ -1039,7 +1036,7 @@ public class MainViewModel : IMainViewModel
             #endregion
 
             await UpdateSecretAsync(CurrentSecretBeingEditedOrAdded);
-            IsEditOpen = false;
+            IsEditAddFlyoutOpen = false;
         }
     }
 
@@ -1048,7 +1045,7 @@ public class MainViewModel : IMainViewModel
     /// SfDataGridEditingBehavior: Triggered by SfDataGrid's cell edit begin event
     /// </summary>
     /// <param name="item"></param>
-    private void OnBeginEdit(SecretItemViewModel item)
+    private void OnBeginEdit(AccountViewModel item)
     {
         PreviousVersion = item.Copy();
         item.IsBeingEdited = true;
@@ -1063,14 +1060,14 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    private async Task OnEndEditAsync(SecretItemViewModel item)
+    private async Task OnEndEditAsync(AccountViewModel item)
     {
         if (item.ID != PreviousVersion.ID)
             return;
 
         item.IsBeingEdited = false;
 
-        if (!SecretItemViewModelValueComparer.Default.Equals(item, PreviousVersion))
+        if (!AccountViewModelValueComparer.Default.Equals(item, PreviousVersion))
         {
             //var (isValid, error) = SecretsDAL.IsValidSecretItem(item.ToDomain());
             var validation = new UiValidation(item);
@@ -1105,7 +1102,7 @@ public class MainViewModel : IMainViewModel
     /// Triggered by SfDataGrid's Row MouseDoubleClick event
     /// </summary>
     /// <param name="item"></param>
-    private void OnDoubleClick(SecretItemViewModel item)
+    private void OnDoubleClick(AccountViewModel item)
     {
         _isDoubleClick = true;
         Debug.WriteLine("***** _isDoubleClick = true;  ***");
@@ -1133,7 +1130,7 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     /// <param name="selectedSecretItem"></param>
     /// <returns></returns>
-    public async Task OnRowSelectionChangedAsync(SecretItemViewModel selectedSecretItem)
+    public async Task OnRowSelectionChangedAsync(AccountViewModel selectedSecretItem)
     {
         if (SelectedSecret != null && IsInlineEditing && SelectedSecret.ID != selectedSecretItem.ID)
             IsInlineEditing = false;
@@ -1232,7 +1229,7 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    public SecretItemViewModel ComputeTotpCode(SecretItemViewModel item, out Totp totpInstance)
+    public AccountViewModel ComputeTotpCode(AccountViewModel item, out Totp totpInstance)
     {
 
         if (!SecretValidator.IsValidBase32Format(item.Secret))
@@ -1274,7 +1271,7 @@ public class MainViewModel : IMainViewModel
 
     public int ElapsedSeconds => PeriodSeconds - RemainingSeconds;
 
-    SecretItemViewModel _lastSelected;
+    AccountViewModel _lastSelected;
     private void OnRowSelectionImplementation()
     {
 
@@ -1345,7 +1342,7 @@ public class MainViewModel : IMainViewModel
         }, null, dueTime: 0, period: 800); // 20 fps tick, UI updates only once/sec due to coalesce
     }
 
-    private BitmapImage GenerateQRCodeImage(SecretItemViewModel item)
+    private BitmapImage GenerateQRCodeImage(AccountViewModel item)
     {
         var normalizedSecret = OtpauthParser.NormalizeBase32SecretForUri(item.Secret);
         // For testing:
@@ -1388,7 +1385,7 @@ public class MainViewModel : IMainViewModel
     bool IMainViewModel.DoFilterGrid(object obj)
     {
         Debug.WriteLine("---  DoFilterGrid   ----");
-        return obj is SecretItemViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+        return obj is AccountViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     /// <summary>
@@ -1458,7 +1455,7 @@ public class MainViewModel : IMainViewModel
             }
 
 
-            var newSecretItem = new SecretItemViewModel(Guid.NewGuid(), data.Issuer, data.SecretBase32, data.Label);
+            var newSecretItem = new AccountViewModel(Guid.NewGuid(), data.Issuer, data.SecretBase32, data.Label);
 
             #region ### validation ###
 
@@ -1497,12 +1494,12 @@ public class MainViewModel : IMainViewModel
             finally
             {
                 IsAddMode = false;
-                IsEditOpen = false;
+                IsEditAddFlyoutOpen = false;
             }
         }
     }
 
-    private UiValidation IsValidSecretItem(SecretItemViewModel newSecretItem)
+    private UiValidation IsValidSecretItem(AccountViewModel newSecretItem)
     {
         ArgumentNullException.ThrowIfNull(newSecretItem, nameof(newSecretItem));
 

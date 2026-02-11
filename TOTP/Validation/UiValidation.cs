@@ -12,10 +12,10 @@ public record ValidationResult(bool IsValid, ValidationError Error);
 internal class UiValidation
 {
 
-    private readonly SecretItemViewModel _item;
+    private readonly AccountViewModel _item;
     private readonly List<ValidationError> _errors = new();
 
-    public UiValidation(SecretItemViewModel item)
+    public UiValidation(AccountViewModel item)
     {
         _item = item;
     }
@@ -54,7 +54,7 @@ internal class UiValidation
         return this;
     }
 
-    public UiValidation PlatformNameDuplicateExists(string platform, IEnumerable<SecretItemViewModel> source)
+    public UiValidation PlatformNameDuplicateExists(string platform, IEnumerable<AccountViewModel> source)
     {
         // Check duplicates in the bound list (ignore the current row)
         bool duplicate = source
@@ -66,7 +66,7 @@ internal class UiValidation
     }
 
 
-    public UiValidation PlatformNameDuplicateExists(IEnumerable<SecretItemViewModel> source)
+    public UiValidation PlatformNameDuplicateExists(IEnumerable<AccountViewModel> source)
     {
         // Check duplicates in the bound list (ignore the current row)
         bool duplicate = source

@@ -27,7 +27,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
     private void OnCurrentCellBeginEdit(object? sender, CurrentCellBeginEditEventArgs e)
     {
-        if (AssociatedObject.CurrentItem is SecretItemViewModel vm)
+        if (AssociatedObject.CurrentItem is AccountViewModel vm)
             vm.EditingSecret = vm.Secret;
 
     }
@@ -43,14 +43,14 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
     private void OnCurrentCellEndEdit(object? sender, CurrentCellEndEditEventArgs e)
     {
-        if (AssociatedObject.CurrentItem is not SecretItemViewModel vm)
+        if (AssociatedObject.CurrentItem is not AccountViewModel vm)
             return;
 
     }
 
     private void OnRowValidating(object? sender, RowValidatingEventArgs e)
     {
-        if (e.RowData is not SecretItemViewModel item) return;
+        if (e.RowData is not AccountViewModel item) return;
 
         // Validate Secret (or anything else that uses a template editor)
         //var result = SecretValidator.ValidateSecret(item.Secret);
@@ -64,10 +64,10 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
             // IMPORTANT: use the column MappingName exactly ("Secret")
             var msg = ValidationMessageMapper.ToMessage(result);
-            if (!e.ErrorMessages.ContainsKey(nameof(SecretItemViewModel.Secret)))
-                e.ErrorMessages.Add(nameof(SecretItemViewModel.Secret), msg);
+            if (!e.ErrorMessages.ContainsKey(nameof(AccountViewModel.Secret)))
+                e.ErrorMessages.Add(nameof(AccountViewModel.Secret), msg);
             else
-                e.ErrorMessages[nameof(SecretItemViewModel.Secret)] = msg;
+                e.ErrorMessages[nameof(AccountViewModel.Secret)] = msg;
         }
 
         if (result == ValidationError.None)
@@ -78,7 +78,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
     private void OnCurrentCellValidating(object? sender, CurrentCellValidatingEventArgs e)
     {
-        if (e.RowData is not SecretItemViewModel item)
+        if (e.RowData is not AccountViewModel item)
             return;
 
         string? error = null;
@@ -86,13 +86,13 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
         switch (e.Column.MappingName)
         {
-            case nameof(SecretItemViewModel.Platform):
+            case nameof(AccountViewModel.Platform):
                 validationResult = SecretValidator.ValidatePlatform(e.NewValue?.ToString());
                 error = ValidationMessageMapper.ToMessage(validationResult);
 
                 if (validationResult == ValidationError.None)
                 {
-                    var secretList = (AssociatedObject.ItemsSource as IEnumerable<SecretItemViewModel>)?.Where(sivm => !ReferenceEquals(sivm, item))
+                    var secretList = (AssociatedObject.ItemsSource as IEnumerable<AccountViewModel>)?.Where(sivm => !ReferenceEquals(sivm, item))
                         .Select(sivm => sivm.ToDomain())
                         .ToList();
                     var duplicate = SecretValidator.PlatformNameDuplicateExists(e.NewValue?.ToString(), secretList);
@@ -102,7 +102,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
                 }
 
                 break;
-            case nameof(SecretItemViewModel.Secret):
+            case nameof(AccountViewModel.Secret):
                 validationResult = SecretValidator.ValidateSecretValue(e.NewValue?.ToString());
                 error = ValidationMessageMapper.ToMessage(validationResult);
                 break;

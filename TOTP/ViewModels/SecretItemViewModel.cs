@@ -12,7 +12,7 @@ using TOTP.Validation;
 
 namespace TOTP.ViewModels;
 
-public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItemViewModel>, IEditableObject, IDataErrorInfo
+public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewModel>, IEditableObject, IDataErrorInfo
 {
 
     #region Properties
@@ -154,14 +154,14 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
     #endregion
 
-    private Func<SecretItemViewModel, ValidationError>? _duplicateCheck;
+    private Func<AccountViewModel, ValidationError>? _duplicateCheck;
 
-    public void SetDuplicateCheck(Func<SecretItemViewModel, ValidationError> duplicateCheck)
+    public void SetDuplicateCheck(Func<AccountViewModel, ValidationError> duplicateCheck)
         => _duplicateCheck = duplicateCheck;
 
 
     [JsonConstructor]
-    public SecretItemViewModel(Guid id, string platform, string secret, string? account = null)
+    public AccountViewModel(Guid id, string platform, string secret, string? account = null)
     {
         ID = id;
         Platform = platform;
@@ -199,9 +199,9 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
         Debug.WriteLine("SecretItemViewModel - EndEdit() Called");
     }
 
-    public SecretItemViewModel? Copy()
+    public AccountViewModel? Copy()
     {
-        return this.MemberwiseClone() as SecretItemViewModel;
+        return this.MemberwiseClone() as AccountViewModel;
     }
 
     #endregion
@@ -252,8 +252,8 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
     #region IEquatable & Overrides
 
-    public bool Equals(SecretItemViewModel? other) => other is not null && ID == other.ID;
-    public override bool Equals(object? obj) => obj is SecretItemViewModel o && Equals(o);
+    public bool Equals(AccountViewModel? other) => other is not null && ID == other.ID;
+    public override bool Equals(object? obj) => obj is AccountViewModel o && Equals(o);
     public override int GetHashCode() => ID.GetHashCode();
 
     #endregion
@@ -290,7 +290,7 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 
     #endregion
 
-    public void UpdateSelf(SecretItemViewModel changed)
+    public void UpdateSelf(AccountViewModel changed)
     {
         this.Platform = changed.Platform;
         this.Secret = changed.Secret;
@@ -364,18 +364,18 @@ public class SecretItemViewModel : INotifyPropertyChanged, IEquatable<SecretItem
 /// Compares SecretItemViewModel by value (Platform, Account, Secret),
 /// case-insensitive, ignoring whitespace/padding in Secret.
 /// </summary>
-public sealed class SecretItemViewModelValueComparer : IEqualityComparer<SecretItemViewModel>
+public sealed class AccountViewModelValueComparer : IEqualityComparer<AccountViewModel>
 {
-    public static readonly SecretItemViewModelValueComparer Default = new();
+    public static readonly AccountViewModelValueComparer Default = new();
 
-    public bool Equals(SecretItemViewModel? x, SecretItemViewModel? y)
+    public bool Equals(AccountViewModel? x, AccountViewModel? y)
     {
         return ReferenceEquals(x, y) || x is not null && y is not null && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.Platform), Norm(y.Platform))
             && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.Account), Norm(y.Account))
             && SecretsEqual(x.Secret, y.Secret);
     }
 
-    public int GetHashCode(SecretItemViewModel obj)
+    public int GetHashCode(AccountViewModel obj)
     {
         var hc = new HashCode();
 

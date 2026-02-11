@@ -5,8 +5,8 @@ namespace TOTP.Extensions
 {
     public static class SecretItemViewModelExtensions
     {
-        public static bool ValueEquals(this SecretItemViewModel a, SecretItemViewModel b)
-            => SecretItemViewModelValueComparer.Default.Equals(a, b);
+        public static bool ValueEquals(this AccountViewModel a, AccountViewModel b)
+            => AccountViewModelValueComparer.Default.Equals(a, b);
     }
 
 }

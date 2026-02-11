@@ -31,7 +31,7 @@
                              TitleBarForeground="{DynamicResource Brush.Foreground}">
 
     <Window.InputBindings>
-        <KeyBinding Key="Escape" Command="{Binding CloseSettingsCommand}" />
+        <KeyBinding Key="Escape" Command="{Binding CloseSettingsViewCommand}" />
     </Window.InputBindings>
 
 
@@ -57,7 +57,7 @@
 
     <!-- We wrap the existing content in a Grid so we can overlay the flyout -->
     <Grid>
-        <!-- ===== DataGrid & Toolbar Container ===== -->
+        <!-- =====  MAIN VIEW  ===== -->
         <StackPanel Orientation="Vertical"
                     Margin="0,5,0,0"
                     HorizontalAlignment="Stretch"
@@ -504,7 +504,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
 
         <Grid>
             <!-- Edit/Add flyout -->
-            <userControls:FlyoutHost IsOpen="{Binding IsEditOpen}"
+            <userControls:FlyoutHost IsOpen="{Binding IsEditAddFlyoutOpen}"
                                      CloseCommand="{Binding CancelFlyoutCommand}"
                                      PanelWidth="300">
                 <userControls:FlyoutHost.FlyoutContent>
@@ -513,11 +513,11 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
             </userControls:FlyoutHost>
 
             <!-- Settings flyout -->
-            <userControls:FlyoutHost  IsOpen="{Binding DataContext.IsSettingsOpen, ElementName=mainWin}"
+            <userControls:FlyoutHost  IsOpen="{Binding DataContext.IsSettingsViewOpen, ElementName=mainWin}"
                                       DataContext="{Binding Settings}"
                                       PanelWidth="300"
                                       OverlayZIndex="20"
-                                      CloseCommand="{Binding CloseSettingsCommand}">
+                                      CloseCommand="{Binding CloseSettingsViewCommand}">
                 <userControls:FlyoutHost.FlyoutContent>
                     <views:AppSettingsFlyoutView  />
                 </userControls:FlyoutHost.FlyoutContent>
