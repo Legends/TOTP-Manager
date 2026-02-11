@@ -2,9 +2,9 @@ using System.Windows.Controls;
 
 namespace TOTP.Views
 {
-    public partial class EditFlyoutView : UserControl
+    public partial class EditAddAccountFlyoutView : UserControl
     {
-        public EditFlyoutView()
+        public EditAddAccountFlyoutView()
         {
             InitializeComponent();
         }

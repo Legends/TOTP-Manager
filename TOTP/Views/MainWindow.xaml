@@ -501,8 +501,8 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
         </StackPanel>
 
 
-        <views:EditFlyoutView />
-        <views:SettingsFlyoutView />
+        <views:EditAddAccountFlyoutView />
+        <views:AppSettingsFlyoutView />
 
         <!--   UnlockView.xaml   -->
         <Grid Background="#CC0C1C33"
