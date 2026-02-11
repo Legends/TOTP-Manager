@@ -63,7 +63,7 @@
                     VerticalAlignment="Stretch"
                     Visibility="{Binding IsUnlocked, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
 
-            <!--TOOLBAR - SCAN - ADD NEW ACOUNT - LANGUAGE SELECTOR - OPTIONS MENU-->
+            <!--TOOLBAR - SCAN - ADD NEW ACCOUNT - LANGUAGE SELECTOR - OPTIONS MENU-->
             <Grid Height="30"
                   Background="Transparent">
                 <Grid.ColumnDefinitions>
