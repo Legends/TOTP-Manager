@@ -1,4 +1,5 @@
 ﻿<syncfusion:ChromelessWindow x:Class="TOTP.Views.MainWindow"
+                             x:Name="mainWin"
                              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -506,13 +507,20 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
             <userControls:FlyoutHost IsOpen="{Binding IsEditOpen}"
                                      CloseCommand="{Binding CancelFlyoutCommand}"
                                      PanelWidth="300">
-                <views:EditAddAccountFlyoutView />
+                <userControls:FlyoutHost.FlyoutContent>
+                    <views:EditAddAccountFlyoutView />
+                </userControls:FlyoutHost.FlyoutContent>
             </userControls:FlyoutHost>
 
             <!-- Settings flyout -->
-            <userControls:FlyoutHost Tag="{Binding}" IsOpen="{Binding IsSettingsOpen}"
-                                                    CloseCommand="{Binding CloseSettingsCommand}">
-                <views:AppSettingsFlyoutView DataContext="{Binding Settings}" />
+            <userControls:FlyoutHost  IsOpen="{Binding DataContext.IsSettingsOpen, ElementName=mainWin}"
+                                      DataContext="{Binding Settings}"
+                                      PanelWidth="300"
+                                      OverlayZIndex="20"
+                                      CloseCommand="{Binding CloseSettingsCommand}">
+                <userControls:FlyoutHost.FlyoutContent>
+                    <views:AppSettingsFlyoutView  />
+                </userControls:FlyoutHost.FlyoutContent>
             </userControls:FlyoutHost>
 
         </Grid>

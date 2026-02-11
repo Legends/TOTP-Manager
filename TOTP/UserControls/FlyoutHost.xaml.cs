@@ -38,20 +38,22 @@ public partial class FlyoutHost : UserControl
             nameof(IsOpen),
             typeof(bool),
             typeof(FlyoutHost),
-            new FrameworkPropertyMetadata(false, OnIsOpenChanged));
-
-    private static void OnIsOpenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        // Put breakpoint here
-        var host = (FlyoutHost)d;
-        var newValue = (bool)e.NewValue;
-    }
-
+            new FrameworkPropertyMetadata(false));
 
     public bool IsOpen
     {
         get => (bool)GetValue(IsOpenProperty);
         set => SetValue(IsOpenProperty, value);
+    }
+
+    public static readonly DependencyProperty FlyoutContentProperty =
+        DependencyProperty.Register(nameof(FlyoutContent), typeof(object), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(null));
+
+    public object? FlyoutContent
+    {
+        get => GetValue(FlyoutContentProperty);
+        set => SetValue(FlyoutContentProperty, value);
     }
 
     public static readonly DependencyProperty CloseCommandProperty =
