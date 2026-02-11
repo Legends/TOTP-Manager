@@ -2,18 +2,23 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Name="root"
-             
              FocusManager.IsFocusScope="True"
              Focusable="True">
 
     <Grid Width="{Binding PanelWidth, ElementName=root}"
           HorizontalAlignment="Right"
-          Panel.ZIndex="{Binding PanelZIndex, ElementName=root}"
           Visibility="{Binding IsOpen, ElementName=root,
                            Converter={StaticResource BoolToVisibilityConverterCollapsed},
                            PresentationTraceSources.TraceLevel=High}"
           FocusManager.IsFocusScope="True">
-       
+        <!--Panel.ZIndex="{Binding PanelZIndex, ElementName=root}"-->
+
+
+        <!-- ESC to close (host-level, so content UCs don't need it) -->
+        <Grid.InputBindings>
+            <KeyBinding Key="Escape"
+                        Command="{Binding CloseCommand, ElementName=root}" />
+        </Grid.InputBindings>
 
         <!-- Dim background -->
         <Border Background="{Binding OverlayBrush, ElementName=root}"
@@ -24,21 +29,14 @@
                 IsHitTestVisible="{Binding IsOpen, ElementName=root}">
 
             <!-- click outside -> close (optional but recommended) -->
-            <Border.InputBindings>
+            <!--<Border.InputBindings>
                 <MouseBinding MouseAction="LeftClick"
                               Command="{Binding CloseCommand, ElementName=root}" />
-            </Border.InputBindings>
+            </Border.InputBindings>-->
         </Border>
 
         <!-- Flyout panel -->
-        <Grid 
-              Style="{StaticResource FlyoutHostStyle}">
-
-            <!-- ESC to close (host-level, so content UCs don't need it) -->
-            <Grid.InputBindings>
-                <KeyBinding Key="Escape"
-                            Command="{Binding CloseCommand, ElementName=root}" />
-            </Grid.InputBindings>
+        <Grid Style="{StaticResource FlyoutHostStyle}" Panel.ZIndex="{Binding PanelZIndex, ElementName=root}">
 
             <Border Background="{Binding PanelBackground, ElementName=root}"
                     Padding="{Binding PanelPadding, ElementName=root}"

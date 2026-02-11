@@ -513,6 +513,8 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
 
             <!-- Settings flyout -->
             <userControls:FlyoutHost IsOpen="{Binding IsSettingsOpen}"
+                                     PanelWidth="300"
+                                     OverlayZIndex="20"
                                      CloseCommand="{Binding CloseSettingsCommand}">
                 <userControls:FlyoutHost.FlyoutContent>
                     <views:AppSettingsFlyoutView DataContext="{Binding Settings}" />
