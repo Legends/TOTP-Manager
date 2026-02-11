@@ -14,12 +14,12 @@ namespace TOTP.Core.Services.Interfaces;
 public interface ISecretsManager
 {
 
-    /// <summary>
-    /// Adds a new secret item by prompting the user for key and value.
-    /// It writes the new item to the secrets file and returns the item if successful.
-    /// </summary>
-    /// <returns></returns>
-    Task<(bool isSuccess, SecretItem? item)> AddNewSecretAsync();
+    ///// <summary>
+    ///// Adds a new secret item by prompting the user for key and value.
+    ///// It writes the new item to the secrets file and returns the item if successful.
+    ///// </summary>
+    ///// <returns></returns>
+    //Task<(bool isSuccess, SecretItem? item)> AddNewSecretAsync();
 
     /// <summary>
     /// Updates an existing secret item in the encrypted secrets file.
@@ -42,7 +42,7 @@ public interface ISecretsManager
     /// </summary>
     event Action<object, OperationStatus, string?> OnMessageSend;
 
-    event Func<object?, AddNewPromptArgs> OnAddNewPrompt;
+    //event Func<object?, AddNewPromptArgs> OnAddNewPrompt;
 
     event Func<object?, string, bool> ConfirmDeleteRequested;
 }

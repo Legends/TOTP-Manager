@@ -269,7 +269,7 @@ public class MainViewModel : IMainViewModel
 
     private SecretItemViewModel _selectedSecret = null!;
 
-    public SecretItemViewModel SelectedSecret
+    public SecretItemViewModel? SelectedSecret
     {
         get => _selectedSecret;
         set
@@ -928,7 +928,7 @@ public class MainViewModel : IMainViewModel
             itemToBeUpdated?.UpdateSelf(updated); // only update when in flyout edit mode
             OnPropertyChanged(nameof(AllSecrets));
 
-            if (updated.ID == SelectedSecret.ID && !ShowGenerateQrCodeLink) // update the QR code if it is visible already
+            if (updated.ID == SelectedSecret?.ID && !ShowGenerateQrCodeLink) // update the QR code if it is visible already
                 UpdateQRCode();
 
             PreviousVersion = null;
