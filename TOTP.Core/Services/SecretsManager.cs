@@ -1,9 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using TOTP.Core.Enums;
 using TOTP.Core.Events;
-using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
-using TOTP.Interfaces;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Core.Services;
 

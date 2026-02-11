@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.6.33801.468
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.UI.WPF", "TOTP\TOTP.UI.WPF.csproj", "{73DFAD9E-6C3D-0F21-D3CE-3EF46B9D55C5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Tests", "TOTP.Tests\TOTP.Tests.csproj", "{62E4D9EC-B6CA-5E34-51D3-4D10E1D4B5D9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Core", "TOTP.Core\TOTP.Core.csproj", "{25A137BF-0219-49F8-AC95-304DC0A62C89}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Infrastructure", "TOTP.Infrastructure\TOTP.Infrastructure.csproj", "{8CDABFB7-D3C1-4E93-86B7-07DF27F7E33B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".git-utils", ".git-utils", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
@@ -34,10 +32,6 @@ Global
 		{25A137BF-0219-49F8-AC95-304DC0A62C89}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25A137BF-0219-49F8-AC95-304DC0A62C89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25A137BF-0219-49F8-AC95-304DC0A62C89}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8CDABFB7-D3C1-4E93-86B7-07DF27F7E33B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8CDABFB7-D3C1-4E93-86B7-07DF27F7E33B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8CDABFB7-D3C1-4E93-86B7-07DF27F7E33B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8CDABFB7-D3C1-4E93-86B7-07DF27F7E33B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

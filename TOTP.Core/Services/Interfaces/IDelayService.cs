@@ -1,4 +1,4 @@
-﻿namespace TOTP.Interfaces;
+﻿namespace TOTP.Core.Services.Interfaces;
 
 public interface IDelayService
 {

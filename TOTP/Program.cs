@@ -4,7 +4,7 @@ using Serilog;
 using System;
 using System.Threading.Tasks;
 using TOTP.Helper;
-using TOTP.Infrastructure.AppLifecycle;
+using TOTP.Infrastructure;
 using TOTP.Resources;
 using TOTP.Security.Interfaces;
 using TOTP.Startup;

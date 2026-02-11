@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using System;
 using System.Windows;
-using TOTP.Interfaces;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Resources;
 using TOTP.Security.Interfaces;
 

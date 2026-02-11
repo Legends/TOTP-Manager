@@ -2,7 +2,7 @@
 using TOTP.Core.Events;
 using TOTP.Core.Models;
 
-namespace TOTP.Core.Interfaces;
+namespace TOTP.Core.Services.Interfaces;
 
 /// <summary>
 /// Basically a higher level manager that uses ISecretsManager to perform TOTP related operations.

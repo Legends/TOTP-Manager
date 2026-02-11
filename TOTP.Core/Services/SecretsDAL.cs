@@ -5,8 +5,8 @@ using System.Text.Json;
 using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Validation;
-using TOTP.Interfaces;
 
 
 namespace TOTP.Core.Services;
@@ -31,15 +31,15 @@ public class SecretsDAL : ISecretsDAL, IDisposable
             "TOTP-Manager", "secrets.dat");
     }
 
-    public async Task<Result<List<SecretItem>>> GetAllSecretsAsync()
+    public async Task<OperationResult<List<SecretItem>>> GetAllSecretsAsync()
     {
         await Semaphore.WaitAsync();
         try
         {
             var (success, list) = await LoadSecretsFromFileAsync();
             return success ?
-                Result<List<SecretItem>>.Success(list)
-                : Result<List<SecretItem>>.Fail(OperationStatus.LoadingFailed);
+                OperationResult<List<SecretItem>>.Success(list)
+                : OperationResult<List<SecretItem>>.Fail(OperationStatus.LoadingFailed);
         }
         finally
         {
@@ -48,7 +48,7 @@ public class SecretsDAL : ISecretsDAL, IDisposable
     }
 
 
-    public async Task<Result<SecretItem>> GetSecretByPlatformAsync(string platform)
+    public async Task<OperationResult<SecretItem>> GetSecretByPlatformAsync(string platform)
     {
 
         await Semaphore.WaitAsync();
@@ -57,8 +57,8 @@ public class SecretsDAL : ISecretsDAL, IDisposable
             var (success, list) = await LoadSecretsFromFileAsync();
             var secret = list.Where(s => s.Platform.ToLowerInvariant() == platform.ToLowerInvariant()).FirstOrDefault();
             return success ?
-                Result<SecretItem>.Success(secret)
-                : Result<SecretItem>.Fail(OperationStatus.LoadingFailed);
+                OperationResult<SecretItem>.Success(secret)
+                : OperationResult<SecretItem>.Fail(OperationStatus.LoadingFailed);
         }
         finally
         {
@@ -67,22 +67,22 @@ public class SecretsDAL : ISecretsDAL, IDisposable
     }
 
 
-    public async Task<Result<bool>> AddNewItemAsync(SecretItem newItem)
+    public async Task<OperationResult<bool>> AddNewItemAsync(SecretItem newItem)
     {
         await Semaphore.WaitAsync();
         try
         {
             var (success, list) = await LoadSecretsFromFileAsync();
-            if (!success) return Result<bool>.Fail(OperationStatus.LoadingFailed);
+            if (!success) return OperationResult<bool>.Fail(OperationStatus.LoadingFailed);
 
             if (list.Any(x => x.Platform == newItem.Platform))
             {
-                return Result<bool>.Fail(OperationStatus.AlreadyExists);
+                return OperationResult<bool>.Fail(OperationStatus.AlreadyExists);
             }
 
             list.Add(newItem);
             var result = await WriteEncryptedFileAsync(list);
-            return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
+            return result ? OperationResult<bool>.Success(true) : OperationResult<bool>.Fail(OperationStatus.StorageFailed);
         }
         finally
         {
@@ -90,7 +90,7 @@ public class SecretsDAL : ISecretsDAL, IDisposable
         }
     }
 
-    public async Task<Result<bool>> UpdateItemAsync(SecretItem updated)
+    public async Task<OperationResult<bool>> UpdateItemAsync(SecretItem updated)
     {
         await Semaphore.WaitAsync();
         try
@@ -101,13 +101,13 @@ public class SecretsDAL : ISecretsDAL, IDisposable
             var existing = listStore.FirstOrDefault(x => x.ID == updated.ID);
             if (existing == null)
             {
-                return Result<bool>.Fail(OperationStatus.NotFound);
+                return OperationResult<bool>.Fail(OperationStatus.NotFound);
             }
 
             listStore.Remove(existing);
             listStore.Add(updated);
             var result = await WriteEncryptedFileAsync(listStore);
-            return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
+            return result ? OperationResult<bool>.Success(true) : OperationResult<bool>.Fail(OperationStatus.StorageFailed);
         }
         finally
         {
@@ -116,25 +116,25 @@ public class SecretsDAL : ISecretsDAL, IDisposable
     }
 
 
-    public async Task<Result<bool>> DeleteItemAsync(string platform)
+    public async Task<OperationResult<bool>> DeleteItemAsync(string platform)
     {
         await Semaphore.WaitAsync();
         try
         {
             var (success, secrets) = await LoadSecretsFromFileAsync();
             if (!success)
-                return Result<bool>.Fail(OperationStatus.LoadingFailed);
+                return OperationResult<bool>.Fail(OperationStatus.LoadingFailed);
 
             var item = secrets.FirstOrDefault(x => x.Platform == platform);
             if (item is null)
             {
-                return Result<bool>.Fail(OperationStatus.NotFound);
+                return OperationResult<bool>.Fail(OperationStatus.NotFound);
             }
 
             secrets.Remove(item);
 
             var result = await WriteEncryptedFileAsync(secrets);
-            return result ? Result<bool>.Success(true) : Result<bool>.Fail(OperationStatus.StorageFailed);
+            return result ? OperationResult<bool>.Success(true) : OperationResult<bool>.Fail(OperationStatus.StorageFailed);
         }
         finally
         {

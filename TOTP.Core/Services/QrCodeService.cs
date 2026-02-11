@@ -1,5 +1,5 @@
 ﻿using QRCoder;
-using TOTP.Interfaces;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Core.Services;
 
