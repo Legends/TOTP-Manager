@@ -1,35 +1,182 @@
-<UserControl x:Class="TOTP.Views.AppSettingsFlyoutView"
+﻿<UserControl x:Class="TOTP.Views.AppSettingsFlyoutView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:TOTP.Views"
              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
-             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
-             mc:Ignorable="d">
+             xmlns:xaml="clr-namespace:TOTP.Xaml"
+             xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}">
 
-    <Grid  FocusManager.IsFocusScope="True"
-           Focusable="True">
-        <!--===== dim background Settings =====-->
-        <Border Background="#66000000"
-                Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
-                Panel.ZIndex="20" />
+    <Grid Margin="0,0,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-        <!--=====  Flyout Settings =====-->
-        <Grid Width="300"
-              HorizontalAlignment="Right"
-              Panel.ZIndex="21"
-              Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
-              FocusManager.IsFocusScope="True">
-            <!--Style="{StaticResource FlyoutHostStyle}"-->
+        <!-- Header -->
+        <DockPanel Margin="0,0,0,10" Grid.Row="0">
+            <TextBlock Text="{xaml:Resx Key=ui_Settings_Title}"
+                      Foreground="White"
+                      FontWeight="Bold"
+                      FontSize="16"
+                      VerticalAlignment="Center"/>
 
-            <!--<Grid.InputBindings>
-                <KeyBinding Key="Escape" Command="{Binding CloseSettingsCommand}" />
-            </Grid.InputBindings>-->
+            <Button Content="✕"
+                   Foreground="White"
+                   Width="26"
+                   Height="26"
+                   Command="{Binding CloseCommand}"
+                   HorizontalAlignment="Right"
+                   DockPanel.Dock="Right" />
+        </DockPanel>
 
-            <Border Background="#152549" Padding="16" BorderBrush="#394B74" BorderThickness="1">
-                <views:AppSettingsView DataContext="{Binding Settings}" />
-            </Border>
-        </Grid>
+        <!-- Tabs -->
+        <syncfusion:TabControlExt TabItemHoverBorderBrush="AliceBlue"  
+                                      EnableLabelEdit="False"
+                                      TabItemHoverBackground="Transparent" 
+                                      TabItemHoverForeground="AliceBlue"  
+                                      Grid.Row="1"   CloseButtonType="Hide"
+                                      Margin="0,0,0,12"
+                                      TabStripPlacement="Top">
+            <!-- AUTHORIZATION -->
+            <syncfusion:TabItemExt Header="{xaml:Resx Key=ui_Settings_Tab_Authorization}">
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <StackPanel Margin="0,10,0,0">
+
+                        <!--<TextBlock Text="{xaml:Resx Key=ui_Settings_Section_Auth}"
+                                  Foreground="White"
+                                  FontWeight="Bold"
+                                  Margin="0,0,0,10"/>-->
+
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Method}"
+                                  Foreground="White"
+                                  FontWeight="SemiBold"
+                                  Margin="0,0,0,6"/>
+
+                        <!-- Simple choice (can be ComboBoxAdv later if you want) -->
+                        <StackPanel>
+                            <RadioButton Content="{xaml:Resx Key=ui_Settings_Auth_WindowsHello}"
+                                        Foreground="White"
+                                        IsChecked="{Binding IsHelloSelected, Mode=TwoWay}"
+                                        Margin="0,0,0,6"/>
+
+                            <RadioButton Content="{xaml:Resx Key=ui_Settings_Auth_Password}"
+                                        Foreground="White"
+                                        IsChecked="{Binding IsPasswordSelected, Mode=TwoWay}"/>
+                        </StackPanel>
+
+                        <Border Height="1" Background="Transparent" Margin="0,0,0,14"/>
+
+                        <!-- Password management block (only show when Password is selected) -->
+                        <StackPanel Visibility="{Binding IsPasswordSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Password_SetChange}"
+                                      Foreground="White"
+                                      FontWeight="SemiBold"
+                                      Margin="0,0,0,6"/>
+
+                            <PasswordBox Height="30" Margin="0,0,0,10" />
+
+                            <PasswordBox Height="30" Margin="0,0,0,10" />
+
+                            <TextBlock Text="{Binding AuthError}"
+                                      Foreground="#FFEF5350"
+                                      FontWeight="SemiBold"
+                                      Visibility="{Binding HasAuthError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        </StackPanel>
+
+                        <Border Visibility="{Binding IsPasswordSelected, Converter={StaticResource InverseBoolToVisibilityConverter}}" Height="1" Background="#394B74" Margin="0,0,0,14"/>
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Lock_Session}"
+                                  Foreground="White"
+                                  FontWeight="SemiBold"
+                                  Margin="0,5,0,6"/>
+                        <!-- Lock policy -->
+                        <CheckBox Content="{xaml:Resx Key=ui_Settings_LockOnWindowsLock}"
+                                 Foreground="White"
+                                 IsChecked="{Binding LockOnSessionLock, Mode=TwoWay}"
+                                 Margin="0,0,0,8"/>
+
+                        <CheckBox Content="{xaml:Resx Key=ui_Settings_ClearClipboard}"
+                                 Foreground="White"
+                                 IsChecked="{Binding ClearClipboardEnabled, Mode=TwoWay}"
+                                 Margin="0,0,0,6"/>
+
+                        <StackPanel Orientation="Horizontal"
+                                   Visibility="{Binding ClearClipboardEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="{xaml:Resx Key=ui_Settings_ClearClipboard_After}"
+                                      Foreground="White"
+                                      VerticalAlignment="Center"/>
+                            <TextBox Width="60" Height="26" Margin="10,0,0,0"
+                                    Text="{Binding ClearClipboardSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{xaml:Resx Key=ui_Settings_ClearClipboard_Seconds}"
+                                      Foreground="White"
+                                      VerticalAlignment="Center"
+                                      Margin="8,0,0,0"/>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </syncfusion:TabItemExt>
+
+            <!-- EXPORT -->
+            <syncfusion:TabItemExt Header="{xaml:Resx Key=ui_Settings_Tab_Export}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <StackPanel Margin="0,10,0,0">
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_Section_Export}"
+                              Foreground="White"
+                              FontWeight="Bold"
+                              Margin="0,0,0,10"/>
+
+                        <CheckBox Content="{xaml:Resx Key=ui_Settings_Export_IncludeQr}"
+                             Foreground="White"
+                             IsChecked="{Binding ExportIncludeQr, Mode=TwoWay}"
+                             Margin="0,0,0,8"/>
+
+                        <CheckBox Content="{xaml:Resx Key=ui_Settings_Export_Encrypt}"
+                             Foreground="White"
+                             IsChecked="{Binding ExportEncrypt, Mode=TwoWay}"
+                             Margin="0,0,0,8"/>
+
+                        <Button Content="{xaml:Resx Key=ui_Settings_Export_Test}"
+                           Command="{Binding ExportTestCommand}"
+                           Height="34"
+                           Margin="0,10,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </syncfusion:TabItemExt>
+
+            <!-- UI -->
+            <!--<syncfusionTools:TabItemExt Header="{xaml:Resx Key=ui_Settings_Tab_UI}">
+               <StackPanel Margin="0,10,0,0">
+                   <TextBlock Text="{xaml:Resx Key=ui_Settings_Section_UI}"
+                              Foreground="White"
+                              FontWeight="Bold"
+                              Margin="0,0,0,10"/>
+
+                   <CheckBox Content="{xaml:Resx Key=ui_Settings_HideSecretsByDefault}"
+                             Foreground="White"
+                             IsChecked="{Binding HideSecretsByDefault, Mode=TwoWay}" />
+               </StackPanel>
+           </syncfusionTools:TabItemExt>-->
+
+        </syncfusion:TabControlExt>
+
+        <!-- Footer buttons -->
+        <StackPanel Grid.Row="2"
+                   Orientation="Horizontal"
+                   HorizontalAlignment="Right">
+            <Button Content="{xaml:Resx Key=ui_btnSave}"
+                   Command="{Binding SaveCommand}"
+                   FontWeight="Bold"
+                   Foreground="White"
+                   Margin="0,0,8,0"
+                   Padding="14,6"/>
+            <Button Content="{xaml:Resx Key=ui_btnCancel}"
+                   Command="{Binding CloseCommand}"
+                   Foreground="White"
+                   FontWeight="Bold"
+                   Padding="14,6"/>
+        </StackPanel>
     </Grid>
 </UserControl>

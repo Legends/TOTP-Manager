@@ -1,0 +1,146 @@
+﻿using System.Diagnostics;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media;
+
+namespace TOTP.UserControls;
+
+public partial class FlyoutHost : UserControl
+{
+    public FlyoutHost()
+    {
+        InitializeComponent();
+        DataContextChanged += (_, _) => Dump("DataContextChanged");
+        void Dump(string tag)
+        {
+            System.Diagnostics.Debug.WriteLine($"[{tag}] IsOpen effective = {GetValue(IsOpenProperty)}");
+
+            var be = System.Windows.Data.BindingOperations.GetBindingExpression(this, IsOpenProperty);
+            System.Diagnostics.Debug.WriteLine(be is null
+                ? $"[{tag}] IsOpen has NO binding expression"
+                : $"[{tag}] IsOpen binding status = {be.Status}, path = {be.ParentBinding?.Path?.Path}");
+        }
+        Loaded += (_, _) =>
+            {
+                Debug.WriteLine($"FlyoutHost loaded. IsOpen effective = {GetValue(IsOpenProperty)}");
+
+                var be = BindingOperations.GetBindingExpression(this, IsOpenProperty);
+                Debug.WriteLine(be is null
+                    ? "IsOpen has NO binding expression"
+                    : $"IsOpen binding status = {be.Status}, parentBinding = {be.ParentBinding?.Path?.Path}");
+            };
+    }
+
+    public static readonly DependencyProperty IsOpenProperty =
+        DependencyProperty.Register(
+            nameof(IsOpen),
+            typeof(bool),
+            typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(false, OnIsOpenChanged));
+
+    private static void OnIsOpenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        // Put breakpoint here
+        var host = (FlyoutHost)d;
+        var newValue = (bool)e.NewValue;
+    }
+
+
+    public bool IsOpen
+    {
+        get => (bool)GetValue(IsOpenProperty);
+        set => SetValue(IsOpenProperty, value);
+    }
+
+    public static readonly DependencyProperty CloseCommandProperty =
+        DependencyProperty.Register(nameof(CloseCommand), typeof(ICommand), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(null));
+
+    public ICommand? CloseCommand
+    {
+        get => (ICommand?)GetValue(CloseCommandProperty);
+        set => SetValue(CloseCommandProperty, value);
+    }
+
+    public static readonly DependencyProperty PanelWidthProperty =
+        DependencyProperty.Register(nameof(PanelWidth), typeof(double), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(300d));
+
+    public double PanelWidth
+    {
+        get => (double)GetValue(PanelWidthProperty);
+        set => SetValue(PanelWidthProperty, value);
+    }
+
+    public static readonly DependencyProperty OverlayBrushProperty =
+        DependencyProperty.Register(nameof(OverlayBrush), typeof(Brush), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(0x66, 0, 0, 0))));
+
+    public Brush OverlayBrush
+    {
+        get => (Brush)GetValue(OverlayBrushProperty);
+        set => SetValue(OverlayBrushProperty, value);
+    }
+
+    public static readonly DependencyProperty PanelBackgroundProperty =
+        DependencyProperty.Register(nameof(PanelBackground), typeof(Brush), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromRgb(0x15, 0x25, 0x49))));
+
+    public Brush PanelBackground
+    {
+        get => (Brush)GetValue(PanelBackgroundProperty);
+        set => SetValue(PanelBackgroundProperty, value);
+    }
+
+    public static readonly DependencyProperty PanelPaddingProperty =
+        DependencyProperty.Register(nameof(PanelPadding), typeof(Thickness), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(new Thickness(16)));
+
+    public Thickness PanelPadding
+    {
+        get => (Thickness)GetValue(PanelPaddingProperty);
+        set => SetValue(PanelPaddingProperty, value);
+    }
+
+    public static readonly DependencyProperty PanelBorderBrushProperty =
+        DependencyProperty.Register(nameof(PanelBorderBrush), typeof(Brush), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromRgb(0x39, 0x4B, 0x74))));
+
+    public Brush PanelBorderBrush
+    {
+        get => (Brush)GetValue(PanelBorderBrushProperty);
+        set => SetValue(PanelBorderBrushProperty, value);
+    }
+
+    public static readonly DependencyProperty PanelBorderThicknessProperty =
+        DependencyProperty.Register(nameof(PanelBorderThickness), typeof(Thickness), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(new Thickness(1)));
+
+    public Thickness PanelBorderThickness
+    {
+        get => (Thickness)GetValue(PanelBorderThicknessProperty);
+        set => SetValue(PanelBorderThicknessProperty, value);
+    }
+
+    public static readonly DependencyProperty OverlayZIndexProperty =
+        DependencyProperty.Register(nameof(OverlayZIndex), typeof(int), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(20));
+
+    public int OverlayZIndex
+    {
+        get => (int)GetValue(OverlayZIndexProperty);
+        set => SetValue(OverlayZIndexProperty, value);
+    }
+
+    public static readonly DependencyProperty PanelZIndexProperty =
+        DependencyProperty.Register(nameof(PanelZIndex), typeof(int), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(21));
+
+    public int PanelZIndex
+    {
+        get => (int)GetValue(PanelZIndexProperty);
+        set => SetValue(PanelZIndexProperty, value);
+    }
+}

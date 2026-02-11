@@ -104,39 +104,42 @@
 	</Style>
 
 	<!-- Slide-in animation for flyout -->
-	<Style x:Key="FlyoutHostStyle"
-		   TargetType="Grid">
-		<Setter Property="RenderTransform">
-			<Setter.Value>
-				<TranslateTransform X="300" />
-			</Setter.Value>
-		</Setter>
-		<Style.Triggers>
-			<DataTrigger Binding="{Binding IsEditOpen}"
-						 Value="True">
-				<DataTrigger.EnterActions>
-					<BeginStoryboard>
-						<Storyboard>
-							<DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-											 To="0"
-											 Duration="0:0:0.18" />
-						</Storyboard>
-					</BeginStoryboard>
-				</DataTrigger.EnterActions>
-				<DataTrigger.ExitActions>
-					<BeginStoryboard>
-						<Storyboard>
-							<DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-											 To="300"
-											 Duration="0:0:0.18" />
-						</Storyboard>
-					</BeginStoryboard>
-				</DataTrigger.ExitActions>
-			</DataTrigger>
-		</Style.Triggers>
-	</Style>
+    <Style x:Key="FlyoutHostStyle"
+           TargetType="Grid">
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <TranslateTransform X="300" />
+            </Setter.Value>
+        </Setter>
 
-	<SolidColorBrush x:Key="MenuItemHoverBackgroundBrushKey"
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsOpen, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                         Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                             To="0"
+                                             Duration="0:0:0.18" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                             To="300"
+                                             Duration="0:0:0.18" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+
+<SolidColorBrush x:Key="MenuItemHoverBackgroundBrushKey"
 					 Color="Transparent" />
 	<LinearGradientBrush x:Key="MenuItemSelectedBackgroundBrushKey"
 						 EndPoint="0.5,1"

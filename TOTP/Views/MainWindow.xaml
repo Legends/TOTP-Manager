@@ -20,6 +20,7 @@
                              xmlns:local="clr-namespace:Syncfusion.Windows.Shared;assembly=Syncfusion.Shared.WPF"
                              xmlns:viewModels="clr-namespace:TOTP.ViewModels"
                              xmlns:views="clr-namespace:TOTP.Views"
+                             xmlns:userControls="clr-namespace:TOTP.UserControls"
                              mc:Ignorable="d"
                              Width="300"
                              SizeToContent="Height"
@@ -500,9 +501,25 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
             </Grid>
         </StackPanel>
 
+        <Grid>
+            <!-- Edit/Add flyout -->
+            <userControls:FlyoutHost IsOpen="{Binding IsEditOpen}"
+                                     CloseCommand="{Binding CancelFlyoutCommand}"
+                                     PanelWidth="300">
+                <views:EditAddAccountFlyoutView />
+            </userControls:FlyoutHost>
 
-        <views:EditAddAccountFlyoutView />
-        <views:AppSettingsFlyoutView />
+            <!-- Settings flyout -->
+            <userControls:FlyoutHost Tag="{Binding}" IsOpen="{Binding IsSettingsOpen}"
+                                                    CloseCommand="{Binding CloseSettingsCommand}">
+                <views:AppSettingsFlyoutView DataContext="{Binding Settings}" />
+            </userControls:FlyoutHost>
+
+        </Grid>
+
+
+        <!--<views:EditAddAccountFlyoutView />
+        <views:AppSettingsFlyoutView />-->
 
         <!--   UnlockView.xaml   -->
         <Grid Background="#CC0C1C33"

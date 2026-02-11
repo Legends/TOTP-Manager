@@ -60,7 +60,7 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    public SettingsViewModel Settings { get; }
+    public SettingsViewModel Settings { get; set; }
 
     #endregion
 
@@ -461,6 +461,11 @@ public class MainViewModel : IMainViewModel
         //Setup TOTP generation timer
         TotpUiTimer = new System.Threading.Timer(_ => StartTotpTick(), null, Timeout.Infinite, 500);
 
+        SetupSettingsViewModel();
+    }
+
+    private void SetupSettingsViewModel()
+    {
         Settings = new SettingsViewModel(
             cmdClose: CloseSettingsCommand,
             save: ApplySettings,          // stub for now
@@ -473,7 +478,19 @@ public class MainViewModel : IMainViewModel
     #region ### COMMANDS DECLARATION ###
 
     public ICommand OpenSettingsCommand { get; private set; } = null!;
-    public ICommand CloseSettingsCommand { get; private set; } = null!;
+
+    private ICommand _CloseSettingsCommand;
+
+    public ICommand CloseSettingsCommand
+    {
+        get => _CloseSettingsCommand;
+        private set
+        {
+            _CloseSettingsCommand = value;
+            OnPropertyChanged();
+        }
+    }
+
     //public ICommand ClearSearchTextCommand => new RelayCommand(() => { SearchText = string.Empty; });
     public ICommand CopyCodeCommand { get; private set; } = null!;
     public ICommand GenerateQrCommand { get; private set; } = null!;
