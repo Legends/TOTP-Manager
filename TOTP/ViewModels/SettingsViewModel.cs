@@ -8,7 +8,6 @@ namespace TOTP.ViewModels;
 
 public sealed class SettingsViewModel : INotifyPropertyChanged
 {
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private bool _isHelloSelected = true;
@@ -17,9 +16,14 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         get => _isHelloSelected;
         set
         {
-            if (Set(ref _isHelloSelected, value))
+            if (_isHelloSelected == value) return;
+            _isHelloSelected = value;
+            OnPropertyChanged();
+
+            if (value && _isPasswordSelected)
             {
-                if (value) IsPasswordSelected = false;
+                _isPasswordSelected = false;
+                OnPropertyChanged(nameof(IsPasswordSelected));
             }
         }
     }
@@ -30,9 +34,14 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         get => _isPasswordSelected;
         set
         {
-            if (Set(ref _isPasswordSelected, value))
+            if (_isPasswordSelected == value) return;
+            _isPasswordSelected = value;
+            OnPropertyChanged();
+
+            if (value && _isHelloSelected)
             {
-                if (value) IsHelloSelected = false;
+                _isHelloSelected = false;
+                OnPropertyChanged(nameof(IsHelloSelected));
             }
         }
     }
@@ -41,42 +50,72 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public bool LockOnSessionLock
     {
         get => _lockOnSessionLock;
-        set => Set(ref _lockOnSessionLock, value);
+        set
+        {
+            if (_lockOnSessionLock == value) return;
+            _lockOnSessionLock = value;
+            OnPropertyChanged();
+        }
     }
 
     private bool _clearClipboardEnabled = true;
     public bool ClearClipboardEnabled
     {
         get => _clearClipboardEnabled;
-        set => Set(ref _clearClipboardEnabled, value);
+        set
+        {
+            if (_clearClipboardEnabled == value) return;
+            _clearClipboardEnabled = value;
+            OnPropertyChanged();
+        }
     }
 
     private int _clearClipboardSeconds = 15;
     public int ClearClipboardSeconds
     {
         get => _clearClipboardSeconds;
-        set => Set(ref _clearClipboardSeconds, value);
+        set
+        {
+            if (_clearClipboardSeconds == value) return;
+            _clearClipboardSeconds = value;
+            OnPropertyChanged();
+        }
     }
 
     private bool _exportIncludeQr;
     public bool ExportIncludeQr
     {
         get => _exportIncludeQr;
-        set => Set(ref _exportIncludeQr, value);
+        set
+        {
+            if (_exportIncludeQr == value) return;
+            _exportIncludeQr = value;
+            OnPropertyChanged();
+        }
     }
 
     private bool _exportEncrypt = true;
     public bool ExportEncrypt
     {
         get => _exportEncrypt;
-        set => Set(ref _exportEncrypt, value);
+        set
+        {
+            if (_exportEncrypt == value) return;
+            _exportEncrypt = value;
+            OnPropertyChanged();
+        }
     }
 
     private bool _hideSecretsByDefault = true;
     public bool HideSecretsByDefault
     {
         get => _hideSecretsByDefault;
-        set => Set(ref _hideSecretsByDefault, value);
+        set
+        {
+            if (_hideSecretsByDefault == value) return;
+            _hideSecretsByDefault = value;
+            OnPropertyChanged();
+        }
     }
 
     private string? _authError;
@@ -85,8 +124,10 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         get => _authError;
         set
         {
-            if (Set(ref _authError, value))
-                OnPropertyChanged(nameof(HasAuthError));
+            if (string.Equals(_authError, value, StringComparison.Ordinal)) return;
+            _authError = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasAuthError));
         }
     }
 
@@ -99,22 +140,9 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public SettingsViewModel(ICommand closeCommand, Action saveAction, Action exportTest)
     {
-        CloseCommand = closeCommand; //new RelayCommand(CloseSWMOdelMethod(close));
+        CloseCommand = closeCommand;
         SaveCommand = new RelayCommand(_ => saveAction());
         ExportTestCommand = new RelayCommand(_ => exportTest());
-    }
-
-    //private static Action<object?> CloseSWMOdelMethod(Action close)
-    //{
-    //    return _ => close();
-    //}
-
-    private bool Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
-    {
-        if (Equals(field, value)) return false;
-        field = value;
-        OnPropertyChanged(name);
-        return true;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

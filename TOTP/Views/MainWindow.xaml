@@ -22,6 +22,7 @@
                              xmlns:viewModels="clr-namespace:TOTP.ViewModels"
                              xmlns:views="clr-namespace:TOTP.Views"
                              xmlns:userControls="clr-namespace:TOTP.UserControls"
+                             d:DataContext="{d:DesignInstance Type=viewModels:MainViewModel}"
                              mc:Ignorable="d"
                              Width="300"
                              SizeToContent="Height"
@@ -33,6 +34,8 @@
     <Window.InputBindings>
         <KeyBinding Key="Escape" Command="{Binding CloseSettingsViewCommand}" />
     </Window.InputBindings>
+
+    
 
 
     <syncfusion:ChromelessWindow.Resources>
@@ -513,11 +516,15 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
             </userControls:FlyoutHost>
 
             <!-- Settings flyout -->
+            <!--
+                If you want to bind properties of the MainViewModel you have to use DataContext.YourProperty, 
+                because this uc is bound to SettingsViewModel in MainViewModel constructor
+            -->
             <userControls:FlyoutHost  IsOpen="{Binding DataContext.IsSettingsViewOpen, ElementName=mainWin}"
                                       DataContext="{Binding Settings}"
                                       PanelWidth="300"
                                       OverlayZIndex="20"
-                                      CloseCommand="{Binding CloseSettingsViewCommand}">
+                                    >
                 <userControls:FlyoutHost.FlyoutContent>
                     <views:AppSettingsFlyoutView  />
                 </userControls:FlyoutHost.FlyoutContent>
