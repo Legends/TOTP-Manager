@@ -1,8 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using TOTP.Commands;
+using TOTP.Security.Interfaces;
+using TOTP.Security.Models;
 
 namespace TOTP.ViewModels;
 
@@ -133,16 +136,62 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public bool HasAuthError => !string.IsNullOrWhiteSpace(AuthError);
 
+    private readonly IGlobalProfileStore _globalProfileStore;
+
     // bound to SettingsView.xaml uc
     public ICommand SaveCommand { get; }
     public ICommand CloseCommand { get; }
     public ICommand ExportTestCommand { get; }
 
-    public SettingsViewModel(ICommand closeCommand, Action saveAction, Action exportTest)
+    public SettingsViewModel(IGlobalProfileStore globalProfileStore, ICommand closeCommand, Action saveAction, Action exportTest)
     {
+        _globalProfileStore = globalProfileStore ?? throw new ArgumentNullException(nameof(globalProfileStore));
         CloseCommand = closeCommand;
-        SaveCommand = new RelayCommand(_ => saveAction());
+        SaveCommand = new AsyncCommand(SaveAndCloseAsync);
         ExportTestCommand = new RelayCommand(_ => exportTest());
+
+        _ = LoadAsync();
+
+        async Task SaveAndCloseAsync()
+        {
+            await SaveAsync();
+            saveAction();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        var profile = await _globalProfileStore.LoadAsync();
+        if (profile is null)
+            return;
+
+        IsHelloSelected = profile.Authorization.Gate != AuthorizationGateKind.Password;
+        IsPasswordSelected = profile.Authorization.Gate == AuthorizationGateKind.Password;
+
+        LockOnSessionLock = profile.LockOnSessionLock;
+        ClearClipboardEnabled = profile.ClearClipboardEnabled;
+        ClearClipboardSeconds = profile.ClearClipboardSeconds > 0
+            ? profile.ClearClipboardSeconds
+            : GlobalProfile.DefaultClearClipboardSeconds;
+        ExportIncludeQr = profile.ExportIncludeQr;
+        ExportEncrypt = profile.ExportEncrypt;
+        HideSecretsByDefault = profile.HideSecretsByDefault;
+    }
+
+    private async Task SaveAsync()
+    {
+        var profile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
+
+        profile.LockOnSessionLock = LockOnSessionLock;
+        profile.ClearClipboardEnabled = ClearClipboardEnabled;
+        profile.ClearClipboardSeconds = ClearClipboardSeconds > 0
+            ? ClearClipboardSeconds
+            : GlobalProfile.DefaultClearClipboardSeconds;
+        profile.ExportIncludeQr = ExportIncludeQr;
+        profile.ExportEncrypt = ExportEncrypt;
+        profile.HideSecretsByDefault = HideSecretsByDefault;
+
+        await _globalProfileStore.SaveAsync(profile);
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

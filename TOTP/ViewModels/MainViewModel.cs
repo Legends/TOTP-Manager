@@ -409,6 +409,7 @@ public class MainViewModel : IMainViewModel
     private readonly IFileDialogService _fileDialogService;
     private readonly IAuthorizationService _authorization;
     private readonly IUserActivityService _activityService;
+    private readonly IGlobalProfileStore _globalProfileStore;
 
     private bool _secretsLoaded;
     private bool _collectionHooked;
@@ -433,6 +434,7 @@ public class MainViewModel : IMainViewModel
         IFileDialogService fileDialogService,
         IAuthorizationService authorization,
         IUserActivityService activityService,
+        IGlobalProfileStore globalProfileStore,
         UnlockViewModel unlockVM)
     {
         _fileDialogService = fileDialogService;
@@ -446,6 +448,7 @@ public class MainViewModel : IMainViewModel
         _secretsManager = totpManager;
         _authorization = authorization;
         _activityService = activityService;
+        _globalProfileStore = globalProfileStore;
 
         AllSecrets = new ObservableCollection<AccountViewModel>();
         UnlockViewModel = unlockVM;
@@ -467,9 +470,10 @@ public class MainViewModel : IMainViewModel
     private void SetupSettingsViewModel()
     {
         Settings = new SettingsViewModel(
+            globalProfileStore: _globalProfileStore,
             closeCommand: CloseSettingsViewCommand,
-            saveAction: SaveSettingsView,          // stub for now
-            exportTest: TestExport        // stub for now
+            saveAction: SaveSettingsView,
+            exportTest: TestExport
         );
     }
 
@@ -560,7 +564,6 @@ public class MainViewModel : IMainViewModel
 
     private void SaveSettingsView()
     {
-        // For now just close; later we persist + enforce auth change policy.
         IsSettingsViewOpen = false;
     }
 
