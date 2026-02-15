@@ -85,11 +85,13 @@
                                          attached:PasswordBoxHelper.BindPassword="True"
                                          attached:PasswordBoxHelper.BoundPassword="{Binding ConfirmPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                            <TextBlock Text="{Binding AuthError}"
-                                      Foreground="#FFEF5350"
-                                      FontWeight="SemiBold"
-                                      Visibility="{Binding HasAuthError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                         </StackPanel>
+
+
+                        <TextBlock Margin="0,0,0,10" Text="{Binding AuthError}"
+                                   Foreground="#FFEF5350"
+                                   FontWeight="SemiBold"
+                                   Visibility="{Binding HasAuthError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
                         <Border Visibility="{Binding IsPasswordSelected, Converter={StaticResource InverseBoolToVisibilityConverter}}" Height="1" Background="#394B74" Margin="0,0,0,14"/>
                         <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Lock_Session}"
