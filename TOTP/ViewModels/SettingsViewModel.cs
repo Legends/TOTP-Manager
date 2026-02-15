@@ -153,7 +153,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public bool IsHelloUnavailable => !IsHelloAvailable;
 
     public string HelloUnavailableText => IsHelloUnavailable
-        ? "(Windows Hello is not available.)"
+        ? "(Not available.)"
         : string.Empty;
 
     private readonly IAuthorizationService _authorizationService;
@@ -247,14 +247,14 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         {
             if (!IsHelloAvailable)
             {
-                AuthError = "Windows Hello is not available.";
+                AuthError = "Not available.";
                 return false;
             }
 
             var helloResult = await _authorizationService.ConfigureHelloAsync();
             if (helloResult != AuthorizationResult.Success)
             {
-                AuthError = "Windows Hello is not available.";
+                AuthError = "Not available.";
                 return false;
             }
 

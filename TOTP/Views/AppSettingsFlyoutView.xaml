@@ -65,7 +65,7 @@
                                             IsEnabled="{Binding IsHelloAvailable}"
                                             VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding HelloUnavailableText}"
-                                           Foreground="#FFEF9A9A"
+                                           Foreground="#5D729C"
                                            Margin="8,0,0,0"
                                            VerticalAlignment="Center"
                                            Visibility="{Binding IsHelloUnavailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
@@ -93,9 +93,7 @@
                                          attached:PasswordBoxHelper.BindPassword="True"
                                          attached:PasswordBoxHelper.BoundPassword="{Binding ConfirmPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                            <TextBlock Text="{Binding AuthError}"
-                                      Foreground="#FFEF5350"
-                                      FontWeight="SemiBold"
+                            <TextBlock Text="{Binding AuthError,StringFormat='({0})'}"
                                       Visibility="{Binding HasAuthError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                         </StackPanel>
 
