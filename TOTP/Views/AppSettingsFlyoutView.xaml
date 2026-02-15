@@ -58,10 +58,18 @@
 
                         <!-- Simple choice (can be ComboBoxAdv later if you want) -->
                         <StackPanel>
-                            <RadioButton Content="{xaml:Resx Key=ui_Settings_Auth_WindowsHello}"
-                                        Foreground="White"
-                                        IsChecked="{Binding IsHelloSelected, Mode=TwoWay}"
-                                        Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <RadioButton Content="{xaml:Resx Key=ui_Settings_Auth_WindowsHello}"
+                                            Foreground="White"
+                                            IsChecked="{Binding IsHelloSelected, Mode=TwoWay}"
+                                            IsEnabled="{Binding IsHelloAvailable}"
+                                            VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding HelloUnavailableText}"
+                                           Foreground="#FFEF9A9A"
+                                           Margin="8,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Visibility="{Binding IsHelloUnavailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            </StackPanel>
 
                             <RadioButton Content="{xaml:Resx Key=ui_Settings_Auth_Password}"
                                         Foreground="White"
