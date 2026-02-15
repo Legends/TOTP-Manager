@@ -136,6 +136,32 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public bool HasAuthError => !string.IsNullOrWhiteSpace(AuthError);
 
+    private readonly IAuthorizationService _authorizationService;
+
+    private string _newPassword = string.Empty;
+    public string NewPassword
+    {
+        get => _newPassword;
+        set
+        {
+            if (string.Equals(_newPassword, value, StringComparison.Ordinal)) return;
+            _newPassword = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string _confirmPassword = string.Empty;
+    public string ConfirmPassword
+    {
+        get => _confirmPassword;
+        set
+        {
+            if (string.Equals(_confirmPassword, value, StringComparison.Ordinal)) return;
+            _confirmPassword = value;
+            OnPropertyChanged();
+        }
+    }
+
     private readonly IGlobalProfileStore _globalProfileStore;
 
     // bound to SettingsView.xaml uc
@@ -143,9 +169,10 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public ICommand CloseCommand { get; }
     public ICommand ExportTestCommand { get; }
 
-    public SettingsViewModel(IGlobalProfileStore globalProfileStore, ICommand closeCommand, Action saveAction, Action exportTest)
+    public SettingsViewModel(IGlobalProfileStore globalProfileStore, IAuthorizationService authorizationService, ICommand closeCommand, Action saveAction, Action exportTest)
     {
         _globalProfileStore = globalProfileStore ?? throw new ArgumentNullException(nameof(globalProfileStore));
+        _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync);
         ExportTestCommand = new RelayCommand(_ => exportTest());
@@ -154,6 +181,11 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
         async Task SaveAndCloseAsync()
         {
+            AuthError = null;
+
+            if (!await ApplyAuthorizationSettingsAsync())
+                return;
+
             await SaveAsync();
             saveAction();
         }
@@ -176,6 +208,51 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         ExportIncludeQr = profile.ExportIncludeQr;
         ExportEncrypt = profile.ExportEncrypt;
         HideSecretsByDefault = profile.HideSecretsByDefault;
+    }
+
+    private async Task<bool> ApplyAuthorizationSettingsAsync()
+    {
+        var currentProfile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
+        var currentGate = currentProfile.Authorization.Gate;
+
+        if (IsHelloSelected && currentGate != AuthorizationGateKind.WindowsHello)
+        {
+            var helloResult = await _authorizationService.ConfigureHelloAsync();
+            if (helloResult != AuthorizationResult.Success)
+            {
+                AuthError = "Windows Hello is not available.";
+                return false;
+            }
+
+            NewPassword = string.Empty;
+            ConfirmPassword = string.Empty;
+            return true;
+        }
+
+        if (!IsPasswordSelected)
+            return true;
+
+        var passwordChanged = !string.IsNullOrWhiteSpace(NewPassword) || !string.IsNullOrWhiteSpace(ConfirmPassword);
+        var switchingToPassword = currentGate != AuthorizationGateKind.Password;
+
+        if (!passwordChanged && !switchingToPassword)
+            return true;
+
+        var result = await _authorizationService.ConfigurePasswordAsync(NewPassword, ConfirmPassword);
+        if (result == AuthorizationResult.Success)
+        {
+            NewPassword = string.Empty;
+            ConfirmPassword = string.Empty;
+            return true;
+        }
+
+        AuthError = result switch
+        {
+            AuthorizationResult.InvalidCredentials => "Password must be at least 3 characters and both fields must match.",
+            _ => "Failed to configure password authentication."
+        };
+
+        return false;
     }
 
     private async Task SaveAsync()

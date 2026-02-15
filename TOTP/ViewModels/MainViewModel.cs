@@ -28,6 +28,7 @@ using TOTP.Helper;
 using TOTP.Parser;
 using TOTP.Resources;
 using TOTP.Security.Interfaces;
+using TOTP.Security.Models;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Validation;
@@ -434,7 +435,6 @@ public class MainViewModel : IMainViewModel
         IFileDialogService fileDialogService,
         IAuthorizationService authorization,
         IUserActivityService activityService,
-        IGlobalProfileStore globalProfileStore,
         UnlockViewModel unlockVM)
     {
         _fileDialogService = fileDialogService;
@@ -448,7 +448,10 @@ public class MainViewModel : IMainViewModel
         _secretsManager = totpManager;
         _authorization = authorization;
         _activityService = activityService;
-        _globalProfileStore = globalProfileStore;
+
+        var rawProfilePath = config.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
+        var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
+        _globalProfileStore = new FileGlobalProfileStore(resolvedProfilePath);
 
         AllSecrets = new ObservableCollection<AccountViewModel>();
         UnlockViewModel = unlockVM;
@@ -471,6 +474,7 @@ public class MainViewModel : IMainViewModel
     {
         Settings = new SettingsViewModel(
             globalProfileStore: _globalProfileStore,
+            authorizationService: _authorization,
             closeCommand: CloseSettingsViewCommand,
             saveAction: SaveSettingsView,
             exportTest: TestExport
