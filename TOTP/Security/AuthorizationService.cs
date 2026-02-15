@@ -50,12 +50,13 @@ public sealed class AuthorizationService : IAuthorizationService
         if (!await _helloGate.IsAvailableAsync().ConfigureAwait(false))
             return AuthorizationResult.NotAvailable;
 
+        _globalProfile = await _globalProfileStore.LoadAsync().ConfigureAwait(false) ?? _globalProfile;
         _authorizationProfile = new AuthorizationProfile { Gate = AuthorizationGateKind.WindowsHello };
         _globalProfile.Authorization = _authorizationProfile;
         await _globalProfileStore.SaveAsync(_globalProfile).ConfigureAwait(false);
 
         State.SetProfile(_authorizationProfile);
-        return AuthorizationResult.Success; // configured ok (not unlocked yet)
+        return AuthorizationResult.Success; // configured ok (not unlocked yet)
     }
 
     public async Task<AuthorizationResult> ConfigurePasswordAsync(string password, string confirmPassword)
@@ -75,6 +76,7 @@ public sealed class AuthorizationService : IAuthorizationService
             PasswordHash = hash
         };
 
+        _globalProfile = await _globalProfileStore.LoadAsync().ConfigureAwait(false) ?? _globalProfile;
         _globalProfile.Authorization = _authorizationProfile;
         await _globalProfileStore.SaveAsync(_globalProfile).ConfigureAwait(false);
         State.SetProfile(_authorizationProfile);

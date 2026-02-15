@@ -28,6 +28,7 @@ using TOTP.Helper;
 using TOTP.Parser;
 using TOTP.Resources;
 using TOTP.Security.Interfaces;
+using TOTP.Security.Models;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Validation;
@@ -409,6 +410,7 @@ public class MainViewModel : IMainViewModel
     private readonly IFileDialogService _fileDialogService;
     private readonly IAuthorizationService _authorization;
     private readonly IUserActivityService _activityService;
+    private readonly IGlobalProfileStore _globalProfileStore;
 
     private bool _secretsLoaded;
     private bool _collectionHooked;
@@ -447,6 +449,10 @@ public class MainViewModel : IMainViewModel
         _authorization = authorization;
         _activityService = activityService;
 
+        var rawProfilePath = config.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
+        var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
+        _globalProfileStore = new FileGlobalProfileStore(resolvedProfilePath);
+
         AllSecrets = new ObservableCollection<AccountViewModel>();
         UnlockViewModel = unlockVM;
 
@@ -467,9 +473,11 @@ public class MainViewModel : IMainViewModel
     private void SetupSettingsViewModel()
     {
         Settings = new SettingsViewModel(
+            globalProfileStore: _globalProfileStore,
+            authorizationService: _authorization,
             closeCommand: CloseSettingsViewCommand,
-            saveAction: SaveSettingsView,          // stub for now
-            exportTest: TestExport        // stub for now
+            saveAction: SaveSettingsView,
+            exportTest: TestExport
         );
     }
 
@@ -560,7 +568,6 @@ public class MainViewModel : IMainViewModel
 
     private void SaveSettingsView()
     {
-        // For now just close; later we persist + enforce auth change policy.
         IsSettingsViewOpen = false;
     }
 

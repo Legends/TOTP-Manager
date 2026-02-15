@@ -1,8 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using TOTP.Commands;
+using TOTP.Security.Interfaces;
+using TOTP.Security.Models;
 
 namespace TOTP.ViewModels;
 
@@ -133,16 +136,139 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public bool HasAuthError => !string.IsNullOrWhiteSpace(AuthError);
 
+    private readonly IAuthorizationService _authorizationService;
+
+    private string _newPassword = string.Empty;
+    public string NewPassword
+    {
+        get => _newPassword;
+        set
+        {
+            if (string.Equals(_newPassword, value, StringComparison.Ordinal)) return;
+            _newPassword = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string _confirmPassword = string.Empty;
+    public string ConfirmPassword
+    {
+        get => _confirmPassword;
+        set
+        {
+            if (string.Equals(_confirmPassword, value, StringComparison.Ordinal)) return;
+            _confirmPassword = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private readonly IGlobalProfileStore _globalProfileStore;
+
     // bound to SettingsView.xaml uc
     public ICommand SaveCommand { get; }
     public ICommand CloseCommand { get; }
     public ICommand ExportTestCommand { get; }
 
-    public SettingsViewModel(ICommand closeCommand, Action saveAction, Action exportTest)
+    public SettingsViewModel(IGlobalProfileStore globalProfileStore, IAuthorizationService authorizationService, ICommand closeCommand, Action saveAction, Action exportTest)
     {
+        _globalProfileStore = globalProfileStore ?? throw new ArgumentNullException(nameof(globalProfileStore));
+        _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
         CloseCommand = closeCommand;
-        SaveCommand = new RelayCommand(_ => saveAction());
+        SaveCommand = new AsyncCommand(SaveAndCloseAsync);
         ExportTestCommand = new RelayCommand(_ => exportTest());
+
+        _ = LoadAsync();
+
+        async Task SaveAndCloseAsync()
+        {
+            AuthError = null;
+
+            if (!await ApplyAuthorizationSettingsAsync())
+                return;
+
+            await SaveAsync();
+            saveAction();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        var profile = await _globalProfileStore.LoadAsync();
+        if (profile is null)
+            return;
+
+        IsHelloSelected = profile.Authorization.Gate != AuthorizationGateKind.Password;
+        IsPasswordSelected = profile.Authorization.Gate == AuthorizationGateKind.Password;
+
+        LockOnSessionLock = profile.LockOnSessionLock;
+        ClearClipboardEnabled = profile.ClearClipboardEnabled;
+        ClearClipboardSeconds = profile.ClearClipboardSeconds > 0
+            ? profile.ClearClipboardSeconds
+            : GlobalProfile.DefaultClearClipboardSeconds;
+        ExportIncludeQr = profile.ExportIncludeQr;
+        ExportEncrypt = profile.ExportEncrypt;
+        HideSecretsByDefault = profile.HideSecretsByDefault;
+    }
+
+    private async Task<bool> ApplyAuthorizationSettingsAsync()
+    {
+        var currentProfile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
+        var currentGate = currentProfile.Authorization.Gate;
+
+        if (IsHelloSelected && currentGate != AuthorizationGateKind.WindowsHello)
+        {
+            var helloResult = await _authorizationService.ConfigureHelloAsync();
+            if (helloResult != AuthorizationResult.Success)
+            {
+                AuthError = "Windows Hello is not available.";
+                return false;
+            }
+
+            NewPassword = string.Empty;
+            ConfirmPassword = string.Empty;
+            return true;
+        }
+
+        if (!IsPasswordSelected)
+            return true;
+
+        var passwordChanged = !string.IsNullOrWhiteSpace(NewPassword) || !string.IsNullOrWhiteSpace(ConfirmPassword);
+        var switchingToPassword = currentGate != AuthorizationGateKind.Password;
+
+        if (!passwordChanged && !switchingToPassword)
+            return true;
+
+        var result = await _authorizationService.ConfigurePasswordAsync(NewPassword, ConfirmPassword);
+        if (result == AuthorizationResult.Success)
+        {
+            NewPassword = string.Empty;
+            ConfirmPassword = string.Empty;
+            return true;
+        }
+
+        AuthError = result switch
+        {
+            AuthorizationResult.InvalidCredentials => "Password must be at least 3 characters and both fields must match.",
+            _ => "Failed to configure password authentication."
+        };
+
+        return false;
+    }
+
+    private async Task SaveAsync()
+    {
+        var profile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
+
+        profile.LockOnSessionLock = LockOnSessionLock;
+        profile.ClearClipboardEnabled = ClearClipboardEnabled;
+        profile.ClearClipboardSeconds = ClearClipboardSeconds > 0
+            ? ClearClipboardSeconds
+            : GlobalProfile.DefaultClearClipboardSeconds;
+        profile.ExportIncludeQr = ExportIncludeQr;
+        profile.ExportEncrypt = ExportEncrypt;
+        profile.HideSecretsByDefault = HideSecretsByDefault;
+
+        await _globalProfileStore.SaveAsync(profile);
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
