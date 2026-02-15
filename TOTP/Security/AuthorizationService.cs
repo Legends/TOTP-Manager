@@ -45,6 +45,11 @@ public sealed class AuthorizationService : IAuthorizationService
         return AuthorizationResult.RequiresUserInput;
     }
 
+    public Task<bool> IsHelloAvailableAsync()
+    {
+        return _helloGate.IsAvailableAsync();
+    }
+
     public async Task<AuthorizationResult> ConfigureHelloAsync()
     {
         if (!await _helloGate.IsAvailableAsync().ConfigureAwait(false))

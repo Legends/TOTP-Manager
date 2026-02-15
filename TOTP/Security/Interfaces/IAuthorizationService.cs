@@ -9,6 +9,8 @@ public interface IAuthorizationService
 
     Task InitializeAsync();
 
+    Task<bool> IsHelloAvailableAsync();
+
     // First-run configuration
     Task<AuthorizationResult> ConfigureHelloAsync();
     Task<AuthorizationResult> ConfigurePasswordAsync(string password, string confirmPassword);

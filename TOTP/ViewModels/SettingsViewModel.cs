@@ -136,6 +136,26 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public bool HasAuthError => !string.IsNullOrWhiteSpace(AuthError);
 
+    private bool _isHelloAvailable = true;
+    public bool IsHelloAvailable
+    {
+        get => _isHelloAvailable;
+        private set
+        {
+            if (_isHelloAvailable == value) return;
+            _isHelloAvailable = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsHelloUnavailable));
+            OnPropertyChanged(nameof(HelloUnavailableText));
+        }
+    }
+
+    public bool IsHelloUnavailable => !IsHelloAvailable;
+
+    public string HelloUnavailableText => IsHelloUnavailable
+        ? "(Not available.)"
+        : string.Empty;
+
     private readonly IAuthorizationService _authorizationService;
 
     private string _newPassword = string.Empty;
@@ -193,12 +213,20 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     private async Task LoadAsync()
     {
+        IsHelloAvailable = await _authorizationService.IsHelloAvailableAsync();
+
         var profile = await _globalProfileStore.LoadAsync();
         if (profile is null)
             return;
 
         IsHelloSelected = profile.Authorization.Gate != AuthorizationGateKind.Password;
         IsPasswordSelected = profile.Authorization.Gate == AuthorizationGateKind.Password;
+
+        if (!IsHelloAvailable && IsHelloSelected)
+        {
+            IsHelloSelected = false;
+            IsPasswordSelected = true;
+        }
 
         LockOnSessionLock = profile.LockOnSessionLock;
         ClearClipboardEnabled = profile.ClearClipboardEnabled;
@@ -217,10 +245,16 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
         if (IsHelloSelected && currentGate != AuthorizationGateKind.WindowsHello)
         {
+            if (!IsHelloAvailable)
+            {
+                AuthError = "Not available.";
+                return false;
+            }
+
             var helloResult = await _authorizationService.ConfigureHelloAsync();
             if (helloResult != AuthorizationResult.Success)
             {
-                AuthError = "Windows Hello is not available.";
+                AuthError = "Not available.";
                 return false;
             }
 
