@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -59,7 +60,15 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         IsSetup = false; // default: unlock mode
         SavePasswordCommand = new AsyncCommand(SavePassword, CanSavePassword);
 
-        //_auth.State.Changed += State_Changed;
+        _auth.State.Changed += State_Changed;
+    }
+
+    private void State_Changed(object? sender, EventArgs e)
+    {
+        //if (_auth.State.ConfiguredGate==AuthorizationGateKind.Password   && _auth.State.IsConfigured)
+        //{
+        //    IsSetup = false;
+        //}
     }
 
     private bool CanSavePassword()
@@ -84,17 +93,17 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         await UnlockAsync();
 
         //// Persist / configure auth
-        //var result = UnlockAsync(); // implement in your service
-        //if (!result.Success)
-        //{
-        //    Message = result.ErrorMessage ?? "Failed to save password.";
-        //    return;
-        //}
+        var result = UnlockAsync(); // implement in your service
+        if (!result.IsCompletedSuccessfully)
+        {
+            Message =  "Failed to save password."; //  result.ErrorMessage ?? "Failed to save password.";
+            return;
+        }
 
         //// Success: exit setup mode, clear secrets
-        //IsSetup = false;
-        //Password = string.Empty;
-        //ConfirmPassword = string.Empty;
+        IsSetup = false;
+        Password = string.Empty;
+        ConfirmPassword = string.Empty;
         //AutoFocus = false;
     }
 
