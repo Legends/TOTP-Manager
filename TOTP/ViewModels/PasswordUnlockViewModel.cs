@@ -65,10 +65,15 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
 
     private void State_Changed(object? sender, EventArgs e)
     {
-        //if (_auth.State.ConfiguredGate==AuthorizationGateKind.Password   && _auth.State.IsConfigured)
-        //{
-        //    IsSetup = false;
-        //}
+        if (_auth.State.IsUnlocked)
+        {
+            Password = string.Empty;
+        }
+
+        if (_auth.State.ConfiguredGate == AuthorizationGateKind.Password && _auth.State.IsConfigured)
+        {
+            IsSetup = false;
+        }
     }
 
     private bool CanSavePassword()

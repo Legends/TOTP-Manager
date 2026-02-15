@@ -26,6 +26,11 @@ public partial class App : Application
             {
                 AuthorizationService.Lock();
             }
+
+            if (e.Reason== SessionSwitchReason.SessionUnlock)
+            {
+
+            }
         };
 
     }
