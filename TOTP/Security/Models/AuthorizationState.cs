@@ -1,4 +1,6 @@
 using System;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace TOTP.Security.Models;
 
@@ -14,20 +16,40 @@ public sealed class AuthorizationState
     {
         IsConfigured = profile?.IsConfigured == true;
         ConfiguredGate = profile?.Gate ?? AuthorizationGateKind.None;
-        Changed?.Invoke(this, EventArgs.Empty);
+        RaiseChanged();
     }
 
     public void Unlock()
     {
         if (IsUnlocked) return;
         IsUnlocked = true;
-        Changed?.Invoke(this, EventArgs.Empty);
+        RaiseChanged();
     }
 
     public void Lock()
     {
         if (!IsUnlocked) return;
         IsUnlocked = false;
-        Changed?.Invoke(this, EventArgs.Empty);
+        RaiseChanged();
+    }
+
+    private void RaiseChanged()
+    {
+        var handler = Changed;
+        if (handler is null) return;
+
+        var dispatcher = Application.Current?.Dispatcher;
+
+        // If we don't have a dispatcher (e.g., unit tests) OR we're already on UI thread:
+        if (dispatcher is null || dispatcher.CheckAccess())
+        {
+            handler(this, EventArgs.Empty);
+        }
+        else
+        {
+            dispatcher.BeginInvoke(
+                (Action)(() => handler(this, EventArgs.Empty)),
+                DispatcherPriority.DataBind);
+        }
     }
 }

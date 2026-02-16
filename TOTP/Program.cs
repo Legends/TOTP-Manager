@@ -15,24 +15,23 @@ namespace TOTP;
 
 internal static class Program
 {
+
     [STAThread]
     public static void Main(string[] args)
     {
-        Run(args).GetAwaiter().GetResult();
+        Run(args);
     }
 
-    private static async Task Run(string[] args)
+    private static void Run(string[] args)
     {
         IHost? host = null;
+
         try
         {
+            var configuration = BootLoader.BuildConfiguration();
+            BootLoader.SetCulture(configuration);
+            BootLoader.RegisterSyncfusionLicenseKey(configuration);
 
-            // 1) config / culture / license
-            var configuration = BootLoader.BuildConfiguration();         // your helper
-            BootLoader.SetCulture(configuration);                        // your helper
-            BootLoader.RegisterSyncfusionLicenseKey(configuration);      // your helper
-
-            // 2) single instance (optional)
             using var instance = new SingleInstanceGuard(StringsConstants.AssemblyNameWpf);
             if (!instance.IsFirstInstance)
             {
@@ -42,23 +41,29 @@ internal static class Program
 
             host = BootLoader.BuildHostAndConfigureServices(configuration);
 
-            // IMPORTANT: stay on STA thread (no await here)
-            await host.StartAsync();
+            // IMPORTANT: stay on the STA thread
+            host.StartAsync().GetAwaiter().GetResult();
 
-            // 4) WPF app
-            var app = new App { Host = host, /*InstanceGuard = instance,*/ AuthorizationService = host.Services.GetRequiredService<IAuthorizationService>() };
+            var app = new App
+            {
+                Host = host,
+                AuthorizationService = host.Services.GetRequiredService<IAuthorizationService>()
+            };
+
             app.InitializeComponent();
-            BootLoader.SetupUnhandledExceptionsHooks(app, host); // your helper
+            BootLoader.SetupUnhandledExceptionsHooks(app, host);
 
-            // 5) resolve & show window (explicit)
             var mainWindow = host.Services.GetRequiredService<MainWindow>();
             mainWindow.ResizeMode = System.Windows.ResizeMode.NoResize;
+
             app.MainWindow = mainWindow;
             mainWindow.Show();
 
-            // 6) run dispatcher
+            // Starts dispatcher; from here you have a real WPF UI thread
             app.Run();
 
+            // Graceful shutdown after UI exits
+            host.StopAsync().GetAwaiter().GetResult();
         }
         catch (Exception e)
         {
@@ -67,16 +72,11 @@ internal static class Program
         }
         finally
         {
-            // 7) graceful shutdown
-            if (host is not null)
-            {
-                await host.StopAsync();
-                host.Dispose();
-            }
+            host?.Dispose();
             Log.CloseAndFlush();
         }
-
     }
+
 
     // -> call through to your existing helpers:
     // BuildConfiguration, SetCulture, RegisterSyncfusionLicenseKey,

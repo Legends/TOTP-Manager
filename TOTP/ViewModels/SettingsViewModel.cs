@@ -188,18 +188,28 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public ICommand SaveCommand { get; }
     public ICommand CloseCommand { get; }
     public ICommand ExportTestCommand { get; }
-
-    public SettingsViewModel(IGlobalProfileStore globalProfileStore, IAuthorizationService authorizationService, ICommand closeCommand, Action saveAction, Action exportTest)
+    private Action _SaveAction;
+    public SettingsViewModel(IGlobalProfileStore globalProfileStore, 
+                            IAuthorizationService authorizationService, 
+                            ICommand closeCommand, Action saveAction, 
+                            Action exportTest)
     {
         _globalProfileStore = globalProfileStore ?? throw new ArgumentNullException(nameof(globalProfileStore));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
+
+        _SaveAction= saveAction;
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync);
         ExportTestCommand = new RelayCommand(_ => exportTest());
 
         _ = LoadAsync();
 
-        async Task SaveAndCloseAsync()
+    
+    }
+
+    async Task SaveAndCloseAsync()
+    {
+        try
         {
             AuthError = null;
 
@@ -207,8 +217,14 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
                 return;
 
             await SaveAsync();
-            saveAction();
+            _SaveAction();
         }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+      
     }
 
     private async Task LoadAsync()
