@@ -35,6 +35,20 @@
         <KeyBinding Key="Escape" Command="{Binding CloseSettingsViewCommand}" />
     </Window.InputBindings>
 
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <behaviors:AsyncInvokeCommandAction Command="{Binding InitializeCommand}" />
+            <i:InvokeCommandAction Command="{Binding AttachWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="StateChanged">
+            <i:InvokeCommandAction Command="{Binding WindowStateChangedCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=WindowState}" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Closed">
+            <i:InvokeCommandAction Command="{Binding DetachWindowCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
+
     
 
 
@@ -237,7 +251,7 @@
                 <!--SelectedItem="SelectedSecret"-->
                 <!--SelectionChanged="DataGrid_SelectionChanged"-->
                 <syncfusion:SfDataGrid x:Name="SecretsGrid"
-                                       ItemsSource="{Binding AllSecrets}"
+                                       ItemsSource="{Binding FilteredSecrets}"
                                        CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
                                        Grid.Row="0"
                                        AllowSorting="True"

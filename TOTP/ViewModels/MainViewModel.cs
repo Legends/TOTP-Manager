@@ -16,6 +16,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Data;
+using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using TOTP.Commands;
@@ -385,11 +387,21 @@ public class MainViewModel : IMainViewModel
         {
             if (ReferenceEquals(_allSecrets, value)) return;
             _allSecrets = value;
+            RebuildSecretsView();
             OnPropertyChanged();
         }
     }
 
-    public Action? RequestGridFilterRefresh { get; set; }  // <-- the view sets this
+    private ICollectionView _filteredSecrets = null!;
+    public ICollectionView FilteredSecrets
+    {
+        get => _filteredSecrets;
+        private set
+        {
+            _filteredSecrets = value;
+            OnPropertyChanged();
+        }
+    }
 
     public ObservableCollection<CultureDisplay> SupportedCultures { get; set; }
 
@@ -410,6 +422,7 @@ public class MainViewModel : IMainViewModel
     private readonly IFileDialogService _fileDialogService;
     private readonly IAuthorizationService _authorization;
     private readonly IUserActivityService _activityService;
+    private readonly IInputActivityMonitor _inputActivityMonitor;
     private readonly IGlobalProfileStore _globalProfileStore;
 
     private bool _secretsLoaded;
@@ -435,6 +448,7 @@ public class MainViewModel : IMainViewModel
         IFileDialogService fileDialogService,
         IAuthorizationService authorization,
         IUserActivityService activityService,
+        IInputActivityMonitor inputActivityMonitor,
         UnlockViewModel unlockVM)
     {
         _fileDialogService = fileDialogService;
@@ -448,12 +462,14 @@ public class MainViewModel : IMainViewModel
         _secretsManager = totpManager;
         _authorization = authorization;
         _activityService = activityService;
+        _inputActivityMonitor = inputActivityMonitor;
 
         var rawProfilePath = config.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
         var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
         _globalProfileStore = new FileGlobalProfileStore(resolvedProfilePath);
 
         AllSecrets = new ObservableCollection<AccountViewModel>();
+        RebuildSecretsView();
         UnlockViewModel = unlockVM;
 
         _secretsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
@@ -515,6 +531,11 @@ public class MainViewModel : IMainViewModel
     public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
     public AsyncCommand<AccountViewModel> RowSelectionChangedCommand { get; private set; } = null!;
+    public AsyncCommand InitializeCommand { get; private set; } = null!;
+    public ICommand LockCommand { get; private set; } = null!;
+    public ICommand WindowStateChangedCommand { get; private set; } = null!;
+    public ICommand AttachWindowCommand { get; private set; } = null!;
+    public ICommand DetachWindowCommand { get; private set; } = null!;
 
     #endregion REGION COMMANDS
 
@@ -551,6 +572,12 @@ public class MainViewModel : IMainViewModel
         }, () => !IsGridEditing);
         
         ClearSearchCommand = new RelayCommand(ClearSearchTextbox, () => IsSearchVisible);
+
+        InitializeCommand = new AsyncCommand(InitializeAsync, logger: _logger);
+        LockCommand = new RelayCommand(Lock);
+        WindowStateChangedCommand = new RelayCommand<WindowState>(OnWindowStateChanged);
+        AttachWindowCommand = new RelayCommand<Window>(AttachWindow);
+        DetachWindowCommand = new RelayCommand(DetachWindow);
     }
 
 
@@ -733,7 +760,7 @@ public class MainViewModel : IMainViewModel
     private async Task OnUnlockedAsync()
     {
         await EnsureSecretsLoadedAsync();
-        StartAutoLock();
+        UpdateActivityMonitorState();
     }
 
     /// <summary>
@@ -742,7 +769,8 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     private void OnLocked()
     {
-        StopAutoLock();
+        UpdateActivityMonitorState();
+        _inputActivityMonitor.Detach();
 
         _secretsLoaded = false;
         AllSecrets.Clear();
@@ -765,6 +793,33 @@ public class MainViewModel : IMainViewModel
         // 2. Everything else happens via AuthorizationState_Changed
     }
 
+    private void OnWindowStateChanged(WindowState state)
+    {
+        if (state == WindowState.Minimized)
+            Lock();
+    }
+
+    private void AttachWindow(Window? window)
+    {
+        if (window == null)
+            return;
+
+        _inputActivityMonitor.Attach(window);
+        UpdateActivityMonitorState();
+    }
+
+    private void DetachWindow()
+    {
+        _inputActivityMonitor.Detach();
+    }
+
+    private void UpdateActivityMonitorState()
+    {
+        if (IsUnlocked)
+            StartAutoLock();
+        else
+            StopAutoLock();
+    }
 
     private void StartAutoLock()
     {
@@ -1381,33 +1436,24 @@ public class MainViewModel : IMainViewModel
 
     #region ### Grid Filter Logic ###
 
-    /// <summary>
-    /// Displays the row if the obj is of type SecretItemViewModel and
-    /// if the search text is empty return every row
-    /// or
-    /// the platform property of the current object contains the search text
-    /// </summary>
-    /// <param name="obj"></param>
-    /// <returns></returns>
-    bool IMainViewModel.DoFilterGrid(object obj)
+    private void RebuildSecretsView()
     {
-        Debug.WriteLine("---  DoFilterGrid   ----");
-        return obj is AccountViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+        FilteredSecrets = CollectionViewSource.GetDefaultView(AllSecrets);
+        FilteredSecrets.Filter = FilterSecrets;
     }
 
-    /// <summary>
-    /// For bulk changes, wrap in using (_view?.DeferRefresh()) { /* add/remove many items */ } to avoid multiple re-filters.
-    /// </summary>
-    void RefreshView()
+    private bool FilterSecrets(object obj)
     {
-        RequestGridFilterRefresh?.Invoke();
+        return obj is AccountViewModel vm
+            && (string.IsNullOrWhiteSpace(SearchText)
+                || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
+
     private void ExecuteSearch()
     {
         try
         {
-            // when SearchText changes:
-            RefreshView();
+            FilteredSecrets.Refresh();
         }
         catch (Exception ex)
         {
