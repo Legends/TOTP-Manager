@@ -1334,7 +1334,7 @@ public class MainViewModel : IMainViewModel
             //if (remaining == _lastRemaining) return;
             //_lastRemaining = remaining;
 
-            System.Windows.Application.Current.Dispatcher.BeginInvoke(
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(
                 DispatcherPriority.Render,
                 new Action(() =>
                 {

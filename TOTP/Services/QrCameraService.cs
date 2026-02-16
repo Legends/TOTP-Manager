@@ -56,7 +56,7 @@ public sealed class QrCameraService : IDisposable
 
                 _initialized = true;
             }
-        }).ConfigureAwait(false);
+        });//.ConfigureAwait(false);
     }
 
     // QrCameraService.cs
@@ -129,7 +129,7 @@ public sealed class QrCameraService : IDisposable
 
                 await Task.Delay(TimeSpan.FromMilliseconds(1000.0 / Math.Max(1, Fps)), ct);
             }
-        }, ct).ConfigureAwait(false);
+        }, ct);//.ConfigureAwait(false);
     }
 
 
@@ -156,7 +156,7 @@ public sealed class QrCameraService : IDisposable
 
                 await Task.Delay(TimeSpan.FromMilliseconds(1000.0 / Math.Max(1, Fps)), ct);
             }
-        }, ct).ConfigureAwait(false);
+        }, ct);//.ConfigureAwait(false);
     }
 
     public void Dispose()

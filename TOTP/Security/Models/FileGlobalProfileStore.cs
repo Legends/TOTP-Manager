@@ -27,13 +27,13 @@ public sealed class FileGlobalProfileStore : IGlobalProfileStore
 
     public async Task<GlobalProfile?> LoadAsync()
     {
-        await _lock.WaitAsync().ConfigureAwait(false);
+        await _lock.WaitAsync();//.ConfigureAwait(false);
         try
         {
             if (!File.Exists(_path))
                 return null;
 
-            var encrypted = await File.ReadAllBytesAsync(_path).ConfigureAwait(false);
+            var encrypted = await File.ReadAllBytesAsync(_path);//.ConfigureAwait(false);
             if (encrypted.Length == 0)
                 return null;
 
@@ -65,14 +65,14 @@ public sealed class FileGlobalProfileStore : IGlobalProfileStore
 
     public async Task SaveAsync(GlobalProfile profile)
     {
-        await _lock.WaitAsync().ConfigureAwait(false);
+        await _lock.WaitAsync();//.ConfigureAwait(false);
         try
         {
             var json = JsonSerializer.Serialize(profile, new JsonSerializerOptions { WriteIndented = true });
             var bytes = Encoding.UTF8.GetBytes(json);
 
             var encrypted = ProtectedData.Protect(bytes, null, DataProtectionScope.CurrentUser);
-            await File.WriteAllBytesAsync(_path, encrypted).ConfigureAwait(false);
+            await File.WriteAllBytesAsync(_path, encrypted);//.ConfigureAwait(false);
         }
         finally
         {

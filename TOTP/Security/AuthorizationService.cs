@@ -39,7 +39,7 @@ public sealed class AuthorizationService : IAuthorizationService
         // Your requirement: every start triggers the authorization gate.
         // Only Windows Hello can be auto-triggered without user typing.
         if (_authorizationProfile.Gate == AuthorizationGateKind.WindowsHello)
-            return await TryUnlockWithHelloAsync().ConfigureAwait(false);
+            return await TryUnlockWithHelloAsync();//.ConfigureAwait(false);
 
         // Password gate: user must type. Keep locked and show auth UI.
         return AuthorizationResult.RequiresUserInput;
@@ -58,7 +58,7 @@ public sealed class AuthorizationService : IAuthorizationService
         _globalProfile = await _globalProfileStore.LoadAsync().ConfigureAwait(false) ?? _globalProfile;
         _authorizationProfile = new AuthorizationProfile { Gate = AuthorizationGateKind.WindowsHello };
         _globalProfile.Authorization = _authorizationProfile;
-        await _globalProfileStore.SaveAsync(_globalProfile).ConfigureAwait(false);
+        await _globalProfileStore.SaveAsync(_globalProfile);//.ConfigureAwait(false);
 
         State.SetProfile(_authorizationProfile);
         return AuthorizationResult.Success; // configured ok (not unlocked yet)
@@ -83,7 +83,7 @@ public sealed class AuthorizationService : IAuthorizationService
 
         _globalProfile = await _globalProfileStore.LoadAsync().ConfigureAwait(false) ?? _globalProfile;
         _globalProfile.Authorization = _authorizationProfile;
-        await _globalProfileStore.SaveAsync(_globalProfile).ConfigureAwait(false);
+        await _globalProfileStore.SaveAsync(_globalProfile);//.ConfigureAwait(false);
         State.SetProfile(_authorizationProfile);
 
         return AuthorizationResult.Success; // configured ok
@@ -96,7 +96,7 @@ public sealed class AuthorizationService : IAuthorizationService
             if (!await _helloGate.IsAvailableAsync().ConfigureAwait(false))
                 return AuthorizationResult.NotAvailable;
 
-            var result = await _helloGate.RequestVerificationAsync().ConfigureAwait(false);
+            var result = await _helloGate.RequestVerificationAsync();//.ConfigureAwait(false);
             if (result == AuthorizationResult.Success)
                 State.Unlock();
 
