@@ -125,7 +125,7 @@
                         <syncfusion:SfTextBoxExt.InputBindings>
                             <KeyBinding
                                 Key="Escape"
-                                Command="{Binding ClearSearchTextCommand}" />
+                                Command="{Binding ClearSearchCommand}" />
                         </syncfusion:SfTextBoxExt.InputBindings>
 
                     </syncfusion:SfTextBoxExt>
