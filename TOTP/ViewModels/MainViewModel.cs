@@ -55,6 +55,7 @@ public class MainViewModel : IMainViewModel
 
             _isSettingsViewOpen = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(SettingsFlyoutContentViewModel));
 
             if (CloseSettingsViewCommand is RelayCommand closeCmd)
                 closeCmd.RaiseCanExecuteChanged();
@@ -62,6 +63,8 @@ public class MainViewModel : IMainViewModel
     }
 
     public SettingsViewModel Settings { get; set; }
+
+    public SettingsViewModel? SettingsFlyoutContentViewModel => IsSettingsViewOpen ? Settings : null;
 
     #endregion
 
@@ -137,11 +140,16 @@ public class MainViewModel : IMainViewModel
         get => _isEditFlyoutOpen;
         set
         {
+            if (_isEditFlyoutOpen == value) return;
+
             _isEditFlyoutOpen = value;
             IsEditPlatformFocused = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(EditAddFlyoutContentViewModel));
         }
     }
+
+    public MainViewModel? EditAddFlyoutContentViewModel => IsEditAddFlyoutOpen ? this : null;
 
     private AccountViewModel _editingSecret;
 
@@ -479,6 +487,8 @@ public class MainViewModel : IMainViewModel
             saveAction: SaveSettingsView,
             exportTest: TestExport
         );
+
+        OnPropertyChanged(nameof(SettingsFlyoutContentViewModel));
     }
 
     #endregion
