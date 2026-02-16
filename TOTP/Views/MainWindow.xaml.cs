@@ -66,6 +66,8 @@ public partial class MainWindow : ChromelessWindow
         {
             await _vm.InitializeAsync();
             UpdateActivityMonitorState();
+            UpdateEditAddFlyoutContent();
+            UpdateSettingsFlyoutContent();
         }
         catch (Exception ex)
         {
@@ -107,10 +109,22 @@ public partial class MainWindow : ChromelessWindow
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != nameof(MainViewModel.IsUnlocked))
+        if (e.PropertyName == nameof(MainViewModel.IsUnlocked))
+        {
+            UpdateActivityMonitorState();
             return;
+        }
 
-        UpdateActivityMonitorState();
+        if (e.PropertyName == nameof(MainViewModel.IsEditAddFlyoutOpen))
+        {
+            UpdateEditAddFlyoutContent();
+            return;
+        }
+
+        if (e.PropertyName == nameof(MainViewModel.IsSettingsViewOpen))
+        {
+            UpdateSettingsFlyoutContent();
+        }
     }
 
     private void UpdateActivityMonitorState()
@@ -125,6 +139,36 @@ public partial class MainWindow : ChromelessWindow
         else
         {
             DetachActivityMonitor();
+        }
+    }
+
+    private void UpdateEditAddFlyoutContent()
+    {
+        if (_vm is not MainViewModel vm)
+            return;
+
+        if (vm.IsEditAddFlyoutOpen)
+        {
+            EditAddFlyoutContentHost.Content ??= new EditAddAccountFlyoutView();
+        }
+        else
+        {
+            EditAddFlyoutContentHost.Content = null;
+        }
+    }
+
+    private void UpdateSettingsFlyoutContent()
+    {
+        if (_vm is not MainViewModel vm)
+            return;
+
+        if (vm.IsSettingsViewOpen)
+        {
+            SettingsFlyoutContentHost.Content ??= new AppSettingsFlyoutView();
+        }
+        else
+        {
+            SettingsFlyoutContentHost.Content = null;
         }
     }
 

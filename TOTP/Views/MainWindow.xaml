@@ -511,7 +511,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                                      CloseCommand="{Binding CancelFlyoutCommand}"
                                      PanelWidth="300">
                 <userControls:FlyoutHost.FlyoutContent>
-                    <views:EditAddAccountFlyoutView />
+                    <ContentControl x:Name="EditAddFlyoutContentHost" />
                 </userControls:FlyoutHost.FlyoutContent>
             </userControls:FlyoutHost>
 
@@ -526,7 +526,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                                       OverlayZIndex="20"
                                     >
                 <userControls:FlyoutHost.FlyoutContent>
-                    <views:AppSettingsFlyoutView  />
+                    <ContentControl x:Name="SettingsFlyoutContentHost" />
                 </userControls:FlyoutHost.FlyoutContent>
             </userControls:FlyoutHost>
 
