@@ -21,7 +21,7 @@ public interface IMainViewModel : INotifyPropertyChanged
     void OpenFlyoutAddMode();
     AccountViewModel SelectedSecret { get; set; }
     bool IsContextmenuOpen { get; set; }
-    Task InitializeAsync();
+    Task InitializeMainViewAsync();
     Task OnRowSelectionChangedAsync(AccountViewModel item);
     bool IsGridEditing { get; set; }
     bool IsInlineEditing { get; set; }

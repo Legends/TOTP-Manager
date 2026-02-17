@@ -7,6 +7,7 @@ using TOTP.Helper;
 using TOTP.Infrastructure;
 using TOTP.Resources;
 using TOTP.Security.Interfaces;
+using TOTP.Services.Interfaces;
 using TOTP.Startup;
 using TOTP.Views;
 
@@ -57,6 +58,17 @@ internal static class Program
             mainWindow.ResizeMode = System.Windows.ResizeMode.NoResize;
 
             app.MainWindow = mainWindow;
+
+            // 2. Resolve the ViewModel and trigger InitializeAsync
+            // We do not 'await' here to avoid blocking the STA thread before the Dispatcher starts.
+            // The ViewModel internally handles the Task.
+            if (mainWindow.DataContext is IMainViewModel vm)
+            {
+                // Use Task.Run or simply fire-and-forget the Task 
+                // because InitializeAsync internally handles its own UI updates/awaiting.
+                _ = vm.InitializeMainViewAsync();
+            }
+
             mainWindow.Show();
 
             // Starts dispatcher; from here you have a real WPF UI thread

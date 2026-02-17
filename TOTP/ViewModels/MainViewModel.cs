@@ -483,21 +483,64 @@ public class MainViewModel : IMainViewModel
         //Setup TOTP generation timer
         TotpUiTimer = new System.Threading.Timer(_ => StartTotpTick(), null, Timeout.Infinite, 500);
 
-        SetupSettingsViewModel();
+
     }
 
-    private void SetupSettingsViewModel()
+    //private void SetupSettingsViewModel()
+    //{
+    //    Settings = new SettingsViewModel(
+    //        globalProfileStore: _globalProfileStore,
+    //        authorizationService: _authorization,
+    //        closeCommand: CloseSettingsViewCommand,
+    //        saveAction: SaveSettingsView,
+    //        exportTest: TestExport
+    //    );
+    //}
+
+    #endregion
+
+    #region ###  ENTRY-POINT  ###
+    public async Task InitializeMainViewAsync()
     {
-        Settings = new SettingsViewModel(
-            globalProfileStore: _globalProfileStore,
-            authorizationService: _authorization,
-            closeCommand: CloseSettingsViewCommand,
-            saveAction: SaveSettingsView,
-            exportTest: TestExport
-        );
+        try
+        {
+
+            Settings = await SettingsViewModel.CreateAsync(
+                globalProfileStore: _globalProfileStore,
+                authorizationService: _authorization,
+                closeCommand: CloseSettingsViewCommand,
+                saveAction: SaveSettingsView,
+                exportTest: TestExport
+            );
+
+            // Always start locked. The overlay unlock view is visible when IsUnlocked == false.
+            OnPropertyChanged(nameof(IsUnlocked));
+
+            // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
+            await _authorization.InitializeAsync();
+
+            // This triggers the gate every start:
+            // - If configured gate is Hello -> it prompts immediately
+            // - If password -> returns RequiresUserInput (stays on auth UI)
+
+            // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
+            await _authorization.TryUnlockOnStartupAsync();
+
+            // Success path is handled by AuthorizationState_Changed → OnUnlockedAsync()
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "MainViewModel initialization failed.");
+
+            // Use the injected message service to tell the user what happened
+            _messageService.ShowErrorMessageDialog(UI.ex_FatalError + ": " + ex.Message);
+            Environment.Exit(1);
+            // Handle state (e.g., force a specific UI state so the app isn't "stuck")
+        }
     }
 
     #endregion
+
 
     #region ### COMMANDS DECLARATION ###
 
@@ -514,7 +557,7 @@ public class MainViewModel : IMainViewModel
             OnPropertyChanged();
         }
     }
-    
+
     public ICommand CopyCodeCommand { get; private set; } = null!;
     public ICommand GenerateQrCommand { get; private set; } = null!;
     public AsyncCommand ExportSecretsCommand { get; private set; } = null!;
@@ -570,10 +613,10 @@ public class MainViewModel : IMainViewModel
             IsSearchVisible = !IsSearchVisible;
             IsSearchFocused = IsSearchVisible;
         }, () => !IsGridEditing);
-        
+
         ClearSearchCommand = new RelayCommand(ClearSearchTextbox, () => IsSearchVisible);
 
-        InitializeCommand = new AsyncCommand(InitializeAsync, logger: _logger);
+        InitializeCommand = new AsyncCommand(InitializeMainViewAsync, logger: _logger);
         LockCommand = new RelayCommand(Lock);
         WindowStateChangedCommand = new RelayCommand<WindowState>(OnWindowStateChanged);
         AttachWindowCommand = new RelayCommand<Window>(AttachWindow);
@@ -684,26 +727,6 @@ public class MainViewModel : IMainViewModel
 
     #endregion
 
-    #region ###  ENTRY-POINT  ###
-    public async Task InitializeAsync()
-    {
-        // Always start locked. The overlay unlock view is visible when IsUnlocked == false.
-        OnPropertyChanged(nameof(IsUnlocked));
-
-        // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
-        await _authorization.InitializeAsync();
-
-        // This triggers the gate every start:
-        // - If configured gate is Hello -> it prompts immediately
-        // - If password -> returns RequiresUserInput (stays on auth UI)
-
-        // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
-        await _authorization.TryUnlockOnStartupAsync();
-
-        // Success path is handled by AuthorizationState_Changed → OnUnlockedAsync()
-    }
-
-    #endregion
 
     private async Task EnsureSecretsLoadedAsync()
     {

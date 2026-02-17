@@ -203,8 +203,17 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         ExportTestCommand = new RelayCommand(_ => exportTest());
 
         _ = LoadAsync();
+    }
 
-    
+    public static async Task<SettingsViewModel> CreateAsync(IGlobalProfileStore globalProfileStore,
+                                                IAuthorizationService authorizationService,
+                                                ICommand closeCommand,
+                                                Action saveAction,
+                                                Action exportTest)
+    {
+        var vm = new SettingsViewModel(globalProfileStore, authorizationService, closeCommand, saveAction, exportTest);
+        await vm.LoadAsync();
+        return vm;
     }
 
     async Task SaveAndCloseAsync()
