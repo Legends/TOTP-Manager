@@ -37,11 +37,12 @@
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
-            <!--<i:InvokeCommandAction Command="{Binding InitializeCommand}" />-->
-            <i:InvokeCommandAction Command="{Binding AttachWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
+            <i:InvokeCommandAction Command="{Binding InitializeCommand}" />
+            <i:InvokeCommandAction Command="{Binding AttachWindowCommand}" CommandParameter="{Binding ElementName=mainWin}" />
+            <i:InvokeCommandAction Command="{Binding WindowStateChangedCommand}" CommandParameter="{Binding ElementName=mainWin, Path=WindowState}" />
         </i:EventTrigger>
         <i:EventTrigger EventName="StateChanged">
-            <i:InvokeCommandAction Command="{Binding WindowStateChangedCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=WindowState}" />
+            <i:InvokeCommandAction Command="{Binding WindowStateChangedCommand}" CommandParameter="{Binding ElementName=mainWin, Path=WindowState}" />
         </i:EventTrigger>
         <i:EventTrigger EventName="Closed">
             <i:InvokeCommandAction Command="{Binding DetachWindowCommand}" />
