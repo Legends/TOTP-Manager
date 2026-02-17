@@ -55,6 +55,7 @@ internal static class Program
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
 
             var mainWindow = host.Services.GetRequiredService<MainWindow>();
+            mainWindow.DataContext = host.Services.GetRequiredService<IMainViewModel>();
             mainWindow.ResizeMode = System.Windows.ResizeMode.NoResize;
 
             app.MainWindow = mainWindow;

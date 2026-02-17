@@ -27,7 +27,7 @@
                              Width="300"
                              SizeToContent="Height"
                              Icon="/Assets/Icons/app.ico"
-                             Title="TOTP Manager"
+                             Title="{xaml:Resx Key= ui_Window_Title_TOTP_Manager}"
                              TitleBarBackground="#7D7FF4"
                              TitleBarForeground="{DynamicResource Brush.Foreground}">
 
@@ -37,7 +37,7 @@
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
-            <i:InvokeCommandAction Command="{Binding InitializeCommand}" />
+            <!--<i:InvokeCommandAction Command="{Binding InitializeCommand}" />-->
             <i:InvokeCommandAction Command="{Binding AttachWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
         </i:EventTrigger>
         <i:EventTrigger EventName="StateChanged">
@@ -47,10 +47,6 @@
             <i:InvokeCommandAction Command="{Binding DetachWindowCommand}" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
-
-
-    
-
 
     <syncfusion:ChromelessWindow.Resources>
         <BounceEase x:Key="BounceEase"

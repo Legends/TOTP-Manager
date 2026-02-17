@@ -12,8 +12,8 @@ public partial class MainWindow : ChromelessWindow
     {
         InitializeComponent();
 
-        DataContext = vm ?? throw new ArgumentNullException(nameof(vm));
-        Title = UI.ui_Window_Title_TOTP_Manager;
+        //DataContext = vm ?? throw new ArgumentNullException(nameof(vm));
+        //Title = UI.ui_Window_Title_TOTP_Manager;
 
         SkinManagerHelper.SetScrollBarMode(this, ScrollBarMode.Default);
     }
