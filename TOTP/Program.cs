@@ -55,25 +55,13 @@ internal static class Program
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
 
             var mainWindow = host.Services.GetRequiredService<MainWindow>();
-            mainWindow.DataContext = host.Services.GetRequiredService<IMainViewModel>();
+            mainWindow.DataContext ??= host.Services.GetRequiredService<IMainViewModel>();
             mainWindow.ResizeMode = System.Windows.ResizeMode.NoResize;
 
-            app.MainWindow = mainWindow;
-
-            // 2. Resolve the ViewModel and trigger InitializeAsync
-            // We do not 'await' here to avoid blocking the STA thread before the Dispatcher starts.
-            // The ViewModel internally handles the Task.
-            if (mainWindow.DataContext is IMainViewModel vm)
-            {
-                // Use Task.Run or simply fire-and-forget the Task 
-                // because InitializeAsync internally handles its own UI updates/awaiting.
-                _ = vm.InitializeMainViewAsync();
-            }
-
-            mainWindow.Show();
-
-            // Starts dispatcher; from here you have a real WPF UI thread
-            app.Run();
+            // Let WPF own the startup sequence for MainWindow.
+            // This ensures window lifecycle events (Loaded/StateChanged/Closed)
+            // are raised through the normal Run(mainWindow) flow.
+            app.Run(mainWindow);
 
             // Graceful shutdown after UI exits
             host.StopAsync().GetAwaiter().GetResult();
