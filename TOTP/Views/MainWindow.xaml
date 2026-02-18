@@ -36,10 +36,6 @@
     </Window.InputBindings>
 
     <i:Interaction.Triggers>
-        <i:EventTrigger EventName="Loaded">
-            <!--<i:InvokeCommandAction Command="{Binding InitializeCommand}" />-->
-            <i:InvokeCommandAction Command="{Binding AttachWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
-        </i:EventTrigger>
         <i:EventTrigger EventName="StateChanged">
             <i:InvokeCommandAction Command="{Binding WindowStateChangedCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=WindowState}" />
         </i:EventTrigger>

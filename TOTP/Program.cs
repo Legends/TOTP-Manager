@@ -67,7 +67,7 @@ internal static class Program
             {
                 // Use Task.Run or simply fire-and-forget the Task 
                 // because InitializeAsync internally handles its own UI updates/awaiting.
-                _ = vm.InitializeMainViewAsync();
+                _ = vm.InitializeMainViewAsync(mainWindow);
             }
 
             mainWindow.Show();

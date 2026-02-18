@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Windows;
 using System.Windows.Input;
 using TOTP.Security.Interfaces;
 using TOTP.Services.Interfaces;
@@ -15,7 +14,7 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
     private readonly IUserActivityService _activityService;
     private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 
-    private Window? _window;
+    private IMainWindow? _window;
     private long _lastMouseMoveTicks;
 
     public WpfInputActivityMonitor(IUserActivityService activityService)
@@ -24,14 +23,12 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
         _lastMouseMoveTicks = _stopwatch.ElapsedTicks;
     }
 
-    public void Attach(Window window)
+    public void Attach(IMainWindow window)
     {
         if (_window != null)
             return;
 
         _window = window ?? throw new ArgumentNullException(nameof(window));
-
-        //WeakEventManager<Window, MouseButtonEventArgs>.AddHandler(_window, "PreviewMouseDown", OnMouseDown);
 
         _window.PreviewMouseDown += OnMouseDown;
         _window.PreviewMouseWheel += OnMouseWheel;

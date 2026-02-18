@@ -6,8 +6,9 @@ using TOTP.Services.Interfaces;
 
 namespace TOTP.Views;
 
-public partial class MainWindow : ChromelessWindow
+public partial class MainWindow : ChromelessWindow, IMainWindow
 {
+
     public MainWindow(IMainViewModel vm)
     {
         InitializeComponent();

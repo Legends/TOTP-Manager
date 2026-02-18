@@ -427,6 +427,7 @@ public class MainViewModel : IMainViewModel
 
     private bool _secretsLoaded;
     private bool _collectionHooked;
+    private IMainWindow? _attachedWindow;
 
     //private string _pendingSearchText;
 
@@ -500,8 +501,13 @@ public class MainViewModel : IMainViewModel
     #endregion
 
     #region ###  ENTRY-POINT  ###
-    public async Task InitializeMainViewAsync()
+    public async Task InitializeMainViewAsync(IMainWindow? mainWindow)
     {
+        if (mainWindow != null)
+        {
+            AttachWindowCommand.Execute(mainWindow);
+        }
+
         try
         {
 
@@ -616,10 +622,10 @@ public class MainViewModel : IMainViewModel
 
         ClearSearchCommand = new RelayCommand(ClearSearchTextbox, () => IsSearchVisible);
 
-        InitializeCommand = new AsyncCommand(InitializeMainViewAsync, logger: _logger);
+        InitializeCommand = new AsyncCommand(() => InitializeMainViewAsync(_attachedWindow), logger: _logger);
         LockCommand = new RelayCommand(Lock);
         WindowStateChangedCommand = new RelayCommand<WindowState>(OnWindowStateChanged);
-        AttachWindowCommand = new RelayCommand<Window>(AttachWindow);
+        AttachWindowCommand = new RelayCommand<IMainWindow>(AttachWindow);
         DetachWindowCommand = new RelayCommand(DetachWindow);
     }
 
@@ -782,6 +788,11 @@ public class MainViewModel : IMainViewModel
 
     private async Task OnUnlockedAsync()
     {
+        if (_attachedWindow != null)
+        {
+            _inputActivityMonitor.Attach(_attachedWindow);
+        }
+
         await EnsureSecretsLoadedAsync();
         UpdateActivityMonitorState();
     }
@@ -822,11 +833,12 @@ public class MainViewModel : IMainViewModel
             Lock();
     }
 
-    private void AttachWindow(Window? window)
+    private void AttachWindow(IMainWindow? window)
     {
         if (window == null)
             return;
 
+        _attachedWindow = window;
         _inputActivityMonitor.Attach(window);
         UpdateActivityMonitorState();
     }
@@ -834,6 +846,7 @@ public class MainViewModel : IMainViewModel
     private void DetachWindow()
     {
         _inputActivityMonitor.Detach();
+        _attachedWindow = null;
     }
 
     private void UpdateActivityMonitorState()
