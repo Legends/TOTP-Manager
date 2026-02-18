@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OtpNet;
 using Syncfusion.Linq;
+using Syncfusion.SfSkinManager;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,9 +16,9 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using System.Windows.Data;
 using System.Windows;
+using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using TOTP.Commands;
@@ -505,7 +506,7 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-
+            
             AttachWindowCommand.Execute(mainWindow);
 
 

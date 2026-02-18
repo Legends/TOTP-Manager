@@ -13,6 +13,7 @@
                              xmlns:props="clr-namespace:TOTP.AttachedProperties"
                              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
                              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
+                             syncfusionskin:SkinManagerHelper.ScrollBarMode="Default"
                              xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
                              xmlns:resx="clr-namespace:TOTP.Resources"
                              xmlns:xaml="clr-namespace:TOTP.Xaml"
