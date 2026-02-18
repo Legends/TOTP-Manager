@@ -388,21 +388,23 @@ public class MainViewModel : IMainViewModel
         {
             if (ReferenceEquals(_allSecrets, value)) return;
             _allSecrets = value;
-            RebuildSecretsView();
+            //RebuildSecretsView();
             OnPropertyChanged();
         }
     }
 
-    private ICollectionView _filteredSecrets = null!;
-    public ICollectionView FilteredSecrets
-    {
-        get => _filteredSecrets;
-        private set
-        {
-            _filteredSecrets = value;
-            OnPropertyChanged();
-        }
-    }
+    public Action? RequestGridFilterRefresh { get; set; }
+
+    //private ICollectionView _filteredSecrets = null!;
+    //public ICollectionView FilteredSecrets
+    //{
+    //    get => _filteredSecrets;
+    //    private set
+    //    {
+    //        _filteredSecrets = value;
+    //        OnPropertyChanged();
+    //    }
+    //}
 
     public ObservableCollection<CultureDisplay> SupportedCultures { get; set; }
 
@@ -471,7 +473,7 @@ public class MainViewModel : IMainViewModel
         _globalProfileStore = new FileGlobalProfileStore(resolvedProfilePath);
 
         AllSecrets = new ObservableCollection<AccountViewModel>();
-        RebuildSecretsView();
+        //RebuildSecretsView();
         UnlockViewModel = unlockVM;
 
         _secretsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
@@ -1471,11 +1473,11 @@ public class MainViewModel : IMainViewModel
 
     #region ### Grid Filter Logic ###
 
-    private void RebuildSecretsView()
-    {
-        FilteredSecrets = CollectionViewSource.GetDefaultView(AllSecrets);
-        FilteredSecrets.Filter = FilterSecrets;
-    }
+    //private void RebuildSecretsView()
+    //{
+    //    FilteredSecrets = CollectionViewSource.GetDefaultView(AllSecrets);
+    //    FilteredSecrets.Filter = FilterSecrets;
+    //}
 
     private bool FilterSecrets(object obj)
     {
@@ -1485,11 +1487,35 @@ public class MainViewModel : IMainViewModel
         return obj is AccountViewModel vm && (vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
+    /// <summary>
+    /// Displays the row if the obj is of type SecretItemViewModel and
+    /// if the search text is empty return every row
+    /// or
+    /// the platform property of the current object contains the search text
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    bool IMainViewModel.DoFilterGrid(object obj)
+    {
+        Debug.WriteLine("---  DoFilterGrid   ----");
+        return obj is AccountViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
+    /// <summary>
+    /// For bulk changes, wrap in using (_view?.DeferRefresh()) { /* add/remove many items */ } to avoid multiple re-filters.
+    /// </summary>
+    void RefreshView()
+    {
+        RequestGridFilterRefresh?.Invoke();
+    }
+
     private void ExecuteSearch()
     {
         try
         {
-            FilteredSecrets.Refresh();
+            //FilteredSecrets.Refresh();
+            // when SearchText changes:
+            RefreshView();
         }
         catch (Exception ex)
         {

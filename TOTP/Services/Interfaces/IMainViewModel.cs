@@ -1,8 +1,9 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using System.Windows.Data;
+using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.ViewModels;
 
@@ -11,7 +12,9 @@ namespace TOTP.Services.Interfaces;
 public interface IMainViewModel : INotifyPropertyChanged
 {
     ObservableCollection<AccountViewModel> AllSecrets { get; }
-    ICollectionView FilteredSecrets { get; }
+    //ICollectionView FilteredSecrets { get; }
+    Action? RequestGridFilterRefresh { get; set; }
+    bool DoFilterGrid(object obj);
     RelayCommand OpenFlyoutAddModeCommand { get; }
     ICommand DeleteSecretCommand { get; }
     ICommand UpdateSecretCommand { get; }
