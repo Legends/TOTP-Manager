@@ -745,7 +745,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Options.
+        ///   Looks up a localized string similar to Settings.
         /// </summary>
         internal static string ui_Settings_Title {
             get {

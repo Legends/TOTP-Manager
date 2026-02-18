@@ -184,10 +184,11 @@
                                         ExpandMode="ExpandOnClick">
 
                         <!-- Main entry point: Gear icon -->
-                        <syncfusion:MenuItemAdv Header="Settings"
-                                                Width="32"
+                        <syncfusion:MenuItemAdv Header="xaml:Resx Key=ui_Settings_Title}"
+                                                Command="{Binding OpenSettingsCommand}"
+                                                Width="32" 
                                                 Padding="0"
-                                                ToolTip="{xaml:Resx Key=ui_Options}"
+                                                ToolTip="{xaml:Resx Key=ui_Settings_Title}"
                                                 HorizontalContentAlignment="Center"
                                                 VerticalContentAlignment="Center">
 
@@ -198,14 +199,14 @@
                                                  Stretch="Uniform" />
                             </syncfusion:MenuItemAdv.Icon>
                             <!--SETTINGS MENU ENTRY-->
-                            <syncfusion:MenuItemAdv Header="Settings"
+                            <!--<syncfusion:MenuItemAdv Header="{xaml:Resx Key=ui_Settings_Title}"
                                                     Command="{Binding OpenSettingsCommand}" />
 
                             <syncfusion:MenuItemAdv Header="Export"
                                                     ToolTip="{Binding ExportToolTip}"
                                                     Command="{Binding ExportSecretsCommand}" />
 
-                            <!-- Your menu opens vertically under the gear -->
+                            --><!-- Your menu opens vertically under the gear --><!--
                             <syncfusion:MenuItemAdv Header="WPF">
                                 <syncfusion:MenuItemAdv Header="Tools" ToolTip="{xaml:Resx Key=ui_btnCancel}" />
                                 <syncfusion:MenuItemAdv Header="Chart" />
@@ -214,7 +215,7 @@
                             </syncfusion:MenuItemAdv>
 
 
-                            <syncfusion:MenuItemAdv Header="Reporting" />
+                            <syncfusion:MenuItemAdv Header="Reporting" />-->
 
                             <!-- Optional: actual settings command as a clickable leaf item -->
 

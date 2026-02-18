@@ -346,7 +346,7 @@
     <value>Export</value>
   </data>
   <data name="ui_Settings_Title" xml:space="preserve">
-    <value>Optionen</value>
+    <value>Einstellungen</value>
   </data>
   <data name="ui_watermark_platform" xml:space="preserve">
     <value>z.b. github, msft, ...</value>
