@@ -46,59 +46,7 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
             //OnPropertyChanged();
         }
     }
-
-
-
-    #region TOTP Progress
-
-    //string _totpCode;
-    //public string TotpCode
-    //{
-    //    get => _totpCode;
-    //    set
-    //    {
-    //        if (_totpCode != value)
-    //        {
-    //            _totpCode = value;
-    //            OnPropertyChanged();
-    //        }
-    //    }
-    //}
-
-    //private double _progress;
-    //public double Progress
-    //{
-    //    get => _progress;
-    //    set
-    //    {
-    //        if (_progress != value)
-    //        {
-    //            _progress = value;
-    //            OnPropertyChanged();
-    //        }
-    //    }
-    //}
-
-    //// ToDo: Remove from secretItemViewmodel !!! settings these props in timer repeatedely causes the filter logic to execute permanentlz!!
-    //public int PeriodSeconds { get; } = 30;
-
-    //int _remainingSeconds;
-    //public int RemainingSeconds
-    //{
-    //    get => _remainingSeconds;
-    //    set
-    //    {
-    //        _remainingSeconds = value;
-    //        OnPropertyChanged();
-    //        OnPropertyChanged(nameof(ElapsedSeconds));
-    //    }
-    //}
-
-    //public int ElapsedSeconds => PeriodSeconds - RemainingSeconds;
-
-    #endregion
-
-
+    
     private string? _platform;
 
     public string? Platform

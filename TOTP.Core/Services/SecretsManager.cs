@@ -6,14 +6,14 @@ using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Core.Services;
 
-public class SecretsManager : ISecretsManager
+public class SecretsManager : IAccountsManager
 {
 
     private readonly ILogger<SecretsManager> _logger;
-    private readonly ISecretsDAL _secretsDal;
+    private readonly IAccountsDAL _secretsDal;
 
     public SecretsManager(
-        ISecretsDAL secretsDal,
+        IAccountsDAL secretsDal,
         ILogger<SecretsManager> logger)
     {
         _secretsDal = secretsDal;

@@ -14,23 +14,26 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
     {
         InitializeComponent();
 
-        //DataContext = vm ?? throw new ArgumentNullException(nameof(vm));
-        //Title = UI.ui_Window_Title_TOTP_Manager;
+        
 
-        //SkinManagerHelper.SetScrollBarMode(this, ScrollBarMode.Default);
-
-        SecretsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
+        //SecretsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
 
         //vm.PropertyChanged += OnViewModelPropertyChanged;
+    }
+
+    protected override void OnContentRendered(EventArgs e)
+    {
+        base.OnContentRendered(e);
+        AccountsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
     }
 
     private void SecretsGrid_ItemsSourceChanged(object? sender, Syncfusion.UI.Xaml.Grid.GridItemsSourceChangedEventArgs e)
     {
 
-        if (DataContext is IMainViewModel vm && SecretsGrid.View != null && SecretsGrid.View.Filter == null)
+        if (DataContext is IMainViewModel vm && AccountsGrid.View != null && AccountsGrid.View.Filter == null)
         {
             // Attach filtering handler
-            SecretsGrid.View.Filter = vm.DoFilterGrid;
+            AccountsGrid.View.Filter = vm.DoFilterGrid;
             //SecretsGrid.View.RefreshFilter(true); 
 
 
@@ -38,13 +41,13 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
             vm.RequestGridFilterRefresh = () =>
             {
                 if (!Dispatcher.CheckAccess())
-                    Dispatcher.BeginInvoke(new Action(() => SecretsGrid.View?.RefreshFilter()));
+                    Dispatcher.BeginInvoke(new Action(() => AccountsGrid.View?.RefreshFilter()));
                 else
-                    SecretsGrid.View?.RefreshFilter();
+                    AccountsGrid.View?.RefreshFilter();
             };
 
             // Filters the grid datasource based on vm.DoFilterGrid
-            SecretsGrid.View.RefreshFilter();
+            AccountsGrid.View.RefreshFilter();
         }
     }
 }

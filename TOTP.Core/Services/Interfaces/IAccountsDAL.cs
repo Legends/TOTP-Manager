@@ -1,4 +1,6 @@
-﻿using TOTP.Core.Common;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using TOTP.Core.Common;
 using TOTP.Core.Models;
 
 namespace TOTP.Core.Services.Interfaces;
@@ -10,7 +12,7 @@ namespace TOTP.Core.Services.Interfaces;
 /// - Secrets file backup
 /// 
 /// </summary>
-public interface ISecretsDAL
+public interface IAccountsDAL
 {
 
     /// <summary>

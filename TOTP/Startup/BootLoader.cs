@@ -75,7 +75,7 @@ public static class BootLoader
                 services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
 
                 // app services
-                services.AddSingleton<ISecretsDAL>(provider =>
+                services.AddSingleton<IAccountsDAL>(provider =>
                 {
                     var logger = provider.GetRequiredService<ILogger<SecretsDAL>>();
                     var config = provider.GetRequiredService<IConfiguration>();
@@ -86,7 +86,7 @@ public static class BootLoader
                 });
 
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
-                services.AddSingleton<ISecretsManager, SecretsManager>();
+                services.AddSingleton<IAccountsManager, SecretsManager>();
 
                 var rawProfilePath = configuration.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
                 var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? "");

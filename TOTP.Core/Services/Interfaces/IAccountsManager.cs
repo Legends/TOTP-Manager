@@ -1,4 +1,6 @@
-﻿using TOTP.Core.Enums;
+﻿using System;
+using System.Threading.Tasks;
+using TOTP.Core.Enums;
 using TOTP.Core.Events;
 using TOTP.Core.Models;
 
@@ -11,7 +13,7 @@ namespace TOTP.Core.Services.Interfaces;
 /// Update
 /// Delete
 /// </summary>
-public interface ISecretsManager
+public interface IAccountsManager
 {
 
     ///// <summary>

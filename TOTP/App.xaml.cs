@@ -40,7 +40,7 @@ public partial class App : Application
         // Optional: anything *extra* at WPF exit (Program.cs already stops host & flushes Serilog)
         try
         {
-            var secretsManager = Host.Services.GetService(typeof(ISecretsDAL)) as ISecretsDAL;
+            var secretsManager = Host.Services.GetService(typeof(IAccountsDAL)) as IAccountsDAL;
             secretsManager?.BackupSecretsFile();
         }
         catch (Exception ex)

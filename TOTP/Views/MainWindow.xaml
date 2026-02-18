@@ -246,9 +246,9 @@
                 <!--SelectionChanged="DataGrid_SelectionChanged"
                 ItemsSource="{Binding FilteredSecrets}"
                 -->
-                <syncfusion:SfDataGrid x:Name="SecretsGrid"
+                <syncfusion:SfDataGrid x:Name="AccountsGrid"
                                        
-                                       ItemsSource="{Binding AllSecrets}"
+                                       ItemsSource="{Binding AllAccounts}"
                                        CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
                                        Grid.Row="0"
                                        AllowSorting="True"

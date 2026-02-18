@@ -283,7 +283,7 @@ public class MainViewModel : IMainViewModel
             {
                 //IsInlineEditing = false;
 
-                foreach (var item in AllSecrets)
+                foreach (var item in AllAccounts)
                     item.IsBeingEdited = false;
 
                 _selectedSecret = value;
@@ -366,11 +366,14 @@ public class MainViewModel : IMainViewModel
         get => _searchText;
         set
         {
-            //ClearCodeGenerationOutput();
-            _searchText = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsSearchTextNotEmpty));
-            _debounceService.Debounce("Search", 300, ExecuteSearch);
+            if (!string.Equals(_searchText, value, StringComparison.OrdinalIgnoreCase))
+            {
+                _searchText = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsSearchTextNotEmpty));
+                _debounceService.Debounce("Search", 300, ExecuteSearch);
+            }
+          
         }
     }
 
@@ -380,14 +383,14 @@ public class MainViewModel : IMainViewModel
 
     #region ### ObservableCollections ###
 
-    private ObservableCollection<AccountViewModel> _allSecrets;
-    public ObservableCollection<AccountViewModel> AllSecrets
+    private ObservableCollection<AccountViewModel> _allAccounts;
+    public ObservableCollection<AccountViewModel> AllAccounts
     {
-        get => _allSecrets;
+        get => _allAccounts;
         private set
         {
-            if (ReferenceEquals(_allSecrets, value)) return;
-            _allSecrets = value;
+            if (ReferenceEquals(_allAccounts, value)) return;
+            _allAccounts = value;
             //RebuildSecretsView();
             OnPropertyChanged();
         }
@@ -412,10 +415,10 @@ public class MainViewModel : IMainViewModel
 
     #region ### SERVICES DECLARATIONS ###
 
-    private readonly ISecretsDAL _secretsDal;
+    private readonly IAccountsDAL _secretsDal;
     private readonly IClipboardService _clipboard;
     private readonly IMessageService _messageService;
-    private readonly ISecretsManager _secretsManager;
+    private readonly IAccountsManager _secretsManager;
 
     private readonly IDebounceService _debounceService;
 
@@ -445,10 +448,10 @@ public class MainViewModel : IMainViewModel
         IMessageService messageService,
         IClipboardService clipboard,
         IConfiguration config,
-        ISecretsManager totpManager,
+        IAccountsManager totpManager,
         IDebounceService debounceService,
         IDelayService delayService,
-        ISecretsDAL secretsDal,
+        IAccountsDAL secretsDal,
         IFileDialogService fileDialogService,
         IAuthorizationService authorization,
         IUserActivityService activityService,
@@ -472,7 +475,7 @@ public class MainViewModel : IMainViewModel
         var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
         _globalProfileStore = new FileGlobalProfileStore(resolvedProfilePath);
 
-        AllSecrets = new ObservableCollection<AccountViewModel>();
+        AllAccounts = new ObservableCollection<AccountViewModel>();
         //RebuildSecretsView();
         UnlockViewModel = unlockVM;
 
@@ -489,17 +492,6 @@ public class MainViewModel : IMainViewModel
 
 
     }
-
-    //private void SetupSettingsViewModel()
-    //{
-    //    Settings = new SettingsViewModel(
-    //        globalProfileStore: _globalProfileStore,
-    //        authorizationService: _authorization,
-    //        closeCommand: CloseSettingsViewCommand,
-    //        saveAction: SaveSettingsView,
-    //        exportTest: TestExport
-    //    );
-    //}
 
     #endregion
 
@@ -547,8 +539,7 @@ public class MainViewModel : IMainViewModel
     }
 
     #endregion
-
-
+    
     #region ### COMMANDS DECLARATION ###
 
     public ICommand OpenSettingsCommand { get; private set; } = null!;
@@ -746,7 +737,8 @@ public class MainViewModel : IMainViewModel
 
         if (!_collectionHooked)
         {
-            AllSecrets.CollectionChanged += Source_CollectionChanged;
+            Debug.WriteLine("_collectionHooked = >  AllAccounts.CollectionChanged += Source_CollectionChanged;");
+            AllAccounts.CollectionChanged += Source_CollectionChanged;
             _collectionHooked = true;
         }
 
@@ -767,7 +759,7 @@ public class MainViewModel : IMainViewModel
 
     private ValidationError DuplicateCheck(AccountViewModel si)
     {
-        return SecretValidator.PlatformNameDuplicateExists(si.Platform, AllSecrets.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
+        return SecretValidator.PlatformNameDuplicateExists(si.Platform, AllAccounts.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
     }
 
 
@@ -808,7 +800,7 @@ public class MainViewModel : IMainViewModel
         _inputActivityMonitor.Detach();
 
         _secretsLoaded = false;
-        AllSecrets.Clear();
+        AllAccounts.Clear();
 
         StopTOTPTimer();
         ClearCodeGenerationOutput();
@@ -907,20 +899,20 @@ public class MainViewModel : IMainViewModel
                 result.Value.Sort(new Comparison<SecretItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
 
                 var allSecrets = result.Value;
-                AllSecrets = new ObservableCollection<AccountViewModel>((allSecrets.Select(item => item.ToViewModel()) ?? []));
-#if DEBUG
-                //for dev purposes, exclude Syncfusion entry
+                AllAccounts = new ObservableCollection<AccountViewModel>((allSecrets.Select(item => item.ToViewModel()) ?? []));
+//#if DEBUG
+//                //for dev purposes, exclude Syncfusion entry
 
-                var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).Select(item => item.ToViewModel()).ToList();
+//                var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).Select(item => item.ToViewModel()).ToList();
 
-                AllSecrets = new ObservableCollection<AccountViewModel>((IEnumerable<AccountViewModel>)(secrets ?? []));
-#endif
-                foreach (var item in AllSecrets)
+//                AllSecrets = new ObservableCollection<AccountViewModel>((IEnumerable<AccountViewModel>)(secrets ?? []));
+//#endif
+                foreach (var item in AllAccounts)
                 {
                     item.SetDuplicateCheck(DuplicateCheck);
                 }
 
-                return AllSecrets;
+                return AllAccounts;
             }
             else
             {
@@ -1000,8 +992,8 @@ public class MainViewModel : IMainViewModel
         {
             if (await _secretsManager.DeleteSecretAsync(item.ToDomain())) // delete from storage file
             {
-                AllSecrets.Remove(item); // delete secret from internal list
-                OnPropertyChanged(nameof(AllSecrets));
+                AllAccounts.Remove(item); // delete secret from internal list
+                OnPropertyChanged(nameof(AllAccounts));
                 if (item.ID == SelectedSecret?.ID)
                 {
                     StopTOTPTimer();
@@ -1036,10 +1028,10 @@ public class MainViewModel : IMainViewModel
                 return;
 
             //todo: not needed as the item is already update by ref
-            var itemToBeUpdated = AllSecrets.FirstOrDefault(s => s.ID == updated.ID);
+            var itemToBeUpdated = AllAccounts.FirstOrDefault(s => s.ID == updated.ID);
 
             itemToBeUpdated?.UpdateSelf(updated); // only update when in flyout edit mode
-            OnPropertyChanged(nameof(AllSecrets));
+            OnPropertyChanged(nameof(AllAccounts));
 
             if (updated.ID == SelectedSecret?.ID && !ShowGenerateQrCodeLink) // update the QR code if it is visible already
                 UpdateQRCode();
@@ -1089,7 +1081,7 @@ public class MainViewModel : IMainViewModel
             var itemToAdd = CurrentSecretBeingEditedOrAdded.Copy();
             //itemToAdd.IsNewlyAdded = true;
 
-            AllSecrets.Add(itemToAdd);
+            AllAccounts.Add(itemToAdd);
             //OnPropertyChanged(nameof(AllSecrets));
             //ApplySearchFilter();
             CurrentSecretBeingEditedOrAdded = null;
@@ -1122,7 +1114,7 @@ public class MainViewModel : IMainViewModel
 
             }
 
-            var source = AllSecrets.Where(sivm => !sivm.Equals(updated));
+            var source = AllAccounts.Where(sivm => !sivm.Equals(updated));
 
             validator.PlatformNameDuplicateExists(source);
 
@@ -1209,7 +1201,7 @@ public class MainViewModel : IMainViewModel
 
         //ClearCodeGenerationOutput();
 
-        foreach (var s in AllSecrets)
+        foreach (var s in AllAccounts)
             s.IsBeingEdited = false;
 
         item.IsBeingEdited = !item.IsBeingEdited;
@@ -1501,13 +1493,13 @@ public class MainViewModel : IMainViewModel
         return obj is AccountViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
-    /// <summary>
-    /// For bulk changes, wrap in using (_view?.DeferRefresh()) { /* add/remove many items */ } to avoid multiple re-filters.
-    /// </summary>
-    void RefreshView()
-    {
-        RequestGridFilterRefresh?.Invoke();
-    }
+    ///// <summary>
+    ///// For bulk changes, wrap in using (_view?.DeferRefresh()) { /* add/remove many items */ } to avoid multiple re-filters.
+    ///// </summary>
+    //void RefreshView()
+    //{
+    //RequestGridFilterRefresh?.Invoke();
+    //}
 
     private void ExecuteSearch()
     {
@@ -1515,7 +1507,7 @@ public class MainViewModel : IMainViewModel
         {
             //FilteredSecrets.Refresh();
             // when SearchText changes:
-            RefreshView();
+            RequestGridFilterRefresh?.Invoke();
         }
         catch (Exception ex)
         {
@@ -1603,7 +1595,7 @@ public class MainViewModel : IMainViewModel
                 }
                 if (addResult.Status == OperationStatus.Success)
                 {
-                    AllSecrets.Add(newSecretItem);
+                    AllAccounts.Add(newSecretItem);
                 }
             }
             finally
@@ -1619,7 +1611,7 @@ public class MainViewModel : IMainViewModel
         ArgumentNullException.ThrowIfNull(newSecretItem, nameof(newSecretItem));
 
         var validator = new UiValidation(newSecretItem);
-        validator.ValidateAll().PlatformNameDuplicateExists(AllSecrets);
+        validator.ValidateAll().PlatformNameDuplicateExists(AllAccounts);
 
         return validator;
     }

@@ -11,7 +11,7 @@ using TOTP.Core.Validation;
 
 namespace TOTP.Core.Services;
 
-public class SecretsDAL : ISecretsDAL, IDisposable
+public class SecretsDAL : IAccountsDAL, IDisposable
 {
     private readonly JsonSerializerOptions? _options = null;
     private readonly string _secretsPath;
