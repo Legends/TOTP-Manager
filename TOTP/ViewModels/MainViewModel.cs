@@ -366,11 +366,17 @@ public class MainViewModel : IMainViewModel
         get => _searchText;
         set
         {
+            if (string.Equals(_searchText, value, StringComparison.Ordinal))
+                return;
+
             //ClearCodeGenerationOutput();
-            _searchText = value;
+            _searchText = value ?? string.Empty;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsSearchTextNotEmpty));
-            _debounceService.Debounce("Search", 300, () => ExecuteSearch());
+
+            // Refresh immediately to keep the grid filter responsive while typing.
+            // A small debounce was causing missed updates in the search textbox flow.
+            ExecuteSearch();
         }
     }
 
@@ -1473,22 +1479,38 @@ public class MainViewModel : IMainViewModel
 
     private void RebuildSecretsView()
     {
-        FilteredSecrets = CollectionViewSource.GetDefaultView(AllSecrets);
+        // Use a dedicated ListCollectionView for predictable filtering behavior with SfDataGrid.
+        // GetDefaultView can be shared and may not always re-evaluate as expected in this setup.
+        FilteredSecrets = new ListCollectionView(AllSecrets);
         FilteredSecrets.Filter = FilterSecrets;
     }
 
     private bool FilterSecrets(object obj)
     {
+        var query = SearchText?.Trim();
+
         return obj is AccountViewModel vm
-            && (string.IsNullOrWhiteSpace(SearchText)
-                || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+            && (string.IsNullOrWhiteSpace(query)
+                || vm.Platform?.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0
+                || vm.Account?.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     private void ExecuteSearch()
     {
         try
         {
+            if (FilteredSecrets == null || !ReferenceEquals(FilteredSecrets.SourceCollection, AllSecrets))
+            {
+                RebuildSecretsView();
+            }
+            else
+            {
+                // Re-assign filter to force re-evaluation in cases where the view instance was reused.
+                FilteredSecrets.Filter = FilterSecrets;
+            }
+
             FilteredSecrets.Refresh();
+            OnPropertyChanged(nameof(FilteredSecrets));
         }
         catch (Exception ex)
         {
