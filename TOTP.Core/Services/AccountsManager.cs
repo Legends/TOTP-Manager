@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using TOTP.Core.Enums;
 using TOTP.Core.Events;
 using TOTP.Core.Models;
@@ -6,15 +8,15 @@ using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Core.Services;
 
-public class SecretsManager : IAccountsManager
+public class AccountsManager : IAccountsManager
 {
 
-    private readonly ILogger<SecretsManager> _logger;
+    private readonly ILogger<AccountsManager> _logger;
     private readonly IAccountsDAL _secretsDal;
 
-    public SecretsManager(
+    public AccountsManager(
         IAccountsDAL secretsDal,
-        ILogger<SecretsManager> logger)
+        ILogger<AccountsManager> logger)
     {
         _secretsDal = secretsDal;
         _logger = logger;
@@ -56,7 +58,7 @@ public class SecretsManager : IAccountsManager
     //    }
     //}
 
-    public async Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated)
+    public async Task<bool> UpdateAccountAsync(AccountItem previous, AccountItem updated)
     {
         //ArgumentNullException.ThrowIfNull(previous);
         ArgumentNullException.ThrowIfNull(updated);
@@ -71,28 +73,13 @@ public class SecretsManager : IAccountsManager
         return result.Status == OperationStatus.Success;
     }
 
-    //public async Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated)
-    //{
-    //    ArgumentNullException.ThrowIfNull(previous);
-    //    ArgumentNullException.ThrowIfNull(updated);
-
-    //    var result = await _secretsDal.UpdateItemAsync(previous, updated);
-
-    //    var platform = result.Status == OperationStatus.LoadingFailed ? null : previous.Platform;
-
-    //    if (result.Status != OperationStatus.Success)
-    //        OnMessageSend?.Invoke(this, result.Status, platform);
-
-    //    return result.Status == OperationStatus.Success;
-    //}
-
 
     /// <summary>
     ///     Deletes a secret item from the secrets.json file.
     /// </summary>
     /// <param name="item">SecretItem</param>
     /// <returns>true/false</returns>
-    public async Task<bool> DeleteSecretAsync(SecretItem item)
+    public async Task<bool> DeleteAccountAsync(AccountItem item)
     {
         var shouldDelete = ConfirmDeleteRequested?.Invoke(this, item.Platform) ?? false;
 
@@ -119,8 +106,5 @@ public class SecretsManager : IAccountsManager
         return false;
     }
 
-    public bool TryComputeTotpCode(string secret, out string? code, out int remainingSeconds, out Exception? exc)
-    {
-        throw new NotImplementedException();
-    }
+   
 }

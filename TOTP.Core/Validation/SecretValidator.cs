@@ -12,7 +12,7 @@ public static class SecretValidator
             : ValidationError.None;
     }
 
-    public static ValidationError PlatformNameDuplicateExists(string platform, IEnumerable<SecretItem> source)
+    public static ValidationError PlatformNameDuplicateExists(string platform, IEnumerable<AccountItem> source)
     {
         // Check duplicates in the bound list (ignore the current row)
         bool duplicate = source

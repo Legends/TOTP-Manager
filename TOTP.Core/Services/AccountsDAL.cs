@@ -1,7 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
@@ -11,14 +17,14 @@ using TOTP.Core.Validation;
 
 namespace TOTP.Core.Services;
 
-public class SecretsDAL : IAccountsDAL, IDisposable
+public class AccountsDAL : IAccountsDAL, IDisposable
 {
     private readonly JsonSerializerOptions? _options = null;
     private readonly string _secretsPath;
     private static readonly SemaphoreSlim Semaphore = new(1, 1);
-    private readonly ILogger<SecretsDAL> _logger;
+    private readonly ILogger<AccountsDAL> _logger;
 
-    public SecretsDAL(ILogger<SecretsDAL> logger, string? storageFilePath)
+    public AccountsDAL(ILogger<AccountsDAL> logger, string? storageFilePath)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _secretsPath = storageFilePath ?? AlternativeStoragePath();
@@ -31,15 +37,16 @@ public class SecretsDAL : IAccountsDAL, IDisposable
             "TOTP-Manager", "secrets.dat");
     }
 
-    public async Task<OperationResult<List<SecretItem>>> GetAllSecretsAsync()
+    //Task<OperationResult<List<AccountItem>>> GetAllAccountsAsync
+    public async Task<OperationResult<List<AccountItem>>> GetAllAccountsAsync()
     {
         await Semaphore.WaitAsync();
         try
         {
-            var (success, list) = await LoadSecretsFromFileAsync();
+            var (success, list) = await LoadAccountsFromFileAsync();
             return success ?
-                OperationResult<List<SecretItem>>.Success(list)
-                : OperationResult<List<SecretItem>>.Fail(OperationStatus.LoadingFailed);
+                OperationResult<List<AccountItem>>.Success(list)
+                : OperationResult<List<AccountItem>>.Fail(OperationStatus.LoadingFailed);
         }
         finally
         {
@@ -48,17 +55,17 @@ public class SecretsDAL : IAccountsDAL, IDisposable
     }
 
 
-    public async Task<OperationResult<SecretItem>> GetSecretByPlatformAsync(string platform)
+    public async Task<OperationResult<AccountItem>> GetSecretByPlatformAsync(string platform)
     {
 
         await Semaphore.WaitAsync();
         try
         {
-            var (success, list) = await LoadSecretsFromFileAsync();
+            var (success, list) = await LoadAccountsFromFileAsync();
             var secret = list.Where(s => s.Platform.ToLowerInvariant() == platform.ToLowerInvariant()).FirstOrDefault();
             return success ?
-                OperationResult<SecretItem>.Success(secret)
-                : OperationResult<SecretItem>.Fail(OperationStatus.LoadingFailed);
+                OperationResult<AccountItem>.Success(secret)
+                : OperationResult<AccountItem>.Fail(OperationStatus.LoadingFailed);
         }
         finally
         {
@@ -67,12 +74,12 @@ public class SecretsDAL : IAccountsDAL, IDisposable
     }
 
 
-    public async Task<OperationResult<bool>> AddNewItemAsync(SecretItem newItem)
+    public async Task<OperationResult<bool>> AddNewItemAsync(AccountItem newItem)
     {
         await Semaphore.WaitAsync();
         try
         {
-            var (success, list) = await LoadSecretsFromFileAsync();
+            var (success, list) = await LoadAccountsFromFileAsync();
             if (!success) return OperationResult<bool>.Fail(OperationStatus.LoadingFailed);
 
             if (list.Any(x => x.Platform == newItem.Platform))
@@ -90,12 +97,12 @@ public class SecretsDAL : IAccountsDAL, IDisposable
         }
     }
 
-    public async Task<OperationResult<bool>> UpdateItemAsync(SecretItem updated)
+    public async Task<OperationResult<bool>> UpdateItemAsync(AccountItem updated)
     {
         await Semaphore.WaitAsync();
         try
         {
-            var (ok, listStore) = await LoadSecretsFromFileAsync();
+            var (ok, listStore) = await LoadAccountsFromFileAsync();
             if (!ok) return new(OperationStatus.LoadingFailed, ok);
 
             var existing = listStore.FirstOrDefault(x => x.ID == updated.ID);
@@ -121,7 +128,7 @@ public class SecretsDAL : IAccountsDAL, IDisposable
         await Semaphore.WaitAsync();
         try
         {
-            var (success, secrets) = await LoadSecretsFromFileAsync();
+            var (success, secrets) = await LoadAccountsFromFileAsync();
             if (!success)
                 return OperationResult<bool>.Fail(OperationStatus.LoadingFailed);
 
@@ -142,7 +149,7 @@ public class SecretsDAL : IAccountsDAL, IDisposable
         }
     }
 
-    public bool BackupSecretsFile()
+    public bool BackupAccountsFile()
     {
         if (!File.Exists(_secretsPath)) return false;
 
@@ -168,7 +175,7 @@ public class SecretsDAL : IAccountsDAL, IDisposable
 
     }
 
-    private async Task<(bool, List<SecretItem>)> LoadSecretsFromFileAsync()
+    private async Task<(bool, List<AccountItem>)> LoadAccountsFromFileAsync()
     {
         try
         {
@@ -181,12 +188,12 @@ public class SecretsDAL : IAccountsDAL, IDisposable
             var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
             var json = Encoding.UTF8.GetString(decrypted);
 
-            var list = JsonSerializer.Deserialize<List<SecretItem>>(json, GetOptions()) ?? [];
+            var list = JsonSerializer.Deserialize<List<AccountItem>>(json, GetOptions()) ?? [];
             return (true, list);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, nameof(LoadSecretsFromFileAsync));
+            _logger.LogError(ex, nameof(LoadAccountsFromFileAsync));
 
             return (false, default!);
         }
@@ -210,7 +217,7 @@ public class SecretsDAL : IAccountsDAL, IDisposable
         }
     }
 
-    private async Task<bool> WriteEncryptedFileAsync(List<SecretItem> list)
+    private async Task<bool> WriteEncryptedFileAsync(List<AccountItem> list)
     {
         try
         {
@@ -232,7 +239,7 @@ public class SecretsDAL : IAccountsDAL, IDisposable
         return _options ?? new JsonSerializerOptions { WriteIndented = true };
     }
 
-    public static (bool IsValid, ValidationError error) IsValidSecretItem(SecretItem item)
+    public static (bool IsValid, ValidationError error) IsValidSecretItem(AccountItem item)
     {
         var result = SecretValidator.ValidatePlatform(item.Platform);
         if (result != ValidationError.None)

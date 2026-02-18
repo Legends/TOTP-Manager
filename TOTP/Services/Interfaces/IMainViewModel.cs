@@ -22,7 +22,7 @@ public interface IMainViewModel : INotifyPropertyChanged
     ICommand EndEditCommand { get; }
     ICommand DoubleClickCommand { get; }
     void OpenFlyoutAddMode();
-    AccountViewModel SelectedSecret { get; set; }
+    AccountViewModel SelectedAccount { get; set; }
     bool IsContextmenuOpen { get; set; }
     Task InitializeMainViewAsync(IMainWindow? mainWindow);
     Task OnRowSelectionChangedAsync(AccountViewModel item);

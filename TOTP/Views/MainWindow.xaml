@@ -382,7 +382,7 @@
 
                 <!--  TOTP-CODE, PLATFORM-NAME, PROGRESS, GENERATE-QR-CODE-LINK     CONTAINER   -->
                 <StackPanel Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Center">
-                    <Label x:Name="lblSelectedPlatformName" Content="{Binding SelectedSecret.Platform }"
+                    <Label x:Name="lblSelectedPlatformName" Content="{Binding SelectedAccount.Platform }"
                            VerticalContentAlignment="Center"
                            HorizontalContentAlignment="Center"
                            HorizontalAlignment="Center"

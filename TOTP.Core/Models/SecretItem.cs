@@ -1,6 +1,8 @@
-﻿namespace TOTP.Core.Models
+﻿using System;
+
+namespace TOTP.Core.Models
 {
-    public sealed class SecretItem : IEquatable<SecretItem>
+    public sealed class AccountItem : IEquatable<AccountItem>
     {
         public string Platform { get; }
         public string Secret { get; }
@@ -8,7 +10,7 @@
 
         public Guid ID { get; set; }
 
-        public SecretItem(Guid id, string platform, string secret, string? account = null)
+        public AccountItem(Guid id, string platform, string secret, string? account = null)
         {
             //if (string.IsNullOrWhiteSpace(platform))
             //    throw new ArgumentException(nameof(platform));
@@ -20,9 +22,9 @@
             Account = account;
         }
 
-        public bool Equals(SecretItem? other) => other is not null && ID == other.ID;
+        public bool Equals(AccountItem? other) => other is not null && ID == other.ID;
 
-        public override bool Equals(object? obj) => Equals(obj as SecretItem);
+        public override bool Equals(object? obj) => Equals(obj as AccountItem);
         public override int GetHashCode() => ID.GetHashCode();
     }
 }

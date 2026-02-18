@@ -41,7 +41,7 @@ public partial class App : Application
         try
         {
             var secretsManager = Host.Services.GetService(typeof(IAccountsDAL)) as IAccountsDAL;
-            secretsManager?.BackupSecretsFile();
+            secretsManager?.BackupAccountsFile();
         }
         catch (Exception ex)
         {

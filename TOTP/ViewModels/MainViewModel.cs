@@ -271,22 +271,22 @@ public class MainViewModel : IMainViewModel
 
     public bool IsContextmenuOpen { get; set; }
 
-    private AccountViewModel _selectedSecret = null!;
+    private AccountViewModel _selectedAccount = null!;
 
-    public AccountViewModel? SelectedSecret
+    public AccountViewModel? SelectedAccount
     {
-        get => _selectedSecret;
+        get => _selectedAccount;
         set
         {
 
-            if (_selectedSecret == null || _selectedSecret.ID != value?.ID)
+            if (_selectedAccount == null || _selectedAccount.ID != value?.ID)
             {
                 //IsInlineEditing = false;
 
                 foreach (var item in AllAccounts)
                     item.IsBeingEdited = false;
 
-                _selectedSecret = value;
+                _selectedAccount = value;
                 OnPropertyChanged();
                 //IsProgressPieChartVisible = false;
             }
@@ -398,27 +398,17 @@ public class MainViewModel : IMainViewModel
 
     public Action? RequestGridFilterRefresh { get; set; }
 
-    //private ICollectionView _filteredSecrets = null!;
-    //public ICollectionView FilteredSecrets
-    //{
-    //    get => _filteredSecrets;
-    //    private set
-    //    {
-    //        _filteredSecrets = value;
-    //        OnPropertyChanged();
-    //    }
-    //}
-
+  
     public ObservableCollection<CultureDisplay> SupportedCultures { get; set; }
 
     #endregion ObservableCollections
 
     #region ### SERVICES DECLARATIONS ###
 
-    private readonly IAccountsDAL _secretsDal;
+    private readonly IAccountsDAL _accountsDal;
     private readonly IClipboardService _clipboard;
     private readonly IMessageService _messageService;
-    private readonly IAccountsManager _secretsManager;
+    private readonly IAccountsManager _accountsManager;
 
     private readonly IDebounceService _debounceService;
 
@@ -431,7 +421,7 @@ public class MainViewModel : IMainViewModel
     private readonly IInputActivityMonitor _inputActivityMonitor;
     private readonly IGlobalProfileStore _globalProfileStore;
 
-    private bool _secretsLoaded;
+    private bool _accountsLoaded;
     private bool _collectionHooked;
     private IMainWindow? _attachedWindow;
 
@@ -459,14 +449,14 @@ public class MainViewModel : IMainViewModel
         UnlockViewModel unlockVM)
     {
         _fileDialogService = fileDialogService;
-        _secretsDal = secretsDal;
+        _accountsDal = secretsDal;
         _logger = logger;
         _qrService = svcQr;
         _delayService = delayService;
         _messageService = messageService;
         _debounceService = debounceService;
         _clipboard = clipboard;
-        _secretsManager = totpManager;
+        _accountsManager = totpManager;
         _authorization = authorization;
         _activityService = activityService;
         _inputActivityMonitor = inputActivityMonitor;
@@ -479,7 +469,7 @@ public class MainViewModel : IMainViewModel
         //RebuildSecretsView();
         UnlockViewModel = unlockVM;
 
-        _secretsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
+        _accountsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
         _authorization.State.Changed += AuthorizationState_Changed;
         _activityService.LockRequested += ActivityService_LockRequested;
 
@@ -597,11 +587,11 @@ public class MainViewModel : IMainViewModel
 
         OpenFlyoutEditModeCommand = new RelayCommand<AccountViewModel>(OpenFlyoutEditMode);
         OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
-        SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateAsync);
+        SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateAccountAsync);
         CancelFlyoutCommand = new RelayCommand(CancelFlyout);
 
         RowSelectionChangedCommand = new AsyncCommand<AccountViewModel>(OnRowSelectionChangedAsync);
-        DeleteSecretCommand = new AsyncCommand<AccountViewModel>(DeleteSecretAsync, null, _logger);
+        DeleteSecretCommand = new AsyncCommand<AccountViewModel>(DeleteAccountAsync, null, _logger);
         BeginEditCommand = new RelayCommand<AccountViewModel>(OnBeginEdit);
         EndEditCommand = new AsyncCommand<AccountViewModel>(OnEndEditAsync);
         DoubleClickCommand = new RelayCommand<AccountViewModel>(OnDoubleClick);
@@ -726,14 +716,14 @@ public class MainViewModel : IMainViewModel
     #endregion
 
 
-    private async Task EnsureSecretsLoadedAsync()
+    private async Task EnsureAccountsLoadedAsync()
     {
-        if (_secretsLoaded)
+        if (_accountsLoaded)
         {
             return;
         }
 
-        await ReadAllSecretsAsync();
+        await ReadAllAccountsAsync();
 
         if (!_collectionHooked)
         {
@@ -742,7 +732,7 @@ public class MainViewModel : IMainViewModel
             _collectionHooked = true;
         }
 
-        _secretsLoaded = true;
+        _accountsLoaded = true;
     }
 
     private void Source_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -786,7 +776,7 @@ public class MainViewModel : IMainViewModel
             _inputActivityMonitor.Attach(_attachedWindow);
         }
 
-        await EnsureSecretsLoadedAsync();
+        await EnsureAccountsLoadedAsync();
         UpdateActivityMonitorState();
     }
 
@@ -799,7 +789,7 @@ public class MainViewModel : IMainViewModel
         UpdateActivityMonitorState();
         _inputActivityMonitor.Detach();
 
-        _secretsLoaded = false;
+        _accountsLoaded = false;
         AllAccounts.Clear();
 
         StopTOTPTimer();
@@ -810,7 +800,7 @@ public class MainViewModel : IMainViewModel
         IsSecretVisible = false;
         IsGridEditing = false;
         IsInlineEditing = false;
-        SelectedSecret = null; // todo: check flag, was soll bei einem session lock passieren mit dem katuellen zustand
+        SelectedAccount = null; // todo: check flag, was soll bei einem session lock passieren mit dem katuellen zustand
     }
     public void Lock()
     {
@@ -881,25 +871,25 @@ public class MainViewModel : IMainViewModel
 
 
 
-    #region ### READ ALL SECRETS FROM STORAGE FILE ###
+    #region ### READ ALL ACCOUNTS FROM STORAGE FILE ###
 
     /// <summary>
     /// Reads all secrets from the storage file and populates the AllSecrets collection
     /// </summary>
     /// <returns></returns>
-    private async Task<ObservableCollection<AccountViewModel>?> ReadAllSecretsAsync()
+    private async Task<ObservableCollection<AccountViewModel>?> ReadAllAccountsAsync()
     {
         try
         {
             // Load secrets from file or other source
-            var result = await _secretsDal.GetAllSecretsAsync();
+            var result = await _accountsDal.GetAllAccountsAsync();
 
             if (result.Status == OperationStatus.Success)
             {
-                result.Value.Sort(new Comparison<SecretItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
+                result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
 
-                var allSecrets = result.Value;
-                AllAccounts = new ObservableCollection<AccountViewModel>((allSecrets.Select(item => item.ToViewModel()) ?? []));
+                var allAccounts = result.Value;
+                AllAccounts = new ObservableCollection<AccountViewModel>((allAccounts.Select(item => item.ToViewModel()) ?? []));
 //#if DEBUG
 //                //for dev purposes, exclude Syncfusion entry
 
@@ -922,7 +912,7 @@ public class MainViewModel : IMainViewModel
         }
         catch (Exception e)
         {
-            _logger.LogCritical(e, nameof(ReadAllSecretsAsync));
+            _logger.LogCritical(e, nameof(ReadAllAccountsAsync));
             System.Windows.Application.Current.Shutdown(1);
         }
         return null;
@@ -979,22 +969,22 @@ public class MainViewModel : IMainViewModel
     }
     #endregion
 
-    #region ### DELETE SECRET ###
+    #region ### DELETE ACCOUNT ###
 
     /// <summary>
     /// Contextmenu delete command execution
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    internal async Task DeleteSecretAsync(AccountViewModel item)
+    internal async Task DeleteAccountAsync(AccountViewModel item)
     {
         try
         {
-            if (await _secretsManager.DeleteSecretAsync(item.ToDomain())) // delete from storage file
+            if (await _accountsManager.DeleteAccountAsync(item.ToDomain())) // delete from storage file
             {
                 AllAccounts.Remove(item); // delete secret from internal list
                 OnPropertyChanged(nameof(AllAccounts));
-                if (item.ID == SelectedSecret?.ID)
+                if (item.ID == SelectedAccount?.ID)
                 {
                     StopTOTPTimer();
                     ClearCodeGenerationOutput();
@@ -1011,18 +1001,18 @@ public class MainViewModel : IMainViewModel
 
     #endregion
 
-    #region ### UPDATE SECRET ###
+    #region ### UPDATE ACCOUNT ###
 
     /// <summary>
     /// Called when inline editing ends or when save button in flyout panel is clicked
     /// </summary>
     /// <param name="updated"></param>
     /// <returns></returns>
-    public async Task UpdateSecretAsync(AccountViewModel updated)
+    public async Task UpdateAccountAsync(AccountViewModel updated)
     {
         try
         {
-            var success = await _secretsManager.UpdateSecretAsync(PreviousVersion?.ToDomain(), updated.ToDomain());
+            var success = await _accountsManager.UpdateAccountAsync(PreviousVersion?.ToDomain(), updated.ToDomain());
 
             if (!success)
                 return;
@@ -1033,7 +1023,7 @@ public class MainViewModel : IMainViewModel
             itemToBeUpdated?.UpdateSelf(updated); // only update when in flyout edit mode
             OnPropertyChanged(nameof(AllAccounts));
 
-            if (updated.ID == SelectedSecret?.ID && !ShowGenerateQrCodeLink) // update the QR code if it is visible already
+            if (updated.ID == SelectedAccount?.ID && !ShowGenerateQrCodeLink) // update the QR code if it is visible already
                 UpdateQRCode();
 
             PreviousVersion = null;
@@ -1047,7 +1037,7 @@ public class MainViewModel : IMainViewModel
 
     private void UpdateQRCode()
     {
-        QrCodeImage = GenerateQRCodeImage(SelectedSecret);
+        QrCodeImage = GenerateQRCodeImage(SelectedAccount);
     }
 
 
@@ -1056,7 +1046,7 @@ public class MainViewModel : IMainViewModel
     /// Adding/Updating a SecretItem
     /// </summary>
     /// <returns></returns>
-    public async Task AddOrUpdateAsync()
+    public async Task AddOrUpdateAccountAsync()
     {
         IsSecretVisible = false;
 
@@ -1070,7 +1060,7 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-            var addResult = await _secretsDal.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
+            var addResult = await _accountsDal.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
 
             if (addResult.Status != OperationStatus.Success)
             {
@@ -1126,7 +1116,7 @@ public class MainViewModel : IMainViewModel
             }
             #endregion
 
-            await UpdateSecretAsync(CurrentSecretBeingEditedOrAdded);
+            await UpdateAccountAsync(CurrentSecretBeingEditedOrAdded);
             IsEditAddFlyoutOpen = false;
         }
     }
@@ -1174,7 +1164,7 @@ public class MainViewModel : IMainViewModel
                 try
                 {
                     // Update the secret if valid
-                    await UpdateSecretAsync(item);
+                    await UpdateAccountAsync(item);
                 }
                 catch (Exception ex)
                 {
@@ -1223,7 +1213,7 @@ public class MainViewModel : IMainViewModel
     /// <returns></returns>
     public async Task OnRowSelectionChangedAsync(AccountViewModel selectedSecretItem)
     {
-        if (SelectedSecret != null && IsInlineEditing && SelectedSecret.ID != selectedSecretItem.ID)
+        if (SelectedAccount != null && IsInlineEditing && SelectedAccount.ID != selectedSecretItem.ID)
             IsInlineEditing = false;
 
         if (IsGridEditing || IsInlineEditing || selectedSecretItem == null)
@@ -1237,26 +1227,26 @@ public class MainViewModel : IMainViewModel
 
         if (_isDoubleClick) // on double-click we dont execute any selection logic
         {
-            if (SelectedSecret == null)
+            if (SelectedAccount == null)
                 TotpUiTimer?.Dispose();
 
             return;
         }
 
-        if (SelectedSecret?.ID == selectedSecretItem?.ID) // dont execute selection logic if the secret is already selected
+        if (SelectedAccount?.ID == selectedSecretItem?.ID) // dont execute selection logic if the secret is already selected
             return;
 
-        SelectedSecret = ComputeTotpCode(selectedSecretItem, out _activeTotp); // pre-compute TOTP code for the selected item
+        SelectedAccount = ComputeTotpCode(selectedSecretItem, out _activeTotp); // pre-compute TOTP code for the selected item
         //_clipboard.SetText(SelectedSecret.TotpCode!);
         _clipboard.SetText(TotpCode!);
 
-        var currentKey = SelectedSecret.Platform;
+        var currentKey = SelectedAccount.Platform;
 
         try
         {
-            if (currentKey == SelectedSecret.Platform)
+            if (currentKey == SelectedAccount.Platform)
             {
-                if (SelectedSecret != null && !SelectedSecret.IsBeingEdited && !IsContextmenuOpen)
+                if (SelectedAccount != null && !SelectedAccount.IsBeingEdited && !IsContextmenuOpen)
                     try
                     {
                         OnRowSelectionImplementation();
@@ -1395,14 +1385,14 @@ public class MainViewModel : IMainViewModel
         TotpUiTimer?.Dispose();
         TotpUiTimer = new System.Threading.Timer(_ =>
         {
-            if (_activeTotp is null || SelectedSecret is null)
+            if (_activeTotp is null || SelectedAccount is null)
             {
                 return;
             }
 
             Debug.WriteLine("#######  Timer is running  #####");
 
-            if (_activeTotp is null || SelectedSecret is null) throw new NullReferenceException(nameof(_activeTotp));
+            if (_activeTotp is null || SelectedAccount is null) throw new NullReferenceException(nameof(_activeTotp));
 
             const int period = 30;
             long unix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -1465,11 +1455,7 @@ public class MainViewModel : IMainViewModel
 
     #region ### Grid Filter Logic ###
 
-    //private void RebuildSecretsView()
-    //{
-    //    FilteredSecrets = CollectionViewSource.GetDefaultView(AllSecrets);
-    //    FilteredSecrets.Filter = FilterSecrets;
-    //}
+   
 
     private bool FilterSecrets(object obj)
     {
@@ -1493,15 +1479,7 @@ public class MainViewModel : IMainViewModel
         return obj is AccountViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
-    ///// <summary>
-    ///// For bulk changes, wrap in using (_view?.DeferRefresh()) { /* add/remove many items */ } to avoid multiple re-filters.
-    ///// </summary>
-    //void RefreshView()
-    //{
-    //RequestGridFilterRefresh?.Invoke();
-    //}
-
-    private void ExecuteSearch()
+  private void ExecuteSearch()
     {
         try
         {
@@ -1532,7 +1510,7 @@ public class MainViewModel : IMainViewModel
 
     private void GenerateQrCodeImage()
     {
-        var bmp = GenerateQRCodeImage(SelectedSecret);
+        var bmp = GenerateQRCodeImage(SelectedAccount);
         QrCodeImage = bmp;
         ShowGenerateQrCodeLink = false;
         IsQrVisible = true;
@@ -1587,7 +1565,7 @@ public class MainViewModel : IMainViewModel
 
             try
             {
-                var addResult = await _secretsDal.AddNewItemAsync(newSecretItem.ToDomain());
+                var addResult = await _accountsDal.AddNewItemAsync(newSecretItem.ToDomain());
                 if (addResult.Status != OperationStatus.Success)
                 {
                     ShowMessage(addResult.Status, newSecretItem);
@@ -1626,14 +1604,14 @@ public class MainViewModel : IMainViewModel
         if (path == null) // canceled
             return;
 
-        var secrets = await _secretsDal.GetAllSecretsAsync();
+        var secrets = await _accountsDal.GetAllAccountsAsync();
         if (secrets.Status != OperationStatus.Success)
         {
             ShowMessage(secrets.Status, null);
             return;
         }
 
-        secrets.Value.Sort(new Comparison<SecretItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
+        secrets.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
         var options = new JsonSerializerOptions { WriteIndented = true };
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(secrets.Value, options));
 

@@ -30,21 +30,21 @@ public interface IAccountsManager
     /// <param name="previous"></param>
     /// <param name="updated"></param>
     /// <returns></returns>
-    Task<bool> UpdateSecretAsync(SecretItem previous, SecretItem updated);
+    Task<bool> UpdateAccountAsync(AccountItem previous, AccountItem updated);
 
     /// <summary>
     /// Deletes a secret item from the encrypted secrets file.
     /// </summary>
     /// <param name="item">SecretItem</param>
     /// <returns>true/false</returns>
-    Task<bool> DeleteSecretAsync(SecretItem item);
+    Task<bool> DeleteAccountAsync(AccountItem item);
 
     /// <summary>
     /// Called when a message needs to be displayed
     /// </summary>
     event Action<object, OperationStatus, string?> OnMessageSend;
 
-    //event Func<object?, AddNewPromptArgs> OnAddNewPrompt;
+   
 
     event Func<object?, string, bool> ConfirmDeleteRequested;
 }

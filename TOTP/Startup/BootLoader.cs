@@ -77,16 +77,16 @@ public static class BootLoader
                 // app services
                 services.AddSingleton<IAccountsDAL>(provider =>
                 {
-                    var logger = provider.GetRequiredService<ILogger<SecretsDAL>>();
+                    var logger = provider.GetRequiredService<ILogger<AccountsDAL>>();
                     var config = provider.GetRequiredService<IConfiguration>();
                     // default is:  "%AppData%\\TOTP-Manager\\secrets.dat"
                     var filePathAccounts = config.GetSection(StringsConstants.AccountsStorageFilePath).Value;
                     var resolvedPath = Environment.ExpandEnvironmentVariables(filePathAccounts ?? "");
-                    return new SecretsDAL(logger, resolvedPath);
+                    return new AccountsDAL(logger, resolvedPath);
                 });
 
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
-                services.AddSingleton<IAccountsManager, SecretsManager>();
+                services.AddSingleton<IAccountsManager, AccountsManager>();
 
                 var rawProfilePath = configuration.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
                 var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? "");
