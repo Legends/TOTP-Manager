@@ -280,7 +280,6 @@
 
                     <i:Interaction.Behaviors>
                         <behaviors:ScrollOnNewOrUpdatedItemBehavior />
-                        <!--<behaviors:DataGridEditingStateBehavior IsEditing="{Binding IsGridEditing, Mode=TwoWay}" />-->
                         <behaviors:DataGridValidationBehavior />
                         <behaviors:SfDataGridEditingBehavior  IsEditing="{Binding IsGridEditing, Mode=TwoWay}"
                                                               BeginEditCommand="{Binding BeginEditCommand}"
