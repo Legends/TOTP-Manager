@@ -503,13 +503,11 @@ public class MainViewModel : IMainViewModel
     #region ###  ENTRY-POINT  ###
     public async Task InitializeMainViewAsync(IMainWindow? mainWindow)
     {
-        if (mainWindow != null)
-        {
-            AttachWindowCommand.Execute(mainWindow);
-        }
-
         try
         {
+
+            AttachWindowCommand.Execute(mainWindow);
+
 
             Settings = await SettingsViewModel.CreateAsync(
                 globalProfileStore: _globalProfileStore,

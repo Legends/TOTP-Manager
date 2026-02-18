@@ -70,10 +70,10 @@ internal static class Program
                 _ = vm.InitializeMainViewAsync(mainWindow);
             }
 
-            mainWindow.Show();
+            //mainWindow.Show();
 
             // Starts dispatcher; from here you have a real WPF UI thread
-            app.Run();
+            app.Run(mainWindow);
 
             // Graceful shutdown after UI exits
             host.StopAsync().GetAwaiter().GetResult();
