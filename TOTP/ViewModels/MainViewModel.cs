@@ -506,7 +506,7 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            
+
             AttachWindowCommand.Execute(mainWindow);
 
 
@@ -1479,9 +1479,10 @@ public class MainViewModel : IMainViewModel
 
     private bool FilterSecrets(object obj)
     {
-        return obj is AccountViewModel vm
-            && (string.IsNullOrWhiteSpace(SearchText)
-                || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+        if (string.IsNullOrWhiteSpace(SearchText))
+            return true; // no filter => return all rows
+
+        return obj is AccountViewModel vm && (vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     private void ExecuteSearch()
