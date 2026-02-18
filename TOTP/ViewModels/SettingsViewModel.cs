@@ -202,7 +202,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         SaveCommand = new AsyncCommand(SaveAndCloseAsync);
         ExportTestCommand = new RelayCommand(_ => exportTest());
 
-        _ = LoadAsync();
+        //_ = LoadAsync();
     }
 
     public static async Task<SettingsViewModel> CreateAsync(IGlobalProfileStore globalProfileStore,

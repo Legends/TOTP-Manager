@@ -31,6 +31,8 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
 
         _window = window ?? throw new ArgumentNullException(nameof(window));
 
+        //WeakEventManager<Window, MouseButtonEventArgs>.AddHandler(_window, "PreviewMouseDown", OnMouseDown);
+
         _window.PreviewMouseDown += OnMouseDown;
         _window.PreviewMouseWheel += OnMouseWheel;
         _window.PreviewKeyDown += OnKeyDown;
