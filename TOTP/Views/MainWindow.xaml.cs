@@ -24,10 +24,10 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
     protected override void OnContentRendered(EventArgs e)
     {
         base.OnContentRendered(e);
-        AccountsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
+        AccountsGrid.ItemsSourceChanged += AccountsGrid_ItemsSourceChanged;
     }
 
-    private void SecretsGrid_ItemsSourceChanged(object? sender, Syncfusion.UI.Xaml.Grid.GridItemsSourceChangedEventArgs e)
+    private void AccountsGrid_ItemsSourceChanged(object? sender, Syncfusion.UI.Xaml.Grid.GridItemsSourceChangedEventArgs e)
     {
 
         if (DataContext is IMainViewModel vm && AccountsGrid.View != null && AccountsGrid.View.Filter == null)
