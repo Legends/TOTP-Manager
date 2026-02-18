@@ -13,12 +13,6 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
     public MainWindow(IMainViewModel vm)
     {
         InitializeComponent();
-
-        
-
-        //SecretsGrid.ItemsSourceChanged += SecretsGrid_ItemsSourceChanged;
-
-        //vm.PropertyChanged += OnViewModelPropertyChanged;
     }
 
     protected override void OnContentRendered(EventArgs e)
