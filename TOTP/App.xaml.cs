@@ -20,14 +20,14 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        SystemEvents.SessionSwitch += (_, e) =>
+        SystemEvents.SessionSwitch += (_, sessionSwitchEventArg) =>
         {
-            if (e.Reason == SessionSwitchReason.SessionLock)
+            if (sessionSwitchEventArg.Reason == SessionSwitchReason.SessionLock)
             {
                 AuthorizationService.Lock();
             }
 
-            if (e.Reason== SessionSwitchReason.SessionUnlock)
+            if (sessionSwitchEventArg.Reason== SessionSwitchReason.SessionUnlock)
             {
 
             }
