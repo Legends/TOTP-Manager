@@ -7,6 +7,14 @@ using ActivityKind = TOTP.Security.Models.ActivityKind;
 
 namespace TOTP.Services;
 
+/// <summary>
+/// Monitors user input activity in a WPF application's main window and notifies an activity service when input events
+/// occur.
+/// </summary>
+/// <remarks>Attach this monitor to a WPF main window to track user interactions such as mouse clicks, mouse wheel
+/// movements, key presses, text input, and mouse movement. The monitor throttles mouse move notifications to reduce
+/// event frequency. Use this class to enable user activity detection for features such as idle timeout or activity
+/// logging. This class is not thread-safe and should be used from the UI thread.</remarks>
 public sealed class WpfInputActivityMonitor : IInputActivityMonitor
 {
     private static readonly TimeSpan MouseMoveThrottle = TimeSpan.FromMilliseconds(2000);
