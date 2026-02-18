@@ -370,7 +370,7 @@ public class MainViewModel : IMainViewModel
             _searchText = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsSearchTextNotEmpty));
-            _debounceService.Debounce("Search", 300, () => ExecuteSearch());
+            _debounceService.Debounce("Search", 300, ExecuteSearch);
         }
     }
 
