@@ -34,7 +34,9 @@
         </DockPanel>
 
         <!-- Tabs -->
-        <syncfusion:TabControlExt TabItemHoverBorderBrush="AliceBlue"  
+        <syncfusion:TabControlExt x:Name="ContTabControlExt" TabItemHoverBorderBrush="AliceBlue"  
+                                  attached:FocusExtension.IsFocused="{Binding DataContext.IsSettingsViewOpen,
+        RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
                                       EnableLabelEdit="False"
                                       TabItemHoverBackground="Transparent" 
                                       TabItemHoverForeground="AliceBlue"  
@@ -161,21 +163,6 @@
                     </StackPanel>
                 </ScrollViewer>
             </syncfusion:TabItemExt>
-
-            <!-- UI -->
-            <!--<syncfusionTools:TabItemExt Header="{xaml:Resx Key=ui_Settings_Tab_UI}">
-               <StackPanel Margin="0,10,0,0">
-                   <TextBlock Text="{xaml:Resx Key=ui_Settings_Section_UI}"
-                              Foreground="White"
-                              FontWeight="Bold"
-                              Margin="0,0,0,10"/>
-
-                   <CheckBox Content="{xaml:Resx Key=ui_Settings_HideSecretsByDefault}"
-                             Foreground="White"
-                             IsChecked="{Binding HideSecretsByDefault, Mode=TwoWay}" />
-               </StackPanel>
-           </syncfusionTools:TabItemExt>-->
-
         </syncfusion:TabControlExt>
 
         <!-- Footer buttons -->

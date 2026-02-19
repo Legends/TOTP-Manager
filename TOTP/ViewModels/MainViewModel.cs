@@ -51,6 +51,19 @@ public class MainViewModel : IMainViewModel
 
     #region SETTINGS
 
+    private bool _isBusy;
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            if (_isBusy == value) return;
+
+            _isBusy = value;
+            OnPropertyChanged();
+        }
+    }
+
     private bool _isSettingsViewOpen;
     public bool IsSettingsViewOpen
     {
@@ -67,7 +80,17 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    public SettingsViewModel Settings { get; set; }
+    private SettingsViewModel _Settings;
+
+    public SettingsViewModel Settings
+    {
+        get => _Settings;
+        set
+        {
+            _Settings = value;
+            OnPropertyChanged();
+        }
+    }
 
     #endregion
 
@@ -489,6 +512,17 @@ public class MainViewModel : IMainViewModel
     #endregion
 
     #region ###  ENTRY-POINT  ###
+
+    /// <summary>
+    /// Initializes the main view and its associated settings asynchronously, preparing the application for user
+    /// interaction.
+    /// </summary>
+    /// <remarks>This method sets up the main view, attaches window commands, loads settings, and initializes
+    /// authorization. If initialization fails, a critical error is logged and the user is notified with an error dialog
+    /// before the application exits. The method should be called during application startup to ensure the main view and
+    /// authorization state are properly configured.</remarks>
+    /// <param name="mainWindow">The main window instance to attach commands and initialize the view. Can be null if no window is available.</param>
+    /// <returns>A task that represents the asynchronous initialization operation.</returns>
     public async Task InitializeMainViewAsync(IMainWindow? mainWindow)
     {
         try
@@ -507,7 +541,7 @@ public class MainViewModel : IMainViewModel
 
             // Always start locked. The overlay unlock view is visible when IsUnlocked == false.
             OnPropertyChanged(nameof(IsUnlocked));
-
+          
             // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
             await _authorization.InitializeAsync();
 
@@ -515,10 +549,12 @@ public class MainViewModel : IMainViewModel
             // - If configured gate is Hello -> it prompts immediately
             // - If password -> returns RequiresUserInput (stays on auth UI)
 
+            IsBusy = false;
             // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
             await _authorization.TryUnlockOnStartupAsync();
 
             // Success path is handled by AuthorizationState_Changed → OnUnlockedAsync()
+            
         }
         catch (Exception ex)
         {

@@ -2,6 +2,7 @@
 using Syncfusion.SfSkinManager;
 using Syncfusion.Windows.Shared;
 using System;
+using System.Windows;
 using TOTP.Infrastructure.Adapters;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
@@ -15,6 +16,20 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
     {
         _vm = vm;
         InitializeComponent();
+        SetupWindowPositionAtStartup();
+    }
+
+    private void SetupWindowPositionAtStartup()
+    {
+        double screenWidth = SystemParameters.PrimaryScreenWidth;
+        double screenHeight = SystemParameters.PrimaryScreenHeight;
+
+        double windowWidth = this.Width;
+        double windowHeight = this.Height;
+
+        // Center horizontally, 1/5 from top
+        this.Left = (screenWidth - windowWidth) / 2;
+        this.Top = screenHeight / 5;
     }
 
     protected override void OnContentRendered(EventArgs e)

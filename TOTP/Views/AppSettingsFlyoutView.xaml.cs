@@ -7,6 +7,7 @@ public partial class AppSettingsFlyoutView : UserControl
     public AppSettingsFlyoutView()
     {
         InitializeComponent();
+        
     }
 }
 

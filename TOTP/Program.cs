@@ -4,6 +4,7 @@ using Serilog;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Windows;
 using TOTP.Helper;
 using TOTP.Infrastructure;
 using TOTP.Resources;
@@ -52,9 +53,11 @@ internal static class Program
             host = BootLoader.BuildHostAndConfigureServices(configuration);
 
             // Host start (noch ok, wir sind im STA)
-            await host.StartAsync().ConfigureAwait(false);
+            // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
+            await host.StartAsync(); //.ConfigureAwait(false);
 
-            var app = new App
+
+            var app = new App // the synchronizationcontext is established when the first DispatcherObject is created like Application
             {
                 Host = host,
                 AuthorizationService = host.Services.GetRequiredService<IAuthorizationService>()
@@ -62,15 +65,17 @@ internal static class Program
 
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
-
-            var mainWindow = host.Services.GetRequiredService<MainWindow>();
+            
             var vm = host.Services.GetRequiredService<IMainViewModel>();
+            vm.IsBusy = true;
+            var mainWindow = host.Services.GetRequiredService<MainWindow>();
+            
             mainWindow.DataContext = vm;
             mainWindow.ResizeMode = System.Windows.ResizeMode.NoResize;
 
             app.MainWindow = mainWindow;
 
-            // Async init NACH Dispatcher-Start:
+            //Async init NACH Dispatcher-Start:
             mainWindow.Loaded += async (_, __) =>
             {
                 try
@@ -84,6 +89,7 @@ internal static class Program
                 }
             };
 
+
             app.Exit += async (_, __) =>
             {
                 try { if (host != null) await host.StopAsync(); } catch { /* log if you want */ }
@@ -91,7 +97,10 @@ internal static class Program
                 Log.CloseAndFlush();
             };
 
-            app.Run(mainWindow);
+          
+
+            app.Run(mainWindow); // app.Run() is a blocking call. It is the message loop.
+
         }
         catch (Exception e)
         {
@@ -100,5 +109,5 @@ internal static class Program
         }
     }
 
-
+   
 }
