@@ -51,13 +51,12 @@ internal static class Program
             }
 
             host = BootLoader.BuildHostAndConfigureServices(configuration);
-
-            // Host start (noch ok, wir sind im STA)
+         
             // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
-            await host.StartAsync(); //.ConfigureAwait(false);
+            await host.StartAsync();  
 
 
-            var app = new App // the synchronizationcontext is established when the first DispatcherObject is created like Application
+            var app = new App // the SynchronizationContext is established when the first DispatcherObject is created like Application
             {
                 Host = host,
                 AuthorizationService = host.Services.GetRequiredService<IAuthorizationService>()
@@ -67,20 +66,17 @@ internal static class Program
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
             
             var vm = host.Services.GetRequiredService<IMainViewModel>();
-            vm.IsBusy = true;
             var mainWindow = host.Services.GetRequiredService<MainWindow>();
-            
             mainWindow.DataContext = vm;
             mainWindow.ResizeMode = System.Windows.ResizeMode.NoResize;
 
             app.MainWindow = mainWindow;
-
-            //Async init NACH Dispatcher-Start:
+          
             mainWindow.Loaded += async (_, __) =>
             {
                 try
                 {
-                    await vm.InitializeMainViewAsync(mainWindow); // läuft jetzt sauber auf UI-Thread weiter
+                    await vm.InitializeMainViewAsync(mainWindow); // läuft auf UI-Thread weiter
                 }
                 catch (Exception e)
                 {
@@ -96,9 +92,7 @@ internal static class Program
                 host?.Dispose();
                 Log.CloseAndFlush();
             };
-
-          
-
+            
             app.Run(mainWindow); // app.Run() is a blocking call. It is the message loop.
 
         }

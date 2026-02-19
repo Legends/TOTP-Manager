@@ -88,7 +88,8 @@ public class MainViewModel : IMainViewModel
         set
         {
             _Settings = value;
-            OnPropertyChanged();
+            OnPropertyChanged();// wont initialize properly without this, because Settings is null at the beginning and gets initialized async later,
+                                // so the setter is not called on app start and OnPropertyChanged is not triggered
         }
     }
 
@@ -474,6 +475,8 @@ public class MainViewModel : IMainViewModel
         IInputActivityMonitor inputActivityMonitor,
         UnlockViewModel unlockVM)
     {
+        IsBusy = true;
+
         _fileDialogService = fileDialogService;
         _accountsDal = secretsDal;
         _logger = logger;
@@ -541,7 +544,7 @@ public class MainViewModel : IMainViewModel
 
             // Always start locked. The overlay unlock view is visible when IsUnlocked == false.
             OnPropertyChanged(nameof(IsUnlocked));
-          
+
             // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
             await _authorization.InitializeAsync();
 
@@ -554,7 +557,7 @@ public class MainViewModel : IMainViewModel
             await _authorization.TryUnlockOnStartupAsync();
 
             // Success path is handled by AuthorizationState_Changed → OnUnlockedAsync()
-            
+
         }
         catch (Exception ex)
         {
