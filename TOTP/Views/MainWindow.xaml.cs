@@ -17,6 +17,13 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         _vm = vm;
         InitializeComponent();
         SetupWindowPositionAtStartup();
+
+        //EventManager.RegisterClassHandler(typeof(UIElement),
+        //    UIElement.GotFocusEvent,
+        //    new RoutedEventHandler((s, e) =>
+        //    {
+        //        System.Diagnostics.Debug.WriteLine($"Focus moved to: {e.Source}");
+        //    }), true);
     }
 
     private void SetupWindowPositionAtStartup()

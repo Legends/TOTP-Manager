@@ -658,6 +658,7 @@ public class MainViewModel : IMainViewModel
     private void OpenSettingsView()
     {
         IsSettingsViewOpen = true;
+        Settings.RequestFocus();
     }
 
     private void CloseSettingsView()

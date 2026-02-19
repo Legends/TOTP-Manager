@@ -16,6 +16,18 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    #region FOCUS
+    private int _requestFocusTick;
+    public int RequestFocusTick
+    {
+        get => _requestFocusTick;
+        set { _requestFocusTick = value; OnPropertyChanged(); }
+    }
+
+    public void RequestFocus() => RequestFocusTick++;
+    #endregion
+
+
     private bool _isHelloSelected = true;
     public bool IsHelloSelected
     {

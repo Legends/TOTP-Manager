@@ -4,6 +4,7 @@
              xmlns:views="clr-namespace:TOTP.Views"
              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
              xmlns:xaml="clr-namespace:TOTP.Xaml"
+             xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
              xmlns:attached="clr-namespace:TOTP.Infrastructure.AttachedProperties"
              xmlns:behaviors="clr-namespace:TOTP.Infrastructure.Behaviors"
@@ -33,10 +34,11 @@
                    DockPanel.Dock="Right" />
         </DockPanel>
 
+        
         <!-- Tabs -->
         <syncfusion:TabControlExt x:Name="ContTabControlExt" TabItemHoverBorderBrush="AliceBlue"  
-                                  attached:FocusExtension.IsFocused="{Binding DataContext.IsSettingsViewOpen,
-        RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                  Focusable="True"
+                                  attached:FocusTriggerExtension.FocusTrigger="{Binding RequestFocusTick}"
                                       EnableLabelEdit="False"
                                       TabItemHoverBackground="Transparent" 
                                       TabItemHoverForeground="AliceBlue"  
@@ -44,7 +46,8 @@
                                       Margin="0,0,0,12"
                                       TabStripPlacement="Top">
             <!-- AUTHORIZATION -->
-            <syncfusion:TabItemExt Header="{xaml:Resx Key=ui_Settings_Tab_Authorization}">
+            <syncfusion:TabItemExt Header="{xaml:Resx Key=ui_Settings_Tab_Authorization}"
+                                   >
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
                     <StackPanel Margin="0,10,0,0">

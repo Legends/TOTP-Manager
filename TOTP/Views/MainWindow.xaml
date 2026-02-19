@@ -25,7 +25,6 @@
                              xmlns:userControls="clr-namespace:TOTP.UserControls"
                              d:DataContext="{d:DesignInstance Type=viewModels:MainViewModel}"
                              mc:Ignorable="d"
-                            
                              Width="300"
                              SizeToContent="Height"
                              Icon="/Assets/Icons/app.ico"
@@ -47,6 +46,7 @@
     </i:Interaction.Triggers>
 
     <syncfusion:ChromelessWindow.Resources>
+       
         <BounceEase x:Key="BounceEase"
                     Bounces="1"
                     Bounciness="100"
@@ -187,6 +187,7 @@
 
                         <!-- Main entry point: Gear icon -->
                         <syncfusion:MenuItemAdv Header="xaml:Resx Key=ui_Settings_Title}"
+                                                
                                                 Command="{Binding OpenSettingsCommand}"
                                                 Width="32" 
                                                 Padding="0"
@@ -542,10 +543,6 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
             </userControls:FlyoutHost>
 
         </Grid>
-
-
-        <!--<views:EditAddAccountFlyoutView />
-        <views:AppSettingsFlyoutView />-->
 
         <!--   UnlockView.xaml   -->
         <Grid Background="#CC0C1C33"
