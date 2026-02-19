@@ -6,15 +6,17 @@
                              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
                              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
                              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
-                             xmlns:resx="clr-namespace:TOTP.Resources"
                              xmlns:xaml="clr-namespace:TOTP.Xaml"
                              mc:Ignorable="d"
                              Title="{xaml:Resx Key=ui_ScanQR}"
                              Height="420"
                              Width="560"
                              WindowStartupLocation="CenterOwner"
-                             Loaded="Window_Loaded"
-                             Closing="Window_Closing">
+                             >
+
+    <Window.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CloseCameraWindowCommand}" />
+    </Window.InputBindings>
 
     <Grid Margin="12">
         <Grid.RowDefinitions>
@@ -27,13 +29,13 @@
                    FontSize="16"
                    Margin="0,0,0,8" />
 
-        <Image x:Name="Preview"
-               Grid.Row="1"
+        <Image Grid.Row="1"
                Stretch="Uniform"
                HorizontalAlignment="Center"
                VerticalAlignment="Center"
                Width="520"
-               Height="320" />
+               Height="320"
+               Source="{Binding PreviewImage}" />
 
         <StackPanel Grid.Row="2"
                     Orientation="Horizontal"
@@ -41,19 +43,18 @@
                     Margin="0,8,0,0">
             <Button Content="{xaml:Resx Key=ui_btnCancel}"
                     Width="100"
-                    Click="Cancel_Click" />
+                    Command="{Binding CancelCommand}" />
         </StackPanel>
 
-        <!-- Loading overlay (sits on top of rows 0..2) -->
-        <Border x:Name="Overlay"
-                Grid.RowSpan="3"
+        <!-- Loading overlay -->
+        <Border Grid.RowSpan="3"
                 Background="#80000000"
                 CornerRadius="6"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Padding="16"
-                Visibility="Visible"
-                Panel.ZIndex="9999">
+                Panel.ZIndex="9999"
+                Visibility="{Binding IsInitializing, Converter={StaticResource BooleanToVisibilityConverter}}">
             <StackPanel Orientation="Horizontal"
                         VerticalAlignment="Center">
                 <ProgressBar IsIndeterminate="True"
@@ -68,6 +69,3 @@
         </Border>
     </Grid>
 </syncfusion:ChromelessWindow>
-
- 
-

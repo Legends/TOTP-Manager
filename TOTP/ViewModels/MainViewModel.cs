@@ -47,6 +47,8 @@ public class MainViewModel : IMainViewModel
 {
     #region ### COMMON PROPS AND VARS ###
 
+    private readonly Func<IQrScannerDialogService> _qrScannerDialogFactory;
+
     public IGridFilterRefresher GridFilterRefresher { get; set; }
 
     #region SETTINGS
@@ -473,10 +475,12 @@ public class MainViewModel : IMainViewModel
         IAuthorizationService authorization,
         IUserActivityService activityService,
         IInputActivityMonitor inputActivityMonitor,
-        UnlockViewModel unlockVM)
+        UnlockViewModel unlockVM,
+        Func<IQrScannerDialogService> qrScannerDialogFactory)
     {
         IsBusy = true;
 
+        _qrScannerDialogFactory = qrScannerDialogFactory;
         _fileDialogService = fileDialogService;
         _accountsDal = secretsDal;
         _logger = logger;
@@ -1576,15 +1580,16 @@ public class MainViewModel : IMainViewModel
     /// <returns></returns>
     public async Task ScanQrAndAddAccountAsync()
     {
-        var dlg = new QrScannerWindow { Owner = System.Windows.Application.Current.MainWindow };
-        if (dlg.ShowDialog() == true && !string.IsNullOrWhiteSpace(dlg.DecodedText))
+        var decodedQRCode = _qrScannerDialogFactory().ScanQrCode(Application.Current.MainWindow);
+        //var dlg = new QrScannerWindow { Owner = System.Windows.Application.Current.MainWindow };
+        if ( !string.IsNullOrWhiteSpace(decodedQRCode))
         {
 
             OtpauthParser.TOTPData? data = null;
 
             try
             {
-                data = OtpauthParser.Parse(dlg.DecodedText);
+                data = OtpauthParser.Parse(decodedQRCode);
             }
             catch (Exception e)
             {

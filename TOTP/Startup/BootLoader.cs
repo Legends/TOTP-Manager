@@ -92,6 +92,18 @@ public static class BootLoader
                 var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? "");
                 services.AddSingleton<IGlobalProfileStore>(_ => new FileGlobalProfileStore(resolvedProfilePath));
 
+                // VMs
+                services.AddTransient<QrScannerViewModel>();   // transient: new scan each time
+
+                // windows
+                services.AddTransient<QrScannerWindow>();
+
+                // dialog / orchestration
+                services.AddSingleton<IQrScannerDialogService, QrScannerDialogService>();
+                services.AddSingleton<Func<IQrScannerDialogService>>(sp =>
+                    () => sp.GetRequiredService<IQrScannerDialogService>());
+
+
 
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
                 services.AddSingleton<IUserActivityService, UserActivityService>();
