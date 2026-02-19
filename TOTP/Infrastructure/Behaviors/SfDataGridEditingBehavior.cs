@@ -5,7 +5,7 @@ using System.Windows.Input;
 using CurrentCellBeginEditEventArgs = Syncfusion.UI.Xaml.Grid.CurrentCellBeginEditEventArgs;
 using CurrentCellEndEditEventArgs = Syncfusion.UI.Xaml.Grid.CurrentCellEndEditEventArgs;
 
-namespace TOTP.Behaviors;
+namespace TOTP.Infrastructure.Behaviors;
 
 public class SfDataGridEditingBehavior : Behavior<SfDataGrid>
 {

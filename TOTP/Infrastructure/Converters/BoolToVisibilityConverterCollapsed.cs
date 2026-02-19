@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace TOTP.Converters;
+namespace TOTP.Infrastructure.Converters;
 
 public class BoolToVisibilityConverterCollapsed : IValueConverter
 {

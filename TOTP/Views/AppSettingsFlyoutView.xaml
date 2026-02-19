@@ -5,7 +5,8 @@
              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
              xmlns:xaml="clr-namespace:TOTP.Xaml"
              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
-             xmlns:attached="clr-namespace:TOTP.AttachedProperties"
+             xmlns:attached="clr-namespace:TOTP.Infrastructure.AttachedProperties"
+             xmlns:behaviors="clr-namespace:TOTP.Infrastructure.Behaviors"
              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}">
 
     <Grid Margin="0,0,0,0">
@@ -86,12 +87,12 @@
                                       Margin="0,0,0,6"/>
 
                             <PasswordBox Height="30" Margin="0,0,0,10"
-                                         attached:PasswordBoxHelper.BindPassword="True"
-                                         attached:PasswordBoxHelper.BoundPassword="{Binding NewPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                         behaviors:PasswordBoxHelper.BindPassword="True"
+                                         behaviors:PasswordBoxHelper.BoundPassword="{Binding NewPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                             <PasswordBox Height="30" Margin="0,0,0,10"
-                                         attached:PasswordBoxHelper.BindPassword="True"
-                                         attached:PasswordBoxHelper.BoundPassword="{Binding ConfirmPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                         behaviors:PasswordBoxHelper.BindPassword="True"
+                                         behaviors:PasswordBoxHelper.BoundPassword="{Binding ConfirmPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                         </StackPanel>
 

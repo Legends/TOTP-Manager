@@ -12,10 +12,6 @@ namespace TOTP.Core.Models
 
         public AccountItem(Guid id, string platform, string secret, string? account = null)
         {
-            //if (string.IsNullOrWhiteSpace(platform))
-            //    throw new ArgumentException(nameof(platform));
-            //if (string.IsNullOrWhiteSpace(secret))
-            //    throw new ArgumentException(nameof(secret));
             ID = id;
             Platform = platform;
             Secret = secret;

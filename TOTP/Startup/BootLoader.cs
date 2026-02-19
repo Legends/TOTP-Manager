@@ -14,7 +14,7 @@ using System.Windows;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Helper;
-using TOTP.Logging;
+using TOTP.Infrastructure.Logging;
 using TOTP.Resources;
 using TOTP.Security;
 using TOTP.Security.Interfaces;

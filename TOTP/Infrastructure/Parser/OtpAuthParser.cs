@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 
-namespace TOTP.Parser
+namespace TOTP.Infrastructure.Parser
 {
     public static class OtpauthParser
     {

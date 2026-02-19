@@ -3,15 +3,15 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace TOTP.Converters
+namespace TOTP.Infrastructure.Converters
 {
-    public sealed class InverseBoolToVisibilityConverter : IValueConverter
+    public class InverseBooleanConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => value is true ? Visibility.Collapsed : Visibility.Visible;
+            => value is bool b ? !b : DependencyProperty.UnsetValue;
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => value is Visibility.Collapsed;
+            => value is bool b ? !b : DependencyProperty.UnsetValue;
     }
 
 }

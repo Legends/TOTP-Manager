@@ -14,7 +14,7 @@ public partial class App : Application
     public IHost Host { get; set; } = default!;
     //public SingleInstanceGuard? InstanceGuard { get; set; }
 
-    public IAuthorizationService? AuthorizationService { get; set; }
+    public IAuthorizationService AuthorizationService { get; set; }
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -40,8 +40,8 @@ public partial class App : Application
         // Optional: anything *extra* at WPF exit (Program.cs already stops host & flushes Serilog)
         try
         {
-            var secretsManager = Host.Services.GetService(typeof(IAccountsDAL)) as IAccountsDAL;
-            secretsManager?.BackupAccountsFile();
+            var acountsManager = Host.Services.GetService(typeof(IAccountsDAL)) as IAccountsDAL;
+            acountsManager?.BackupAccountsFile();
         }
         catch (Exception ex)
         {

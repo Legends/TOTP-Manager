@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace TOTP.AttachedProperties;
+namespace TOTP.Infrastructure.AttachedProperties;
 
 public static class FocusExtension
 {

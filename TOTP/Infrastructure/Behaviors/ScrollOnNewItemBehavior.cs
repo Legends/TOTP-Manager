@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Windows.Data;
 using System.Windows.Threading;
 
-namespace TOTP.Behaviors;
+namespace TOTP.Infrastructure.Behaviors;
 
 public class ScrollOnNewOrUpdatedItemBehavior : Behavior<SfDataGrid>
 {

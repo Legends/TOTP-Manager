@@ -4,7 +4,7 @@ using Syncfusion.UI.Xaml.Grid.Helpers;
 using System.Windows;
 using System.Windows.Input;
 
-namespace TOTP.Behaviors
+namespace TOTP.Infrastructure.Behaviors
 {
     public class RowClickBehavior : Behavior<SfDataGrid>
     {

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
-namespace TOTP.Behaviors;
+namespace TOTP.Infrastructure.Behaviors;
 
 public class AsyncInvokeCommandAction : TriggerAction<DependencyObject>
 {

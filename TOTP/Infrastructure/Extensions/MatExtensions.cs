@@ -3,7 +3,7 @@ using System;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace TOTP.Extensions
+namespace TOTP.Infrastructure.Extensions
 {
     public static class MatExtensions
     {

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 
-namespace TOTP.Behaviors;
+namespace TOTP.Infrastructure.Behaviors;
 
 public class SingleOrDoubleTapBehavior : Behavior<SfDataGrid>
 {

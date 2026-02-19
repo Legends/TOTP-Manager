@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace TOTP.Converters;
+namespace TOTP.Infrastructure.Converters;
 
 public sealed class ProgressValueToBrushConverter : IValueConverter
 {

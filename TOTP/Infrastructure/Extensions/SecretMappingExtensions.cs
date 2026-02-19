@@ -1,7 +1,7 @@
 ﻿using TOTP.Core.Models;
 using TOTP.ViewModels;
 
-namespace TOTP.Extensions;
+namespace TOTP.Infrastructure.Extensions;
 
 public static class AccountMappingExtensions
 {

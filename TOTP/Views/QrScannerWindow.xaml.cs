@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using TOTP.Extensions;
+using TOTP.Infrastructure.Extensions;
 
 namespace TOTP.Views
 {

@@ -3,7 +3,7 @@ using Syncfusion.UI.Xaml.Grid;
 using System.Windows;
 using TOTP.Services.Interfaces;
 
-namespace TOTP.Behaviors;
+namespace TOTP.Infrastructure.Behaviors;
 
 public class SfDataGridContextMenuBehavior : Behavior<SfDataGrid>
 {

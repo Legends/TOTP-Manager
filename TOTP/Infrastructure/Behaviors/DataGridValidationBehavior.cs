@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using TOTP.Core.Enums;
 using TOTP.Core.Validation;
-using TOTP.Extensions;
+using TOTP.Infrastructure.Extensions;
 using TOTP.Validation;
 using TOTP.ViewModels;
 
-namespace TOTP.Behaviors;
+namespace TOTP.Infrastructure.Behaviors;
 
 /// <summary>
 /// INLINE EDITING BEHAVIOR

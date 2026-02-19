@@ -26,9 +26,10 @@ using TOTP.Core.Enums;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Validation;
-using TOTP.Extensions;
 using TOTP.Helper;
-using TOTP.Parser;
+using TOTP.Infrastructure.Adapters;
+using TOTP.Infrastructure.Extensions;
+using TOTP.Infrastructure.Parser;
 using TOTP.Resources;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
@@ -45,6 +46,8 @@ namespace TOTP.ViewModels;
 public class MainViewModel : IMainViewModel
 {
     #region ### COMMON PROPS AND VARS ###
+
+    public GridFilterRefresher GridFilterRefresher { get; set; }
 
     #region SETTINGS
 
@@ -373,7 +376,7 @@ public class MainViewModel : IMainViewModel
                 OnPropertyChanged(nameof(IsSearchTextNotEmpty));
                 _debounceService.Debounce("Search", 300, ExecuteSearch);
             }
-          
+
         }
     }
 
@@ -398,7 +401,7 @@ public class MainViewModel : IMainViewModel
 
     public Action? RequestGridFilterRefresh { get; set; }
 
-  
+
     public ObservableCollection<CultureDisplay> SupportedCultures { get; set; }
 
     #endregion ObservableCollections
@@ -529,7 +532,7 @@ public class MainViewModel : IMainViewModel
     }
 
     #endregion
-    
+
     #region ### COMMANDS DECLARATION ###
 
     public ICommand OpenSettingsCommand { get; private set; } = null!;
@@ -600,6 +603,10 @@ public class MainViewModel : IMainViewModel
         {
             IsSearchVisible = !IsSearchVisible;
             IsSearchFocused = IsSearchVisible;
+
+            if (!IsSearchVisible)
+                SearchText = string.Empty;
+
         }, () => !IsGridEditing);
 
         ClearSearchCommand = new RelayCommand(ClearSearchTextbox, () => IsSearchVisible);
@@ -725,9 +732,12 @@ public class MainViewModel : IMainViewModel
 
         await ReadAllAccountsAsync();
 
+        // Re-Apply the filter function because it is lost after replacing the AllAccounts prop
+        // with a new ObservableCollection in ReadAllAccountsAsync !
+        GridFilterRefresher.ApplySearchFilter(((IMainViewModel)this).DoFilterGrid);
+
         if (!_collectionHooked)
         {
-            Debug.WriteLine("_collectionHooked = >  AllAccounts.CollectionChanged += Source_CollectionChanged;");
             AllAccounts.CollectionChanged += Source_CollectionChanged;
             _collectionHooked = true;
         }
@@ -890,13 +900,14 @@ public class MainViewModel : IMainViewModel
 
                 var allAccounts = result.Value;
                 AllAccounts = new ObservableCollection<AccountViewModel>((allAccounts.Select(item => item.ToViewModel()) ?? []));
-//#if DEBUG
-//                //for dev purposes, exclude Syncfusion entry
 
-//                var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).Select(item => item.ToViewModel()).ToList();
+                //#if DEBUG
+                //                //for dev purposes, exclude Syncfusion entry
 
-//                AllSecrets = new ObservableCollection<AccountViewModel>((IEnumerable<AccountViewModel>)(secrets ?? []));
-//#endif
+                //                var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).Select(item => item.ToViewModel()).ToList();
+
+                //                AllSecrets = new ObservableCollection<AccountViewModel>((IEnumerable<AccountViewModel>)(secrets ?? []));
+                //#endif
                 foreach (var item in AllAccounts)
                 {
                     item.SetDuplicateCheck(DuplicateCheck);
@@ -1455,7 +1466,7 @@ public class MainViewModel : IMainViewModel
 
     #region ### Grid Filter Logic ###
 
-   
+
 
     private bool FilterSecrets(object obj)
     {
@@ -1475,17 +1486,20 @@ public class MainViewModel : IMainViewModel
     /// <returns></returns>
     bool IMainViewModel.DoFilterGrid(object obj)
     {
+        if (string.IsNullOrWhiteSpace(SearchText))
+            return true;
+
         Debug.WriteLine("---  DoFilterGrid   ----");
-        return obj is AccountViewModel vm && (string.IsNullOrWhiteSpace(SearchText) || vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+        return obj is AccountViewModel vm && (vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
-  private void ExecuteSearch()
+    private void ExecuteSearch()
     {
         try
         {
-            //FilteredSecrets.Refresh();
             // when SearchText changes:
-            RequestGridFilterRefresh?.Invoke();
+            //RequestGridFilterRefresh?.Invoke();
+            GridFilterRefresher.Refresh();
         }
         catch (Exception ex)
         {
@@ -1623,6 +1637,12 @@ public class MainViewModel : IMainViewModel
 
     void ClearSearchTextbox()
     {
+        if (string.IsNullOrWhiteSpace(SearchText)) // when the search box is empty already and the user pressed ESC, we close search
+        {
+            IsSearchVisible = false;
+            //return;
+        }
+
         SearchText = "";
         // the property doesn't change if IsSearchFocused is already true
         // so, setting true => true doesn't raise onpropertyChanged and therefore no focus occurs
@@ -1630,6 +1650,7 @@ public class MainViewModel : IMainViewModel
         // to force the property changed notification:
         IsSearchFocused = false;
         IsSearchFocused = IsSearchVisible;
+
     }
 
     private void CopyCode()
