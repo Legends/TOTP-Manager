@@ -357,4 +357,19 @@
   <data name="ui_Window_Title_TOTP_Manager" xml:space="preserve">
     <value>TOTP Manager</value>
   </data>
+  <data name="ui_Use_Hello" xml:space="preserve">
+    <value>Windows Hello nutzen</value>
+  </data>
+  <data name="ui_Use_Password" xml:space="preserve">
+    <value>Passwort nutzen</value>
+  </data>
+  <data name="ui_UnlockWith_Pwd" xml:space="preserve">
+    <value>Mit Passwort entsperren</value>
+  </data>
+  <data name="ui_Unlock" xml:space="preserve">
+    <value>Entsperren</value>
+  </data>
+  <data name="ui_Setup_Password" xml:space="preserve">
+    <value>Passwort einrichten</value>
+  </data>
 </root>

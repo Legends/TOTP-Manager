@@ -177,11 +177,12 @@
 	<PropertyGroup>
 		<SigningSucceeded>false</SigningSucceeded>
 		<StartupObject>TOTP.Program</StartupObject>
+		<IncludeSymbols>True</IncludeSymbols>
 	</PropertyGroup>
 
-	<Target Name="PostBuildSign" AfterTargets="Build" Condition="'$(Configuration)'=='Release'">
+	<!--<Target Name="PostBuildSign" AfterTargets="Build" Condition="'$(Configuration)'=='Release'">
 		<Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;" StandardOutputImportance="High" StandardErrorImportance="High" IgnoreExitCode="false" />
 		<Message Text="🔥 PostBuildSign target invoked" Importance="High" />
-	</Target>
+	</Target>-->
 	
 </Project>

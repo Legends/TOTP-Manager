@@ -22,9 +22,7 @@
 
         <!-- Dim background -->
         <Border Background="{Binding OverlayBrush, ElementName=root}"
-                Visibility="{Binding IsOpen, ElementName=root,
-                   Converter={StaticResource BoolToVisibilityConverterCollapsed},
-                   PresentationTraceSources.TraceLevel=High}"
+                Visibility="{Binding IsOpen, ElementName=root,Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
                 Panel.ZIndex="{Binding OverlayZIndex, ElementName=root}"
                 IsHitTestVisible="{Binding IsOpen, ElementName=root}">
 

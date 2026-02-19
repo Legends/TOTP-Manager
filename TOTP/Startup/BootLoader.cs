@@ -45,7 +45,7 @@ public static class BootLoader
         Thread.CurrentThread.CurrentCulture = culture;
         Thread.CurrentThread.CurrentUICulture = culture;
 
-        LocalizationService.ChangeCulture(cultureCode);
+        //LocalizationService.ChangeCulture(cultureCode);
     }
 
     public static void RegisterSyncfusionLicenseKey(IConfiguration configuration)

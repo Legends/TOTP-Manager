@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -25,7 +26,6 @@ namespace TOTP.Services
 
         private static void UpdateCultureSetting(string cultureName)
         {
-
             var json = File.ReadAllText(StringsConstants.AppSettingsJsonFilePath);
             var jObject = Newtonsoft.Json.Linq.JObject.Parse(json);
 

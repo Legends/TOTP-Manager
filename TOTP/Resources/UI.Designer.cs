@@ -754,6 +754,51 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Setup your password.
+        /// </summary>
+        internal static string ui_Setup_Password {
+            get {
+                return ResourceManager.GetString("ui_Setup_Password", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlock.
+        /// </summary>
+        internal static string ui_Unlock {
+            get {
+                return ResourceManager.GetString("ui_Unlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlock using your password.
+        /// </summary>
+        internal static string ui_UnlockWith_Pwd {
+            get {
+                return ResourceManager.GetString("ui_UnlockWith_Pwd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use Windows Hello.
+        /// </summary>
+        internal static string ui_Use_Hello {
+            get {
+                return ResourceManager.GetString("ui_Use_Hello", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use Password.
+        /// </summary>
+        internal static string ui_Use_Password {
+            get {
+                return ResourceManager.GetString("ui_Use_Password", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to i.e. github, msft, ....
         /// </summary>
         internal static string ui_watermark_platform {
