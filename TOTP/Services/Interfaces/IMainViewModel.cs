@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using TOTP.Commands;
+using TOTP.Core.Interfaces;
 using TOTP.Infrastructure.Adapters;
 using TOTP.ViewModels;
 
@@ -13,7 +14,7 @@ namespace TOTP.Services.Interfaces;
 public interface IMainViewModel : INotifyPropertyChanged
 {
     ObservableCollection<AccountViewModel> AllAccounts { get; }
-    GridFilterRefresher GridFilterRefresher { get; set; }
+    IGridFilterRefresher GridFilterRefresher { get; set; }
     Action? RequestGridFilterRefresh { get; set; }
     bool DoFilterGrid(object obj);
     RelayCommand OpenFlyoutAddModeCommand { get; }

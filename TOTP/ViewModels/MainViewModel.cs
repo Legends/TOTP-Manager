@@ -23,6 +23,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using TOTP.Commands;
 using TOTP.Core.Enums;
+using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Validation;
@@ -47,7 +48,7 @@ public class MainViewModel : IMainViewModel
 {
     #region ### COMMON PROPS AND VARS ###
 
-    public GridFilterRefresher GridFilterRefresher { get; set; }
+    public IGridFilterRefresher GridFilterRefresher { get; set; }
 
     #region SETTINGS
 
