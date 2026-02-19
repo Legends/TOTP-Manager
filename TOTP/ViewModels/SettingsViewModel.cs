@@ -11,6 +11,9 @@ namespace TOTP.ViewModels;
 
 public sealed class SettingsViewModel : INotifyPropertyChanged
 {
+
+    #region ### PROPERTIES/FIELDS ###
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private bool _isHelloSelected = true;
@@ -189,15 +192,19 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public ICommand CloseCommand { get; }
     public ICommand ExportTestCommand { get; }
     private Action _SaveAction;
-    public SettingsViewModel(IGlobalProfileStore globalProfileStore, 
-                            IAuthorizationService authorizationService, 
-                            ICommand closeCommand, Action saveAction, 
+
+    #endregion
+
+
+    public SettingsViewModel(IGlobalProfileStore globalProfileStore,
+                            IAuthorizationService authorizationService,
+                            ICommand closeCommand, Action saveAction,
                             Action exportTest)
     {
         _globalProfileStore = globalProfileStore ?? throw new ArgumentNullException(nameof(globalProfileStore));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
 
-        _SaveAction= saveAction;
+        _SaveAction = saveAction;
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync);
         ExportTestCommand = new RelayCommand(_ => exportTest());
@@ -233,7 +240,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             Console.WriteLine(e);
             throw;
         }
-      
+
     }
 
     private async Task LoadAsync()

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using TOTP.Helper;
 using TOTP.Infrastructure;
@@ -20,10 +21,18 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        Run(args);
+        try
+        {
+            Run(args).GetAwaiter().GetResult();
+        }
+        catch (Exception runEX)
+        {
+            Debug.WriteLine(runEX);
+            throw;
+        }
     }
 
-    private static void Run(string[] args)
+    private static async Task Run(string[] args)
     {
         IHost? host = null;
 
@@ -42,8 +51,8 @@ internal static class Program
 
             host = BootLoader.BuildHostAndConfigureServices(configuration);
 
-            // IMPORTANT: stay on the STA thread
-            host.StartAsync().GetAwaiter().GetResult();
+            // Host start (noch ok, wir sind im STA)
+            await host.StartAsync().ConfigureAwait(false);
 
             var app = new App
             {
@@ -55,41 +64,41 @@ internal static class Program
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
 
             var mainWindow = host.Services.GetRequiredService<MainWindow>();
-            mainWindow.DataContext = host.Services.GetRequiredService<IMainViewModel>();
+            var vm = host.Services.GetRequiredService<IMainViewModel>();
+            mainWindow.DataContext = vm;
             mainWindow.ResizeMode = System.Windows.ResizeMode.NoResize;
 
             app.MainWindow = mainWindow;
 
-            // 2. Resolve the ViewModel and trigger InitializeAsync
-            // We do not 'await' here to avoid blocking the STA thread before the Dispatcher starts.
-            // The ViewModel internally handles the Task.
-            if (mainWindow.DataContext is IMainViewModel vm)
+            // Async init NACH Dispatcher-Start:
+            mainWindow.Loaded += async (_, __) =>
             {
-                // Use Task.Run or simply fire-and-forget the Task 
-                // because InitializeAsync internally handles its own UI updates/awaiting.
-                _ = vm.InitializeMainViewAsync(mainWindow);
-            }
+                try
+                {
+                    await vm.InitializeMainViewAsync(mainWindow); // läuft jetzt sauber auf UI-Thread weiter
+                }
+                catch (Exception e)
+                {
+                    Log.Fatal(e, UI.ex_FatalError);
+                    app.Shutdown(-1);
+                }
+            };
 
-            //mainWindow.Show();
+            app.Exit += async (_, __) =>
+            {
+                try { if (host != null) await host.StopAsync(); } catch { /* log if you want */ }
+                host?.Dispose();
+                Log.CloseAndFlush();
+            };
 
-            // Starts dispatcher; from here you have a real WPF UI thread
             app.Run(mainWindow);
-
-            // Graceful shutdown after UI exits
-            host.StopAsync().GetAwaiter().GetResult();
         }
         catch (Exception e)
         {
             Log.Fatal(e, UI.ex_FatalError);
             Environment.Exit(-1);
         }
-        finally
-        {
-            host?.Dispose();
-            Log.CloseAndFlush();
-        }
     }
 
 
-  
 }
