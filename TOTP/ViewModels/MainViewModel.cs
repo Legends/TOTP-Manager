@@ -725,7 +725,8 @@ public class MainViewModel : IMainViewModel
     #region ### USER MESSAGES ###
     private bool _secretsManager_OnDeletePrompt(object? sender, string platform)
     {
-        return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
+        //return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
+        return _messageService.ShowDefaultMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform), UI.ui_btnDelete);
     }
 
     private void ShowMessage(OperationStatus arg1, AccountViewModel? item)

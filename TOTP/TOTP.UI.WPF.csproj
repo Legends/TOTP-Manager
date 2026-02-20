@@ -5,7 +5,8 @@
 		<TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
-		<UseWindowsForms>true</UseWindowsForms>
+		<!--<PublishAot>true</PublishAot>-->
+		<!--<UseWindowsForms>true</UseWindowsForms>-->
 		<UserSecretsId>6f888768-43da-4da8-9820-96b854382d72</UserSecretsId>
 		<ApplicationIcon>totp.ico</ApplicationIcon>
 		<PackageIcon>totp.ico</PackageIcon>

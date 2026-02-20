@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Windows.Forms;
+using System.Windows;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;

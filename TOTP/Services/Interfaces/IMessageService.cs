@@ -4,6 +4,8 @@ namespace TOTP.Services.Interfaces;
 
 public interface IMessageService
 {
+    bool ShowDefaultMessageDialog(string message, string btnOkText = "", string btnCancelText = "",
+        CaptionType caption = CaptionType.Default, string iconPath = "");
     void ShowMessage(string message, CaptionType caption = CaptionType.Info, string iconPath = "");
     bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Info, string iconPath = "");
 

@@ -12,10 +12,6 @@ namespace TOTP.Services;
 
 public class MessageService(IUserMessageDialogViewModel userMessageDialogViewModel) : IMessageService
 {
-    public void ShowErrorMessage(string message)
-    {
-        ShowMessage(message, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
-    }
     public void ShowInfoMessage(string message)
     {
         ShowMessage(message, CaptionType.Info, StringsConstants.ImgUrl.ImgInfo);
@@ -26,13 +22,13 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         ShowMessage(message, CaptionType.Warning, StringsConstants.ImgUrl.ImgWarning);
     }
 
-    public bool ShowErrorMessageDialog(string message)
+    public void ShowErrorMessage(string message)
     {
-        return ShowMessageDialog(message, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
+        ShowMessage(message, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
     }
+
     public bool ShowInfoMessageDialog(string message)
     {
-
         return ShowMessageDialog(message, CaptionType.Info, StringsConstants.ImgUrl.ImgInfo);
     }
 
@@ -41,11 +37,25 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         return ShowMessageDialog(message, CaptionType.Warning, StringsConstants.ImgUrl.ImgWarning);
     }
 
-    public void ShowMessage(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
+    public bool ShowErrorMessageDialog(string message)
     {
-        var vm = CreateUserMessageDialogViewModel(message, caption, iconPath, UI.ui_btnOK, string.Empty);
-        vm.ShowCancelButton = false;
+        return ShowMessageDialog(message, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
+    }
 
+    private bool ShowUserMessageDialogCore(
+      string message,
+      CaptionType caption,
+      string iconPath,
+      string okText,
+      string cancelText,
+      bool showCancelButton,
+      double dimOpacity)
+    {
+        var vm = CreateUserMessageDialogViewModel(message, caption, iconPath, okText, cancelText);
+
+        vm.ShowCancelButton = showCancelButton;
+
+        // keep your existing caption->icon behavior for the non-custom path
         vm.IconPath = caption switch
         {
             CaptionType.Error => StringsConstants.ImgUrl.ImgError,
@@ -54,18 +64,29 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
             _ => string.Empty
         };
 
+        var owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+
         var dialog = new UserMessageDialog(vm)
         {
-            Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive)
+            Owner = owner
         };
+
+        // If there is no owner (rare), just show normally (avoid NullRef)
+        if (dialog.Owner is null)
+        {
+            dialog.ShowDialog();
+            return dialog.Result;
+        }
+
         var oldOpacity = dialog.Owner.Opacity;
         var oldEffect = dialog.Owner.Effect;
 
         try
         {
-            dialog.Owner.Opacity = 0.65;      // dim the owner
+            dialog.Owner.Opacity = dimOpacity;
             dialog.Owner.Effect = new BlurEffect { Radius = 6 };
             dialog.ShowDialog();
+            return dialog.Result;
         }
         finally
         {
@@ -74,29 +95,41 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         }
     }
 
+    public bool ShowDefaultMessageDialog(string message, string btnOkText = null, string btnCancelText = null, CaptionType caption = CaptionType.Default, string iconPath = "")
+    {
+
+       return ShowUserMessageDialogCore(
+            message: message,
+            caption: caption,
+            iconPath: iconPath,
+            okText: !string.IsNullOrEmpty(btnOkText) ? btnOkText : UI.ui_btnOK,
+            cancelText: !string.IsNullOrEmpty(btnCancelText) ? btnCancelText : UI.ui_btnCancel,
+            showCancelButton: true,
+            dimOpacity: 0.55);
+    }
+
+    public void ShowMessage(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
+    {
+        _ = ShowUserMessageDialogCore(
+            message,
+            caption,
+            iconPath,
+            okText: UI.ui_btnOK,
+            cancelText: string.Empty,
+            showCancelButton: false,
+            dimOpacity: 0.65);
+    }
+
     public bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
     {
-        var vm = CreateUserMessageDialogViewModel(message, caption, iconPath, UI.ui_btnOK, UI.ui_btnCancel);
-
-        var dialog = new UserMessageDialog(vm)
-        {
-            Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive)
-        };
-        var oldOpacity = dialog.Owner.Opacity;
-        var oldEffect = dialog.Owner.Effect;
-
-        try
-        {
-            dialog.Owner.Opacity = 0.55;      // dim the owner
-            dialog.Owner.Effect = new BlurEffect { Radius = 6 };
-            dialog.ShowDialog();
-        }
-        finally
-        {
-            dialog.Owner.Opacity = oldOpacity;
-            dialog.Owner.Effect = oldEffect;
-        }
-        return dialog.Result;
+        return ShowUserMessageDialogCore(
+            message,
+            caption,
+            iconPath,
+            okText: UI.ui_btnOK,
+            cancelText: UI.ui_btnCancel,
+            showCancelButton: true,
+            dimOpacity: 0.55);
     }
 
     private IUserMessageDialogViewModel CreateUserMessageDialogViewModel(string message, CaptionType caption, string iconPath,

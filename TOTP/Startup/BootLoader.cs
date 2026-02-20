@@ -103,8 +103,6 @@ public static class BootLoader
                 services.AddSingleton<Func<IQrScannerDialogService>>(sp =>
                     () => sp.GetRequiredService<IQrScannerDialogService>());
 
-
-
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
                 services.AddSingleton<IUserActivityService, UserActivityService>();
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();
@@ -136,7 +134,7 @@ public static class BootLoader
         app.DispatcherUnhandledException += (_, e) =>
         {
             try { messageService?.ShowErrorMessageDialog(UI.msg_DispatcherException); }
-            catch { MessageBox.Show(e.Exception.Message, "UI Error"); }
+            catch { MessageBox.Show(e.Exception.Message, "UI Error", MessageBoxButton.OK); }
 
             logger?.LogCritical(e.Exception, "Unhandled UI thread exception");
             e.Handled = true;
@@ -146,7 +144,7 @@ public static class BootLoader
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
             try { messageService?.ShowErrorMessageDialog(UI.ex_FatalError); }
-            catch { MessageBox.Show(UI.ex_FatalError, "AppDomain Error"); }
+            catch { MessageBox.Show(UI.ex_FatalError, "AppDomain Error", MessageBoxButton.OK); }
 
             logger?.LogCritical(e.ExceptionObject as Exception, "Unhandled domain exception");
             Environment.Exit(1);
@@ -156,7 +154,7 @@ public static class BootLoader
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
             try { messageService?.ShowWarningMessage(UI.msg_BackroundTaskException); }
-            catch { MessageBox.Show(UI.msg_BackroundTaskException, "Unobserved Task Exception"); }
+            catch { MessageBox.Show(UI.msg_BackroundTaskException, "Unobserved Task Exception", MessageBoxButton.OK); }
 
             logger?.LogCritical(e.Exception, "Unobserved task exception");
             e.SetObserved();
