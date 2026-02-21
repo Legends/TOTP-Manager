@@ -11,8 +11,6 @@ public interface IMainViewSessionController
     AppSessionState SessionState { get; }
     bool IsUnlocked { get; }
 
-    event EventHandler<AppSessionState>? SessionStateChanged;
-
     ICommand WindowStateChangedCommand { get; }
     ICommand DetachWindowCommand { get; }
 

@@ -32,7 +32,6 @@ using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Parser;
 using TOTP.Resources;
 using TOTP.Security.Interfaces;
-using TOTP.Security.Models;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Validation;
@@ -101,23 +100,6 @@ public class MainViewModel : IMainViewModel
 
     public UnlockViewModel UnlockViewModel { get; }
     public IMainViewSessionController SessionController => _sessionController;
-
-    private AppSessionState _sessionState = AppSessionState.Locked;
-    public AppSessionState SessionState
-    {
-        get => _sessionState;
-        private set
-        {
-            if (_sessionState == value)
-                return;
-
-            _sessionState = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsUnlocked));
-        }
-    }
-
-    public bool IsUnlocked => _sessionController.IsUnlocked;
 
     #endregion
 
@@ -515,7 +497,6 @@ public class MainViewModel : IMainViewModel
         UnlockViewModel = unlockVM;
 
         _accountsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
-        _sessionController.SessionStateChanged += SessionController_SessionStateChanged;
         _sessionController.ConfigureCallbacks(OnUnlockedAsync, OnLocked);
 
         SetupCommandEventhandler();
@@ -796,11 +777,6 @@ public class MainViewModel : IMainViewModel
 
 
     #region ### AUTHORIZATION ###
-
-    private void SessionController_SessionStateChanged(object? sender, AppSessionState state)
-    {
-        SessionState = state;
-    }
 
     private async Task OnUnlockedAsync()
     {

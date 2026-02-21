@@ -22,8 +22,6 @@ public sealed class MainViewSessionController : IMainViewSessionController
     public AppSessionState SessionState { get; private set; } = AppSessionState.Locked;
     public bool IsUnlocked => SessionState == AppSessionState.Unlocked;
 
-    public event EventHandler<AppSessionState>? SessionStateChanged;
-
     public ICommand WindowStateChangedCommand { get; }
     public ICommand DetachWindowCommand { get; }
 
@@ -134,6 +132,5 @@ public sealed class MainViewSessionController : IMainViewSessionController
             return;
 
         SessionState = state;
-        SessionStateChanged?.Invoke(this, state);
     }
 }
