@@ -106,6 +106,7 @@ public static class BootLoader
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
                 services.AddSingleton<IUserActivityService, UserActivityService>();
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();
+                services.AddSingleton<IMainViewSessionController, MainViewSessionController>();
 
                 services.AddSingleton<UnlockViewModel>();
                 services.AddSingleton<HelloUnlockViewModel>();
