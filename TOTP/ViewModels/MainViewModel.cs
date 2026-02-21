@@ -467,8 +467,6 @@ public class MainViewModel : IMainViewModel
 
     private bool _accountsLoaded;
     private bool _collectionHooked;
-    private IMainWindow? _attachedWindow;
-
     //private string _pendingSearchText;
 
     #endregion REGION SERVICES
@@ -548,9 +546,6 @@ public class MainViewModel : IMainViewModel
         try
         {
 
-            AttachWindowCommand.Execute(mainWindow);
-
-
             Settings = await SettingsViewModel.CreateAsync(
                 globalProfileStore: _globalProfileStore,
                 authorizationService: _authorization,
@@ -609,10 +604,7 @@ public class MainViewModel : IMainViewModel
     public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
     public AsyncCommand<AccountViewModel> RowSelectionChangedCommand { get; private set; } = null!;
-    public AsyncCommand InitializeCommand { get; private set; } = null!;
-    public ICommand LockCommand { get; private set; } = null!;
     public ICommand WindowStateChangedCommand { get; private set; } = null!;
-    public ICommand AttachWindowCommand { get; private set; } = null!;
     public ICommand DetachWindowCommand { get; private set; } = null!;
 
     #endregion REGION COMMANDS
@@ -655,10 +647,7 @@ public class MainViewModel : IMainViewModel
 
         ClearSearchCommand = new RelayCommand(ClearSearchTextbox, () => IsSearchVisible);
 
-        InitializeCommand = new AsyncCommand(() => InitializeMainViewAsync(_attachedWindow), logger: _logger);
-        LockCommand = new RelayCommand(Lock);
         WindowStateChangedCommand = new RelayCommand<WindowState>(OnWindowStateChanged);
-        AttachWindowCommand = new RelayCommand<IMainWindow>(AttachWindow);
         DetachWindowCommand = new RelayCommand(DetachWindow);
     }
 
@@ -841,26 +830,15 @@ public class MainViewModel : IMainViewModel
         SelectedAccount = null; // todo: check flag, was soll bei einem session lock passieren mit dem katuellen zustand
     }
 
-    public void Lock()
-    {
-        _sessionController.Lock();
-    }
-
     private void OnWindowStateChanged(WindowState state)
     {
         _sessionController.OnWindowStateChanged(state);
     }
 
-    private void AttachWindow(IMainWindow? window)
-    {
-        _attachedWindow = window;
-        _sessionController.AttachWindow(window);
-    }
 
     private void DetachWindow()
     {
         _sessionController.DetachWindow();
-        _attachedWindow = null;
     }
 
     #endregion
