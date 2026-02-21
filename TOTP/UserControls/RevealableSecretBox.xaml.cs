@@ -240,11 +240,29 @@ namespace TOTP.UserControls
 
         #endregion
 
-
+        private bool _isLoading = true;
         public RevealableSecretBox()
         {
             InitializeComponent();
+
+            this.IsVisibleChanged += (s, e) =>
+            {
+                if (!_isLoading)
+                {
+                    if ((bool)e.NewValue)
+                    {
+                        // The UC is now visible! Start animations or refresh data.
+                        if (AutoFocus)
+                        {
+                            TryAutoFocus();
+                        }
+                    }
+                }
+                _isLoading = false;
+            };
         }
+
+
 
         private void TryAutoFocus()
         {
