@@ -5,7 +5,8 @@
              FocusManager.IsFocusScope="True"
              Focusable="True">
 
-    <Grid Width="{Binding PanelWidth, ElementName=root}"
+    <Grid x:Name="HostRoot"
+          Width="{Binding PanelWidth, ElementName=root}"
           HorizontalAlignment="Right"
           Visibility="{Binding IsOpen, ElementName=root,
                            Converter={StaticResource BoolToVisibilityConverterCollapsed},
@@ -34,7 +35,9 @@
         </Border>
 
         <!-- Flyout panel -->
-        <Grid Style="{StaticResource FlyoutHostStyle}" Panel.ZIndex="{Binding PanelZIndex, ElementName=root}">
+        <Grid x:Name="FlyoutPanel"
+              Style="{StaticResource FlyoutHostStyle}"
+              Panel.ZIndex="{Binding PanelZIndex, ElementName=root}">
 
             <Border Background="{Binding PanelBackground, ElementName=root}"
                     Padding="{Binding PanelPadding, ElementName=root}"
@@ -42,7 +45,8 @@
                     BorderThickness="{Binding PanelBorderThickness, ElementName=root}">
 
                 <!-- Inject the real view here -->
-                <ContentPresenter Content="{Binding FlyoutContent, ElementName=root}" />
+                <ContentPresenter x:Name="FlyoutContentPresenter"
+                                  Content="{Binding FlyoutContent, ElementName=root}" />
             </Border>
         </Grid>
     </Grid>

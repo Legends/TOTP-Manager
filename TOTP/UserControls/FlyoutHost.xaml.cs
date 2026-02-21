@@ -40,10 +40,61 @@ public partial class FlyoutHost : UserControl
             typeof(FlyoutHost),
             new FrameworkPropertyMetadata(false));
 
+    public static readonly DependencyProperty WarmUpOnLoadProperty =
+        DependencyProperty.Register(
+            nameof(WarmUpOnLoad),
+            typeof(bool),
+            typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(false, OnWarmUpOnLoadChanged));
+
     public bool IsOpen
     {
         get => (bool)GetValue(IsOpenProperty);
         set => SetValue(IsOpenProperty, value);
+    }
+
+    public bool WarmUpOnLoad
+    {
+        get => (bool)GetValue(WarmUpOnLoadProperty);
+        set => SetValue(WarmUpOnLoadProperty, value);
+    }
+
+    private static void OnWarmUpOnLoadChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not FlyoutHost host || e.NewValue is not bool shouldWarmUp || !shouldWarmUp)
+            return;
+
+        host.Loaded -= host.OnWarmUpLoaded;
+        host.Loaded += host.OnWarmUpLoaded;
+    }
+
+    private void OnWarmUpLoaded(object sender, RoutedEventArgs e)
+    {
+        Loaded -= OnWarmUpLoaded;
+
+        if (IsOpen)
+            return;
+
+        if (FlyoutContentPresenter is null || FlyoutPanel is null || HostRoot is null)
+            return;
+
+        var previousVisibility = HostRoot.Visibility;
+        var previousOpacity = HostRoot.Opacity;
+        var previousHitTest = HostRoot.IsHitTestVisible;
+
+        HostRoot.Visibility = Visibility.Visible;
+        HostRoot.Opacity = 0;
+        HostRoot.IsHitTestVisible = false;
+
+        FlyoutContentPresenter.ApplyTemplate();
+        FlyoutContentPresenter.UpdateLayout();
+        FlyoutPanel.ApplyTemplate();
+        FlyoutPanel.UpdateLayout();
+        HostRoot.UpdateLayout();
+
+        HostRoot.Opacity = previousOpacity;
+        HostRoot.IsHitTestVisible = previousHitTest;
+        HostRoot.Visibility = previousVisibility;
     }
 
     public static readonly DependencyProperty FlyoutContentProperty =

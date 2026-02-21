@@ -534,6 +534,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
             -->
             <userControls:FlyoutHost  IsOpen="{Binding DataContext.IsSettingsViewOpen, ElementName=mainWin}"
                                       DataContext="{Binding Settings}"
+                                      WarmUpOnLoad="True"
                                       PanelWidth="300"
                                       OverlayZIndex="20"
                                     >
