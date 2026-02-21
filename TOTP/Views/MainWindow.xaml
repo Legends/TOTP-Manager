@@ -38,10 +38,10 @@
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="StateChanged">
-            <i:InvokeCommandAction Command="{Binding WindowStateChangedCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=WindowState}" />
+            <i:InvokeCommandAction Command="{Binding SessionController.WindowStateChangedCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=WindowState}" />
         </i:EventTrigger>
         <i:EventTrigger EventName="Closed">
-            <i:InvokeCommandAction Command="{Binding DetachWindowCommand}" />
+            <i:InvokeCommandAction Command="{Binding SessionController.DetachWindowCommand}" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
 

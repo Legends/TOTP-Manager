@@ -100,7 +100,24 @@ public class MainViewModel : IMainViewModel
     #region ### SECURITY Fields & Props
 
     public UnlockViewModel UnlockViewModel { get; }
-    public bool IsUnlocked => _authorization.State.IsUnlocked;
+    public IMainViewSessionController SessionController => _sessionController;
+
+    private AppSessionState _sessionState = AppSessionState.Locked;
+    public AppSessionState SessionState
+    {
+        get => _sessionState;
+        private set
+        {
+            if (_sessionState == value)
+                return;
+
+            _sessionState = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsUnlocked));
+        }
+    }
+
+    public bool IsUnlocked => _sessionController.IsUnlocked;
 
     #endregion
 
@@ -446,14 +463,11 @@ public class MainViewModel : IMainViewModel
     private readonly IDelayService _delayService;
     private readonly IFileDialogService _fileDialogService;
     private readonly IAuthorizationService _authorization;
-    private readonly IUserActivityService _activityService;
-    private readonly IInputActivityMonitor _inputActivityMonitor;
+    private readonly IMainViewSessionController _sessionController;
     private readonly IGlobalProfileStore _globalProfileStore;
 
     private bool _accountsLoaded;
     private bool _collectionHooked;
-    private IMainWindow? _attachedWindow;
-
     //private string _pendingSearchText;
 
     #endregion REGION SERVICES
@@ -473,8 +487,7 @@ public class MainViewModel : IMainViewModel
         IAccountsDAL secretsDal,
         IFileDialogService fileDialogService,
         IAuthorizationService authorization,
-        IUserActivityService activityService,
-        IInputActivityMonitor inputActivityMonitor,
+        IMainViewSessionController sessionController,
         UnlockViewModel unlockVM,
         Func<IQrScannerDialogService> qrScannerDialogFactory)
     {
@@ -491,8 +504,7 @@ public class MainViewModel : IMainViewModel
         _clipboard = clipboard;
         _accountsManager = totpManager;
         _authorization = authorization;
-        _activityService = activityService;
-        _inputActivityMonitor = inputActivityMonitor;
+        _sessionController = sessionController;
 
         var rawProfilePath = config.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
         var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
@@ -503,8 +515,8 @@ public class MainViewModel : IMainViewModel
         UnlockViewModel = unlockVM;
 
         _accountsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
-        _authorization.State.Changed += AuthorizationState_Changed;
-        _activityService.LockRequested += ActivityService_LockRequested;
+        _sessionController.SessionStateChanged += SessionController_SessionStateChanged;
+        _sessionController.ConfigureCallbacks(OnUnlockedAsync, OnLocked);
 
         SetupCommandEventhandler();
 
@@ -535,9 +547,6 @@ public class MainViewModel : IMainViewModel
         try
         {
 
-            AttachWindowCommand.Execute(mainWindow);
-
-
             Settings = await SettingsViewModel.CreateAsync(
                 globalProfileStore: _globalProfileStore,
                 authorizationService: _authorization,
@@ -546,21 +555,9 @@ public class MainViewModel : IMainViewModel
                 exportTest: TestExport
             );
 
-            // Always start locked. The overlay unlock view is visible when IsUnlocked == false.
-            OnPropertyChanged(nameof(IsUnlocked));
-
-            // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
-            await _authorization.InitializeAsync();
-
-            // This triggers the gate every start:
-            // - If configured gate is Hello -> it prompts immediately
-            // - If password -> returns RequiresUserInput (stays on auth UI)
+            await _sessionController.InitializeAsync(mainWindow);
 
             IsBusy = false;
-            // ToDo: enable this when we want to trigger the gate on startup (requirement: gate triggers on every app start)
-            await _authorization.TryUnlockOnStartupAsync();
-
-            // Success path is handled by AuthorizationState_Changed → OnUnlockedAsync()
 
         }
         catch (Exception ex)
@@ -608,11 +605,6 @@ public class MainViewModel : IMainViewModel
     public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
     public AsyncCommand<AccountViewModel> RowSelectionChangedCommand { get; private set; } = null!;
-    public AsyncCommand InitializeCommand { get; private set; } = null!;
-    public ICommand LockCommand { get; private set; } = null!;
-    public ICommand WindowStateChangedCommand { get; private set; } = null!;
-    public ICommand AttachWindowCommand { get; private set; } = null!;
-    public ICommand DetachWindowCommand { get; private set; } = null!;
 
     #endregion REGION COMMANDS
 
@@ -654,11 +646,6 @@ public class MainViewModel : IMainViewModel
 
         ClearSearchCommand = new RelayCommand(ClearSearchTextbox, () => IsSearchVisible);
 
-        InitializeCommand = new AsyncCommand(() => InitializeMainViewAsync(_attachedWindow), logger: _logger);
-        LockCommand = new RelayCommand(Lock);
-        WindowStateChangedCommand = new RelayCommand<WindowState>(OnWindowStateChanged);
-        AttachWindowCommand = new RelayCommand<IMainWindow>(AttachWindow);
-        DetachWindowCommand = new RelayCommand(DetachWindow);
     }
 
 
@@ -810,29 +797,14 @@ public class MainViewModel : IMainViewModel
 
     #region ### AUTHORIZATION ###
 
-    private async void AuthorizationState_Changed(object? sender, EventArgs e)
+    private void SessionController_SessionStateChanged(object? sender, AppSessionState state)
     {
-        OnPropertyChanged(nameof(IsUnlocked));
-
-        if (IsUnlocked)
-        {
-            await OnUnlockedAsync();
-        }
-        else
-        {
-            OnLocked();
-        }
+        SessionState = state;
     }
 
     private async Task OnUnlockedAsync()
     {
-        if (_attachedWindow != null)
-        {
-            _inputActivityMonitor.Attach(_attachedWindow);
-        }
-
         await EnsureAccountsLoadedAsync();
-        UpdateActivityMonitorState();
     }
 
     /// <summary>
@@ -841,9 +813,6 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     private void OnLocked()
     {
-        UpdateActivityMonitorState();
-        _inputActivityMonitor.Detach();
-
         _accountsLoaded = false;
         AllAccounts.Clear();
 
@@ -857,58 +826,7 @@ public class MainViewModel : IMainViewModel
         IsInlineEditing = false;
         SelectedAccount = null; // todo: check flag, was soll bei einem session lock passieren mit dem katuellen zustand
     }
-    public void Lock()
-    {
-        // 1. Tell the authorization layer to lock
-        _authorization.Lock();
 
-        // 2. Everything else happens via AuthorizationState_Changed
-    }
-
-    private void OnWindowStateChanged(WindowState state)
-    {
-        if (state == WindowState.Minimized)
-            Lock();
-    }
-
-    private void AttachWindow(IMainWindow? window)
-    {
-        if (window == null)
-            return;
-
-        _attachedWindow = window;
-        _inputActivityMonitor.Attach(window);
-        UpdateActivityMonitorState();
-    }
-
-    private void DetachWindow()
-    {
-        _inputActivityMonitor.Detach();
-        _attachedWindow = null;
-    }
-
-    private void UpdateActivityMonitorState()
-    {
-        if (IsUnlocked)
-            StartAutoLock();
-        else
-            StopAutoLock();
-    }
-
-    private void StartAutoLock()
-    {
-        _activityService.StartMonitoring();
-    }
-
-    private void StopAutoLock()
-    {
-        _activityService.StopMonitoring();
-    }
-
-    private void ActivityService_LockRequested(object? sender, EventArgs e)
-    {
-        _authorization.Lock();
-    }
 
     #endregion
 
