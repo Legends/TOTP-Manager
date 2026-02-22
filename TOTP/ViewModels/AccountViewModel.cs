@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using TOTP.Core.Enums;
-using TOTP.Core.Validation;
 using TOTP.Validation;
 
 namespace TOTP.ViewModels;
@@ -169,7 +168,7 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
             switch (columnName)
             {
                 case nameof(Platform): // TODO: Add duplicate check here!
-                    error = SecretValidator.ValidatePlatform(Platform);
+                    error = UiValidation.ValidatePlatformName(Platform);
                     if (error != ValidationError.None)
                     {
                         errors.Add(ValidationMessageMapper.ToMessage(error));
@@ -183,7 +182,7 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
                     break;
 
                 case nameof(Secret):
-                    error = SecretValidator.ValidateSecretValue(Secret);
+                    error = UiValidation.ValidateSecretValue(Secret);
                     if (error != ValidationError.None)
                     {
                         errors.Add(ValidationMessageMapper.ToMessage(error));

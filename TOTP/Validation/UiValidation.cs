@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using TOTP.Core.Enums;
-using TOTP.Core.Validation;
+using TOTP.Core.Models;
 using TOTP.ViewModels;
 
 namespace TOTP.Validation;
@@ -39,7 +39,7 @@ internal class UiValidation
 
     public UiValidation ValidatePlatform()
     {
-        var error = SecretValidator.ValidatePlatform(_item.Platform);
+        var error = ValidatePlatformName(_item.Platform);
         if (error != ValidationError.None)
             _errors.Add(error);
         return this;
@@ -47,7 +47,7 @@ internal class UiValidation
 
     public UiValidation ValidateSecret()
     {
-        var error = SecretValidator.ValidateSecretValue(_item.Secret);
+        var error = ValidateSecretValue(_item.Secret);
         if (error != ValidationError.None)
             _errors.Add(error);
         return this;
@@ -55,24 +55,13 @@ internal class UiValidation
 
     public UiValidation ValidateID()
     {
-        var error = SecretValidator.ValidateID(_item.ID);
+        var error = ValidateID(_item.ID);
         if (error != ValidationError.None)
             _errors.Add(error);
         return this;
     }
 
-    //public UiValidation PlatformNameDuplicateExists(string platform, IEnumerable<AccountViewModel> source)
-    //{
-    //    // Check duplicates in the bound list (ignore the current row)
-    //    bool duplicate = source
-    //        .Any(x => string.Equals(x.Platform, platform, StringComparison.OrdinalIgnoreCase));
-
-    //    if (duplicate)
-    //        _errors.Add(ValidationError.PlatformAlreadyExists);
-    //    return this;
-    //}
-
-
+   
     /// <summary>
     /// Checks for account duplicates in source list.
     /// If source is not provided, it will use the one provided in the constructor.
@@ -101,6 +90,47 @@ internal class UiValidation
     
     public bool IsValid => _errors.Count == 0;
     public IReadOnlyList<ValidationError> Errors => _errors;
+
+
+    public static ValidationError ValidateID(Guid id)
+    {
+        return id == Guid.Empty ? ValidationError.IdRequired : ValidationError.None;
+    }
+
+    public static ValidationError ValidatePlatformName(string? input)
+    {
+        return string.IsNullOrWhiteSpace(input)
+            ? ValidationError.PlatformRequired
+            : ValidationError.None;
+    }
+    public static ValidationError PlatformNameDuplicateExists(string platform, IEnumerable<AccountItem> source)
+    {
+        // Check duplicates in the bound list (ignore the current row)
+        bool duplicate = source
+            .Any(x => string.Equals(x.Platform, platform, StringComparison.OrdinalIgnoreCase));
+        return duplicate ? ValidationError.PlatformAlreadyExists : ValidationError.None;
+    }
+    public static ValidationError ValidateSecretValue(string? secret)
+    {
+        return string.IsNullOrWhiteSpace(secret)
+            ? ValidationError.SecretRequired
+            : IsValidBase32Format(secret)
+                ? ValidationError.None
+                : ValidationError.SecretInvalidFormat;
+    }
+
+    public static bool IsValidBase32Format(string value)
+    {
+        try
+        {
+            var bytes = OtpNet.Base32Encoding.ToBytes(value);
+            return bytes.Length > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
 
 

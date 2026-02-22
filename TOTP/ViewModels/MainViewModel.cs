@@ -25,7 +25,6 @@ using TOTP.Core.Enums;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Core.Validation;
 using TOTP.Helper;
 using TOTP.Infrastructure.Adapters;
 using TOTP.Infrastructure.Extensions;
@@ -791,7 +790,7 @@ public class MainViewModel : IMainViewModel
 
     private ValidationError DuplicateCheck(AccountViewModel si)
     {
-        return SecretValidator.PlatformNameDuplicateExists(si.Platform, AllAccounts.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
+        return UiValidation.PlatformNameDuplicateExists(si.Platform, AllAccounts.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
     }
 
 
@@ -1258,7 +1257,7 @@ public class MainViewModel : IMainViewModel
 
         try
         {
-            if (!SecretValidator.IsValidBase32Format(secret))
+            if (!UiValidation.IsValidBase32Format(secret))
             {
                 exc = new FormatException($"Secret is invalid Base32 format, supplied to {nameof(TryComputeTotpCode)}");
                 return false;
@@ -1282,7 +1281,7 @@ public class MainViewModel : IMainViewModel
     public AccountViewModel ComputeTotpCode(AccountViewModel item, out Totp totpInstance)
     {
 
-        if (!SecretValidator.IsValidBase32Format(item.Secret))
+        if (!UiValidation.IsValidBase32Format(item.Secret))
             throw new FormatException($"Secret is invalid Base32 format, supplied to {nameof(ComputeTotpCode)}");
 
         var encodedSecret = Base32Encoding.ToBytes(item.Secret);

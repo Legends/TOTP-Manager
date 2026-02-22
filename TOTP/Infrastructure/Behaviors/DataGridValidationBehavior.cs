@@ -3,7 +3,6 @@ using Syncfusion.UI.Xaml.Grid;
 using System.Collections.Generic;
 using System.Linq;
 using TOTP.Core.Enums;
-using TOTP.Core.Validation;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Validation;
 using TOTP.ViewModels;
@@ -87,23 +86,28 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
         switch (e.Column.MappingName)
         {
             case nameof(AccountViewModel.Platform):
-                validationResult = SecretValidator.ValidatePlatform(e.NewValue?.ToString());
+                //UiValidation.Use(item).ValidatePlatform()
+                validationResult = UiValidation.ValidatePlatformName(e.NewValue?.ToString());
                 error = ValidationMessageMapper.ToMessage(validationResult);
 
                 if (validationResult == ValidationError.None)
                 {
-                    var secretList = (AssociatedObject.ItemsSource as IEnumerable<AccountViewModel>)?.Where(sivm => !ReferenceEquals(sivm, item))
+                    var accountList = (AssociatedObject.ItemsSource as IEnumerable<AccountViewModel>)?
+                        .Where(sivm => !ReferenceEquals(sivm, item))
                         .Select(sivm => sivm.ToDomain())
                         .ToList();
-                    var duplicate = SecretValidator.PlatformNameDuplicateExists(e.NewValue?.ToString(), secretList);
+
+                    var duplicate = UiValidation.PlatformNameDuplicateExists(e.NewValue?.ToString(), accountList);
 
                     if (duplicate == ValidationError.PlatformAlreadyExists)
                         error = ValidationMessageMapper.ToMessage(duplicate, e.NewValue?.ToString());
                 }
 
                 break;
+
             case nameof(AccountViewModel.Secret):
-                validationResult = SecretValidator.ValidateSecretValue(e.NewValue?.ToString());
+
+                validationResult = UiValidation.ValidateSecretValue(e.NewValue?.ToString());
                 error = ValidationMessageMapper.ToMessage(validationResult);
                 break;
         }
