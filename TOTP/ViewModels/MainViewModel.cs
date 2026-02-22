@@ -841,9 +841,7 @@ public class MainViewModel : IMainViewModel
     }
 
     #endregion
-
-
-
+    
     #region ### READ ALL ACCOUNTS FROM STORAGE FILE ###
 
     /// <summary>
