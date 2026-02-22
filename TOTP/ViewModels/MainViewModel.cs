@@ -841,7 +841,7 @@ public class MainViewModel : IMainViewModel
     }
 
     #endregion
-    
+
     #region ### READ ALL ACCOUNTS FROM STORAGE FILE ###
 
     /// <summary>
@@ -873,7 +873,7 @@ public class MainViewModel : IMainViewModel
                 {
                     item.SetDuplicateCheck(DuplicateCheck);
                 }
- 
+
             }
             else
             {
@@ -886,7 +886,7 @@ public class MainViewModel : IMainViewModel
             _logger.LogCritical(e, nameof(ReadAllAccountsAsync));
             System.Windows.Application.Current.Shutdown(1);
         }
-      
+
     }
 
     #endregion
@@ -1024,7 +1024,7 @@ public class MainViewModel : IMainViewModel
         if (IsAddMode) // add new mode
         {
             CurrentSecretBeingEditedOrAdded?.SetDuplicateCheck(DuplicateCheck);
-            var validation = IsValidSecretItem(CurrentSecretBeingEditedOrAdded);
+            var validation = ValidateAccountItem(CurrentSecretBeingEditedOrAdded);
             if (!validation.IsValid)
             {
                 CurrentSecretBeingEditedOrAdded.RefreshValidation();
@@ -1061,8 +1061,7 @@ public class MainViewModel : IMainViewModel
                 return;
 
             #region VALIDATION OF EDITED SECRET
-            var validator = new UiValidation(updated);
-            validator.ValidateAll();
+            var validator = UiValidation.Use(updated, AllAccounts).ValidateAll();
 
             if (!validator.IsValid)
             {
@@ -1075,9 +1074,9 @@ public class MainViewModel : IMainViewModel
 
             }
 
-            var source = AllAccounts.Where(sivm => !sivm.Equals(updated));
+            //var source = AllAccounts.Where(sivm => !sivm.Equals(updated));
 
-            validator.PlatformNameDuplicateExists(source);
+            validator.PlatformNameDuplicateExists(excludeSelf: true);
 
             if (!validator.IsValid)
             {
@@ -1122,8 +1121,7 @@ public class MainViewModel : IMainViewModel
         if (!AccountViewModelValueComparer.Default.Equals(item, PreviousVersion))
         {
             //var (isValid, error) = SecretsDAL.IsValidSecretItem(item.ToDomain());
-            var validation = new UiValidation(item);
-            validation.ValidateAll();
+            var validation = UiValidation.Use(item).ValidateAll();
 
             if (!validation.IsValid)
             {
@@ -1498,7 +1496,7 @@ public class MainViewModel : IMainViewModel
     {
         var decodedQRCode = _qrScannerDialogFactory().ScanQrCode(Application.Current.MainWindow);
         //var dlg = new QrScannerWindow { Owner = System.Windows.Application.Current.MainWindow };
-        if ( !string.IsNullOrWhiteSpace(decodedQRCode))
+        if (!string.IsNullOrWhiteSpace(decodedQRCode))
         {
 
             OtpauthParser.TOTPData? data = null;
@@ -1515,11 +1513,11 @@ public class MainViewModel : IMainViewModel
             }
 
 
-            var newSecretItem = new AccountViewModel(Guid.NewGuid(), data.Issuer, data.SecretBase32, data.Label);
+            var newAccountItem = new AccountViewModel(Guid.NewGuid(), data.Issuer, data.SecretBase32, data.Label);
 
             #region ### validation ###
 
-            var validator = IsValidSecretItem(newSecretItem);
+            var validator = ValidateAccountItem(newAccountItem);
             if (!validator.IsValid)
             {
 
@@ -1527,7 +1525,7 @@ public class MainViewModel : IMainViewModel
                 {
                     if (error == ValidationError.PlatformAlreadyExists)
                     {
-                        _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error, newSecretItem.Platform));
+                        _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error, newAccountItem.Platform));
                     }
                     else
                         _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
@@ -1540,15 +1538,15 @@ public class MainViewModel : IMainViewModel
 
             try
             {
-                var addResult = await _accountsDal.AddNewItemAsync(newSecretItem.ToDomain());
+                var addResult = await _accountsDal.AddNewItemAsync(newAccountItem.ToDomain());
                 if (addResult.Status != OperationStatus.Success)
                 {
-                    ShowMessage(addResult.Status, newSecretItem);
+                    ShowMessage(addResult.Status, newAccountItem);
                     return;
                 }
                 if (addResult.Status == OperationStatus.Success)
                 {
-                    AllAccounts.Add(newSecretItem);
+                    AllAccounts.Add(newAccountItem);
                 }
             }
             finally
@@ -1559,14 +1557,10 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    private UiValidation IsValidSecretItem(AccountViewModel newSecretItem)
+    private UiValidation ValidateAccountItem(AccountViewModel newAccountItem)
     {
-        ArgumentNullException.ThrowIfNull(newSecretItem, nameof(newSecretItem));
-
-        var validator = new UiValidation(newSecretItem);
-        validator.ValidateAll().PlatformNameDuplicateExists(AllAccounts);
-
-        return validator;
+        ArgumentNullException.ThrowIfNull(newAccountItem);
+        return UiValidation.Use(newAccountItem, AllAccounts).ValidateAll().PlatformNameDuplicateExists();
     }
 
     #endregion

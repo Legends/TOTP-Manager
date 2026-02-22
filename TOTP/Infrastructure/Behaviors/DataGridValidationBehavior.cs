@@ -54,8 +54,8 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
         // Validate Secret (or anything else that uses a template editor)
         //var result = SecretValidator.ValidateSecret(item.Secret);
-        var val = new UiValidation(item);
-        var result = val.ValidateAll().IsValid ? ValidationError.None : val.Errors.First();
+        var validator = UiValidation.Use(item).ValidateAll();
+        var result = UiValidation.Use(item).ValidateAll().IsValid ? ValidationError.None : validator.Errors.First();
 
         if (result != ValidationError.None)
         {
