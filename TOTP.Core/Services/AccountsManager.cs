@@ -42,14 +42,14 @@ public class AccountsManager : IAccountsManager
         return result.Status == OperationStatus.Success;
     }
 
-    public async Task<ObservableCollection<AccountItem>> GetAllAccountsAsync()
+    public async Task<ObservableCollection<AccountItem>> GetAllAccountsSortedAsync()
     {
         var result = await _secretsDal.GetAllAccountsAsync();
 
-        if (result.Status != OperationStatus.Success)
-        {
-            OnMessageSend?.Invoke(this, result.Status, null);
-        }
+        //if (result.Status != OperationStatus.Success)
+        //{
+        //    OnMessageSend?.Invoke(this, result.Status, null);
+        //}
 
         result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
 

@@ -757,9 +757,7 @@ public class MainViewModel : IMainViewModel
     private async Task EnsureAccountsLoadedAsync()
     {
         if (_accountsLoaded)
-        {
             return;
-        }
 
         await ReadAllAccountsAsync();
 
@@ -860,14 +858,7 @@ public class MainViewModel : IMainViewModel
 
                 var allAccounts = result.Value;
                 AllAccounts = new ObservableCollection<AccountViewModel>((allAccounts.Select(item => item.ToViewModel()) ?? []));
-
-                //#if DEBUG
-                //                //for dev purposes, exclude Syncfusion entry
-
-                //                var secrets = allSecrets.Where(s => s.Platform != StringsConstants.Syncfusion).Select(item => item.ToViewModel()).ToList();
-
-                //                AllSecrets = new ObservableCollection<AccountViewModel>((IEnumerable<AccountViewModel>)(secrets ?? []));
-                //#endif
+                
                 foreach (var item in AllAccounts)
                 {
                     item.SetDuplicateCheck(DuplicateCheck);
