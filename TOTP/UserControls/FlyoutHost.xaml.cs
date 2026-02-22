@@ -82,6 +82,7 @@ public partial class FlyoutHost : UserControl
         var previousOpacity = HostRoot.Opacity;
         var previousHitTest = HostRoot.IsHitTestVisible;
 
+        // HostRoot.Visibility = Visible wont work, you would override the binding to IsOpen
         HostRoot.SetCurrentValue(VisibilityProperty, Visibility.Visible);
         HostRoot.SetCurrentValue(OpacityProperty, 0d);
         HostRoot.SetCurrentValue(IsHitTestVisibleProperty, false);
