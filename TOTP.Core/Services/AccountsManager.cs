@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using TOTP.Core.Enums;
 using TOTP.Core.Events;
 using TOTP.Core.Models;
@@ -26,38 +27,6 @@ public class AccountsManager : IAccountsManager
     //public event Func<object?, AddNewPromptArgs>? OnAddNewPrompt;
     public event Func<object?, string, bool>? ConfirmDeleteRequested;
 
-
-    //public async Task<(bool isSuccess, SecretItem? item)> AddNewSecretAsync()
-    //{
-
-    //    while (true)
-    //    {
-    //        // Prompt the user for a new secret key and value
-    //        // The OnAddNewPrompt event is triggered here and handled by the MainViewModel to show a dialog and gathers user input
-    //        var promptResult = OnAddNewPrompt?.Invoke(this);
-
-    //        if (!promptResult!.Success)
-    //            return (false, null); // user cancelled
-
-    //        var secretItem = new SecretItem(Guid.NewGuid(), promptResult.Platform!, promptResult.Secret!, promptResult.Account);
-    //        var result = await _secretsDal.AddNewItemAsync(secretItem);
-
-    //        if (result.Status == OperationStatus.Success)
-    //            return (true, secretItem);
-
-    //        if (result.Status == OperationStatus.AlreadyExists) // platform name already exists
-    //        {
-    //            OnMessageSend?.Invoke(this, OperationStatus.AlreadyExists, promptResult.Platform);
-    //            continue;
-    //        }
-
-    //        OnMessageSend?.Invoke(this, result.Status, promptResult.Platform);
-    //        OnMessageSend?.Invoke(this, OperationStatus.CreateFailed, promptResult.Platform);
-
-    //        return (false, null);
-    //    }
-    //}
-
     public async Task<bool> UpdateAccountAsync(AccountItem previous, AccountItem updated)
     {
         //ArgumentNullException.ThrowIfNull(previous);
@@ -71,6 +40,21 @@ public class AccountsManager : IAccountsManager
             OnMessageSend?.Invoke(this, result.Status, platform ?? string.Empty);
 
         return result.Status == OperationStatus.Success;
+    }
+
+    public async Task<ObservableCollection<AccountItem>> GetAllAccountsAsync()
+    {
+        var result = await _secretsDal.GetAllAccountsAsync();
+
+        if (result.Status != OperationStatus.Success)
+        {
+            OnMessageSend?.Invoke(this, result.Status, null);
+        }
+
+        result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
+
+        var allAccounts = result.Value;
+        return new ObservableCollection<AccountItem>((allAccounts ?? []));
     }
 
 
@@ -106,5 +90,5 @@ public class AccountsManager : IAccountsManager
         return false;
     }
 
-   
+
 }

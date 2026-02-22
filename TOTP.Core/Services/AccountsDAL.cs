@@ -239,25 +239,6 @@ public class AccountsDAL : IAccountsDAL, IDisposable
         return _options ?? new JsonSerializerOptions { WriteIndented = true };
     }
 
-    public static (bool IsValid, ValidationError error) IsValidSecretItem(AccountItem item)
-    {
-        var result = SecretValidator.ValidatePlatform(item.Platform);
-        if (result != ValidationError.None)
-        {
-            return (false, result);
-        }
-
-
-        result = SecretValidator.ValidateSecretValue(item.Secret);
-        if (result != ValidationError.None)
-        {
-            return (false, result);
-        }
-
-        return (true, ValidationError.None);
-    }
-
-
     public void Dispose()
     {
         Semaphore.Dispose();

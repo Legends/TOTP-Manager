@@ -484,7 +484,7 @@ public class MainViewModel : IMainViewModel
         IAccountsManager totpManager,
         IDebounceService debounceService,
         IDelayService delayService,
-        IAccountsDAL secretsDal,
+        IAccountsDAL accountsDal,
         IFileDialogService fileDialogService,
         IAuthorizationService authorization,
         IMainViewSessionController sessionController,
@@ -495,7 +495,7 @@ public class MainViewModel : IMainViewModel
 
         _qrScannerDialogFactory = qrScannerDialogFactory;
         _fileDialogService = fileDialogService;
-        _accountsDal = secretsDal;
+        _accountsDal = accountsDal;
         _logger = logger;
         _qrService = svcQr;
         _delayService = delayService;
@@ -848,7 +848,7 @@ public class MainViewModel : IMainViewModel
     /// Reads all secrets from the storage file and populates the AllSecrets collection
     /// </summary>
     /// <returns></returns>
-    private async Task<ObservableCollection<AccountViewModel>?> ReadAllAccountsAsync()
+    private async Task ReadAllAccountsAsync()
     {
         try
         {
@@ -873,8 +873,7 @@ public class MainViewModel : IMainViewModel
                 {
                     item.SetDuplicateCheck(DuplicateCheck);
                 }
-
-                return AllAccounts;
+ 
             }
             else
             {
@@ -887,7 +886,7 @@ public class MainViewModel : IMainViewModel
             _logger.LogCritical(e, nameof(ReadAllAccountsAsync));
             System.Windows.Application.Current.Shutdown(1);
         }
-        return null;
+      
     }
 
     #endregion
