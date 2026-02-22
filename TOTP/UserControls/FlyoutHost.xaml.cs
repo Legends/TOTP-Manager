@@ -64,6 +64,8 @@ public partial class FlyoutHost : UserControl
         var previousHitTest = HostRoot.IsHitTestVisible;
 
         // HostRoot.Visibility = Visible wont work, you would override the binding to IsOpen
+        // then after onwarmup the fylout wont show!
+        // All props with bindings have to be set like this:
         HostRoot.SetCurrentValue(VisibilityProperty, Visibility.Visible);
         HostRoot.SetCurrentValue(OpacityProperty, 0d);
         HostRoot.SetCurrentValue(IsHitTestVisibleProperty, false);
