@@ -46,7 +46,7 @@
     </i:Interaction.Triggers>
 
     <syncfusion:ChromelessWindow.Resources>
-       
+
         <BounceEase x:Key="BounceEase"
                     Bounces="1"
                     Bounciness="100"
@@ -209,7 +209,9 @@
                                                     ToolTip="{Binding ExportToolTip}"
                                                     Command="{Binding ExportSecretsCommand}" />
 
-                            --><!-- Your menu opens vertically under the gear --><!--
+                            -->
+                            <!-- Your menu opens vertically under the gear -->
+                            <!--
                             <syncfusion:MenuItemAdv Header="WPF">
                                 <syncfusion:MenuItemAdv Header="Tools" ToolTip="{xaml:Resx Key=ui_btnCancel}" />
                                 <syncfusion:MenuItemAdv Header="Chart" />
@@ -519,9 +521,9 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
 
         <Grid>
             <!-- Edit/Add flyout -->
-            <userControls:FlyoutHost IsOpen="{Binding IsEditAddFlyoutOpen}"
-                                     CloseCommand="{Binding CancelFlyoutCommand}"
-                                     PanelWidth="300">
+            <userControls:FlyoutHost   WarmUpOnLoad="True" IsOpen="{Binding IsEditAddFlyoutOpen}"
+                                       CloseCommand="{Binding CancelFlyoutCommand}"
+                                       PanelWidth="300">
                 <userControls:FlyoutHost.FlyoutContent>
                     <views:EditAddAccountFlyoutView />
                 </userControls:FlyoutHost.FlyoutContent>
