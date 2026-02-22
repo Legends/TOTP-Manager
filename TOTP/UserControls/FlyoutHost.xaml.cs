@@ -82,9 +82,9 @@ public partial class FlyoutHost : UserControl
         var previousOpacity = HostRoot.Opacity;
         var previousHitTest = HostRoot.IsHitTestVisible;
 
-        HostRoot.Visibility = Visibility.Visible;
-        HostRoot.Opacity = 0;
-        HostRoot.IsHitTestVisible = false;
+        HostRoot.SetCurrentValue(VisibilityProperty, Visibility.Visible);
+        HostRoot.SetCurrentValue(OpacityProperty, 0d);
+        HostRoot.SetCurrentValue(IsHitTestVisibleProperty, false);
 
         FlyoutContentPresenter.ApplyTemplate();
         FlyoutContentPresenter.UpdateLayout();
@@ -92,9 +92,9 @@ public partial class FlyoutHost : UserControl
         FlyoutPanel.UpdateLayout();
         HostRoot.UpdateLayout();
 
-        HostRoot.Opacity = previousOpacity;
-        HostRoot.IsHitTestVisible = previousHitTest;
-        HostRoot.Visibility = previousVisibility;
+        HostRoot.SetCurrentValue(OpacityProperty, previousOpacity);
+        HostRoot.SetCurrentValue(IsHitTestVisibleProperty, previousHitTest);
+        HostRoot.SetCurrentValue(VisibilityProperty, previousVisibility);
     }
 
     public static readonly DependencyProperty FlyoutContentProperty =
