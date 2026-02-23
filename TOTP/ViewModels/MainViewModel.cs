@@ -480,28 +480,26 @@ public class MainViewModel : IMainViewModel
         IMessageService messageService,
         IClipboardService clipboard,
         IConfiguration config,
-        IAccountsManager totpManager,
+        IAccountsManager accountsManager,
         IDebounceService debounceService,
         IDelayService delayService,
-        IAccountsDAL accountsDal,
         IFileDialogService fileDialogService,
         IAuthorizationService authorization,
         IMainViewSessionController sessionController,
-        UnlockViewModel unlockVM,
+        UnlockViewModel unlockVm,
         Func<IQrScannerDialogService> qrScannerDialogFactory)
     {
         IsBusy = true;
 
         _qrScannerDialogFactory = qrScannerDialogFactory;
         _fileDialogService = fileDialogService;
-        _accountsDal = accountsDal;
         _logger = logger;
         _qrService = svcQr;
         _delayService = delayService;
         _messageService = messageService;
         _debounceService = debounceService;
         _clipboard = clipboard;
-        _accountsManager = totpManager;
+        _accountsManager = accountsManager;
         _authorization = authorization;
         _sessionController = sessionController;
 
@@ -511,9 +509,8 @@ public class MainViewModel : IMainViewModel
 
         AllAccounts = new ObservableCollection<AccountViewModel>();
         //RebuildSecretsView();
-        UnlockViewModel = unlockVM;
+        UnlockViewModel = unlockVm;
 
-        _accountsManager.ConfirmDeleteRequested += _secretsManager_OnDeletePrompt;
         _sessionController.SessionStateChanged += SessionController_SessionStateChanged;
         _sessionController.ConfigureCallbacks(OnUnlockedAsync, OnLocked);
 
@@ -521,7 +518,7 @@ public class MainViewModel : IMainViewModel
 
         SetupLocalization();
 
-        //Setup TOTP generation timer
+        //Setup TOTP Code generation timer
         TotpUiTimer = new System.Threading.Timer(_ => StartTotpTick(), null, Timeout.Infinite, 500);
 
 

@@ -1,8 +1,10 @@
-﻿using System;
+﻿using FluentResults;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Extensions.Logging;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -36,140 +38,154 @@ public class AccountsDAL : IAccountsDAL, IDisposable
     }
 
     //Task<OperationResult<List<AccountItem>>> GetAllAccountsAsync
-    public async Task<OperationResult<List<AccountItem>>> GetAllAccountsAsync()
+    public async Task<Result<List<AccountItem>>> GetAllAccountsAsync()
     {
         await Semaphore.WaitAsync();
         try
         {
-            var (success, list) = await LoadAccountsFromFileAsync();
-            return success ?
-                OperationResult<List<AccountItem>>.Success(list)
-                : OperationResult<List<AccountItem>>.Fail(OperationStatus.LoadingFailed);
-        }
-        finally
-        {
-            Semaphore.Release();
-        }
-    }
-
-
-    public async Task<OperationResult<AccountItem>> GetSecretByPlatformAsync(string platform)
-    {
-
-        await Semaphore.WaitAsync();
-        try
-        {
-            var (success, list) = await LoadAccountsFromFileAsync();
-            var secret = list.Where(s => s.Platform.ToLowerInvariant() == platform.ToLowerInvariant()).FirstOrDefault();
-            return success ?
-                OperationResult<AccountItem>.Success(secret)
-                : OperationResult<AccountItem>.Fail(OperationStatus.LoadingFailed);
-        }
-        finally
-        {
-            Semaphore.Release();
-        }
-    }
-
-
-    public async Task<OperationResult<bool>> AddNewItemAsync(AccountItem newItem)
-    {
-        await Semaphore.WaitAsync();
-        try
-        {
-            var (success, list) = await LoadAccountsFromFileAsync();
-            if (!success) return OperationResult<bool>.Fail(OperationStatus.LoadingFailed);
-
-            if (list.Any(x => x.Platform == newItem.Platform))
-            {
-                return OperationResult<bool>.Fail(OperationStatus.AlreadyExists);
-            }
-
-            list.Add(newItem);
-            var result = await WriteEncryptedFileAsync(list);
-            return result ? OperationResult<bool>.Success(true) : OperationResult<bool>.Fail(OperationStatus.StorageFailed);
-        }
-        finally
-        {
-            Semaphore.Release();
-        }
-    }
-
-    public async Task<OperationResult<bool>> UpdateItemAsync(AccountItem updated)
-    {
-        await Semaphore.WaitAsync();
-        try
-        {
-            var (ok, listStore) = await LoadAccountsFromFileAsync();
-            if (!ok) return new(OperationStatus.LoadingFailed, ok);
-
-            var existing = listStore.FirstOrDefault(x => x.ID == updated.ID);
-            if (existing == null)
-            {
-                return OperationResult<bool>.Fail(OperationStatus.NotFound);
-            }
-
-            listStore.Remove(existing);
-            listStore.Add(updated);
-            var result = await WriteEncryptedFileAsync(listStore);
-            return result ? OperationResult<bool>.Success(true) : OperationResult<bool>.Fail(OperationStatus.StorageFailed);
-        }
-        finally
-        {
-            Semaphore.Release();
-        }
-    }
-
-
-    public async Task<OperationResult<bool>> DeleteItemAsync(string platform)
-    {
-        await Semaphore.WaitAsync();
-        try
-        {
-            var (success, secrets) = await LoadAccountsFromFileAsync();
-            if (!success)
-                return OperationResult<bool>.Fail(OperationStatus.LoadingFailed);
-
-            var item = secrets.FirstOrDefault(x => x.Platform == platform);
-            if (item is null)
-            {
-                return OperationResult<bool>.Fail(OperationStatus.NotFound);
-            }
-
-            secrets.Remove(item);
-
-            var result = await WriteEncryptedFileAsync(secrets);
-            return result ? OperationResult<bool>.Success(true) : OperationResult<bool>.Fail(OperationStatus.StorageFailed);
-        }
-        finally
-        {
-            Semaphore.Release();
-        }
-    }
-
-  
-    private async Task<(bool, List<AccountItem>)> LoadAccountsFromFileAsync()
-    {
-        try
-        {
-            EnsureStorageFileExists();
-
-            var encrypted = await File.ReadAllBytesAsync(_secretsPath);
-            if (encrypted.Length == 0)
-                return (true, []);
-
-            var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
-            var json = Encoding.UTF8.GetString(decrypted);
-
-            var list = JsonSerializer.Deserialize<List<AccountItem>>(json, GetOptions()) ?? [];
-            return (true, list);
+            var list = await LoadAccountsFromFileAsync();
+            return Result.Ok(list);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, nameof(LoadAccountsFromFileAsync));
-
-            return (false, default!);
+            _logger.LogError(ex, nameof(GetAllAccountsAsync));
+            return new StatusError(OperationStatus.LoadingFailed);
         }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+
+
+    public async Task<Result<AccountItem>> GetSecretByPlatformAsync(string platform)
+    {
+
+        await Semaphore.WaitAsync();
+        try
+        {
+            var list = await LoadAccountsFromFileAsync();
+            var account = list.FirstOrDefault(s =>
+                string.Equals(s.Platform, platform, StringComparison.CurrentCultureIgnoreCase));
+
+            if (account == null)
+                return new StatusError(OperationStatus.NotFound, $"Platform: {platform} not found");
+
+            return Result.Ok(account);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, nameof(GetSecretByPlatformAsync));
+            return new StatusError(OperationStatus.LoadingFailed);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+
+
+    public async Task<Result> AddNewItemAsync(AccountItem newItem)
+    {
+        await Semaphore.WaitAsync();
+        try
+        {
+            var list = await LoadAccountsFromFileAsync();
+
+            if (list.Any(x => x.Platform == newItem.Platform))
+                return new StatusError(OperationStatus.AlreadyExists);
+
+            list.Add(newItem);
+
+            await WriteEncryptedFileAsync(list);
+            return Result.Ok();
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, nameof(AddNewItemAsync));
+            return new StatusError(OperationStatus.StorageFailed);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+
+    public async Task<Result> UpdateItemAsync(AccountItem updated)
+    {
+        await Semaphore.WaitAsync();
+        try
+        {
+            var listStore = await LoadAccountsFromFileAsync();
+
+
+            var existing = listStore.FirstOrDefault(x => x.ID == updated.ID);
+            if (existing == null)
+                return new StatusError(OperationStatus.NotFound, $"{updated.Platform} not found");
+
+            listStore.Remove(existing);
+            listStore.Add(updated);
+
+            await WriteEncryptedFileAsync(listStore);
+            return Result.Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, nameof(UpdateItemAsync));
+            return new StatusError(OperationStatus.StorageFailed);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+
+
+    public async Task<Result> DeleteItemAsync(string platform)
+    {
+        await Semaphore.WaitAsync();
+        try
+        {
+            var secrets = await LoadAccountsFromFileAsync();
+
+            var item = secrets.FirstOrDefault(x => x.Platform == platform);
+
+            if (item is null)
+                return new StatusError(OperationStatus.NotFound);
+
+            secrets.Remove(item);
+
+            await WriteEncryptedFileAsync(secrets);
+            return Result.Ok();
+        }
+        catch (Exception ex)
+        {
+            // 4. Log the unexpected (this is your safety net)
+            _logger.LogError(ex, "Unexpected error deleting item for platform {Platform}", platform);
+
+            return new StatusError(OperationStatus.DeleteFailed);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+
+
+    private async Task<List<AccountItem>> LoadAccountsFromFileAsync()
+    {
+        EnsureStorageFileExists();
+
+        var encrypted = await File.ReadAllBytesAsync(_secretsPath);
+        if (encrypted.Length == 0)
+            return [];
+
+        var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
+        var json = Encoding.UTF8.GetString(decrypted);
+
+        var list = JsonSerializer.Deserialize<List<AccountItem>>(json, GetOptions()) ?? [];
+        return list;
     }
 
     /// <summary>
@@ -190,49 +206,55 @@ public class AccountsDAL : IAccountsDAL, IDisposable
         }
     }
 
-    private async Task<bool> WriteEncryptedFileAsync(List<AccountItem> list)
+    private async Task WriteEncryptedFileAsync(List<AccountItem> list)
     {
-        try
+
+        var json = JsonSerializer.Serialize(list, GetOptions());
+        var data = Encoding.UTF8.GetBytes(json);
+        var encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
+        await File.WriteAllBytesAsync(_secretsPath, encrypted);
+    }
+
+    public async Task<Result> BackupAccountsFileAsync() 
+    {
+       return await Task.Run(() =>
         {
-            var json = JsonSerializer.Serialize(list, GetOptions());
-            var data = Encoding.UTF8.GetBytes(json);
-            var encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
-            await File.WriteAllBytesAsync(_secretsPath, encrypted);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, nameof(WriteEncryptedFileAsync));
-            return false;
-        }
+            try
+            {
+                if (!File.Exists(_secretsPath))
+                    return Result.Fail(new StatusError(OperationStatus.StorageFailed)
+                        .WithMetadata("Context", nameof(BackupAccountsFileAsync))
+                        .WithMetadata("Reason", $"Path: {_secretsPath} does not exist"));
+
+                var dir = Path.GetDirectoryName(_secretsPath)!;
+                var file = Path.GetFileName(_secretsPath);
+
+                // Shifting existing backups
+                for (var i = 5; i >= 1; i--)
+                {
+                    var oldBackup = Path.Combine(dir, $"{file}.bak{i}");
+                    var nextBackup = Path.Combine(dir, $"{file}.bak{i + 1}");
+
+                    if (File.Exists(oldBackup))
+                    {
+                        if (i == 5) File.Delete(oldBackup);
+                        else File.Move(oldBackup, nextBackup, true);
+                    }
+                }
+
+                var firstBackup = Path.Combine(dir, $"{file}.bak1");
+                File.Copy(_secretsPath, firstBackup, true);
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, nameof(BackupAccountsFileAsync));
+                return Result.Fail(new StatusError(OperationStatus.StorageFailed));
+            }
+        });
     }
     
-    public bool BackupAccountsFile()
-    {
-        if (!File.Exists(_secretsPath)) return false;
-
-        var dir = Path.GetDirectoryName(_secretsPath)!;
-        var file = Path.GetFileName(_secretsPath);
-
-        for (var i = 5; i >= 1; i--)
-        {
-            var oldBackup = Path.Combine(dir, $"{file}.bak{i}");
-            var nextBackup = Path.Combine(dir, $"{file}.bak{i + 1}");
-
-            if (File.Exists(oldBackup))
-            {
-                if (i == 5) File.Delete(oldBackup);
-                else File.Move(oldBackup, nextBackup, true);
-            }
-        }
-
-        var firstBackup = Path.Combine(dir, $"{file}.bak1");
-        File.Copy(_secretsPath, firstBackup, true);
-
-        return true;
-    }
-
-
     private JsonSerializerOptions GetOptions()
     {
         return _options ?? new JsonSerializerOptions { WriteIndented = true };
@@ -242,6 +264,5 @@ public class AccountsDAL : IAccountsDAL, IDisposable
     {
         Semaphore.Dispose();
     }
-
 
 }

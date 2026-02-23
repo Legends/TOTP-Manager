@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using FluentResults;
 using TOTP.Core.Common;
 using TOTP.Core.Models;
 
@@ -20,21 +21,21 @@ public interface IAccountsDAL
     /// </summary>
     /// <param name="platform"></param>
     /// <returns>Result&lt;SecretItem&gt;</returns>
-    Task<OperationResult<AccountItem>> GetSecretByPlatformAsync(string platform);
+    Task<Result<AccountItem>> GetSecretByPlatformAsync(string platform);
 
     //Task<List<SecretItem>> GetAllSecretsAsync();
     /// <summary>
     /// Retrieves all secret items from local storage file.
     /// </summary>
     /// <returns>Success | LoadingFailed</returns>
-    Task<OperationResult<List<AccountItem>>> GetAllAccountsAsync();
+    Task<Result<List<AccountItem>>> GetAllAccountsAsync();
 
     /// <summary>
     /// Adds a new secret to the internal collection and writes it to the encrypted secrets file.
     /// </summary>
     /// <param name="item"></param>
     /// <returns>Success | AlreadyExist | LoadingFailed | StorageFailed</returns>
-    Task<OperationResult<bool>> AddNewItemAsync(AccountItem item);
+    Task<Result> AddNewItemAsync(AccountItem item);
     //Task<bool> AddNewItemAsync(SecretItem item);
 
     /// <summary>
@@ -42,7 +43,7 @@ public interface IAccountsDAL
     /// </summary>
     /// <param name="updated"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<OperationResult<bool>> UpdateItemAsync(AccountItem updated);
+    Task<Result> UpdateItemAsync(AccountItem updated);
 
 
     /// <summary>
@@ -50,11 +51,11 @@ public interface IAccountsDAL
     /// </summary>
     /// <param name="platform"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<OperationResult<bool>> DeleteItemAsync(string platform);
+    Task<Result> DeleteItemAsync(string platform);
 
     /// <summary>
     /// Creates a backup of the current secrets .dat file.
     /// </summary>
     /// <returns></returns>
-    bool BackupAccountsFile();
+    Task<Result> BackupAccountsFileAsync();
 }

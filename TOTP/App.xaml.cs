@@ -27,7 +27,7 @@ public partial class App : Application
                 AuthorizationService.Lock();
             }
 
-            if (sessionSwitchEventArg.Reason== SessionSwitchReason.SessionUnlock)
+            if (sessionSwitchEventArg.Reason == SessionSwitchReason.SessionUnlock)
             {
 
             }
@@ -35,13 +35,13 @@ public partial class App : Application
 
     }
 
-    protected override void OnExit(ExitEventArgs e)
+    protected override async void OnExit(ExitEventArgs e)
     {
         // Optional: anything *extra* at WPF exit (Program.cs already stops host & flushes Serilog)
         try
         {
             var acountsManager = Host.Services.GetService(typeof(IAccountsDAL)) as IAccountsDAL;
-            acountsManager?.BackupAccountsFile();
+            await acountsManager?.BackupAccountsFileAsync();
         }
         catch (Exception ex)
         {
