@@ -1,9 +1,12 @@
-﻿using System;
+﻿using FluentResults;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
+using TOTP.Core.Common;
 using TOTP.Core.Enums;
+using TOTP.Extensions;
 using TOTP.Helper;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
@@ -12,68 +15,67 @@ using TOTP.Views;
 
 namespace TOTP.Services;
 
-public class MessageService(IUserMessageDialogViewModel userMessageDialogViewModel) : IMessageService
+public class MessageService(Func<IUserMessageDialogViewModel> vmFactory) : IMessageService
 {
-    public void ShowInfoMessage(string message)
+ 
+
+    public void ShowResultError(IResultBase result, string? platform = null)
     {
-        ShowMessage(message, CaptionType.Info, StringsConstants.ImgUrl.ImgInfo);
+        if (result.IsSuccess) return;
+
+        var status = result.GetStatus();
+        var localizedMsg = status.ToLocalizedMessage(platform, result.GetFullMessage());
+
+        ShowError(localizedMsg);
     }
 
-    public void ShowWarningMessage(string message)
+   
+
+    #region Notification API
+
+    public void ShowInfo(string msg) => Show(msg, CaptionType.Info);
+    public void ShowWarning(string msg) => Show(msg, CaptionType.Warning);
+    public void ShowError(string msg) => Show(msg, CaptionType.Error);
+
+    public void ShowMessage(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
+        => Show(message, caption, iconPath);
+
+    #endregion
+
+    #region Confirmation API
+
+    public bool ConfirmInfo(string msg, string? ok = null, string? cancel = null)
+        => ShowDialog(msg, CaptionType.Info, ok, cancel);
+
+    public bool ConfirmWarning(string msg, string? ok = null, string? cancel = null)
+        => ShowDialog(msg, CaptionType.Warning, ok, cancel);
+
+    public bool ConfirmError(string msg, string? ok = null, string? cancel = null)
+        => ShowDialog(msg, CaptionType.Error, ok, cancel);
+
+    public bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
+        => ShowDialog(message, caption, null, null, iconPath);
+
+    #endregion
+
+    #region Private Core Logic
+
+    private void Show(string msg, CaptionType type, string iconPath = "")
+        => ShowCore(msg, type, showCancel: false, 0.65, null, null, iconPath);
+
+    private bool ShowDialog(string msg, CaptionType type, string? ok = null, string? cancel = null, string iconPath = "")
+        => ShowCore(msg, type, showCancel: true, 0.55, ok, cancel, iconPath);
+
+    private bool ShowCore(string message, CaptionType caption, bool showCancel, double dimOpacity, string? ok, string? cancel, string iconPath)
     {
-        ShowMessage(message, CaptionType.Warning, StringsConstants.ImgUrl.ImgWarning);
-    }
+        var vm = vmFactory();
+        ConfigureViewModel(vm, message, caption, showCancel, ok, cancel, iconPath);
 
-    public void ShowErrorMessage(string message)
-    {
-        ShowMessage(message, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
-    }
+        var owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(x => x.IsActive)
+                    ?? Application.Current.MainWindow;
 
-    public bool ShowInfoMessageDialog(string message)
-    {
-        return ShowMessageDialog(message, CaptionType.Info, StringsConstants.ImgUrl.ImgInfo);
-    }
+        var dialog = new UserMessageDialog(vm) { Owner = owner };
 
-    public bool ShowWarningMessageDialog(string message)
-    {
-        return ShowMessageDialog(message, CaptionType.Warning, StringsConstants.ImgUrl.ImgWarning);
-    }
-
-    public bool ShowErrorMessageDialog(string message)
-    {
-        return ShowMessageDialog(message, CaptionType.Error, StringsConstants.ImgUrl.ImgError);
-    }
-
-    private bool ShowUserMessageDialogCore(
-      string message,
-      CaptionType caption,
-      string iconPath,
-      string okText,
-      string cancelText,
-      bool showCancelButton,
-      double dimOpacity)
-    {
-        var vm = CreateUserMessageDialogViewModel(message, caption, iconPath, okText, cancelText);
-
-        vm.ShowCancelButton = showCancelButton;
-
-        // keep your existing caption->icon behavior for the non-custom path
-        vm.IconPath = caption switch
-        {
-            CaptionType.Error => StringsConstants.ImgUrl.ImgError,
-            CaptionType.Warning => StringsConstants.ImgUrl.ImgWarning,
-            CaptionType.Info => StringsConstants.ImgUrl.ImgInfo,
-            _ => string.Empty
-        };
-
-        var owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
-
-        var dialog = new UserMessageDialog(vm)
-        {
-            Owner = owner
-        };
-
-        // If there is no owner (rare), just show normally (avoid NullRef)
         if (dialog.Owner is null)
         {
             dialog.ShowDialog();
@@ -97,102 +99,26 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
         }
     }
 
-    public bool ShowDefaultMessageDialog(string message, string btnOkText = null, string btnCancelText = null, CaptionType caption = CaptionType.Default, string iconPath = "")
+    private void ConfigureViewModel(IUserMessageDialogViewModel vm, string message, CaptionType caption, bool showCancel, string? ok, string? cancel, string customIcon)
     {
-
-        return ShowUserMessageDialogCore(
-             message: message,
-             caption: caption,
-             iconPath: iconPath,
-             okText: !string.IsNullOrEmpty(btnOkText) ? btnOkText : UI.ui_btnOK,
-             cancelText: !string.IsNullOrEmpty(btnCancelText) ? btnCancelText : UI.ui_btnCancel,
-             showCancelButton: true,
-             dimOpacity: 0.55);
-    }
-
-    public void ShowMessage(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
-    {
-        _ = ShowUserMessageDialogCore(
-            message,
-            caption,
-            iconPath,
-            okText: UI.ui_btnOK,
-            cancelText: string.Empty,
-            showCancelButton: false,
-            dimOpacity: 0.65);
-    }
-
-    public bool ShowMessageDialog(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
-    {
-        return ShowUserMessageDialogCore(
-            message,
-            caption,
-            iconPath,
-            okText: UI.ui_btnOK,
-            cancelText: UI.ui_btnCancel,
-            showCancelButton: true,
-            dimOpacity: 0.55);
-    }
-
-    private IUserMessageDialogViewModel CreateUserMessageDialogViewModel(string message, CaptionType caption, string iconPath,
-        string btnOkText, string btnCancelText)
-    {
-        var vm = userMessageDialogViewModel;
-        vm.Caption = caption;
         vm.Message = message;
-        vm.OkButtonText = btnOkText;
-        vm.CancelButtonText = btnCancelText;
-        vm.ShowCancelButton = true;
-        vm.IconPath = iconPath; // Optional
+        vm.Caption = caption;
+        vm.ShowCancelButton = showCancel;
+        vm.OkButtonText = ok ?? UI.ui_btnOK;
+        vm.CancelButtonText = cancel ?? UI.ui_btnCancel;
 
-        (vm.TitleBarBackground, vm.TitleBarForeground) = caption switch
+        // Visual Mapping
+        (var standardIcon, vm.TitleBarBackground, vm.TitleBarForeground) = caption switch
         {
-            CaptionType.Error => (Brushes.Red, Brushes.White),
-            CaptionType.Warning => (Brushes.LightYellow, Brushes.Black),
-            CaptionType.Info => (Brushes.LightSteelBlue, Brushes.White),
-            _ => (Brushes.Gray, Brushes.White)
+            CaptionType.Error => (StringsConstants.ImgUrl.ImgError, Brushes.Red, Brushes.White),
+            CaptionType.Warning => (StringsConstants.ImgUrl.ImgWarning, Brushes.LightYellow, Brushes.Black),
+            CaptionType.Info => (StringsConstants.ImgUrl.ImgInfo, Brushes.LightSteelBlue, Brushes.White),
+            _ => (string.Empty, Brushes.Gray, Brushes.White)
         };
-        return vm;
+
+        // If a custom icon path was passed via ShowMessage/ShowMessageDialog, use it; otherwise use the standard one.
+        vm.IconPath = !string.IsNullOrEmpty(customIcon) ? customIcon : standardIcon;
     }
 
-    public string ShowMessageBasedOnOperationStatus(OperationStatus opStatus, AccountViewModel? account)
-    {
-        string message = string.Empty;
-
-        switch (opStatus)
-        {
-            case OperationStatus.Unknown:
-                message = account?.Error ?? "An unknow error has occured";
-                break;
-            case OperationStatus.NotFound:
-                message = $"{UI.msg_Platform_Not_Found}: {account?.Platform}";
-                break;
-            case OperationStatus.LoadingFailed:
-                message = UI.msg_Failed_Loading_Secrets;
-                break;
-            case OperationStatus.DeleteFailed:
-                message = $"{UI.msg_Failed_Delete_Secret} : {account?.Platform}";
-                break;
-            case OperationStatus.UpdateFailed:
-                message = $"{UI.msg_Failed_Updating_Secret} : {account?.Platform}";
-                break;
-            case OperationStatus.CreateFailed:
-                message = string.Format(UI.msg_FailedAddingSecret, account?.Platform ?? "");
-                break;
-            case OperationStatus.StorageFailed:
-                message = $"{UI.msg_Failed_Storage}: {account?.Platform ?? ""}";
-                break;
-            case OperationStatus.Success:
-                //message = $"{UI.msg_SecretUpdated}: {item.Platform}";
-                break;
-            case OperationStatus.AlreadyExists:
-                message = string.Format(UI.msg_Platform_Exists, account?.Platform);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(opStatus), opStatus, null);
-        }
-
-        return message;
-    }
-
+    #endregion
 }

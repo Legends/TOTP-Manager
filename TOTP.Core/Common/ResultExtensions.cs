@@ -22,5 +22,28 @@ namespace TOTP.Core.Common
                        .FirstOrDefault()?.Status
                    ?? OperationStatus.Unknown;
         }
+
+        /// <summary>
+        /// Gets the primary error message, appended with the "Reason" metadata if it exists.
+        /// </summary>
+        public static string GetFullMessage(this IResultBase result)
+        {
+            // 1. Try to find your custom StatusError (which holds the Metadata)
+            var error = result.Errors.OfType<StatusError>().FirstOrDefault();
+
+            // 2. If no StatusError found, return the first standard error message
+            if (error == null)
+                return result.Errors.FirstOrDefault()?.Message ?? "An unknown error occurred.";
+
+            // 3. Try to extract the "Reason" you added in your DAL/Domain
+            if (error.Metadata.TryGetValue("Reason", out var reason))
+            {
+                // Returns: "Storage failed (Path: C:\secrets.json does not exist)"
+                return $"{error.Message} ({reason})";
+            }
+
+            // 4. Fallback: Just return the standard message
+            return error.Message;
+        }
     }
 }

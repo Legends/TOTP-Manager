@@ -29,11 +29,11 @@ namespace TOTP.Startup;
 public static class BootLoader
 {
     public static IConfigurationRoot BuildConfiguration()
-                    => new ConfigurationBuilder()
-                        .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
-                        .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                        .AddJsonFile(StringsConstants.AppSettingsFileName, optional: false, reloadOnChange: true)
-                        .Build();
+        => new ConfigurationBuilder()
+            .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            .AddJsonFile(StringsConstants.AppSettingsFileName, optional: false, reloadOnChange: true)
+            .Build();
 
     public static void SetCulture(IConfiguration configuration)
     {
@@ -44,8 +44,6 @@ public static class BootLoader
         CultureInfo.DefaultThreadCurrentUICulture = culture;
         Thread.CurrentThread.CurrentCulture = culture;
         Thread.CurrentThread.CurrentUICulture = culture;
-
-        //LocalizationService.ChangeCulture(cultureCode);
     }
 
     public static void RegisterSyncfusionLicenseKey(IConfiguration configuration)
@@ -67,19 +65,24 @@ public static class BootLoader
                 services.AddSingleton<IClipboardService, ClipboardService>();
                 services.AddSingleton<IDelayService, DelayService>();
                 services.AddSingleton<IDebounceService, DebounceService>();
+
+                // --- Message Service Setup ---
+                // Register VM as Transient so a new one is created for every dialog
+                services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
+                // Register the Factory used by MessageService
+                services.AddSingleton<Func<IUserMessageDialogViewModel>>(sp =>
+                    () => sp.GetRequiredService<IUserMessageDialogViewModel>());
                 services.AddSingleton<IMessageService, MessageService>();
+                // -----------------------------
+
                 services.AddTransient<IFileDialogService, FileDialogService>();
                 services.AddSingleton<IQrCodeService, QrCodeService>();
-
-                // dialogs
-                services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
 
                 // app services
                 services.AddSingleton<IAccountsDAL>(provider =>
                 {
                     var logger = provider.GetRequiredService<ILogger<AccountsDAL>>();
                     var config = provider.GetRequiredService<IConfiguration>();
-                    // default is:  "%AppData%\\TOTP-Manager\\secrets.dat"
                     var filePathAccounts = config.GetSection(StringsConstants.AccountsStorageFilePath).Value;
                     var resolvedPath = Environment.ExpandEnvironmentVariables(filePathAccounts ?? "");
                     return new AccountsDAL(logger, resolvedPath);
@@ -92,10 +95,8 @@ public static class BootLoader
                 var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? "");
                 services.AddSingleton<IGlobalProfileStore>(_ => new FileGlobalProfileStore(resolvedProfilePath));
 
-                // VMs
-                services.AddTransient<QrScannerViewModel>();   // transient: new scan each time
-
-                // windows
+                // VMs & Windows
+                services.AddTransient<QrScannerViewModel>();
                 services.AddTransient<QrScannerWindow>();
 
                 // dialog / orchestration
@@ -115,10 +116,7 @@ public static class BootLoader
                 services.AddSingleton<IHelloGate, HelloGate>();
                 services.AddSingleton<IPasswordService>(_ => new PasswordService(new PasswordRecord([], [], 100_000)));
 
-                // VMs
                 services.AddSingleton<IMainViewModel, MainViewModel>();
-
-                // windows
                 services.AddSingleton<MainWindow>();
             })
             .Build();
@@ -128,13 +126,13 @@ public static class BootLoader
         var logger = host.Services.GetService<ILogger<App>>();
         var messageService = host.Services.GetService<IMessageService>();
 
-        System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level =
+        PresentationTraceSources.DataBindingSource.Switch.Level =
             SourceLevels.Error | SourceLevels.Critical;
 
         // Dispatcher (UI) thread exceptions
         app.DispatcherUnhandledException += (_, e) =>
         {
-            try { messageService?.ShowErrorMessageDialog(UI.msg_DispatcherException); }
+            try { messageService?.ConfirmError(UI.msg_DispatcherException); }
             catch { MessageBox.Show(e.Exception.Message, "UI Error", MessageBoxButton.OK); }
 
             logger?.LogCritical(e.Exception, "Unhandled UI thread exception");
@@ -144,7 +142,7 @@ public static class BootLoader
         // Non-UI thread exceptions
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
-            try { messageService?.ShowErrorMessageDialog(UI.ex_FatalError); }
+            try { messageService?.ConfirmError(UI.ex_FatalError); }
             catch { MessageBox.Show(UI.ex_FatalError, "AppDomain Error", MessageBoxButton.OK); }
 
             logger?.LogCritical(e.ExceptionObject as Exception, "Unhandled domain exception");
@@ -154,7 +152,7 @@ public static class BootLoader
         // Unobserved task exceptions
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
-            try { messageService?.ShowWarningMessage(UI.msg_BackroundTaskException); }
+            try { messageService?.ShowWarning(UI.msg_BackroundTaskException); }
             catch { MessageBox.Show(UI.msg_BackroundTaskException, "Unobserved Task Exception", MessageBoxButton.OK); }
 
             logger?.LogCritical(e.Exception, "Unobserved task exception");

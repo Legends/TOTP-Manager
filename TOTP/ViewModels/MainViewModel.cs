@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OtpNet;
 using Syncfusion.Linq;
+using Syncfusion.PMML;
 using Syncfusion.SfSkinManager;
 using System;
 using System.Collections.Generic;
@@ -37,6 +38,7 @@ using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Validation;
 using TOTP.Views;
+using Application = System.Windows.Application;
 using ValidationError = TOTP.Core.Enums.ValidationError;
 
 #endregion
@@ -561,7 +563,7 @@ public class MainViewModel : IMainViewModel
             _logger.LogCritical(ex, "MainViewModel initialization failed.");
 
             // Use the injected message service to tell the user what happened
-            _messageService.ShowErrorMessageDialog(UI.ex_FatalError + ": " + ex.Message);
+            _messageService.ShowError(UI.ex_FatalError + ": " + ex.Message);
             Environment.Exit(1);
             // Handle state (e.g., force a specific UI state so the app isn't "stuck")
         }
@@ -806,7 +808,7 @@ public class MainViewModel : IMainViewModel
 
             if (result.IsFailed)
             {
-                _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), new AccountViewModel(Guid.Empty, null!, null!));
+                _messageService.ShowResultError(result);
                 return;
             }
 
@@ -848,7 +850,7 @@ public class MainViewModel : IMainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_Adding_New_TOTP);
-            _messageService.ShowErrorMessage(UI.ex_Adding_New_TOTP + ": " + ex.Message);
+            _messageService.ShowError(UI.ex_Adding_New_TOTP + ": " + ex.Message);
         }
     }
     #endregion
@@ -893,7 +895,7 @@ public class MainViewModel : IMainViewModel
         try
         {
 
-            var shouldDelete = _messageService.ShowDefaultMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, item.Platform), UI.ui_btnDelete);
+            var shouldDelete = _messageService.ConfirmWarning(string.Format(UI.msg_ConfirmDeleteSecret, item.Platform), UI.ui_btnDelete);
             if (!shouldDelete)
                 return;
 
@@ -901,7 +903,7 @@ public class MainViewModel : IMainViewModel
 
             if (result.IsFailed)
             {
-                _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), item);
+                _messageService.ShowResultError(result, item.Platform);
                 return;
             }
 
@@ -917,7 +919,7 @@ public class MainViewModel : IMainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_DeletingSecret);
-            _messageService.ShowErrorMessage(string.Format(UI.ex_DeletingSecret_0, ex.Message));
+            _messageService.ShowError(string.Format(UI.ex_DeletingSecret_0, ex.Message));
         }
     }
 
@@ -938,7 +940,7 @@ public class MainViewModel : IMainViewModel
 
             if (result.IsFailed)
             {
-                _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), updated);
+                _messageService.ShowResultError(result, updated.Platform);
                 return;
             }
 
@@ -956,7 +958,7 @@ public class MainViewModel : IMainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_UpdatingSecret);
-            _messageService.ShowErrorMessageDialog(string.Format(UI.ex_UpdatingSecret_0, ex.Message));
+            _messageService.ShowError(string.Format(UI.ex_UpdatingSecret_0, ex.Message));
         }
     }
 
@@ -990,7 +992,7 @@ public class MainViewModel : IMainViewModel
 
             if (result.IsFailed)
             {
-                _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), CurrentSecretBeingEditedOrAdded);
+                _messageService.ShowResultError(result, CurrentSecretBeingEditedOrAdded.Platform);
                 return;
             }
 
@@ -1078,7 +1080,7 @@ public class MainViewModel : IMainViewModel
 
             if (!validation.IsValid)
             {
-                _messageService.ShowInfoMessage(ValidationMessageMapper.ToMessage(validation.Errors.FirstOrDefault()));
+                _messageService.ShowInfo(ValidationMessageMapper.ToMessage(validation.Errors.FirstOrDefault()));
                 return;
             }
 
@@ -1090,7 +1092,7 @@ public class MainViewModel : IMainViewModel
             catch (Exception ex)
             {
                 _logger.LogError(ex, UI.ex_UpdatingSecret);
-                _messageService.ShowErrorMessage(UI.ex_UpdatingSecret);
+                _messageService.ShowError(UI.ex_UpdatingSecret);
             }
 
         }
@@ -1176,14 +1178,14 @@ public class MainViewModel : IMainViewModel
                     {
                         _logger.LogError(ex, UI.ex_Error_Generating_TOTP);
                         // This is still here because it's specific to TOTP encoding
-                        _messageService.ShowErrorMessage(UI.ex_Error_Generating_TOTP + ": " + ex.Message);
+                        _messageService.ShowError(UI.ex_Error_Generating_TOTP + ": " + ex.Message);
                     }
             }
         }
         catch (Exception e)
         {
             _logger.LogError(e, UI.ex_Selecting_Secret);
-            _messageService.ShowErrorMessage(UI.ex_Selecting_Secret + ": " + e.Message);
+            _messageService.ShowError(UI.ex_Selecting_Secret + ": " + e.Message);
         }
         finally
         {
@@ -1195,7 +1197,7 @@ public class MainViewModel : IMainViewModel
 
     #region ### TOTP Code Generation ###
 
-  
+
     public AccountViewModel ComputeTotpCode(AccountViewModel item, out Totp totpInstance)
     {
         if (!UiValidation.IsValidBase32Format(item.Secret))
@@ -1292,13 +1294,13 @@ public class MainViewModel : IMainViewModel
             //if (remaining == _lastRemaining) return;
             //_lastRemaining = remaining;
 
-             Application.Current?.Dispatcher.BeginInvoke(
-                DispatcherPriority.Render,
-                new Action(() =>
-                {
-                    TotpCode = _activeTotp.ComputeTotp();
-                    RemainingSeconds = _activeTotp.RemainingSeconds();
-                }));
+            Application.Current?.Dispatcher.BeginInvoke(
+               DispatcherPriority.Render,
+               new Action(() =>
+               {
+                   TotpCode = _activeTotp.ComputeTotp();
+                   RemainingSeconds = _activeTotp.RemainingSeconds();
+               }));
 
         }, null, dueTime: 0, period: 800); // 20 fps tick, UI updates only once/sec due to coalesce
     }
@@ -1372,7 +1374,7 @@ public class MainViewModel : IMainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_Filtering_Secrets);
-            _messageService.ShowErrorMessage(UI.ex_Filtering_Secrets + ": " + ex.Message);
+            _messageService.ShowError(UI.ex_Filtering_Secrets + ": " + ex.Message);
         }
     }
 
@@ -1416,7 +1418,7 @@ public class MainViewModel : IMainViewModel
             catch (Exception e)
             {
                 _logger.LogError(e, null, null);
-                _messageService.ShowErrorMessage(UI.msg_ErrorParsingOtpUrl);
+                _messageService.ShowError(UI.msg_ErrorParsingOtpUrl);
                 return;
             }
 
@@ -1432,10 +1434,10 @@ public class MainViewModel : IMainViewModel
                 {
                     if (error == ValidationError.PlatformAlreadyExists)
                     {
-                        _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error, newAccountItem.Platform));
+                        _messageService.ShowError(ValidationMessageMapper.ToMessage(error, newAccountItem.Platform));
                     }
                     else
-                        _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
+                        _messageService.ShowError(ValidationMessageMapper.ToMessage(error));
                 }
 
                 return;
@@ -1448,7 +1450,7 @@ public class MainViewModel : IMainViewModel
                 var result = await _accountsManager.AddNewItemAsync(newAccountItem.ToDomain());
                 if (result.IsFailed)
                 {
-                    _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), newAccountItem);
+                    _messageService.ShowResultError(result, newAccountItem.Platform);
                     return;
                 }
 
@@ -1482,7 +1484,7 @@ public class MainViewModel : IMainViewModel
         var result = await _accountsManager.GetAllAccountsSortedAsync();
         if (result.IsFailed)
         {
-            _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), null);
+            _messageService.ShowResultError(result);
             return;
         }
 

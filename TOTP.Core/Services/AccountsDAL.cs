@@ -161,9 +161,7 @@ public class AccountsDAL : IAccountsDAL, IDisposable
         }
         catch (Exception ex)
         {
-            // 4. Log the unexpected (this is your safety net)
             _logger.LogError(ex, "Unexpected error deleting item for platform {Platform}", account);
-
             return new StatusError(OperationStatus.DeleteFailed);
         }
         finally
