@@ -147,32 +147,7 @@ public class AccountsDAL : IAccountsDAL, IDisposable
         }
     }
 
-    public bool BackupAccountsFile()
-    {
-        if (!File.Exists(_secretsPath)) return false;
-
-        var dir = Path.GetDirectoryName(_secretsPath)!;
-        var file = Path.GetFileName(_secretsPath);
-
-        for (var i = 5; i >= 1; i--)
-        {
-            var oldBackup = Path.Combine(dir, $"{file}.bak{i}");
-            var nextBackup = Path.Combine(dir, $"{file}.bak{i + 1}");
-
-            if (File.Exists(oldBackup))
-            {
-                if (i == 5) File.Delete(oldBackup);
-                else File.Move(oldBackup, nextBackup, true);
-            }
-        }
-
-        var firstBackup = Path.Combine(dir, $"{file}.bak1");
-        File.Copy(_secretsPath, firstBackup, true);
-
-        return true;
-
-    }
-
+  
     private async Task<(bool, List<AccountItem>)> LoadAccountsFromFileAsync()
     {
         try
@@ -231,6 +206,32 @@ public class AccountsDAL : IAccountsDAL, IDisposable
             return false;
         }
     }
+    
+    public bool BackupAccountsFile()
+    {
+        if (!File.Exists(_secretsPath)) return false;
+
+        var dir = Path.GetDirectoryName(_secretsPath)!;
+        var file = Path.GetFileName(_secretsPath);
+
+        for (var i = 5; i >= 1; i--)
+        {
+            var oldBackup = Path.Combine(dir, $"{file}.bak{i}");
+            var nextBackup = Path.Combine(dir, $"{file}.bak{i + 1}");
+
+            if (File.Exists(oldBackup))
+            {
+                if (i == 5) File.Delete(oldBackup);
+                else File.Move(oldBackup, nextBackup, true);
+            }
+        }
+
+        var firstBackup = Path.Combine(dir, $"{file}.bak1");
+        File.Copy(_secretsPath, firstBackup, true);
+
+        return true;
+    }
+
 
     private JsonSerializerOptions GetOptions()
     {
