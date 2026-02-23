@@ -997,23 +997,16 @@ public class MainViewModel : IMainViewModel
             }
 
             var itemToAdd = CurrentSecretBeingEditedOrAdded.Copy();
-            //itemToAdd.IsNewlyAdded = true;
-
             AllAccounts.Add(itemToAdd);
-            //OnPropertyChanged(nameof(AllSecrets));
-            //ApplySearchFilter();
+         
             CurrentSecretBeingEditedOrAdded = null;
             IsAddMode = false;
             IsEditAddFlyoutOpen = false;
-
-
         }
         else // Edit mode
         {
-            //PreviousVersion = SelectedSecret.Copy(); // TODO: you can also edit non selected items via flyout !!! we dont need previousversion here!
             var updated = CurrentSecretBeingEditedOrAdded.Copy();
 
-            //if (updated == null || PreviousVersion == null)
             if (updated == null)
                 return;
 
@@ -1022,21 +1015,15 @@ public class MainViewModel : IMainViewModel
 
             if (!validator.IsValid)
             {
-                //foreach (var error in validator.Errors)
-                //    _messageService.ShowErrorMessage(ValidationMessageMapper.ToMessage(error));
-
-                CurrentSecretBeingEditedOrAdded.RefreshValidation();
+       CurrentSecretBeingEditedOrAdded.RefreshValidation();
                 return;
             }
-
-            //var source = AllAccounts.Where(sivm => !sivm.Equals(updated));
-
+            
             validator.PlatformNameDuplicateExists(excludeSelf: true);
 
             if (!validator.IsValid)
             {
-                //_messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, updated.Platform));
-                CurrentSecretBeingEditedOrAdded.RefreshValidation();
+ CurrentSecretBeingEditedOrAdded.RefreshValidation();
                 return;
             }
             #endregion
@@ -1263,9 +1250,6 @@ public class MainViewModel : IMainViewModel
         ShowCodeGenerationOutput();
     }
 
-    //private int _lastRemaining = -1;
-    //Guid _lastItemGuid = Guid.Empty;
-
     private void StartTotpTick()
     {
         TotpUiTimer?.Dispose();
@@ -1283,10 +1267,7 @@ public class MainViewModel : IMainViewModel
             const int period = 30;
             long unix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             long step = unix / period;// example: 58944862, 58944863, ... 58944891, 58944892, 58944893, ...
-
-            //if (step != _activeStep)
-            //{
-            //    Debug.WriteLine("##################   step != _activeStep    ##################################");
+            
             _activeStep = step;
             var now = DateTime.UtcNow;
 
@@ -1310,8 +1291,6 @@ public class MainViewModel : IMainViewModel
         var normalizedSecret = OtpauthParser.NormalizeBase32SecretForUri(item.Secret);
         // For testing:
         var uri = _qrService.BuildOtpAuthUri(item.Platform, normalizedSecret, item.Account); // base32Secret
-
-        //var uri = _qrService.BuildOtpAuthUri(secret.Platform, secret.Secret, secret.Account);
         byte[] pngBytes = _qrService.GenerateQr(uri);
 
         var bmp = new BitmapImage();
@@ -1364,11 +1343,13 @@ public class MainViewModel : IMainViewModel
         return obj is AccountViewModel vm && (vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
+    /// <summary>
+    /// Executes when prop SearchText changes
+    /// </summary>
     private void ExecuteSearch()
     {
         try
         {
-            // when SearchText changes:
             GridFilterRefresher.Refresh();
         }
         catch (Exception ex)
@@ -1488,7 +1469,6 @@ public class MainViewModel : IMainViewModel
             return;
         }
 
-        //result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
         var options = new JsonSerializerOptions { WriteIndented = true };
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(result.Value, options));
 
