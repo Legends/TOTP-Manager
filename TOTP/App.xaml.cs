@@ -41,7 +41,7 @@ public partial class App : Application
         try
         {
             var acountsManager = Host.Services.GetService(typeof(IAccountsDAL)) as IAccountsDAL;
-            await acountsManager?.BackupAccountsFileAsync();
+            await acountsManager?.BackupAccountsStorageFileAsync();
         }
         catch (Exception ex)
         {

@@ -31,7 +31,7 @@ public class AccountsManager : IAccountsManager
 
     public async Task<Result> AddNewItemAsync(AccountItem newItem)
     {
-        return await _secretsDal.AddNewItemAsync(newItem);
+        return await _secretsDal.AddNewAccountAsync(newItem);
     }
 
     public async Task<Result> UpdateAccountAsync(AccountItem previous, AccountItem updated)
@@ -39,7 +39,7 @@ public class AccountsManager : IAccountsManager
         //ArgumentNullException.ThrowIfNull(previous);
         ArgumentNullException.ThrowIfNull(updated);
 
-        return await _secretsDal.UpdateItemAsync(updated);
+        return await _secretsDal.UpdateAccountAsync(updated);
 
         //var platform = result.Status == OperationStatus.LoadingFailed ? null : previous?.Platform;
 
@@ -74,29 +74,7 @@ public class AccountsManager : IAccountsManager
     /// <returns>true/false</returns>
     public async Task<Result> DeleteAccountAsync(AccountItem item)
     {
-        //var shouldDelete = ConfirmDeleteRequested?.Invoke(this, item.Platform) ?? false;
-
-        //if (shouldDelete)
-        //{
-        return await _secretsDal.DeleteItemAsync(item.Platform);
-
-        //    if (result.Status == OperationStatus.NotFound)
-        //    {
-        //        OnMessageSend?.Invoke(this, OperationStatus.NotFound, item.Platform);
-        //    }
-        //    else if (result.Status == OperationStatus.LoadingFailed)
-        //    {
-        //        OnMessageSend?.Invoke(this, OperationStatus.LoadingFailed, item.Platform);
-        //    }
-        //    else if (result.Status == OperationStatus.StorageFailed)
-        //    {
-        //        OnMessageSend?.Invoke(this, OperationStatus.StorageFailed, item.Platform);
-        //    }
-
-        //    return true;
-        //}
-
-        //return false;
+        return await _secretsDal.DeleteAccountAsync(item);
     }
 
 

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
@@ -6,6 +7,7 @@ using TOTP.Core.Enums;
 using TOTP.Helper;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
+using TOTP.ViewModels;
 using TOTP.Views;
 
 namespace TOTP.Services;
@@ -98,14 +100,14 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
     public bool ShowDefaultMessageDialog(string message, string btnOkText = null, string btnCancelText = null, CaptionType caption = CaptionType.Default, string iconPath = "")
     {
 
-       return ShowUserMessageDialogCore(
-            message: message,
-            caption: caption,
-            iconPath: iconPath,
-            okText: !string.IsNullOrEmpty(btnOkText) ? btnOkText : UI.ui_btnOK,
-            cancelText: !string.IsNullOrEmpty(btnCancelText) ? btnCancelText : UI.ui_btnCancel,
-            showCancelButton: true,
-            dimOpacity: 0.55);
+        return ShowUserMessageDialogCore(
+             message: message,
+             caption: caption,
+             iconPath: iconPath,
+             okText: !string.IsNullOrEmpty(btnOkText) ? btnOkText : UI.ui_btnOK,
+             cancelText: !string.IsNullOrEmpty(btnCancelText) ? btnCancelText : UI.ui_btnCancel,
+             showCancelButton: true,
+             dimOpacity: 0.55);
     }
 
     public void ShowMessage(string message, CaptionType caption = CaptionType.Default, string iconPath = "")
@@ -151,6 +153,46 @@ public class MessageService(IUserMessageDialogViewModel userMessageDialogViewMod
             _ => (Brushes.Gray, Brushes.White)
         };
         return vm;
+    }
+
+    public string ShowMessageBasedOnOperationStatus(OperationStatus opStatus, AccountViewModel? account)
+    {
+        string message = string.Empty;
+
+        switch (opStatus)
+        {
+            case OperationStatus.Unknown:
+                message = account?.Error ?? "An unknow error has occured";
+                break;
+            case OperationStatus.NotFound:
+                message = $"{UI.msg_Platform_Not_Found}: {account?.Platform}";
+                break;
+            case OperationStatus.LoadingFailed:
+                message = UI.msg_Failed_Loading_Secrets;
+                break;
+            case OperationStatus.DeleteFailed:
+                message = $"{UI.msg_Failed_Delete_Secret} : {account?.Platform}";
+                break;
+            case OperationStatus.UpdateFailed:
+                message = $"{UI.msg_Failed_Updating_Secret} : {account?.Platform}";
+                break;
+            case OperationStatus.CreateFailed:
+                message = string.Format(UI.msg_FailedAddingSecret, account?.Platform ?? "");
+                break;
+            case OperationStatus.StorageFailed:
+                message = $"{UI.msg_Failed_Storage}: {account?.Platform ?? ""}";
+                break;
+            case OperationStatus.Success:
+                //message = $"{UI.msg_SecretUpdated}: {item.Platform}";
+                break;
+            case OperationStatus.AlreadyExists:
+                message = string.Format(UI.msg_Platform_Exists, account?.Platform);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(opStatus), opStatus, null);
+        }
+
+        return message;
     }
 
 }

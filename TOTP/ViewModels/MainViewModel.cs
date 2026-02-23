@@ -21,6 +21,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using TOTP.Commands;
+using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
@@ -704,51 +705,6 @@ public class MainViewModel : IMainViewModel
     //  <Image ToolTip="{xaml:Resx Key=tooltip_AuthenticatorAppScan}"
 
 
-    #region ### USER MESSAGES ###
-    private bool _secretsManager_OnDeletePrompt(object? sender, string platform)
-    {
-        //return _messageService.ShowWarningMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform));
-        return _messageService.ShowDefaultMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, platform), UI.ui_btnDelete);
-    }
-
-    private void ShowMessage(OperationStatus arg1, AccountViewModel? item)
-    {
-        switch (arg1)
-        {
-            case OperationStatus.Unknown:
-                _messageService.ShowErrorMessage(item?.Error ?? "An unknow error has occured");
-                break;
-            case OperationStatus.NotFound:
-                _messageService.ShowErrorMessage($"{UI.msg_Platform_Not_Found}: {item?.Platform}");
-                break;
-            case OperationStatus.LoadingFailed:
-                _messageService.ShowErrorMessage(UI.msg_Failed_Loading_Secrets);
-                break;
-            case OperationStatus.DeleteFailed:
-                _messageService.ShowErrorMessage($"{UI.msg_Failed_Delete_Secret} : {item?.Platform}");
-                break;
-            case OperationStatus.UpdateFailed:
-                _messageService.ShowErrorMessage($"{UI.msg_Failed_Updating_Secret} : {item?.Platform}");
-                break;
-            case OperationStatus.CreateFailed:
-                _messageService.ShowErrorMessage(string.Format(UI.msg_FailedAddingSecret, item?.Platform ?? ""));
-                break;
-            case OperationStatus.StorageFailed:
-                _messageService.ShowErrorMessage($"{UI.msg_Failed_Storage}: {item?.Platform ?? ""}");
-                break;
-            case OperationStatus.Success:
-                //_messageService.ShowInfoMessage($"{UI.msg_SecretUpdated}: {item.Platform}");
-                break;
-            case OperationStatus.AlreadyExists:
-                _messageService.ShowErrorMessage(string.Format(UI.msg_Platform_Exists, item?.Platform));
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(arg1), arg1, null);
-        }
-    }
-
-    #endregion
-
 
     private async Task EnsureAccountsLoadedAsync()
     {
@@ -850,7 +806,7 @@ public class MainViewModel : IMainViewModel
 
             if (result.IsFailed)
             {
-                ShowMessage(result.Status, new AccountViewModel(Guid.Empty, null!, null!));
+                _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), new AccountViewModel(Guid.Empty, null!, null!));
                 return;
             }
 
@@ -943,16 +899,20 @@ public class MainViewModel : IMainViewModel
 
             var result = await _accountsManager.DeleteAccountAsync(item.ToDomain());
 
-            if (result.IsSuccess)
+            if (result.IsFailed)
             {
-                AllAccounts.Remove(item); // delete secret from internal list
-                OnPropertyChanged(nameof(AllAccounts));
-                if (item.ID == SelectedAccount?.ID)
-                {
-                    StopTOTPTimer();
-                    ClearCodeGenerationOutput();
-                }
+                _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), item);
+                return;
             }
+
+            AllAccounts.Remove(item); // delete secret from internal list
+            OnPropertyChanged(nameof(AllAccounts));
+            if (item.ID == SelectedAccount?.ID)
+            {
+                StopTOTPTimer();
+                ClearCodeGenerationOutput();
+            }
+
         }
         catch (Exception ex)
         {
@@ -978,7 +938,7 @@ public class MainViewModel : IMainViewModel
 
             if (result.IsFailed)
             {
-                // todo: show specific error messages based on the result.Error value
+                _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(),updated);
                 return;
             }
 
@@ -1030,7 +990,7 @@ public class MainViewModel : IMainViewModel
 
             if (result.IsFailed)
             {
-                ShowMessage(result.Status, CurrentSecretBeingEditedOrAdded);
+                _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), CurrentSecretBeingEditedOrAdded);
                 return;
             }
 
@@ -1273,16 +1233,15 @@ public class MainViewModel : IMainViewModel
 
     public AccountViewModel ComputeTotpCode(AccountViewModel item, out Totp totpInstance)
     {
-
         if (!UiValidation.IsValidBase32Format(item.Secret))
             throw new FormatException($"Secret is invalid Base32 format, supplied to {nameof(ComputeTotpCode)}");
 
         var encodedSecret = Base32Encoding.ToBytes(item.Secret);
         totpInstance = new Totp(encodedSecret);
-        //item.TotpCode = totpInstance.ComputeTotp();
+      
         TotpCode = totpInstance.ComputeTotp();
-        //item.RemainingSeconds =  totpInstance.RemainingSeconds();
         RemainingSeconds = totpInstance.RemainingSeconds();
+        
         return item;
     }
 
@@ -1317,7 +1276,6 @@ public class MainViewModel : IMainViewModel
     private void OnRowSelectionImplementation()
     {
 
-
         Debug.WriteLine("CalculateAndDisplayTotpCode");
         // Totp pie chart reset
         if (TotpUiTimer != null)
@@ -1339,7 +1297,7 @@ public class MainViewModel : IMainViewModel
     }
 
     //private int _lastRemaining = -1;
-    Guid _lastItemGuid = Guid.Empty;
+    //Guid _lastItemGuid = Guid.Empty;
 
     private void StartTotpTick()
     {
@@ -1457,17 +1415,11 @@ public class MainViewModel : IMainViewModel
             _messageService.ShowErrorMessage(UI.ex_Filtering_Secrets + ": " + ex.Message);
         }
     }
-
-
+    
     public string DeleteLabel => TOTP.Resources.UI.ui_btnDelete;
     public string EditLabel => TOTP.Resources.UI.ui_btnEdit;
-
-
     public string ExportToolTip => Resources.UI.ui_Export; // or your resource accessor
-
-
-
-
+    
     #endregion
 
     #region ### QR Code - Create - Scan - Add ###
@@ -1487,7 +1439,7 @@ public class MainViewModel : IMainViewModel
     public async Task ScanQrAndAddAccountAsync()
     {
         var decodedQRCode = _qrScannerDialogFactory().ScanQrCode(Application.Current.MainWindow);
-        //var dlg = new QrScannerWindow { Owner = System.Windows.Application.Current.MainWindow };
+      
         if (!string.IsNullOrWhiteSpace(decodedQRCode))
         {
 
@@ -1532,7 +1484,7 @@ public class MainViewModel : IMainViewModel
                 var result = await _accountsManager.AddNewItemAsync(newAccountItem.ToDomain());
                 if (result.IsFailed)
                 {
-                    ShowMessage(result.Status, newAccountItem);
+                    _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), newAccountItem);
                     return;
                 }
 
@@ -1566,7 +1518,7 @@ public class MainViewModel : IMainViewModel
         var result = await _accountsManager.GetAllAccountsSortedAsync();
         if (result.IsFailed)
         {
-            ShowMessage(result.Status, null);
+            _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), null);
             return;
         }
 

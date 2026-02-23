@@ -16,12 +16,12 @@ namespace TOTP.Core.Services.Interfaces;
 public interface IAccountsDAL
 {
 
-    /// <summary>
-    /// Loads secret by platform name (case insensitive) from storage.
-    /// </summary>
-    /// <param name="platform"></param>
-    /// <returns>Result&lt;SecretItem&gt;</returns>
-    Task<Result<AccountItem>> GetSecretByPlatformAsync(string platform);
+    ///// <summary>
+    ///// Loads secret by platform name (case insensitive) from storage.
+    ///// </summary>
+    ///// <param name="platform"></param>
+    ///// <returns>Result&lt;SecretItem&gt;</returns>
+    //Task<Result<AccountItem>> GetSecretByPlatformAsync(string platform);
 
     //Task<List<SecretItem>> GetAllSecretsAsync();
     /// <summary>
@@ -35,7 +35,7 @@ public interface IAccountsDAL
     /// </summary>
     /// <param name="item"></param>
     /// <returns>Success | AlreadyExist | LoadingFailed | StorageFailed</returns>
-    Task<Result> AddNewItemAsync(AccountItem item);
+    Task<Result> AddNewAccountAsync(AccountItem item);
     //Task<bool> AddNewItemAsync(SecretItem item);
 
     /// <summary>
@@ -43,19 +43,19 @@ public interface IAccountsDAL
     /// </summary>
     /// <param name="updated"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<Result> UpdateItemAsync(AccountItem updated);
+    Task<Result> UpdateAccountAsync(AccountItem updated);
 
 
     /// <summary>
     /// Deletes a secret item from the internal collection and writes the updated collection to the encrypted secrets file.
     /// </summary>
-    /// <param name="platform"></param>
+    /// <param name="account"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<Result> DeleteItemAsync(string platform);
+    Task<Result> DeleteAccountAsync(AccountItem account);
 
     /// <summary>
     /// Creates a backup of the current secrets .dat file.
     /// </summary>
     /// <returns></returns>
-    Task<Result> BackupAccountsFileAsync();
+    Task<Result> BackupAccountsStorageFileAsync();
 }

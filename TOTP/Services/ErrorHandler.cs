@@ -7,19 +7,19 @@ namespace TOTP.Services;
 
 public class ErrorHandler : IErrorHandler
 {
-    private readonly IMessageService _msgSvc;
+    private readonly IMessageService _messageService;
 
     public ErrorHandler(IMessageService msgSvc)
     {
         ArgumentNullException.ThrowIfNull(msgSvc, nameof(msgSvc));
-        _msgSvc = msgSvc;
+        _messageService = msgSvc;
     }
 
     public void Handle(Exception exception, string userMessage)
     {
         try
         {
-            _msgSvc.ShowErrorMessage($"{userMessage}\n\n\n{exception.Message}");
+            _messageService.ShowErrorMessage($"{userMessage}\n\n\n{exception.Message}");
         }
         finally
         {

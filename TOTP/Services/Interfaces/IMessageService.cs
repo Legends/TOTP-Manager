@@ -1,9 +1,11 @@
 ﻿using TOTP.Core.Enums;
+using TOTP.ViewModels;
 
 namespace TOTP.Services.Interfaces;
 
 public interface IMessageService
 {
+    string ShowMessageBasedOnOperationStatus(OperationStatus opStatus, AccountViewModel? account);
     bool ShowDefaultMessageDialog(string message, string btnOkText = "", string btnCancelText = "",
         CaptionType caption = CaptionType.Default, string iconPath = "");
     void ShowMessage(string message, CaptionType caption = CaptionType.Info, string iconPath = "");

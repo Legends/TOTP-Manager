@@ -110,20 +110,20 @@ internal class UiValidation
             .Any(x => string.Equals(x.Platform, platform, StringComparison.OrdinalIgnoreCase));
         return duplicate ? ValidationError.PlatformAlreadyExists : ValidationError.None;
     }
-    public static ValidationError ValidateSecretValue(string? secret)
+    public static ValidationError ValidateSecretValue(string? secretValue)
     {
-        return string.IsNullOrWhiteSpace(secret)
+        return string.IsNullOrWhiteSpace(secretValue)
             ? ValidationError.SecretRequired
-            : IsValidBase32Format(secret)
+            : IsValidBase32Format(secretValue)
                 ? ValidationError.None
                 : ValidationError.SecretInvalidFormat;
     }
 
-    public static bool IsValidBase32Format(string value)
+    public static bool IsValidBase32Format(string secretValue)
     {
         try
         {
-            var bytes = OtpNet.Base32Encoding.ToBytes(value);
+            var bytes = OtpNet.Base32Encoding.ToBytes(secretValue);
             return bytes.Length > 0;
         }
         catch

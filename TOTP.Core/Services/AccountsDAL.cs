@@ -58,34 +58,34 @@ public class AccountsDAL : IAccountsDAL, IDisposable
     }
 
 
-    public async Task<Result<AccountItem>> GetSecretByPlatformAsync(string platform)
-    {
+    //public async Task<Result<AccountItem>> GetSecretByPlatformAsync(string platform)
+    //{
 
-        await Semaphore.WaitAsync();
-        try
-        {
-            var list = await LoadAccountsFromFileAsync();
-            var account = list.FirstOrDefault(s =>
-                string.Equals(s.Platform, platform, StringComparison.CurrentCultureIgnoreCase));
+    //    await Semaphore.WaitAsync();
+    //    try
+    //    {
+    //        var list = await LoadAccountsFromFileAsync();
+    //        var account = list.FirstOrDefault(s =>
+    //            string.Equals(s.Platform, platform, StringComparison.CurrentCultureIgnoreCase));
 
-            if (account == null)
-                return new StatusError(OperationStatus.NotFound, $"Platform: {platform} not found");
+    //        if (account == null)
+    //            return new StatusError(OperationStatus.NotFound, $"Platform: {platform} not found");
 
-            return Result.Ok(account);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, nameof(GetSecretByPlatformAsync));
-            return new StatusError(OperationStatus.LoadingFailed);
-        }
-        finally
-        {
-            Semaphore.Release();
-        }
-    }
+    //        return Result.Ok(account);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, nameof(GetSecretByPlatformAsync));
+    //        return new StatusError(OperationStatus.LoadingFailed);
+    //    }
+    //    finally
+    //    {
+    //        Semaphore.Release();
+    //    }
+    //}
 
 
-    public async Task<Result> AddNewItemAsync(AccountItem newItem)
+    public async Task<Result> AddNewAccountAsync(AccountItem newItem)
     {
         await Semaphore.WaitAsync();
         try
@@ -103,7 +103,7 @@ public class AccountsDAL : IAccountsDAL, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, nameof(AddNewItemAsync));
+            _logger.LogError(ex, nameof(AddNewAccountAsync));
             return new StatusError(OperationStatus.StorageFailed);
         }
         finally
@@ -112,7 +112,7 @@ public class AccountsDAL : IAccountsDAL, IDisposable
         }
     }
 
-    public async Task<Result> UpdateItemAsync(AccountItem updated)
+    public async Task<Result> UpdateAccountAsync(AccountItem updated)
     {
         await Semaphore.WaitAsync();
         try
@@ -132,7 +132,7 @@ public class AccountsDAL : IAccountsDAL, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, nameof(UpdateItemAsync));
+            _logger.LogError(ex, nameof(UpdateAccountAsync));
             return new StatusError(OperationStatus.StorageFailed);
         }
         finally
@@ -142,14 +142,14 @@ public class AccountsDAL : IAccountsDAL, IDisposable
     }
 
 
-    public async Task<Result> DeleteItemAsync(string platform)
+    public async Task<Result> DeleteAccountAsync(AccountItem account)
     {
         await Semaphore.WaitAsync();
         try
         {
             var secrets = await LoadAccountsFromFileAsync();
 
-            var item = secrets.FirstOrDefault(x => x.Platform == platform);
+            var item = secrets.FirstOrDefault(x => x.ID == account.ID);
 
             if (item is null)
                 return new StatusError(OperationStatus.NotFound);
@@ -162,7 +162,7 @@ public class AccountsDAL : IAccountsDAL, IDisposable
         catch (Exception ex)
         {
             // 4. Log the unexpected (this is your safety net)
-            _logger.LogError(ex, "Unexpected error deleting item for platform {Platform}", platform);
+            _logger.LogError(ex, "Unexpected error deleting item for platform {Platform}", account);
 
             return new StatusError(OperationStatus.DeleteFailed);
         }
@@ -215,7 +215,7 @@ public class AccountsDAL : IAccountsDAL, IDisposable
         await File.WriteAllBytesAsync(_secretsPath, encrypted);
     }
 
-    public async Task<Result> BackupAccountsFileAsync() 
+    public async Task<Result> BackupAccountsStorageFileAsync() 
     {
        return await Task.Run(() =>
         {
@@ -223,7 +223,7 @@ public class AccountsDAL : IAccountsDAL, IDisposable
             {
                 if (!File.Exists(_secretsPath))
                     return Result.Fail(new StatusError(OperationStatus.StorageFailed)
-                        .WithMetadata("Context", nameof(BackupAccountsFileAsync))
+                        .WithMetadata("Context", nameof(BackupAccountsStorageFileAsync))
                         .WithMetadata("Reason", $"Path: {_secretsPath} does not exist"));
 
                 var dir = Path.GetDirectoryName(_secretsPath)!;
@@ -249,7 +249,7 @@ public class AccountsDAL : IAccountsDAL, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, nameof(BackupAccountsFileAsync));
+                _logger.LogError(ex, nameof(BackupAccountsStorageFileAsync));
                 return Result.Fail(new StatusError(OperationStatus.StorageFailed));
             }
         });
