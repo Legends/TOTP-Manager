@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using FluentResults;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using FluentResults;
+using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Core.Events;
 using TOTP.Core.Models;
@@ -27,6 +28,11 @@ public class AccountsManager : IAccountsManager
     //public event Action<object?, OperationStatus, string?> OnMessageSend;
     //public event Func<object?, AddNewPromptArgs>? OnAddNewPrompt;
     public event Func<object?, string, bool>? ConfirmDeleteRequested;
+
+    public async Task<Result> AddNewItemAsync(AccountItem newItem)
+    {
+        return await _secretsDal.AddNewItemAsync(newItem);
+    }
 
     public async Task<Result> UpdateAccountAsync(AccountItem previous, AccountItem updated)
     {

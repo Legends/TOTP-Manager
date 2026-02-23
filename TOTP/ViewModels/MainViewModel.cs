@@ -450,7 +450,6 @@ public class MainViewModel : IMainViewModel
 
     #region ### SERVICES DECLARATIONS ###
 
-    private readonly IAccountsDAL _accountsDal;
     private readonly IClipboardService _clipboard;
     private readonly IMessageService _messageService;
     private readonly IAccountsManager _accountsManager;
@@ -847,7 +846,7 @@ public class MainViewModel : IMainViewModel
         try
         {
             // Load secrets from file or other source
-            var result = await _accountsDal.GetAllAccountsAsync();
+            var result = await _accountsManager.GetAllAccountsSortedAsync();
 
             if (result.IsFailed)
             {
@@ -856,9 +855,9 @@ public class MainViewModel : IMainViewModel
             }
 
 
-            result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
+            //result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
 
-            var allAccounts = result.Value;
+            var allAccounts = result.Value ?? [];
             AllAccounts = new ObservableCollection<AccountViewModel>((allAccounts.Select(item => item.ToViewModel()) ?? []));
 
             foreach (var item in AllAccounts)
@@ -937,6 +936,11 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
+
+            var shouldDelete = _messageService.ShowDefaultMessageDialog(string.Format(UI.msg_ConfirmDeleteSecret, item.Platform), UI.ui_btnDelete);
+            if (!shouldDelete)
+                return;
+
             var result = await _accountsManager.DeleteAccountAsync(item.ToDomain());
 
             if (result.IsSuccess)
@@ -1022,7 +1026,7 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-            var result = await _accountsDal.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
+            var result = await _accountsManager.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
 
             if (result.IsFailed)
             {
@@ -1525,7 +1529,7 @@ public class MainViewModel : IMainViewModel
 
             try
             {
-                var result = await _accountsDal.AddNewItemAsync(newAccountItem.ToDomain());
+                var result = await _accountsManager.AddNewItemAsync(newAccountItem.ToDomain());
                 if (result.IsFailed)
                 {
                     ShowMessage(result.Status, newAccountItem);
@@ -1559,14 +1563,14 @@ public class MainViewModel : IMainViewModel
         if (path == null) // canceled
             return;
 
-        var result = await _accountsDal.GetAllAccountsAsync();
+        var result = await _accountsManager.GetAllAccountsSortedAsync();
         if (result.IsFailed)
         {
             ShowMessage(result.Status, null);
             return;
         }
 
-        result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
+        //result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
         var options = new JsonSerializerOptions { WriteIndented = true };
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(result.Value, options));
 
