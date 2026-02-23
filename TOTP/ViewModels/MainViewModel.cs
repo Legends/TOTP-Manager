@@ -849,22 +849,21 @@ public class MainViewModel : IMainViewModel
             // Load secrets from file or other source
             var result = await _accountsDal.GetAllAccountsAsync();
 
-            if (result.Status == OperationStatus.Success)
-            {
-                result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
-
-                var allAccounts = result.Value;
-                AllAccounts = new ObservableCollection<AccountViewModel>((allAccounts.Select(item => item.ToViewModel()) ?? []));
-                
-                foreach (var item in AllAccounts)
-                {
-                    item.SetDuplicateCheck(DuplicateCheck);
-                }
-
-            }
-            else
+            if (result.IsFailed)
             {
                 ShowMessage(result.Status, new AccountViewModel(Guid.Empty, null!, null!));
+                return;
+            }
+
+
+            result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
+
+            var allAccounts = result.Value;
+            AllAccounts = new ObservableCollection<AccountViewModel>((allAccounts.Select(item => item.ToViewModel()) ?? []));
+
+            foreach (var item in AllAccounts)
+            {
+                item.SetDuplicateCheck(DuplicateCheck);
             }
 
         }
@@ -938,7 +937,9 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            if (await _accountsManager.DeleteAccountAsync(item.ToDomain())) // delete from storage file
+            var result = await _accountsManager.DeleteAccountAsync(item.ToDomain());
+
+            if (result.IsSuccess)
             {
                 AllAccounts.Remove(item); // delete secret from internal list
                 OnPropertyChanged(nameof(AllAccounts));
@@ -947,7 +948,6 @@ public class MainViewModel : IMainViewModel
                     StopTOTPTimer();
                     ClearCodeGenerationOutput();
                 }
-
             }
         }
         catch (Exception ex)
@@ -970,10 +970,13 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            var success = await _accountsManager.UpdateAccountAsync(PreviousVersion?.ToDomain(), updated.ToDomain());
+            var result = await _accountsManager.UpdateAccountAsync(PreviousVersion?.ToDomain(), updated.ToDomain());
 
-            if (!success)
+            if (result.IsFailed)
+            {
+                // todo: show specific error messages based on the result.Error value
                 return;
+            }
 
             //todo: not needed as the item is already update by ref
             var itemToBeUpdated = AllAccounts.FirstOrDefault(s => s.ID == updated.ID);
@@ -1012,17 +1015,18 @@ public class MainViewModel : IMainViewModel
         {
             CurrentSecretBeingEditedOrAdded?.SetDuplicateCheck(DuplicateCheck);
             var validation = ValidateAccountItem(CurrentSecretBeingEditedOrAdded);
+
             if (!validation.IsValid)
             {
                 CurrentSecretBeingEditedOrAdded.RefreshValidation();
                 return;
             }
 
-            var addResult = await _accountsDal.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
+            var result = await _accountsDal.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
 
-            if (addResult.Status != OperationStatus.Success)
+            if (result.IsFailed)
             {
-                ShowMessage(addResult.Status, CurrentSecretBeingEditedOrAdded);
+                ShowMessage(result.Status, CurrentSecretBeingEditedOrAdded);
                 return;
             }
 
@@ -1057,8 +1061,6 @@ public class MainViewModel : IMainViewModel
 
                 CurrentSecretBeingEditedOrAdded.RefreshValidation();
                 return;
-
-
             }
 
             //var source = AllAccounts.Where(sivm => !sivm.Equals(updated));
@@ -1115,19 +1117,18 @@ public class MainViewModel : IMainViewModel
                 _messageService.ShowInfoMessage(ValidationMessageMapper.ToMessage(validation.Errors.FirstOrDefault()));
                 return;
             }
-            else
+
+            try
             {
-                try
-                {
-                    // Update the secret if valid
-                    await UpdateAccountAsync(item);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, UI.ex_UpdatingSecret);
-                    _messageService.ShowErrorMessage(UI.ex_UpdatingSecret);
-                }
+                // Update the secret if valid
+                await UpdateAccountAsync(item);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, UI.ex_UpdatingSecret);
+                _messageService.ShowErrorMessage(UI.ex_UpdatingSecret);
+            }
+
         }
 
         PreviousVersion = null;
@@ -1230,41 +1231,41 @@ public class MainViewModel : IMainViewModel
 
     #region ### TOTP Code Generation ###
 
-    /// <summary>
-    /// StepSize ist die Gültigkeitsdauer eines TOTP-Codes in Sekunden. Standardmäßig beträgt sie 30 Sekunden.
-    /// </summary>
-    /// <param name="secret"></param>
-    /// <param name="code"></param>
-    /// <param name="remainingSeconds"></param>
-    /// <param name="exc"></param>
-    /// <returns></returns>
-    public bool TryComputeTotpCode(string secret, out string code, out Totp? totpInstance, out Exception? exc)
-    {
-        code = null;
-        totpInstance = null;
+    ///// <summary>
+    ///// StepSize ist die Gültigkeitsdauer eines TOTP-Codes in Sekunden. Standardmäßig beträgt sie 30 Sekunden.
+    ///// </summary>
+    ///// <param name="secret"></param>
+    ///// <param name="code"></param>
+    ///// <param name="remainingSeconds"></param>
+    ///// <param name="exc"></param>
+    ///// <returns></returns>
+    //public bool TryComputeTotpCode(string secret, out string code, out Totp? totpInstance, out Exception? exc)
+    //{
+    //    code = null;
+    //    totpInstance = null;
 
-        try
-        {
-            if (!UiValidation.IsValidBase32Format(secret))
-            {
-                exc = new FormatException($"Secret is invalid Base32 format, supplied to {nameof(TryComputeTotpCode)}");
-                return false;
-            }
+    //    try
+    //    {
+    //        if (!UiValidation.IsValidBase32Format(secret))
+    //        {
+    //            exc = new FormatException($"Secret is invalid Base32 format, supplied to {nameof(TryComputeTotpCode)}");
+    //            return false;
+    //        }
 
-            var encodedSecret = Base32Encoding.ToBytes(secret);
-            totpInstance = new Totp(encodedSecret);
-            code = totpInstance.ComputeTotp();
+    //        var encodedSecret = Base32Encoding.ToBytes(secret);
+    //        totpInstance = new Totp(encodedSecret);
+    //        code = totpInstance.ComputeTotp();
 
-            exc = null;
-            return true;
-        }
-        catch (Exception ex)
-        {
-            exc = ex;
-            _logger.LogError(ex.Message, ex);
-            return false;
-        }
-    }
+    //        exc = null;
+    //        return true;
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        exc = ex;
+    //        _logger.LogError(ex.Message, ex);
+    //        return false;
+    //    }
+    //}
 
     public AccountViewModel ComputeTotpCode(AccountViewModel item, out Totp totpInstance)
     {
@@ -1499,7 +1500,6 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-
             var newAccountItem = new AccountViewModel(Guid.NewGuid(), data.Issuer, data.SecretBase32, data.Label);
 
             #region ### validation ###
@@ -1525,16 +1525,15 @@ public class MainViewModel : IMainViewModel
 
             try
             {
-                var addResult = await _accountsDal.AddNewItemAsync(newAccountItem.ToDomain());
-                if (addResult.Status != OperationStatus.Success)
+                var result = await _accountsDal.AddNewItemAsync(newAccountItem.ToDomain());
+                if (result.IsFailed)
                 {
-                    ShowMessage(addResult.Status, newAccountItem);
+                    ShowMessage(result.Status, newAccountItem);
                     return;
                 }
-                if (addResult.Status == OperationStatus.Success)
-                {
-                    AllAccounts.Add(newAccountItem);
-                }
+
+                AllAccounts.Add(newAccountItem);
+
             }
             finally
             {
@@ -1555,21 +1554,21 @@ public class MainViewModel : IMainViewModel
     #region ### EXPORT SECRETS TO EXTERNAL FILE ###
     private async Task ExportSecretsToFile()
     {
-        var path = _fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Secrets");
+        var path = _fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Accounts");
 
         if (path == null) // canceled
             return;
 
-        var secrets = await _accountsDal.GetAllAccountsAsync();
-        if (secrets.Status != OperationStatus.Success)
+        var result = await _accountsDal.GetAllAccountsAsync();
+        if (result.IsFailed)
         {
-            ShowMessage(secrets.Status, null);
+            ShowMessage(result.Status, null);
             return;
         }
 
-        secrets.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
+        result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
         var options = new JsonSerializerOptions { WriteIndented = true };
-        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(secrets.Value, options));
+        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(result.Value, options));
 
         var psi = new ProcessStartInfo { FileName = path, UseShellExecute = true };
 

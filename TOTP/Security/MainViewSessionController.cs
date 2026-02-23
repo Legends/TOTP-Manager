@@ -1,11 +1,14 @@
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using TOTP.Commands;
+using TOTP.Core.Enums;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
 using TOTP.Services.Interfaces;
+using TOTP.ViewModels;
 
 namespace TOTP.Security;
 
@@ -27,11 +30,14 @@ public sealed class MainViewSessionController : IMainViewSessionController
     public ICommand WindowStateChangedCommand { get; }
     public ICommand DetachWindowCommand { get; }
 
+    private ILogger<MainViewSessionController> _logger;
+
     public MainViewSessionController(
         IAuthorizationService authorization,
         IUserActivityService activityService,
-        IInputActivityMonitor inputActivityMonitor)
+        IInputActivityMonitor inputActivityMonitor, ILogger<MainViewSessionController> logger)
     {
+        _logger = logger;
         _authorization = authorization;
         WindowStateChangedCommand = new RelayCommand<WindowState>(OnWindowStateChanged);
         DetachWindowCommand = new RelayCommand(DetachWindow);
@@ -93,25 +99,49 @@ public sealed class MainViewSessionController : IMainViewSessionController
 
     private async void AuthorizationState_Changed(object? sender, EventArgs e)
     {
-        SetSessionState(_authorization.State.IsUnlocked ? AppSessionState.Unlocked : AppSessionState.Locked);
-
-        if (IsUnlocked)
+        try
         {
-            if (_attachedWindow != null)
+            // 1. Update the session state immediately
+            SetSessionState(_authorization.State.IsUnlocked ? AppSessionState.Unlocked : AppSessionState.Locked);
+
+            if (IsUnlocked)
             {
-                _inputActivityMonitor.Attach(_attachedWindow);
+                if (_attachedWindow != null)
+                {
+                    _inputActivityMonitor.Attach(_attachedWindow);
+                }
+
+                // 2. Await the async callback safely
+                if (_onUnlockedAsync != null)
+                {
+                    await _onUnlockedAsync();
+                }
+
+                UpdateActivityMonitorState();
+            }
+            else
+            {
+                _onLocked?.Invoke();
+                UpdateActivityMonitorState();
+                _inputActivityMonitor.Detach();
+            }
+        }
+        catch (Exception ex)
+        {
+            // 3. Log the error - since this is a session state change, 
+            // a failure here is high priority.
+            _logger.LogError(ex, "Error occurred during AuthorizationState change.");
+
+            // 4. Optional: Force a Lock state if an error occurs during unlock 
+            // to prevent the app from getting stuck in an inconsistent state.
+            if (IsUnlocked)
+            {
+                SetSessionState(AppSessionState.Locked);
+                _onLocked?.Invoke();
             }
 
-            if (_onUnlockedAsync != null)
-                await _onUnlockedAsync();
-
-            UpdateActivityMonitorState();
-        }
-        else
-        {
-            _onLocked?.Invoke();
-            UpdateActivityMonitorState();
-            _inputActivityMonitor.Detach();
+            // 5. Notify the user or show a global error dialog if necessary
+            //OnMessageSend?.Invoke(this, OperationStatus.Unknown, "An error occurred while updating the session.");
         }
     }
 
