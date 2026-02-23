@@ -765,7 +765,7 @@ public class MainViewModel : IMainViewModel
         _accountsLoaded = false;
         AllAccounts.Clear();
 
-        StopTOTPTimer();
+        StopTotpTimer();
         ClearCodeGenerationOutput();
         ClearSearchTextbox();
         CancelFlyout();
@@ -909,7 +909,7 @@ public class MainViewModel : IMainViewModel
             OnPropertyChanged(nameof(AllAccounts));
             if (item.ID == SelectedAccount?.ID)
             {
-                StopTOTPTimer();
+                StopTotpTimer();
                 ClearCodeGenerationOutput();
             }
 
@@ -938,7 +938,7 @@ public class MainViewModel : IMainViewModel
 
             if (result.IsFailed)
             {
-                _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(),updated);
+                _messageService.ShowMessageBasedOnOperationStatus(result.GetStatus(), updated);
                 return;
             }
 
@@ -1195,42 +1195,7 @@ public class MainViewModel : IMainViewModel
 
     #region ### TOTP Code Generation ###
 
-    ///// <summary>
-    ///// StepSize ist die Gültigkeitsdauer eines TOTP-Codes in Sekunden. Standardmäßig beträgt sie 30 Sekunden.
-    ///// </summary>
-    ///// <param name="secret"></param>
-    ///// <param name="code"></param>
-    ///// <param name="remainingSeconds"></param>
-    ///// <param name="exc"></param>
-    ///// <returns></returns>
-    //public bool TryComputeTotpCode(string secret, out string code, out Totp? totpInstance, out Exception? exc)
-    //{
-    //    code = null;
-    //    totpInstance = null;
-
-    //    try
-    //    {
-    //        if (!UiValidation.IsValidBase32Format(secret))
-    //        {
-    //            exc = new FormatException($"Secret is invalid Base32 format, supplied to {nameof(TryComputeTotpCode)}");
-    //            return false;
-    //        }
-
-    //        var encodedSecret = Base32Encoding.ToBytes(secret);
-    //        totpInstance = new Totp(encodedSecret);
-    //        code = totpInstance.ComputeTotp();
-
-    //        exc = null;
-    //        return true;
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        exc = ex;
-    //        _logger.LogError(ex.Message, ex);
-    //        return false;
-    //    }
-    //}
-
+  
     public AccountViewModel ComputeTotpCode(AccountViewModel item, out Totp totpInstance)
     {
         if (!UiValidation.IsValidBase32Format(item.Secret))
@@ -1238,10 +1203,10 @@ public class MainViewModel : IMainViewModel
 
         var encodedSecret = Base32Encoding.ToBytes(item.Secret);
         totpInstance = new Totp(encodedSecret);
-      
+
         TotpCode = totpInstance.ComputeTotp();
         RemainingSeconds = totpInstance.RemainingSeconds();
-        
+
         return item;
     }
 
@@ -1327,16 +1292,12 @@ public class MainViewModel : IMainViewModel
             //if (remaining == _lastRemaining) return;
             //_lastRemaining = remaining;
 
-            System.Windows.Application.Current?.Dispatcher.BeginInvoke(
+             Application.Current?.Dispatcher.BeginInvoke(
                 DispatcherPriority.Render,
                 new Action(() =>
                 {
-                    //SelectedSecret.TotpCode = _activeTotp.ComputeTotp();
                     TotpCode = _activeTotp.ComputeTotp();
-                    //SelectedSecret.RemainingSeconds = _activeTotp.RemainingSeconds();
                     RemainingSeconds = _activeTotp.RemainingSeconds();
-                    //if (!IsProgressPieChartVisible)
-                    //    IsProgressPieChartVisible = true;
                 }));
 
         }, null, dueTime: 0, period: 800); // 20 fps tick, UI updates only once/sec due to coalesce
@@ -1406,7 +1367,6 @@ public class MainViewModel : IMainViewModel
         try
         {
             // when SearchText changes:
-            //RequestGridFilterRefresh?.Invoke();
             GridFilterRefresher.Refresh();
         }
         catch (Exception ex)
@@ -1415,11 +1375,13 @@ public class MainViewModel : IMainViewModel
             _messageService.ShowErrorMessage(UI.ex_Filtering_Secrets + ": " + ex.Message);
         }
     }
-    
+
+    // Used in MainWindow.xaml
     public string DeleteLabel => TOTP.Resources.UI.ui_btnDelete;
+    // Used in MainWindow.xaml
     public string EditLabel => TOTP.Resources.UI.ui_btnEdit;
     public string ExportToolTip => Resources.UI.ui_Export; // or your resource accessor
-    
+
     #endregion
 
     #region ### QR Code - Create - Scan - Add ###
@@ -1438,16 +1400,18 @@ public class MainViewModel : IMainViewModel
     /// <returns></returns>
     public async Task ScanQrAndAddAccountAsync()
     {
-        var decodedQRCode = _qrScannerDialogFactory().ScanQrCode(Application.Current.MainWindow);
-      
-        if (!string.IsNullOrWhiteSpace(decodedQRCode))
-        {
+        if (Application.Current.MainWindow == null) // todo: change
+            return;
 
-            OtpauthParser.TOTPData? data = null;
+        var decodedQrCode = _qrScannerDialogFactory().ScanQrCode(Application.Current.MainWindow);
+
+        if (!string.IsNullOrWhiteSpace(decodedQrCode))
+        {
+            OtpauthParser.TOTPData? otp = null;
 
             try
             {
-                data = OtpauthParser.Parse(decodedQRCode);
+                otp = OtpauthParser.Parse(decodedQrCode);
             }
             catch (Exception e)
             {
@@ -1456,7 +1420,7 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-            var newAccountItem = new AccountViewModel(Guid.NewGuid(), data.Issuer, data.SecretBase32, data.Label);
+            var newAccountItem = new AccountViewModel(Guid.NewGuid(), otp.Issuer, otp.SecretBase32, otp.Label);
 
             #region ### validation ###
 
@@ -1578,7 +1542,7 @@ public class MainViewModel : IMainViewModel
         ShowGenerateQrCodeLink = false;
     }
 
-    void StopTOTPTimer()
+    void StopTotpTimer()
     {
         TotpUiTimer?.Dispose();
     }
