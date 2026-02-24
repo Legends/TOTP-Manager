@@ -38,6 +38,7 @@ using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Validation;
 using TOTP.Views;
+using static TOTP.ViewModels.SettingsViewModel;
 using Application = System.Windows.Application;
 using ValidationError = TOTP.Core.Enums.ValidationError;
 
@@ -489,10 +490,12 @@ public class MainViewModel : IMainViewModel
         IAuthorizationService authorization,
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
-        Func<IQrScannerDialogService> qrScannerDialogFactory)
+        Func<IQrScannerDialogService> qrScannerDialogFactory,
+        SettingsViewModelFactory settingsFactory)
     {
         IsBusy = true;
 
+        _settingsFactory = settingsFactory;
         _qrScannerDialogFactory = qrScannerDialogFactory;
         _fileDialogService = fileDialogService;
         _logger = logger;
@@ -545,13 +548,19 @@ public class MainViewModel : IMainViewModel
         try
         {
 
-            Settings = await SettingsViewModel.CreateAsync(
-                globalProfileStore: _globalProfileStore,
-                authorizationService: _authorization,
-                closeCommand: CloseSettingsViewCommand,
-                saveAction: SaveSettingsView,
-                exportTest: TestExport
-            );
+            //Settings = await SettingsViewModel.CreateAsync(
+            //    globalProfileStore: _globalProfileStore,
+            //    authorizationService: _authorization,
+            //    closeCommand: CloseSettingsViewCommand,
+            //    saveAction: SaveSettingsView,
+            //    exportTest: TestExport, loggingService: TODO);
+
+            Settings = _settingsFactory(
+                CloseSettingsViewCommand,
+                SaveSettingsView,
+                TestExport);
+
+            await Settings.LoadAsync();
 
             await _sessionController.InitializeAsync(mainWindow);
 
@@ -1227,6 +1236,8 @@ public class MainViewModel : IMainViewModel
     public int ElapsedSeconds => PeriodSeconds - RemainingSeconds;
 
     AccountViewModel _lastSelected;
+    private readonly SettingsViewModelFactory _settingsFactory;
+
     private void OnRowSelectionImplementation()
     {
 

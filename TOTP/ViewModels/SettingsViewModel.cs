@@ -1,9 +1,15 @@
-﻿using System;
+﻿using Serilog.Events;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TOTP.Commands;
+using TOTP.Core.Services;
+using TOTP.Helper;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
 
@@ -203,37 +209,83 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public ICommand SaveCommand { get; }
     public ICommand CloseCommand { get; }
     public ICommand ExportTestCommand { get; }
-    private Action _SaveAction;
+
+    private readonly Action _saveAction;
+    private readonly ILoggingService _loggingService;
+
+    public delegate SettingsViewModel SettingsViewModelFactory(
+        ICommand closeCommand,
+        Action saveAction,
+        Action exportTest);
 
     #endregion
 
 
     public SettingsViewModel(IGlobalProfileStore globalProfileStore,
                             IAuthorizationService authorizationService,
-                            ICommand closeCommand, Action saveAction,
+                            ILoggingService loggingService,
+                            ICommand closeCommand,
+                            Action saveAction,
                             Action exportTest)
     {
+        _loggingService = loggingService ?? throw new ArgumentNullException(nameof(loggingService));
         _globalProfileStore = globalProfileStore ?? throw new ArgumentNullException(nameof(globalProfileStore));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
 
-        _SaveAction = saveAction;
+        _saveAction = saveAction;
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync);
         ExportTestCommand = new RelayCommand(_ => exportTest());
 
-        //_ = LoadAsync();
+        // 1. Initialize the list of levels for the UI
+        AvailableLogLevels = Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>().ToList();
+
+        // 2. Set the initial UI state to match the current switch state
+        _selectedLogLevel = _loggingService.ControlSwitch.MinimumLevel;
+
+        // 3. Command to open the log file location
+        OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder);
     }
 
-    public static async Task<SettingsViewModel> CreateAsync(IGlobalProfileStore globalProfileStore,
-                                                IAuthorizationService authorizationService,
-                                                ICommand closeCommand,
-                                                Action saveAction,
-                                                Action exportTest)
+    public List<LogEventLevel> AvailableLogLevels { get; }
+
+    private LogEventLevel _selectedLogLevel;
+    public LogEventLevel SelectedLogLevel
     {
-        var vm = new SettingsViewModel(globalProfileStore, authorizationService, closeCommand, saveAction, exportTest);
-        await vm.LoadAsync();
-        return vm;
+        get => _selectedLogLevel;
+        set
+        {
+            if (_selectedLogLevel != value)
+            {
+                // Update the Serilog Switch instantly
+                _loggingService.SetLevel(value);
+                OnPropertyChanged();
+            }
+        }
     }
+
+    public ICommand OpenLogFolderCommand { get; }
+
+    private void OnOpenLogFolder()
+    {
+        // Simple way to open the folder where logs are stored
+        var path = System.IO.Path.GetDirectoryName(StringsConstants.AppLogPath);
+        if (System.IO.Directory.Exists(path))
+        {
+            Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
+        }
+    }
+
+    //public static async Task<SettingsViewModel> CreateAsync(IGlobalProfileStore globalProfileStore,
+    //                                            IAuthorizationService authorizationService,
+    //                                            ICommand closeCommand,
+    //                                            Action saveAction,
+    //                                            Action exportTest, ILoggingService loggingService)
+    //{
+    //    var vm = new SettingsViewModel(globalProfileStore, authorizationService, loggingService, closeCommand, saveAction, exportTest);
+    //    await vm.LoadAsync();
+    //    return vm;
+    //}
 
     async Task SaveAndCloseAsync()
     {
@@ -245,7 +297,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
                 return;
 
             await SaveAsync();
-            _SaveAction();
+            _saveAction();
         }
         catch (Exception e)
         {
@@ -255,7 +307,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     }
 
-    private async Task LoadAsync()
+    public async Task LoadAsync()
     {
         IsHelloAvailable = await _authorizationService.IsHelloAvailableAsync();
 

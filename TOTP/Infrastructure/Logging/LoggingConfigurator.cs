@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
+using TOTP.Core.Services;
 using TOTP.Helper;
 
 namespace TOTP.Infrastructure.Logging;
@@ -14,10 +16,12 @@ public static class LoggingConfigurator
             .CreateLogger();
     }
 
-    public static void ConfigureWithHostContext(HostBuilderContext context, IServiceProvider services,
-        LoggerConfiguration config)
+    public static void ConfigureWithHostContext(HostBuilderContext context, IServiceProvider services, LoggerConfiguration config)
     {
+        var loggingService = services.GetRequiredService<ILoggingService>();
+
         config
+            .MinimumLevel.ControlledBy(loggingService.ControlSwitch)
             .ReadFrom.Configuration(context.Configuration)
             .ReadFrom.Services(services)
             .Enrich.FromLogContext()

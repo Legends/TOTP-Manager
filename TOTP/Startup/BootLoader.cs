@@ -23,6 +23,7 @@ using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 using TOTP.Views;
+using static TOTP.ViewModels.SettingsViewModel;
 
 namespace TOTP.Startup;
 
@@ -74,6 +75,8 @@ public static class BootLoader
                 // config
                 services.AddSingleton(configuration);
 
+                services.AddSingleton<ILoggingService, LoggingService>();
+
                 // infra
                 services.AddSingleton<IClipboardService, ClipboardService>();
                 services.AddSingleton<IDelayService, DelayService>();
@@ -119,6 +122,21 @@ public static class BootLoader
                 services.AddSingleton<IUserActivityService, UserActivityService>();
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();
                 services.AddSingleton<IMainViewSessionController, MainViewSessionController>();
+
+                services.AddTransient<SettingsViewModel>();
+
+                // Register the Delegate Factory
+                services.AddSingleton<SettingsViewModelFactory>(serviceProvider =>
+                    (closeCmd, saveAct, exportTst) =>
+                    {
+                        // Resolve the services from DI
+                        var profileStore = serviceProvider.GetRequiredService<IGlobalProfileStore>();
+                        var authService = serviceProvider.GetRequiredService<IAuthorizationService>();
+                        var logging = serviceProvider.GetRequiredService<ILoggingService>();
+
+                        // Create the VM manually with a mix of DI and parameters
+                        return new SettingsViewModel(profileStore, authService, logging, closeCmd, saveAct, exportTst);
+                    });
 
                 services.AddSingleton<UnlockViewModel>();
                 services.AddSingleton<HelloUnlockViewModel>();
