@@ -53,6 +53,19 @@ public static class BootLoader
             SyncfusionLicenseProvider.RegisterLicense(key);
     }
 
+    /// <summary>
+    /// Builds an application host and configures all required services for the application using the specified
+    /// configuration.
+    /// </summary>
+    /// <remarks>The returned host includes:
+    /// - logging configured with Serilog and
+    /// - registers core infrastructure, application, and view model services as singletons or transients as appropriate.
+    ///
+    /// The provided configuration is
+    /// made available to all services via dependency injection. Callers are responsible for managing the host's
+    /// lifetime.</remarks>
+    /// <param name="configuration">The application configuration to use for service registration and initialization. Cannot be null.</param>
+    /// <returns>An initialized <see cref="IHost"/> instance with all application services configured and ready for use.</returns>
     public static IHost BuildHostAndConfigureServices(IConfiguration configuration)
         => Host.CreateDefaultBuilder()
             .UseSerilog(LoggingConfigurator.ConfigureWithHostContext, true)
@@ -66,14 +79,12 @@ public static class BootLoader
                 services.AddSingleton<IDelayService, DelayService>();
                 services.AddSingleton<IDebounceService, DebounceService>();
 
-                // --- Message Service Setup ---
-                // Register VM as Transient so a new one is created for every dialog
+
                 services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
-                // Register the Factory used by MessageService
-                services.AddSingleton<Func<IUserMessageDialogViewModel>>(sp =>
-                    () => sp.GetRequiredService<IUserMessageDialogViewModel>());
+
+                services.AddSingleton<Func<IUserMessageDialogViewModel>>(sp => () => sp.GetRequiredService<IUserMessageDialogViewModel>());
                 services.AddSingleton<IMessageService, MessageService>();
-                // -----------------------------
+
 
                 services.AddTransient<IFileDialogService, FileDialogService>();
                 services.AddSingleton<IQrCodeService, QrCodeService>();
@@ -81,11 +92,11 @@ public static class BootLoader
                 // app services
                 services.AddSingleton<IAccountsDAL>(provider =>
                 {
-                    var logger = provider.GetRequiredService<ILogger<AccountsDAL>>();
+                    var logger = provider.GetRequiredService<ILogger<AccountsDal>>();
                     var config = provider.GetRequiredService<IConfiguration>();
-                    var filePathAccounts = config.GetSection(StringsConstants.AccountsStorageFilePath).Value;
-                    var resolvedPath = Environment.ExpandEnvironmentVariables(filePathAccounts ?? "");
-                    return new AccountsDAL(logger, resolvedPath);
+                    var fileStoragePathAccounts = config.GetSection(StringsConstants.AccountsStorageFilePath).Value;
+                    var resolvedAccountsStorageFilePath = Environment.ExpandEnvironmentVariables(fileStoragePathAccounts ?? "");
+                    return new AccountsDal(logger, resolvedAccountsStorageFilePath);
                 });
 
                 services.AddSingleton<IErrorHandler, ErrorHandler>();

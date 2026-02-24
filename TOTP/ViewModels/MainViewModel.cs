@@ -940,7 +940,7 @@ public class MainViewModel : IMainViewModel
 
             if (result.IsFailed)
             {
-                _messageService.ShowResultError(result, updated.Platform);
+                _messageService.ShowResultError(result, updated.Platform ?? string.Empty);
                 return;
             }
 

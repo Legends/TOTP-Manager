@@ -27,10 +27,10 @@ public partial class App : Application
                 AuthorizationService.Lock();
             }
 
-            if (sessionSwitchEventArg.Reason == SessionSwitchReason.SessionUnlock)
-            {
+            //if (sessionSwitchEventArg.Reason == SessionSwitchReason.SessionUnlock)
+            //{
 
-            }
+            //}
         };
 
     }

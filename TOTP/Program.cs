@@ -26,10 +26,11 @@ internal static class Program
         {
             Run(args).GetAwaiter().GetResult();
         }
-        catch (Exception runEX)
+        catch (Exception ex)
         {
-            Debug.WriteLine(runEX);
-            throw;
+            Log.Fatal(ex, UI.ex_FatalError);
+            Debug.WriteLine(ex.Message);
+            Environment.Exit(-1);
         }
     }
 
@@ -51,9 +52,9 @@ internal static class Program
             }
 
             host = BootLoader.BuildHostAndConfigureServices(configuration);
-         
+
             // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
-            await host.StartAsync();  
+            await host.StartAsync();
 
 
             var app = new App // the SynchronizationContext is established when the first DispatcherObject is created like Application
@@ -64,14 +65,14 @@ internal static class Program
 
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
-            
+
             var vm = host.Services.GetRequiredService<IMainViewModel>();
             var mainWindow = host.Services.GetRequiredService<MainWindow>();
             mainWindow.DataContext = vm;
             mainWindow.ResizeMode = System.Windows.ResizeMode.NoResize;
 
             app.MainWindow = mainWindow;
-          
+
             mainWindow.Loaded += async (_, __) =>
             {
                 try
@@ -92,7 +93,7 @@ internal static class Program
                 host?.Dispose();
                 Log.CloseAndFlush();
             };
-            
+
             app.Run(mainWindow); // app.Run() is a blocking call. It is the message loop.
 
         }
@@ -103,5 +104,5 @@ internal static class Program
         }
     }
 
-   
+
 }

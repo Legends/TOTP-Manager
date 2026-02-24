@@ -17,18 +17,12 @@ using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Core.Services;
 
-public class AccountsDAL : IAccountsDAL, IDisposable
+public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) : IAccountsDAL, IDisposable
 {
     private readonly JsonSerializerOptions? _options = null;
-    private readonly string _secretsPath;
+    private readonly string _secretsPath = storageFilePath ?? AlternativeStoragePath();
     private static readonly SemaphoreSlim Semaphore = new(1, 1);
-    private readonly ILogger<AccountsDAL> _logger;
-
-    public AccountsDAL(ILogger<AccountsDAL> logger, string? storageFilePath)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _secretsPath = storageFilePath ?? AlternativeStoragePath();
-    }
+    private readonly ILogger<AccountsDal> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private static string AlternativeStoragePath()
     {
@@ -56,34 +50,6 @@ public class AccountsDAL : IAccountsDAL, IDisposable
             Semaphore.Release();
         }
     }
-
-
-    //public async Task<Result<AccountItem>> GetSecretByPlatformAsync(string platform)
-    //{
-
-    //    await Semaphore.WaitAsync();
-    //    try
-    //    {
-    //        var list = await LoadAccountsFromFileAsync();
-    //        var account = list.FirstOrDefault(s =>
-    //            string.Equals(s.Platform, platform, StringComparison.CurrentCultureIgnoreCase));
-
-    //        if (account == null)
-    //            return new StatusError(OperationStatus.NotFound, $"Platform: {platform} not found");
-
-    //        return Result.Ok(account);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, nameof(GetSecretByPlatformAsync));
-    //        return new StatusError(OperationStatus.LoadingFailed);
-    //    }
-    //    finally
-    //    {
-    //        Semaphore.Release();
-    //    }
-    //}
-
 
     public async Task<Result> AddNewAccountAsync(AccountItem newItem)
     {
@@ -169,7 +135,6 @@ public class AccountsDAL : IAccountsDAL, IDisposable
             Semaphore.Release();
         }
     }
-
 
     private async Task<List<AccountItem>> LoadAccountsFromFileAsync()
     {
