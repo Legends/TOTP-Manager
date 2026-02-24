@@ -249,7 +249,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public List<LogEventLevel> AvailableLogLevels { get; }
 
-    private LogEventLevel _selectedLogLevel;
+    private readonly LogEventLevel _selectedLogLevel;
     public LogEventLevel SelectedLogLevel
     {
         get => _selectedLogLevel;
