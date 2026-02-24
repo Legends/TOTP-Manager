@@ -13,70 +13,61 @@ public sealed class FileGlobalProfileStore : IGlobalProfileStore
 {
     private readonly string _path;
     private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
     public FileGlobalProfileStore(string storageFilePath)
     {
         if (string.IsNullOrWhiteSpace(storageFilePath))
-            throw new ArgumentException("Profile storage path must be provided.", nameof(storageFilePath));
+            throw new ArgumentException("Path required.", nameof(storageFilePath));
 
         _path = storageFilePath;
-        var directory = Path.GetDirectoryName(_path);
-        if (!string.IsNullOrWhiteSpace(directory))
-            Directory.CreateDirectory(directory);
+        Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
     }
 
     public async Task<GlobalProfile?> LoadAsync()
     {
-        await _lock.WaitAsync();//.ConfigureAwait(false);
+        await _lock.WaitAsync();
         try
         {
-            if (!File.Exists(_path))
-                return null;
+            if (!File.Exists(_path)) return null;
 
-            var encrypted = await File.ReadAllBytesAsync(_path);//.ConfigureAwait(false);
-            if (encrypted.Length == 0)
-                return null;
+            // 1. Read and Decrypt
+            var encryptedBytes = await File.ReadAllBytesAsync(_path);
+            if (encryptedBytes.Length == 0) return null;
 
-            var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
-            var json = Encoding.UTF8.GetString(decrypted);
+            var decryptedBytes = ProtectedData.Unprotect(encryptedBytes, null, DataProtectionScope.CurrentUser);
 
+            // 2. Deserialize (Using MemoryStream for efficiency)
+            using var ms = new MemoryStream(decryptedBytes);
             try
             {
-                var globalProfile = JsonSerializer.Deserialize<GlobalProfile>(json);
-                if (globalProfile is not null)
-                    return globalProfile;
+                return await JsonSerializer.DeserializeAsync<GlobalProfile>(ms);
             }
             catch (JsonException)
             {
-                // ignored - fall back to legacy profile format
+                // Fallback logic for legacy profiles
+                ms.Position = 0;
+                var legacy = await JsonSerializer.DeserializeAsync<AuthorizationProfile>(ms);
+                return legacy != null ? new GlobalProfile { Authorization = legacy } : null;
             }
-
-            var legacyProfile = JsonSerializer.Deserialize<AuthorizationProfile>(json);
-            if (legacyProfile is null)
-                return null;
-
-            return new GlobalProfile { Authorization = legacyProfile };
         }
-        finally
-        {
-            _lock.Release();
-        }
+        finally { _lock.Release(); }
     }
 
     public async Task SaveAsync(GlobalProfile profile)
     {
-        await _lock.WaitAsync();//.ConfigureAwait(false);
+        await _lock.WaitAsync();
         try
         {
-            var json = JsonSerializer.Serialize(profile, new JsonSerializerOptions { WriteIndented = true });
-            var bytes = Encoding.UTF8.GetBytes(json);
+            // 1. Serialize to JSON bytes
+            var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(profile, _jsonOptions);
 
-            var encrypted = ProtectedData.Protect(bytes, null, DataProtectionScope.CurrentUser);
-            await File.WriteAllBytesAsync(_path, encrypted);//.ConfigureAwait(false);
+            // 2. Encrypt
+            var encryptedBytes = ProtectedData.Protect(jsonBytes, null, DataProtectionScope.CurrentUser);
+
+            // 3. Atomic Write
+            await File.WriteAllBytesAsync(_path, encryptedBytes);
         }
-        finally
-        {
-            _lock.Release();
-        }
+        finally { _lock.Release(); }
     }
 }

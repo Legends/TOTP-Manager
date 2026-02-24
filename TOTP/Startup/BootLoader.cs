@@ -138,6 +138,7 @@ public static class BootLoader
                         return new SettingsViewModel(profileStore, authService, logging, closeCmd, saveAct, exportTst);
                     });
 
+
                 services.AddSingleton<UnlockViewModel>();
                 services.AddSingleton<HelloUnlockViewModel>();
                 services.AddSingleton<PasswordUnlockViewModel>();

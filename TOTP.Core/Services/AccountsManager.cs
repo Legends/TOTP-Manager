@@ -11,11 +11,11 @@ using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Core.Services;
 
- /// <summary>
- /// Provides methods for managing account items, including adding, updating, retrieving, and deleting accounts.
- /// </summary>
- /// <param name="secretsDal">The data access layer used to persist and retrieve account information.</param>
- /// <param name="logger">The logger used to record operational and error information for the accounts manager.</param>
+/// <summary>
+/// Provides methods for managing account items, including adding, updating, retrieving, and deleting accounts.
+/// </summary>
+/// <param name="secretsDal">The data access layer used to persist and retrieve account information.</param>
+/// <param name="logger">The logger used to record operational and error information for the accounts manager.</param>
 public class AccountsManager(
     IAccountsDAL secretsDal,
     ILogger<AccountsManager> logger) : IAccountsManager
@@ -37,7 +37,7 @@ public class AccountsManager(
 
         if (result.IsFailed)
             return result.ToResult();
- 
+
         result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
 
         var allAccounts = result.Value ?? [];
@@ -47,6 +47,11 @@ public class AccountsManager(
     public async Task<Result> DeleteAccountAsync(AccountItem item)
     {
         return await secretsDal.DeleteAccountAsync(item);
+    }
+
+    public async Task<Result> BackupAccountsStorageFileAsync()
+    {
+        return await secretsDal.BackupAccountsStorageFileAsync();
     }
 
 }

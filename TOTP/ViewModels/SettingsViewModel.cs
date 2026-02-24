@@ -249,7 +249,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public List<LogEventLevel> AvailableLogLevels { get; }
 
-    private readonly LogEventLevel _selectedLogLevel;
+    private LogEventLevel _selectedLogLevel;
     public LogEventLevel SelectedLogLevel
     {
         get => _selectedLogLevel;
@@ -257,6 +257,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         {
             if (_selectedLogLevel != value)
             {
+                _selectedLogLevel = value;
                 // Update the Serilog Switch instantly
                 _loggingService.SetLevel(value);
                 OnPropertyChanged();
@@ -315,6 +316,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         if (profile is null)
             return;
 
+        SelectedLogLevel = profile.MinimumLogLevel;
         IsHelloSelected = profile.Authorization.Gate != AuthorizationGateKind.Password;
         IsPasswordSelected = profile.Authorization.Gate == AuthorizationGateKind.Password;
 
@@ -389,6 +391,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     {
         var profile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
 
+        profile.MinimumLogLevel = SelectedLogLevel;
         profile.LockOnSessionLock = LockOnSessionLock;
         profile.ClearClipboardEnabled = ClearClipboardEnabled;
         profile.ClearClipboardSeconds = ClearClipboardSeconds > 0

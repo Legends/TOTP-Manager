@@ -17,7 +17,7 @@ namespace TOTP.Core.Services.Interfaces;
 /// </summary>
 public interface IAccountsManager
 {
-
+    Task<Result> BackupAccountsStorageFileAsync();
     Task<Result> AddNewItemAsync(AccountItem newItem);
     Task<Result<ObservableCollection<AccountItem>>> GetAllAccountsSortedAsync();
 
@@ -49,7 +49,7 @@ public interface IAccountsManager
     /// </summary>
     //event Action<object, OperationStatus, string?> OnMessageSend;
 
-   
+
 
     //event Func<object?, string, bool> ConfirmDeleteRequested;
 }

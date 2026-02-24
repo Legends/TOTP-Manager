@@ -213,7 +213,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
             catch (Exception ex)
             {
                 _logger.LogError(ex, nameof(BackupAccountsStorageFileAsync));
-                return Result.Fail(new StatusError(OperationStatus.StorageFailed));
+                return Result.Fail(new StatusError(OperationStatus.StorageFailed, "BackupAccountsStorageFile"));
             }
         });
     }

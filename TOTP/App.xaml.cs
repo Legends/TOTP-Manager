@@ -40,8 +40,11 @@ public partial class App : Application
         // Optional: anything *extra* at WPF exit (Program.cs already stops host & flushes Serilog)
         try
         {
-            var acountsManager = Host.Services.GetService(typeof(IAccountsDAL)) as IAccountsDAL;
-            await acountsManager?.BackupAccountsStorageFileAsync();
+            var accountsManager = Host.Services.GetService(typeof(IAccountsManager)) as IAccountsManager;
+            if (accountsManager != null)
+            {
+                await accountsManager.BackupAccountsStorageFileAsync();
+            }
         }
         catch (Exception ex)
         {

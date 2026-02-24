@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
+using TOTP.Core.Services;
 using TOTP.Helper;
 using TOTP.Infrastructure;
 using TOTP.Resources;
@@ -52,6 +53,23 @@ internal static class Program
             }
 
             host = BootLoader.BuildHostAndConfigureServices(configuration);
+
+            //// --- INITIALIZATION BLOCK ---
+            //// 1. Grab the services from the built host
+            //var profileStore = host.Services.GetRequiredService<IGlobalProfileStore>();
+            //var loggingService = host.Services.GetRequiredService<ILoggingService>();
+
+            //// 2. Load the profile (this handles the async part)
+            //var profile = await profileStore.LoadAsync();
+
+            //// 3. If a saved level exists, apply it immediately
+            //if (profile != null)
+            //{
+            //    loggingService.SetLevel(profile.MinimumLogLevel);
+            //}
+            //// --- END INITIALIZATION BLOCK ---
+
+
 
             // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
             await host.StartAsync();
