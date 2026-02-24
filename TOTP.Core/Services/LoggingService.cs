@@ -3,13 +3,13 @@ using Serilog.Events;
 
 namespace TOTP.Core.Services
 {
-    public interface ILoggingService
+    public interface ILogSwitchService
     {
         LoggingLevelSwitch ControlSwitch { get; }
         void SetLevel(LogEventLevel level);
     }
 
-    public class LoggingService : ILoggingService
+    public class LogSwitchService : ILogSwitchService
     {
         public LoggingLevelSwitch ControlSwitch { get; } = new();
 

@@ -75,7 +75,7 @@ public static class BootLoader
                 // config
                 services.AddSingleton(configuration);
 
-                services.AddSingleton<ILoggingService, LoggingService>();
+                services.AddSingleton<ILogSwitchService, LogSwitchService>();
 
                 // infra
                 services.AddSingleton<IClipboardService, ClipboardService>();
@@ -132,7 +132,7 @@ public static class BootLoader
                         // Resolve the services from DI
                         var profileStore = serviceProvider.GetRequiredService<IGlobalProfileStore>();
                         var authService = serviceProvider.GetRequiredService<IAuthorizationService>();
-                        var logging = serviceProvider.GetRequiredService<ILoggingService>();
+                        var logging = serviceProvider.GetRequiredService<ILogSwitchService>();
 
                         // Create the VM manually with a mix of DI and parameters
                         return new SettingsViewModel(profileStore, authService, logging, closeCmd, saveAct, exportTst);
@@ -156,14 +156,17 @@ public static class BootLoader
         var logger = host.Services.GetService<ILogger<App>>();
         var messageService = host.Services.GetService<IMessageService>();
 
-        PresentationTraceSources.DataBindingSource.Switch.Level =
-            SourceLevels.Error | SourceLevels.Critical;
-
         // Dispatcher (UI) thread exceptions
         app.DispatcherUnhandledException += (_, e) =>
         {
-            try { messageService?.ConfirmError(UI.msg_DispatcherException); }
-            catch { MessageBox.Show(e.Exception.Message, "UI Error", MessageBoxButton.OK); }
+            try
+            {
+                messageService?.ConfirmError(UI.msg_DispatcherException);
+            }
+            catch
+            {
+                MessageBox.Show(e.Exception.Message, "UI Error", MessageBoxButton.OK);
+            }
 
             logger?.LogCritical(e.Exception, "Unhandled UI thread exception");
             e.Handled = true;
@@ -172,8 +175,14 @@ public static class BootLoader
         // Non-UI thread exceptions
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
-            try { messageService?.ConfirmError(UI.ex_FatalError); }
-            catch { MessageBox.Show(UI.ex_FatalError, "AppDomain Error", MessageBoxButton.OK); }
+            try
+            {
+                messageService?.ConfirmError(UI.ex_FatalError);
+            }
+            catch
+            {
+                MessageBox.Show(UI.ex_FatalError, "AppDomain Error", MessageBoxButton.OK);
+            }
 
             logger?.LogCritical(e.ExceptionObject as Exception, "Unhandled domain exception");
             Environment.Exit(1);
@@ -182,8 +191,14 @@ public static class BootLoader
         // Unobserved task exceptions
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
-            try { messageService?.ShowWarning(UI.msg_BackroundTaskException); }
-            catch { MessageBox.Show(UI.msg_BackroundTaskException, "Unobserved Task Exception", MessageBoxButton.OK); }
+            try
+            {
+                messageService?.ShowWarning(UI.msg_BackroundTaskException);
+            }
+            catch
+            {
+                MessageBox.Show(UI.msg_BackroundTaskException, "Unobserved Task Exception", MessageBoxButton.OK);
+            }
 
             logger?.LogCritical(e.Exception, "Unobserved task exception");
             e.SetObserved();

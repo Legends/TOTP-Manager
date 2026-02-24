@@ -18,7 +18,7 @@ public static class LoggingConfigurator
 
     public static void ConfigureWithHostContext(HostBuilderContext context, IServiceProvider services, LoggerConfiguration config)
     {
-        var loggingService = services.GetRequiredService<ILoggingService>();
+        var loggingService = services.GetRequiredService<ILogSwitchService>();
 
         config
             .MinimumLevel.ControlledBy(loggingService.ControlSwitch)

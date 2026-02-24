@@ -54,32 +54,15 @@ internal static class Program
 
             host = BootLoader.BuildHostAndConfigureServices(configuration);
 
-            //// --- INITIALIZATION BLOCK ---
-            //// 1. Grab the services from the built host
-            //var profileStore = host.Services.GetRequiredService<IGlobalProfileStore>();
-            //var loggingService = host.Services.GetRequiredService<ILoggingService>();
-
-            //// 2. Load the profile (this handles the async part)
-            //var profile = await profileStore.LoadAsync();
-
-            //// 3. If a saved level exists, apply it immediately
-            //if (profile != null)
-            //{
-            //    loggingService.SetLevel(profile.MinimumLogLevel);
-            //}
-            //// --- END INITIALIZATION BLOCK ---
-
-
-
             // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
             await host.StartAsync();
-
 
             var app = new App // the SynchronizationContext is established when the first DispatcherObject is created like Application
             {
                 Host = host,
                 AuthorizationService = host.Services.GetRequiredService<IAuthorizationService>()
             };
+ 
 
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
@@ -107,7 +90,14 @@ internal static class Program
 
             app.Exit += async (_, __) =>
             {
-                try { if (host != null) await host.StopAsync(); } catch { /* log if you want */ }
+                try
+                {
+                    if (host != null) await host.StopAsync();
+                }
+                catch(Exception ex)
+                {
+                    Log.Error(ex, UI.ex_UnexpectedError);
+                }
                 host?.Dispose();
                 Log.CloseAndFlush();
             };

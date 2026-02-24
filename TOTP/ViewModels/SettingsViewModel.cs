@@ -14,7 +14,6 @@ using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
 
 namespace TOTP.ViewModels;
-
 public sealed class SettingsViewModel : INotifyPropertyChanged
 {
 
@@ -211,7 +210,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public ICommand ExportTestCommand { get; }
 
     private readonly Action _saveAction;
-    private readonly ILoggingService _loggingService;
+    private readonly ILogSwitchService _loggingService;
 
     public delegate SettingsViewModel SettingsViewModelFactory(
         ICommand closeCommand,
@@ -223,7 +222,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public SettingsViewModel(IGlobalProfileStore globalProfileStore,
                             IAuthorizationService authorizationService,
-                            ILoggingService loggingService,
+                            ILogSwitchService loggingService,
                             ICommand closeCommand,
                             Action saveAction,
                             Action exportTest)
