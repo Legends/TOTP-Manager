@@ -15,6 +15,7 @@ using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Helper;
 using TOTP.Infrastructure.Logging;
+using TOTP.Infrastructure.Services;
 using TOTP.Resources;
 using TOTP.Security;
 using TOTP.Security.Interfaces;
@@ -76,6 +77,7 @@ public static class BootLoader
                 services.AddSingleton(configuration);
 
                 services.AddSingleton<ILogSwitchService, LogSwitchService>();
+                services.AddHostedService<SessionLockService>();
 
                 // infra
                 services.AddSingleton<IClipboardService, ClipboardService>();

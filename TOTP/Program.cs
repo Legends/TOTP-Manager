@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 using Serilog;
+using Serilog.Events;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -9,6 +12,7 @@ using TOTP.Core.Services;
 using TOTP.Helper;
 using TOTP.Infrastructure;
 using TOTP.Resources;
+using TOTP.Security;
 using TOTP.Security.Interfaces;
 using TOTP.Services.Interfaces;
 using TOTP.Startup;
@@ -25,7 +29,7 @@ internal static class Program
     {
         try
         {
-            Run(args).GetAwaiter().GetResult();
+            StartApplication(args).GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {
@@ -35,10 +39,8 @@ internal static class Program
         }
     }
 
-    private static async Task Run(string[] args)
+    private static async Task StartApplication(string[] args)
     {
-        IHost? host = null;
-
         try
         {
             var configuration = BootLoader.BuildConfiguration();
@@ -52,54 +54,65 @@ internal static class Program
                 return;
             }
 
-            host = BootLoader.BuildHostAndConfigureServices(configuration);
+            using var host = BootLoader.BuildHostAndConfigureServices(configuration);
 
             // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
             await host.StartAsync();
 
             var app = new App // the SynchronizationContext is established when the first DispatcherObject is created like Application
             {
-                Host = host,
-                AuthorizationService = host.Services.GetRequiredService<IAuthorizationService>()
+                Host = host
             };
- 
+
+            // safe to call await here since the SynchronizationContext is established
+            // and it will not cause deadlocks.  
+            app.Startup += async (_, __) =>
+              {
+                  await InitializeLogSwitchService();
+              };
+
+            async Task InitializeLogSwitchService()
+            {
+                try
+                {
+                    var profileStore = host.Services.GetRequiredService<IGlobalProfileStore>();
+
+                    var profile = await profileStore.LoadAsync();
+
+                    if (profile != null)
+                    {
+                        var logSwitchService = host.Services.GetRequiredService<ILogSwitchService>();
+                        var level = profile?.MinimumLogLevel ?? LogEventLevel.Information;
+                        logSwitchService.SetLevel(level);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // The error is handled right where it happens
+                    Log.Error(ex, "Error initializing logSwitchService");
+                }
+            }
 
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
 
-            var vm = host.Services.GetRequiredService<IMainViewModel>();
-            var mainWindow = host.Services.GetRequiredService<MainWindow>();
-            mainWindow.DataContext = vm;
-            mainWindow.ResizeMode = System.Windows.ResizeMode.NoResize;
-
-            app.MainWindow = mainWindow;
-
-            mainWindow.Loaded += async (_, __) =>
-            {
-                try
-                {
-                    await vm.InitializeMainViewAsync(mainWindow); // läuft auf UI-Thread weiter
-                }
-                catch (Exception e)
-                {
-                    Log.Fatal(e, UI.ex_FatalError);
-                    app.Shutdown(-1);
-                }
-            };
+            var mainWindow = SetupMainWindow(host, app);
 
 
             app.Exit += async (_, __) =>
             {
                 try
                 {
-                    if (host != null) await host.StopAsync();
+                    if (host != null) await host?.StopAsync();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Log.Error(ex, UI.ex_UnexpectedError);
                 }
-                host?.Dispose();
-                Log.CloseAndFlush();
+                finally
+                {
+                    await Log.CloseAndFlushAsync();
+                }
             };
 
             app.Run(mainWindow); // app.Run() is a blocking call. It is the message loop.
@@ -112,5 +125,26 @@ internal static class Program
         }
     }
 
+    private static MainWindow SetupMainWindow(IHost host, App app)
+    {
+        var vm = host.Services.GetRequiredService<IMainViewModel>();
+        var mainWindow = host.Services.GetRequiredService<MainWindow>();
+        mainWindow.DataContext = vm;
+        mainWindow.ResizeMode = ResizeMode.NoResize;
+        app.MainWindow = mainWindow;
 
+        mainWindow.Loaded += async (_, __) =>
+        {
+            try
+            {
+                await vm.InitializeMainViewAsync(mainWindow); // called on UI-Thread 
+            }
+            catch (Exception e)
+            {
+                Log.Fatal(e, UI.ex_FatalError);
+                app.Shutdown(-1);
+            }
+        };
+        return mainWindow;
+    }
 }
