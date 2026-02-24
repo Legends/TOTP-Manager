@@ -35,7 +35,7 @@ public partial class App : Application
         {
             var logger = Host.Services.GetService(typeof(ILogger<App>)) as ILogger<App>;
             logger?.LogError(string.Format(UI.ex_BackupFailed, ex.Message));
-            // Don't rethrow here; we're shutting down.
+            
         }
         finally
         {
