@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TOTP.UI.WPF": {
+      "commandName": "Project",
+      "commandLineArgs": "-v"
+    }
+  }
+}

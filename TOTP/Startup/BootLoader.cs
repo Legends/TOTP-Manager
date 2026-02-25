@@ -3,10 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Events;
 using Syncfusion.Licensing;
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,13 +64,14 @@ public static class BootLoader
     /// <remarks>The returned host includes:
     /// - logging configured with Serilog and
     /// - registers core infrastructure, application, and view model services as singletons or transients as appropriate.
-    ///
+    /// 
     /// The provided configuration is
     /// made available to all services via dependency injection. Callers are responsible for managing the host's
     /// lifetime.</remarks>
     /// <param name="configuration">The application configuration to use for service registration and initialization. Cannot be null.</param>
+    /// <param name="args"></param>
     /// <returns>An initialized <see cref="IHost"/> instance with all application services configured and ready for use.</returns>
-    public static IHost BuildHostAndConfigureServices(IConfiguration configuration)
+    public static IHost BuildHostAndConfigureServices(IConfiguration configuration, string[] args)
         => Host.CreateDefaultBuilder()
             .UseSerilog(LoggingConfigurator.ConfigureWithHostContext, true)
             .ConfigureServices((_, services) =>
@@ -78,10 +81,20 @@ public static class BootLoader
 
                 #region ### BACKGROUND SERVICES  ###
 
-                services.AddSingleton<ILogSwitchService, LogSwitchService>();
                 services.AddHostedService<SessionLockService>();
+
+                // 1. Detect if a CLI override exists
+                var cliLevel = LoggingConfigurator.GetLevelFromArgs(args);
+                bool hasOverride = cliLevel.HasValue;
+                LogEventLevel initialLevel = cliLevel ?? LogEventLevel.Information;
+
+                // 3. Register the service with the detected values
+                services.AddSingleton<ILogSwitchService>(sp => new LogSwitchService(initialLevel, hasOverride));
                 services.AddHostedService<LogSwitchInitializationService>();
-                services.AddHostedService<MaintenanceService>();
+                services.AddHostedService<BackupService>();
+
+                #region  ### IdleMonitoringService ###
+
 
                 // 1.Register the concrete class as a Singleton
                 services.AddSingleton<IdleMonitoringService>();
@@ -93,6 +106,10 @@ public static class BootLoader
                 // 3. Tell the DI that IActivityHeartbeat points to that SAME singleton instance
                 services.AddSingleton<IActivityHeartbeat>(sp => sp.GetRequiredService<IdleMonitoringService>());
 
+
+                #endregion
+
+                #region  ### ClipboardService ###
                 // Register as a singleton so it can be injected as IClipboardService
                 services.AddSingleton<ClipboardService>();
 
@@ -103,6 +120,8 @@ public static class BootLoader
                 services.AddHostedService(sp => sp.GetRequiredService<ClipboardService>());
 
                 #endregion
+                #endregion
+
 
                 // infra
                 services.AddSingleton<IDelayService, DelayService>();

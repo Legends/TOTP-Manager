@@ -372,4 +372,25 @@
   <data name="ui_Setup_Password" xml:space="preserve">
     <value>Passwort einrichten</value>
   </data>
+  <data name="ui_Settings_Tab_Diagnostics" xml:space="preserve">
+    <value>Diagnose</value>
+  </data>
+  <data name="ui_Settings_Section_Logging" xml:space="preserve">
+    <value>Protokolierung</value>
+  </data>
+  <data name="ui_CLI_Override" xml:space="preserve">
+    <value>CLI-Überschreibung Aktiv: {0}</value>
+  </data>
+  <data name="ui_Settings_Logging_Level" xml:space="preserve">
+    <value>Protokollierungsebene</value>
+  </data>
+  <data name="ui_Settings_Logging_OpenFolder" xml:space="preserve">
+    <value>Protokolierungsordner öffnen</value>
+  </data>
+  <data name="ui_Settings_Export_Encrypt" xml:space="preserve">
+    <value>Verschlüsselt exportieren</value>
+  </data>
+  <data name="ui_Settings_Export" xml:space="preserve">
+    <value>Konten exportieren</value>
+  </data>
 </root>

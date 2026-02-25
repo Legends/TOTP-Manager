@@ -196,7 +196,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Delete account: &quot;{0}&quot;?.
+        ///   Looks up a localized string similar to Account: &quot;{0}&quot;.
         /// </summary>
         internal static string msg_ConfirmDeleteSecret {
             get {
@@ -502,6 +502,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to CLI Override Active: {0}.
+        /// </summary>
+        internal static string ui_CLI_Override {
+            get {
+                return ResourceManager.GetString("ui_CLI_Override", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copied!.
         /// </summary>
         internal static string ui_Code_Copied_Clipboard {
@@ -718,6 +727,24 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export accounts.
+        /// </summary>
+        internal static string ui_Settings_Export {
+            get {
+                return ResourceManager.GetString("ui_Settings_Export", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export encrypted.
+        /// </summary>
+        internal static string ui_Settings_Export_Encrypt {
+            get {
+                return ResourceManager.GetString("ui_Settings_Export_Encrypt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Windows lock screen.
         /// </summary>
         internal static string ui_Settings_LockOnWindowsLock {
@@ -727,11 +754,47 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Logging level.
+        /// </summary>
+        internal static string ui_Settings_Logging_Level {
+            get {
+                return ResourceManager.GetString("ui_Settings_Logging_Level", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open log folder.
+        /// </summary>
+        internal static string ui_Settings_Logging_OpenFolder {
+            get {
+                return ResourceManager.GetString("ui_Settings_Logging_OpenFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logging.
+        /// </summary>
+        internal static string ui_Settings_Section_Logging {
+            get {
+                return ResourceManager.GetString("ui_Settings_Section_Logging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Authorization.
         /// </summary>
         internal static string ui_Settings_Tab_Authorization {
             get {
                 return ResourceManager.GetString("ui_Settings_Tab_Authorization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Diagnostics.
+        /// </summary>
+        internal static string ui_Settings_Tab_Diagnostics {
+            get {
+                return ResourceManager.GetString("ui_Settings_Tab_Diagnostics", resourceCulture);
             }
         }
         

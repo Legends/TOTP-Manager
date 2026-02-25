@@ -372,4 +372,25 @@
   <data name="ui_Setup_Password" xml:space="preserve">
     <value>Setup your password</value>
   </data>
+  <data name="ui_Settings_Tab_Diagnostics" xml:space="preserve">
+    <value>Diagnostics</value>
+  </data>
+  <data name="ui_Settings_Section_Logging" xml:space="preserve">
+    <value>Logging</value>
+  </data>
+  <data name="ui_CLI_Override" xml:space="preserve">
+    <value>CLI Override Active: {0}</value>
+  </data>
+  <data name="ui_Settings_Logging_Level" xml:space="preserve">
+    <value>Logging level</value>
+  </data>
+  <data name="ui_Settings_Logging_OpenFolder" xml:space="preserve">
+    <value>Open log folder</value>
+  </data>
+  <data name="ui_Settings_Export_Encrypt" xml:space="preserve">
+    <value>Export encrypted</value>
+  </data>
+  <data name="ui_Settings_Export" xml:space="preserve">
+    <value>Export accounts</value>
+  </data>
 </root>

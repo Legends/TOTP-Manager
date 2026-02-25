@@ -4,6 +4,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Serilog;
+using Serilog.Events;
 using TOTP.Core.Services;
 using TOTP.Security.Interfaces;
 using TOTP.Services.Interfaces;
@@ -41,12 +43,12 @@ public sealed class ClipboardService : BackgroundService, IClipboardService
         {
             _lastCopiedText = text;
 
-            // Use provided duration or fallback to profile settings (e.g. 30 seconds)
             var clearAfter = duration ?? TimeSpan.FromSeconds(30);
             _clearAt = DateTime.UtcNow.Add(clearAfter);
         }
 
         var level = _lss.GetLevel();
+        Log.Write(LogEventLevel.Verbose, $"Current logging level: {level}");
         _logger.LogInformation("Sensitive data copied. Scheduled to clear in {Duration}s", (duration ?? TimeSpan.FromSeconds(30)).TotalSeconds);
     }
 

@@ -10,12 +10,12 @@ using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Infrastructure.Services;
 
-public sealed class MaintenanceService : IHostedService
+public sealed class BackupService : IHostedService
 {
     private readonly IAccountsManager _accountsManager;
-    private readonly ILogger<MaintenanceService> _logger;
+    private readonly ILogger<BackupService> _logger;
 
-    public MaintenanceService(IAccountsManager accountsManager, ILogger<MaintenanceService> logger)
+    public BackupService(IAccountsManager accountsManager, ILogger<BackupService> logger)
     {
         _accountsManager = accountsManager;
         _logger = logger;

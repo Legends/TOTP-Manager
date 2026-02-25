@@ -1,4 +1,5 @@
-﻿using Serilog.Events;
+﻿using Newtonsoft.Json.Linq;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,6 +15,7 @@ using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
 
 namespace TOTP.ViewModels;
+
 public sealed class SettingsViewModel : INotifyPropertyChanged
 {
 
@@ -32,6 +34,9 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public void RequestFocus() => RequestFocusTick++;
     #endregion
 
+    public string ClrOverrideText => _logSwitchService.IsCliOverrideActive ?
+        $"(Overridden via CLI to {SelectedLogLevel})" :
+        "";
 
     private bool _isHelloSelected = true;
     public bool IsHelloSelected
@@ -207,40 +212,40 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     // bound to SettingsView.xaml uc
     public ICommand SaveCommand { get; }
     public ICommand CloseCommand { get; }
-    public ICommand ExportTestCommand { get; }
+    public ICommand ExportCommand { get; }
 
     private readonly Action _saveAction;
-    private readonly ILogSwitchService _loggingService;
+    private readonly ILogSwitchService _logSwitchService;
 
     public delegate SettingsViewModel SettingsViewModelFactory(
         ICommand closeCommand,
         Action saveAction,
-        Action exportTest);
+        Func<bool, Task> actionExportAccounts);
 
     #endregion
 
 
     public SettingsViewModel(IGlobalProfileStore globalProfileStore,
                             IAuthorizationService authorizationService,
-                            ILogSwitchService loggingService,
+                            ILogSwitchService logSwitchService,
                             ICommand closeCommand,
                             Action saveAction,
-                            Action exportTest)
+                            Func<bool, Task> actionExportAccounts)
     {
-        _loggingService = loggingService ?? throw new ArgumentNullException(nameof(loggingService));
+        _logSwitchService = logSwitchService ?? throw new ArgumentNullException(nameof(logSwitchService));
         _globalProfileStore = globalProfileStore ?? throw new ArgumentNullException(nameof(globalProfileStore));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
 
         _saveAction = saveAction;
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync);
-        ExportTestCommand = new RelayCommand(_ => exportTest());
+        ExportCommand = new AsyncCommand(() => actionExportAccounts(ExportEncrypt));
 
         // 1. Initialize the list of levels for the UI
         AvailableLogLevels = Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>().ToList();
 
         // 2. Set the initial UI state to match the current switch state
-        _selectedLogLevel = _loggingService.ControlSwitch.MinimumLevel;
+        _selectedLogLevel = _logSwitchService.ControlSwitch.MinimumLevel;
 
         // 3. Command to open the log file location
         OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder);
@@ -257,12 +262,12 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             if (_selectedLogLevel != value)
             {
                 _selectedLogLevel = value;
-                // Update the Serilog Switch instantly
-                _loggingService.SetLevel(value);
                 OnPropertyChanged();
             }
         }
     }
+    public bool IsCliOverrideActive => _logSwitchService.IsCliOverrideActive;
+
 
     public ICommand OpenLogFolderCommand { get; }
 
@@ -276,16 +281,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    //public static async Task<SettingsViewModel> CreateAsync(IGlobalProfileStore globalProfileStore,
-    //                                            IAuthorizationService authorizationService,
-    //                                            ICommand closeCommand,
-    //                                            Action saveAction,
-    //                                            Action exportTest, ILoggingService loggingService)
-    //{
-    //    var vm = new SettingsViewModel(globalProfileStore, authorizationService, loggingService, closeCommand, saveAction, exportTest);
-    //    await vm.LoadAsync();
-    //    return vm;
-    //}
+
 
     async Task SaveAndCloseAsync()
     {
@@ -315,7 +311,18 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         if (profile is null)
             return;
 
-        SelectedLogLevel = profile.MinimumLogLevel;
+        if (_logSwitchService.IsCliOverrideActive)
+        {
+            // Keep the UI in sync with the actual active log level
+            SelectedLogLevel = _logSwitchService.GetLevel();
+        }
+        else
+        {
+            // Normal behavior: load from profile
+            SelectedLogLevel = profile.MinimumLogLevel;
+            _logSwitchService.SetLevel(SelectedLogLevel);
+        }
+
         IsHelloSelected = profile.Authorization.Gate != AuthorizationGateKind.Password;
         IsPasswordSelected = profile.Authorization.Gate == AuthorizationGateKind.Password;
 
@@ -389,6 +396,16 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     private async Task SaveAsync()
     {
         var profile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
+
+        if (_logSwitchService.IsCliOverrideActive)
+        {
+            if (SelectedLogLevel != _logSwitchService.GetLevel())
+            {
+                _logSwitchService.SetLevel(SelectedLogLevel);
+                _logSwitchService.IsCliOverrideActive = false; // Clear the CLI override if user changes the level via UI 
+                OnPropertyChanged(nameof(IsCliOverrideActive));
+            }
+        }
 
         profile.MinimumLogLevel = SelectedLogLevel;
         profile.LockOnSessionLock = LockOnSessionLock;

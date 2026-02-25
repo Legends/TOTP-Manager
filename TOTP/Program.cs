@@ -30,7 +30,7 @@ internal static class Program
     {
         try
         {
-            LoggingConfigurator.SetupEarlyLogger();
+            LoggingConfigurator.SetupEarlyLogger(args);
             StartApplication(args).GetAwaiter().GetResult();
         }
         catch (Exception ex)
@@ -60,7 +60,7 @@ internal static class Program
                 return;
             }
 
-            using var host = BootLoader.BuildHostAndConfigureServices(configuration);
+            using var host = BootLoader.BuildHostAndConfigureServices(configuration, args);
 
             // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
             await host.StartAsync(); // All BackgroundServices run now!
@@ -92,7 +92,7 @@ internal static class Program
                 {
                     Log.Error(ex, UI.ex_UnexpectedError);
                 }
-                
+
             };
 
             app.Run(mainWindow); // app.Run() is a blocking call. It is the message loop.

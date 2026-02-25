@@ -492,10 +492,10 @@ public class MainViewModel : IMainViewModel
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
         Func<IQrScannerDialogService> qrScannerDialogFactory,
-        SettingsViewModelFactory settingsFactory)
+        SettingsViewModelFactory settingsFactory,IGlobalProfileStore store)
     {
         IsBusy = true;
-
+        
         _settingsFactory = settingsFactory;
         _qrScannerDialogFactory = qrScannerDialogFactory;
         _fileDialogService = fileDialogService;
@@ -559,7 +559,7 @@ public class MainViewModel : IMainViewModel
             Settings = _settingsFactory(
                 CloseSettingsViewCommand,
                 SaveSettingsView,
-                TestExport);
+                ExportAccounts);
 
             await Settings.LoadAsync();
 
@@ -672,9 +672,35 @@ public class MainViewModel : IMainViewModel
         IsSettingsViewOpen = false;
     }
 
-    private void TestExport()
+    private async Task ExportAccounts(bool toBeEncrypted)
     {
-        // stub
+        try
+        {
+            System.Windows.MessageBox.Show(toBeEncrypted.ToString());
+            var path = _fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Accounts");
+
+            if (path == null) // canceled
+                return;
+
+            var result = await _accountsManager.GetAllAccountsSortedAsync();
+            if (result.IsFailed)
+            {
+                _messageService.ShowResultError(result);
+                return;
+            }
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(result.Value, options));
+
+            var psi = new ProcessStartInfo { FileName = path, UseShellExecute = true };
+
+            Process.Start(psi);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            throw;
+        }
     }
 
     #region ### LOCALIZATION SETUP ###
