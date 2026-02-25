@@ -570,11 +570,8 @@ public class MainViewModel : IMainViewModel
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "MainViewModel initialization failed.");
-
-            // Use the injected message service to tell the user what happened
             _messageService.ShowError(UI.ex_FatalError + ": " + ex.Message);
             Environment.Exit(1);
-            // Handle state (e.g., force a specific UI state so the app isn't "stuck")
         }
     }
 
@@ -1007,7 +1004,7 @@ public class MainViewModel : IMainViewModel
 
             var itemToAdd = CurrentSecretBeingEditedOrAdded.Copy();
             AllAccounts.Add(itemToAdd);
-         
+
             CurrentSecretBeingEditedOrAdded = null;
             IsAddMode = false;
             IsEditAddFlyoutOpen = false;
@@ -1024,15 +1021,15 @@ public class MainViewModel : IMainViewModel
 
             if (!validator.IsValid)
             {
-       CurrentSecretBeingEditedOrAdded.RefreshValidation();
+                CurrentSecretBeingEditedOrAdded.RefreshValidation();
                 return;
             }
-            
+
             validator.PlatformNameDuplicateExists(excludeSelf: true);
 
             if (!validator.IsValid)
             {
- CurrentSecretBeingEditedOrAdded.RefreshValidation();
+                CurrentSecretBeingEditedOrAdded.RefreshValidation();
                 return;
             }
             #endregion
@@ -1278,7 +1275,7 @@ public class MainViewModel : IMainViewModel
             const int period = 30;
             long unix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             long step = unix / period;// example: 58944862, 58944863, ... 58944891, 58944892, 58944893, ...
-            
+
             _activeStep = step;
             var now = DateTime.UtcNow;
 
