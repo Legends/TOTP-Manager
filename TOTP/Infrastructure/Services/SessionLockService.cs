@@ -11,6 +11,14 @@ using TOTP.Security.Interfaces;
 
 namespace TOTP.Infrastructure.Services;
 
+/// <summary>
+/// Provides a background service that locks the application when the Windows session is locked.
+/// </summary>
+/// <remarks>SessionLockService monitors Windows session lock events and triggers application locking through the
+/// provided authorization service. This service is intended to enhance security by ensuring the application is locked
+/// whenever the user's session is locked. The service subscribes to session events for the duration of its lifetime and
+/// unsubscribes during shutdown to prevent resource leaks. Thread safety and proper event unsubscription are handled
+/// internally.(formerly:app.xaml.cs)</remarks>
 public sealed class SessionLockService : BackgroundService
 {
     private readonly IAuthorizationService _authorizationService;

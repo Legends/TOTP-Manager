@@ -78,6 +78,7 @@ public static class BootLoader
 
                 services.AddSingleton<ILogSwitchService, LogSwitchService>();
                 services.AddHostedService<SessionLockService>();
+                services.AddHostedService<LogSwitchInitializationService>();
 
                 // infra
                 services.AddSingleton<IClipboardService, ClipboardService>();

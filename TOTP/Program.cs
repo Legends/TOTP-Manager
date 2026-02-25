@@ -57,41 +57,41 @@ internal static class Program
             using var host = BootLoader.BuildHostAndConfigureServices(configuration);
 
             // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
-            await host.StartAsync();
+            await host.StartAsync(); // All BackgroundServices run now!
 
             var app = new App // the SynchronizationContext is established when the first DispatcherObject is created like Application
             {
                 Host = host
             };
 
-            // safe to call await here since the SynchronizationContext is established
-            // and it will not cause deadlocks.  
-            app.Startup += async (_, __) =>
-              {
-                  await InitializeLogSwitchService();
-              };
+            //// safe to call await here since the SynchronizationContext is established
+            //// and it will not cause deadlocks.  
+            //app.Startup += async (_, __) =>
+            //  {
+            //      await InitializeLogSwitchService();
+            //  };
 
-            async Task InitializeLogSwitchService()
-            {
-                try
-                {
-                    var profileStore = host.Services.GetRequiredService<IGlobalProfileStore>();
+            //async Task InitializeLogSwitchService()
+            //{
+            //    try
+            //    {
+            //        var profileStore = host.Services.GetRequiredService<IGlobalProfileStore>();
 
-                    var profile = await profileStore.LoadAsync();
+            //        var profile = await profileStore.LoadAsync();
 
-                    if (profile != null)
-                    {
-                        var logSwitchService = host.Services.GetRequiredService<ILogSwitchService>();
-                        var level = profile?.MinimumLogLevel ?? LogEventLevel.Information;
-                        logSwitchService.SetLevel(level);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // The error is handled right where it happens
-                    Log.Error(ex, "Error initializing logSwitchService");
-                }
-            }
+            //        if (profile != null)
+            //        {
+            //var logSwitchService = host.Services.GetRequiredService<ILogSwitchService>();
+            //var level = profile?.MinimumLogLevel ?? LogEventLevel.Information;
+            //logSwitchService.SetLevel(level);
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        // The error is handled right where it happens
+            //        Log.Error(ex, "Error initializing logSwitchService");
+            //    }
+            //}
 
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
