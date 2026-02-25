@@ -17,12 +17,12 @@ using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Core.Services;
 
-public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) : IAccountsDAL, IDisposable
+public class OtpDAL(ILogger<OtpDAL> logger, string? storageFilePath) : IOtpDAL, IDisposable
 {
     private readonly JsonSerializerOptions? _options = null;
     private readonly string _secretsPath = storageFilePath ?? AlternativeStoragePath();
     private static readonly SemaphoreSlim Semaphore = new(1, 1);
-    private readonly ILogger<AccountsDal> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILogger<OtpDAL> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private static string AlternativeStoragePath()
     {
@@ -32,7 +32,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
     }
 
     //Task<OperationResult<List<AccountItem>>> GetAllAccountsAsync
-    public async Task<Result<List<AccountItem>>> GetAllAccountsAsync()
+    public async Task<Result<List<OtpEntry>>> GetAllAsync()
     {
         await Semaphore.WaitAsync();
         try
@@ -42,7 +42,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, nameof(GetAllAccountsAsync));
+            _logger.LogError(ex, nameof(GetAllAsync));
             return new StatusError(OperationStatus.LoadingFailed);
         }
         finally
@@ -51,14 +51,14 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
         }
     }
 
-    public async Task<Result> AddNewAccountAsync(AccountItem newItem)
+    public async Task<Result> AddNewAsync(OtpEntry newItem)
     {
         await Semaphore.WaitAsync();
         try
         {
             var list = await LoadAccountsFromFileAsync();
 
-            if (list.Any(x => x.Platform == newItem.Platform))
+            if (list.Any(x => x.Issuer == newItem.Issuer))
                 return new StatusError(OperationStatus.AlreadyExists);
 
             list.Add(newItem);
@@ -69,7 +69,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, nameof(AddNewAccountAsync));
+            _logger.LogError(ex, nameof(AddNewAsync));
             return new StatusError(OperationStatus.StorageFailed);
         }
         finally
@@ -78,7 +78,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
         }
     }
 
-    public async Task<Result> UpdateAccountAsync(AccountItem updated)
+    public async Task<Result> UpdateAsync(OtpEntry updated)
     {
         await Semaphore.WaitAsync();
         try
@@ -88,7 +88,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
 
             var existing = listStore.FirstOrDefault(x => x.ID == updated.ID);
             if (existing == null)
-                return new StatusError(OperationStatus.NotFound, $"{updated.Platform} not found");
+                return new StatusError(OperationStatus.NotFound, $"{updated.Issuer} not found");
 
             listStore.Remove(existing);
             listStore.Add(updated);
@@ -98,7 +98,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, nameof(UpdateAccountAsync));
+            _logger.LogError(ex, nameof(UpdateAsync));
             return new StatusError(OperationStatus.StorageFailed);
         }
         finally
@@ -108,7 +108,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
     }
 
 
-    public async Task<Result> DeleteAccountAsync(AccountItem account)
+    public async Task<Result> DeleteAccountAsync(OtpEntry account)
     {
         await Semaphore.WaitAsync();
         try
@@ -136,7 +136,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
         }
     }
 
-    private async Task<List<AccountItem>> LoadAccountsFromFileAsync()
+    private async Task<List<OtpEntry>> LoadAccountsFromFileAsync()
     {
         EnsureStorageFileExists();
 
@@ -147,7 +147,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
         var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
         var json = Encoding.UTF8.GetString(decrypted);
 
-        var list = JsonSerializer.Deserialize<List<AccountItem>>(json, GetOptions()) ?? [];
+        var list = JsonSerializer.Deserialize<List<OtpEntry>>(json, GetOptions()) ?? [];
         return list;
     }
 
@@ -169,7 +169,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
         }
     }
 
-    private async Task WriteEncryptedFileAsync(List<AccountItem> list)
+    private async Task WriteEncryptedFileAsync(List<OtpEntry> list)
     {
 
         var json = JsonSerializer.Serialize(list, GetOptions());
@@ -178,7 +178,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
         await File.WriteAllBytesAsync(_secretsPath, encrypted);
     }
 
-    public async Task<Result> BackupAccountsStorageFileAsync() 
+    public async Task<Result> BackupOtpEntriesStorageFileAsync() 
     {
        return await Task.Run(() =>
         {
@@ -186,7 +186,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
             {
                 if (!File.Exists(_secretsPath))
                     return Result.Fail(new StatusError(OperationStatus.StorageFailed)
-                        .WithMetadata("Context", nameof(BackupAccountsStorageFileAsync))
+                        .WithMetadata("Context", nameof(BackupOtpEntriesStorageFileAsync))
                         .WithMetadata("Reason", $"Path: {_secretsPath} does not exist"));
 
                 var dir = Path.GetDirectoryName(_secretsPath)!;
@@ -212,7 +212,7 @@ public class AccountsDal(ILogger<AccountsDal> logger, string? storageFilePath) :
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, nameof(BackupAccountsStorageFileAsync));
+                _logger.LogError(ex, nameof(BackupOtpEntriesStorageFileAsync));
                 return Result.Fail(new StatusError(OperationStatus.StorageFailed, "BackupAccountsStorageFile"));
             }
         });

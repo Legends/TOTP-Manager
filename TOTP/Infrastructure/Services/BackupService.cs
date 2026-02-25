@@ -12,10 +12,10 @@ namespace TOTP.Infrastructure.Services;
 
 public sealed class BackupService : IHostedService
 {
-    private readonly IAccountsManager _accountsManager;
+    private readonly IOtpManager _accountsManager;
     private readonly ILogger<BackupService> _logger;
 
-    public BackupService(IAccountsManager accountsManager, ILogger<BackupService> logger)
+    public BackupService(IOtpManager accountsManager, ILogger<BackupService> logger)
     {
         _accountsManager = accountsManager;
         _logger = logger;
@@ -28,7 +28,7 @@ public sealed class BackupService : IHostedService
         try
         {
             _logger.LogInformation("Starting shutdown backup...");
-            await _accountsManager.BackupAccountsStorageFileAsync();
+            await _accountsManager.BackupOtpEntriesStorageFileAsync();
             _logger.LogInformation("Shutdown backup completed successfully.");
         }
         catch (Exception ex)

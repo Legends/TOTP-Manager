@@ -85,7 +85,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
         switch (e.Column.MappingName)
         {
-            case nameof(AccountViewModel.Platform):
+            case nameof(AccountViewModel.Issuer):
                 //UiValidation.Use(item).ValidatePlatform()
                 validationResult = UiValidation.ValidatePlatformName(e.NewValue?.ToString());
                 error = ValidationMessageMapper.ToMessage(validationResult);

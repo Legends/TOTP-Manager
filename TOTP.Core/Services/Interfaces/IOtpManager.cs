@@ -15,11 +15,11 @@ namespace TOTP.Core.Services.Interfaces;
 /// Update
 /// Delete
 /// </summary>
-public interface IAccountsManager
+public interface IOtpManager
 {
-    Task<Result> BackupAccountsStorageFileAsync();
-    Task<Result> AddNewItemAsync(AccountItem newItem);
-    Task<Result<ObservableCollection<AccountItem>>> GetAllAccountsSortedAsync();
+    Task<Result> BackupOtpEntriesStorageFileAsync();
+    Task<Result> AddNewAsync(OtpEntry newItem);
+    Task<Result<ObservableCollection<OtpEntry>>> GetAllOtpEntriesSortedAsync();
 
     ///// <summary>
     ///// Adds a new secret item by prompting the user for key and value.
@@ -35,21 +35,14 @@ public interface IAccountsManager
     /// <param name="previous"></param>
     /// <param name="updated"></param>
     /// <returns></returns>
-    Task<Result> UpdateAccountAsync(AccountItem previous, AccountItem updated);
+    Task<Result> UpdateAsync(OtpEntry previous, OtpEntry updated);
 
     /// <summary>
     /// Deletes a secret item from the encrypted secrets file.
     /// </summary>
     /// <param name="item">SecretItem</param>
     /// <returns>true/false</returns>
-    Task<Result> DeleteAccountAsync(AccountItem item);
+    Task<Result> DeleteAsync(OtpEntry item);
 
-    /// <summary>
-    /// Called when a message needs to be displayed
-    /// </summary>
-    //event Action<object, OperationStatus, string?> OnMessageSend;
-
-
-
-    //event Func<object?, string, bool> ConfirmDeleteRequested;
+ 
 }

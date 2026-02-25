@@ -138,17 +138,17 @@ public static class BootLoader
                 services.AddSingleton<IQrCodeService, QrCodeService>();
 
                 // app services
-                services.AddSingleton<IAccountsDAL>(provider =>
+                services.AddSingleton<IOtpDAL>(provider =>
                 {
-                    var logger = provider.GetRequiredService<ILogger<AccountsDal>>();
+                    var logger = provider.GetRequiredService<ILogger<OtpDAL>>();
                     var config = provider.GetRequiredService<IConfiguration>();
                     var fileStoragePathAccounts = config.GetSection(StringsConstants.AccountsStorageFilePath).Value;
                     var resolvedAccountsStorageFilePath = Environment.ExpandEnvironmentVariables(fileStoragePathAccounts ?? "");
-                    return new AccountsDal(logger, resolvedAccountsStorageFilePath);
+                    return new OtpDAL(logger, resolvedAccountsStorageFilePath);
                 });
 
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
-                services.AddSingleton<IAccountsManager, AccountsManager>();
+                services.AddSingleton<IOtpManager, OtpManager>();
 
                 var rawProfilePath = configuration.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
                 var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? "");

@@ -46,16 +46,19 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
         }
     }
     
-    private string? _platform;
+    private string? _issuer;
 
-    public string? Platform
+    /// <summary>
+    /// Like Github, Microsoft, etc. This is the "platform" or "service" name
+    /// </summary>
+    public string? Issuer
     {
-        get => _platform;
+        get => _issuer;
         set
         {
-            if (_platform != value)
+            if (_issuer != value)
             {
-                _platform = value;
+                _issuer = value;
                 OnPropertyChanged();
             }
         }
@@ -81,15 +84,19 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
         set;
     }
 
-    private string? _account;
-    public string? Account
+    private string? _accountName;
+    /// <summary>
+    /// like johne@doe.com, this is the "account name" or "username" associated with the platform.
+    /// Optional, but often useful for disambiguation.
+    /// </summary>
+    public string? AccountName
     {
-        get => _account;
+        get => _accountName;
         set
         {
-            if (_account != value)
+            if (_accountName != value)
             {
-                _account = value;
+                _accountName = value;
                 OnPropertyChanged();
             }
         }
@@ -108,12 +115,12 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
 
 
     [JsonConstructor]
-    public AccountViewModel(Guid id, string platform, string secret, string? account = null)
+    public AccountViewModel(Guid id, string issuer, string secret, string? account = null)
     {
         ID = id;
-        Platform = platform;
+        Issuer = issuer;
         Secret = secret;
-        Account = account;
+        AccountName = account;
     }
 
 
@@ -167,8 +174,8 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
             ValidationError error;
             switch (columnName)
             {
-                case nameof(Platform): // TODO: Add duplicate check here!
-                    error = UiValidation.ValidatePlatformName(Platform);
+                case nameof(Issuer): // TODO: Add duplicate check here!
+                    error = UiValidation.ValidatePlatformName(Issuer);
                     if (error != ValidationError.None)
                     {
                         errors.Add(ValidationMessageMapper.ToMessage(error));
@@ -178,7 +185,7 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
                     // TODO: we have to wire new items with duplicateCheck handler ! soemthing wrong here
                     var isDuplicate = _duplicateCheck?.Invoke(this);
                     if (isDuplicate == ValidationError.PlatformAlreadyExists)
-                        errors.Add(ValidationMessageMapper.ToMessage(isDuplicate.Value, this.Platform));
+                        errors.Add(ValidationMessageMapper.ToMessage(isDuplicate.Value, this.Issuer));
                     break;
 
                 case nameof(Secret):
@@ -239,9 +246,9 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
 
     public void UpdateSelf(AccountViewModel changed)
     {
-        this.Platform = changed.Platform;
+        this.Issuer = changed.Issuer;
         this.Secret = changed.Secret;
-        this.Account = changed.Account;
+        this.AccountName = changed.AccountName;
     }
 
     #region Inline Error Properties (for flyout binding)
@@ -296,9 +303,9 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
     /// </summary>
     public void RefreshValidation()
     {
-        PlatformError = this[nameof(Platform)];
+        PlatformError = this[nameof(Issuer)];
         SecretError = this[nameof(Secret)];
-        AccountError = this[nameof(Account)];
+        AccountError = this[nameof(AccountName)];
     }
 
     #endregion
@@ -317,8 +324,8 @@ public sealed class AccountViewModelValueComparer : IEqualityComparer<AccountVie
 
     public bool Equals(AccountViewModel? x, AccountViewModel? y)
     {
-        return ReferenceEquals(x, y) || x is not null && y is not null && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.Platform), Norm(y.Platform))
-            && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.Account), Norm(y.Account))
+        return ReferenceEquals(x, y) || x is not null && y is not null && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.Issuer), Norm(y.Issuer))
+            && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.AccountName), Norm(y.AccountName))
             && SecretsEqual(x.Secret, y.Secret);
     }
 
@@ -326,8 +333,8 @@ public sealed class AccountViewModelValueComparer : IEqualityComparer<AccountVie
     {
         var hc = new HashCode();
 
-        hc.Add(Norm(obj.Platform), StringComparer.OrdinalIgnoreCase);
-        hc.Add(Norm(obj.Account), StringComparer.OrdinalIgnoreCase);
+        hc.Add(Norm(obj.Issuer), StringComparer.OrdinalIgnoreCase);
+        hc.Add(Norm(obj.AccountName), StringComparer.OrdinalIgnoreCase);
         hc.Add(NormSecret(obj.Secret), StringComparer.OrdinalIgnoreCase);
 
         return hc.ToHashCode();

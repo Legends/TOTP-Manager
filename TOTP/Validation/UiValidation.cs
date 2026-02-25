@@ -39,7 +39,7 @@ internal class UiValidation
 
     public UiValidation ValidatePlatform()
     {
-        var error = ValidatePlatformName(_item.Platform);
+        var error = ValidatePlatformName(_item.Issuer);
         if (error != ValidationError.None)
             _errors.Add(error);
         return this;
@@ -80,7 +80,7 @@ internal class UiValidation
 
         // Check duplicates in the bound list (ignore the current row)
         bool duplicate = src
-            .Any(x => string.Equals(x.Platform, _item.Platform, StringComparison.OrdinalIgnoreCase));
+            .Any(x => string.Equals(x.Issuer, _item.Issuer, StringComparison.OrdinalIgnoreCase));
 
         if (duplicate)
             _errors.Add(ValidationError.PlatformAlreadyExists);
@@ -103,11 +103,11 @@ internal class UiValidation
             ? ValidationError.PlatformRequired
             : ValidationError.None;
     }
-    public static ValidationError PlatformNameDuplicateExists(string platform, IEnumerable<AccountItem> source)
+    public static ValidationError PlatformNameDuplicateExists(string platform, IEnumerable<OtpEntry> source)
     {
         // Check duplicates in the bound list (ignore the current row)
         bool duplicate = source
-            .Any(x => string.Equals(x.Platform, platform, StringComparison.OrdinalIgnoreCase));
+            .Any(x => string.Equals(x.Issuer, platform, StringComparison.OrdinalIgnoreCase));
         return duplicate ? ValidationError.PlatformAlreadyExists : ValidationError.None;
     }
     public static ValidationError ValidateSecretValue(string? secretValue)

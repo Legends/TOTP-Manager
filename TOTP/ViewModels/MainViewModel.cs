@@ -104,7 +104,7 @@ public class MainViewModel : IMainViewModel
     #region ### SECURITY Fields & Props
 
     public UnlockViewModel UnlockViewModel { get; }
-    public IMainViewSessionController SessionController => _sessionController;
+    public IMainViewSessionController SessionController => _mainViewSessionController;
 
     private AppSessionState _sessionState = AppSessionState.Locked;
     public AppSessionState SessionState
@@ -121,7 +121,7 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    public bool IsUnlocked => _sessionController.IsUnlocked;
+    public bool IsUnlocked => _mainViewSessionController.IsUnlocked;
 
     #endregion
 
@@ -457,7 +457,7 @@ public class MainViewModel : IMainViewModel
 
     private readonly IClipboardService _clipboardService;
     private readonly IMessageService _messageService;
-    private readonly IAccountsManager _accountsManager;
+    private readonly IOtpManager _accountsManager;
 
     private readonly IDebounceService _debounceService;
 
@@ -466,7 +466,7 @@ public class MainViewModel : IMainViewModel
     private readonly IDelayService _delayService;
     private readonly IFileDialogService _fileDialogService;
     private readonly IAuthorizationService _authorization;
-    private readonly IMainViewSessionController _sessionController;
+    private readonly IMainViewSessionController _mainViewSessionController;
     private readonly IGlobalProfileStore _globalProfileStore;
 
     private bool _accountsLoaded;
@@ -484,7 +484,7 @@ public class MainViewModel : IMainViewModel
         IMessageService messageService,
         IClipboardService clipboardService,
         IConfiguration config,
-        IAccountsManager accountsManager,
+        IOtpManager accountsManager,
         IDebounceService debounceService,
         IDelayService delayService,
         IFileDialogService fileDialogService,
@@ -507,7 +507,7 @@ public class MainViewModel : IMainViewModel
         _clipboardService = clipboardService;
         _accountsManager = accountsManager;
         _authorization = authorization;
-        _sessionController = sessionController;
+        _mainViewSessionController = sessionController;
 
         var rawProfilePath = config.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
         var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
@@ -517,8 +517,8 @@ public class MainViewModel : IMainViewModel
         //RebuildSecretsView();
         UnlockViewModel = unlockVm;
 
-        _sessionController.SessionStateChanged += SessionController_SessionStateChanged;
-        _sessionController.ConfigureCallbacks(OnUnlockedAsync, OnLocked);
+        _mainViewSessionController.SessionStateChanged += SessionController_SessionStateChanged;
+        _mainViewSessionController.ConfigureCallbacks(OnUnlockedAsync, OnLocked);
 
         SetupCommandEventhandler();
 
@@ -563,7 +563,7 @@ public class MainViewModel : IMainViewModel
 
             await Settings.LoadAsync();
 
-            await _sessionController.InitializeAsync(mainWindow);
+            await _mainViewSessionController.InitializeAsync(mainWindow);
 
             IsBusy = false;
 
@@ -682,7 +682,7 @@ public class MainViewModel : IMainViewModel
             if (path == null) // canceled
                 return;
 
-            var result = await _accountsManager.GetAllAccountsSortedAsync();
+            var result = await _accountsManager.GetAllOtpEntriesSortedAsync();
             if (result.IsFailed)
             {
                 _messageService.ShowResultError(result);
@@ -775,7 +775,7 @@ public class MainViewModel : IMainViewModel
 
     private ValidationError DuplicateCheck(AccountViewModel si)
     {
-        return UiValidation.PlatformNameDuplicateExists(si.Platform, AllAccounts.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
+        return UiValidation.PlatformNameDuplicateExists(si.Issuer, AllAccounts.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
     }
 
 
@@ -837,7 +837,7 @@ public class MainViewModel : IMainViewModel
         try
         {
             // Load secrets from file or other source
-            var result = await _accountsManager.GetAllAccountsSortedAsync();
+            var result = await _accountsManager.GetAllOtpEntriesSortedAsync();
 
             if (result.IsFailed)
             {
@@ -928,15 +928,15 @@ public class MainViewModel : IMainViewModel
         try
         {
 
-            var shouldDelete = _messageService.ConfirmWarning(string.Format(UI.msg_ConfirmDeleteSecret, item.Platform), UI.ui_btnDelete);
+            var shouldDelete = _messageService.ConfirmWarning(string.Format(UI.msg_ConfirmDeleteSecret, item.Issuer), UI.ui_btnDelete);
             if (!shouldDelete)
                 return;
 
-            var result = await _accountsManager.DeleteAccountAsync(item.ToDomain());
+            var result = await _accountsManager.DeleteAsync(item.ToDomain());
 
             if (result.IsFailed)
             {
-                _messageService.ShowResultError(result, item.Platform);
+                _messageService.ShowResultError(result, item.Issuer);
                 return;
             }
 
@@ -969,11 +969,11 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            var result = await _accountsManager.UpdateAccountAsync(PreviousVersion?.ToDomain(), updated.ToDomain());
+            var result = await _accountsManager.UpdateAsync(PreviousVersion?.ToDomain(), updated.ToDomain());
 
             if (result.IsFailed)
             {
-                _messageService.ShowResultError(result, updated.Platform ?? string.Empty);
+                _messageService.ShowResultError(result, updated.Issuer ?? string.Empty);
                 return;
             }
 
@@ -1021,11 +1021,11 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-            var result = await _accountsManager.AddNewItemAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
+            var result = await _accountsManager.AddNewAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
 
             if (result.IsFailed)
             {
-                _messageService.ShowResultError(result, CurrentSecretBeingEditedOrAdded.Platform);
+                _messageService.ShowResultError(result, CurrentSecretBeingEditedOrAdded.Issuer);
                 return;
             }
 
@@ -1184,11 +1184,11 @@ public class MainViewModel : IMainViewModel
         //_clipboard.SetText(TotpCode!);
         CopyTotpCodeToClipboard();
 
-        var currentKey = SelectedAccount.Platform;
+        var currentKey = SelectedAccount.Issuer;
 
         try
         {
-            if (currentKey == SelectedAccount.Platform)
+            if (currentKey == SelectedAccount.Issuer)
             {
                 if (SelectedAccount != null && !SelectedAccount.IsBeingEdited && !IsContextmenuOpen)
                     try
@@ -1326,7 +1326,7 @@ public class MainViewModel : IMainViewModel
     {
         var normalizedSecret = OtpauthParser.NormalizeBase32SecretForUri(item.Secret);
         // For testing:
-        var uri = _qrService.BuildOtpAuthUri(item.Platform, normalizedSecret, item.Account); // base32Secret
+        var uri = _qrService.BuildOtpAuthUri(item.Issuer, normalizedSecret, item.AccountName); // base32Secret
         byte[] pngBytes = _qrService.GenerateQr(uri);
 
         var bmp = new BitmapImage();
@@ -1359,7 +1359,7 @@ public class MainViewModel : IMainViewModel
         if (string.IsNullOrWhiteSpace(SearchText))
             return true; // no filter => return all rows
 
-        return obj is AccountViewModel vm && (vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+        return obj is AccountViewModel vm && (vm.Issuer?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     /// <summary>
@@ -1376,7 +1376,7 @@ public class MainViewModel : IMainViewModel
             return true;
 
         Debug.WriteLine("---  DoFilterGrid   ----");
-        return obj is AccountViewModel vm && (vm.Platform?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+        return obj is AccountViewModel vm && (vm.Issuer?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     /// <summary>
@@ -1451,7 +1451,7 @@ public class MainViewModel : IMainViewModel
                 {
                     if (error == ValidationError.PlatformAlreadyExists)
                     {
-                        _messageService.ShowError(ValidationMessageMapper.ToMessage(error, newAccountItem.Platform));
+                        _messageService.ShowError(ValidationMessageMapper.ToMessage(error, newAccountItem.Issuer));
                     }
                     else
                         _messageService.ShowError(ValidationMessageMapper.ToMessage(error));
@@ -1464,10 +1464,10 @@ public class MainViewModel : IMainViewModel
 
             try
             {
-                var result = await _accountsManager.AddNewItemAsync(newAccountItem.ToDomain());
+                var result = await _accountsManager.AddNewAsync(newAccountItem.ToDomain());
                 if (result.IsFailed)
                 {
-                    _messageService.ShowResultError(result, newAccountItem.Platform);
+                    _messageService.ShowResultError(result, newAccountItem.Issuer);
                     return;
                 }
 
@@ -1498,7 +1498,7 @@ public class MainViewModel : IMainViewModel
         if (path == null) // canceled
             return;
 
-        var result = await _accountsManager.GetAllAccountsSortedAsync();
+        var result = await _accountsManager.GetAllOtpEntriesSortedAsync();
         if (result.IsFailed)
         {
             _messageService.ShowResultError(result);

@@ -5,14 +5,14 @@ namespace TOTP.Infrastructure.Extensions;
 
 public static class AccountMappingExtensions
 {
-    public static AccountItem ToDomain(this AccountViewModel vm)
-        => new(vm.ID, vm.Platform ?? string.Empty, vm.Secret ?? string.Empty, vm.Account ?? string.Empty);
+    public static OtpEntry ToDomain(this AccountViewModel vm)
+        => new(vm.ID, vm.Issuer ?? string.Empty, vm.Secret ?? string.Empty, vm.AccountName ?? string.Empty);
 
-    public static AccountViewModel ToViewModel(this AccountItem s)
+    public static AccountViewModel ToViewModel(this OtpEntry s)
         => new(
               s.ID,
-              s.Platform,
+              s.Issuer,
               s.Secret,
-              s.Account
+              s.AccountName
         );
 }

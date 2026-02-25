@@ -13,7 +13,7 @@ namespace TOTP.Core.Services.Interfaces;
 /// - Secrets file backup
 /// 
 /// </summary>
-public interface IAccountsDAL
+public interface IOtpDAL
 {
 
     ///// <summary>
@@ -28,14 +28,14 @@ public interface IAccountsDAL
     /// Retrieves all secret items from local storage file.
     /// </summary>
     /// <returns>Success | LoadingFailed</returns>
-    Task<Result<List<AccountItem>>> GetAllAccountsAsync();
+    Task<Result<List<OtpEntry>>> GetAllAsync();
 
     /// <summary>
     /// Adds a new secret to the internal collection and writes it to the encrypted secrets file.
     /// </summary>
     /// <param name="item"></param>
     /// <returns>Success | AlreadyExist | LoadingFailed | StorageFailed</returns>
-    Task<Result> AddNewAccountAsync(AccountItem item);
+    Task<Result> AddNewAsync(OtpEntry item);
     //Task<bool> AddNewItemAsync(SecretItem item);
 
     /// <summary>
@@ -43,7 +43,7 @@ public interface IAccountsDAL
     /// </summary>
     /// <param name="updated"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<Result> UpdateAccountAsync(AccountItem updated);
+    Task<Result> UpdateAsync(OtpEntry updated);
 
 
     /// <summary>
@@ -51,11 +51,11 @@ public interface IAccountsDAL
     /// </summary>
     /// <param name="account"></param>
     /// <returns>Success | NotFound | LoadingFailed | StorageFailed</returns>
-    Task<Result> DeleteAccountAsync(AccountItem account);
+    Task<Result> DeleteAccountAsync(OtpEntry account);
 
     /// <summary>
     /// Creates a backup of the current secrets .dat file.
     /// </summary>
     /// <returns></returns>
-    Task<Result> BackupAccountsStorageFileAsync();
+    Task<Result> BackupOtpEntriesStorageFileAsync();
 }

@@ -251,7 +251,6 @@
                 ItemsSource="{Binding FilteredSecrets}"
                 -->
                 <syncfusion:SfDataGrid x:Name="AccountsGrid"
-                                       
                                        ItemsSource="{Binding AllAccounts}"
                                        CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
                                        Grid.Row="0"
@@ -278,7 +277,7 @@
 
 
                     <syncfusion:SfDataGrid.SortColumnDescriptions>
-                        <syncfusion:SortColumnDescription ColumnName="Platform"
+                        <syncfusion:SortColumnDescription ColumnName="Issuer"
                                                           SortDirection="Ascending" />
                     </syncfusion:SfDataGrid.SortColumnDescriptions>
 
@@ -311,7 +310,7 @@
                     <syncfusion:SfDataGrid.Columns>
                         <!-- Platform -->
                         <syncfusion:GridTextColumn HeaderText="{xaml:Resx Key=ui_Header_Platform}"
-                                                   MappingName="Platform">
+                                                   MappingName="Issuer">
                             <syncfusion:GridTextColumn.CellStyle>
                                 <Style TargetType="sfGrid:GridCell"
                                        BasedOn="{StaticResource {x:Type sfGrid:GridCell}}">
@@ -386,7 +385,7 @@
 
                 <!--  TOTP-CODE, PLATFORM-NAME, PROGRESS, GENERATE-QR-CODE-LINK     CONTAINER   -->
                 <StackPanel Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Center">
-                    <Label x:Name="lblSelectedPlatformName" Content="{Binding SelectedAccount.Platform }"
+                    <Label x:Name="lblSelectedPlatformName" Content="{Binding SelectedAccount.Issuer }"
                            VerticalContentAlignment="Center"
                            HorizontalContentAlignment="Center"
                            HorizontalAlignment="Center"
