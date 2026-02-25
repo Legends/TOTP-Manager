@@ -457,7 +457,7 @@ public class MainViewModel : IMainViewModel
 
     private readonly IClipboardService _clipboardService;
     private readonly IMessageService _messageService;
-    private readonly IOtpManager _accountsManager;
+    private readonly IOtpManager _otpManager;
 
     private readonly IDebounceService _debounceService;
 
@@ -484,7 +484,7 @@ public class MainViewModel : IMainViewModel
         IMessageService messageService,
         IClipboardService clipboardService,
         IConfiguration config,
-        IOtpManager accountsManager,
+        IOtpManager otpManager,
         IDebounceService debounceService,
         IDelayService delayService,
         IFileDialogService fileDialogService,
@@ -505,7 +505,7 @@ public class MainViewModel : IMainViewModel
         _messageService = messageService;
         _debounceService = debounceService;
         _clipboardService = clipboardService;
-        _accountsManager = accountsManager;
+        _otpManager = otpManager;
         _authorization = authorization;
         _mainViewSessionController = sessionController;
 
@@ -682,7 +682,7 @@ public class MainViewModel : IMainViewModel
             if (path == null) // canceled
                 return;
 
-            var result = await _accountsManager.GetAllOtpEntriesSortedAsync();
+            var result = await _otpManager.GetAllOtpEntriesSortedAsync();
             if (result.IsFailed)
             {
                 _messageService.ShowResultError(result);
@@ -837,7 +837,7 @@ public class MainViewModel : IMainViewModel
         try
         {
             // Load secrets from file or other source
-            var result = await _accountsManager.GetAllOtpEntriesSortedAsync();
+            var result = await _otpManager.GetAllOtpEntriesSortedAsync();
 
             if (result.IsFailed)
             {
@@ -932,7 +932,7 @@ public class MainViewModel : IMainViewModel
             if (!shouldDelete)
                 return;
 
-            var result = await _accountsManager.DeleteAsync(item.ToDomain());
+            var result = await _otpManager.DeleteAsync(item.ToDomain());
 
             if (result.IsFailed)
             {
@@ -969,7 +969,7 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            var result = await _accountsManager.UpdateAsync(PreviousVersion?.ToDomain(), updated.ToDomain());
+            var result = await _otpManager.UpdateAsync(PreviousVersion?.ToDomain(), updated.ToDomain());
 
             if (result.IsFailed)
             {
@@ -1021,7 +1021,7 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-            var result = await _accountsManager.AddNewAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
+            var result = await _otpManager.AddNewAsync(CurrentSecretBeingEditedOrAdded.ToDomain());
 
             if (result.IsFailed)
             {
@@ -1464,7 +1464,7 @@ public class MainViewModel : IMainViewModel
 
             try
             {
-                var result = await _accountsManager.AddNewAsync(newAccountItem.ToDomain());
+                var result = await _otpManager.AddNewAsync(newAccountItem.ToDomain());
                 if (result.IsFailed)
                 {
                     _messageService.ShowResultError(result, newAccountItem.Issuer);
@@ -1498,7 +1498,7 @@ public class MainViewModel : IMainViewModel
         if (path == null) // canceled
             return;
 
-        var result = await _accountsManager.GetAllOtpEntriesSortedAsync();
+        var result = await _otpManager.GetAllOtpEntriesSortedAsync();
         if (result.IsFailed)
         {
             _messageService.ShowResultError(result);
