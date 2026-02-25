@@ -79,6 +79,16 @@ public static class BootLoader
                 services.AddSingleton<ILogSwitchService, LogSwitchService>();
                 services.AddHostedService<SessionLockService>();
                 services.AddHostedService<LogSwitchInitializationService>();
+                
+                // 1.Register the concrete class as a Singleton
+                services.AddSingleton<IdleMonitoringService>();
+
+                // 2. Tell the Host to run it as a BackgroundService 
+                // (We resolve the singleton we just registered)
+                services.AddHostedService(sp => sp.GetRequiredService<IdleMonitoringService>());
+
+                // 3. Tell the DI that IActivityHeartbeat points to that SAME singleton instance
+                services.AddSingleton<IActivityHeartbeat>(sp => sp.GetRequiredService<IdleMonitoringService>());
 
                 // infra
                 services.AddSingleton<IClipboardService, ClipboardService>();
@@ -122,7 +132,7 @@ public static class BootLoader
                     () => sp.GetRequiredService<IQrScannerDialogService>());
 
                 services.AddSingleton<IAuthorizationService, AuthorizationService>();
-                services.AddSingleton<IUserActivityService, UserActivityService>();
+                //services.AddSingleton<IUserActivityService, UserActivityService>();
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();
                 services.AddSingleton<IMainViewSessionController, MainViewSessionController>();
 

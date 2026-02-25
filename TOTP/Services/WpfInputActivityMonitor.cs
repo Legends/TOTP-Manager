@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Windows.Input;
+using TOTP.Infrastructure.Services;
 using TOTP.Security.Interfaces;
 using TOTP.Services.Interfaces;
 using ActivityKind = TOTP.Security.Models.ActivityKind;
@@ -20,14 +21,16 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
     private static readonly TimeSpan MouseMoveThrottle = TimeSpan.FromMilliseconds(2000);
 
     private readonly IUserActivityService _activityService;
+    private readonly IActivityHeartbeat _heartbeat;
     private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 
     private IMainWindow? _window;
     private long _lastMouseMoveTicks;
 
-    public WpfInputActivityMonitor(IUserActivityService activityService)
+    public WpfInputActivityMonitor(IActivityHeartbeat heartbeat)
     {
-        _activityService = activityService;
+        //_activityService = activityService;
+        _heartbeat = heartbeat; // Injected!
         _lastMouseMoveTicks = _stopwatch.ElapsedTicks;
     }
 
@@ -64,7 +67,8 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
         if (ShouldIgnoreActivity())
             return;
 
-        _activityService.NotifyActivity(ActivityKind.MouseClick);
+        //_activityService.NotifyActivity(ActivityKind.MouseClick);
+        _heartbeat.RecordActivity();
     }
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
@@ -72,7 +76,8 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
         if (ShouldIgnoreActivity())
             return;
 
-        _activityService.NotifyActivity(ActivityKind.MouseWheel);
+        _heartbeat.RecordActivity();
+        //_activityService.NotifyActivity(ActivityKind.MouseWheel);
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)
@@ -81,7 +86,7 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
         if (ShouldIgnoreActivity())
             return;
 
-        _activityService.NotifyActivity(ActivityKind.KeyPress);
+        _heartbeat.RecordActivity();
     }
 
     private void OnTextInput(object sender, TextCompositionEventArgs e)
@@ -89,7 +94,7 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
         if (ShouldIgnoreActivity())
             return;
 
-        _activityService.NotifyActivity(ActivityKind.TextInput);
+        _heartbeat.RecordActivity();
     }
 
     private void OnMouseMove(object sender, MouseEventArgs e)
@@ -107,7 +112,7 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
         }
         //Debug.WriteLine($"Delta: {delta} went through;");
         _lastMouseMoveTicks = elapsedTicks;
-        _activityService.NotifyActivity(ActivityKind.MouseMove);
+        _heartbeat.RecordActivity();
     }
 
     private bool ShouldIgnoreActivity()

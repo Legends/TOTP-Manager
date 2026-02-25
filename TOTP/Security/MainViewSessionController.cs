@@ -15,7 +15,7 @@ namespace TOTP.Security;
 public sealed class MainViewSessionController : IMainViewSessionController
 {
     private readonly IAuthorizationService _authorization;
-    private readonly IUserActivityService _activityService;
+    //private readonly IUserActivityService _activityService;
     private readonly IInputActivityMonitor _inputActivityMonitor;
     private readonly ILogger<MainViewSessionController> _logger;
 
@@ -33,20 +33,20 @@ public sealed class MainViewSessionController : IMainViewSessionController
 
     public MainViewSessionController(
         IAuthorizationService authorization,
-        IUserActivityService activityService,
+        //IUserActivityService activityService,
         IInputActivityMonitor inputActivityMonitor,
         ILogger<MainViewSessionController> logger)
     {
         _logger = logger;
         _authorization = authorization;
-        _activityService = activityService;
+        //_activityService = activityService;
         _inputActivityMonitor = inputActivityMonitor;
 
         WindowStateChangedCommand = new RelayCommand<WindowState>(OnWindowStateChanged);
         DetachWindowCommand = new RelayCommand(DetachWindow);
 
         _authorization.State.Changed += AuthorizationState_Changed;
-        _activityService.LockRequested += ActivityService_LockRequested;
+        //_activityService.LockRequested += ActivityService_LockRequested;
     }
 
     public void ConfigureCallbacks(Func<Task> onUnlockedAsync, Action onLocked)
@@ -183,10 +183,10 @@ public sealed class MainViewSessionController : IMainViewSessionController
     {
         try
         {
-            if (IsUnlocked)
-                _activityService.StartMonitoring();
-            else
-                _activityService.StopMonitoring();
+            //if (IsUnlocked)
+            //    //_activityService.StartMonitoring();
+            //else
+            //    //_activityService.StopMonitoring();
         }
         catch (Exception ex)
         {
