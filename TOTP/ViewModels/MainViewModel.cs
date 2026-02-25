@@ -31,6 +31,7 @@ using TOTP.Helper;
 using TOTP.Infrastructure.Adapters;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Parser;
+using TOTP.Infrastructure.Services;
 using TOTP.Resources;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
@@ -454,7 +455,7 @@ public class MainViewModel : IMainViewModel
 
     #region ### SERVICES DECLARATIONS ###
 
-    private readonly IClipboardService _clipboard;
+    private readonly IClipboardService _clipboardService;
     private readonly IMessageService _messageService;
     private readonly IAccountsManager _accountsManager;
 
@@ -481,7 +482,7 @@ public class MainViewModel : IMainViewModel
         ILogger<MainViewModel> logger,
         IQrCodeService svcQr,
         IMessageService messageService,
-        IClipboardService clipboard,
+        IClipboardService clipboardService,
         IConfiguration config,
         IAccountsManager accountsManager,
         IDebounceService debounceService,
@@ -503,7 +504,7 @@ public class MainViewModel : IMainViewModel
         _delayService = delayService;
         _messageService = messageService;
         _debounceService = debounceService;
-        _clipboard = clipboard;
+        _clipboardService = clipboardService;
         _accountsManager = accountsManager;
         _authorization = authorization;
         _sessionController = sessionController;
@@ -622,7 +623,7 @@ public class MainViewModel : IMainViewModel
 
         OpenSettingsCommand = new RelayCommand(OpenSettingsView);
 
-        CopyCodeCommand = new RelayCommand<AccountViewModel>(model => CopyCode());
+        CopyCodeCommand = new RelayCommand<AccountViewModel>(model => CopyTotpCodeToClipboard());
         GenerateQrCommand = new RelayCommand<AccountViewModel>(model => GenerateQrCodeImage());
         ExportSecretsCommand = new AsyncCommand(ExportSecretsToFile);
         ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);
@@ -1154,7 +1155,8 @@ public class MainViewModel : IMainViewModel
 
         SelectedAccount = ComputeTotpCode(selectedSecretItem, out _activeTotp); // pre-compute TOTP code for the selected item
         //_clipboard.SetText(SelectedSecret.TotpCode!);
-        _clipboard.SetText(TotpCode!);
+        //_clipboard.SetText(TotpCode!);
+        CopyTotpCodeToClipboard();
 
         var currentKey = SelectedAccount.Platform;
 
@@ -1247,7 +1249,7 @@ public class MainViewModel : IMainViewModel
         StartTotpTick();
 
         IsProgressPieChartVisible = true;
-        _clipboard.SetText(TotpCode!);
+        CopyTotpCodeToClipboard();
         ShowCopySymbol = true;
 
         // working example secret: JBSWY3DPEHPK3PXP
@@ -1504,10 +1506,18 @@ public class MainViewModel : IMainViewModel
 
     }
 
-    private void CopyCode()
+    //private void CopyCode()
+    //{
+    //    //_clipboard.SetText(SelectedSecret.TotpCode!);
+    //    _clipboard.SetText(TotpCode!);
+    //    ShowCopySymbol = true;
+
+    //}
+
+    public void CopyTotpCodeToClipboard()
     {
-        //_clipboard.SetText(SelectedSecret.TotpCode!);
-        _clipboard.SetText(TotpCode!);
+        // Copy and clear in 30 seconds
+        _clipboardService.CopyAndScheduleClear(TotpCode, TimeSpan.FromSeconds(30));
         ShowCopySymbol = true;
     }
 

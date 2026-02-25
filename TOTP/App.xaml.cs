@@ -20,28 +20,28 @@ public partial class App : Application
     public IHost Host { get; set; } = default!;
    
   
-    protected override async void OnExit(ExitEventArgs e)
-    {
-        // Optional: anything *extra* at WPF exit (Program.cs already stops host & flushes Serilog)
-        try
-        {
-            var accountsManager = Host.Services.GetService(typeof(IAccountsManager)) as IAccountsManager;
-            if (accountsManager != null)
-            {
-                await accountsManager.BackupAccountsStorageFileAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            var logger = Host.Services.GetService(typeof(ILogger<App>)) as ILogger<App>;
-            logger?.LogError(string.Format(UI.ex_BackupFailed, ex.Message));
+    //protected override async void OnExit(ExitEventArgs e)
+    //{
+    //    // Optional: anything *extra* at WPF exit (Program.cs already stops host & flushes Serilog)
+    //    try
+    //    {
+    //        var accountsManager = Host.Services.GetService(typeof(IAccountsManager)) as IAccountsManager;
+    //        if (accountsManager != null)
+    //        {
+    //            await accountsManager.BackupAccountsStorageFileAsync();
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        var logger = Host.Services.GetService(typeof(ILogger<App>)) as ILogger<App>;
+    //        logger?.LogError(string.Format(UI.ex_BackupFailed, ex.Message));
             
-        }
-        finally
-        {
-            base.OnExit(e);
-        }
-    }
+    //    }
+    //    finally
+    //    {
+    //        base.OnExit(e);
+    //    }
+    //}
 
 
 

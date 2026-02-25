@@ -76,10 +76,13 @@ public static class BootLoader
                 // config
                 services.AddSingleton(configuration);
 
+                #region ### BACKGROUND SERVICES  ###
+
                 services.AddSingleton<ILogSwitchService, LogSwitchService>();
                 services.AddHostedService<SessionLockService>();
                 services.AddHostedService<LogSwitchInitializationService>();
-                
+                services.AddHostedService<MaintenanceService>();
+
                 // 1.Register the concrete class as a Singleton
                 services.AddSingleton<IdleMonitoringService>();
 
@@ -90,8 +93,18 @@ public static class BootLoader
                 // 3. Tell the DI that IActivityHeartbeat points to that SAME singleton instance
                 services.AddSingleton<IActivityHeartbeat>(sp => sp.GetRequiredService<IdleMonitoringService>());
 
+                // Register as a singleton so it can be injected as IClipboardService
+                services.AddSingleton<ClipboardService>();
+
+                // Map the Interface to the singleton
+                services.AddSingleton<IClipboardService>(sp => sp.GetRequiredService<ClipboardService>());
+
+                // Register the singleton as a HostedService so it runs ExecuteAsync
+                services.AddHostedService(sp => sp.GetRequiredService<ClipboardService>());
+
+                #endregion
+
                 // infra
-                services.AddSingleton<IClipboardService, ClipboardService>();
                 services.AddSingleton<IDelayService, DelayService>();
                 services.AddSingleton<IDebounceService, DebounceService>();
 

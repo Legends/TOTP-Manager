@@ -11,6 +11,7 @@ using System.Windows;
 using TOTP.Core.Services;
 using TOTP.Helper;
 using TOTP.Infrastructure;
+using TOTP.Infrastructure.Logging;
 using TOTP.Resources;
 using TOTP.Security;
 using TOTP.Security.Interfaces;
@@ -29,6 +30,7 @@ internal static class Program
     {
         try
         {
+            LoggingConfigurator.SetupEarlyLogger();
             StartApplication(args).GetAwaiter().GetResult();
         }
         catch (Exception ex)
@@ -36,6 +38,10 @@ internal static class Program
             Log.Fatal(ex, UI.ex_FatalError);
             Debug.WriteLine(ex.Message);
             Environment.Exit(-1);
+        }
+        finally
+        {
+            Log.CloseAndFlush();
         }
     }
 
@@ -64,35 +70,6 @@ internal static class Program
                 Host = host
             };
 
-            //// safe to call await here since the SynchronizationContext is established
-            //// and it will not cause deadlocks.  
-            //app.Startup += async (_, __) =>
-            //  {
-            //      await InitializeLogSwitchService();
-            //  };
-
-            //async Task InitializeLogSwitchService()
-            //{
-            //    try
-            //    {
-            //        var profileStore = host.Services.GetRequiredService<IGlobalProfileStore>();
-
-            //        var profile = await profileStore.LoadAsync();
-
-            //        if (profile != null)
-            //        {
-            //var logSwitchService = host.Services.GetRequiredService<ILogSwitchService>();
-            //var level = profile?.MinimumLogLevel ?? LogEventLevel.Information;
-            //logSwitchService.SetLevel(level);
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        // The error is handled right where it happens
-            //        Log.Error(ex, "Error initializing logSwitchService");
-            //    }
-            //}
-
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
 
@@ -103,16 +80,19 @@ internal static class Program
             {
                 try
                 {
-                    if (host != null) await host?.StopAsync();
+                    if (host != null)
+                    {
+                        // Stops all Background-Services (TOTP.UI.WPF: => Infrastructure.Services) gracefully.
+                        // Waits until they are stopped.
+                        // Dispose is called after that, which disposes all services.
+                        await host?.StopAsync();
+                    }
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex, UI.ex_UnexpectedError);
                 }
-                finally
-                {
-                    await Log.CloseAndFlushAsync();
-                }
+                
             };
 
             app.Run(mainWindow); // app.Run() is a blocking call. It is the message loop.
