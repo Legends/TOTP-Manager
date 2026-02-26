@@ -1,6 +1,6 @@
 namespace TOTP.Security.Interfaces;
 
-public interface IPasswordService
+public interface IMasterPasswordService
 {
     bool IsConfigured { get; }
     bool Verify(string password);

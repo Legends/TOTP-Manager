@@ -189,7 +189,7 @@ public static class BootLoader
                 services.AddSingleton<PasswordUnlockViewModel>();
 
                 services.AddSingleton<IHelloGate, HelloGate>();
-                services.AddSingleton<IPasswordService>(_ => new PasswordService(new PasswordRecord([], [], 100_000)));
+                services.AddSingleton<IMasterPasswordService>(_ => new MasterPasswordService(new PasswordRecord([], [], 100_000)));
 
                 services.AddSingleton<IMainViewModel, MainViewModel>();
                 services.AddSingleton<MainWindow>();

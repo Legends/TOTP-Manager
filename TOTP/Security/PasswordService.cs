@@ -4,13 +4,13 @@ using TOTP.Security.Models;
 
 namespace TOTP.Security;
 
-public sealed class PasswordService : IPasswordService
+public sealed class MasterPasswordService : IMasterPasswordService
 {
     private readonly PasswordRecord _record;
 
     public bool IsConfigured => _record.Hash.Length > 0;
 
-    public PasswordService(PasswordRecord record)
+    public MasterPasswordService(PasswordRecord record)
     {
         _record = record;
     }
