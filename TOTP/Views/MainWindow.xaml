@@ -540,7 +540,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                                       OverlayZIndex="20"
                                     >
                 <userControls:FlyoutHost.FlyoutContent>
-                    <views:AppSettingsFlyoutView  />
+                    <views:SettingsFlyoutView  />
                 </userControls:FlyoutHost.FlyoutContent>
             </userControls:FlyoutHost>
 

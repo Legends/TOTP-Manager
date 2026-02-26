@@ -2,9 +2,9 @@ using System.Windows.Controls;
 
 namespace TOTP.Views;
 
-public partial class AppSettingsFlyoutView : UserControl
+public partial class SettingsFlyoutView : UserControl
 {
-    public AppSettingsFlyoutView()
+    public SettingsFlyoutView()
     {
         InitializeComponent();
     }
