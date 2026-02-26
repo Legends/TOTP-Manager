@@ -189,7 +189,8 @@ public static class BootLoader
                 services.AddSingleton<PasswordUnlockViewModel>();
 
                 services.AddSingleton<IHelloGate, HelloGate>();
-                services.AddSingleton<IMasterPasswordService>(_ => new MasterPasswordService(new PasswordRecord([], [], 100_000)));
+                services.AddSingleton<IMasterPasswordService>(_ => new MasterPasswordService(new PasswordRecord([], [], 4,                   // Iterations (Argon2 Passes)
+                    128 * 1024)));
 
                 services.AddSingleton<IMainViewModel, MainViewModel>();
                 services.AddSingleton<MainWindow>();

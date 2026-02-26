@@ -547,7 +547,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
         </Grid>
 
         <!--   UnlockView.xaml   -->
-        <Grid Background="#CC0C1C33"
+        <Grid Background="#CC0C1C33" VerticalAlignment="Center"
               Visibility="{Binding IsUnlocked, Converter={StaticResource InverseBoolToVisibilityConverter}}">
             <ContentControl Content="{Binding UnlockViewModel}"
                             HorizontalAlignment="Center"

@@ -7,21 +7,26 @@
         <StackPanel>
 
             <!-- First-run setup chooser -->
-            <StackPanel Visibility="{Binding IsConfigured, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+            <StackPanel VerticalAlignment="Center" Margin="10" Visibility="{Binding IsConfigured, Converter={StaticResource InverseBoolToVisibilityConverter}}">
 
                 <!-- Phase 1: show chooser only if no gate selected yet -->
-                <StackPanel Visibility="{Binding HasSelectedSetupGate, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                <StackPanel 
+                    Visibility="{Binding HasSelectedSetupGate, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                     <TextBlock Text="Set up authorization"
                                FontSize="16"
                                FontWeight="Bold"
                                Margin="0,0,0,12"
                                Foreground="White"/>
 
-                    <Button Content="{xaml:Resx Key=ui_Use_Hello}"
+                    <Button Content="{xaml:Resx Key=ui_Use_Hello}" Width="Auto"
+                            HorizontalAlignment="Left"
+                            Padding="10,5,10,5"
                             Command="{Binding ChooseHelloCommand}"
                             Margin="0,0,0,8"/>
 
-                    <Button Content="{xaml:Resx Key=ui_Use_Password}"
+                    <Button Content="{xaml:Resx Key=ui_Use_Password}" Width="Auto"
+                            Padding="10,5,10,5"
+                            HorizontalAlignment="Left"
                             Command="{Binding ChoosePasswordCommand}"
                             Margin="0,0,0,8"/>
 

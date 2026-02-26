@@ -106,35 +106,30 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     {
         Message = string.Empty;
 
-        // defensive validation (always validate again on execute)
+        // 1. Defensive validation
         if (!CanSavePassword())
         {
             Message = "Passwords must match and not be empty.";
             return;
         }
 
-        await UnlockAsync();
+        // 2. Execute Unlock/Setup logic
+        var result = await UnlockAsync();
 
-        //// Persist / configure auth
-        var result = UnlockAsync(); //todo: remove, use async above
-        if (!result.IsCompletedSuccessfully)
+        // 3. Check if it actually succeeded
+        if (result != AuthorizationResult.Success)
         {
-            Message = "Failed to save password."; //  result.ErrorMessage ?? "Failed to save password.";
+            // Message is already set inside UnlockAsync, so we just exit
             return;
         }
 
-        //// Success: exit setup mode, clear secrets
+        // 4. Success: Clear secrets and exit setup mode
         IsSetup = false;
         Password = string.Empty;
         ConfirmPassword = string.Empty;
-        //AutoFocus = false;
+        Message = "Password saved successfully!";
     }
-
-    //private void State_Changed(object? sender, System.EventArgs e)
-    //{
-    //    //Password = null;
-
-    //}
+     
 
     public void EnterSetupMode()
     {
@@ -151,13 +146,14 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     /// </summary>
     /// <returns></returns>
 
-    private async Task UnlockAsync()
+    private async Task<AuthorizationResult> UnlockAsync()
     {
         Message = null;
 
         if (string.IsNullOrWhiteSpace(Password))
         {
             Message = "Password required!";
+            return AuthorizationResult.InvalidCredentials; // Or a specific "Empty" result
         }
 
         if (IsSetup)
@@ -166,23 +162,26 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
             if (cfg != AuthorizationResult.Success)
             {
                 Message = "Password setup failed (min length 8, and both fields must match).";
-                return;
+                return cfg;
             }
 
-            // after configuring: unlock immediately by verifying once
+            // After configuring: unlock immediately
             var unlock = await _auth.TryUnlockWithPasswordAsync(Password ?? "");
             if (unlock != AuthorizationResult.Success)
                 Message = "Password verification failed.";
-            return;
+
+            return unlock;
         }
 
         var result = await _auth.TryUnlockWithPasswordAsync(Password ?? "");
+
+        // Handle messaging based on result
         if (result == AuthorizationResult.InvalidCredentials)
             Message = "Wrong password.";
         else if (result != AuthorizationResult.Success)
             Message = "Unlock failed.";
 
-        //Password = string.Empty; // reset pwd field !
+        return result;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

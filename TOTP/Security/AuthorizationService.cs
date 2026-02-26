@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
 
@@ -9,14 +10,15 @@ public sealed class AuthorizationService : IAuthorizationService
 {
     private readonly IHelloGate _helloGate; // your existing hello abstraction
     private readonly IGlobalProfileStore _globalProfileStore;
-
+    private ILogger<AuthorizationService> _logger;
     private GlobalProfile _globalProfile = new();
     private AuthorizationProfile? _authorizationProfile;
 
     public AuthorizationState State { get; } = new();
 
-    public AuthorizationService(IHelloGate hello, IGlobalProfileStore store)
+    public AuthorizationService(IHelloGate hello, IGlobalProfileStore store, ILogger<AuthorizationService> logger)
     {
+        _logger = logger;
         _helloGate = hello;
         _globalProfileStore = store;
     }
@@ -66,27 +68,49 @@ public sealed class AuthorizationService : IAuthorizationService
 
     public async Task<AuthorizationResult> ConfigurePasswordAsync(string password, string confirmPassword)
     {
-        if (string.IsNullOrWhiteSpace(password) || password.Length < 3)
+        // 1. Sicherheits-Check: Passwort-Stärke
+        // Empfehlung: Erhöhe das Minimum auf mind. 8-12 Zeichen für eine TOTP-App
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 1)
             return AuthorizationResult.InvalidCredentials;
 
+        // 2. Passwort-Vergleich
         if (!string.Equals(password, confirmPassword, StringComparison.Ordinal))
             return AuthorizationResult.InvalidCredentials;
 
-        var (salt, hash) = PasswordHasher.Hash(password);
-
-        _authorizationProfile = new AuthorizationProfile
+        PasswordRecord? record = null;
+        try
         {
-            Gate = AuthorizationGateKind.Password,
-            PasswordSalt = salt,
-            PasswordHash = hash
-        };
+            // 3. Argon2id Hashing (gibt den kompletten Record zurück)
+            record = PasswordHasher.Hash(password);
 
-        _globalProfile = await _globalProfileStore.LoadAsync().ConfigureAwait(false) ?? _globalProfile;
-        _globalProfile.Authorization = _authorizationProfile;
-        await _globalProfileStore.SaveAsync(_globalProfile);//.ConfigureAwait(false);
-        State.SetProfile(_authorizationProfile);
+            // 4. Profil-Erstellung mit allen Metadaten (wichtig für spätere Verifizierung)
+            _authorizationProfile = new AuthorizationProfile
+            {
+                Gate = AuthorizationGateKind.Password,
+                PasswordSalt = record.Salt,
+                PasswordHash = record.Hash,
+                // Du solltest diese Felder in dein AuthorizationProfile-Model aufnehmen:
+                ArgonIterations = record.Iterations,
+                ArgonMemorySize = record.MemorySize
+            };
 
-        return AuthorizationResult.Success; // configured ok
+            // 5. Persistenz
+            _globalProfile = await _globalProfileStore.LoadAsync().ConfigureAwait(false) ?? _globalProfile;
+            _globalProfile.Authorization = _authorizationProfile;
+
+            await _globalProfileStore.SaveAsync(_globalProfile).ConfigureAwait(false);
+
+            State.SetProfile(_authorizationProfile);
+
+            return AuthorizationResult.Success;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Authentication failed");
+            // Logge den Fehler (optional)
+            return AuthorizationResult.InvalidCredentials; // Oder ein spezifischerer Fehler
+        }
+
     }
 
     public async Task<AuthorizationResult> TryUnlockWithHelloAsync()
