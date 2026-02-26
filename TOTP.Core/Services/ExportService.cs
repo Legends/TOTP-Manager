@@ -3,9 +3,9 @@ using NSec.Cryptography;
 using System.Text;
 using System.Text.Json;
 using TOTP.Core.Models;
-using TOTP.Core.Services.Security.Interfaces;
+using TOTP.Core.Services.Interfaces;
 
-namespace TOTP.Core.Services.Security;
+namespace TOTP.Core.Services;
 
 public sealed class ExportService : IExportService
 {
@@ -74,10 +74,10 @@ public sealed class ExportService : IExportService
             int headerSize = MagicBytes.Length + SaltSize + nonceSize;
 
             if (fileBytes.Length < headerSize + _aead.TagSize)
-                return Result.Fail("Datei ist beschädigt oder zu klein.");
+                return Result.Fail("Invalid file");
 
             if (!fileBytes.AsSpan(0, MagicBytes.Length).SequenceEqual(MagicBytes))
-                return Result.Fail("Dies ist keine gültige TOTP-Exportdatei.");
+                return Result.Fail("No valid TOTP - Export file");
 
             var salt = fileBytes.AsSpan(MagicBytes.Length, SaltSize);
             var nonce = fileBytes.AsSpan(MagicBytes.Length + SaltSize, nonceSize);
@@ -89,7 +89,7 @@ public sealed class ExportService : IExportService
             byte[] decryptedBytes = new byte[encryptedData.Length - _aead.TagSize];
 
             if (!_aead.Decrypt(key, nonce, default, encryptedData, decryptedBytes))
-                return Result.Fail("Entschlüsselung fehlgeschlagen. Passwort falsch oder Datei manipuliert.");
+                return Result.Fail("Decryption failed"); // file manipulated or wrong password
 
             var json = Encoding.UTF8.GetString(decryptedBytes);
             var result = JsonSerializer.Deserialize<List<OtpEntry>>(json);
@@ -98,11 +98,11 @@ public sealed class ExportService : IExportService
         }
         catch (JsonException)
         {
-            return Result.Fail("Die Datei konnte entschlüsselt werden, aber der Inhalt ist kein gültiges JSON.");
+            return Result.Fail("Decryption failed, no valid JSON found.");
         }
         catch (Exception ex)
         {
-            return Result.Fail(new Error("Ein unerwarteter Fehler ist aufgetreten.").CausedBy(ex));
+            return Result.Fail(new Error("Unknown error during import").CausedBy(ex));
         }
         finally
         {

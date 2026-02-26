@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TOTP.Core.Models;
 
-namespace TOTP.Core.Services.Security.Interfaces;
+namespace TOTP.Core.Services.Interfaces;
 
 public interface IExportService
 {
