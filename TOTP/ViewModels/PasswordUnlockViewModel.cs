@@ -26,12 +26,6 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         get => _isSetup;
         private set { _isSetup = value; OnPropertyChanged(); }
     }
-    private string _password = string.Empty;
-    public string Password
-    {
-        get => _password;
-        set { _password = value ?? string.Empty; OnPropertyChanged(); SavePasswordCommand.RaiseCanExecuteChanged(); }
-    }
 
     private string _confirmPassword = string.Empty;
     public string ConfirmPassword
@@ -40,12 +34,36 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         set { _confirmPassword = value ?? string.Empty; OnPropertyChanged(); SavePasswordCommand.RaiseCanExecuteChanged(); }
     }
 
+    private string _password = string.Empty;
+    public string Password
+    {
+        get => _password;
+        set
+        {
+            Message = string.Empty;
+            _password = value ?? string.Empty;
+            OnPropertyChanged();
+            SavePasswordCommand.RaiseCanExecuteChanged();
+        }
+    }
+
+
     private string? _message;
     public string? Message
     {
         get => _message;
-        set { _message = value; OnPropertyChanged(); }
+        set
+        {
+            if (Message == value)
+                return;
+
+            _message = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasMessage));
+        }
     }
+
+    public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
 
     public ICommand UnlockCommand { get; }
 
@@ -98,10 +116,10 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         await UnlockAsync();
 
         //// Persist / configure auth
-        var result = UnlockAsync(); // implement in your service
+        var result = UnlockAsync(); //todo: remove, use async above
         if (!result.IsCompletedSuccessfully)
         {
-            Message =  "Failed to save password."; //  result.ErrorMessage ?? "Failed to save password.";
+            Message = "Failed to save password."; //  result.ErrorMessage ?? "Failed to save password.";
             return;
         }
 
@@ -136,6 +154,11 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     private async Task UnlockAsync()
     {
         Message = null;
+
+        if (string.IsNullOrWhiteSpace(Password))
+        {
+            Message = "Password required!";
+        }
 
         if (IsSetup)
         {
