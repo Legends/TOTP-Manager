@@ -202,12 +202,12 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    private AccountViewModel _editingSecret;
+    private OtpViewModel _editingSecret;
 
     /// <summary>
     /// Can contain a new secret (in add mode) or a copy of the selected secret (in edit mode)
     /// </summary>
-    public AccountViewModel? CurrentSecretBeingEditedOrAdded
+    public OtpViewModel? CurrentSecretBeingEditedOrAdded
     {
         get => _editingSecret;
         set { _editingSecret = value; OnPropertyChanged(); }
@@ -327,9 +327,9 @@ public class MainViewModel : IMainViewModel
 
     public bool IsContextmenuOpen { get; set; }
 
-    private AccountViewModel _selectedAccount = null!;
+    private OtpViewModel _selectedAccount = null!;
 
-    public AccountViewModel? SelectedAccount
+    public OtpViewModel? SelectedAccount
     {
         get => _selectedAccount;
         set
@@ -362,7 +362,7 @@ public class MainViewModel : IMainViewModel
     }
 
 
-    public AccountViewModel? PreviousVersion { get; set; }
+    public OtpViewModel? PreviousVersion { get; set; }
 
     private bool _isSearchVisible;
 
@@ -439,8 +439,8 @@ public class MainViewModel : IMainViewModel
 
     #region ### ObservableCollections ###
 
-    private ObservableCollection<AccountViewModel> _allAccounts;
-    public ObservableCollection<AccountViewModel> AllAccounts
+    private ObservableCollection<OtpViewModel> _allAccounts;
+    public ObservableCollection<OtpViewModel> AllAccounts
     {
         get => _allAccounts;
         private set
@@ -519,7 +519,7 @@ public class MainViewModel : IMainViewModel
         var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
         _globalProfileStore = new FileGlobalProfileStore(resolvedProfilePath);
 
-        AllAccounts = new ObservableCollection<AccountViewModel>();
+        AllAccounts = new ObservableCollection<OtpViewModel>();
         //RebuildSecretsView();
         UnlockViewModel = unlockVm;
 
@@ -615,7 +615,7 @@ public class MainViewModel : IMainViewModel
     public ICommand DoubleClickCommand { get; private set; } = null!;
     public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
-    public AsyncCommand<AccountViewModel> RowSelectionChangedCommand { get; private set; } = null!;
+    public AsyncCommand<OtpViewModel> RowSelectionChangedCommand { get; private set; } = null!;
 
     #endregion REGION COMMANDS
 
@@ -629,21 +629,21 @@ public class MainViewModel : IMainViewModel
 
         OpenSettingsCommand = new RelayCommand(OpenSettingsView);
 
-        CopyCodeCommand = new RelayCommand<AccountViewModel>(model => CopyTotpCodeToClipboard());
-        GenerateQrCommand = new RelayCommand<AccountViewModel>(model => GenerateQrCodeImage());
+        CopyCodeCommand = new RelayCommand<OtpViewModel>(model => CopyTotpCodeToClipboard());
+        GenerateQrCommand = new RelayCommand<OtpViewModel>(model => GenerateQrCodeImage());
         ExportSecretsCommand = new AsyncCommand(ExportSecretsToFile);
         ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);
 
-        OpenFlyoutEditModeCommand = new RelayCommand<AccountViewModel>(OpenFlyoutEditMode);
+        OpenFlyoutEditModeCommand = new RelayCommand<OtpViewModel>(OpenFlyoutEditMode);
         OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
         SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateAccountAsync);
         CancelFlyoutCommand = new RelayCommand(CancelFlyout);
 
-        RowSelectionChangedCommand = new AsyncCommand<AccountViewModel>(OnRowSelectionChangedAsync);
-        DeleteSecretCommand = new AsyncCommand<AccountViewModel>(DeleteAccountAsync, null, _logger);
-        BeginEditCommand = new RelayCommand<AccountViewModel>(OnBeginEdit);
-        EndEditCommand = new AsyncCommand<AccountViewModel>(OnEndEditAsync);
-        DoubleClickCommand = new RelayCommand<AccountViewModel>(OnDoubleClick);
+        RowSelectionChangedCommand = new AsyncCommand<OtpViewModel>(OnRowSelectionChangedAsync);
+        DeleteSecretCommand = new AsyncCommand<OtpViewModel>(DeleteAccountAsync, null, _logger);
+        BeginEditCommand = new RelayCommand<OtpViewModel>(OnBeginEdit);
+        EndEditCommand = new AsyncCommand<OtpViewModel>(OnEndEditAsync);
+        DoubleClickCommand = new RelayCommand<OtpViewModel>(OnDoubleClick);
 
         ToggleSearchBoxCommand = new RelayCommand(() =>
         {
@@ -771,7 +771,7 @@ public class MainViewModel : IMainViewModel
     {
         if (e.NewItems != null)
         {
-            foreach (AccountViewModel item in e.NewItems)
+            foreach (OtpViewModel item in e.NewItems)
             {
                 item.SetDuplicateCheck(DuplicateCheck);
 
@@ -779,7 +779,7 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    private ValidationError DuplicateCheck(AccountViewModel si)
+    private ValidationError DuplicateCheck(OtpViewModel si)
     {
         return UiValidation.PlatformNameDuplicateExists(si.Issuer, AllAccounts.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
     }
@@ -855,7 +855,7 @@ public class MainViewModel : IMainViewModel
             //result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
 
             var allAccounts = result.Value ?? [];
-            AllAccounts = new ObservableCollection<AccountViewModel>((allAccounts.Select(item => item.ToViewModel()) ?? []));
+            AllAccounts = new ObservableCollection<OtpViewModel>((allAccounts.Select(item => item.ToViewModel()) ?? []));
 
             foreach (var item in AllAccounts)
             {
@@ -884,7 +884,7 @@ public class MainViewModel : IMainViewModel
         {
             IsAddMode = true;
             IsEditAddFlyoutOpen = true;
-            CurrentSecretBeingEditedOrAdded = new AccountViewModel(Guid.NewGuid(), null, null, null);
+            CurrentSecretBeingEditedOrAdded = new OtpViewModel(Guid.NewGuid(), null, null, null);
         }
         catch (Exception ex)
         {
@@ -900,7 +900,7 @@ public class MainViewModel : IMainViewModel
     /// Opens the flyout panel and sets IsAddMode to false
     /// </summary>
     /// <param name="item"></param>
-    public void OpenFlyoutEditMode(AccountViewModel item)
+    public void OpenFlyoutEditMode(OtpViewModel item)
     {
         if (item == null) return;
 
@@ -929,7 +929,7 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    internal async Task DeleteAccountAsync(AccountViewModel item)
+    internal async Task DeleteAccountAsync(OtpViewModel item)
     {
         try
         {
@@ -971,7 +971,7 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     /// <param name="updated"></param>
     /// <returns></returns>
-    public async Task UpdateAccountAsync(AccountViewModel updated)
+    public async Task UpdateAccountAsync(OtpViewModel updated)
     {
         try
         {
@@ -1077,7 +1077,7 @@ public class MainViewModel : IMainViewModel
     /// SfDataGridEditingBehavior: Triggered by SfDataGrid's cell edit begin event
     /// </summary>
     /// <param name="item"></param>
-    private void OnBeginEdit(AccountViewModel item)
+    private void OnBeginEdit(OtpViewModel item)
     {
         PreviousVersion = item.Copy();
         item.IsBeingEdited = true;
@@ -1092,14 +1092,14 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    private async Task OnEndEditAsync(AccountViewModel item)
+    private async Task OnEndEditAsync(OtpViewModel item)
     {
         if (item.ID != PreviousVersion.ID)
             return;
 
         item.IsBeingEdited = false;
 
-        if (!AccountViewModelValueComparer.Default.Equals(item, PreviousVersion))
+        if (!OtpViewModelValueComparer.Default.Equals(item, PreviousVersion))
         {
             //var (isValid, error) = SecretsDAL.IsValidSecretItem(item.ToDomain());
             var validation = UiValidation.Use(item).ValidateAll();
@@ -1132,7 +1132,7 @@ public class MainViewModel : IMainViewModel
     /// Triggered by SfDataGrid's Row MouseDoubleClick event
     /// </summary>
     /// <param name="item"></param>
-    private void OnDoubleClick(AccountViewModel item)
+    private void OnDoubleClick(OtpViewModel item)
     {
         _isDoubleClick = true;
         Debug.WriteLine("***** _isDoubleClick = true;  ***");
@@ -1160,7 +1160,7 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     /// <param name="selectedSecretItem"></param>
     /// <returns></returns>
-    public async Task OnRowSelectionChangedAsync(AccountViewModel selectedSecretItem)
+    public async Task OnRowSelectionChangedAsync(OtpViewModel selectedSecretItem)
     {
         if (SelectedAccount != null && IsInlineEditing && SelectedAccount.ID != selectedSecretItem.ID)
             IsInlineEditing = false;
@@ -1225,7 +1225,7 @@ public class MainViewModel : IMainViewModel
     #region ### TOTP Code Generation ###
 
 
-    public AccountViewModel ComputeTotpCode(AccountViewModel item, out Totp totpInstance)
+    public OtpViewModel ComputeTotpCode(OtpViewModel item, out Totp totpInstance)
     {
         if (!UiValidation.IsValidBase32Format(item.Secret))
             throw new FormatException($"Secret is invalid Base32 format, supplied to {nameof(ComputeTotpCode)}");
@@ -1266,7 +1266,7 @@ public class MainViewModel : IMainViewModel
 
     public int ElapsedSeconds => PeriodSeconds - RemainingSeconds;
 
-    AccountViewModel _lastSelected;
+    OtpViewModel _lastSelected;
     private readonly SettingsViewModelFactory _settingsFactory;
 
     private void OnRowSelectionImplementation()
@@ -1328,7 +1328,7 @@ public class MainViewModel : IMainViewModel
         }, null, dueTime: 0, period: 800); // 20 fps tick, UI updates only once/sec due to coalesce
     }
 
-    private BitmapImage GenerateQRCodeImage(AccountViewModel item)
+    private BitmapImage GenerateQRCodeImage(OtpViewModel item)
     {
         var normalizedSecret = OtpauthParser.NormalizeBase32SecretForUri(item.Secret);
         // For testing:
@@ -1365,7 +1365,7 @@ public class MainViewModel : IMainViewModel
         if (string.IsNullOrWhiteSpace(SearchText))
             return true; // no filter => return all rows
 
-        return obj is AccountViewModel vm && (vm.Issuer?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+        return obj is OtpViewModel vm && (vm.Issuer?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     /// <summary>
@@ -1382,7 +1382,7 @@ public class MainViewModel : IMainViewModel
             return true;
 
         Debug.WriteLine("---  DoFilterGrid   ----");
-        return obj is AccountViewModel vm && (vm.Issuer?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+        return obj is OtpViewModel vm && (vm.Issuer?.IndexOf(SearchText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     /// <summary>
@@ -1445,7 +1445,7 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-            var newAccountItem = new AccountViewModel(Guid.NewGuid(), otp.Issuer, otp.SecretBase32, otp.Label);
+            var newAccountItem = new OtpViewModel(Guid.NewGuid(), otp.Issuer, otp.SecretBase32, otp.Label);
 
             #region ### validation ###
 
@@ -1488,7 +1488,7 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    private UiValidation ValidateAccountItem(AccountViewModel newAccountItem)
+    private UiValidation ValidateAccountItem(OtpViewModel newAccountItem)
     {
         ArgumentNullException.ThrowIfNull(newAccountItem);
         return UiValidation.Use(newAccountItem, AllAccounts).ValidateAll().PlatformNameDuplicateExists();

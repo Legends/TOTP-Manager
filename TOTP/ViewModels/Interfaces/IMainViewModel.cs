@@ -15,7 +15,7 @@ namespace TOTP.ViewModels.Interfaces;
 public interface IMainViewModel : INotifyPropertyChanged
 {
     bool IsBusy { get; set; }
-    ObservableCollection<AccountViewModel> AllAccounts { get; }
+    ObservableCollection<OtpViewModel> AllAccounts { get; }
     IGridFilterRefresher GridFilterRefresher { get; set; }
     Action? RequestGridFilterRefresh { get; set; }
     bool DoFilterGrid(object obj);
@@ -26,10 +26,10 @@ public interface IMainViewModel : INotifyPropertyChanged
     ICommand EndEditCommand { get; }
     ICommand DoubleClickCommand { get; }
     void OpenFlyoutAddMode();
-    AccountViewModel SelectedAccount { get; set; }
+    OtpViewModel SelectedAccount { get; set; }
     bool IsContextmenuOpen { get; set; }
     Task InitializeMainViewAsync(IMainWindow? mainWindow);
-    Task OnRowSelectionChangedAsync(AccountViewModel item);
+    Task OnRowSelectionChangedAsync(OtpViewModel item);
     bool IsGridEditing { get; set; }
     bool IsInlineEditing { get; set; }
     bool IsSecretVisible { get; set; }

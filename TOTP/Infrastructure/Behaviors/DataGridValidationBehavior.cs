@@ -26,7 +26,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
     private void OnCurrentCellBeginEdit(object? sender, CurrentCellBeginEditEventArgs e)
     {
-        if (AssociatedObject.CurrentItem is AccountViewModel vm)
+        if (AssociatedObject.CurrentItem is OtpViewModel vm)
             vm.EditingSecret = vm.Secret;
 
     }
@@ -42,14 +42,14 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
     private void OnCurrentCellEndEdit(object? sender, CurrentCellEndEditEventArgs e)
     {
-        if (AssociatedObject.CurrentItem is not AccountViewModel vm)
+        if (AssociatedObject.CurrentItem is not OtpViewModel vm)
             return;
 
     }
 
     private void OnRowValidating(object? sender, RowValidatingEventArgs e)
     {
-        if (e.RowData is not AccountViewModel item) return;
+        if (e.RowData is not OtpViewModel item) return;
 
         // Validate Secret (or anything else that uses a template editor)
         //var result = SecretValidator.ValidateSecret(item.Secret);
@@ -63,10 +63,10 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
             // IMPORTANT: use the column MappingName exactly ("Secret")
             var msg = ValidationMessageMapper.ToMessage(result);
-            if (!e.ErrorMessages.ContainsKey(nameof(AccountViewModel.Secret)))
-                e.ErrorMessages.Add(nameof(AccountViewModel.Secret), msg);
+            if (!e.ErrorMessages.ContainsKey(nameof(OtpViewModel.Secret)))
+                e.ErrorMessages.Add(nameof(OtpViewModel.Secret), msg);
             else
-                e.ErrorMessages[nameof(AccountViewModel.Secret)] = msg;
+                e.ErrorMessages[nameof(OtpViewModel.Secret)] = msg;
         }
 
         if (result == ValidationError.None)
@@ -77,7 +77,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
     private void OnCurrentCellValidating(object? sender, CurrentCellValidatingEventArgs e)
     {
-        if (e.RowData is not AccountViewModel item)
+        if (e.RowData is not OtpViewModel item)
             return;
 
         string? error = null;
@@ -85,14 +85,14 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
         switch (e.Column.MappingName)
         {
-            case nameof(AccountViewModel.Issuer):
+            case nameof(OtpViewModel.Issuer):
                 //UiValidation.Use(item).ValidatePlatform()
                 validationResult = UiValidation.ValidatePlatformName(e.NewValue?.ToString());
                 error = ValidationMessageMapper.ToMessage(validationResult);
 
                 if (validationResult == ValidationError.None)
                 {
-                    var accountList = (AssociatedObject.ItemsSource as IEnumerable<AccountViewModel>)?
+                    var accountList = (AssociatedObject.ItemsSource as IEnumerable<OtpViewModel>)?
                         .Where(sivm => !ReferenceEquals(sivm, item))
                         .Select(sivm => sivm.ToDomain())
                         .ToList();
@@ -105,7 +105,7 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
 
                 break;
 
-            case nameof(AccountViewModel.Secret):
+            case nameof(OtpViewModel.Secret):
 
                 validationResult = UiValidation.ValidateSecretValue(e.NewValue?.ToString());
                 error = ValidationMessageMapper.ToMessage(validationResult);

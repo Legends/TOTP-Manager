@@ -40,7 +40,7 @@ public sealed class OtpDAL : IOtpDAL
         await Semaphore.WaitAsync();
         try
         {
-            var list = await LoadAccountsFromFileAsync();
+            var list = await LoadOtpEntriesFromFileAsync();
             return Result.Ok(list);
         }
         catch (Exception ex)
@@ -56,7 +56,7 @@ public sealed class OtpDAL : IOtpDAL
         await Semaphore.WaitAsync();
         try
         {
-            var list = await LoadAccountsFromFileAsync();
+            var list = await LoadOtpEntriesFromFileAsync();
 
             if (list.Any(x => x.Issuer == newItem.Issuer && x.AccountName == newItem.AccountName))
                 return new StatusError(OperationStatus.AlreadyExists);
@@ -79,7 +79,7 @@ public sealed class OtpDAL : IOtpDAL
         await Semaphore.WaitAsync();
         try
         {
-            var list = await LoadAccountsFromFileAsync();
+            var list = await LoadOtpEntriesFromFileAsync();
             var existing = list.FirstOrDefault(x => x.ID == updated.ID);
 
             if (existing == null)
@@ -99,13 +99,13 @@ public sealed class OtpDAL : IOtpDAL
         finally { Semaphore.Release(); }
     }
 
-    public async Task<Result> DeleteAccountAsync(OtpEntry account)
+    public async Task<Result> DeleteAsync(OtpEntry otp)
     {
         await Semaphore.WaitAsync();
         try
         {
-            var list = await LoadAccountsFromFileAsync();
-            var item = list.FirstOrDefault(x => x.ID == account.ID);
+            var list = await LoadOtpEntriesFromFileAsync();
+            var item = list.FirstOrDefault(x => x.ID == otp.ID);
 
             if (item == null)
                 return new StatusError(OperationStatus.NotFound);
@@ -117,7 +117,7 @@ public sealed class OtpDAL : IOtpDAL
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in {Method}", nameof(DeleteAccountAsync));
+            _logger.LogError(ex, "Error in {Method}", nameof(DeleteAsync));
             return new StatusError(OperationStatus.DeleteFailed);
         }
         finally { Semaphore.Release(); }
@@ -130,7 +130,7 @@ public sealed class OtpDAL : IOtpDAL
         {
             // Decrypts with current DEK and immediately re-encrypts.
             // Useful if the user switches authorization gates.
-            var list = await LoadAccountsFromFileAsync();
+            var list = await LoadOtpEntriesFromFileAsync();
             await WriteEncryptedFileAsync(list);
             return Result.Ok();
         }
@@ -146,7 +146,7 @@ public sealed class OtpDAL : IOtpDAL
 
     #region ### PRIVATE ENCRYPTION LOGIC ###
 
-    private async Task<List<OtpEntry>> LoadAccountsFromFileAsync()
+    private async Task<List<OtpEntry>> LoadOtpEntriesFromFileAsync()
     {
         if (!File.Exists(_secretsPath) || new FileInfo(_secretsPath).Length == 0)
             return [];

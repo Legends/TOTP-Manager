@@ -11,7 +11,7 @@ using TOTP.Validation;
 
 namespace TOTP.ViewModels;
 
-public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewModel>, IEditableObject, IDataErrorInfo
+public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IEditableObject, IDataErrorInfo
 {
 
     #region Properties
@@ -108,14 +108,14 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
 
     #endregion
 
-    private Func<AccountViewModel, ValidationError>? _duplicateCheck;
+    private Func<OtpViewModel, ValidationError>? _duplicateCheck;
 
-    public void SetDuplicateCheck(Func<AccountViewModel, ValidationError> duplicateCheck)
+    public void SetDuplicateCheck(Func<OtpViewModel, ValidationError> duplicateCheck)
         => _duplicateCheck = duplicateCheck;
 
 
     [JsonConstructor]
-    public AccountViewModel(Guid id, string issuer, string secret, string? account = null)
+    public OtpViewModel(Guid id, string issuer, string secret, string? account = null)
     {
         ID = id;
         Issuer = issuer;
@@ -153,9 +153,9 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
         Debug.WriteLine("SecretItemViewModel - EndEdit() Called");
     }
 
-    public AccountViewModel? Copy()
+    public OtpViewModel? Copy()
     {
-        return this.MemberwiseClone() as AccountViewModel;
+        return this.MemberwiseClone() as OtpViewModel;
     }
 
     #endregion
@@ -206,8 +206,8 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
 
     #region IEquatable & Overrides
 
-    public bool Equals(AccountViewModel? other) => other is not null && ID == other.ID;
-    public override bool Equals(object? obj) => obj is AccountViewModel o && Equals(o);
+    public bool Equals(OtpViewModel? other) => other is not null && ID == other.ID;
+    public override bool Equals(object? obj) => obj is OtpViewModel o && Equals(o);
     public override int GetHashCode() => ID.GetHashCode();
 
     #endregion
@@ -244,7 +244,7 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
 
     #endregion
 
-    public void UpdateSelf(AccountViewModel changed)
+    public void UpdateSelf(OtpViewModel changed)
     {
         this.Issuer = changed.Issuer;
         this.Secret = changed.Secret;
@@ -318,18 +318,18 @@ public class AccountViewModel : INotifyPropertyChanged, IEquatable<AccountViewMo
 /// Compares SecretItemViewModel by value (Platform, Account, Secret),
 /// case-insensitive, ignoring whitespace/padding in Secret.
 /// </summary>
-public sealed class AccountViewModelValueComparer : IEqualityComparer<AccountViewModel>
+public sealed class OtpViewModelValueComparer : IEqualityComparer<OtpViewModel>
 {
-    public static readonly AccountViewModelValueComparer Default = new();
+    public static readonly OtpViewModelValueComparer Default = new();
 
-    public bool Equals(AccountViewModel? x, AccountViewModel? y)
+    public bool Equals(OtpViewModel? x, OtpViewModel? y)
     {
         return ReferenceEquals(x, y) || x is not null && y is not null && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.Issuer), Norm(y.Issuer))
             && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.AccountName), Norm(y.AccountName))
             && SecretsEqual(x.Secret, y.Secret);
     }
 
-    public int GetHashCode(AccountViewModel obj)
+    public int GetHashCode(OtpViewModel obj)
     {
         var hc = new HashCode();
 

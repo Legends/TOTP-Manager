@@ -12,17 +12,17 @@ public record ValidationResult(bool IsValid, ValidationError Error);
 internal class UiValidation
 {
 
-    private readonly AccountViewModel _item;
-    private IEnumerable<AccountViewModel>? _source;
+    private readonly OtpViewModel _item;
+    private IEnumerable<OtpViewModel>? _source;
     private readonly List<ValidationError> _errors = new();
 
-    public UiValidation(AccountViewModel item, IEnumerable<AccountViewModel>? source = null)
+    public UiValidation(OtpViewModel item, IEnumerable<OtpViewModel>? source = null)
     {
         _item = item;
         _source = source;
     }
 
-    public static UiValidation Use(AccountViewModel item, IEnumerable<AccountViewModel>? source = null)
+    public static UiValidation Use(OtpViewModel item, IEnumerable<OtpViewModel>? source = null)
     {
         return new UiValidation(item, source);
     }
@@ -70,7 +70,7 @@ internal class UiValidation
     /// <param name="source">The source item list</param>
     /// <param name="excludeSelf"></param>
     /// <returns></returns>
-    public UiValidation PlatformNameDuplicateExists(IEnumerable<AccountViewModel>? source = null, bool excludeSelf = false)
+    public UiValidation PlatformNameDuplicateExists(IEnumerable<OtpViewModel>? source = null, bool excludeSelf = false)
     {
         var src = source ?? _source;
         ArgumentNullException.ThrowIfNull(src, nameof(source));

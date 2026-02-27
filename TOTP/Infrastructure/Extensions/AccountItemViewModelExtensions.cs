@@ -2,10 +2,10 @@
 
 namespace TOTP.Infrastructure.Extensions
 {
-    public static class AccountItemViewModelExtensions
+    public static class OtpViewModelExtensions
     {
-        public static bool ValueEquals(this AccountViewModel a, AccountViewModel b)
-            => AccountViewModelValueComparer.Default.Equals(a, b);
+        public static bool ValueEquals(this OtpViewModel a, OtpViewModel b)
+            => OtpViewModelValueComparer.Default.Equals(a, b);
     }
 
 }

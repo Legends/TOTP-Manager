@@ -11,7 +11,7 @@ public interface IOtpDAL : IDisposable
     Task<Result<List<OtpEntry>>> GetAllAsync();
     Task<Result> AddNewAsync(OtpEntry newItem);
     Task<Result> UpdateAsync(OtpEntry updated);
-    Task<Result> DeleteAccountAsync(OtpEntry account);
+    Task<Result> DeleteAsync(OtpEntry otp);
     Task<Result> BackupOtpEntriesStorageFileAsync();
     // Added for professional key rotation
     Task<Result> ReEncryptStorageAsync();
