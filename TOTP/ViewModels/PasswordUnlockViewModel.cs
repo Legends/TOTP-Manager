@@ -164,11 +164,6 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
                 Message = "Password setup failed (min length 8, and both fields must match).";
             }
 
-            //// After configuring: unlock immediately
-            //var unlock = await _auth.TryUnlockWithPasswordAsync(Password ?? "");
-            //if (unlock != AuthorizationResult.Success)
-            //    Message = "Password verification failed.";
-
             return cfg;
         }
 
