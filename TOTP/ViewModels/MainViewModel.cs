@@ -1392,7 +1392,7 @@ public class MainViewModel : IMainViewModel
     {
         try
         {
-            GridFilterRefresher.Refresh();
+            GridFilterRefresher?.Refresh();
         }
         catch (Exception ex)
         {
