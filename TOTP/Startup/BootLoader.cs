@@ -25,6 +25,7 @@ using TOTP.Security.Models;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
+using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
 using static TOTP.ViewModels.SettingsViewModel;
 
@@ -81,7 +82,7 @@ public static class BootLoader
 
                 #region ### BACKGROUND SERVICES  ###
 
-                services.AddHostedService<SessionLockService>();
+                services.AddHostedService<SessionLockBackgroundService>();
 
                 // 1. Detect if a CLI override exists
                 var cliLevel = LoggingConfigurator.GetLevelFromArgs(args);
@@ -90,38 +91,43 @@ public static class BootLoader
 
                 // 3. Register the service with the detected values
                 services.AddSingleton<ILogSwitchService>(sp => new LogSwitchService(initialLevel, hasOverride));
-                services.AddHostedService<LogSwitchInitializationService>();
-                services.AddHostedService<BackupService>();
+                services.AddHostedService<LogSwitchInitializationBackgroundService>();
+                services.AddHostedService<BackupBackgroundService>();
 
                 #region  ### IdleMonitoringService ###
 
 
                 // 1.Register the concrete class as a Singleton
-                services.AddSingleton<IdleMonitoringService>();
+                services.AddSingleton<IdleMonitoringBackgroundService>();
 
                 // 2. Tell the Host to run it as a BackgroundService 
                 // (We resolve the singleton we just registered)
-                services.AddHostedService(sp => sp.GetRequiredService<IdleMonitoringService>());
+                services.AddHostedService(sp => sp.GetRequiredService<IdleMonitoringBackgroundService>());
 
                 // 3. Tell the DI that IActivityHeartbeat points to that SAME singleton instance
-                services.AddSingleton<IActivityHeartbeat>(sp => sp.GetRequiredService<IdleMonitoringService>());
+                services.AddSingleton<IActivityHeartbeat>(sp => sp.GetRequiredService<IdleMonitoringBackgroundService>());
 
 
                 #endregion
 
                 #region  ### ClipboardService ###
                 // Register as a singleton so it can be injected as IClipboardService
-                services.AddSingleton<ClipboardService>();
+                services.AddSingleton<ClipboardBackgroundService>();
 
                 // Map the Interface to the singleton
-                services.AddSingleton<IClipboardService>(sp => sp.GetRequiredService<ClipboardService>());
+                services.AddSingleton<IClipboardService>(sp => sp.GetRequiredService<ClipboardBackgroundService>());
 
                 // Register the singleton as a HostedService so it runs ExecuteAsync
-                services.AddHostedService(sp => sp.GetRequiredService<ClipboardService>());
+                services.AddHostedService(sp => sp.GetRequiredService<ClipboardBackgroundService>());
 
                 #endregion
                 #endregion
 
+                // Register as Singleton/Transient via Interface
+                services.AddSingleton<IKeyWrappingService, KeyWrappingService>();
+
+                // SecurityContext MUST be a Singleton to share the state across the app
+                services.AddSingleton<ISecurityContext, SecurityContext>();
 
                 // infra
                 services.AddSingleton<IDelayService, DelayService>();

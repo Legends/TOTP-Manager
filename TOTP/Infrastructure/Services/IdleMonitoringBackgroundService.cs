@@ -11,18 +11,18 @@ using Microsoft.Extensions.Logging;
 using System.Threading;
 using TOTP.Security.Interfaces;
 
-public sealed class IdleMonitoringService : BackgroundService, IActivityHeartbeat
+public sealed class IdleMonitoringBackgroundService : BackgroundService, IActivityHeartbeat
 {
     private readonly IAuthorizationService _authService;
     private readonly IGlobalProfileStore _profileStore;
-    private readonly ILogger<IdleMonitoringService> _logger;
+    private readonly ILogger<IdleMonitoringBackgroundService> _logger;
 
     public DateTime LastActivity { get; private set; } = DateTime.UtcNow;
 
-    public IdleMonitoringService(
+    public IdleMonitoringBackgroundService(
         IAuthorizationService authService,
         IGlobalProfileStore profileStore,
-        ILogger<IdleMonitoringService> logger)
+        ILogger<IdleMonitoringBackgroundService> logger)
     {
         _authService = authService;
         _profileStore = profileStore;

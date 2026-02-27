@@ -7,21 +7,22 @@ using System.Windows;
 using Serilog;
 using Serilog.Events;
 using TOTP.Core.Services;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Security.Interfaces;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Infrastructure.Services;
 
-public sealed class ClipboardService : BackgroundService, IClipboardService
+public sealed class ClipboardBackgroundService : BackgroundService, IClipboardService
 {
-    private readonly ILogger<ClipboardService> _logger;
+    private readonly ILogger<ClipboardBackgroundService> _logger;
     private readonly IGlobalProfileStore _profileStore;
 
     private string? _lastCopiedText;
     private DateTime? _clearAt;
     private readonly object _lock = new();
     private ILogSwitchService _lss;
-    public ClipboardService(ILogger<ClipboardService> logger, IGlobalProfileStore profileStore, ILogSwitchService lss)
+    public ClipboardBackgroundService(ILogger<ClipboardBackgroundService> logger, IGlobalProfileStore profileStore, ILogSwitchService lss)
     {
         _lss = lss;
         _logger = logger;

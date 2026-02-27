@@ -8,9 +8,11 @@ using TOTP.Core.Enums;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
 using TOTP.Services.Interfaces;
+using TOTP.Views.Interfaces;
 
 namespace TOTP.Security;
 
+ 
 public sealed class MainViewSessionController : IMainViewSessionController
 {
     private readonly IAuthorizationService _authorization;
@@ -21,10 +23,10 @@ public sealed class MainViewSessionController : IMainViewSessionController
     private Action? _onLocked;
     private IMainWindow? _attachedWindow;
 
-    public AppSessionState SessionState { get; private set; } = AppSessionState.Locked;
-    public bool IsUnlocked => SessionState == AppSessionState.Unlocked;
+    public AppSessionLockState SessionState { get; private set; } = AppSessionLockState.Locked;
+    public bool IsUnlocked => SessionState == AppSessionLockState.Unlocked;
 
-    public event EventHandler<AppSessionState>? SessionStateChanged;
+    public event EventHandler<AppSessionLockState>? SessionStateChanged;
 
     public ICommand WindowStateChangedCommand { get; }
     public ICommand DetachWindowCommand { get; }
@@ -55,20 +57,20 @@ public sealed class MainViewSessionController : IMainViewSessionController
         try
         {
             AttachWindow(mainWindow);
-            SetSessionState(AppSessionState.Unlocking);
+            SetSessionState(AppSessionLockState.Unlocking);
 
             await _authorization.InitializeAsync();
 
             var startupUnlockResult = await _authorization.TryUnlockOnStartupAsync();
             if (!IsUnlocked && startupUnlockResult != AuthorizationResult.Success)
             {
-                SetSessionState(AppSessionState.Locked);
+                SetSessionState(AppSessionLockState.Locked);
             }
         }
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "Critical failure during session initialization.");
-            SetSessionState(AppSessionState.Locked);
+            SetSessionState(AppSessionLockState.Locked);
         }
     }
 
@@ -102,7 +104,7 @@ public sealed class MainViewSessionController : IMainViewSessionController
 
     public void Lock()
     {
-        SetSessionState(AppSessionState.Locked);
+        SetSessionState(AppSessionLockState.Locked);
 
         try
         {
@@ -124,7 +126,7 @@ public sealed class MainViewSessionController : IMainViewSessionController
     {
         try
         {
-            SetSessionState(_authorization.State.IsUnlocked ? AppSessionState.Unlocked : AppSessionState.Locked);
+            SetSessionState(_authorization.State.IsUnlocked ? AppSessionLockState.Unlocked : AppSessionLockState.Locked);
 
             if (IsUnlocked)
             {
@@ -150,13 +152,21 @@ public sealed class MainViewSessionController : IMainViewSessionController
 
             if (IsUnlocked)
             {
-                SetSessionState(AppSessionState.Locked);
+                SetSessionState(AppSessionLockState.Locked);
                 _onLocked?.Invoke();
             }
         }
     }
 
-    private void SetSessionState(AppSessionState state)
+    /// <summary>
+    /// Sets the state of the app to one of these:
+    /// </summary>
+    /// <param name="state">
+    /// - Unlocking
+    /// - Unlocked
+    /// - Locked
+    /// </param>
+    private void SetSessionState(AppSessionLockState state)
     {
         if (SessionState == state)
             return;

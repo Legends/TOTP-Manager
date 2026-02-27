@@ -6,7 +6,7 @@ using System.Windows.Media;
 using TOTP.Core.Enums;
 using TOTP.Events;
 
-namespace TOTP.Services.Interfaces
+namespace TOTP.ViewModels.Interfaces
 {
     public interface IUserMessageDialogViewModel : INotifyPropertyChanged
     {

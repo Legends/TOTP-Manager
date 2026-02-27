@@ -1,3 +1,5 @@
+using TOTP.Views.Interfaces;
+
 namespace TOTP.Services.Interfaces;
 
 public interface IInputActivityMonitor

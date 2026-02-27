@@ -1,17 +1,17 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using TOTP.Services.Interfaces;
 using TOTP.Security.Models;
+using TOTP.Views.Interfaces;
 
 namespace TOTP.Security.Interfaces;
 
 public interface IMainViewSessionController
 {
-    AppSessionState SessionState { get; }
+    AppSessionLockState SessionState { get; }
     bool IsUnlocked { get; }
 
-    event EventHandler<AppSessionState>? SessionStateChanged;
+    event EventHandler<AppSessionLockState>? SessionStateChanged;
 
     ICommand WindowStateChangedCommand { get; }
     ICommand DetachWindowCommand { get; }

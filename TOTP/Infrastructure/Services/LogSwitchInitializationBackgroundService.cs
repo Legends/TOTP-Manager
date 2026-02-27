@@ -9,16 +9,17 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TOTP.Core.Services;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Infrastructure.Logging;
 using TOTP.Security.Interfaces;
 
 namespace TOTP.Infrastructure.Services;
  
      
-    public sealed class LogSwitchInitializationService(
+    public sealed class LogSwitchInitializationBackgroundService(
         IGlobalProfileStore profileStore,
         ILogSwitchService logSwitch,
-        ILogger<LogSwitchInitializationService> logger)
+        ILogger<LogSwitchInitializationBackgroundService> logger)
         : BackgroundService
     {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

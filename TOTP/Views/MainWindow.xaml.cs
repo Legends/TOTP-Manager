@@ -5,7 +5,8 @@ using System;
 using System.Windows;
 using TOTP.Infrastructure.Adapters;
 using TOTP.Resources;
-using TOTP.Services.Interfaces;
+using TOTP.ViewModels.Interfaces;
+using TOTP.Views.Interfaces;
 
 namespace TOTP.Views;
 

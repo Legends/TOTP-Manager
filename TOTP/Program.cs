@@ -15,8 +15,8 @@ using TOTP.Infrastructure.Logging;
 using TOTP.Resources;
 using TOTP.Security;
 using TOTP.Security.Interfaces;
-using TOTP.Services.Interfaces;
 using TOTP.Startup;
+using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
 
 namespace TOTP;
@@ -63,7 +63,7 @@ internal static class Program
             using var host = BootLoader.BuildHostAndConfigureServices(configuration, args);
 
             // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
-            await host.StartAsync(); // All BackgroundServices run now!
+            await host.StartAsync(); // All BackgroundServices run now! TOTP.Infrastructure.Services
 
             var app = new App // the SynchronizationContext is established when the first DispatcherObject is created like Application
             {

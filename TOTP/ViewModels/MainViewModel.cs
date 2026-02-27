@@ -38,7 +38,9 @@ using TOTP.Security.Models;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Validation;
+using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
+using TOTP.Views.Interfaces;
 using static TOTP.ViewModels.SettingsViewModel;
 using Application = System.Windows.Application;
 using ValidationError = TOTP.Core.Enums.ValidationError;
@@ -106,8 +108,8 @@ public class MainViewModel : IMainViewModel
     public UnlockViewModel UnlockViewModel { get; }
     public IMainViewSessionController SessionController => _mainViewSessionController;
 
-    private AppSessionState _sessionState = AppSessionState.Locked;
-    public AppSessionState SessionState
+    private AppSessionLockState _sessionState = AppSessionLockState.Locked;
+    public AppSessionLockState SessionState
     {
         get => _sessionState;
         private set
@@ -121,6 +123,10 @@ public class MainViewModel : IMainViewModel
         }
     }
 
+    /// <summary>
+    /// Used by MainView and
+    /// UnlockView ContentControl for visibility
+    /// </summary>
     public bool IsUnlocked => _mainViewSessionController.IsUnlocked;
 
     #endregion
@@ -781,7 +787,7 @@ public class MainViewModel : IMainViewModel
 
     #region ### AUTHORIZATION ###
 
-    private void SessionController_SessionStateChanged(object? sender, AppSessionState state)
+    private void SessionController_SessionStateChanged(object? sender, AppSessionLockState state)
     {
         SessionState = state;
     }

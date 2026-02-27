@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Core.Services;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Helper;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;

@@ -10,6 +10,7 @@ using TOTP.Events;
 using TOTP.Resources;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
+using TOTP.ViewModels.Interfaces;
 
 namespace TOTP.ViewModels;
 

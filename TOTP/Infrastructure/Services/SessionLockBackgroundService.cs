@@ -19,14 +19,14 @@ namespace TOTP.Infrastructure.Services;
 /// whenever the user's session is locked. The service subscribes to session events for the duration of its lifetime and
 /// unsubscribes during shutdown to prevent resource leaks. Thread safety and proper event unsubscription are handled
 /// internally.(formerly:app.xaml.cs)</remarks>
-public sealed class SessionLockService : BackgroundService
+public sealed class SessionLockBackgroundService : BackgroundService
 {
     private readonly IAuthorizationService _authorizationService;
-    private readonly ILogger<SessionLockService> _logger;
+    private readonly ILogger<SessionLockBackgroundService> _logger;
 
-    public SessionLockService(
+    public SessionLockBackgroundService(
         IAuthorizationService authorizationService,
-        ILogger<SessionLockService> logger)
+        ILogger<SessionLockBackgroundService> logger)
     {
         _authorizationService = authorizationService;
         _logger = logger;

@@ -11,6 +11,7 @@ using TOTP.Helper;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
+using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
 
 namespace TOTP.Services;

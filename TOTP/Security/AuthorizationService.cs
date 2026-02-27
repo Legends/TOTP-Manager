@@ -1,31 +1,29 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Security;
+using System.Threading.Tasks;
+using TOTP.Security.Helpers;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
 
 namespace TOTP.Security;
 
-public sealed class AuthorizationService : IAuthorizationService
+public sealed class AuthorizationService(
+    IHelloGate helloGate,
+    IGlobalProfileStore globalProfileStore,
+    ILogger<AuthorizationService> logger,
+    IKeyWrappingService keyWrappingService,
+    ISecurityContext securityContext) : IAuthorizationService
 {
-    private readonly IHelloGate _helloGate; // your existing hello abstraction
-    private readonly IGlobalProfileStore _globalProfileStore;
-    private ILogger<AuthorizationService> _logger;
+    private ILogger<AuthorizationService> _logger = logger;
     private GlobalProfile _globalProfile = new();
     private AuthorizationProfile? _authorizationProfile;
 
     public AuthorizationState State { get; } = new();
 
-    public AuthorizationService(IHelloGate hello, IGlobalProfileStore store, ILogger<AuthorizationService> logger)
-    {
-        _logger = logger;
-        _helloGate = hello;
-        _globalProfileStore = store;
-    }
-
     public async Task InitializeAsync()
     {
-        _globalProfile = await _globalProfileStore.LoadAsync().ConfigureAwait(false) ?? new GlobalProfile();
+        _globalProfile = await globalProfileStore.LoadAsync().ConfigureAwait(false) ?? new GlobalProfile();
         _authorizationProfile = _globalProfile.Authorization;
         State.SetProfile(_authorizationProfile);
 
@@ -38,91 +36,145 @@ public sealed class AuthorizationService : IAuthorizationService
         if (_authorizationProfile?.IsConfigured != true)
             return AuthorizationResult.NotConfigured;
 
-        // Your requirement: every start triggers the authorization gate.
-        // Only Windows Hello can be auto-triggered without user typing.
         if (_authorizationProfile.Gate == AuthorizationGateKind.WindowsHello)
-            return await TryUnlockWithHelloAsync();//.ConfigureAwait(false);
+            return await TryUnlockWithHelloAsync();
 
-        // Password gate: user must type. Keep locked and show auth UI.
         return AuthorizationResult.RequiresUserInput;
     }
 
-    public Task<bool> IsHelloAvailableAsync()
-    {
-        return _helloGate.IsAvailableAsync();
-    }
+    public Task<bool> IsHelloAvailableAsync() => helloGate.IsAvailableAsync();
 
     public async Task<AuthorizationResult> ConfigureHelloAsync()
     {
-        if (!await _helloGate.IsAvailableAsync().ConfigureAwait(false))
+        if (!await helloGate.IsAvailableAsync().ConfigureAwait(false))
             return AuthorizationResult.NotAvailable;
 
-        _globalProfile = await _globalProfileStore.LoadAsync().ConfigureAwait(false) ?? _globalProfile;
+        _globalProfile = await globalProfileStore.LoadAsync().ConfigureAwait(false) ?? _globalProfile;
         _authorizationProfile = new AuthorizationProfile { Gate = AuthorizationGateKind.WindowsHello };
         _globalProfile.Authorization = _authorizationProfile;
-        await _globalProfileStore.SaveAsync(_globalProfile);//.ConfigureAwait(false);
+        await globalProfileStore.SaveAsync(_globalProfile);
 
         State.SetProfile(_authorizationProfile);
-        return AuthorizationResult.Success; // configured ok (not unlocked yet)
+        return AuthorizationResult.Success;
+    }
+
+    public async Task<AuthorizationResult> AuthorizeAsync(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+            return AuthorizationResult.InvalidCredentials;
+
+        if (_authorizationProfile == null || !_authorizationProfile.IsConfigured)
+            return AuthorizationResult.InvalidCredentials;
+
+        try
+        {
+            var storedRecord = new PasswordRecord(
+                _authorizationProfile.PasswordSalt!,
+                _authorizationProfile.PasswordHash!,
+                _authorizationProfile.ArgonIterations,
+                _authorizationProfile.ArgonMemorySize
+            );
+
+            if (!PasswordHasher.Verify(password, storedRecord))
+                return AuthorizationResult.InvalidCredentials;
+            
+            byte[] kek = PasswordHasher.HashWithParams(password, storedRecord);
+
+            try
+            {
+                byte[] rawDek = keyWrappingService.UnwrapDek(
+                    _authorizationProfile.WrappedDataEncryptionKey!,
+                    kek,
+                    _authorizationProfile.DekNonce!
+                );
+
+                securityContext.SetDek(rawDek);
+                Array.Clear(rawDek, 0, rawDek.Length);
+            }
+            finally
+            {
+                // Always clear the Key Encryption Key from memory
+                Array.Clear(kek, 0, kek.Length);
+            }
+
+            State.Unlock(); // Ensure the UI state is updated
+            return AuthorizationResult.Success;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Authorization failed due to an unexpected error.");
+            return AuthorizationResult.InvalidCredentials;
+        }
+    }
+
+    public void Logout()
+    {
+        securityContext.Lock();
+        State.Lock();
     }
 
     public async Task<AuthorizationResult> ConfigurePasswordAsync(string password, string confirmPassword)
     {
-        // 1. Sicherheits-Check: Passwort-Stärke
-        // Empfehlung: Erhöhe das Minimum auf mind. 8-12 Zeichen für eine TOTP-App
         if (string.IsNullOrWhiteSpace(password) || password.Length < 1)
             return AuthorizationResult.InvalidCredentials;
 
-        // 2. Passwort-Vergleich
         if (!string.Equals(password, confirmPassword, StringComparison.Ordinal))
             return AuthorizationResult.InvalidCredentials;
 
-        PasswordRecord? record = null;
         try
         {
-            // 3. Argon2id Hashing (gibt den kompletten Record zurück)
-            record = PasswordHasher.Hash(password);
+            // Create initial hash and salt
+            var record = PasswordHasher.Hash(password);
 
-            // 4. Profil-Erstellung mit allen Metadaten (wichtig für spätere Verifizierung)
+            // Generate the master data key
+            var rawDek = keyWrappingService.GenerateRawDek();
+
+            // Wrap the DEK with the password-derived hash (record.Hash is our KEK here)
+            var (wrappedDek, dekNonce) = keyWrappingService.WrapDek(rawDek, record.Hash);
+
             _authorizationProfile = new AuthorizationProfile
             {
                 Gate = AuthorizationGateKind.Password,
                 PasswordSalt = record.Salt,
                 PasswordHash = record.Hash,
-                // Du solltest diese Felder in dein AuthorizationProfile-Model aufnehmen:
                 ArgonIterations = record.Iterations,
-                ArgonMemorySize = record.MemorySize
+                ArgonMemorySize = record.MemorySize,
+                WrappedDataEncryptionKey = wrappedDek,
+                DekNonce = dekNonce
             };
 
-            // 5. Persistenz
-            _globalProfile = await _globalProfileStore.LoadAsync().ConfigureAwait(false) ?? _globalProfile;
+            _globalProfile = await globalProfileStore.LoadAsync().ConfigureAwait(false) ?? _globalProfile;
             _globalProfile.Authorization = _authorizationProfile;
+            await globalProfileStore.SaveAsync(_globalProfile).ConfigureAwait(false);
 
-            await _globalProfileStore.SaveAsync(_globalProfile).ConfigureAwait(false);
+            securityContext.SetDek(rawDek);
+            Array.Clear(rawDek, 0, rawDek.Length);
 
             State.SetProfile(_authorizationProfile);
-
+            State.Unlock();
             return AuthorizationResult.Success;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Authentication failed");
-            // Logge den Fehler (optional)
-            return AuthorizationResult.InvalidCredentials; // Oder ein spezifischerer Fehler
+            _logger.LogError(ex, "Failed to configure password.");
+            return AuthorizationResult.InvalidCredentials;
         }
-
     }
 
     public async Task<AuthorizationResult> TryUnlockWithHelloAsync()
     {
         try
         {
-            if (!await _helloGate.IsAvailableAsync().ConfigureAwait(false))
+            if (!await helloGate.IsAvailableAsync().ConfigureAwait(false))
                 return AuthorizationResult.NotAvailable;
 
-            var result = await _helloGate.RequestVerificationAsync();//.ConfigureAwait(false);
+            var result = await helloGate.RequestVerificationAsync();
             if (result == AuthorizationResult.Success)
+            {
+                // Note: Windows Hello currently doesn't store a DEK. 
+                // We will need to address how Hello unlocks the DEK in a later step.
                 State.Unlock();
+            }
 
             return result;
         }
@@ -132,24 +184,15 @@ public sealed class AuthorizationService : IAuthorizationService
         }
     }
 
-    public Task<AuthorizationResult> TryUnlockWithPasswordAsync(string password)
+    public async Task<AuthorizationResult> TryUnlockWithPasswordAsync(string password)
     {
-        if (_authorizationProfile?.IsConfigured != true || _authorizationProfile.Gate != AuthorizationGateKind.Password)
-            return Task.FromResult(AuthorizationResult.NotConfigured);
-
-        if (_authorizationProfile.PasswordSalt is null || _authorizationProfile.PasswordHash is null)
-            return Task.FromResult(AuthorizationResult.Failed);
-
-        var ok = PasswordHasher.Verify(password, _authorizationProfile.PasswordSalt, _authorizationProfile.PasswordHash);
-        if (!ok)
-            return Task.FromResult(AuthorizationResult.InvalidCredentials);
-
-        State.Unlock();
-        return Task.FromResult(AuthorizationResult.Success);
+        // Simply delegate to AuthorizeAsync to avoid code duplication
+        return await AuthorizeAsync(password);
     }
 
     public void Lock()
     {
+        securityContext.Lock();
         State.Lock();
     }
 }

@@ -1,6 +1,6 @@
 using System.Windows.Input;
 
-namespace TOTP.Services.Interfaces;
+namespace TOTP.Views.Interfaces;
 
 public interface IMainWindow
 {

@@ -1,6 +1,11 @@
 namespace TOTP.Security.Models;
 
-public enum AppSessionState
+/// <summary>
+/// Locked = 0,
+/// Unlocking = 1,
+/// Unlocked = 2
+/// </summary>
+public enum AppSessionLockState
 {
     Locked = 0,
     Unlocking = 1,

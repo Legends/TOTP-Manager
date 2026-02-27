@@ -8,8 +8,9 @@ using TOTP.Commands;
 using TOTP.Core.Interfaces;
 using TOTP.Infrastructure.Adapters;
 using TOTP.ViewModels;
+using TOTP.Views.Interfaces;
 
-namespace TOTP.Services.Interfaces;
+namespace TOTP.ViewModels.Interfaces;
 
 public interface IMainViewModel : INotifyPropertyChanged
 {
