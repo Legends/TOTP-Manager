@@ -145,16 +145,18 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public delegate SettingsViewModel SettingsViewModelFactory(
         ICommand closeCommand,
         Action saveAction,
-        Func<bool, Task> actionExportAccounts);
+        Func<bool, Task> actionExportOtps);
 
     #endregion
+
+    #region  ### CONSTRUCTOR ###
 
     public SettingsViewModel(IGlobalProfileStore globalProfileStore,
                             IAuthorizationService authorizationService,
                             ILogSwitchService logSwitchService,
                             ICommand closeCommand,
                             Action saveAction,
-                            Func<bool, Task> actionExportAccounts)
+                            Func<bool, Task> actionExportOtps)
     {
         _logSwitchService = logSwitchService;
         _globalProfileStore = globalProfileStore;
@@ -163,12 +165,14 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync);
-        ExportCommand = new AsyncCommand(() => actionExportAccounts(ExportEncrypt));
+        ExportCommand = new AsyncCommand(() => actionExportOtps(ExportEncrypt));
         OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder);
 
         AvailableLogLevels = Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>().ToList();
         _selectedLogLevel = _logSwitchService.ControlSwitch.MinimumLevel;
     }
+
+#endregion
 
     public async Task LoadAsync()
     {

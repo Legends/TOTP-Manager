@@ -251,7 +251,7 @@
                 ItemsSource="{Binding FilteredSecrets}"
                 -->
                 <syncfusion:SfDataGrid x:Name="AccountsGrid"
-                                       ItemsSource="{Binding AllAccounts}"
+                                       ItemsSource="{Binding AllOtps}"
                                        CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
                                        Grid.Row="0"
                                        AllowSorting="True"

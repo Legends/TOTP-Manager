@@ -15,7 +15,7 @@ namespace TOTP.ViewModels.Interfaces;
 public interface IMainViewModel : INotifyPropertyChanged
 {
     bool IsBusy { get; set; }
-    ObservableCollection<OtpViewModel> AllAccounts { get; }
+    ObservableCollection<OtpViewModel> AllOtps { get; }
     IGridFilterRefresher GridFilterRefresher { get; set; }
     Action? RequestGridFilterRefresh { get; set; }
     bool DoFilterGrid(object obj);

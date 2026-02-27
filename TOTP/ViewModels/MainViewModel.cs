@@ -339,7 +339,7 @@ public class MainViewModel : IMainViewModel
             {
                 //IsInlineEditing = false;
 
-                foreach (var item in AllAccounts)
+                foreach (var item in AllOtps)
                     item.IsBeingEdited = false;
 
                 _selectedAccount = value;
@@ -439,14 +439,14 @@ public class MainViewModel : IMainViewModel
 
     #region ### ObservableCollections ###
 
-    private ObservableCollection<OtpViewModel> _allAccounts;
-    public ObservableCollection<OtpViewModel> AllAccounts
+    private ObservableCollection<OtpViewModel> _allOtps;
+    public ObservableCollection<OtpViewModel> AllOtps
     {
-        get => _allAccounts;
+        get => _allOtps;
         private set
         {
-            if (ReferenceEquals(_allAccounts, value)) return;
-            _allAccounts = value;
+            if (ReferenceEquals(_allOtps, value)) return;
+            _allOtps = value;
             //RebuildSecretsView();
             OnPropertyChanged();
         }
@@ -475,7 +475,7 @@ public class MainViewModel : IMainViewModel
     private readonly IMainViewSessionController _mainViewSessionController;
     private readonly IGlobalProfileStore _globalProfileStore;
 
-    private bool _accountsLoaded;
+    private bool _otpsLoaded;
     private bool _collectionHooked;
     //private string _pendingSearchText;
 
@@ -519,7 +519,7 @@ public class MainViewModel : IMainViewModel
         var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
         _globalProfileStore = new FileGlobalProfileStore(resolvedProfilePath);
 
-        AllAccounts = new ObservableCollection<OtpViewModel>();
+        AllOtps = new ObservableCollection<OtpViewModel>();
         //RebuildSecretsView();
         UnlockViewModel = unlockVm;
 
@@ -565,7 +565,7 @@ public class MainViewModel : IMainViewModel
             Settings = _settingsFactory(
                 CloseSettingsViewCommand,
                 SaveSettingsView,
-                ExportAccounts);
+                ExportOtps);
 
             await Settings.LoadAsync();
 
@@ -678,12 +678,12 @@ public class MainViewModel : IMainViewModel
         IsSettingsViewOpen = false;
     }
 
-    private async Task ExportAccounts(bool toBeEncrypted)
+    private async Task ExportOtps(bool toBeEncrypted)
     {
         try
         {
             System.Windows.MessageBox.Show(toBeEncrypted.ToString());
-            var path = _fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Accounts");
+            var path = _fileDialogService.ShowSaveFileDialog(".txt|.json|.csv", ".json", "otp-backup");
 
             if (path == null) // canceled
                 return;
@@ -749,10 +749,10 @@ public class MainViewModel : IMainViewModel
 
     private async Task EnsureAccountsLoadedAsync()
     {
-        if (_accountsLoaded)
+        if (_otpsLoaded)
             return;
 
-        await ReadAllAccountsAsync();
+        await ReadAllOtpsAsync();
 
         // Re-Apply the filter function because it is lost after replacing the AllAccounts prop
         // with a new ObservableCollection in ReadAllAccountsAsync !
@@ -760,11 +760,11 @@ public class MainViewModel : IMainViewModel
 
         if (!_collectionHooked)
         {
-            AllAccounts.CollectionChanged += Source_CollectionChanged;
+            AllOtps.CollectionChanged += Source_CollectionChanged;
             _collectionHooked = true;
         }
 
-        _accountsLoaded = true;
+        _otpsLoaded = true;
     }
 
     private void Source_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -781,7 +781,7 @@ public class MainViewModel : IMainViewModel
 
     private ValidationError DuplicateCheck(OtpViewModel si)
     {
-        return UiValidation.PlatformNameDuplicateExists(si.Issuer, AllAccounts.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
+        return UiValidation.PlatformNameDuplicateExists(si.Issuer, AllOtps.Where(item => !item.Equals(si)).Select(it => it.ToDomain()).ToList());
     }
 
 
@@ -803,8 +803,8 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     private void OnLocked()
     {
-        _accountsLoaded = false;
-        AllAccounts.Clear();
+        _otpsLoaded = false;
+        AllOtps.Clear();
 
         StopTotpTimer();
         ClearCodeGenerationOutput();
@@ -832,13 +832,13 @@ public class MainViewModel : IMainViewModel
 
     #endregion
 
-    #region ### READ ALL ACCOUNTS FROM STORAGE FILE ###
+    #region ### READ ALL OTP ENTRIES FROM STORAGE FILE ###
 
     /// <summary>
     /// Reads all secrets from the storage file and populates the AllSecrets collection
     /// </summary>
     /// <returns></returns>
-    private async Task ReadAllAccountsAsync()
+    private async Task ReadAllOtpsAsync()
     {
         try
         {
@@ -854,10 +854,10 @@ public class MainViewModel : IMainViewModel
 
             //result.Value.Sort(new Comparison<AccountItem>((a, b) => string.Compare(a.Platform, b.Platform, StringComparison.OrdinalIgnoreCase)));
 
-            var allAccounts = result.Value ?? [];
-            AllAccounts = new ObservableCollection<OtpViewModel>((allAccounts.Select(item => item.ToViewModel()) ?? []));
+            var allAOtps = result.Value ?? [];
+            AllOtps = new ObservableCollection<OtpViewModel>((allAOtps.Select(item => item.ToViewModel()) ?? []));
 
-            foreach (var item in AllAccounts)
+            foreach (var item in AllOtps)
             {
                 item.SetDuplicateCheck(DuplicateCheck);
             }
@@ -865,7 +865,7 @@ public class MainViewModel : IMainViewModel
         }
         catch (Exception e)
         {
-            _logger.LogCritical(e, nameof(ReadAllAccountsAsync));
+            _logger.LogCritical(e, nameof(ReadAllOtpsAsync));
             System.Windows.Application.Current.Shutdown(1);
         }
 
@@ -946,8 +946,8 @@ public class MainViewModel : IMainViewModel
                 return;
             }
 
-            AllAccounts.Remove(item); // delete secret from internal list
-            OnPropertyChanged(nameof(AllAccounts));
+            AllOtps.Remove(item); // delete secret from internal list
+            OnPropertyChanged(nameof(AllOtps));
             if (item.ID == SelectedAccount?.ID)
             {
                 StopTotpTimer();
@@ -984,10 +984,10 @@ public class MainViewModel : IMainViewModel
             }
 
             //todo: not needed as the item is already update by ref
-            var itemToBeUpdated = AllAccounts.FirstOrDefault(s => s.ID == updated.ID);
+            var itemToBeUpdated = AllOtps.FirstOrDefault(s => s.ID == updated.ID);
 
             itemToBeUpdated?.UpdateSelf(updated); // only update when in flyout edit mode
-            OnPropertyChanged(nameof(AllAccounts));
+            OnPropertyChanged(nameof(AllOtps));
 
             if (updated.ID == SelectedAccount?.ID && !ShowGenerateQrCodeLink) // update the QR code if it is visible already
                 UpdateQRCode();
@@ -1036,7 +1036,7 @@ public class MainViewModel : IMainViewModel
             }
 
             var itemToAdd = CurrentSecretBeingEditedOrAdded.Copy();
-            AllAccounts.Add(itemToAdd);
+            AllOtps.Add(itemToAdd);
 
             CurrentSecretBeingEditedOrAdded = null;
             IsAddMode = false;
@@ -1050,7 +1050,7 @@ public class MainViewModel : IMainViewModel
                 return;
 
             #region VALIDATION OF EDITED SECRET
-            var validator = UiValidation.Use(updated, AllAccounts).ValidateAll();
+            var validator = UiValidation.Use(updated, AllOtps).ValidateAll();
 
             if (!validator.IsValid)
             {
@@ -1140,7 +1140,7 @@ public class MainViewModel : IMainViewModel
 
         //ClearCodeGenerationOutput();
 
-        foreach (var s in AllAccounts)
+        foreach (var s in AllOtps)
             s.IsBeingEdited = false;
 
         item.IsBeingEdited = !item.IsBeingEdited;
@@ -1477,7 +1477,7 @@ public class MainViewModel : IMainViewModel
                     return;
                 }
 
-                AllAccounts.Add(newAccountItem);
+                AllOtps.Add(newAccountItem);
 
             }
             finally
@@ -1491,7 +1491,7 @@ public class MainViewModel : IMainViewModel
     private UiValidation ValidateAccountItem(OtpViewModel newAccountItem)
     {
         ArgumentNullException.ThrowIfNull(newAccountItem);
-        return UiValidation.Use(newAccountItem, AllAccounts).ValidateAll().PlatformNameDuplicateExists();
+        return UiValidation.Use(newAccountItem, AllOtps).ValidateAll().PlatformNameDuplicateExists();
     }
 
     #endregion
