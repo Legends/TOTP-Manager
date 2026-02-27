@@ -129,7 +129,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         ConfirmPassword = string.Empty;
         Message = "Password saved successfully!";
     }
-     
+
 
     public void EnterSetupMode()
     {
@@ -162,26 +162,24 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
             if (cfg != AuthorizationResult.Success)
             {
                 Message = "Password setup failed (min length 8, and both fields must match).";
-                return cfg;
             }
 
-            // After configuring: unlock immediately
-            var unlock = await _auth.TryUnlockWithPasswordAsync(Password ?? "");
-            if (unlock != AuthorizationResult.Success)
-                Message = "Password verification failed.";
+            //// After configuring: unlock immediately
+            //var unlock = await _auth.TryUnlockWithPasswordAsync(Password ?? "");
+            //if (unlock != AuthorizationResult.Success)
+            //    Message = "Password verification failed.";
 
-            return unlock;
+            return cfg;
         }
 
-        var result = await _auth.TryUnlockWithPasswordAsync(Password ?? "");
+        // Standard unlock path for non-setup scenarios
+        var unlock = await _auth.TryUnlockWithPasswordAsync(Password);
+        if (unlock != AuthorizationResult.Success)
+        {
+            Message = "Password verification failed.";
+        }
 
-        // Handle messaging based on result
-        if (result == AuthorizationResult.InvalidCredentials)
-            Message = "Wrong password.";
-        else if (result != AuthorizationResult.Success)
-            Message = "Unlock failed.";
-
-        return result;
+        return unlock;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

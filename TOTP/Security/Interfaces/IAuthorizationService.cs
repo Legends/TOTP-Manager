@@ -7,20 +7,23 @@ public interface IAuthorizationService
 {
     AuthorizationState State { get; }
 
+    Task SetGateAsync(AuthorizationGateKind gate);
+
+    // Lifecycle
     Task InitializeAsync();
+    void Logout();
+    void Lock(); // Required by MainViewSessionController
 
-    Task<bool> IsHelloAvailableAsync();
-
-    // First-run configuration
-    Task<AuthorizationResult> ConfigureHelloAsync();
-    Task<AuthorizationResult> ConfigurePasswordAsync(string password, string confirmPassword);
-
-    // Unlock attempts (after configured)
-    Task<AuthorizationResult> TryUnlockWithHelloAsync();
-    Task<AuthorizationResult> TryUnlockWithPasswordAsync(string password);
-
-    // Startup gate (always called on app start)
+    // Unlocking
     Task<AuthorizationResult> TryUnlockOnStartupAsync();
+    Task<AuthorizationResult> TryUnlockWithPasswordAsync(string password);
+    Task<AuthorizationResult> TryUnlockWithHelloAsync();
 
-    void Lock();
+    // Configuration
+    Task<AuthorizationResult> ConfigurePasswordAsync(string password, string confirmPassword);
+    Task<AuthorizationResult> ConfigureHelloAsync();
+    Task<AuthorizationResult> ChangePasswordAsync(string newPassword, string confirmPassword);
+
+    // Helpers
+    Task<bool> IsHelloAvailableAsync();
 }

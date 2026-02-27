@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using TOTP.Security.Interfaces;
@@ -10,17 +11,13 @@ public sealed class HelloGate : IHelloGate
 {
     public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
     {
-        // UserConsentVerifier has no cancellation token, but that's fine.
         var availability = await UserConsentVerifier.CheckAvailabilityAsync();
         return availability == UserConsentVerifierAvailability.Available;
     }
 
     public async Task<AuthorizationResult> RequestVerificationAsync(CancellationToken ct = default)
     {
-        // Again: no ct support in API, but we keep signature consistent.
-        // Provide a friendly reason shown in the Hello prompt.
         const string message = "Unlock TOTP Manager";
-
         var result = await UserConsentVerifier.RequestVerificationAsync(message);
 
         return result switch
@@ -32,5 +29,30 @@ public sealed class HelloGate : IHelloGate
             UserConsentVerificationResult.Canceled => AuthorizationResult.Cancelled,
             _ => AuthorizationResult.Failed
         };
+    }
+
+    /// <summary>
+    /// Encrypts the DEK using Windows Data Protection API (DPAPI).
+    /// This is tied to the current Windows user profile.
+    /// </summary>
+    public byte[] ProtectKey(byte[] rawDek)
+    {
+        return ProtectedData.Protect(rawDek, null, DataProtectionScope.CurrentUser);
+    }
+
+    /// <summary>
+    /// Decrypts the DEK using DPAPI.
+    /// </summary>
+    public byte[] UnprotectKey(byte[] wrappedDek)
+    {
+        try
+        {
+            return ProtectedData.Unprotect(wrappedDek, null, DataProtectionScope.CurrentUser);
+        }
+        catch (CryptographicException)
+        {
+            // Occurs if the Windows user changed or the profile is inaccessible
+            return null;
+        }
     }
 }
