@@ -8,9 +8,12 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TOTP.Commands;
+using TOTP.Core.Enums;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Helper;
+using TOTP.Infrastructure.Common;
+using TOTP.Infrastructure.Logging;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
 
@@ -130,10 +133,10 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     private bool _hideSecretsByDefault = true;
     public bool HideSecretsByDefault { get => _hideSecretsByDefault; set { _hideSecretsByDefault = value; OnPropertyChanged(); } }
 
-    private LogEventLevel _selectedLogLevel;
-    public LogEventLevel SelectedLogLevel { get => _selectedLogLevel; set { _selectedLogLevel = value; OnPropertyChanged(); } }
+    private AppLogLevel _selectedLogLevel;
+    public AppLogLevel SelectedLogLevel { get => _selectedLogLevel; set { _selectedLogLevel = value; OnPropertyChanged(); } }
 
-    public List<LogEventLevel> AvailableLogLevels { get; }
+    public List<AppLogLevel> AvailableLogLevels { get; }
     public bool IsCliOverrideActive => _logSwitchService.IsCliOverrideActive;
     #endregion
 
@@ -168,8 +171,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         ExportCommand = new AsyncCommand(() => actionExportOtps(ExportEncrypt));
         OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder);
 
-        AvailableLogLevels = Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>().ToList();
-        _selectedLogLevel = _logSwitchService.ControlSwitch.MinimumLevel;
+        AvailableLogLevels = Enum.GetValues(typeof(AppLogLevel)).Cast<AppLogLevel>().ToList();
+        _selectedLogLevel = _logSwitchService.MinimumLevel;
     }
 
 #endregion
@@ -182,7 +185,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         SelectedLogLevel = _logSwitchService.IsCliOverrideActive ? _logSwitchService.GetLevel() : profile.MinimumLogLevel;
 
         // Match UI Radio Buttons to Profile Gate
-        IsHelloSelected = profile.Authorization.Gate == AuthorizationGateKind.WindowsHello;
+        IsHelloSelected = profile.Authorization.Gate == AuthorizationGateKind.Hello;
         IsPasswordSelected = profile.Authorization.Gate == AuthorizationGateKind.Password;
 
         // Fallback if Hello was saved but is no longer available on this hardware
@@ -216,7 +219,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         var currentGate = profile.Authorization.Gate;
 
         // CASE 1: Moving to Windows Hello
-        if (IsHelloSelected && currentGate != AuthorizationGateKind.WindowsHello)
+        if (IsHelloSelected && currentGate != AuthorizationGateKind.Hello)
         {
             if (!IsHelloAvailable)
             {
@@ -254,8 +257,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         var profile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
 
         // Sync Gate choice
-        profile.Authorization.Gate = IsHelloSelected ? AuthorizationGateKind.WindowsHello : AuthorizationGateKind.Password;
-
+        profile.Authorization.Gate = IsHelloSelected ? AuthorizationGateKind.Hello : AuthorizationGateKind.Password;
+       
         profile.MinimumLogLevel = SelectedLogLevel;
         profile.LockOnSessionLock = LockOnSessionLock;
         profile.ClearClipboardEnabled = ClearClipboardEnabled;

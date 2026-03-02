@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Extensions.Logging;
 using TOTP.Commands;
 using TOTP.Security.Interfaces;
 using TOTP.Security.Models;
@@ -11,7 +12,7 @@ namespace TOTP.ViewModels;
 
 public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
 {
-    #region Props and Vars
+    #region ### Props and Vars ###
 
     // === DP: IsSecretVisible ===
 
@@ -44,6 +45,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
             _password = value ?? string.Empty;
             OnPropertyChanged();
             SavePasswordCommand.RaiseCanExecuteChanged();
+            UnlockCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -65,22 +67,38 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
 
     public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
 
-    public ICommand UnlockCommand { get; }
+    public AsyncCommand UnlockCommand { get; }
 
     public AsyncCommand SavePasswordCommand { get; }
 
     #endregion
 
-    public PasswordUnlockViewModel(IAuthorizationService auth)
+    #region ### CONSTRUCTOR ###
+
+    public PasswordUnlockViewModel(IAuthorizationService auth, ILogger<PasswordUnlockViewModel> logger)
     {
         _auth = auth;
-        UnlockCommand = new AsyncCommand(UnlockAsync);
-        IsSetup = false; // default: unlock mode
-        SavePasswordCommand = new AsyncCommand(SavePassword, CanSavePassword);
+        UnlockCommand = new AsyncCommand(
+            execute: async () => await UnlockAsync(),
+            canExecute: () => ValidatePassword(Password),
+            logger: logger
+        );
+
+        IsSetup = false; // default: password unlock mode
+        SavePasswordCommand = new AsyncCommand(SavePassword, CanSavePassword, logger);
+
 
         _auth.State.Changed += State_Changed;
     }
+    #endregion
 
+    private bool ValidatePassword(object s)
+    {
+        var res = !string.IsNullOrEmpty(Password);
+        return res;
+    }
+
+    #region ### METHODS ###
     private void State_Changed(object? sender, EventArgs e)
     {
         if (_auth.State.IsUnlocked)
@@ -98,7 +116,11 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(Password)) return false;
         if (Password.Length < 3) return false;           // example rule
-        if (!string.Equals(Password, ConfirmPassword)) return false;
+        if (IsSetup)
+        {
+            if (!string.Equals(Password, ConfirmPassword)) return false;
+        }
+
         return true;
     }
 
@@ -127,7 +149,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         IsSetup = false;
         Password = string.Empty;
         ConfirmPassword = string.Empty;
-        Message = "Password saved successfully!";
+
     }
 
 
@@ -179,4 +201,6 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    #endregion
 }

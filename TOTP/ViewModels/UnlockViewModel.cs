@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Core;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -14,6 +17,7 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
     #region PROPS AND VARS
 
     private readonly IAuthorizationService _auth;
+     
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -83,7 +87,7 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         // configured: show the configured gate
         CurrentGate = ConfiguredGate switch
         {
-            AuthorizationGateKind.WindowsHello => HelloUnlockVM,
+            AuthorizationGateKind.Hello => HelloUnlockVM,
             AuthorizationGateKind.Password => PasswordUnlockVM, // should be PasswordSetupGate
             _ => null
         };

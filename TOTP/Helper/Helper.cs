@@ -2,32 +2,31 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace TOTP.Helper
+namespace TOTP.Helper;
+
+public class Common
 {
-    public class Common
+    public static bool PackUriExists(string packUri)
     {
-        public static bool PackUriExists(string packUri)
+        try
         {
-            try
-            {
-                var streamInfo = Application.GetResourceStream(new Uri(packUri));
-                return streamInfo != null;
-            }
-            catch
-            {
-                return false;
-            }
+            var streamInfo = Application.GetResourceStream(new Uri(packUri));
+            return streamInfo != null;
         }
-
-        public static T? FindParent<T>(DependencyObject child) where T : DependencyObject
+        catch
         {
-            DependencyObject parent = VisualTreeHelper.GetParent(child);
-            while (parent != null && parent is not T)
-            {
-                parent = VisualTreeHelper.GetParent(parent);
-            }
-            return parent as T;
+            return false;
         }
-
     }
+
+    public static T? FindParent<T>(DependencyObject child) where T : DependencyObject
+    {
+        DependencyObject parent = VisualTreeHelper.GetParent(child);
+        while (parent != null && parent is not T)
+        {
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+        return parent as T;
+    }
+
 }

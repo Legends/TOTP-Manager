@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.2.11415.280 d18.0
+VisualStudioVersion = 18.2.11415.280
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.UI.WPF", "TOTP\TOTP.UI.WPF.csproj", "{73DFAD9E-6C3D-0F21-D3CE-3EF46B9D55C5}"
 EndProject
@@ -13,6 +13,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".git-utils", ".git-utils", 
 	ProjectSection(SolutionItems) = preProject
 		dev-helper.md = dev-helper.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Infrastructure", "TOTP.Infrastructure\TOTP.Infrastructure.csproj", "{136BF815-A5EB-4641-8644-5D241261B97D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.DAL", "TOTP.DAL\TOTP.DAL.csproj", "{C45E29BB-0ADD-489C-8B10-7469FF5129C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +36,14 @@ Global
 		{25A137BF-0219-49F8-AC95-304DC0A62C89}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25A137BF-0219-49F8-AC95-304DC0A62C89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25A137BF-0219-49F8-AC95-304DC0A62C89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{136BF815-A5EB-4641-8644-5D241261B97D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{136BF815-A5EB-4641-8644-5D241261B97D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{136BF815-A5EB-4641-8644-5D241261B97D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{136BF815-A5EB-4641-8644-5D241261B97D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C45E29BB-0ADD-489C-8B10-7469FF5129C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C45E29BB-0ADD-489C-8B10-7469FF5129C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C45E29BB-0ADD-489C-8B10-7469FF5129C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C45E29BB-0ADD-489C-8B10-7469FF5129C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

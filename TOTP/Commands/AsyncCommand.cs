@@ -15,7 +15,9 @@ namespace TOTP.Commands
 
         public event EventHandler? CanExecuteChanged;
 
-        public AsyncCommand(Func<T?, Task> execute, Predicate<T?>? canExecute = null, ILogger? logger = null)
+        public AsyncCommand(Func<T?, Task> execute,
+                            Predicate<T?>? canExecute = null,
+                            ILogger? logger = null)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;

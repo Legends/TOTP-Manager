@@ -8,6 +8,7 @@ using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Extensions;
 using TOTP.Helper;
+using TOTP.Infrastructure.Common;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;

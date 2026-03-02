@@ -4,9 +4,9 @@ using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using TOTP.Core.Services;
+using TOTP.Core.Enums;
 using TOTP.Helper;
+using TOTP.Infrastructure.Common;
 
 namespace TOTP.Infrastructure.Logging;
 
@@ -14,29 +14,25 @@ namespace TOTP.Infrastructure.Logging;
 /// Provides methods and properties for configuring application logging, including support for command-line log level
 /// overrides and integration with host-based logging setups.
 /// </summary>
-/// <remarks>This static class enables early and final logger configuration for applications that use Serilog. It
-/// supports command-line overrides for log levels and ensures consistent logging behavior throughout the application's
-/// lifecycle. Use this class to initialize logging both before and after the host is fully constructed.</remarks>
 public static class LoggingConfigurator
 {
     // Allows other services to check if the user is forcing a specific log level
-    public static LogEventLevel? ManualOverrideLevel { get; private set; }
-    
-    private static readonly Dictionary<string, LogEventLevel> _levelMap = new(StringComparer.OrdinalIgnoreCase)
+    public static AppLogLevel? ManualOverrideLevel { get; private set; }
+
+    private static readonly Dictionary<string, AppLogLevel> _levelMap = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "-v", LogEventLevel.Verbose }, { "--verbose", LogEventLevel.Verbose },
-        { "-d", LogEventLevel.Debug },   { "--debug", LogEventLevel.Debug },
-        { "-i", LogEventLevel.Information }, { "--info", LogEventLevel.Information },
-        { "-w", LogEventLevel.Warning }, { "--warn", LogEventLevel.Warning },
-        { "-e", LogEventLevel.Error },   { "--error", LogEventLevel.Error },
-        { "-f", LogEventLevel.Fatal },   { "--fatal", LogEventLevel.Fatal }
+        { "-v", AppLogLevel.Verbose },     { "--verbose", AppLogLevel.Verbose },
+        { "-d", AppLogLevel.Debug },       { "--debug", AppLogLevel.Debug },
+        { "-i", AppLogLevel.Information }, { "--info", AppLogLevel.Information },
+        { "-w", AppLogLevel.Warning },     { "--warn", AppLogLevel.Warning },
+        { "-e", AppLogLevel.Error },       { "--error", AppLogLevel.Error },
+        { "-f", AppLogLevel.Fatal },       { "--fatal", AppLogLevel.Fatal }
     };
 
-    public static LogEventLevel? GetLevelFromArgs(string[] args)
+    public static AppLogLevel? GetLevelFromArgs(string[] args)
     {
         if (args == null || args.Length == 0) return null;
 
-        // Find the first argument that exists in our map
         foreach (var arg in args)
         {
             if (_levelMap.TryGetValue(arg, out var level))
@@ -44,47 +40,72 @@ public static class LoggingConfigurator
                 return level;
             }
         }
-
         return null;
     }
+
+    /// <summary>
+    /// Initializes a bootstrap logger to catch early startup errors before the DI container is ready.
+    /// </summary>
     public static void SetupEarlyLogger(string[] args)
     {
-        foreach (var arg in args)
+        var levelFromArgs = GetLevelFromArgs(args);
+        if (levelFromArgs.HasValue)
         {
-            if (_levelMap.TryGetValue(arg, out var level))
-            {
-                ManualOverrideLevel = level;
-                LogSwitchService.SharedSwitch.MinimumLevel = level;
-                break;
-            }
+            ManualOverrideLevel = levelFromArgs;
+            // Use our mapping extension to update the switch
+            LogSwitchService.SharedSwitch.MinimumLevel = levelFromArgs.Value.ToSerilogLevel();
         }
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(LogSwitchService.SharedSwitch)
+            .Enrich.FromLogContext()
+            .Enrich.WithMachineName()
+            .Enrich.WithThreadId()
+            .WriteTo.Debug() // Essential for seeing logs in Visual Studio Output window
+            .WriteTo.Async(a => a.File(StringsConstants.AppLogPath))
             .WriteTo.Async(a => a.File(StringsConstants.AppLogPath))
             .CreateBootstrapLogger();
 
         if (ManualOverrideLevel.HasValue)
         {
-            Log.Write(ManualOverrideLevel.Value, "Early Logger initialized with CLI override: {Level}", ManualOverrideLevel);
+            Log.Information("Early Logger initialized with CLI override: {Level}", ManualOverrideLevel.Value);
         }
     }
 
     /// <summary>
-    /// This is the method your BootLoader is looking for. 
-    /// It configures the final logger when the Host is ready.
+    /// Configures the final logger when the Host is ready, integrating appsettings.json and the SharedSwitch.
     /// </summary>
     public static void ConfigureWithHostContext(HostBuilderContext context, IServiceProvider services, LoggerConfiguration config)
     {
+        var env = context.HostingEnvironment;
+
         config
-            .ReadFrom.Configuration(context.Configuration) // 1. Load basic settings
-            .MinimumLevel.ControlledBy(LogSwitchService.SharedSwitch) // 2. Re-attach the master switch
+            .ReadFrom.Configuration(context.Configuration) // 1. Load basic settings from appsettings.json
+            .ReadFrom.Services(services)                   // 2. Allow Serilog to access DI services
+            .MinimumLevel.ControlledBy(LogSwitchService.SharedSwitch) // 3. Re-attach the master switch for runtime changes
+            .Enrich.FromLogContext()
+            .Enrich.WithMachineName()
+            .Enrich.WithThreadId()
             .WriteTo.Console()
-            .WriteTo.Async(a => a.File(StringsConstants.AppLogPath, rollingInterval: RollingInterval.Day));
+            .WriteTo.Debug()
+            .WriteTo.Async(a => a.File(
+                StringsConstants.AppLogPath,
+                rollingInterval: RollingInterval.Day,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
         if (ManualOverrideLevel.HasValue)
         {
-            Log.Write(ManualOverrideLevel.Value, "Host logger configured. Maintaining CLI override: {Level}", ManualOverrideLevel);
+            // Re-apply the override in case appsettings.json tried to change it
+            LogSwitchService.SharedSwitch.MinimumLevel = ManualOverrideLevel.Value.ToSerilogLevel();
+            Log.Write(ManualOverrideLevel.Value.ToSerilogLevel(), "Host logger configured. Maintaining CLI override: {Level}", ManualOverrideLevel);
         }
+    }
+
+    /// <summary>
+    /// Standard shutdown to ensure async buffers are flushed to disk.
+    /// </summary>
+    public static void Shutdown()
+    {
+        Log.CloseAndFlush();
     }
 }

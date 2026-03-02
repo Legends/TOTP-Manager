@@ -8,9 +8,11 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
+using Windows.Security.Credentials.UI;
 using TOTP.Core.Services;
 using TOTP.Helper;
 using TOTP.Infrastructure;
+using TOTP.Infrastructure.Common;
 using TOTP.Infrastructure.Logging;
 using TOTP.Resources;
 using TOTP.Security;
@@ -41,7 +43,7 @@ internal static class Program
         }
         finally
         {
-            Log.CloseAndFlush();
+            LoggingConfigurator.Shutdown();
         }
     }
 

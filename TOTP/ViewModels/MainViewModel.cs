@@ -3,10 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OtpNet;
 using Syncfusion.Linq;
-using Syncfusion.PMML;
-using Syncfusion.SfSkinManager;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -17,18 +14,15 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using TOTP.Commands;
-using TOTP.Core.Common;
-using TOTP.Core.Enums;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Helper;
-using TOTP.Infrastructure.Adapters;
+using TOTP.DAL.Services;
+using TOTP.Infrastructure.Common;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Parser;
 using TOTP.Infrastructure.Services;
@@ -39,7 +33,6 @@ using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Validation;
 using TOTP.ViewModels.Interfaces;
-using TOTP.Views;
 using TOTP.Views.Interfaces;
 using static TOTP.ViewModels.SettingsViewModel;
 using Application = System.Windows.Application;
@@ -464,18 +457,12 @@ public class MainViewModel : IMainViewModel
     private readonly IClipboardService _clipboardService;
     private readonly IMessageService _messageService;
     private readonly IOtpManager _otpManager;
-
     private readonly IDebounceService _debounceService;
-
-    //private readonly DispatcherTimer _debounceTimer;
     private readonly IQrCodeService _qrService;
-    private readonly IDelayService _delayService;
     private readonly IFileDialogService _fileDialogService;
-    private readonly IAuthorizationService _authorization;
     private readonly IMainViewSessionController _mainViewSessionController;
-    private readonly IGlobalProfileStore _globalProfileStore;
 
-    private bool _otpsLoaded;
+    private bool _otpLoadedFromStore;
     private bool _collectionHooked;
     //private string _pendingSearchText;
 
@@ -507,17 +494,15 @@ public class MainViewModel : IMainViewModel
         _fileDialogService = fileDialogService;
         _logger = logger;
         _qrService = svcQr;
-        _delayService = delayService;
         _messageService = messageService;
         _debounceService = debounceService;
         _clipboardService = clipboardService;
         _otpManager = otpManager;
-        _authorization = authorization;
         _mainViewSessionController = sessionController;
 
         var rawProfilePath = config.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
         var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
-        _globalProfileStore = new FileGlobalProfileStore(resolvedProfilePath);
+        _appSettingsStore = new AppSettingsStore(resolvedProfilePath);
 
         AllOtps = new ObservableCollection<OtpViewModel>();
         //RebuildSecretsView();
@@ -749,7 +734,7 @@ public class MainViewModel : IMainViewModel
 
     private async Task EnsureAccountsLoadedAsync()
     {
-        if (_otpsLoaded)
+        if (_otpLoadedFromStore)
             return;
 
         await ReadAllOtpsAsync();
@@ -764,7 +749,7 @@ public class MainViewModel : IMainViewModel
             _collectionHooked = true;
         }
 
-        _otpsLoaded = true;
+        _otpLoadedFromStore = true;
     }
 
     private void Source_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -803,7 +788,7 @@ public class MainViewModel : IMainViewModel
     /// </summary>
     private void OnLocked()
     {
-        _otpsLoaded = false;
+        _otpLoadedFromStore = false;
         AllOtps.Clear();
 
         StopTotpTimer();
@@ -1268,6 +1253,7 @@ public class MainViewModel : IMainViewModel
 
     OtpViewModel _lastSelected;
     private readonly SettingsViewModelFactory _settingsFactory;
+    private readonly AppSettingsStore _appSettingsStore;
 
     private void OnRowSelectionImplementation()
     {

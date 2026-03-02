@@ -14,14 +14,14 @@ using TOTP.Infrastructure.Logging;
 using TOTP.Security.Interfaces;
 
 namespace TOTP.Infrastructure.Services;
- 
-     
-    public sealed class LogSwitchInitializationBackgroundService(
-        IGlobalProfileStore profileStore,
-        ILogSwitchService logSwitch,
-        ILogger<LogSwitchInitializationBackgroundService> logger)
-        : BackgroundService
-    {
+
+
+public sealed class LogSwitchInitializationBackgroundService(
+    IGlobalProfileStore profileStore,
+    ILogSwitchService logSwitch,
+    ILogger<LogSwitchInitializationBackgroundService> logger)
+    : BackgroundService
+{
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         try
@@ -33,7 +33,7 @@ namespace TOTP.Infrastructure.Services;
 
                 // We manually write to the static Log class to ensure it bypasses 
                 // any specific category filters if they existed.
-                Log.Write(level, "CLI Override active. Level: {Level}", level);
+                Log.Write(LogEventLevel.Information, $"CLI Override active. Level: {level}");
             }
             else
             {
