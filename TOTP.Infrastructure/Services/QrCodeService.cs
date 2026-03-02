@@ -1,7 +1,7 @@
 ﻿using QRCoder;
 using TOTP.Core.Services.Interfaces;
 
-namespace TOTP.Core.Services;
+namespace TOTP.Infrastructure.Services;
 
 public class QrCodeService : IQrCodeService
 {

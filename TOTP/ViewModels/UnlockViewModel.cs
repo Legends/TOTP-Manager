@@ -58,7 +58,7 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
     public UnlockViewModel(IAuthorizationService auth, HelloUnlockViewModel helloVM, PasswordUnlockViewModel pwdVM)
     {
         _auth = auth;
-
+       //_auth.IsHelloAvailableAsync()
         HelloUnlockVM = helloVM;
         PasswordUnlockVM = pwdVM;
 

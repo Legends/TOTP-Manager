@@ -1,15 +1,10 @@
-﻿using FluentResults;
+﻿using System.Collections.ObjectModel;
+using FluentResults;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using TOTP.Core.Common;
-using TOTP.Core.Enums;
-using TOTP.Core.Events;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
 
-namespace TOTP.Core.Services;
+namespace TOTP.Infrastructure.Services;
 
 /// <summary>
 /// Provides methods for managing otp items, including adding, updating, retrieving, and deleting otps.

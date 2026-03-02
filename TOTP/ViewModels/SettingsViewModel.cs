@@ -32,9 +32,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     #region UI State
 
-    public string ClrOverrideText => _logSwitchService.IsCliOverrideActive ?
-        $"(Overridden via CLI to {SelectedLogLevel})" :
-        "";
+  
 
     private int _requestFocusTick;
     public int RequestFocusTick
@@ -134,10 +132,22 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public bool HideSecretsByDefault { get => _hideSecretsByDefault; set { _hideSecretsByDefault = value; OnPropertyChanged(); } }
 
     private AppLogLevel _selectedLogLevel;
-    public AppLogLevel SelectedLogLevel { get => _selectedLogLevel; set { _selectedLogLevel = value; OnPropertyChanged(); } }
+    public AppLogLevel SelectedLogLevel
+    {
+        get => _selectedLogLevel;
+        set
+        {
+            _selectedLogLevel = value;
+            OnPropertyChanged(); 
+        }
+    }
 
     public List<AppLogLevel> AvailableLogLevels { get; }
     public bool IsCliOverrideActive => _logSwitchService.IsCliOverrideActive;
+    public string ClrOverrideText => _logSwitchService.IsCliOverrideActive ?
+        $"(Overridden via CLI to {SelectedLogLevel})" :
+        "";
+
     #endregion
 
     public ICommand SaveCommand { get; }
@@ -175,11 +185,12 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         _selectedLogLevel = _logSwitchService.MinimumLevel;
     }
 
-#endregion
+    #endregion
 
     public async Task LoadAsync()
     {
         IsHelloAvailable = await _authorizationService.IsHelloAvailableAsync();
+        
         var profile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
 
         SelectedLogLevel = _logSwitchService.IsCliOverrideActive ? _logSwitchService.GetLevel() : profile.MinimumLogLevel;
@@ -254,12 +265,14 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     private async Task SaveGeneralSettingsAsync()
     {
+
         var profile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
 
         // Sync Gate choice
         profile.Authorization.Gate = IsHelloSelected ? AuthorizationGateKind.Hello : AuthorizationGateKind.Password;
-       
+        //ILogSwitchService.
         profile.MinimumLogLevel = SelectedLogLevel;
+
         profile.LockOnSessionLock = LockOnSessionLock;
         profile.ClearClipboardEnabled = ClearClipboardEnabled;
         profile.ClearClipboardSeconds = ClearClipboardSeconds;
@@ -267,6 +280,15 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         profile.HideSecretsByDefault = HideSecretsByDefault;
 
         await _globalProfileStore.SaveAsync(profile);
+
+        if (SelectedLogLevel != _logSwitchService.GetLevel())
+        {
+            _logSwitchService.SetLevel(SelectedLogLevel);
+            _logSwitchService.IsCliOverrideActive = false;
+            OnPropertyChanged(nameof(IsCliOverrideActive));
+            OnPropertyChanged(nameof(ClrOverrideText));
+        }
+       
     }
 
     private void OnOpenLogFolder()

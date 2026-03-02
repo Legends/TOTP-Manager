@@ -1,6 +1,6 @@
 ﻿using TOTP.Core.Services.Interfaces;
 
-namespace TOTP.Core.Services;
+namespace TOTP.Infrastructure.Services;
 
 public class DelayService : IDelayService
 {
