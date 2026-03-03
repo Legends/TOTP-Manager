@@ -27,8 +27,8 @@ public partial class MainViewModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, UI.ex_Adding_New_TOTP);
-            _messageService.ShowError(UI.ex_Adding_New_TOTP + ": " + ex.Message);
+            _logger.LogError(ex, UI.ex_Adding_New_TOTP);    
+            _messageService.ShowError(UI.ex_Adding_New_TOTP );
         }
     }
 
@@ -49,7 +49,7 @@ public partial class MainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_UpdatingSecret);
-            _messageService.ShowError(UI.ex_UpdatingSecret + ": " + ex.Message);
+            _messageService.ShowError(UI.ex_UpdatingSecret );
         }
     }
 
@@ -192,7 +192,7 @@ public partial class MainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_UpdatingSecret);
-            _messageService.ShowError(UI.ex_UpdatingSecret + ": " + ex.Message);
+            _messageService.ShowError(UI.ex_UpdatingSecret );
         }
     }
 
@@ -322,7 +322,7 @@ public partial class MainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_Adding_New_TOTP);
-            _messageService.ShowError(UI.ex_Adding_New_TOTP + ": " + ex.Message);
+            _messageService.ShowError(UI.ex_Adding_New_TOTP );
         }
     }
 

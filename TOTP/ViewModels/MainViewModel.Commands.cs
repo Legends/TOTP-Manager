@@ -100,7 +100,7 @@ public partial class MainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Export workflow failed.");
-            _messageService.ShowError(UI.ex_UnexpectedError + ": " + ex.Message);
+            _messageService.ShowError(UI.ex_UnexpectedError );
         }
     }
 }

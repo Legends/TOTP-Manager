@@ -66,7 +66,7 @@ public partial class MainViewModel
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, UI.ex_Error_Generating_TOTP);
-                        _messageService.ShowError(UI.ex_Error_Generating_TOTP + ": " + ex.Message);
+                        _messageService.ShowError(UI.ex_Error_Generating_TOTP );
                     }
             }
         }
@@ -232,7 +232,7 @@ public partial class MainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_Filtering_Secrets);
-            _messageService.ShowError(UI.ex_Filtering_Secrets + ": " + ex.Message);
+            _messageService.ShowError(UI.ex_Filtering_Secrets );
         }
     }
 
@@ -282,7 +282,7 @@ public partial class MainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Export secrets to file failed.");
-            _messageService.ShowError(UI.ex_UnexpectedError + ": " + ex.Message);
+            _messageService.ShowError(UI.ex_UnexpectedError );
         }
     }
 

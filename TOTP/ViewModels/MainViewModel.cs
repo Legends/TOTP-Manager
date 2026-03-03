@@ -558,7 +558,7 @@ public partial class MainViewModel : IMainViewModel
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "MainViewModel initialization failed.");
-            _messageService.ShowError(UI.ex_FatalError + ": " + ex.Message);
+            _messageService.ShowError(UI.ex_FatalError );
             Environment.Exit(1);
         }
     }
