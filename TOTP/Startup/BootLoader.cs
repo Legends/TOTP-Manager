@@ -125,7 +125,6 @@ public static class BootLoader
                 services.AddSingleton<IAccountsWorkflowService, AccountsWorkflowService>();
                 services.AddTransient<IFileDialogService, FileDialogService>();
                 services.AddSingleton<IQrCodeService, QrCodeService>();
-                services.AddSingleton<IErrorHandler, ErrorHandler>();
 
 
 

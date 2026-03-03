@@ -105,7 +105,6 @@ public class MainViewModelIntegrationTests : IDisposable
         services.AddSingleton<IPlatformSecretDialogService, PlatformSecretDialogService>();
         services.AddSingleton<IMessageService, MessageService>();
         services.AddSingleton<ISecretsManager, SecretsManager>();
-        services.AddSingleton<IErrorHandler, ErrorHandler>();
         services.AddSingleton<IClipboardService, ClipboardService>();
         services.AddSingleton<IDebounceService, DebounceService>();
         services.AddSingleton<IDelayService, DelayService>();
