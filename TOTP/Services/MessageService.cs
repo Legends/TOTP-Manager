@@ -1,10 +1,8 @@
 using FluentResults;
 using Notification.Wpf;
+using Notification.Wpf.Base;
 using Notification.Wpf.Constants;
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -19,7 +17,26 @@ public sealed class MessageService : IMessageService
 {
     private const string NotificationAreaName = "MainWindowNotificationArea";
     private readonly NotificationManager _notificationManager = new();
-    private static int msgDuration = 400;
+    private readonly ILogFileService _logFileService;
+    private static int msgDuration = 6;
+    private static readonly TextContentSettings TitleTextSettings = new()
+    {
+        FontFamily = new FontFamily("Segoe UI Semibold"),
+        FontSize = 13,
+        TextAlignment = TextAlignment.Left
+    };
+
+    private static readonly TextContentSettings MessageTextSettings = new()
+    {
+        FontFamily = new FontFamily("Segoe UI"),
+        FontSize = 12,
+        TextAlignment = TextAlignment.Left
+    };
+
+    public MessageService(ILogFileService logFileService)
+    {
+        _logFileService = logFileService;
+    }
 
     public void ShowResultError(IResultBase result, string? context = null)
     {
@@ -36,12 +53,12 @@ public sealed class MessageService : IMessageService
             localizedMessage,
             NotificationType.Error,
             buttonText: UI.ui_btnDetails,
-            buttonAction: OpenCurrentLogFile);
+            buttonAction: _logFileService.OpenCurrentLogFile);
     }
 
     public void ShowInfo(string msg) => Show(UI.ui_Caption_Info, msg, NotificationType.Information);
     public void ShowWarning(string msg) => Show(UI.ui_Caption_Warning, msg, NotificationType.Warning);
-    public void ShowError(string msg) => Show(UI.ui_Caption_Error, msg, NotificationType.Error, UI.ui_btnDetails, OpenCurrentLogFile);
+    public void ShowError(string msg) => Show(UI.ui_Caption_Error, msg, NotificationType.Error, UI.ui_btnDetails, _logFileService.OpenCurrentLogFile);
 
     public bool ConfirmInfo(string msg, string? ok = null, string? cancel = null) =>
         Confirm(UI.ui_Caption_Info, msg, NotificationType.Information, ok, cancel);
@@ -73,14 +90,14 @@ public sealed class MessageService : IMessageService
                     NotificationAreaName,
                     expirationTime: TimeSpan.FromSeconds(msgDuration),
                     onClose: null,
-                    onClick: type == NotificationType.Error ? OpenCurrentLogFile : null,
+                    onClick: type == NotificationType.Error ? _logFileService.OpenCurrentLogFile : null,
                     trim: NotificationTextTrimType.NoTrim,
                     RowsCountWhenTrim: 2,
                     CloseOnClick: true,
-                    TitleSettings: null,
-                    MessageSettings: null,
+                    TitleSettings: TitleTextSettings,
+                    MessageSettings: MessageTextSettings,
                     ShowXbtn: true,
-                    icon: null);
+                    icon: GetIconForType(type));
 
                 return;
             }
@@ -100,10 +117,10 @@ public sealed class MessageService : IMessageService
                 trim: NotificationTextTrimType.NoTrim,
                 RowsCountWhenTrim: 2,
                 CloseOnClick: false,
-                TitleSettings: null,
-                MessageSettings: null,
+                TitleSettings: TitleTextSettings,
+                MessageSettings: MessageTextSettings,
                 ShowXbtn: true,
-                icon: null);
+                icon: GetIconForType(type));
         });
     }
 
@@ -142,7 +159,7 @@ public sealed class MessageService : IMessageService
                 type,
                 NotificationAreaName,
                 expirationTime: TimeSpan.MaxValue,
-                onClick: type == NotificationType.Error ? OpenCurrentLogFile : null,
+                onClick: type == NotificationType.Error ? _logFileService.OpenCurrentLogFile : null,
                 onClose: () => Complete(false),
                 LeftButton: () => Complete(true),
                 LeftButtonText: ok ?? UI.ui_btnOK,
@@ -151,10 +168,10 @@ public sealed class MessageService : IMessageService
                 trim: NotificationTextTrimType.NoTrim,
                 RowsCountWhenTrim: 2,
                 CloseOnClick: false,
-                TitleSettings: null,
-                MessageSettings: null,
+                TitleSettings: TitleTextSettings,
+                MessageSettings: MessageTextSettings,
                 ShowXbtn: true,
-                icon: null);
+                icon: GetIconForType(type));
 
             Dispatcher.PushFrame(frame);
         });
@@ -174,58 +191,14 @@ public sealed class MessageService : IMessageService
         dispatcher.Invoke(action);
     }
 
-    private static void OpenCurrentLogFile()
-    {
-        try
-        {
-            var fullPath = ResolveLogFilePath();
-            if (!File.Exists(fullPath))
-            {
-                return;
-            }
-
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = fullPath,
-                UseShellExecute = true
-            });
-        }
-        catch
-        {
-        }
-    }
-
-    private static string ResolveLogFilePath()
-    {
-        var currentRolling = StringsConstants.CurrentRollingAppLogFilePath;
-        if (File.Exists(currentRolling))
-        {
-            return currentRolling;
-        }
-
-        if (Directory.Exists(StringsConstants.AppLogDirectoryPath))
-        {
-            var latestRolling = Directory.GetFiles(StringsConstants.AppLogDirectoryPath, "app*.log")
-                .OrderByDescending(File.GetLastWriteTimeUtc)
-                .FirstOrDefault();
-
-            if (!string.IsNullOrWhiteSpace(latestRolling))
-            {
-                return latestRolling;
-            }
-        }
-
-        return StringsConstants.AppLogFilePath;
-    }
-
     private static void ConfigureNotificationSizing()
     {
         var window = Application.Current?.MainWindow;
         var width = window?.ActualWidth > 0 ? window.ActualWidth : window?.Width ?? 300d;
 
         // Keep notifications inside the compact app window.
-        var maxWidth = Math.Clamp(width - 28d, 180d, 290d);
-        var minWidth = Math.Clamp(maxWidth - 70d, 140d, maxWidth);
+        var maxWidth = Math.Floor(Math.Clamp(width - 28d, 180d, 290d));
+        var minWidth = Math.Floor(Math.Clamp(maxWidth - 70d, 140d, maxWidth));
 
         NotificationConstants.MaxWidth = maxWidth;
         NotificationConstants.MinWidth = minWidth;
@@ -238,23 +211,35 @@ public sealed class MessageService : IMessageService
         var foreground = TryGetBrush("Brush.Foreground") ?? Brushes.White;
         bool isDarkTheme = IsDarkForeground(foreground);
 
-        NotificationConstants.DefaultForegroundColor = foreground;
-
         if (isDarkTheme)
         {
-            NotificationConstants.DefaultBackgroundColor = new SolidColorBrush(Color.FromRgb(34, 44, 64));
-            NotificationConstants.InformationBackgroundColor = new SolidColorBrush(Color.FromRgb(28, 58, 92));
-            NotificationConstants.WarningBackgroundColor = new SolidColorBrush(Color.FromRgb(92, 70, 24));
-            NotificationConstants.ErrorBackgroundColor = new SolidColorBrush(Colors.Red);
-            NotificationConstants.SuccessBackgroundColor = new SolidColorBrush(Color.FromRgb(30, 98, 78));
+            NotificationConstants.DefaultForegroundColor = Brushes.White;
+            NotificationConstants.DefaultBackgroundColor = new SolidColorBrush(Color.FromRgb(30, 46, 79));
+            NotificationConstants.InformationBackgroundColor = new SolidColorBrush(Color.FromRgb(25, 78, 133));
+            NotificationConstants.WarningBackgroundColor = new SolidColorBrush(Color.FromRgb(127, 96, 32));
+            NotificationConstants.ErrorBackgroundColor = new SolidColorBrush(Color.FromRgb(153, 43, 58));
+            NotificationConstants.SuccessBackgroundColor = new SolidColorBrush(Color.FromRgb(35, 112, 86));
             return;
         }
 
-        NotificationConstants.DefaultBackgroundColor = new SolidColorBrush(Color.FromRgb(244, 247, 252));
-        NotificationConstants.InformationBackgroundColor = new SolidColorBrush(Color.FromRgb(219, 235, 255));
-        NotificationConstants.WarningBackgroundColor = new SolidColorBrush(Color.FromRgb(255, 244, 214));
-        NotificationConstants.ErrorBackgroundColor = new SolidColorBrush(Color.FromRgb(255, 224, 227));
-        NotificationConstants.SuccessBackgroundColor = new SolidColorBrush(Color.FromRgb(218, 247, 239));
+        NotificationConstants.DefaultForegroundColor = new SolidColorBrush(Color.FromRgb(24, 39, 61));
+        NotificationConstants.DefaultBackgroundColor = new SolidColorBrush(Color.FromRgb(239, 245, 255));
+        NotificationConstants.InformationBackgroundColor = new SolidColorBrush(Color.FromRgb(216, 232, 255));
+        NotificationConstants.WarningBackgroundColor = new SolidColorBrush(Color.FromRgb(255, 239, 199));
+        NotificationConstants.ErrorBackgroundColor = new SolidColorBrush(Color.FromRgb(255, 220, 226));
+        NotificationConstants.SuccessBackgroundColor = new SolidColorBrush(Color.FromRgb(209, 243, 231));
+    }
+
+    private static object? GetIconForType(NotificationType type)
+    {
+        return type switch
+        {
+            NotificationType.Information => StringsConstants.ImgUrl.ImgInfo,
+            NotificationType.Warning => StringsConstants.ImgUrl.ImgWarning,
+            NotificationType.Error => StringsConstants.ImgUrl.ImgError,
+            NotificationType.Success => StringsConstants.ImgUrl.ImgInfo,
+            _ => null
+        };
     }
 
     private static Brush? TryGetBrush(string key)
@@ -273,4 +258,5 @@ public sealed class MessageService : IMessageService
         var luminance = (0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B) / 255.0;
         return luminance >= 0.6;
     }
+
 }

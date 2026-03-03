@@ -562,11 +562,17 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
         </Grid>
 
         <notifications:NotificationArea x:Name="MainWindowNotificationArea"
-                                        Position="BottomCenter"
-                                        HorizontalAlignment="Center" 
-                                        Padding="0"
+                                        Position="BottomLeft"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Bottom"
                                         Panel.ZIndex="9000"
-                                      Margin="0,0,0,0" />
+                                        Margin="0"
+                                        Padding="0"
+                                        UseLayoutRounding="True"
+                                        SnapsToDevicePixels="True"
+                                        TextOptions.TextFormattingMode="Display"
+                                        TextOptions.TextRenderingMode="ClearType"
+                                        RenderOptions.ClearTypeHint="Enabled" />
 
 
         <!-- IsBusy overlay -->

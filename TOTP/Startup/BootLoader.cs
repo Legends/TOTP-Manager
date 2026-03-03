@@ -119,6 +119,7 @@ public static class BootLoader
                 // infra
                 services.AddSingleton<IDelayService, DelayService>();
                 services.AddSingleton<IDebounceService, DebounceService>();
+                services.AddSingleton<ILogFileService, LogFileService>();
                 services.AddSingleton<IMessageService, MessageService>();
                 services.AddSingleton<IAccountsWorkflowService, AccountsWorkflowService>();
                 services.AddTransient<IFileDialogService, FileDialogService>();
