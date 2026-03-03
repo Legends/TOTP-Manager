@@ -70,7 +70,7 @@ public sealed class QrPreviewService : IQrPreviewService
             BorderBrush = Brushes.White,
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(10),
-            Padding = new Thickness(10),
+            Padding = new Thickness(5),
             Child = previewImage
         };
 

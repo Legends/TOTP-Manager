@@ -50,6 +50,27 @@ public sealed class ClipboardBackgroundService : BackgroundService, IClipboardSe
         _logger.LogInformation("Sensitive data copied. Scheduled to clear in {Duration}s", (duration ?? TimeSpan.FromSeconds(30)).TotalSeconds);
     }
 
+    public void SetText(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            Clipboard.SetText(text);
+        });
+
+        lock (_lock)
+        {
+            _lastCopiedText = null;
+            _clearAt = null;
+        }
+
+        _logger.LogInformation("Clipboard text copied without auto-clear schedule.");
+    }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // Check every second
@@ -107,4 +128,9 @@ public interface IClipboardService
     /// Copies text to clipboard and schedules it to be cleared.
     /// </summary>
     void CopyAndScheduleClear(string text, TimeSpan? duration = null);
+
+    /// <summary>
+    /// Copies text to clipboard without scheduling automatic clear.
+    /// </summary>
+    void SetText(string text);
 }

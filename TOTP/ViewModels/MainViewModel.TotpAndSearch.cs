@@ -316,7 +316,19 @@ public partial class MainViewModel
 
     public void CopyTotpCodeToClipboard()
     {
-        _clipboardService.CopyAndScheduleClear(TotpCode, TimeSpan.FromSeconds(30));
+        var clearEnabled = _settingsService.Current.ClearClipboardEnabled;
+        if (!clearEnabled)
+        {
+            _clipboardService.SetText(TotpCode);
+            ShowCopySymbol = true;
+            return;
+        }
+
+        var seconds = _settingsService.Current.ClearClipboardSeconds > 0
+            ? _settingsService.Current.ClearClipboardSeconds
+            : 15;
+
+        _clipboardService.CopyAndScheduleClear(TotpCode, TimeSpan.FromSeconds(seconds));
         ShowCopySymbol = true;
     }
 
