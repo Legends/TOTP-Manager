@@ -1,22 +1,15 @@
 #region ### USINGS ###
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OtpNet;
-using Syncfusion.Linq;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using TOTP.Commands;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
@@ -24,19 +17,14 @@ using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Infrastructure.Common;
-using TOTP.Infrastructure.Extensions;
-using TOTP.Infrastructure.Parser;
 using TOTP.Infrastructure.Services;
 using TOTP.Resources;
 using TOTP.Security.Interfaces;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
-using TOTP.Validation;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views.Interfaces;
 using static TOTP.ViewModels.SettingsViewModel;
-using Application = System.Windows.Application;
-using ValidationError = TOTP.Core.Enums.ValidationError;
 
 #endregion
 
@@ -46,9 +34,16 @@ public partial class MainViewModel : IMainViewModel
 {
     #region ### COMMON PROPS AND VARS ###
 
+    private sealed class NullGridFilterRefresher : IGridFilterRefresher
+    {
+        public static readonly IGridFilterRefresher Instance = new NullGridFilterRefresher();
+        public void Refresh() { }
+        public void ApplySearchFilter(Predicate<object> filter) { }
+    }
+
     private readonly Func<IQrScannerDialogService> _qrScannerDialogFactory;
     private ISettingsService _settingsService;
-    public IGridFilterRefresher GridFilterRefresher { get; set; }
+    public IGridFilterRefresher GridFilterRefresher { get; set; } = NullGridFilterRefresher.Instance;
 
     #region SETTINGS
 
@@ -81,7 +76,7 @@ public partial class MainViewModel : IMainViewModel
         }
     }
 
-    private SettingsViewModel _SettingsVm;
+    private SettingsViewModel _SettingsVm = null!;
 
     public SettingsViewModel SettingsVm
     {
@@ -125,7 +120,7 @@ public partial class MainViewModel : IMainViewModel
     #endregion
 
 
-    private CultureDisplay _selectedCulture;
+    private CultureDisplay _selectedCulture = null!;
     private readonly ILogger<MainViewModel> _logger;
 
     // Totp generation timer
@@ -195,7 +190,7 @@ public partial class MainViewModel : IMainViewModel
         }
     }
 
-    private OtpViewModel _editingSecret;
+    private OtpViewModel? _editingSecret;
 
     /// <summary>
     /// Can contain a new secret (in add mode) or a copy of the selected secret (in edit mode)
@@ -320,7 +315,7 @@ public partial class MainViewModel : IMainViewModel
 
     public bool IsContextmenuOpen { get; set; }
 
-    private OtpViewModel _selectedAccount = null!;
+    private OtpViewModel? _selectedAccount;
 
     public OtpViewModel? SelectedAccount
     {
@@ -428,7 +423,7 @@ public partial class MainViewModel : IMainViewModel
 
     #region ### ObservableCollections ###
 
-    private ObservableCollection<OtpViewModel> _allOtps;
+    private ObservableCollection<OtpViewModel> _allOtps = [];
     public ObservableCollection<OtpViewModel> AllOtps
     {
         get => _allOtps;
@@ -444,7 +439,7 @@ public partial class MainViewModel : IMainViewModel
     public Action? RequestGridFilterRefresh { get; set; }
 
 
-    public ObservableCollection<CultureDisplay> SupportedCultures { get; set; }
+    public ObservableCollection<CultureDisplay> SupportedCultures { get; set; } = [];
 
     #endregion ObservableCollections
 
@@ -472,12 +467,9 @@ public partial class MainViewModel : IMainViewModel
         IQrCodeService svcQr,
         IMessageService messageService,
         IClipboardService clipboardService,
-        IConfiguration config,
         IAccountsWorkflowService accountsWorkflow,
         IDebounceService debounceService,
-        IDelayService delayService,
         IFileDialogService fileDialogService,
-        IAuthorizationService authorization,
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
         Func<IQrScannerDialogService> qrScannerDialogFactory,
@@ -565,7 +557,7 @@ public partial class MainViewModel : IMainViewModel
 
     public ICommand OpenSettingsCommand { get; private set; } = null!;
 
-    private ICommand _closeSettingsViewCommand;
+    private ICommand _closeSettingsViewCommand = null!;
 
     public ICommand CloseSettingsViewCommand
     {

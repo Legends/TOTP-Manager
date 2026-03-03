@@ -23,7 +23,7 @@ public partial class MainViewModel
         {
             IsAddMode = true;
             IsEditAddFlyoutOpen = true;
-            CurrentSecretBeingEditedOrAdded = new OtpViewModel(Guid.NewGuid(), null, null, null);
+            CurrentSecretBeingEditedOrAdded = new OtpViewModel(Guid.NewGuid(), string.Empty, string.Empty, null);
         }
         catch (Exception ex)
         {
@@ -36,7 +36,7 @@ public partial class MainViewModel
 
     #region ### OPEN FLYOUT IN EDIT MODE ###
 
-    public void OpenFlyoutEditMode(OtpViewModel item)
+    public void OpenFlyoutEditMode(OtpViewModel? item)
     {
         try
         {
@@ -69,10 +69,12 @@ public partial class MainViewModel
 
     #region ### DELETE OTP ENTRY ###
 
-    internal async Task DeleteOtpEntryAsync(OtpViewModel item)
+    internal async Task DeleteOtpEntryAsync(OtpViewModel? item)
     {
         try
         {
+            if (item == null)
+                return;
 
             var shouldDelete = _messageService.ConfirmWarning(string.Format(UI.msg_ConfirmDeleteSecret, item.Issuer), UI.ui_btnDelete);
             if (!shouldDelete)
@@ -137,6 +139,9 @@ public partial class MainViewModel
 
     private void UpdateQRCode()
     {
+        if (SelectedAccount == null)
+            return;
+
         QrCodeImage = GenerateQRCodeImage(SelectedAccount);
     }
 
@@ -148,23 +153,30 @@ public partial class MainViewModel
 
             if (IsAddMode)
             {
-                CurrentSecretBeingEditedOrAdded?.SetDuplicateCheck(DuplicateCheck);
-                var validationErrors = _accountsWorkflow.ValidateForCreate(CurrentSecretBeingEditedOrAdded, AllOtps);
+                if (CurrentSecretBeingEditedOrAdded == null)
+                    return;
+
+                var current = CurrentSecretBeingEditedOrAdded;
+                current.SetDuplicateCheck(DuplicateCheck);
+                var validationErrors = _accountsWorkflow.ValidateForCreate(current, AllOtps);
                 if (validationErrors.Count > 0)
                 {
-                    CurrentSecretBeingEditedOrAdded.RefreshValidation();
+                    current.RefreshValidation();
                     return;
                 }
 
-                var result = await _accountsWorkflow.AddAsync(CurrentSecretBeingEditedOrAdded);
+                var result = await _accountsWorkflow.AddAsync(current);
 
                 if (result.IsFailed)
                 {
-                    _messageService.ShowResultError(result, CurrentSecretBeingEditedOrAdded.Issuer);
+                    _messageService.ShowResultError(result, current.Issuer);
                     return;
                 }
 
-                var itemToAdd = CurrentSecretBeingEditedOrAdded.Copy();
+                var itemToAdd = current.Copy();
+                if (itemToAdd == null)
+                    return;
+
                 AllOtps.Add(itemToAdd);
 
                 CurrentSecretBeingEditedOrAdded = null;
@@ -173,6 +185,9 @@ public partial class MainViewModel
             }
             else
             {
+                if (CurrentSecretBeingEditedOrAdded == null)
+                    return;
+
                 var updated = CurrentSecretBeingEditedOrAdded.Copy();
 
                 if (updated == null)
@@ -207,10 +222,13 @@ public partial class MainViewModel
 
     public bool IsInlineEditing { get; set; }
 
-    private async Task OnEndEditAsync(OtpViewModel item)
+    private async Task OnEndEditAsync(OtpViewModel? item)
     {
         try
         {
+            if (item == null || PreviousVersion == null)
+                return;
+
             if (item.ID != PreviousVersion.ID)
                 return;
 
@@ -276,12 +294,12 @@ public partial class MainViewModel
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, null, null);
+                    _logger.LogError(e, UI.msg_ErrorParsingOtpUrl);
                     _messageService.ShowError(UI.msg_ErrorParsingOtpUrl);
                     return;
                 }
 
-                var newAccountItem = new OtpViewModel(Guid.NewGuid(), otp.Issuer, otp.SecretBase32, otp.Label);
+                var newAccountItem = new OtpViewModel(Guid.NewGuid(), otp.Issuer ?? string.Empty, otp.SecretBase32, otp.Label);
 
                 var validationErrors = _accountsWorkflow.ValidateForCreate(newAccountItem, AllOtps);
                 if (validationErrors.Count > 0)
@@ -291,7 +309,7 @@ public partial class MainViewModel
                     {
                         if (error == ValidationError.PlatformAlreadyExists)
                         {
-                            _messageService.ShowError(ValidationMessageMapper.ToMessage(error, newAccountItem.Issuer));
+                            _messageService.ShowError(ValidationMessageMapper.ToMessage(error, newAccountItem.Issuer ?? string.Empty));
                         }
                         else
                             _messageService.ShowError(ValidationMessageMapper.ToMessage(error));

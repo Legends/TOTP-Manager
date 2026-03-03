@@ -24,12 +24,18 @@ public partial class MainViewModel
 
     private bool _isDoubleClick;
 
-    public async Task OnRowSelectionChangedAsync(OtpViewModel selectedSecretItem)
+    public async Task OnRowSelectionChangedAsync(OtpViewModel? selectedSecretItem)
     {
+        if (selectedSecretItem == null)
+        {
+            Debug.WriteLine("OnRowSelectionChangedAsync - early return");
+            return;
+        }
+
         if (SelectedAccount != null && IsInlineEditing && SelectedAccount.ID != selectedSecretItem.ID)
             IsInlineEditing = false;
 
-        if (IsGridEditing || IsInlineEditing || selectedSecretItem == null)
+        if (IsGridEditing || IsInlineEditing)
         {
             Debug.WriteLine("OnRowSelectionChangedAsync - early return");
             return;
@@ -46,7 +52,7 @@ public partial class MainViewModel
             return;
         }
 
-        if (SelectedAccount?.ID == selectedSecretItem?.ID)
+        if (SelectedAccount?.ID == selectedSecretItem.ID)
             return;
 
         SelectedAccount = ComputeTotpCode(selectedSecretItem, out _activeTotp);
@@ -87,7 +93,7 @@ public partial class MainViewModel
 
     public OtpViewModel ComputeTotpCode(OtpViewModel item, out Totp totpInstance)
     {
-        if (!UiValidation.IsValidBase32Format(item.Secret))
+        if (item == null || string.IsNullOrWhiteSpace(item.Secret) || !UiValidation.IsValidBase32Format(item.Secret))
             throw new FormatException($"Secret is invalid Base32 format, supplied to {nameof(ComputeTotpCode)}");
 
         var encodedSecret = Base32Encoding.ToBytes(item.Secret);
@@ -99,7 +105,7 @@ public partial class MainViewModel
         return item;
     }
 
-    private string _TotpCode;
+    private string _TotpCode = string.Empty;
     public string TotpCode
     {
         get => _TotpCode;
@@ -126,7 +132,6 @@ public partial class MainViewModel
 
     public int ElapsedSeconds => PeriodSeconds - RemainingSeconds;
 
-    OtpViewModel _lastSelected;
     private readonly SettingsViewModelFactory _settingsFactory;
     private void OnRowSelectionImplementation()
     {
@@ -179,8 +184,12 @@ public partial class MainViewModel
 
     private BitmapImage GenerateQRCodeImage(OtpViewModel item)
     {
+        if (string.IsNullOrWhiteSpace(item.Secret))
+            throw new FormatException("Secret is required for QR generation.");
+
         var normalizedSecret = OtpauthParser.NormalizeBase32SecretForUri(item.Secret);
-        var uri = _qrService.BuildOtpAuthUri(item.Issuer, normalizedSecret, item.AccountName);
+        var issuer = item.Issuer ?? string.Empty;
+        var uri = _qrService.BuildOtpAuthUri(issuer, normalizedSecret, item.AccountName);
         byte[] pngBytes = _qrService.GenerateQr(uri);
 
         var bmp = new BitmapImage();
@@ -246,6 +255,9 @@ public partial class MainViewModel
 
     private void GenerateQrCodeImage()
     {
+        if (SelectedAccount == null)
+            return;
+
         var bmp = GenerateQRCodeImage(SelectedAccount);
         QrCodeImage = bmp;
         ShowGenerateQrCodeLink = false;

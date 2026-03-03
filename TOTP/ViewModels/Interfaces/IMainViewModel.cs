@@ -26,10 +26,10 @@ public interface IMainViewModel : INotifyPropertyChanged
     ICommand EndEditCommand { get; }
     ICommand DoubleClickCommand { get; }
     void OpenFlyoutAddMode();
-    OtpViewModel SelectedAccount { get; set; }
+    OtpViewModel? SelectedAccount { get; set; }
     bool IsContextmenuOpen { get; set; }
     Task InitializeMainViewAsync(IMainWindow? mainWindow);
-    Task OnRowSelectionChangedAsync(OtpViewModel item);
+    Task OnRowSelectionChangedAsync(OtpViewModel? item);
     bool IsGridEditing { get; set; }
     bool IsInlineEditing { get; set; }
     bool IsSecretVisible { get; set; }
