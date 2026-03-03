@@ -45,7 +45,7 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         base.OnContentRendered(e);
         
         // Setup RefreshFilter callable from View
-        _vm.GridFilterRefresher = new GridFilterRefresher(AccountsGrid);
+        _vm.GridFilterRefresher = new GridFilterRefresher(AccountsSectionView.AccountsGridControl);
  
     }
  

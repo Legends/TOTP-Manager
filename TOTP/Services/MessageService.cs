@@ -18,7 +18,7 @@ public sealed class MessageService : IMessageService
     private const string NotificationAreaName = "MainWindowNotificationArea";
     private readonly NotificationManager _notificationManager = new();
     private readonly ILogFileService _logFileService;
-    private static int msgDuration = 4;
+    private static int msgDuration = 5;
     private static readonly TextContentSettings TitleTextSettings = new()
     {
         FontFamily = new FontFamily("Segoe UI Semibold"),

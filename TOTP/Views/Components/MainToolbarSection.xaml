@@ -1,0 +1,124 @@
+<UserControl x:Class="TOTP.Views.Components.MainToolbarSection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+             xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
+             xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
+             xmlns:props="clr-namespace:TOTP.Infrastructure.AttachedProperties"
+             xmlns:xaml="clr-namespace:TOTP.Xaml"
+             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
+             syncfusionskin:SkinManagerHelper.ScrollBarMode="Default">
+
+    <Grid Height="30"
+          Background="Transparent">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Grid.Column="0">
+            <Button ToolTip="{xaml:Resx Key=ui_btnScan}"
+                    Margin="5,5,0,0"
+                    Padding="5,5"
+                    Command="{Binding ScanQrAndAddCommand}">
+                <svgc:SvgViewbox Source="/Assets/Icons/Camera-48x48.svg"
+                                 Height="15"
+                                 Stretch="Uniform" />
+            </Button>
+
+            <Button ToolTip="{xaml:Resx Key=tooltip_AddNew}"
+                    Margin="5,5,0,0"
+                    Padding="5,5"
+                    Command="{Binding OpenFlyoutAddModeCommand}">
+                <svgc:SvgViewbox Source="/Assets/Icons/plus-24x24.svg"
+                                 Height="15"
+                                 Stretch="Uniform" />
+            </Button>
+
+            <Button Command="{Binding ToggleSearchBoxCommand}"
+                    ToolTip="{xaml:Resx Key=ui_btnSearch}"
+                    Margin="5,5,5,0"
+                    Padding="5,5">
+                <svgc:SvgViewbox Source="/Assets/Icons/find-24x24.svg"
+                                 Height="15"
+                                 Stretch="Uniform" />
+            </Button>
+
+            <syncfusion:SfTextBoxExt Width="80"
+                                     Height="30"
+                                     VerticalAlignment="Center"
+                                     VerticalContentAlignment="Stretch"
+                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     Watermark="{xaml:Resx Key=ui_label_Search_Dots}"
+                                     props:FocusExtension.IsFocused="{Binding IsSearchFocused}"
+                                     Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}"
+                                     Padding="0,0,20,0"
+                                     Margin="10,0,0,0">
+                <syncfusion:SfTextBoxExt.InputBindings>
+                    <KeyBinding Key="Escape"
+                                Command="{Binding ClearSearchCommand}" />
+                </syncfusion:SfTextBoxExt.InputBindings>
+            </syncfusion:SfTextBoxExt>
+
+            <Button Content="×"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Width="20"
+                    Height="20"
+                    VerticalAlignment="Center"
+                    Margin="-20,0,0,0"
+                    Command="{Binding ClearSearchCommand}"
+                    Visibility="{Binding IsSearchTextNotEmpty, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Grid.Column="1">
+            <syncfusion:ComboBoxAdv Grid.Column="1"
+                                    IsEnabled="{Binding IsGridEditing, Converter={StaticResource InverseBooleanConverter}}"
+                                    ItemsSource="{Binding SupportedCultures}"
+                                    SelectedItem="{Binding SelectedCulture, Mode=TwoWay}"
+                                    Width="50"
+                                    VerticalAlignment="Center"
+                                    Margin="2"
+                                    AllowMultiSelect="False">
+                <syncfusion:ComboBoxAdv.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding IconPath}"
+                                   Width="20"
+                                   Height="25"
+                                   Margin="0,0,5,0" />
+                        </StackPanel>
+                    </DataTemplate>
+                </syncfusion:ComboBoxAdv.ItemTemplate>
+            </syncfusion:ComboBoxAdv>
+
+            <syncfusion:MenuAdv Height="25"
+                                Margin="2,5,5,0"
+                                Padding="0"
+                                Width="23"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal"
+                                ExpandMode="ExpandOnClick">
+                <syncfusion:MenuItemAdv Header="{xaml:Resx Key=ui_Settings_Title}"
+                                        Command="{Binding OpenSettingsCommand}"
+                                        Width="32"
+                                        Padding="0"
+                                        ToolTip="{xaml:Resx Key=ui_Settings_Title}"
+                                        HorizontalContentAlignment="Center"
+                                        VerticalContentAlignment="Center">
+                    <syncfusion:MenuItemAdv.Icon>
+                        <svgc:SvgViewbox Source="/Assets/Icons/Gear--03WF-48x48.svg"
+                                         Height="15"
+                                         Stretch="Uniform" />
+                    </syncfusion:MenuItemAdv.Icon>
+                </syncfusion:MenuItemAdv>
+            </syncfusion:MenuAdv>
+        </StackPanel>
+    </Grid>
+</UserControl>
