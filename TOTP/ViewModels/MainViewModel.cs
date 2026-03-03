@@ -327,17 +327,13 @@ public partial class MainViewModel : IMainViewModel
         get => _selectedAccount;
         set
         {
-
             if (_selectedAccount == null || _selectedAccount.ID != value?.ID)
             {
-                //IsInlineEditing = false;
-
                 foreach (var item in AllOtps)
                     item.IsBeingEdited = false;
 
                 _selectedAccount = value;
                 OnPropertyChanged();
-                //IsProgressPieChartVisible = false;
             }
         }
     }
@@ -558,7 +554,7 @@ public partial class MainViewModel : IMainViewModel
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "MainViewModel initialization failed.");
-            _messageService.ShowError(UI.ex_FatalError );
+            _messageService.ShowError(UI.ex_FatalError);
             Environment.Exit(1);
         }
     }
