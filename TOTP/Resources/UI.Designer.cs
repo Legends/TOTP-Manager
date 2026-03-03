@@ -844,6 +844,24 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to QR preview scale.
+        /// </summary>
+        internal static string ui_Settings_QrPreviewScale {
+            get {
+                return ResourceManager.GetString("ui_Settings_QrPreviewScale", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to x (e.g. 2.0).
+        /// </summary>
+        internal static string ui_Settings_QrPreviewScale_Hint {
+            get {
+                return ResourceManager.GetString("ui_Settings_QrPreviewScale_Hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Logging.
         /// </summary>
         internal static string ui_Settings_Section_Logging {

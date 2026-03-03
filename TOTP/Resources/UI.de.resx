@@ -336,6 +336,12 @@
   <data name="ui_Settings_ClearClipboard_Seconds" xml:space="preserve">
     <value>Sekunden</value>
   </data>
+  <data name="ui_Settings_QrPreviewScale" xml:space="preserve">
+    <value>QR-Vorschau-Skalierung</value>
+  </data>
+  <data name="ui_Settings_QrPreviewScale_Hint" xml:space="preserve">
+    <value>x (z. B. 2,0)</value>
+  </data>
   <data name="ui_Settings_LockOnWindowsLock" xml:space="preserve">
     <value>Windows Sperrbildschrim</value>
   </data>

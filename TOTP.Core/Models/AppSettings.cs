@@ -1,12 +1,14 @@
 using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 
-namespace TOTP.Core.Security.Models;
+namespace TOTP.Core.Models;
 
 public sealed class AppSettings : IAppSettings
 {
     public static readonly TimeSpan DefaultIdleTimeout = TimeSpan.FromMinutes(10);
     public const int DefaultClearClipboardSeconds = 15;
+    public const double DefaultQrPreviewScaleFactor = 1.5;
 
     public AppLogLevel MinimumLogLevel { get; set; } = AppLogLevel.Information;
 
@@ -19,6 +21,7 @@ public sealed class AppSettings : IAppSettings
     public bool ClearClipboardEnabled { get; set; } = true;
 
     public int ClearClipboardSeconds { get; set; } = DefaultClearClipboardSeconds;
+    public double QrPreviewScaleFactor { get; set; } = DefaultQrPreviewScaleFactor;
 
     public bool ExportEncrypt { get; set; } = true;
 

@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
-using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Core.Security.Services;
 

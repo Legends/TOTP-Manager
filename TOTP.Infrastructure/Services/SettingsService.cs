@@ -1,11 +1,8 @@
 using FluentResults;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using TOTP.Core.Common;
+using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
-using TOTP.Core.Security.Models;
 
 namespace TOTP.Infrastructure.Services;
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using TOTP.Core.Services.Interfaces;
-
+using TOTP.Core.Security.Interfaces;
 
 namespace TOTP.Core.Security.Services;
 

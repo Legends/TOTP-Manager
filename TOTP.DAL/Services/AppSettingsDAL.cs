@@ -10,6 +10,7 @@ using TOTP.Core.Common;
 using TOTP.DAL.Common;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
+using TOTP.Core.Models;
 
 namespace TOTP.DAL.Services;
 

@@ -264,6 +264,12 @@
   <data name="ui_Settings_ClearClipboard_Seconds" xml:space="preserve">
     <value>seconds</value>
   </data>
+  <data name="ui_Settings_QrPreviewScale" xml:space="preserve">
+    <value>QR preview scale</value>
+  </data>
+  <data name="ui_Settings_QrPreviewScale_Hint" xml:space="preserve">
+    <value>x (e.g. 2.0)</value>
+  </data>
   <data name="ui_Settings_LockOnWindowsLock" xml:space="preserve">
     <value>Windows lock screen</value>
   </data>

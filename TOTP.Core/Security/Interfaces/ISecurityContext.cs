@@ -1,4 +1,4 @@
-﻿namespace TOTP.Core.Services.Interfaces;
+﻿namespace TOTP.Core.Security.Interfaces;
 
 public interface ISecurityContext
 {

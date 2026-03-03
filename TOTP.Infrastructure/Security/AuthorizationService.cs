@@ -4,7 +4,6 @@ using System.Linq;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
-using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Infrastructure.Security;
 

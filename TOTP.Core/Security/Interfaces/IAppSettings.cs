@@ -11,6 +11,7 @@ public interface IAppSettings
     bool LockOnSessionLock { get; set; }
     bool ClearClipboardEnabled { get; set; }
     int ClearClipboardSeconds { get; set; }
+    double QrPreviewScaleFactor { get; set; }
     bool ExportEncrypt { get; set; }
     bool HideSecretsByDefault { get; set; }
 }

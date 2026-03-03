@@ -8,20 +8,26 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Core.Enums;
+using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Infrastructure.Common;
+using TOTP.Services.Interfaces;
 
 namespace TOTP.ViewModels;
 
 public sealed class SettingsViewModel : INotifyPropertyChanged
 {
+    private const double MinQrPreviewScale = 1.0;
+    private const double MaxQrPreviewScale = 6.0;
+
     #region ### PROPERTIES/FIELDS ###
 
     public event PropertyChangedEventHandler? PropertyChanged;
     private readonly IAuthorizationService _authorizationService;
     private readonly ILogSwitchService _logSwitchService;
+    private readonly IQrPreviewService _qrPreviewService;
     private readonly Action _saveAction;
 
     #region UI State
@@ -119,6 +125,9 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     private int _clearClipboardSeconds = 15;
     public int ClearClipboardSeconds { get => _clearClipboardSeconds; set { _clearClipboardSeconds = value; OnPropertyChanged(); } }
 
+    private double _qrPreviewScaleFactor = 2.0;
+    public double QrPreviewScaleFactor { get => _qrPreviewScaleFactor; set { _qrPreviewScaleFactor = value; OnPropertyChanged(); } }
+
     private bool _exportEncrypt = true;
     public bool ExportEncrypt { get => _exportEncrypt; set { _exportEncrypt = value; OnPropertyChanged(); } }
 
@@ -162,6 +171,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public SettingsViewModel(ISettingsService settingsSvc,
                             IAuthorizationService authorizationService,
+                            IQrPreviewService qrPreviewService,
                             ILogSwitchService logSwitchService,
                             ICommand closeCommand,
                             Action saveAction,
@@ -170,6 +180,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         _logSwitchService = logSwitchService;
         _settingsSvc = settingsSvc;
         _authorizationService = authorizationService;
+        _qrPreviewService = qrPreviewService;
         _saveAction = saveAction;
         
         CloseCommand = closeCommand;
@@ -205,6 +216,11 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         LockOnSessionLock = _appSettings.LockOnSessionLock;
         ClearClipboardEnabled = _appSettings.ClearClipboardEnabled;
         ClearClipboardSeconds = _appSettings.ClearClipboardSeconds > 0 ? _appSettings.ClearClipboardSeconds : 15;
+        QrPreviewScaleFactor = Math.Clamp(
+            _appSettings.QrPreviewScaleFactor > 0 ? _appSettings.QrPreviewScaleFactor : AppSettings.DefaultQrPreviewScaleFactor,
+            MinQrPreviewScale,
+            MaxQrPreviewScale);
+        _qrPreviewService.PreviewScaleFactor = QrPreviewScaleFactor;
         ExportEncrypt = _appSettings.ExportEncrypt;
         HideSecretsByDefault = _appSettings.HideSecretsByDefault;
     }
@@ -269,6 +285,10 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         _appSettings.LockOnSessionLock = LockOnSessionLock;
         _appSettings.ClearClipboardEnabled = ClearClipboardEnabled;
         _appSettings.ClearClipboardSeconds = ClearClipboardSeconds;
+        _appSettings.QrPreviewScaleFactor = Math.Clamp(
+            QrPreviewScaleFactor > 0 ? QrPreviewScaleFactor : AppSettings.DefaultQrPreviewScaleFactor,
+            MinQrPreviewScale,
+            MaxQrPreviewScale);
         _appSettings.ExportEncrypt = ExportEncrypt;
         _appSettings.HideSecretsByDefault = HideSecretsByDefault;
 
@@ -286,6 +306,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsCliOverrideActive));
             OnPropertyChanged(nameof(ClrOverrideText));
         }
+
+        _qrPreviewService.PreviewScaleFactor = _appSettings.QrPreviewScaleFactor;
 
     }
 

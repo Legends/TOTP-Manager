@@ -92,6 +92,7 @@ public partial class MainViewModel
 
     private void OnLocked()
     {
+        _qrPreviewService.Close();
         _otpLoadedFromStore = false;
         AllOtps.Clear();
 

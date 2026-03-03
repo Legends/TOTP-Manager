@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.Windows.Threading;
+using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
-using TOTP.Core.Security.Models;
 using TOTP.Services.Interfaces;
 using ActivityKind = TOTP.Core.Security.Models.ActivityKind;
 namespace TOTP.Services;

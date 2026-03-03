@@ -23,6 +23,7 @@ public partial class MainViewModel
 
         CopyCodeCommand = new RelayCommand<OtpViewModel>(model => CopyTotpCodeToClipboard());
         GenerateQrCommand = new RelayCommand<OtpViewModel>(model => GenerateQrCodeImage());
+        ToggleQrPreviewCommand = new RelayCommand<System.Windows.Media.Imaging.BitmapSource?>(source => _qrPreviewService.Toggle(source));
         ExportSecretsCommand = new AsyncCommand(ExportSecretsToFile);
         ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);
 

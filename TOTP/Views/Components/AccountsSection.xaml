@@ -263,7 +263,15 @@
                    Source="{Binding QrCodeImage}"
                    Width="160"
                    Height="Auto"
-                   Visibility="{Binding IsQrVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}" />
+                   Cursor="Hand"
+                   Visibility="{Binding IsQrVisible, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseLeftButtonUp">
+                        <i:InvokeCommandAction Command="{Binding ToggleQrPreviewCommand}"
+                                               CommandParameter="{Binding QrCodeImage}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </Image>
         </StackPanel>
     </Grid>
 </UserControl>

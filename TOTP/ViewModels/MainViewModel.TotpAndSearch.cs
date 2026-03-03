@@ -72,7 +72,7 @@ public partial class MainViewModel
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, UI.ex_Error_Generating_TOTP);
-                        _messageService.ShowError(UI.ex_Error_Generating_TOTP );
+                        _messageService.ShowError(UI.ex_Error_Generating_TOTP);
                     }
             }
         }
@@ -91,6 +91,7 @@ public partial class MainViewModel
 
     #region ### TOTP Code Generation ###
 
+    // Secret: JBSWY3DPEHPK3PXP
     public OtpViewModel ComputeTotpCode(OtpViewModel item, out Totp totpInstance)
     {
         if (item == null || string.IsNullOrWhiteSpace(item.Secret) || !UiValidation.IsValidBase32Format(item.Secret))
@@ -241,7 +242,7 @@ public partial class MainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, UI.ex_Filtering_Secrets);
-            _messageService.ShowError(UI.ex_Filtering_Secrets );
+            _messageService.ShowError(UI.ex_Filtering_Secrets);
         }
     }
 
@@ -294,7 +295,7 @@ public partial class MainViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Export secrets to file failed.");
-            _messageService.ShowError(UI.ex_UnexpectedError );
+            _messageService.ShowError(UI.ex_UnexpectedError);
         }
     }
 

@@ -452,6 +452,7 @@ public partial class MainViewModel : IMainViewModel
     private readonly IQrCodeService _qrService;
     private readonly IFileDialogService _fileDialogService;
     private readonly IMainViewSessionController _mainViewSessionController;
+    private readonly IQrPreviewService _qrPreviewService;
 
     private bool _otpLoadedFromStore;
     private bool _collectionHooked;
@@ -470,6 +471,7 @@ public partial class MainViewModel : IMainViewModel
         IAccountsWorkflowService accountsWorkflow,
         IDebounceService debounceService,
         IFileDialogService fileDialogService,
+        IQrPreviewService qrPreviewService,
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
         Func<IQrScannerDialogService> qrScannerDialogFactory,
@@ -481,6 +483,7 @@ public partial class MainViewModel : IMainViewModel
         _settingsFactory = settingsFactory;
         _qrScannerDialogFactory = qrScannerDialogFactory;
         _fileDialogService = fileDialogService;
+        _qrPreviewService = qrPreviewService;
         _logger = logger;
         _qrService = svcQr;
         _messageService = messageService;
@@ -571,6 +574,7 @@ public partial class MainViewModel : IMainViewModel
 
     public ICommand CopyCodeCommand { get; private set; } = null!;
     public ICommand GenerateQrCommand { get; private set; } = null!;
+    public ICommand ToggleQrPreviewCommand { get; private set; } = null!;
     public AsyncCommand ExportSecretsCommand { get; private set; } = null!;
     public AsyncCommand ScanQrAndAddCommand { get; private set; } = null!;
     public ICommand CancelFlyoutCommand { get; private set; } = null!;

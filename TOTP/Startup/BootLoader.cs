@@ -120,6 +120,7 @@ public static class BootLoader
                 services.AddSingleton<IDelayService, DelayService>();
                 services.AddSingleton<IDebounceService, DebounceService>();
                 services.AddSingleton<ILogFileService, LogFileService>();
+                services.AddSingleton<IQrPreviewService, QrPreviewService>();
                 services.AddSingleton<IMessageService, MessageService>();
                 services.AddSingleton<IAccountsWorkflowService, AccountsWorkflowService>();
                 services.AddTransient<IFileDialogService, FileDialogService>();
@@ -142,8 +143,9 @@ public static class BootLoader
                     {
                         var settingsSvc = serviceProvider.GetRequiredService<ISettingsService>();
                         var authService = serviceProvider.GetRequiredService<IAuthorizationService>();
+                        var qrPreviewService = serviceProvider.GetRequiredService<IQrPreviewService>();
                         var logging = serviceProvider.GetRequiredService<ILogSwitchService>();
-                        return new SettingsViewModel(settingsSvc, authService, logging, closeCmd, saveAct, exportTst);
+                        return new SettingsViewModel(settingsSvc, authService, qrPreviewService, logging, closeCmd, saveAct, exportTst);
                     });
 
                 services.AddSingleton<UnlockViewModel>();

@@ -136,6 +136,21 @@
                                       Margin="8,0,0,0"/>
                         </StackPanel>
 
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_QrPreviewScale}"
+                                  Foreground="White"
+                                  FontWeight="SemiBold"
+                                  Margin="0,12,0,6"/>
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox Width="60"
+                                     Height="26"
+                                     Text="{Binding QrPreviewScaleFactor, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                            <TextBlock Text="{xaml:Resx Key=ui_Settings_QrPreviewScale_Hint}"
+                                      Foreground="White"
+                                      VerticalAlignment="Center"
+                                      Margin="8,0,0,0"/>
+                        </StackPanel>
+
                     </StackPanel>
                 </ScrollViewer>
             </syncfusion:TabItemExt>
