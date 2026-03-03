@@ -1,6 +1,6 @@
 ﻿using TOTP.Core.Enums;
 
-namespace TOTP.Security.Models;
+namespace TOTP.Core.Security.Models;
 
 /// <summary>
 /// Represents the persisted authorization configuration.

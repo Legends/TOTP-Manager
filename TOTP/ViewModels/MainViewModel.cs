@@ -20,6 +20,8 @@ using System.Windows.Threading;
 using TOTP.Commands;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.DAL.Services;
 using TOTP.Infrastructure.Common;
@@ -28,7 +30,6 @@ using TOTP.Infrastructure.Parser;
 using TOTP.Infrastructure.Services;
 using TOTP.Resources;
 using TOTP.Security.Interfaces;
-using TOTP.Security.Models;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Validation;
@@ -47,7 +48,7 @@ public class MainViewModel : IMainViewModel
     #region ### COMMON PROPS AND VARS ###
 
     private readonly Func<IQrScannerDialogService> _qrScannerDialogFactory;
-
+    private ISettingsService _settingsService;
     public IGridFilterRefresher GridFilterRefresher { get; set; }
 
     #region SETTINGS
@@ -81,14 +82,14 @@ public class MainViewModel : IMainViewModel
         }
     }
 
-    private SettingsViewModel _Settings;
+    private SettingsViewModel _SettingsVm;
 
-    public SettingsViewModel Settings
+    public SettingsViewModel SettingsVm
     {
-        get => _Settings;
+        get => _SettingsVm;
         set
         {
-            _Settings = value;
+            _SettingsVm = value;
             OnPropertyChanged();// wont initialize properly without this, because Settings is null at the beginning and gets initialized async later,
                                 // so the setter is not called on app start and OnPropertyChanged is not triggered
         }
@@ -485,10 +486,11 @@ public class MainViewModel : IMainViewModel
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
         Func<IQrScannerDialogService> qrScannerDialogFactory,
-        SettingsViewModelFactory settingsFactory,IGlobalProfileStore store)
+        SettingsViewModelFactory settingsFactory, IAppSettingsDAL store, ISettingsService settingsService)
     {
         IsBusy = true;
-        
+
+        _settingsService = settingsService;
         _settingsFactory = settingsFactory;
         _qrScannerDialogFactory = qrScannerDialogFactory;
         _fileDialogService = fileDialogService;
@@ -500,9 +502,9 @@ public class MainViewModel : IMainViewModel
         _otpManager = otpManager;
         _mainViewSessionController = sessionController;
 
-        var rawProfilePath = config.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
+        var rawProfilePath = config.GetSection(StringsConstants.AppSettingsStorageFilePathConfigKey).Value;
         var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
-        _appSettingsStore = new AppSettingsStore(resolvedProfilePath);
+        _AppSettingsDAL = store;
 
         AllOtps = new ObservableCollection<OtpViewModel>();
         //RebuildSecretsView();
@@ -540,19 +542,14 @@ public class MainViewModel : IMainViewModel
         try
         {
 
-            //Settings = await SettingsViewModel.CreateAsync(
-            //    globalProfileStore: _globalProfileStore,
-            //    authorizationService: _authorization,
-            //    closeCommand: CloseSettingsViewCommand,
-            //    saveAction: SaveSettingsView,
-            //    exportTest: TestExport, loggingService: TODO);
+            await _settingsService.LoadAsync();
 
-            Settings = _settingsFactory(
+            SettingsVm = _settingsFactory(
                 CloseSettingsViewCommand,
                 SaveSettingsView,
                 ExportOtps);
 
-            await Settings.LoadAsync();
+            await SettingsVm.LoadAsync();
 
             await _mainViewSessionController.InitializeAsync(mainWindow);
 
@@ -648,7 +645,7 @@ public class MainViewModel : IMainViewModel
     private void OpenSettingsView()
     {
         IsSettingsViewOpen = true;
-        Settings.RequestFocus();
+        SettingsVm.RequestFocus();
     }
 
     private void CloseSettingsView()
@@ -1253,7 +1250,7 @@ public class MainViewModel : IMainViewModel
 
     OtpViewModel _lastSelected;
     private readonly SettingsViewModelFactory _settingsFactory;
-    private readonly AppSettingsStore _appSettingsStore;
+    private readonly IAppSettingsDAL _AppSettingsDAL;
 
     private void OnRowSelectionImplementation()
     {

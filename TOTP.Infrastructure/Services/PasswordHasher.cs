@@ -1,10 +1,8 @@
-﻿using System;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Security.Cryptography;
 using NSec.Cryptography;
 using TOTP.Core.Security.Models;
 
-namespace TOTP.Security.Helpers;
+namespace TOTP.Infrastructure.Services;
 
 public static class PasswordHasher
 {

@@ -1,5 +1,4 @@
-﻿using Serilog.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -9,13 +8,10 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Core.Enums;
-using TOTP.Core.Services;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Helper;
 using TOTP.Infrastructure.Common;
-using TOTP.Infrastructure.Logging;
-using TOTP.Security.Interfaces;
-using TOTP.Security.Models;
 
 namespace TOTP.ViewModels;
 
@@ -24,15 +20,13 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     #region ### PROPERTIES/FIELDS ###
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
     private readonly IAuthorizationService _authorizationService;
-    private readonly IGlobalProfileStore _globalProfileStore;
     private readonly ILogSwitchService _logSwitchService;
     private readonly Action _saveAction;
 
     #region UI State
 
-  
+
 
     private int _requestFocusTick;
     public int RequestFocusTick
@@ -138,7 +132,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         set
         {
             _selectedLogLevel = value;
-            OnPropertyChanged(); 
+            OnPropertyChanged();
         }
     }
 
@@ -160,11 +154,13 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         Action saveAction,
         Func<bool, Task> actionExportOtps);
 
+    private ISettingsService _settingsSvc;
+    IAppSettings _appSettings => _settingsSvc.Current;
     #endregion
 
     #region  ### CONSTRUCTOR ###
 
-    public SettingsViewModel(IGlobalProfileStore globalProfileStore,
+    public SettingsViewModel(ISettingsService settingsSvc,
                             IAuthorizationService authorizationService,
                             ILogSwitchService logSwitchService,
                             ICommand closeCommand,
@@ -172,10 +168,10 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
                             Func<bool, Task> actionExportOtps)
     {
         _logSwitchService = logSwitchService;
-        _globalProfileStore = globalProfileStore;
+        _settingsSvc = settingsSvc;
         _authorizationService = authorizationService;
         _saveAction = saveAction;
-
+        
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync);
         ExportCommand = new AsyncCommand(() => actionExportOtps(ExportEncrypt));
@@ -183,6 +179,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
         AvailableLogLevels = Enum.GetValues(typeof(AppLogLevel)).Cast<AppLogLevel>().ToList();
         _selectedLogLevel = _logSwitchService.MinimumLevel;
+ 
     }
 
     #endregion
@@ -191,13 +188,12 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     {
         IsHelloAvailable = await _authorizationService.IsHelloAvailableAsync();
         
-        var profile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
 
-        SelectedLogLevel = _logSwitchService.IsCliOverrideActive ? _logSwitchService.GetLevel() : profile.MinimumLogLevel;
+        SelectedLogLevel = _logSwitchService.IsCliOverrideActive ? _logSwitchService.GetLevel() : _appSettings.MinimumLogLevel;
 
         // Match UI Radio Buttons to Profile Gate
-        IsHelloSelected = profile.Authorization.Gate == AuthorizationGateKind.Hello;
-        IsPasswordSelected = profile.Authorization.Gate == AuthorizationGateKind.Password;
+        IsHelloSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Hello;
+        IsPasswordSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Password;
 
         // Fallback if Hello was saved but is no longer available on this hardware
         if (!IsHelloAvailable && IsHelloSelected)
@@ -206,11 +202,11 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             IsPasswordSelected = true;
         }
 
-        LockOnSessionLock = profile.LockOnSessionLock;
-        ClearClipboardEnabled = profile.ClearClipboardEnabled;
-        ClearClipboardSeconds = profile.ClearClipboardSeconds > 0 ? profile.ClearClipboardSeconds : 15;
-        ExportEncrypt = profile.ExportEncrypt;
-        HideSecretsByDefault = profile.HideSecretsByDefault;
+        LockOnSessionLock = _appSettings.LockOnSessionLock;
+        ClearClipboardEnabled = _appSettings.ClearClipboardEnabled;
+        ClearClipboardSeconds = _appSettings.ClearClipboardSeconds > 0 ? _appSettings.ClearClipboardSeconds : 15;
+        ExportEncrypt = _appSettings.ExportEncrypt;
+        HideSecretsByDefault = _appSettings.HideSecretsByDefault;
     }
 
     async Task SaveAndCloseAsync()
@@ -226,8 +222,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     private async Task<bool> ApplyAuthorizationSettingsAsync()
     {
-        var profile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
-        var currentGate = profile.Authorization.Gate;
+        //var applicationSettings = await _appSettings.LoadAsync() ?? new AppSettings();
+        var currentGate = _appSettings.Authorization.Gate;
 
         // CASE 1: Moving to Windows Hello
         if (IsHelloSelected && currentGate != AuthorizationGateKind.Hello)
@@ -239,7 +235,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             }
 
             // If never setup, we need to wrap the DEK. ConfigureHelloAsync does this.
-            var result = profile.Authorization.HasHelloSetup
+            var result = _appSettings.Authorization.HasHelloSetup
                 ? await _authorizationService.ChangePasswordAsync("", "") // This is a placeholder for a "SetGateOnly" if you add it, but for now:
                 : await _authorizationService.ConfigureHelloAsync();
 
@@ -265,21 +261,18 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     private async Task SaveGeneralSettingsAsync()
     {
-
-        var profile = await _globalProfileStore.LoadAsync() ?? new GlobalProfile();
-
         // Sync Gate choice
-        profile.Authorization.Gate = IsHelloSelected ? AuthorizationGateKind.Hello : AuthorizationGateKind.Password;
+        _appSettings.Authorization.Gate = IsHelloSelected ? AuthorizationGateKind.Hello : AuthorizationGateKind.Password;
         //ILogSwitchService.
-        profile.MinimumLogLevel = SelectedLogLevel;
+        _appSettings.MinimumLogLevel = SelectedLogLevel;
 
-        profile.LockOnSessionLock = LockOnSessionLock;
-        profile.ClearClipboardEnabled = ClearClipboardEnabled;
-        profile.ClearClipboardSeconds = ClearClipboardSeconds;
-        profile.ExportEncrypt = ExportEncrypt;
-        profile.HideSecretsByDefault = HideSecretsByDefault;
+        _appSettings.LockOnSessionLock = LockOnSessionLock;
+        _appSettings.ClearClipboardEnabled = ClearClipboardEnabled;
+        _appSettings.ClearClipboardSeconds = ClearClipboardSeconds;
+        _appSettings.ExportEncrypt = ExportEncrypt;
+        _appSettings.HideSecretsByDefault = HideSecretsByDefault;
 
-        await _globalProfileStore.SaveAsync(profile);
+        await _settingsSvc.SaveAsync();
 
         if (SelectedLogLevel != _logSwitchService.GetLevel())
         {
@@ -288,7 +281,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsCliOverrideActive));
             OnPropertyChanged(nameof(ClrOverrideText));
         }
-       
+
     }
 
     private void OnOpenLogFolder()

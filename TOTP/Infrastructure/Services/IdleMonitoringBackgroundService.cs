@@ -9,19 +9,20 @@ namespace TOTP.Infrastructure.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Security.Interfaces;
 
 public sealed class IdleMonitoringBackgroundService : BackgroundService, IActivityHeartbeat
 {
     private readonly IAuthorizationService _authService;
-    private readonly IGlobalProfileStore _profileStore;
+    private readonly IAppSettingsDAL _profileStore;
     private readonly ILogger<IdleMonitoringBackgroundService> _logger;
 
     public DateTime LastActivity { get; private set; } = DateTime.UtcNow;
 
     public IdleMonitoringBackgroundService(
         IAuthorizationService authService,
-        IGlobalProfileStore profileStore,
+        IAppSettingsDAL profileStore,
         ILogger<IdleMonitoringBackgroundService> logger)
     {
         _authService = authService;

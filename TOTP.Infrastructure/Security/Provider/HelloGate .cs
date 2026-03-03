@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using Windows.Security.Credentials.UI;
 using Microsoft.Extensions.Logging;
 using TOTP.Core.Security.Interfaces;
-using TOTP.Security.Models;
+using TOTP.Core.Security.Models;
 
 namespace TOTP.Infrastructure.Security.Provider;
     

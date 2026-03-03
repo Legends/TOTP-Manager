@@ -8,7 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
-using Windows.Security.Credentials.UI;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
 using TOTP.Helper;
 using TOTP.Infrastructure;
@@ -20,6 +20,7 @@ using TOTP.Security.Interfaces;
 using TOTP.Startup;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
+using Windows.Security.Credentials.UI;
 
 namespace TOTP;
 
@@ -67,10 +68,9 @@ internal static class Program
             // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
             await host.StartAsync(); // All BackgroundServices run now! TOTP.Infrastructure.Services
 
-            var app = new App // the SynchronizationContext is established when the first DispatcherObject is created like Application
-            {
-                Host = host
-            };
+            // the SynchronizationContext is established when the first DispatcherObject is created like Application
+            var app = new App(); 
+           
 
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
@@ -119,7 +119,9 @@ internal static class Program
         {
             try
             {
+                await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
                 await vm.InitializeMainViewAsync(mainWindow); // called on UI-Thread 
+               
             }
             catch (Exception e)
             {

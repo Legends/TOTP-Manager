@@ -6,7 +6,7 @@ namespace TOTP.Core.Common
 {
   
 
-    public static class ResultExtensions
+    public static class FluentResultExtensions
     {
         /// <summary>
         /// Extracts the OperationStatus from a Result's error collection.

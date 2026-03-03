@@ -1,4 +1,4 @@
-namespace TOTP.Security.Interfaces;
+namespace TOTP.Core.Security.Interfaces;
 
 public interface IMasterPasswordService
 {

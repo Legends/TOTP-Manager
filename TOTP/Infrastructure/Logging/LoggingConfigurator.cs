@@ -63,7 +63,6 @@ public static class LoggingConfigurator
             .Enrich.WithThreadId()
             .WriteTo.Debug() // Essential for seeing logs in Visual Studio Output window
             .WriteTo.Async(a => a.File(StringsConstants.AppLogPath))
-            .WriteTo.Async(a => a.File(StringsConstants.AppLogPath))
             .CreateBootstrapLogger();
 
         if (ManualOverrideLevel.HasValue)

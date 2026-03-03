@@ -1,4 +1,4 @@
-namespace TOTP.Security.Models;
+namespace TOTP.Core.Security.Models;
 
 /// <summary>
 /// Locked = 0,

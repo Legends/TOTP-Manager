@@ -2,34 +2,33 @@ using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Security.Interfaces;
-using TOTP.Security.Models;
 
 namespace TOTP.Infrastructure.Security;
 
 public sealed class AuthorizationService : IAuthorizationService
 {
-    private readonly IGlobalProfileStore _profileStore;
+    private readonly ISettingsService _settingsService;
     private readonly ISecurityContext _securityContext;
     private readonly IMasterPasswordService _passwordService;
     private readonly IHelloGate _helloGate;
     private readonly ILogger<AuthorizationService> _logger;
 
     // We hold the profile in memory after LoadAsync to avoid constant disk hits
-    private GlobalProfile? _cachedProfile;
+    private IAppSettings? _appSettings;
 
     public AuthorizationState State { get; }
 
     public AuthorizationService(
-        IGlobalProfileStore profileStore,
+        ISettingsService settingsService,
         ISecurityContext securityContext,
         IMasterPasswordService passwordService,
         IHelloGate helloGate,
         AuthorizationState state,
         ILogger<AuthorizationService> logger)
     {
-        _profileStore = profileStore;
+        _settingsService = settingsService;
         _securityContext = securityContext;
         _passwordService = passwordService;
         _helloGate = helloGate;
@@ -39,15 +38,16 @@ public sealed class AuthorizationService : IAuthorizationService
 
     public async Task InitializeAsync()
     {
-        _cachedProfile = await _profileStore.LoadAsync();
-        State.SetProfile(_cachedProfile?.Authorization);
+        _appSettings = _settingsService.Current;
+        State.SetProfile(_appSettings?.Authorization);
+        //State.Lock();
     }
 
     private async Task SaveCurrentProfileAsync()
     {
-        if (_cachedProfile != null)
+        if (_appSettings != null)
         {
-            await _profileStore.SaveAsync(_cachedProfile);
+            await _settingsService.SaveAsync();
         }
     }
 
@@ -55,10 +55,10 @@ public sealed class AuthorizationService : IAuthorizationService
 
     public async Task<AuthorizationResult> TryUnlockOnStartupAsync()
     {
-        if (_cachedProfile?.Authorization == null || !_cachedProfile.Authorization.IsConfigured)
+        if (_appSettings?.Authorization == null || !_appSettings.Authorization.IsConfigured)
             return AuthorizationResult.NotConfigured;
 
-        var auth = _cachedProfile.Authorization;
+        var auth = _appSettings.Authorization;
 
         if (auth.Gate == AuthorizationGateKind.Hello)
             return await TryUnlockWithHelloAsync();
@@ -68,7 +68,7 @@ public sealed class AuthorizationService : IAuthorizationService
 
     public async Task<AuthorizationResult> TryUnlockWithPasswordAsync(string password)
     {
-        var auth = _cachedProfile?.Authorization;
+        var auth = _appSettings?.Authorization;
         if (auth == null || auth.PasswordWrappedDek == null) return AuthorizationResult.NotConfigured;
 
         var dek = await _passwordService.UnwrapKeyAsync(
@@ -88,7 +88,7 @@ public sealed class AuthorizationService : IAuthorizationService
 
     public async Task<AuthorizationResult> TryUnlockWithHelloAsync()
     {
-        var auth = _cachedProfile?.Authorization;
+        var auth = _appSettings?.Authorization;
         if (auth?.HelloWrappedDek == null) return AuthorizationResult.PasswordRequired;
 
         var result = await _helloGate.RequestVerificationAsync();
@@ -112,8 +112,8 @@ public sealed class AuthorizationService : IAuthorizationService
 
         var wrapped = await _passwordService.WrapKeyAsync(rawDek, password);
 
-        _cachedProfile ??= new GlobalProfile();
-        _cachedProfile.Authorization = new AuthorizationProfile
+        //_appSettings ??= new AppSettings();
+        _appSettings.Authorization = new AuthorizationProfile
         {
             Gate = AuthorizationGateKind.Password,
             PasswordSalt = wrapped.Salt,
@@ -126,7 +126,7 @@ public sealed class AuthorizationService : IAuthorizationService
         await SaveCurrentProfileAsync();
 
         _securityContext.SetDek(rawDek);
-        State.SetProfile(_cachedProfile.Authorization);
+        State.SetProfile(_appSettings.Authorization);
         State.Unlock();
 
         return AuthorizationResult.Success;
@@ -135,28 +135,28 @@ public sealed class AuthorizationService : IAuthorizationService
     public async Task<AuthorizationResult> ConfigureHelloAsync()
     {
         if (!_securityContext.IsUnlocked) return AuthorizationResult.PasswordRequired;
-        if (_cachedProfile?.Authorization == null) return AuthorizationResult.NotConfigured;
+        if (_appSettings?.Authorization == null) return AuthorizationResult.NotConfigured;
 
         string keyId = $"TOTP_TPM_{Guid.NewGuid()}";
         var helloWrapped = await _helloGate.ProtectKeyAsync(_securityContext.GetDek(), keyId);
 
-        _cachedProfile.Authorization.HelloWrappedDek = helloWrapped;
-        _cachedProfile.Authorization.HelloKeyId = keyId;
-        _cachedProfile.Authorization.Gate = AuthorizationGateKind.Hello;
+        _appSettings.Authorization.HelloWrappedDek = helloWrapped;
+        _appSettings.Authorization.HelloKeyId = keyId;
+        _appSettings.Authorization.Gate = AuthorizationGateKind.Hello;
 
         await SaveCurrentProfileAsync();
-        State.SetProfile(_cachedProfile.Authorization);
+        State.SetProfile(_appSettings.Authorization);
 
         return AuthorizationResult.Success;
     }
 
     public async Task<AuthorizationResult> SetGateAsync(AuthorizationGateKind gate)
     {
-        if (_cachedProfile?.Authorization == null) return AuthorizationResult.NotConfigured;
+        if (_appSettings?.Authorization == null) return AuthorizationResult.NotConfigured;
 
-        _cachedProfile.Authorization.Gate = gate;
+        _appSettings.Authorization.Gate = gate;
         await SaveCurrentProfileAsync();
-        State.SetProfile(_cachedProfile.Authorization);
+        State.SetProfile(_appSettings.Authorization);
 
         return AuthorizationResult.Success;
     }

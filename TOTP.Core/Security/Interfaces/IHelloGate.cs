@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using TOTP.Core.Enums;
-using TOTP.Security.Models;
+using TOTP.Core.Security.Models;
 
 namespace TOTP.Core.Security.Interfaces;
 

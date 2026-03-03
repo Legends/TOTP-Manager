@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NSec.Cryptography;
-using TOTP.Security.Interfaces;
+using TOTP.Core.Security.Interfaces;
 
 namespace TOTP.Infrastructure.Security;
 

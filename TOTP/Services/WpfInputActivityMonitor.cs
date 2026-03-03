@@ -4,7 +4,7 @@ using System.Windows.Input;
 using TOTP.Infrastructure.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Views.Interfaces;
-using ActivityKind = TOTP.Security.Models.ActivityKind;
+using ActivityKind = TOTP.Core.Security.Models.ActivityKind;
 
 namespace TOTP.Services;
 

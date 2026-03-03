@@ -6,8 +6,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TOTP.Commands;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Security.Interfaces;
-using TOTP.Security.Models;
 
 namespace TOTP.ViewModels;
 
@@ -17,7 +18,7 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
     #region PROPS AND VARS
 
     private readonly IAuthorizationService _auth;
-     
+
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -50,15 +51,18 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
     public HelloUnlockViewModel HelloUnlockVM { get; }
     public PasswordUnlockViewModel PasswordUnlockVM { get; }
 
+    private ISettingsService _settingsService;
+
     public ICommand ChooseHelloCommand { get; }
     public ICommand ChoosePasswordCommand { get; }
 
     #endregion
 
-    public UnlockViewModel(IAuthorizationService auth, HelloUnlockViewModel helloVM, PasswordUnlockViewModel pwdVM)
+    public UnlockViewModel(IAuthorizationService auth, HelloUnlockViewModel helloVM, PasswordUnlockViewModel pwdVM, ISettingsService settingsService)
     {
         _auth = auth;
-       //_auth.IsHelloAvailableAsync()
+        _settingsService = settingsService;
+
         HelloUnlockVM = helloVM;
         PasswordUnlockVM = pwdVM;
 
@@ -66,6 +70,12 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         ChoosePasswordCommand = new RelayCommand(ChoosePassword);
 
         _auth.State.Changed += (_, _) => SyncFromState();
+        //if (!settingsService.Current.Authorization.HasHelloSetup)
+        //{
+        //    //ConfiguredGate = AuthorizationGateKind.Password; // if Hello is not available, default to Password setup
+        //    IsConfigured = true;
+        //    ChoosePassword();
+        //}
 
         SyncFromState();
     }

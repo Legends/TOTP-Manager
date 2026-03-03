@@ -1,10 +1,9 @@
-using Serilog.Events;
-using System;
 using TOTP.Core.Enums;
+using TOTP.Core.Security.Interfaces;
 
-namespace TOTP.Security.Models;
+namespace TOTP.Core.Security.Models;
 
-public sealed class GlobalProfile
+public sealed class AppSettings : IAppSettings
 {
     public static readonly TimeSpan DefaultIdleTimeout = TimeSpan.FromMinutes(10);
     public const int DefaultClearClipboardSeconds = 15;

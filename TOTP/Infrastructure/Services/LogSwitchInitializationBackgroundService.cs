@@ -8,16 +8,16 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Infrastructure.Logging;
-using TOTP.Security.Interfaces;
 
 namespace TOTP.Infrastructure.Services;
 
 
 public sealed class LogSwitchInitializationBackgroundService(
-    IGlobalProfileStore profileStore,
+    IAppSettingsDAL profileStore,
     ILogSwitchService logSwitch,
     ILogger<LogSwitchInitializationBackgroundService> logger)
     : BackgroundService

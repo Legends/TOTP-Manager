@@ -2,8 +2,8 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Security;
 
 namespace TOTP.Core.Security.Services;
 

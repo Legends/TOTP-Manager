@@ -1,9 +1,6 @@
-using System.Threading.Tasks;
-using TOTP.Core.Enums;
-using TOTP.Core.Security;
-using TOTP.Security.Models;
+using TOTP.Core.Security.Models;
 
-namespace TOTP.Security.Interfaces;
+namespace TOTP.Core.Security.Interfaces;
 
 public interface IAuthorizationService
 {

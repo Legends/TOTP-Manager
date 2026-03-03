@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using TOTP.Security.Models;
+using TOTP.Core.Security.Models;
 using TOTP.Views.Interfaces;
 
 namespace TOTP.Security.Interfaces;

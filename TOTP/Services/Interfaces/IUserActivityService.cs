@@ -1,5 +1,5 @@
 using System;
-using TOTP.Security.Models;
+using TOTP.Core.Security.Models;
 
 namespace TOTP.Services.Interfaces;
 

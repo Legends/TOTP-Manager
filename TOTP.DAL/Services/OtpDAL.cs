@@ -4,8 +4,8 @@ using System.Security.Cryptography;
 using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Security.Interfaces;
 
 
 namespace TOTP.DAL.Services;

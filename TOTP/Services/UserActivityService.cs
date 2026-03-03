@@ -1,10 +1,10 @@
 using System;
 using System.Diagnostics;
 using System.Windows.Threading;
-using TOTP.Security.Interfaces;
-using TOTP.Security.Models;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Services.Interfaces;
-using ActivityKind = TOTP.Security.Models.ActivityKind;
+using ActivityKind = TOTP.Core.Security.Models.ActivityKind;
 namespace TOTP.Services;
 
 
@@ -31,14 +31,14 @@ public sealed class UserActivityService : IUserActivityService
 
     public event EventHandler? LockRequested;
 
-    public UserActivityService(IGlobalProfileStore profileStore)
+    public UserActivityService(IAppSettingsDAL profileStore)
     {
         var profile = profileStore.LoadAsync().GetAwaiter().GetResult();
-        _idleTimeout = profile?.IdleTimeout ?? GlobalProfile.DefaultIdleTimeout;
+        _idleTimeout = profile?.IdleTimeout ?? AppSettings.DefaultIdleTimeout;
         _lastActivityTicks = _stopwatch.ElapsedTicks;
 
         if (_idleTimeout <= TimeSpan.Zero)
-            _idleTimeout = GlobalProfile.DefaultIdleTimeout; // 10min
+            _idleTimeout = AppSettings.DefaultIdleTimeout; // 10min
 
         _timer = new DispatcherTimer
         {

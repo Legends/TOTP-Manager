@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -5,18 +6,18 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using TOTP.Security.Interfaces;
-using TOTP.Security.Models;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 
 namespace TOTP.DAL.Services;
 
-public sealed class AppSettingsStore : IGlobalProfileStore
+public sealed class AppSettingsDAL : IAppSettingsDAL
 {
     private readonly string _path;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
-    public AppSettingsStore(string storageFilePath)
+    public AppSettingsDAL(string storageFilePath)
     {
         if (string.IsNullOrWhiteSpace(storageFilePath))
             throw new ArgumentException("Path required.", nameof(storageFilePath));
@@ -25,7 +26,7 @@ public sealed class AppSettingsStore : IGlobalProfileStore
         Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
     }
 
-    public async Task<GlobalProfile?> LoadAsync()
+    public async Task<IAppSettings?> LoadAsync()
     {
         await _lock.WaitAsync();
         try
@@ -42,20 +43,20 @@ public sealed class AppSettingsStore : IGlobalProfileStore
             using var ms = new MemoryStream(decryptedBytes);
             try
             {
-                return await JsonSerializer.DeserializeAsync<GlobalProfile>(ms);
+                return await JsonSerializer.DeserializeAsync<AppSettings>(ms);
             }
             catch (JsonException)
             {
                 // Fallback logic for legacy profiles
                 ms.Position = 0;
                 var legacy = await JsonSerializer.DeserializeAsync<AuthorizationProfile>(ms);
-                return legacy != null ? new GlobalProfile { Authorization = legacy } : null;
+                return legacy != null ? new AppSettings { Authorization = legacy } : null;
             }
         }
         finally { _lock.Release(); }
     }
 
-    public async Task SaveAsync(GlobalProfile profile)
+    public async Task SaveAsync(IAppSettings profile)
     {
         await _lock.WaitAsync();
         try

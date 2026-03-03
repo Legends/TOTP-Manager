@@ -109,23 +109,8 @@ public static class BootLoader
 
                 // Security Infrastructure
                 services.AddSingleton<IKeyWrappingService, KeyWrappingService>();
-                //services.AddSingleton<ISecurityContext, SecurityContext>();
                 services.AddSingleton<IHelloGate, HelloGate>();
-
-                // Authorization Logic
-                //services.AddSingleton<IAuthorizationService, AuthorizationService>();
                 services.AddSingleton<IMainViewSessionController, MainViewSessionController>();
-
-                // Data Access Layer (FIXED WIRING)
-                //services.AddSingleton<IVaultService, VaultService>();
-                //services.AddSingleton<IOtpDAL>(sp =>
-                //{
-                //    var logger = sp.GetRequiredService<ILogger<OtpDAL>>();
-                //    var vault = sp.GetRequiredService<IVaultService>();
-                //    var config = sp.GetRequiredService<IConfiguration>();
-                //    var path = config[StringsConstants.AccountsStorageFilePath]; // master.totp
-                //    return new OtpDAL(logger, vault, path);
-                //});
 
                 services.AddSingleton<IOtpManager, OtpManager>();
 
@@ -141,9 +126,7 @@ public static class BootLoader
                 services.AddSingleton<IQrCodeService, QrCodeService>();
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
 
-                var rawProfilePath = configuration.GetSection(StringsConstants.GlobalSettingsProfileStorageFilePath).Value;
-                var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? "");
-                services.AddSingleton<IGlobalProfileStore>(_ => new AppSettingsStore(resolvedProfilePath));
+
 
                 // VMs & Windows
                 services.AddTransient<QrScannerViewModel>();
@@ -158,18 +141,15 @@ public static class BootLoader
                 services.AddSingleton<SettingsViewModelFactory>(serviceProvider =>
                     (closeCmd, saveAct, exportTst) =>
                     {
-                        var profileStore = serviceProvider.GetRequiredService<IGlobalProfileStore>();
+                        var settingsSvc = serviceProvider.GetRequiredService<ISettingsService>();
                         var authService = serviceProvider.GetRequiredService<IAuthorizationService>();
                         var logging = serviceProvider.GetRequiredService<ILogSwitchService>();
-                        return new SettingsViewModel(profileStore, authService, logging, closeCmd, saveAct, exportTst);
+                        return new SettingsViewModel(settingsSvc, authService, logging, closeCmd, saveAct, exportTst);
                     });
 
                 services.AddSingleton<UnlockViewModel>();
                 services.AddSingleton<HelloUnlockViewModel>();
                 services.AddSingleton<PasswordUnlockViewModel>();
-
-                // Master Password configuration for the derived keys
-                //services.AddSingleton<IMasterPasswordService>(_ => new MasterPasswordService(new PasswordRecord([], [], 4, 128 * 1024)));
 
                 services.AddSingleton<IMainViewModel, MainViewModel>();
                 services.AddSingleton<MainWindow>();

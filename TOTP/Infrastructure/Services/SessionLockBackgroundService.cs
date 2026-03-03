@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Security.Interfaces;
 
 namespace TOTP.Infrastructure.Services;

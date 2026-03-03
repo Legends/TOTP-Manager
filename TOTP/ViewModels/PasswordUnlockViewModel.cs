@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using TOTP.Commands;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Security.Interfaces;
-using TOTP.Security.Models;
 
 namespace TOTP.ViewModels;
 
@@ -86,8 +87,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
 
         IsSetup = false; // default: password unlock mode
         SavePasswordCommand = new AsyncCommand(SavePassword, CanSavePassword, logger);
-
-
+        
         _auth.State.Changed += State_Changed;
     }
     #endregion

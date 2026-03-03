@@ -34,6 +34,9 @@
 
     <Window.InputBindings>
         <KeyBinding Key="Escape" Command="{Binding CloseSettingsViewCommand}" />
+        <KeyBinding Modifiers="Control" 
+                    Key="F" 
+                    Command="{Binding ToggleSearchBoxCommand}" />
     </Window.InputBindings>
 
     <i:Interaction.Triggers>
@@ -534,7 +537,7 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                 because this uc is bound to SettingsViewModel in MainViewModel constructor
             -->
             <userControls:FlyoutHost  IsOpen="{Binding DataContext.IsSettingsViewOpen, ElementName=mainWin}"
-                                      DataContext="{Binding Settings}"
+                                      DataContext="{Binding SettingsVm}"
                                       WarmUpOnLoad="True"
                                       PanelWidth="300"
                                       OverlayZIndex="20"

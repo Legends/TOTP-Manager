@@ -1,7 +1,7 @@
 ﻿using NSec.Cryptography;
 using System;
 using System.Security.Cryptography;
-using TOTP.Security.Interfaces;
+using TOTP.Core.Security.Interfaces;
 
 namespace TOTP.Core.Security.Services;
 

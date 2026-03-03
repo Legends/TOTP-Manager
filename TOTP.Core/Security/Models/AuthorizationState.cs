@@ -1,6 +1,6 @@
 using System;
 using TOTP.Core.Interfaces;
-using TOTP.Security.Models;
+using TOTP.Core.Security.Models;
 
 namespace TOTP.Core.Security;
 

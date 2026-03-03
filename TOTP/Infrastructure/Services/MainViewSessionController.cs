@@ -5,8 +5,9 @@ using System.Windows;
 using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Core.Enums;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Security.Interfaces;
-using TOTP.Security.Models;
 using TOTP.Services.Interfaces;
 using TOTP.Views.Interfaces;
 

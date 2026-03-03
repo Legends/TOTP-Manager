@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TOTP.Core.Models;
 
-namespace TOTP.Security.Interfaces;
+namespace TOTP.Core.Security.Interfaces;
 
 public interface IVaultService
 {
