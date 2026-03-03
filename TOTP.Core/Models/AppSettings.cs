@@ -21,6 +21,7 @@ public sealed class AppSettings : IAppSettings
     public bool ClearClipboardEnabled { get; set; } = true;
 
     public int ClearClipboardSeconds { get; set; } = DefaultClearClipboardSeconds;
+
     public double QrPreviewScaleFactor { get; set; } = DefaultQrPreviewScaleFactor;
 
     public bool ExportEncrypt { get; set; } = true;
