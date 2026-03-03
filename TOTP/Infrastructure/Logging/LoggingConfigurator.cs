@@ -4,6 +4,7 @@ using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using TOTP.Core.Enums;
 using TOTP.Helper;
 using TOTP.Infrastructure.Common;
@@ -56,13 +57,19 @@ public static class LoggingConfigurator
             LogSwitchService.SharedSwitch.MinimumLevel = levelFromArgs.Value.ToSerilogLevel();
         }
 
+        Directory.CreateDirectory(StringsConstants.AppLogDirectoryPath);
+
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(LogSwitchService.SharedSwitch)
             .Enrich.FromLogContext()
             .Enrich.WithMachineName()
             .Enrich.WithThreadId()
             .WriteTo.Debug() // Essential for seeing logs in Visual Studio Output window
-            .WriteTo.Async(a => a.File(StringsConstants.AppLogPath))
+            .WriteTo.Async(a => a.File(
+                StringsConstants.AppLogFilePath,
+                rollingInterval: RollingInterval.Day,
+                shared: true,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"))
             .CreateBootstrapLogger();
 
         if (ManualOverrideLevel.HasValue)
@@ -76,7 +83,7 @@ public static class LoggingConfigurator
     /// </summary>
     public static void ConfigureWithHostContext(HostBuilderContext context, IServiceProvider services, LoggerConfiguration config)
     {
-        var env = context.HostingEnvironment;
+        Directory.CreateDirectory(StringsConstants.AppLogDirectoryPath);
 
         config
             .ReadFrom.Configuration(context.Configuration) // 1. Load basic settings from appsettings.json
@@ -88,8 +95,9 @@ public static class LoggingConfigurator
             .WriteTo.Console()
             .WriteTo.Debug()
             .WriteTo.Async(a => a.File(
-                StringsConstants.AppLogPath,
+                StringsConstants.AppLogFilePath,
                 rollingInterval: RollingInterval.Day,
+                shared: true,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
         if (ManualOverrideLevel.HasValue)

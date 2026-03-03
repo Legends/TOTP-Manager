@@ -7,6 +7,9 @@ namespace TOTP.Infrastructure.Common
     {
         //public const string RootLogPath = "Logs/app-root-start.log";
         public const string AppLogPath = "Logs/app.log";
+        public static string AppLogFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AppLogPath);
+        public static string AppLogDirectoryPath => Path.GetDirectoryName(AppLogFilePath) ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+        public static string CurrentRollingAppLogFilePath => Path.Combine(AppLogDirectoryPath, $"app{DateTime.Now:yyyyMMdd}.log");
         public const string AssemblyNameWpf = "TOTP.UI.WPF";
         public const string AppSettingsFileName = "appsettings.json";
         public static string AppSettingsJsonFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AppSettingsFileName);

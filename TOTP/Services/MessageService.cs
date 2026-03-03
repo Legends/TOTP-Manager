@@ -1,9 +1,12 @@
 using FluentResults;
 using Notification.Wpf;
+using Notification.Wpf.Constants;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 using TOTP.Core.Common;
 using TOTP.Infrastructure.Common;
@@ -16,6 +19,7 @@ public sealed class MessageService : IMessageService
 {
     private const string NotificationAreaName = "MainWindowNotificationArea";
     private readonly NotificationManager _notificationManager = new();
+    private static int msgDuration = 400;
 
     public void ShowResultError(IResultBase result, string? context = null)
     {
@@ -57,6 +61,9 @@ public sealed class MessageService : IMessageService
     {
         RunOnUiThread(() =>
         {
+            ConfigureNotificationSizing();
+            ConfigureNotificationTheme();
+
             if (buttonAction == null || string.IsNullOrWhiteSpace(buttonText))
             {
                 _notificationManager.Show(
@@ -64,7 +71,7 @@ public sealed class MessageService : IMessageService
                     message,
                     type,
                     NotificationAreaName,
-                    expirationTime: TimeSpan.FromSeconds(2),
+                    expirationTime: TimeSpan.FromSeconds(msgDuration),
                     onClose: null,
                     onClick: type == NotificationType.Error ? OpenCurrentLogFile : null,
                     trim: NotificationTextTrimType.NoTrim,
@@ -83,7 +90,7 @@ public sealed class MessageService : IMessageService
                 message,
                 type,
                 NotificationAreaName,
-                expirationTime: TimeSpan.FromSeconds(2),
+                expirationTime: TimeSpan.FromSeconds(msgDuration),
                 onClick: null,
                 onClose: null,
                 LeftButton: buttonAction,
@@ -111,6 +118,9 @@ public sealed class MessageService : IMessageService
 
         RunOnUiThread(() =>
         {
+            ConfigureNotificationSizing();
+            ConfigureNotificationTheme();
+
             var frame = new DispatcherFrame();
             var completed = false;
 
@@ -168,7 +178,7 @@ public sealed class MessageService : IMessageService
     {
         try
         {
-            var fullPath = Path.GetFullPath(StringsConstants.AppLogPath);
+            var fullPath = ResolveLogFilePath();
             if (!File.Exists(fullPath))
             {
                 return;
@@ -183,5 +193,84 @@ public sealed class MessageService : IMessageService
         catch
         {
         }
+    }
+
+    private static string ResolveLogFilePath()
+    {
+        var currentRolling = StringsConstants.CurrentRollingAppLogFilePath;
+        if (File.Exists(currentRolling))
+        {
+            return currentRolling;
+        }
+
+        if (Directory.Exists(StringsConstants.AppLogDirectoryPath))
+        {
+            var latestRolling = Directory.GetFiles(StringsConstants.AppLogDirectoryPath, "app*.log")
+                .OrderByDescending(File.GetLastWriteTimeUtc)
+                .FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(latestRolling))
+            {
+                return latestRolling;
+            }
+        }
+
+        return StringsConstants.AppLogFilePath;
+    }
+
+    private static void ConfigureNotificationSizing()
+    {
+        var window = Application.Current?.MainWindow;
+        var width = window?.ActualWidth > 0 ? window.ActualWidth : window?.Width ?? 300d;
+
+        // Keep notifications inside the compact app window.
+        var maxWidth = Math.Clamp(width - 28d, 180d, 290d);
+        var minWidth = Math.Clamp(maxWidth - 70d, 140d, maxWidth);
+
+        NotificationConstants.MaxWidth = maxWidth;
+        NotificationConstants.MinWidth = minWidth;
+        NotificationConstants.MessagePosition = Notification.Wpf.Controls.NotificationPosition.BottomLeft;
+        NotificationConstants.IsReversedPanel = false;
+    }
+
+    private static void ConfigureNotificationTheme()
+    {
+        var foreground = TryGetBrush("Brush.Foreground") ?? Brushes.White;
+        bool isDarkTheme = IsDarkForeground(foreground);
+
+        NotificationConstants.DefaultForegroundColor = foreground;
+
+        if (isDarkTheme)
+        {
+            NotificationConstants.DefaultBackgroundColor = new SolidColorBrush(Color.FromRgb(34, 44, 64));
+            NotificationConstants.InformationBackgroundColor = new SolidColorBrush(Color.FromRgb(28, 58, 92));
+            NotificationConstants.WarningBackgroundColor = new SolidColorBrush(Color.FromRgb(92, 70, 24));
+            NotificationConstants.ErrorBackgroundColor = new SolidColorBrush(Colors.Red);
+            NotificationConstants.SuccessBackgroundColor = new SolidColorBrush(Color.FromRgb(30, 98, 78));
+            return;
+        }
+
+        NotificationConstants.DefaultBackgroundColor = new SolidColorBrush(Color.FromRgb(244, 247, 252));
+        NotificationConstants.InformationBackgroundColor = new SolidColorBrush(Color.FromRgb(219, 235, 255));
+        NotificationConstants.WarningBackgroundColor = new SolidColorBrush(Color.FromRgb(255, 244, 214));
+        NotificationConstants.ErrorBackgroundColor = new SolidColorBrush(Color.FromRgb(255, 224, 227));
+        NotificationConstants.SuccessBackgroundColor = new SolidColorBrush(Color.FromRgb(218, 247, 239));
+    }
+
+    private static Brush? TryGetBrush(string key)
+    {
+        return Application.Current?.TryFindResource(key) as Brush;
+    }
+
+    private static bool IsDarkForeground(Brush brush)
+    {
+        if (brush is not SolidColorBrush solidBrush)
+        {
+            return true;
+        }
+
+        var c = solidBrush.Color;
+        var luminance = (0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B) / 255.0;
+        return luminance >= 0.6;
     }
 }
