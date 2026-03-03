@@ -31,10 +31,9 @@ public sealed class UserActivityService : IUserActivityService
 
     public event EventHandler? LockRequested;
 
-    public UserActivityService(IAppSettingsDAL profileStore)
+    public UserActivityService(ISettingsService settingsService)
     {
-        var profile = profileStore.LoadAsync().GetAwaiter().GetResult();
-        _idleTimeout = profile?.IdleTimeout ?? AppSettings.DefaultIdleTimeout;
+        _idleTimeout = settingsService.Current?.IdleTimeout ?? AppSettings.DefaultIdleTimeout;
         _lastActivityTicks = _stopwatch.ElapsedTicks;
 
         if (_idleTimeout <= TimeSpan.Zero)

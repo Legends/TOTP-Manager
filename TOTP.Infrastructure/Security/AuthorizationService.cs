@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
+using System.Linq;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
@@ -43,12 +44,19 @@ public sealed class AuthorizationService : IAuthorizationService
         //State.Lock();
     }
 
-    private async Task SaveCurrentProfileAsync()
+    private async Task<bool> SaveCurrentProfileAsync()
     {
         if (_appSettings != null)
         {
-            await _settingsService.SaveAsync();
+            var saveResult = await _settingsService.SaveAsync();
+            if (saveResult.IsFailed)
+            {
+                _logger.LogError("Failed to persist authorization profile: {Errors}", string.Join("; ", saveResult.Errors.Select(e => e.Message)));
+                return false;
+            }
         }
+
+        return true;
     }
 
     public async Task<bool> IsHelloAvailableAsync() => await _helloGate.IsAvailableAsync();
@@ -123,7 +131,8 @@ public sealed class AuthorizationService : IAuthorizationService
             DekNonce = wrapped.Nonce
         };
 
-        await SaveCurrentProfileAsync();
+        if (!await SaveCurrentProfileAsync())
+            return AuthorizationResult.Failed;
 
         _securityContext.SetDek(rawDek);
         State.SetProfile(_appSettings.Authorization);
@@ -144,7 +153,8 @@ public sealed class AuthorizationService : IAuthorizationService
         _appSettings.Authorization.HelloKeyId = keyId;
         _appSettings.Authorization.Gate = AuthorizationGateKind.Hello;
 
-        await SaveCurrentProfileAsync();
+        if (!await SaveCurrentProfileAsync())
+            return AuthorizationResult.Failed;
         State.SetProfile(_appSettings.Authorization);
 
         return AuthorizationResult.Success;
@@ -155,7 +165,8 @@ public sealed class AuthorizationService : IAuthorizationService
         if (_appSettings?.Authorization == null) return AuthorizationResult.NotConfigured;
 
         _appSettings.Authorization.Gate = gate;
-        await SaveCurrentProfileAsync();
+        if (!await SaveCurrentProfileAsync())
+            return AuthorizationResult.Failed;
         State.SetProfile(_appSettings.Authorization);
 
         return AuthorizationResult.Success;

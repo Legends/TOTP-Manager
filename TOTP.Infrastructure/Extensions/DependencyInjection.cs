@@ -20,7 +20,11 @@ public static class DependencyInjection
 
         var rawProfilePath = configuration.GetSection(StringsConstants.AppSettingsStorageFilePathConfigKey).Value;
         var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? "");
-        services.AddSingleton<IAppSettingsDAL>(_ => new AppSettingsDAL(resolvedProfilePath));
+        services.AddSingleton<IAppSettingsDAL>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<AppSettingsDAL>>();
+            return new AppSettingsDAL(resolvedProfilePath, logger);
+        });
        
         services.AddSingleton<ISettingsService, SettingsService>();
 

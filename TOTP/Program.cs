@@ -6,6 +6,7 @@ using Serilog;
 using Serilog.Events;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using TOTP.Core.Security.Interfaces;
@@ -119,7 +120,12 @@ internal static class Program
         {
             try
             {
-                await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
+                var loadResult = await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
+                if (loadResult.IsFailed)
+                {
+                    throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
+                }
+
                 await vm.InitializeMainViewAsync(mainWindow); // called on UI-Thread 
                
             }

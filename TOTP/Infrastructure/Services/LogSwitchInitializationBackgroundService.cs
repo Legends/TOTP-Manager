@@ -17,7 +17,7 @@ namespace TOTP.Infrastructure.Services;
 
 
 public sealed class LogSwitchInitializationBackgroundService(
-    IAppSettingsDAL profileStore,
+    ISettingsService settingsService,
     ILogSwitchService logSwitch,
     ILogger<LogSwitchInitializationBackgroundService> logger)
     : BackgroundService
@@ -37,13 +37,18 @@ public sealed class LogSwitchInitializationBackgroundService(
             }
             else
             {
-                var profile = await profileStore.LoadAsync();
-                if (profile != null)
+                var profileResult = await settingsService.LoadAsync();
+                if (profileResult.IsSuccess)
                 {
+                    var profile = profileResult.Value;
                     var level = profile.MinimumLogLevel;
                     logSwitch.SetLevel(level);
                     //logger.LogDebug("Log level synchronized with Global Profile: {Level}", level);
                     Log.Write(LogEventLevel.Fatal, "LogSwitchInitializationService.cs: Log level synchronized with Global Profile: {Level}", level);
+                }
+                else
+                {
+                    logger.LogWarning("Failed to load settings for log initialization.");
                 }
             }
         }

@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+using FluentResults;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TOTP.Core.Common;
+using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 
@@ -40,17 +43,24 @@ public sealed class SettingsService : ISettingsService, IDisposable
 
     private bool _isLoaded;
 
-    public async Task<IAppSettings> LoadAsync()
+    public async Task<Result<IAppSettings>> LoadAsync()
     {
-        if (_isLoaded) return Current; // Immediate return if already in memory
+        if (_isLoaded) return Result.Ok(Current); // Immediate return if already in memory
 
         await _lock.WaitAsync();
         try
         {
-            if (_isLoaded) return Current; // Double-check lock pattern
+            if (_isLoaded) return Result.Ok(Current); // Double-check lock pattern
 
             _logger.LogDebug("Loading settings from store for the first time...");
-            var settings = await _store.LoadAsync();
+            var loadResult = await _store.LoadAsync();
+            if (loadResult.IsFailed)
+            {
+                _logger.LogError("Loading settings failed.");
+                return Result.Fail(loadResult.Errors);
+            }
+
+            var settings = loadResult.Value;
 
             if (settings != null)
             {
@@ -58,7 +68,7 @@ public sealed class SettingsService : ISettingsService, IDisposable
             }
 
             _isLoaded = true; // Mark as loaded
-            return Current;
+            return Result.Ok(Current);
         }
         finally
         {
@@ -66,18 +76,26 @@ public sealed class SettingsService : ISettingsService, IDisposable
         }
     }
 
-    public async Task SaveAsync()
+    public async Task<Result> SaveAsync()
     {
         await _lock.WaitAsync();
         try
         {
             _logger.LogDebug("Persisting global settings...");
-            await _store.SaveAsync(Current);
+            var result = await _store.SaveAsync(Current);
+            if (result.IsFailed)
+            {
+                _logger.LogError("Persisting global settings failed.");
+                return result;
+            }
+
             _logger.LogInformation("Global settings saved successfully.");
+            return Result.Ok();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to persist global settings.");
+            return Result.Fail(new StatusError(OperationStatus.StorageFailed));
         }
         finally
         {

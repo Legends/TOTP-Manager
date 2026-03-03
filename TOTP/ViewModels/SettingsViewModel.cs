@@ -272,7 +272,12 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         _appSettings.ExportEncrypt = ExportEncrypt;
         _appSettings.HideSecretsByDefault = HideSecretsByDefault;
 
-        await _settingsSvc.SaveAsync();
+        var saveResult = await _settingsSvc.SaveAsync();
+        if (saveResult.IsFailed)
+        {
+            AuthError = string.Join("; ", saveResult.Errors.Select(e => e.Message));
+            return;
+        }
 
         if (SelectedLogLevel != _logSwitchService.GetLevel())
         {

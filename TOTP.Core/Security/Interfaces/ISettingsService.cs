@@ -1,9 +1,11 @@
-﻿namespace TOTP.Core.Security.Interfaces;
+using FluentResults;
+
+namespace TOTP.Core.Security.Interfaces;
 
 public interface ISettingsService
 {
     IAppSettings Current { get; }
-    Task<IAppSettings> LoadAsync();
-    Task SaveAsync();
+    Task<Result<IAppSettings>> LoadAsync();
+    Task<Result> SaveAsync();
     //Task InitializeAsync();
 }

@@ -23,7 +23,6 @@ using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
-using TOTP.DAL.Services;
 using TOTP.Infrastructure.Common;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Parser;
@@ -486,7 +485,7 @@ public class MainViewModel : IMainViewModel
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
         Func<IQrScannerDialogService> qrScannerDialogFactory,
-        SettingsViewModelFactory settingsFactory, IAppSettingsDAL store, ISettingsService settingsService)
+        SettingsViewModelFactory settingsFactory, ISettingsService settingsService)
     {
         IsBusy = true;
 
@@ -501,10 +500,6 @@ public class MainViewModel : IMainViewModel
         _clipboardService = clipboardService;
         _otpManager = otpManager;
         _mainViewSessionController = sessionController;
-
-        var rawProfilePath = config.GetSection(StringsConstants.AppSettingsStorageFilePathConfigKey).Value;
-        var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? string.Empty);
-        _AppSettingsDAL = store;
 
         AllOtps = new ObservableCollection<OtpViewModel>();
         //RebuildSecretsView();
@@ -542,7 +537,11 @@ public class MainViewModel : IMainViewModel
         try
         {
 
-            await _settingsService.LoadAsync();
+            var loadResult = await _settingsService.LoadAsync();
+            if (loadResult.IsFailed)
+            {
+                throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
+            }
 
             SettingsVm = _settingsFactory(
                 CloseSettingsViewCommand,
@@ -665,7 +664,11 @@ public class MainViewModel : IMainViewModel
         try
         {
             System.Windows.MessageBox.Show(toBeEncrypted.ToString());
-            var path = _fileDialogService.ShowSaveFileDialog(".txt|.json|.csv", ".json", "otp-backup");
+            var path = _fileDialogService.ShowSaveFileDialog(
+                "JSON Files|*.json|Text Files|*.txt|CSV Files|*.csv", // JSON is now index 1
+                ".json",
+                "otp-backup"
+            );
 
             if (path == null) // canceled
                 return;
@@ -1250,8 +1253,6 @@ public class MainViewModel : IMainViewModel
 
     OtpViewModel _lastSelected;
     private readonly SettingsViewModelFactory _settingsFactory;
-    private readonly IAppSettingsDAL _AppSettingsDAL;
-
     private void OnRowSelectionImplementation()
     {
 

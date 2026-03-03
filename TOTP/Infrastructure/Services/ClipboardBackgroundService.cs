@@ -9,24 +9,21 @@ using Serilog.Events;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Services.Interfaces;
-using TOTP.Core.Security.Interfaces;
 
 namespace TOTP.Infrastructure.Services;
 
 public sealed class ClipboardBackgroundService : BackgroundService, IClipboardService
 {
     private readonly ILogger<ClipboardBackgroundService> _logger;
-    private readonly IAppSettingsDAL _profileStore;
 
     private string? _lastCopiedText;
     private DateTime? _clearAt;
     private readonly object _lock = new();
     private ILogSwitchService _lss;
-    public ClipboardBackgroundService(ILogger<ClipboardBackgroundService> logger, IAppSettingsDAL profileStore, ILogSwitchService lss)
+    public ClipboardBackgroundService(ILogger<ClipboardBackgroundService> logger, ILogSwitchService lss)
     {
         _lss = lss;
         _logger = logger;
-        _profileStore = profileStore;
     }
 
     public void CopyAndScheduleClear(string text, TimeSpan? duration = null)

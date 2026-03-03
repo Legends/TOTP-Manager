@@ -15,18 +15,18 @@ using TOTP.Security.Interfaces;
 public sealed class IdleMonitoringBackgroundService : BackgroundService, IActivityHeartbeat
 {
     private readonly IAuthorizationService _authService;
-    private readonly IAppSettingsDAL _profileStore;
+    private readonly ISettingsService _settingsService;
     private readonly ILogger<IdleMonitoringBackgroundService> _logger;
 
     public DateTime LastActivity { get; private set; } = DateTime.UtcNow;
 
     public IdleMonitoringBackgroundService(
         IAuthorizationService authService,
-        IAppSettingsDAL profileStore,
+        ISettingsService settingsService,
         ILogger<IdleMonitoringBackgroundService> logger)
     {
         _authService = authService;
-        _profileStore = profileStore;
+        _settingsService = settingsService;
         _logger = logger;
     }
 
@@ -36,8 +36,15 @@ public sealed class IdleMonitoringBackgroundService : BackgroundService, IActivi
     {
 
         // We DONT reload profile in case user changed timeout in settings
-        var profile = await _profileStore.LoadAsync();
-        var timeout = profile?.IdleTimeout ?? TimeSpan.FromMinutes(10);
+        var profileResult = await _settingsService.LoadAsync();
+        if (profileResult.IsFailed)
+        {
+            _logger.LogWarning("Failed to load settings for idle monitoring. Using default timeout.");
+        }
+
+        var timeout = profileResult.IsSuccess
+            ? profileResult.Value.IdleTimeout
+            : TimeSpan.FromMinutes(10);
 
         // Periodic check every 5 seconds is plenty for idle timeout
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));

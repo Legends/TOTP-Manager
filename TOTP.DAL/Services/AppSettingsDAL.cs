@@ -1,11 +1,13 @@
+using FluentResults;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using TOTP.Core.Common;
+using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 
@@ -14,49 +16,57 @@ namespace TOTP.DAL.Services;
 public sealed class AppSettingsDAL : IAppSettingsDAL
 {
     private readonly string _path;
+    private readonly ILogger<AppSettingsDAL> _logger;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
-    public AppSettingsDAL(string storageFilePath)
+    public AppSettingsDAL(string storageFilePath, ILogger<AppSettingsDAL> logger)
     {
         if (string.IsNullOrWhiteSpace(storageFilePath))
             throw new ArgumentException("Path required.", nameof(storageFilePath));
 
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _path = storageFilePath;
         Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
     }
 
-    public async Task<IAppSettings?> LoadAsync()
+    public async Task<Result<IAppSettings?>> LoadAsync()
     {
         await _lock.WaitAsync();
         try
         {
-            if (!File.Exists(_path)) return null;
+            if (!File.Exists(_path)) return Result.Ok<IAppSettings?>(null);
 
             // 1. Read and Decrypt
             var encryptedBytes = await File.ReadAllBytesAsync(_path);
-            if (encryptedBytes.Length == 0) return null;
+            if (encryptedBytes.Length == 0) return Result.Ok<IAppSettings?>(null);
 
             var decryptedBytes = ProtectedData.Unprotect(encryptedBytes, null, DataProtectionScope.CurrentUser);
 
             // 2. Deserialize (Using MemoryStream for efficiency)
             using var ms = new MemoryStream(decryptedBytes);
+
             try
             {
-                return await JsonSerializer.DeserializeAsync<AppSettings>(ms);
+                return Result.Ok<IAppSettings?>(await JsonSerializer.DeserializeAsync<AppSettings>(ms));
             }
             catch (JsonException)
             {
                 // Fallback logic for legacy profiles
                 ms.Position = 0;
                 var legacy = await JsonSerializer.DeserializeAsync<AuthorizationProfile>(ms);
-                return legacy != null ? new AppSettings { Authorization = legacy } : null;
+                return Result.Ok<IAppSettings?>(legacy != null ? new AppSettings { Authorization = legacy } : null);
             }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load app settings.");
+            return Result.Fail(new StatusError(OperationStatus.LoadingFailed));
         }
         finally { _lock.Release(); }
     }
 
-    public async Task SaveAsync(IAppSettings profile)
+    public async Task<Result> SaveAsync(IAppSettings profile)
     {
         await _lock.WaitAsync();
         try
@@ -69,6 +79,12 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
 
             // 3. Atomic Write
             await File.WriteAllBytesAsync(_path, encryptedBytes);
+            return Result.Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save app settings.");
+            return Result.Fail(new StatusError(OperationStatus.StorageFailed));
         }
         finally { _lock.Release(); }
     }
