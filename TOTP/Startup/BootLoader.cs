@@ -122,6 +122,7 @@ public static class BootLoader
                 services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
                 services.AddSingleton<Func<IUserMessageDialogViewModel>>(sp => () => sp.GetRequiredService<IUserMessageDialogViewModel>());
                 services.AddSingleton<IMessageService, MessageService>();
+                services.AddSingleton<IAccountsWorkflowService, AccountsWorkflowService>();
                 services.AddTransient<IFileDialogService, FileDialogService>();
                 services.AddSingleton<IQrCodeService, QrCodeService>();
                 services.AddSingleton<IErrorHandler, ErrorHandler>();
