@@ -258,24 +258,32 @@ public partial class MainViewModel
 
     private async Task ExportSecretsToFile()
     {
-        var path = _fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Accounts");
-
-        if (path == null)
-            return;
-
-        var result = await _accountsWorkflow.GetAllEntriesSortedAsync();
-        if (result.IsFailed)
+        try
         {
-            _messageService.ShowResultError(result);
-            return;
+            var path = _fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Accounts");
+
+            if (path == null)
+                return;
+
+            var result = await _accountsWorkflow.GetAllEntriesSortedAsync();
+            if (result.IsFailed)
+            {
+                _messageService.ShowResultError(result);
+                return;
+            }
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(result.Value, options));
+
+            var psi = new ProcessStartInfo { FileName = path, UseShellExecute = true };
+
+            Process.Start(psi);
         }
-
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(result.Value, options));
-
-        var psi = new ProcessStartInfo { FileName = path, UseShellExecute = true };
-
-        Process.Start(psi);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Export secrets to file failed.");
+            _messageService.ShowError(UI.ex_UnexpectedError + ": " + ex.Message);
+        }
     }
 
     #endregion

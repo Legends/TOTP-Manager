@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using TOTP.Commands;
+using TOTP.Resources;
 
 namespace TOTP.ViewModels;
 
@@ -97,8 +99,8 @@ public partial class MainViewModel
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
-            throw;
+            _logger.LogError(ex, "Export workflow failed.");
+            _messageService.ShowError(UI.ex_UnexpectedError + ": " + ex.Message);
         }
     }
 }
