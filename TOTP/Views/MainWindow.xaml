@@ -37,6 +37,9 @@
         <KeyBinding Modifiers="Control" 
                     Key="F" 
                     Command="{Binding ToggleSearchBoxCommand}" />
+        <KeyBinding Modifiers="Control" 
+                    Key="A" 
+                    Command="{Binding OpenFlyoutAddModeCommand}" />
     </Window.InputBindings>
 
     <i:Interaction.Triggers>
