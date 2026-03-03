@@ -4,10 +4,10 @@ using Notification.Wpf.Base;
 using Notification.Wpf.Constants;
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using TOTP.Core.Common;
-using TOTP.Infrastructure.Common;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
 
@@ -18,7 +18,7 @@ public sealed class MessageService : IMessageService
     private const string NotificationAreaName = "MainWindowNotificationArea";
     private readonly NotificationManager _notificationManager = new();
     private readonly ILogFileService _logFileService;
-    private static int msgDuration = 6;
+    private static int msgDuration = 4;
     private static readonly TextContentSettings TitleTextSettings = new()
     {
         FontFamily = new FontFamily("Segoe UI Semibold"),
@@ -208,55 +208,51 @@ public sealed class MessageService : IMessageService
 
     private static void ConfigureNotificationTheme()
     {
-        var foreground = TryGetBrush("Brush.Foreground") ?? Brushes.White;
-        bool isDarkTheme = IsDarkForeground(foreground);
+        var defaultBackground = new SolidColorBrush(Color.FromArgb(204, 47, 47, 47)); // #2F2F2F @ 0.8
+        var infoBackground = new SolidColorBrush(Color.FromArgb(204, 37, 99, 235));    // blue
+        var warningBackground = new SolidColorBrush(Color.FromArgb(204, 217, 163, 0)); // yellow
+        var errorBackground = new SolidColorBrush(Color.FromArgb(204, 194, 39, 46));   // red
+        var successBackground = new SolidColorBrush(Color.FromArgb(204, 46, 125, 50)); // green
 
-        if (isDarkTheme)
-        {
-            NotificationConstants.DefaultForegroundColor = Brushes.White;
-            NotificationConstants.DefaultBackgroundColor = new SolidColorBrush(Color.FromRgb(30, 46, 79));
-            NotificationConstants.InformationBackgroundColor = new SolidColorBrush(Color.FromRgb(25, 78, 133));
-            NotificationConstants.WarningBackgroundColor = new SolidColorBrush(Color.FromRgb(127, 96, 32));
-            NotificationConstants.ErrorBackgroundColor = new SolidColorBrush(Color.FromRgb(153, 43, 58));
-            NotificationConstants.SuccessBackgroundColor = new SolidColorBrush(Color.FromRgb(35, 112, 86));
-            return;
-        }
-
-        NotificationConstants.DefaultForegroundColor = new SolidColorBrush(Color.FromRgb(24, 39, 61));
-        NotificationConstants.DefaultBackgroundColor = new SolidColorBrush(Color.FromRgb(239, 245, 255));
-        NotificationConstants.InformationBackgroundColor = new SolidColorBrush(Color.FromRgb(216, 232, 255));
-        NotificationConstants.WarningBackgroundColor = new SolidColorBrush(Color.FromRgb(255, 239, 199));
-        NotificationConstants.ErrorBackgroundColor = new SolidColorBrush(Color.FromRgb(255, 220, 226));
-        NotificationConstants.SuccessBackgroundColor = new SolidColorBrush(Color.FromRgb(209, 243, 231));
+        NotificationConstants.DefaultForegroundColor = Brushes.White;
+        NotificationConstants.DefaultBackgroundColor = defaultBackground;
+        NotificationConstants.InformationBackgroundColor = infoBackground;
+        NotificationConstants.WarningBackgroundColor = warningBackground;
+        NotificationConstants.ErrorBackgroundColor = errorBackground;
+        NotificationConstants.SuccessBackgroundColor = successBackground;
     }
 
     private static object? GetIconForType(NotificationType type)
     {
         return type switch
         {
-            NotificationType.Information => StringsConstants.ImgUrl.ImgInfo,
-            NotificationType.Warning => StringsConstants.ImgUrl.ImgWarning,
-            NotificationType.Error => StringsConstants.ImgUrl.ImgError,
-            NotificationType.Success => StringsConstants.ImgUrl.ImgInfo,
+            NotificationType.Information => CreateStatusIcon("\u2139", Color.FromRgb(126, 200, 255)),
+            NotificationType.Warning => CreateStatusIcon("\u26A0", Color.FromRgb(246, 196, 69)),
+            NotificationType.Error => CreateStatusIcon("\u2716", Color.FromRgb(255, 107, 107)),
+            NotificationType.Success => CreateStatusIcon("\u2714", Color.FromRgb(109, 217, 159)),
             _ => null
         };
     }
 
-    private static Brush? TryGetBrush(string key)
+    private static UIElement CreateStatusIcon(string symbol, Color color)
     {
-        return Application.Current?.TryFindResource(key) as Brush;
-    }
-
-    private static bool IsDarkForeground(Brush brush)
-    {
-        if (brush is not SolidColorBrush solidBrush)
+        var iconBrush = new SolidColorBrush(color);
+        if (iconBrush.CanFreeze)
         {
-            return true;
+            iconBrush.Freeze();
         }
 
-        var c = solidBrush.Color;
-        var luminance = (0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B) / 255.0;
-        return luminance >= 0.6;
+        return new TextBlock
+        {
+            Text = symbol,
+            Foreground = iconBrush,
+            FontFamily = new FontFamily("Segoe UI Symbol"),
+            FontSize = 16,
+            FontWeight = FontWeights.SemiBold,
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0)
+        };
     }
 
 }

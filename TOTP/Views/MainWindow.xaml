@@ -568,12 +568,12 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                                         Panel.ZIndex="9000"
                                         Margin="0"
                                         Padding="0"
+                                        Opacity="1"
                                         UseLayoutRounding="True"
                                         SnapsToDevicePixels="True"
                                         TextOptions.TextFormattingMode="Display"
                                         TextOptions.TextRenderingMode="ClearType"
                                         RenderOptions.ClearTypeHint="Enabled" />
-
 
         <!-- IsBusy overlay -->
         <Border
