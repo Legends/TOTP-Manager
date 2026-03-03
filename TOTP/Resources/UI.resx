@@ -120,9 +120,6 @@
   <data name="ex_Adding_New_TOTP" xml:space="preserve">
     <value>Error adding new TOTP</value>
   </data>
-  <data name="ex_BackupFailed" xml:space="preserve">
-    <value>Backup failed: {0}</value>
-  </data>
   <data name="ex_DeletingSecret" xml:space="preserve">
     <value>Error deleting secret</value>
   </data>
@@ -132,17 +129,11 @@
   <data name="ex_Error_Generating_TOTP" xml:space="preserve">
     <value>Error generating TOTP code</value>
   </data>
-  <data name="ex_Error_Generating_TOTP_0_0" xml:space="preserve">
-    <value>Error generating TOTP code for {0}: {1}</value>
-  </data>
   <data name="ex_FatalError" xml:space="preserve">
     <value>A fatal application error occurred. The app must now close.\n\nSee log files for details.</value>
   </data>
   <data name="ex_Filtering_Secrets" xml:space="preserve">
     <value>Error filtering secrets</value>
-  </data>
-  <data name="ex_InvalidSecret" xml:space="preserve">
-    <value>Invalid secret format. Please ensure it is a valid Base32 string</value>
   </data>
   <data name="ex_Selecting_Secret" xml:space="preserve">
     <value>Error selecting secret</value>
@@ -156,9 +147,6 @@
   <data name="ex_UpdatingSecret_0" xml:space="preserve">
     <value>Error updating secret:{0}</value>
   </data>
-  <data name="msg_Application_Starting" xml:space="preserve">
-    <value>TOTP Manager is starting...</value>
-  </data>
   <data name="msg_BackroundTaskException" xml:space="preserve">
     <value>A background task failed. You can continue using the application.</value>
   </data>
@@ -171,56 +159,17 @@
   <data name="msg_ErrorParsingOtpUrl" xml:space="preserve">
     <value>Error parsing OTP URL</value>
   </data>
-  <data name="msg_Error_Shutdown" xml:space="preserve">
-    <value>Error during shutdown: {0}</value>
-  </data>
-  <data name="msg_Error_Starting_App" xml:space="preserve">
-    <value>Error during startup of TOTP Manager</value>
-  </data>
-  <data name="msg_FailedAddingSecret" xml:space="preserve">
-    <value>Failed to add secret: {0}</value>
-  </data>
-  <data name="msg_FailedReadingSecrets" xml:space="preserve">
-    <value>Failed to load secrets: {0}</value>
-  </data>
-  <data name="msg_Failed_Delete_Secret" xml:space="preserve">
-    <value>Failed to delete the secret</value>
-  </data>
-  <data name="msg_Failed_Loading_Secrets" xml:space="preserve">
-    <value>Failed to load secrets</value>
-  </data>
-  <data name="msg_Failed_Saving_Changes" xml:space="preserve">
-    <value>Failed to save changes</value>
-  </data>
-  <data name="msg_Failed_Storage" xml:space="preserve">
-    <value>Failed to save the secret</value>
-  </data>
-  <data name="msg_Failed_Updating_Secret" xml:space="preserve">
-    <value>Failed updating secret</value>
-  </data>
-  <data name="msg_PlatformNotFound_0" xml:space="preserve">
-    <value>platform '{0}' not found.</value>
-  </data>
   <data name="msg_PlatformRequired" xml:space="preserve">
     <value>platform is required.</value>
   </data>
-  <data name="msg_PlatformSecretNotEmpty" xml:space="preserve">
-    <value>platform and Secret cannot be empty</value>
-  </data>
   <data name="msg_Platform_Exists" xml:space="preserve">
     <value>platform '{0}' already exists</value>
-  </data>
-  <data name="msg_Platform_Not_Found" xml:space="preserve">
-    <value>platform not found</value>
   </data>
   <data name="msg_SecretInvalidFormat" xml:space="preserve">
     <value>Secret must be a valid Base32 string</value>
   </data>
   <data name="msg_SecretRequired" xml:space="preserve">
     <value>Secret is required.</value>
-  </data>
-  <data name="msg_SecretUpdated" xml:space="preserve">
-    <value>Secret updated successfully</value>
   </data>
   <data name="tooltip_AddNew" xml:space="preserve">
     <value>Add new account</value>
@@ -264,9 +213,6 @@
   <data name="ui_Caption_Warning" xml:space="preserve">
     <value>Attention</value>
   </data>
-  <data name="ui_Code_Copied_Clipboard" xml:space="preserve">
-    <value>Copied!</value>
-  </data>
   <data name="ui_Edit_Entry" xml:space="preserve">
     <value>Change entry</value>
   </data>
@@ -288,26 +234,8 @@
   <data name="ui_Header_Secret" xml:space="preserve">
     <value>secret</value>
   </data>
-  <data name="ui_Header_Secret_Shared" xml:space="preserve">
-    <value>secret key</value>
-  </data>
-  <data name="ui_label_account" xml:space="preserve">
-    <value>account (optional)</value>
-  </data>
-  <data name="ui_label_account_watermark" xml:space="preserve">
-    <value>username or email</value>
-  </data>
-  <data name="ui_label_base32_string" xml:space="preserve">
-    <value>base32-encoded string</value>
-  </data>
-  <data name="ui_label_Search" xml:space="preserve">
-    <value>Search</value>
-  </data>
   <data name="ui_label_Search_Dots" xml:space="preserve">
     <value>Search...</value>
-  </data>
-  <data name="ui_Options" xml:space="preserve">
-    <value>Options</value>
   </data>
   <data name="ui_ScanQR" xml:space="preserve">
     <value>Scan QR Code</value>
@@ -348,12 +276,6 @@
   <data name="ui_Settings_Title" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <data name="ui_watermark_platform" xml:space="preserve">
-    <value>i.e. github, msft, ...</value>
-  </data>
-  <data name="ui_Window_Title_PlatformSecretDialog" xml:space="preserve">
-    <value>add new platform</value>
-  </data>
   <data name="ui_Window_Title_TOTP_Manager" xml:space="preserve">
     <value>TOTP Manager</value>
   </data>
@@ -378,9 +300,6 @@
   <data name="ui_Settings_Section_Logging" xml:space="preserve">
     <value>Logging</value>
   </data>
-  <data name="ui_CLI_Override" xml:space="preserve">
-    <value>CLI Override Active: {0}</value>
-  </data>
   <data name="ui_Settings_Logging_Level" xml:space="preserve">
     <value>Logging level</value>
   </data>
@@ -392,5 +311,104 @@
   </data>
   <data name="ui_Settings_Export" xml:space="preserve">
     <value>Export accounts</value>
+  </data>
+  <data name="ui_btnDetails" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="err_Unknown" xml:space="preserve">
+    <value>An unexpected error occurred.</value>
+  </data>
+  <data name="err_OtpStorageReadFailed" xml:space="preserve">
+    <value>Accounts could not be loaded from storage.</value>
+  </data>
+  <data name="err_OtpStorageAccessDenied" xml:space="preserve">
+    <value>Storage access was denied.</value>
+  </data>
+  <data name="err_OtpStorageDecryptFailed" xml:space="preserve">
+    <value>Stored account data could not be decrypted.</value>
+  </data>
+  <data name="err_OtpStorageWriteFailed" xml:space="preserve">
+    <value>Accounts could not be saved to storage.</value>
+  </data>
+  <data name="err_OtpStorageEncryptionFailed" xml:space="preserve">
+    <value>Account data could not be encrypted before saving.</value>
+  </data>
+  <data name="err_OtpStorageBackupFailed" xml:space="preserve">
+    <value>The storage backup could not be created.</value>
+  </data>
+  <data name="err_OtpCreateFailed" xml:space="preserve">
+    <value>The account '{0}' could not be created.</value>
+  </data>
+  <data name="err_OtpUpdateFailed" xml:space="preserve">
+    <value>The account '{0}' could not be updated.</value>
+  </data>
+  <data name="err_OtpDeleteFailed" xml:space="preserve">
+    <value>The account '{0}' could not be deleted.</value>
+  </data>
+  <data name="err_AppSettingsLoadFailed" xml:space="preserve">
+    <value>Application settings could not be loaded.</value>
+  </data>
+  <data name="err_AppSettingsLoadAccessDenied" xml:space="preserve">
+    <value>Access to application settings was denied.</value>
+  </data>
+  <data name="err_AppSettingsDecryptFailed" xml:space="preserve">
+    <value>Application settings could not be decrypted.</value>
+  </data>
+  <data name="err_AppSettingsDeserializeFailed" xml:space="preserve">
+    <value>Application settings are invalid.</value>
+  </data>
+  <data name="err_AppSettingsSaveFailed" xml:space="preserve">
+    <value>Application settings could not be saved.</value>
+  </data>
+  <data name="err_AppSettingsSaveAccessDenied" xml:space="preserve">
+    <value>Application settings could not be saved due to missing permissions.</value>
+  </data>
+  <data name="err_AppSettingsEncryptFailed" xml:space="preserve">
+    <value>Application settings could not be encrypted.</value>
+  </data>
+  <data name="err_ExportFileWriteFailed" xml:space="preserve">
+    <value>The export file could not be written.</value>
+  </data>
+  <data name="err_ExportFileAccessDenied" xml:space="preserve">
+    <value>Export failed because file access was denied.</value>
+  </data>
+  <data name="err_ExportEncryptionFailed" xml:space="preserve">
+    <value>Export data could not be encrypted.</value>
+  </data>
+  <data name="err_ExportUnknownFailed" xml:space="preserve">
+    <value>Export failed due to an unexpected error.</value>
+  </data>
+  <data name="err_ImportFileNotFound" xml:space="preserve">
+    <value>The selected import file could not be found.</value>
+  </data>
+  <data name="err_ImportInvalidFile" xml:space="preserve">
+    <value>The selected file is not a valid encrypted export.</value>
+  </data>
+  <data name="err_ImportWrongPasswordOrTampered" xml:space="preserve">
+    <value>Import failed. The password is wrong or the file was modified.</value>
+  </data>
+  <data name="err_ImportInvalidPayload" xml:space="preserve">
+    <value>Import failed because the file content is invalid.</value>
+  </data>
+  <data name="err_ImportUnknownFailed" xml:space="preserve">
+    <value>Import failed due to an unexpected error.</value>
+  </data>
+  <data name="err_AccountsLoadFailed" xml:space="preserve">
+    <value>Accounts could not be loaded.</value>
+  </data>
+  <data name="err_AccountsCreateFailed" xml:space="preserve">
+    <value>The account could not be created.</value>
+  </data>
+  <data name="err_AccountsUpdateFailed" xml:space="preserve">
+    <value>The account could not be updated.</value>
+  </data>
+  <data name="err_AccountsDeleteFailed" xml:space="preserve">
+    <value>The account could not be deleted.</value>
+  </data>
+  <data name="err_SettingsServiceLoadFailed" xml:space="preserve">
+    <value>Application settings could not be loaded by the settings service.</value>
+  </data>
+  <data name="err_SettingsServiceSaveFailed" xml:space="preserve">
+    <value>Application settings could not be saved by the settings service.</value>
   </data>
 </root>

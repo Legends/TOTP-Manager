@@ -23,6 +23,7 @@
                              xmlns:viewModels="clr-namespace:TOTP.ViewModels"
                              xmlns:views="clr-namespace:TOTP.Views"
                              xmlns:userControls="clr-namespace:TOTP.UserControls"
+                             xmlns:notifications="clr-namespace:Notification.Wpf.Controls;assembly=Notification.Wpf"
                              d:DataContext="{d:DesignInstance Type=viewModels:MainViewModel}"
                              mc:Ignorable="d"
                              Width="300"
@@ -559,6 +560,13 @@ Converter={StaticResource ProgressValueToBrushConverter}}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center" />
         </Grid>
+
+        <notifications:NotificationArea x:Name="MainWindowNotificationArea"
+                                        Position="BottomRight"
+                                        Panel.ZIndex="9000"
+                                        VerticalAlignment="Bottom"
+                                        HorizontalAlignment="Right"
+                                        Margin="12" />
 
 
         <!-- IsBusy overlay -->

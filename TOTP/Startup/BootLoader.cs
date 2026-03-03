@@ -119,8 +119,6 @@ public static class BootLoader
                 // infra
                 services.AddSingleton<IDelayService, DelayService>();
                 services.AddSingleton<IDebounceService, DebounceService>();
-                services.AddTransient<IUserMessageDialogViewModel, UserMessageDialogViewModel>();
-                services.AddSingleton<Func<IUserMessageDialogViewModel>>(sp => () => sp.GetRequiredService<IUserMessageDialogViewModel>());
                 services.AddSingleton<IMessageService, MessageService>();
                 services.AddSingleton<IAccountsWorkflowService, AccountsWorkflowService>();
                 services.AddTransient<IFileDialogService, FileDialogService>();

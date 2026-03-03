@@ -61,20 +61,299 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The account could not be created..
+        /// </summary>
+        internal static string err_AccountsCreateFailed {
+            get {
+                return ResourceManager.GetString("err_AccountsCreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The account could not be deleted..
+        /// </summary>
+        internal static string err_AccountsDeleteFailed {
+            get {
+                return ResourceManager.GetString("err_AccountsDeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Accounts could not be loaded..
+        /// </summary>
+        internal static string err_AccountsLoadFailed {
+            get {
+                return ResourceManager.GetString("err_AccountsLoadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The account could not be updated..
+        /// </summary>
+        internal static string err_AccountsUpdateFailed {
+            get {
+                return ResourceManager.GetString("err_AccountsUpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application settings could not be decrypted..
+        /// </summary>
+        internal static string err_AppSettingsDecryptFailed {
+            get {
+                return ResourceManager.GetString("err_AppSettingsDecryptFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application settings are invalid..
+        /// </summary>
+        internal static string err_AppSettingsDeserializeFailed {
+            get {
+                return ResourceManager.GetString("err_AppSettingsDeserializeFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application settings could not be encrypted..
+        /// </summary>
+        internal static string err_AppSettingsEncryptFailed {
+            get {
+                return ResourceManager.GetString("err_AppSettingsEncryptFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Access to application settings was denied..
+        /// </summary>
+        internal static string err_AppSettingsLoadAccessDenied {
+            get {
+                return ResourceManager.GetString("err_AppSettingsLoadAccessDenied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application settings could not be loaded..
+        /// </summary>
+        internal static string err_AppSettingsLoadFailed {
+            get {
+                return ResourceManager.GetString("err_AppSettingsLoadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application settings could not be saved due to missing permissions..
+        /// </summary>
+        internal static string err_AppSettingsSaveAccessDenied {
+            get {
+                return ResourceManager.GetString("err_AppSettingsSaveAccessDenied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application settings could not be saved..
+        /// </summary>
+        internal static string err_AppSettingsSaveFailed {
+            get {
+                return ResourceManager.GetString("err_AppSettingsSaveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export data could not be encrypted..
+        /// </summary>
+        internal static string err_ExportEncryptionFailed {
+            get {
+                return ResourceManager.GetString("err_ExportEncryptionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export failed because file access was denied..
+        /// </summary>
+        internal static string err_ExportFileAccessDenied {
+            get {
+                return ResourceManager.GetString("err_ExportFileAccessDenied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The export file could not be written..
+        /// </summary>
+        internal static string err_ExportFileWriteFailed {
+            get {
+                return ResourceManager.GetString("err_ExportFileWriteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export failed due to an unexpected error..
+        /// </summary>
+        internal static string err_ExportUnknownFailed {
+            get {
+                return ResourceManager.GetString("err_ExportUnknownFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The selected import file could not be found..
+        /// </summary>
+        internal static string err_ImportFileNotFound {
+            get {
+                return ResourceManager.GetString("err_ImportFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The selected file is not a valid encrypted export..
+        /// </summary>
+        internal static string err_ImportInvalidFile {
+            get {
+                return ResourceManager.GetString("err_ImportInvalidFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import failed because the file content is invalid..
+        /// </summary>
+        internal static string err_ImportInvalidPayload {
+            get {
+                return ResourceManager.GetString("err_ImportInvalidPayload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import failed due to an unexpected error..
+        /// </summary>
+        internal static string err_ImportUnknownFailed {
+            get {
+                return ResourceManager.GetString("err_ImportUnknownFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import failed. The password is wrong or the file was modified..
+        /// </summary>
+        internal static string err_ImportWrongPasswordOrTampered {
+            get {
+                return ResourceManager.GetString("err_ImportWrongPasswordOrTampered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; could not be created..
+        /// </summary>
+        internal static string err_OtpCreateFailed {
+            get {
+                return ResourceManager.GetString("err_OtpCreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; could not be deleted..
+        /// </summary>
+        internal static string err_OtpDeleteFailed {
+            get {
+                return ResourceManager.GetString("err_OtpDeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Storage access was denied..
+        /// </summary>
+        internal static string err_OtpStorageAccessDenied {
+            get {
+                return ResourceManager.GetString("err_OtpStorageAccessDenied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The storage backup could not be created..
+        /// </summary>
+        internal static string err_OtpStorageBackupFailed {
+            get {
+                return ResourceManager.GetString("err_OtpStorageBackupFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stored account data could not be decrypted..
+        /// </summary>
+        internal static string err_OtpStorageDecryptFailed {
+            get {
+                return ResourceManager.GetString("err_OtpStorageDecryptFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account data could not be encrypted before saving..
+        /// </summary>
+        internal static string err_OtpStorageEncryptionFailed {
+            get {
+                return ResourceManager.GetString("err_OtpStorageEncryptionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Accounts could not be loaded from storage..
+        /// </summary>
+        internal static string err_OtpStorageReadFailed {
+            get {
+                return ResourceManager.GetString("err_OtpStorageReadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Accounts could not be saved to storage..
+        /// </summary>
+        internal static string err_OtpStorageWriteFailed {
+            get {
+                return ResourceManager.GetString("err_OtpStorageWriteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; could not be updated..
+        /// </summary>
+        internal static string err_OtpUpdateFailed {
+            get {
+                return ResourceManager.GetString("err_OtpUpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application settings could not be loaded by the settings service..
+        /// </summary>
+        internal static string err_SettingsServiceLoadFailed {
+            get {
+                return ResourceManager.GetString("err_SettingsServiceLoadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application settings could not be saved by the settings service..
+        /// </summary>
+        internal static string err_SettingsServiceSaveFailed {
+            get {
+                return ResourceManager.GetString("err_SettingsServiceSaveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unexpected error occurred..
+        /// </summary>
+        internal static string err_Unknown {
+            get {
+                return ResourceManager.GetString("err_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error adding new TOTP.
         /// </summary>
         internal static string ex_Adding_New_TOTP {
             get {
                 return ResourceManager.GetString("ex_Adding_New_TOTP", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Backup failed: {0}.
-        /// </summary>
-        internal static string ex_BackupFailed {
-            get {
-                return ResourceManager.GetString("ex_BackupFailed", resourceCulture);
             }
         }
         
@@ -106,15 +385,6 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error generating TOTP code for {0}: {1}.
-        /// </summary>
-        internal static string ex_Error_Generating_TOTP_0_0 {
-            get {
-                return ResourceManager.GetString("ex_Error_Generating_TOTP_0_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A fatal application error occurred. The app must now close.\n\nSee log files for details..
         /// </summary>
         internal static string ex_FatalError {
@@ -129,15 +399,6 @@ namespace TOTP.Resources {
         internal static string ex_Filtering_Secrets {
             get {
                 return ResourceManager.GetString("ex_Filtering_Secrets", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid secret format. Please ensure it is a valid Base32 string.
-        /// </summary>
-        internal static string ex_InvalidSecret {
-            get {
-                return ResourceManager.GetString("ex_InvalidSecret", resourceCulture);
             }
         }
         
@@ -178,15 +439,6 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TOTP Manager is starting....
-        /// </summary>
-        internal static string msg_Application_Starting {
-            get {
-                return ResourceManager.GetString("msg_Application_Starting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A background task failed. You can continue using the application..
         /// </summary>
         internal static string msg_BackroundTaskException {
@@ -214,92 +466,11 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error during shutdown: {0}.
-        /// </summary>
-        internal static string msg_Error_Shutdown {
-            get {
-                return ResourceManager.GetString("msg_Error_Shutdown", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error during startup of TOTP Manager.
-        /// </summary>
-        internal static string msg_Error_Starting_App {
-            get {
-                return ResourceManager.GetString("msg_Error_Starting_App", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Error parsing OTP URL.
         /// </summary>
         internal static string msg_ErrorParsingOtpUrl {
             get {
                 return ResourceManager.GetString("msg_ErrorParsingOtpUrl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to delete the secret.
-        /// </summary>
-        internal static string msg_Failed_Delete_Secret {
-            get {
-                return ResourceManager.GetString("msg_Failed_Delete_Secret", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to load secrets.
-        /// </summary>
-        internal static string msg_Failed_Loading_Secrets {
-            get {
-                return ResourceManager.GetString("msg_Failed_Loading_Secrets", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to save changes.
-        /// </summary>
-        internal static string msg_Failed_Saving_Changes {
-            get {
-                return ResourceManager.GetString("msg_Failed_Saving_Changes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to save the secret.
-        /// </summary>
-        internal static string msg_Failed_Storage {
-            get {
-                return ResourceManager.GetString("msg_Failed_Storage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed updating secret.
-        /// </summary>
-        internal static string msg_Failed_Updating_Secret {
-            get {
-                return ResourceManager.GetString("msg_Failed_Updating_Secret", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to add secret: {0}.
-        /// </summary>
-        internal static string msg_FailedAddingSecret {
-            get {
-                return ResourceManager.GetString("msg_FailedAddingSecret", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to load secrets: {0}.
-        /// </summary>
-        internal static string msg_FailedReadingSecrets {
-            get {
-                return ResourceManager.GetString("msg_FailedReadingSecrets", resourceCulture);
             }
         }
         
@@ -313,38 +484,11 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to platform not found.
-        /// </summary>
-        internal static string msg_Platform_Not_Found {
-            get {
-                return ResourceManager.GetString("msg_Platform_Not_Found", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to platform &apos;{0}&apos; not found..
-        /// </summary>
-        internal static string msg_PlatformNotFound_0 {
-            get {
-                return ResourceManager.GetString("msg_PlatformNotFound_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to platform is required..
         /// </summary>
         internal static string msg_PlatformRequired {
             get {
                 return ResourceManager.GetString("msg_PlatformRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to platform and Secret cannot be empty.
-        /// </summary>
-        internal static string msg_PlatformSecretNotEmpty {
-            get {
-                return ResourceManager.GetString("msg_PlatformSecretNotEmpty", resourceCulture);
             }
         }
         
@@ -363,15 +507,6 @@ namespace TOTP.Resources {
         internal static string msg_SecretRequired {
             get {
                 return ResourceManager.GetString("msg_SecretRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Secret updated successfully.
-        /// </summary>
-        internal static string msg_SecretUpdated {
-            get {
-                return ResourceManager.GetString("msg_SecretUpdated", resourceCulture);
             }
         }
         
@@ -417,6 +552,15 @@ namespace TOTP.Resources {
         internal static string ui_btnDelete {
             get {
                 return ResourceManager.GetString("ui_btnDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Details.
+        /// </summary>
+        internal static string ui_btnDetails {
+            get {
+                return ResourceManager.GetString("ui_btnDetails", resourceCulture);
             }
         }
         
@@ -502,24 +646,6 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CLI Override Active: {0}.
-        /// </summary>
-        internal static string ui_CLI_Override {
-            get {
-                return ResourceManager.GetString("ui_CLI_Override", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Copied!.
-        /// </summary>
-        internal static string ui_Code_Copied_Clipboard {
-            get {
-                return ResourceManager.GetString("ui_Code_Copied_Clipboard", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Change entry.
         /// </summary>
         internal static string ui_Edit_Entry {
@@ -583,65 +709,11 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to secret key.
-        /// </summary>
-        internal static string ui_Header_Secret_Shared {
-            get {
-                return ResourceManager.GetString("ui_Header_Secret_Shared", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to account (optional).
-        /// </summary>
-        internal static string ui_label_account {
-            get {
-                return ResourceManager.GetString("ui_label_account", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to username or email.
-        /// </summary>
-        internal static string ui_label_account_watermark {
-            get {
-                return ResourceManager.GetString("ui_label_account_watermark", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to base32-encoded string.
-        /// </summary>
-        internal static string ui_label_base32_string {
-            get {
-                return ResourceManager.GetString("ui_label_base32_string", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Search.
-        /// </summary>
-        internal static string ui_label_Search {
-            get {
-                return ResourceManager.GetString("ui_label_Search", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Search....
         /// </summary>
         internal static string ui_label_Search_Dots {
             get {
                 return ResourceManager.GetString("ui_label_Search_Dots", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Options.
-        /// </summary>
-        internal static string ui_Options {
-            get {
-                return ResourceManager.GetString("ui_Options", resourceCulture);
             }
         }
         
@@ -858,24 +930,6 @@ namespace TOTP.Resources {
         internal static string ui_Use_Password {
             get {
                 return ResourceManager.GetString("ui_Use_Password", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to i.e. github, msft, ....
-        /// </summary>
-        internal static string ui_watermark_platform {
-            get {
-                return ResourceManager.GetString("ui_watermark_platform", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to add new platform.
-        /// </summary>
-        internal static string ui_Window_Title_PlatformSecretDialog {
-            get {
-                return ResourceManager.GetString("ui_Window_Title_PlatformSecretDialog", resourceCulture);
             }
         }
         

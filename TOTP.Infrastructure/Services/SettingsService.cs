@@ -4,7 +4,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using TOTP.Core.Common;
-using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 
@@ -70,6 +69,11 @@ public sealed class SettingsService : ISettingsService, IDisposable
             _isLoaded = true; // Mark as loaded
             return Result.Ok(Current);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed while loading settings in settings service.");
+            return Result.Fail(new AppError(AppErrorCode.SettingsServiceLoadFailed, "Settings service failed while loading settings.", ex));
+        }
         finally
         {
             _lock.Release();
@@ -95,7 +99,7 @@ public sealed class SettingsService : ISettingsService, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to persist global settings.");
-            return Result.Fail(new StatusError(OperationStatus.StorageFailed));
+            return Result.Fail(new AppError(AppErrorCode.SettingsServiceSaveFailed, "Settings service failed while saving settings.", ex));
         }
         finally
         {

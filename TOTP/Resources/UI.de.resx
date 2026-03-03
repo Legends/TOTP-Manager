@@ -393,4 +393,103 @@
   <data name="ui_Settings_Export" xml:space="preserve">
     <value>Konten exportieren</value>
   </data>
+  <data name="ui_btnDetails" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="err_Unknown" xml:space="preserve">
+    <value>Ein unerwarteter Fehler ist aufgetreten.</value>
+  </data>
+  <data name="err_OtpStorageReadFailed" xml:space="preserve">
+    <value>Konten konnten nicht aus dem Speicher geladen werden.</value>
+  </data>
+  <data name="err_OtpStorageAccessDenied" xml:space="preserve">
+    <value>Der Zugriff auf den Speicher wurde verweigert.</value>
+  </data>
+  <data name="err_OtpStorageDecryptFailed" xml:space="preserve">
+    <value>Gespeicherte Kontodaten konnten nicht entschlüsselt werden.</value>
+  </data>
+  <data name="err_OtpStorageWriteFailed" xml:space="preserve">
+    <value>Konten konnten nicht gespeichert werden.</value>
+  </data>
+  <data name="err_OtpStorageEncryptionFailed" xml:space="preserve">
+    <value>Kontodaten konnten vor dem Speichern nicht verschlüsselt werden.</value>
+  </data>
+  <data name="err_OtpStorageBackupFailed" xml:space="preserve">
+    <value>Die Sicherung des Speichers konnte nicht erstellt werden.</value>
+  </data>
+  <data name="err_OtpCreateFailed" xml:space="preserve">
+    <value>Das Konto '{0}' konnte nicht erstellt werden.</value>
+  </data>
+  <data name="err_OtpUpdateFailed" xml:space="preserve">
+    <value>Das Konto '{0}' konnte nicht aktualisiert werden.</value>
+  </data>
+  <data name="err_OtpDeleteFailed" xml:space="preserve">
+    <value>Das Konto '{0}' konnte nicht gelöscht werden.</value>
+  </data>
+  <data name="err_AppSettingsLoadFailed" xml:space="preserve">
+    <value>Anwendungseinstellungen konnten nicht geladen werden.</value>
+  </data>
+  <data name="err_AppSettingsLoadAccessDenied" xml:space="preserve">
+    <value>Der Zugriff auf die Anwendungseinstellungen wurde verweigert.</value>
+  </data>
+  <data name="err_AppSettingsDecryptFailed" xml:space="preserve">
+    <value>Anwendungseinstellungen konnten nicht entschlüsselt werden.</value>
+  </data>
+  <data name="err_AppSettingsDeserializeFailed" xml:space="preserve">
+    <value>Anwendungseinstellungen sind ungültig.</value>
+  </data>
+  <data name="err_AppSettingsSaveFailed" xml:space="preserve">
+    <value>Anwendungseinstellungen konnten nicht gespeichert werden.</value>
+  </data>
+  <data name="err_AppSettingsSaveAccessDenied" xml:space="preserve">
+    <value>Anwendungseinstellungen konnten wegen fehlender Berechtigung nicht gespeichert werden.</value>
+  </data>
+  <data name="err_AppSettingsEncryptFailed" xml:space="preserve">
+    <value>Anwendungseinstellungen konnten nicht verschlüsselt werden.</value>
+  </data>
+  <data name="err_ExportFileWriteFailed" xml:space="preserve">
+    <value>Die Exportdatei konnte nicht geschrieben werden.</value>
+  </data>
+  <data name="err_ExportFileAccessDenied" xml:space="preserve">
+    <value>Export fehlgeschlagen, da der Dateizugriff verweigert wurde.</value>
+  </data>
+  <data name="err_ExportEncryptionFailed" xml:space="preserve">
+    <value>Exportdaten konnten nicht verschlüsselt werden.</value>
+  </data>
+  <data name="err_ExportUnknownFailed" xml:space="preserve">
+    <value>Export ist durch einen unerwarteten Fehler fehlgeschlagen.</value>
+  </data>
+  <data name="err_ImportFileNotFound" xml:space="preserve">
+    <value>Die ausgewählte Importdatei wurde nicht gefunden.</value>
+  </data>
+  <data name="err_ImportInvalidFile" xml:space="preserve">
+    <value>Die ausgewählte Datei ist kein gültiger verschlüsselter Export.</value>
+  </data>
+  <data name="err_ImportWrongPasswordOrTampered" xml:space="preserve">
+    <value>Import fehlgeschlagen. Das Passwort ist falsch oder die Datei wurde verändert.</value>
+  </data>
+  <data name="err_ImportInvalidPayload" xml:space="preserve">
+    <value>Import fehlgeschlagen, da der Dateiinhalt ungültig ist.</value>
+  </data>
+  <data name="err_ImportUnknownFailed" xml:space="preserve">
+    <value>Import ist durch einen unerwarteten Fehler fehlgeschlagen.</value>
+  </data>
+  <data name="err_AccountsLoadFailed" xml:space="preserve">
+    <value>Konten konnten nicht geladen werden.</value>
+  </data>
+  <data name="err_AccountsCreateFailed" xml:space="preserve">
+    <value>Das Konto konnte nicht erstellt werden.</value>
+  </data>
+  <data name="err_AccountsUpdateFailed" xml:space="preserve">
+    <value>Das Konto konnte nicht aktualisiert werden.</value>
+  </data>
+  <data name="err_AccountsDeleteFailed" xml:space="preserve">
+    <value>Das Konto konnte nicht gelöscht werden.</value>
+  </data>
+  <data name="err_SettingsServiceLoadFailed" xml:space="preserve">
+    <value>Anwendungseinstellungen konnten vom Einstellungsdienst nicht geladen werden.</value>
+  </data>
+  <data name="err_SettingsServiceSaveFailed" xml:space="preserve">
+    <value>Anwendungseinstellungen konnten vom Einstellungsdienst nicht gespeichert werden.</value>
+  </data>
 </root>

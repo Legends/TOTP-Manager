@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
@@ -33,7 +34,7 @@ public sealed class AccountsWorkflowService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to load OTP view models.");
-            return Result.Fail("Loading OTP entries failed.");
+            return Result.Fail(new AppError(AppErrorCode.AccountsLoadFailed, "Failed to load OTP entries for the UI workflow.", ex));
         }
     }
 
@@ -46,7 +47,7 @@ public sealed class AccountsWorkflowService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to load OTP entries.");
-            return Result.Fail("Loading OTP entries failed.");
+            return Result.Fail(new AppError(AppErrorCode.AccountsLoadFailed, "Failed to load OTP entries.", ex));
         }
     }
 
@@ -59,7 +60,7 @@ public sealed class AccountsWorkflowService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to add OTP entry.");
-            return Result.Fail("Creating OTP entry failed.");
+            return Result.Fail(new AppError(AppErrorCode.AccountsCreateFailed, "Failed to create OTP entry in workflow.", ex));
         }
     }
 
@@ -72,7 +73,7 @@ public sealed class AccountsWorkflowService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to update OTP entry.");
-            return Result.Fail("Updating OTP entry failed.");
+            return Result.Fail(new AppError(AppErrorCode.AccountsUpdateFailed, "Failed to update OTP entry in workflow.", ex));
         }
     }
 
@@ -85,7 +86,7 @@ public sealed class AccountsWorkflowService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to delete OTP entry.");
-            return Result.Fail("Deleting OTP entry failed.");
+            return Result.Fail(new AppError(AppErrorCode.AccountsDeleteFailed, "Failed to delete OTP entry in workflow.", ex));
         }
     }
 

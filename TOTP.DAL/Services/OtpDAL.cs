@@ -1,12 +1,11 @@
-﻿using FluentResults;
+using FluentResults;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using TOTP.Core.Common;
-using TOTP.Core.Enums;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
-
+using TOTP.DAL.Common;
 
 namespace TOTP.DAL.Services;
 
@@ -21,7 +20,9 @@ public sealed class OtpDAL : IOtpDAL
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _vaultService = vaultService ?? throw new ArgumentNullException(nameof(vaultService));
+
         _secretsPath = storageFilePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TOTP-Manager", "master.totp");
+        _secretsPath = Environment.ExpandEnvironmentVariables(_secretsPath);
 
         var directory = Path.GetDirectoryName(_secretsPath);
         if (directory != null && !Directory.Exists(directory))
@@ -35,14 +36,18 @@ public sealed class OtpDAL : IOtpDAL
         await Semaphore.WaitAsync();
         try
         {
-            if (!File.Exists(_secretsPath)) return Result.Ok<List<OtpEntry>>(new ());
+            if (!File.Exists(_secretsPath))
+            {
+                return Result.Ok<List<OtpEntry>>(new());
+            }
+
             byte[] blob = await File.ReadAllBytesAsync(_secretsPath);
             return Result.Ok(_vaultService.DecryptVault(blob));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load accounts.");
-            return Result.Fail(new StatusError(OperationStatus.LoadingFailed));
+            return Result.Fail(OtpDalErrorMapper.MapReadError(ex));
         }
         finally { Semaphore.Release(); }
     }
@@ -60,26 +65,39 @@ public sealed class OtpDAL : IOtpDAL
         catch (Exception ex)
         {
             _logger.LogError(ex, "Export failed to {Path}", targetPath);
-            return Result.Fail("Encrypted export failed.");
+            return Result.Fail(OtpDalErrorMapper.MapExportError(ex));
         }
         finally { Semaphore.Release(); }
     }
 
     private async Task<List<OtpEntry>> GetAllInternalAsync()
     {
-        if (!File.Exists(_secretsPath)) return [];
+        if (!File.Exists(_secretsPath))
+        {
+            return [];
+        }
+
         byte[] blob = await File.ReadAllBytesAsync(_secretsPath);
         return _vaultService.DecryptVault(blob);
     }
 
-    public async Task<Result> AddNewAsync(OtpEntry newItem) => await ExecuteWriteAsync(list => list.Add(newItem));
-    public async Task<Result> UpdateAsync(OtpEntry updated) => await ExecuteWriteAsync(list => {
-        var idx = list.FindIndex(x => x.ID == updated.ID);
-        if (idx != -1) list[idx] = updated;
-    });
-    public async Task<Result> DeleteAsync(OtpEntry account) => await ExecuteWriteAsync(list => list.RemoveAll(x => x.ID == account.ID));
+    public async Task<Result> AddNewAsync(OtpEntry newItem) =>
+        await ExecuteWriteAsync(list => list.Add(newItem), AppErrorCode.OtpCreateFailed, "Failed to create OTP entry.");
 
-    private async Task<Result> ExecuteWriteAsync(Action<List<OtpEntry>> action)
+    public async Task<Result> UpdateAsync(OtpEntry updated) =>
+        await ExecuteWriteAsync(list =>
+        {
+            var idx = list.FindIndex(x => x.ID == updated.ID);
+            if (idx != -1)
+            {
+                list[idx] = updated;
+            }
+        }, AppErrorCode.OtpUpdateFailed, "Failed to update OTP entry.");
+
+    public async Task<Result> DeleteAsync(OtpEntry account) =>
+        await ExecuteWriteAsync(list => list.RemoveAll(x => x.ID == account.ID), AppErrorCode.OtpDeleteFailed, "Failed to delete OTP entry.");
+
+    private async Task<Result> ExecuteWriteAsync(Action<List<OtpEntry>> action, AppErrorCode operationCode, string operationMessage)
     {
         await Semaphore.WaitAsync();
         try
@@ -88,7 +106,6 @@ public sealed class OtpDAL : IOtpDAL
             action(list);
             byte[] blob = _vaultService.EncryptVault(list);
 
-            // ATOMIC WRITE PATTERN: Prevents file corruption
             string tempPath = _secretsPath + ".tmp";
             await File.WriteAllBytesAsync(tempPath, blob);
             File.Move(tempPath, _secretsPath, overwrite: true);
@@ -98,14 +115,12 @@ public sealed class OtpDAL : IOtpDAL
         catch (Exception ex)
         {
             _logger.LogError(ex, "Storage operation failed.");
-            return Result.Fail(new StatusError(OperationStatus.StorageFailed));
+            return Result.Fail(OtpDalErrorMapper.MapWriteError(ex, operationCode, operationMessage));
         }
         finally { Semaphore.Release(); }
     }
 
     public async Task<Result> ReEncryptStorageAsync() => await ExportEncryptedAsync(_secretsPath);
-
-    #region ### BACKUP & DISPOSE ###
 
     public async Task<Result> BackupOtpEntriesStorageFileAsync()
     {
@@ -113,21 +128,19 @@ public sealed class OtpDAL : IOtpDAL
         {
             try
             {
-                if (!File.Exists(_secretsPath)) return Result.Ok();
+                if (!File.Exists(_secretsPath))
+                {
+                    return Result.Ok();
+                }
 
                 var dir = Path.GetDirectoryName(_secretsPath)!;
                 var fileName = Path.GetFileName(_secretsPath);
-
                 string latestBackupPath = Path.Combine(dir, $"{fileName}.bak1");
 
-                // Optimization: Only backup if the file has actually changed
-                if (File.Exists(latestBackupPath))
+                if (File.Exists(latestBackupPath) && AreFilesIdentical(_secretsPath, latestBackupPath))
                 {
-                    if (AreFilesIdentical(_secretsPath, latestBackupPath))
-                    {
-                        _logger.LogInformation("Backup skipped: No changes detected in storage file.");
-                        return Result.Ok();
-                    }
+                    _logger.LogInformation("Backup skipped: No changes detected in storage file.");
+                    return Result.Ok();
                 }
 
                 for (var i = 5; i >= 1; i--)
@@ -135,10 +148,18 @@ public sealed class OtpDAL : IOtpDAL
                     var oldBackup = Path.Combine(dir, $"{fileName}.bak{i}");
                     var nextBackup = Path.Combine(dir, $"{fileName}.bak{i + 1}");
 
-                    if (File.Exists(oldBackup))
+                    if (!File.Exists(oldBackup))
                     {
-                        if (i == 5) File.Delete(oldBackup);
-                        else File.Move(oldBackup, nextBackup, true);
+                        continue;
+                    }
+
+                    if (i == 5)
+                    {
+                        File.Delete(oldBackup);
+                    }
+                    else
+                    {
+                        File.Move(oldBackup, nextBackup, true);
                     }
                 }
 
@@ -148,14 +169,11 @@ public sealed class OtpDAL : IOtpDAL
             catch (Exception ex)
             {
                 _logger.LogError(ex, nameof(BackupOtpEntriesStorageFileAsync));
-                return Result.Fail(new StatusError(OperationStatus.StorageFailed));
+                return Result.Fail(new AppError(AppErrorCode.OtpStorageBackupFailed, "Failed to create OTP storage backup.", ex));
             }
         });
     }
 
-    /// <summary>
-    /// Compares two files using SHA256 to determine if a backup is actually necessary.
-    /// </summary>
     private bool AreFilesIdentical(string path1, string path2)
     {
         using var hashAlgorithm = SHA256.Create();
@@ -173,6 +191,4 @@ public sealed class OtpDAL : IOtpDAL
     {
         Semaphore.Dispose();
     }
-
-    #endregion
 }

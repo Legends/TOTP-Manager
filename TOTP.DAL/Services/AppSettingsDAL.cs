@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using TOTP.Core.Common;
-using TOTP.Core.Enums;
+using TOTP.DAL.Common;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 
@@ -26,8 +26,17 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
             throw new ArgumentException("Path required.", nameof(storageFilePath));
 
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _path = storageFilePath;
-        Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+        //_path = storageFilePath;
+
+        _path = storageFilePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TOTP-Manager", "settings.totp");
+        _path = Environment.ExpandEnvironmentVariables(_path);
+
+        var directory = Path.GetDirectoryName(_path);
+        if (directory != null && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+       
     }
 
     public async Task<Result<IAppSettings?>> LoadAsync()
@@ -61,7 +70,7 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load app settings.");
-            return Result.Fail(new StatusError(OperationStatus.LoadingFailed));
+            return Result.Fail(AppSettingsDalErrorMapper.MapLoadError(ex));
         }
         finally { _lock.Release(); }
     }
@@ -84,7 +93,7 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save app settings.");
-            return Result.Fail(new StatusError(OperationStatus.StorageFailed));
+            return Result.Fail(AppSettingsDalErrorMapper.MapSaveError(ex));
         }
         finally { _lock.Release(); }
     }
