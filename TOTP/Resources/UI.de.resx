@@ -436,7 +436,7 @@
     <value>Import hat {0} Einträge verarbeitet. Hinzugefügt: {1}, Ersetzt: {2}, Übersprungen: {3}, Fehlgeschlagen: {4}.</value>
   </data>
   <data name="ui_Import_PreviewSummary" xml:space="preserve">
-    <value>Import-Vorschau:\nEinträge gesamt: {0}\nKonflikte mit vorhandenen: {1}\nGewählte Strategie: {2}\nErwartetes Ergebnis -> Hinzufügen: {3}, Ersetzen: {4}, Überspringen: {5}\n\nImport fortsetzen?</value>
+    <value>\nImport-Vorschau:\n\nEinträge gesamt: {0}\nKonflikte mit vorhandenen: {1}\nGewählte Strategie: {2}\n\nErwartetes Ergebnis: \n\nHinzufügen: {3}, \nErsetzen: {4}, \nÜberspringen: {5}\n\nImport fortsetzen?</value>
   </data>
   <data name="ui_btnDetails" xml:space="preserve">
     <value>Details</value>

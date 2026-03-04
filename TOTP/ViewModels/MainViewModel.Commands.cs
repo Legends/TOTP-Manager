@@ -256,7 +256,7 @@ public partial class MainViewModel
             }
 
             OnPropertyChanged(nameof(AllOtps));
-            _messageService.ShowInfo(string.Format(UI.ui_Import_ResultSummary, importedEntries.Count, added, replaced, skipped, failed));
+            _messageService.ShowInfo(string.Format(UI.ui_Import_ResultSummary, importedEntries.Count, added, replaced, skipped, failed).Replace("\\n", Environment.NewLine));
         }
         catch (Exception ex)
         {
@@ -316,7 +316,7 @@ public partial class MainViewModel
         var projectedReplace = strategy == ImportConflictStrategy.ReplaceExisting ? conflicts : 0;
         var projectedSkip = strategy == ImportConflictStrategy.SkipExisting ? conflicts : 0;
 
-        return string.Format(
+        var preview = string.Format(
             UI.ui_Import_PreviewSummary,
             importedEntries.Count,
             conflicts,
@@ -324,6 +324,8 @@ public partial class MainViewModel
             projectedAdd,
             projectedReplace,
             projectedSkip);
+
+        return preview.Replace("\\n", Environment.NewLine);
     }
 
     private static string GetStrategyDisplayName(ImportConflictStrategy strategy)

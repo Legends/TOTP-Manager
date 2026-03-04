@@ -745,7 +745,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Import preview:\nTotal entries: {0}\nConflicts with existing: {1}\nSelected strategy: {2}\nProjected result -&gt; Add: {3}, Replace: {4}, Skip: {5}\n\nContinue with import?.
+        ///   Looks up a localized string similar to \nImport preview:\n\nTotal entries: {0}\nConflicts with existing: {1}\nSelected strategy: {2}\n\nProjected result:\n\nAdd: {3}, \nReplace: {4}, \nSkip: {5}\n\nContinue with import?.
         /// </summary>
         internal static string ui_Import_PreviewSummary {
             get {

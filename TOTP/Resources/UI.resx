@@ -355,7 +355,7 @@
     <value>Import processed {0} entries. Added: {1}, Replaced: {2}, Skipped: {3}, Failed: {4}.</value>
   </data>
   <data name="ui_Import_PreviewSummary" xml:space="preserve">
-    <value>Import preview:\nTotal entries: {0}\nConflicts with existing: {1}\nSelected strategy: {2}\nProjected result -> Add: {3}, Replace: {4}, Skip: {5}\n\nContinue with import?</value>
+    <value>\nImport preview:\n\nTotal entries: {0}\nConflicts with existing: {1}\nSelected strategy: {2}\n\nProjected result:\n\nAdd: {3}, \nReplace: {4}, \nSkip: {5}\n\nContinue with import?</value>
   </data>
   <data name="ui_btnDetails" xml:space="preserve">
     <value>Details</value>
