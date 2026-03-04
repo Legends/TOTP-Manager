@@ -486,4 +486,7 @@
   <data name="err_SettingsServiceSaveFailed" xml:space="preserve">
     <value>Application settings could not be saved by the settings service.</value>
   </data>
+  <data name="ui_Settings_Export_Success" xml:space="preserve">
+    <value>Export successful</value>
+  </data>
 </root>

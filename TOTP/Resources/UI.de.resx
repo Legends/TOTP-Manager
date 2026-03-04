@@ -558,4 +558,7 @@
   <data name="err_SettingsServiceSaveFailed" xml:space="preserve">
     <value>Anwendungseinstellungen konnten vom Einstellungsdienst nicht gespeichert werden.</value>
   </data>
+  <data name="ui_Settings_Export_Success" xml:space="preserve">
+    <value>Export erfolgreich</value>
+  </data>
 </root>

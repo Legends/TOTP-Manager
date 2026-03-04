@@ -113,6 +113,11 @@ public partial class MainViewModel
                 exportResult = await _exportService.ExportToFileAsync(result.Value, path, effectiveFormat);
             }
 
+            if (exportResult.IsSuccess)
+            {
+                _messageService.ShowInfo(UI.ui_Settings_Export_Success);
+            }
+
             if (exportResult.IsFailed)
             {
                 _messageService.ShowResultError(exportResult);

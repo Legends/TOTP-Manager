@@ -50,12 +50,12 @@ public sealed class PasswordPromptService : IPasswordPromptService
         Func<string, Task<string?>>? validatePasswordAsync = null)
     {
         var viewModel = new PasswordPromptViewModel(title, message, errorMessage, requiredErrorMessage);
+        viewModel.ValidatePasswordAsync = validatePasswordAsync;
 
         var dialog = new PasswordPromptWindow
         {
             DataContext = viewModel,
-            Owner = Application.Current?.MainWindow,
-            ValidatePasswordAsync = validatePasswordAsync
+            Owner = Application.Current?.MainWindow
         };
 
         var result = dialog.ShowDialog();

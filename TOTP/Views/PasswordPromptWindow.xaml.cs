@@ -1,44 +1,33 @@
 using Syncfusion.Windows.Shared;
 using System;
-using System.Threading.Tasks;
 using System.Windows;
-using TOTP.Resources;
 using TOTP.ViewModels;
 
 namespace TOTP.Views;
 
 public partial class PasswordPromptWindow : ChromelessWindow
 {
-    public Func<string, Task<string?>>? ValidatePasswordAsync { get; set; }
-
     public PasswordPromptWindow()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
     }
 
-    private async void OkButton_Click(object sender, RoutedEventArgs e)
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (DataContext is PasswordPromptViewModel vm)
+        if (e.OldValue is PasswordPromptViewModel oldVm)
         {
-            if (string.IsNullOrWhiteSpace(vm.Password))
-            {
-                vm.ErrorMessage = string.IsNullOrWhiteSpace(vm.RequiredErrorMessage)
-                    ? UI.ui_ImportPasswordRequired
-                    : vm.RequiredErrorMessage;
-                return;
-            }
-
-            if (ValidatePasswordAsync != null)
-            {
-                var validationError = await ValidatePasswordAsync(vm.Password);
-                if (!string.IsNullOrWhiteSpace(validationError))
-                {
-                    vm.ErrorMessage = validationError;
-                    return;
-                }
-            }
+            oldVm.RequestClose -= OnViewModelRequestClose;
         }
 
+        if (e.NewValue is PasswordPromptViewModel newVm)
+        {
+            newVm.RequestClose += OnViewModelRequestClose;
+        }
+    }
+
+    private void OnViewModelRequestClose(object? sender, EventArgs e)
+    {
         DialogResult = true;
     }
 
@@ -47,6 +36,17 @@ public partial class PasswordPromptWindow : ChromelessWindow
         base.OnSourceInitialized(e);
         CenterWithinOwnerOrScreen();
         Opacity = 1d;
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        if (DataContext is PasswordPromptViewModel vm)
+        {
+            vm.RequestClose -= OnViewModelRequestClose;
+        }
+
+        DataContextChanged -= OnDataContextChanged;
+        base.OnClosed(e);
     }
 
     private void CenterWithinOwnerOrScreen()

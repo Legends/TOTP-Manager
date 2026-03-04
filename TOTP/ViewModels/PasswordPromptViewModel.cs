@@ -1,5 +1,10 @@
-﻿using System.ComponentModel;
+using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using TOTP.Commands;
+using TOTP.Resources;
 
 namespace TOTP.ViewModels;
 
@@ -14,6 +19,10 @@ public class PasswordPromptViewModel : INotifyPropertyChanged
     private string _requiredErrorMessage = string.Empty;
 
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event EventHandler? RequestClose;
+
+    public Func<string, Task<string?>>? ValidatePasswordAsync { get; set; }
+    public ICommand ConfirmCommand { get; }
 
     public string Title
     {
@@ -94,6 +103,30 @@ public class PasswordPromptViewModel : INotifyPropertyChanged
         _message = message;
         _errorMessage = errorMessage ?? string.Empty;
         _requiredErrorMessage = requiredErrorMessage ?? string.Empty;
+        ConfirmCommand = new AsyncCommand(ConfirmAsync);
+    }
+
+    private async Task ConfirmAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Password))
+        {
+            ErrorMessage = string.IsNullOrWhiteSpace(RequiredErrorMessage)
+                ? UI.ui_ImportPasswordRequired
+                : RequiredErrorMessage;
+            return;
+        }
+
+        if (ValidatePasswordAsync != null)
+        {
+            var validationError = await ValidatePasswordAsync(Password);
+            if (!string.IsNullOrWhiteSpace(validationError))
+            {
+                ErrorMessage = validationError;
+                return;
+            }
+        }
+
+        RequestClose?.Invoke(this, EventArgs.Empty);
     }
 
     protected void OnPropertyChanged([CallerMemberName] string propertyName = null!)

@@ -68,6 +68,10 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             }
 
             _masterPassword = value;
+            if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                ErrorMessage = string.Empty;
+            }
             OnPropertyChanged();
         }
     }
@@ -83,6 +87,10 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             }
 
             _customPassword = value;
+            if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                ErrorMessage = string.Empty;
+            }
             OnPropertyChanged();
         }
     }
@@ -98,6 +106,10 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             }
 
             _confirmCustomPassword = value;
+            if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                ErrorMessage = string.Empty;
+            }
             OnPropertyChanged();
         }
     }

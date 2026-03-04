@@ -979,6 +979,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export successful.
+        /// </summary>
+        internal static string ui_Settings_Export_Success {
+            get {
+                return ResourceManager.GetString("ui_Settings_Export_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Import accounts.
         /// </summary>
         internal static string ui_Settings_Import {
