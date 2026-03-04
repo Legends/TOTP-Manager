@@ -56,9 +56,15 @@ public sealed class MessageService : IMessageService
             buttonAction: _logFileService.OpenCurrentLogFile);
     }
 
-    public void ShowInfo(string msg) => Show(UI.ui_Caption_Info, msg, NotificationType.Information);
+    public void ShowInfo(string msg, int? durationSeconds = null) => Show(UI.ui_Caption_Info, msg, NotificationType.Information, durationSeconds: durationSeconds);
+    public void ShowSuccess(string msg, int? durationSeconds = null) => Show(UI.ui_Caption_Info, msg, NotificationType.Success, durationSeconds: durationSeconds);
     public void ShowWarning(string msg) => Show(UI.ui_Caption_Warning, msg, NotificationType.Warning);
-    public void ShowError(string msg) => Show(UI.ui_Caption_Error, msg, NotificationType.Error, UI.ui_btnDetails, _logFileService.OpenCurrentLogFile);
+    public void ShowError(string msg) => Show(
+        UI.ui_Caption_Error,
+        msg,
+        NotificationType.Error,
+        buttonText: UI.ui_btnDetails,
+        buttonAction: _logFileService.OpenCurrentLogFile);
 
     public bool ConfirmInfo(string msg, string? ok = null, string? cancel = null) =>
         Confirm(UI.ui_Caption_Info, msg, NotificationType.Information, ok, cancel);
@@ -73,6 +79,7 @@ public sealed class MessageService : IMessageService
         string title,
         string message,
         NotificationType type,
+        int? durationSeconds = null,
         string? buttonText = null,
         Action? buttonAction = null)
     {
@@ -88,7 +95,7 @@ public sealed class MessageService : IMessageService
                     message,
                     type,
                     NotificationAreaName,
-                    expirationTime: TimeSpan.FromSeconds(msgDuration),
+                    expirationTime: TimeSpan.FromSeconds(durationSeconds ?? msgDuration),
                     onClose: null,
                     onClick: type == NotificationType.Error ? _logFileService.OpenCurrentLogFile : null,
                     trim: NotificationTextTrimType.NoTrim,
@@ -107,7 +114,7 @@ public sealed class MessageService : IMessageService
                 message,
                 type,
                 NotificationAreaName,
-                expirationTime: TimeSpan.FromSeconds(msgDuration),
+                expirationTime: TimeSpan.FromSeconds(durationSeconds ?? msgDuration),
                 onClick: null,
                 onClose: null,
                 LeftButton: buttonAction,

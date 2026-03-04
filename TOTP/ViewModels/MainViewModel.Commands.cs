@@ -115,7 +115,7 @@ public partial class MainViewModel
 
             if (exportResult.IsSuccess)
             {
-                _messageService.ShowInfo(UI.ui_Settings_Export_Success);
+                _messageService.ShowSuccess(UI.ui_Settings_Export_Success,1);
             }
 
             if (exportResult.IsFailed)
