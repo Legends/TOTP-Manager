@@ -2,7 +2,6 @@ using Syncfusion.Windows.Shared;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 using TOTP.Resources;
 using TOTP.ViewModels;
 
@@ -43,15 +42,11 @@ public partial class PasswordPromptWindow : ChromelessWindow
         DialogResult = true;
     }
 
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    protected override void OnSourceInitialized(EventArgs e)
     {
-        // Wait until layout/theme finalizes actual size before centering.
-        Dispatcher.BeginInvoke(new Action(CenterWithinOwnerOrScreen), DispatcherPriority.ApplicationIdle);
-    }
-
-    private void OnContentRendered(object? sender, EventArgs e)
-    {
+        base.OnSourceInitialized(e);
         CenterWithinOwnerOrScreen();
+        Opacity = 1d;
     }
 
     private void CenterWithinOwnerOrScreen()
