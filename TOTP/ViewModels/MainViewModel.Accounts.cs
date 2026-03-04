@@ -21,7 +21,7 @@ public partial class MainViewModel
     {
         try
         {
-            throw new Exception("dummy");
+            //throw new Exception("dummy");
             IsAddMode = true;
             IsEditAddFlyoutOpen = true;
             CurrentSecretBeingEditedOrAdded = new OtpViewModel(Guid.NewGuid(), string.Empty, string.Empty, null);
