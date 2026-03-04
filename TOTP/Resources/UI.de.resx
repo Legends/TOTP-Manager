@@ -288,9 +288,6 @@
   <data name="ui_Header_Secret" xml:space="preserve">
     <value>schlüssel</value>
   </data>
-  <data name="ui_Header_Secret_Shared" xml:space="preserve">
-    <value>geheimer schlüssel</value>
-  </data>
   <data name="ui_label_account" xml:space="preserve">
     <value>konto (optional)</value>
   </data>
@@ -354,12 +351,6 @@
   <data name="ui_Settings_Title" xml:space="preserve">
     <value>Einstellungen</value>
   </data>
-  <data name="ui_watermark_platform" xml:space="preserve">
-    <value>z.b. github, msft, ...</value>
-  </data>
-  <data name="ui_Window_Title_PlatformSecretDialog" xml:space="preserve">
-    <value>neue plattform hinzufügen</value>
-  </data>
   <data name="ui_Window_Title_TOTP_Manager" xml:space="preserve">
     <value>TOTP Manager</value>
   </data>
@@ -402,6 +393,9 @@
   <data name="ui_Settings_Export" xml:space="preserve">
     <value>Konten exportieren</value>
   </data>
+  <data name="ui_Settings_Export_OpenAfterExport" xml:space="preserve">
+    <value>Exportdatei nach dem Export öffnen</value>
+  </data>
   <data name="ui_Settings_Import" xml:space="preserve">
     <value>Konten importieren</value>
   </data>
@@ -420,20 +414,47 @@
   <data name="ui_EnterExportPassword" xml:space="preserve">
     <value>Passwort für verschlüsselten Export eingeben</value>
   </data>
+  <data name="ui_ExportPwd_PromptMessage" xml:space="preserve">
+    <value>Wählen Sie einen Verschlüsselungsweg</value>
+  </data>
+  <data name="ui_ExportPwd_UseMasterOption" xml:space="preserve">
+    <value>Aktuelles Master-Passwort verwenden</value>
+  </data>
+  <data name="ui_ExportPwd_MasterPasswordLabel" xml:space="preserve">
+    <value>Aktuelles Master-Passwort</value>
+  </data>
+  <data name="ui_ExportPwd_MasterWarning" xml:space="preserve">
+    <value>Warnung: Dieser Export bleibt mit Ihrem aktuellen Master-Passwort geschützt. Wenn Sie das App-Master-Passwort später ändern, benötigt dieses Backup weiterhin das jetzt verwendete alte Passwort.</value>
+  </data>
+  <data name="ui_ExportPwd_UseCustomOption" xml:space="preserve">
+    <value>Eigenes Export-Passwort verwenden</value>
+  </data>
+  <data name="ui_ExportPwd_CustomPasswordLabel" xml:space="preserve">
+    <value>Eigenes Export-Passwort</value>
+  </data>
+  <data name="ui_ExportPwd_ConfirmCustomPasswordLabel" xml:space="preserve">
+    <value>Eigenes Export-Passwort bestätigen</value>
+  </data>
+  <data name="ui_ExportPwd_CustomPasswordMismatch" xml:space="preserve">
+    <value>Eigenes Passwort und Bestätigung stimmen nicht überein.</value>
+  </data>
+  <data name="ui_ExportPwd_WrongMasterPassword" xml:space="preserve">
+    <value>Falsches Master-Passwort.</value>
+  </data>
   <data name="ui_EnterImportPassword" xml:space="preserve">
-    <value>Backup-Passwort für verschlüsselten Import eingeben</value>
+    <value>Passwort für verschlüsselten Import eingeben</value>
   </data>
   <data name="ui_ExportPasswordRequired" xml:space="preserve">
-    <value>Für den verschlüsselten Export ist ein Passwort erforderlich.</value>
+    <value>Passwort erforderlich.</value>
   </data>
   <data name="ui_ImportPasswordRequired" xml:space="preserve">
-    <value>Für den verschlüsselten Import ist ein Passwort erforderlich.</value>
+    <value>Passwort erforderlich.</value>
   </data>
   <data name="ui_Import_NoEntriesFound" xml:space="preserve">
     <value>In der ausgewählten Importdatei wurden keine Einträge gefunden.</value>
   </data>
   <data name="ui_Import_ResultSummary" xml:space="preserve">
-    <value>Import hat {0} Einträge verarbeitet. Hinzugefügt: {1}, Ersetzt: {2}, Übersprungen: {3}, Fehlgeschlagen: {4}.</value>
+    <value>Import hat {0} Einträge verarbeitet. \n\nHinzugefügt: {1}, \nErsetzt: {2}, \nÜbersprungen: {3}, \nFehlgeschlagen: {4}.</value>
   </data>
   <data name="ui_Import_PreviewSummary" xml:space="preserve">
     <value>\nImport-Vorschau:\n\nEinträge gesamt: {0}\nKonflikte mit vorhandenen: {1}\nGewählte Strategie: {2}\n\nErwartetes Ergebnis: \n\nHinzufügen: {3}, \nErsetzen: {4}, \nÜberspringen: {5}\n\nImport fortsetzen?</value>
@@ -511,13 +532,13 @@
     <value>Die ausgewählte Datei ist keine gültige Importdatei.</value>
   </data>
   <data name="err_ImportWrongPasswordOrTampered" xml:space="preserve">
-    <value>Import fehlgeschlagen. Das Passwort ist falsch oder die Datei wurde verändert.</value>
+    <value>Passwort falsch oder Datei ist korrupt.</value>
   </data>
   <data name="err_ImportInvalidPayload" xml:space="preserve">
-    <value>Import fehlgeschlagen, da der Dateiinhalt ungültig ist.</value>
+    <value>Import fehlgeschlagen, Dateiinhalt ungültig.</value>
   </data>
   <data name="err_ImportUnknownFailed" xml:space="preserve">
-    <value>Import ist durch einen unerwarteten Fehler fehlgeschlagen.</value>
+    <value>Import fehlgeschlagen, unerwarteter Fehler .</value>
   </data>
   <data name="err_AccountsLoadFailed" xml:space="preserve">
     <value>Konten konnten nicht geladen werden.</value>

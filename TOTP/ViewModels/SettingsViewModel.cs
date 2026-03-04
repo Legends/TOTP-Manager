@@ -155,6 +155,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             _exportEncrypt = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsExportFormatSelectionEnabled));
+            OnPropertyChanged(nameof(IsOpenExportFileAfterExportOptionEnabled));
 
             // Encrypted export is always JSON payload.
             if (_exportEncrypt)
@@ -199,6 +200,24 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         }
     }
     public bool IsExportFormatSelectionEnabled => !ExportEncrypt;
+    public bool IsOpenExportFileAfterExportOptionEnabled => !ExportEncrypt;
+
+    private bool _openExportFileAfterExport = true;
+    public bool OpenExportFileAfterExport
+    {
+        get => _openExportFileAfterExport;
+        set
+        {
+            if (_openExportFileAfterExport == value)
+            {
+                return;
+            }
+
+            _openExportFileAfterExport = value;
+            OnPropertyChanged();
+        }
+    }
+
     public bool IsCliOverrideActive => _logSwitchService.IsCliOverrideActive;
     public string ClrOverrideText => _logSwitchService.IsCliOverrideActive ?
         $"(Overridden via CLI to {SelectedLogLevel})" :
@@ -287,6 +306,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             MaxQrPreviewScale);
         _qrPreviewService.PreviewScaleFactor = QrPreviewScaleFactor;
         ExportEncrypt = _appSettings.ExportEncrypt;
+        OpenExportFileAfterExport = _appSettings.OpenExportFileAfterExport;
         SelectedExportFormat = ExportFileFormat.Json;
         SelectedImportConflictOption = AvailableImportConflictOptions.First();
         HideSecretsByDefault = _appSettings.HideSecretsByDefault;
@@ -357,6 +377,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             MinQrPreviewScale,
             MaxQrPreviewScale);
         _appSettings.ExportEncrypt = ExportEncrypt;
+        _appSettings.OpenExportFileAfterExport = OpenExportFileAfterExport;
         _appSettings.HideSecretsByDefault = HideSecretsByDefault;
 
         var saveResult = await _settingsSvc.SaveAsync();

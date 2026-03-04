@@ -26,5 +26,7 @@ public sealed class AppSettings : IAppSettings
 
     public bool ExportEncrypt { get; set; } = true;
 
+    public bool OpenExportFileAfterExport { get; set; } = true;
+
     public bool HideSecretsByDefault { get; set; } = true;
 }

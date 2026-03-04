@@ -321,6 +321,9 @@
   <data name="ui_Settings_Export" xml:space="preserve">
     <value>Export accounts</value>
   </data>
+  <data name="ui_Settings_Export_OpenAfterExport" xml:space="preserve">
+    <value>Open exported file after export</value>
+  </data>
   <data name="ui_Settings_Import" xml:space="preserve">
     <value>Import accounts</value>
   </data>
@@ -339,20 +342,47 @@
   <data name="ui_EnterExportPassword" xml:space="preserve">
     <value>Enter password for encrypted export</value>
   </data>
+  <data name="ui_ExportPwd_PromptMessage" xml:space="preserve">
+    <value>Choose way of encryption</value>
+  </data>
+  <data name="ui_ExportPwd_UseMasterOption" xml:space="preserve">
+    <value>Use current master password</value>
+  </data>
+  <data name="ui_ExportPwd_MasterPasswordLabel" xml:space="preserve">
+    <value>Current master password</value>
+  </data>
+  <data name="ui_ExportPwd_MasterWarning" xml:space="preserve">
+    <value>Warning: This export will stay protected by your current master password. If you change the app master password later, this backup will still require the old password used now.</value>
+  </data>
+  <data name="ui_ExportPwd_UseCustomOption" xml:space="preserve">
+    <value>Use custom export password</value>
+  </data>
+  <data name="ui_ExportPwd_CustomPasswordLabel" xml:space="preserve">
+    <value>Custom export password</value>
+  </data>
+  <data name="ui_ExportPwd_ConfirmCustomPasswordLabel" xml:space="preserve">
+    <value>Confirm custom export password</value>
+  </data>
+  <data name="ui_ExportPwd_CustomPasswordMismatch" xml:space="preserve">
+    <value>Custom password and confirmation do not match.</value>
+  </data>
+  <data name="ui_ExportPwd_WrongMasterPassword" xml:space="preserve">
+    <value>Wrong master password.</value>
+  </data>
   <data name="ui_EnterImportPassword" xml:space="preserve">
-    <value>Enter backup password for encrypted import</value>
+    <value>Enter password for encrypted import</value>
   </data>
   <data name="ui_ExportPasswordRequired" xml:space="preserve">
-    <value>Password is required for encrypted export.</value>
+    <value>Password required</value>
   </data>
   <data name="ui_ImportPasswordRequired" xml:space="preserve">
-    <value>Password is required for encrypted import.</value>
+    <value>Password is required</value>
   </data>
   <data name="ui_Import_NoEntriesFound" xml:space="preserve">
     <value>No entries found in selected import file.</value>
   </data>
   <data name="ui_Import_ResultSummary" xml:space="preserve">
-    <value>Import processed {0} entries. Added: {1}, Replaced: {2}, Skipped: {3}, Failed: {4}.</value>
+    <value>Import processed {0} entries. \n\nAdded: {1}, \nReplaced: {2}, \nSkipped: {3}, \nFailed: {4}.</value>
   </data>
   <data name="ui_Import_PreviewSummary" xml:space="preserve">
     <value>\nImport preview:\n\nTotal entries: {0}\nConflicts with existing: {1}\nSelected strategy: {2}\n\nProjected result:\n\nAdd: {3}, \nReplace: {4}, \nSkip: {5}\n\nContinue with import?</value>
@@ -430,13 +460,13 @@
     <value>The selected file is not a valid import file.</value>
   </data>
   <data name="err_ImportWrongPasswordOrTampered" xml:space="preserve">
-    <value>Import failed. The password is wrong or the file was modified.</value>
+    <value>Wrong password or corrupted file.</value>
   </data>
   <data name="err_ImportInvalidPayload" xml:space="preserve">
-    <value>Import failed because the file content is invalid.</value>
+    <value>Import failed, file content invalid.</value>
   </data>
   <data name="err_ImportUnknownFailed" xml:space="preserve">
-    <value>Import failed due to an unexpected error.</value>
+    <value>Import failed, unexpected error.</value>
   </data>
   <data name="err_AccountsLoadFailed" xml:space="preserve">
     <value>Accounts could not be loaded.</value>

@@ -180,6 +180,12 @@
                                   Height="30"
                                   Margin="0,0,0,8"/>
 
+                        <CheckBox Content="{xaml:Resx Key=ui_Settings_Export_OpenAfterExport}"
+                                  Foreground="White"
+                                  IsChecked="{Binding OpenExportFileAfterExport, Mode=TwoWay}"
+                                  Margin="0,0,0,8"
+                                  Visibility="{Binding IsOpenExportFileAfterExportOptionEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
                         <Button Content="{xaml:Resx Key=ui_Settings_Export}"
                            Command="{Binding ExportCommand}"
                            Height="34"

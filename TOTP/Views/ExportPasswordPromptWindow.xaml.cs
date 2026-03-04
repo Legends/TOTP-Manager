@@ -1,51 +1,73 @@
 using Syncfusion.Windows.Shared;
 using System;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using TOTP.Resources;
 using TOTP.ViewModels;
+using System.Threading.Tasks;
 
 namespace TOTP.Views;
 
-public partial class PasswordPromptWindow : ChromelessWindow
+public partial class ExportPasswordPromptWindow : ChromelessWindow
 {
-    public Func<string, Task<string?>>? ValidatePasswordAsync { get; set; }
+    public string? SelectedPassword { get; private set; }
+    public Func<string, Task<bool>>? ValidateMasterPasswordAsync { get; set; }
 
-    public PasswordPromptWindow()
+    public ExportPasswordPromptWindow()
     {
         InitializeComponent();
     }
 
     private async void OkButton_Click(object sender, RoutedEventArgs e)
     {
-        if (DataContext is PasswordPromptViewModel vm)
+        if (DataContext is not ExportPasswordPromptViewModel vm)
         {
-            if (string.IsNullOrWhiteSpace(vm.Password))
+            return;
+        }
+
+        vm.ErrorMessage = string.Empty;
+
+        if (vm.UseMasterPassword)
+        {
+            if (string.IsNullOrWhiteSpace(vm.MasterPassword))
             {
-                vm.ErrorMessage = string.IsNullOrWhiteSpace(vm.RequiredErrorMessage)
-                    ? UI.ui_ImportPasswordRequired
-                    : vm.RequiredErrorMessage;
+                vm.ErrorMessage = UI.ui_ExportPasswordRequired;
                 return;
             }
 
-            if (ValidatePasswordAsync != null)
+            if (ValidateMasterPasswordAsync != null)
             {
-                var validationError = await ValidatePasswordAsync(vm.Password);
-                if (!string.IsNullOrWhiteSpace(validationError))
+                var isValid = await ValidateMasterPasswordAsync(vm.MasterPassword);
+                if (!isValid)
                 {
-                    vm.ErrorMessage = validationError;
+                    vm.ErrorMessage = UI.ui_ExportPwd_WrongMasterPassword;
                     return;
                 }
             }
+
+            SelectedPassword = vm.MasterPassword;
+            DialogResult = true;
+            return;
         }
 
+        if (string.IsNullOrWhiteSpace(vm.CustomPassword) || string.IsNullOrWhiteSpace(vm.ConfirmCustomPassword))
+        {
+            vm.ErrorMessage = UI.ui_ExportPasswordRequired;
+            return;
+        }
+
+        if (!string.Equals(vm.CustomPassword, vm.ConfirmCustomPassword, StringComparison.Ordinal))
+        {
+            vm.ErrorMessage = UI.ui_ExportPwd_CustomPasswordMismatch;
+            return;
+        }
+
+        SelectedPassword = vm.CustomPassword;
         DialogResult = true;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        // Wait until layout/theme finalizes actual size before centering.
         Dispatcher.BeginInvoke(new Action(CenterWithinOwnerOrScreen), DispatcherPriority.ApplicationIdle);
     }
 

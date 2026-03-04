@@ -214,7 +214,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Import failed because the file content is invalid..
+        ///   Looks up a localized string similar to Import failed, file content invalid..
         /// </summary>
         internal static string err_ImportInvalidPayload {
             get {
@@ -223,7 +223,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Import failed due to an unexpected error..
+        ///   Looks up a localized string similar to Import failed, unexpected error..
         /// </summary>
         internal static string err_ImportUnknownFailed {
             get {
@@ -232,7 +232,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Import failed. The password is wrong or the file was modified..
+        ///   Looks up a localized string similar to Wrong password or corrupted file..
         /// </summary>
         internal static string err_ImportWrongPasswordOrTampered {
             get {
@@ -664,7 +664,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter backup password for encrypted import.
+        ///   Looks up a localized string similar to Enter password for encrypted import.
         /// </summary>
         internal static string ui_EnterImportPassword {
             get {
@@ -682,11 +682,92 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Password is required for encrypted export..
+        ///   Looks up a localized string similar to Password required.
         /// </summary>
         internal static string ui_ExportPasswordRequired {
             get {
                 return ResourceManager.GetString("ui_ExportPasswordRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm custom export password.
+        /// </summary>
+        internal static string ui_ExportPwd_ConfirmCustomPasswordLabel {
+            get {
+                return ResourceManager.GetString("ui_ExportPwd_ConfirmCustomPasswordLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom export password.
+        /// </summary>
+        internal static string ui_ExportPwd_CustomPasswordLabel {
+            get {
+                return ResourceManager.GetString("ui_ExportPwd_CustomPasswordLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom password and confirmation do not match..
+        /// </summary>
+        internal static string ui_ExportPwd_CustomPasswordMismatch {
+            get {
+                return ResourceManager.GetString("ui_ExportPwd_CustomPasswordMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current master password.
+        /// </summary>
+        internal static string ui_ExportPwd_MasterPasswordLabel {
+            get {
+                return ResourceManager.GetString("ui_ExportPwd_MasterPasswordLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: This export will stay protected by your current master password. If you change the app master password later, this backup will still require the old password used now..
+        /// </summary>
+        internal static string ui_ExportPwd_MasterWarning {
+            get {
+                return ResourceManager.GetString("ui_ExportPwd_MasterWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Choose way of encryption.
+        /// </summary>
+        internal static string ui_ExportPwd_PromptMessage {
+            get {
+                return ResourceManager.GetString("ui_ExportPwd_PromptMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use custom export password.
+        /// </summary>
+        internal static string ui_ExportPwd_UseCustomOption {
+            get {
+                return ResourceManager.GetString("ui_ExportPwd_UseCustomOption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use current master password.
+        /// </summary>
+        internal static string ui_ExportPwd_UseMasterOption {
+            get {
+                return ResourceManager.GetString("ui_ExportPwd_UseMasterOption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrong master password..
+        /// </summary>
+        internal static string ui_ExportPwd_WrongMasterPassword {
+            get {
+                return ResourceManager.GetString("ui_ExportPwd_WrongMasterPassword", resourceCulture);
             }
         }
         
@@ -754,7 +835,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Import processed {0} entries. Added: {1}, Replaced: {2}, Skipped: {3}, Failed: {4}..
+        ///   Looks up a localized string similar to Import processed {0} entries. \n\nAdded: {1}, \nReplaced: {2}, \nSkipped: {3}, \nFailed: {4}..
         /// </summary>
         internal static string ui_Import_ResultSummary {
             get {
@@ -763,7 +844,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Password is required for encrypted import..
+        ///   Looks up a localized string similar to Password is required.
         /// </summary>
         internal static string ui_ImportPasswordRequired {
             get {
@@ -885,6 +966,15 @@ namespace TOTP.Resources {
         internal static string ui_Settings_Export_Format {
             get {
                 return ResourceManager.GetString("ui_Settings_Export_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open exported file after export.
+        /// </summary>
+        internal static string ui_Settings_Export_OpenAfterExport {
+            get {
+                return ResourceManager.GetString("ui_Settings_Export_OpenAfterExport", resourceCulture);
             }
         }
         

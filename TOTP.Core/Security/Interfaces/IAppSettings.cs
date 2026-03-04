@@ -13,5 +13,6 @@ public interface IAppSettings
     int ClearClipboardSeconds { get; set; }
     double QrPreviewScaleFactor { get; set; }
     bool ExportEncrypt { get; set; }
+    bool OpenExportFileAfterExport { get; set; }
     bool HideSecretsByDefault { get; set; }
 }

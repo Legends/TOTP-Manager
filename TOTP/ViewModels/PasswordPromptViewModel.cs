@@ -10,6 +10,8 @@ public class PasswordPromptViewModel : INotifyPropertyChanged
     private string _password = string.Empty;
     private string _title = string.Empty;
     private string _message = string.Empty;
+    private string _errorMessage = string.Empty;
+    private string _requiredErrorMessage = string.Empty;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -47,16 +49,51 @@ public class PasswordPromptViewModel : INotifyPropertyChanged
             if (_password != value)
             {
                 _password = value;
+                if (!string.IsNullOrWhiteSpace(_errorMessage))
+                {
+                    ErrorMessage = string.Empty;
+                }
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set
+        {
+            if (_errorMessage != value)
+            {
+                _errorMessage = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasErrorMessage));
+            }
+        }
+    }
+
+    public bool HasErrorMessage => !string.IsNullOrWhiteSpace(_errorMessage);
+
+    public string RequiredErrorMessage
+    {
+        get => _requiredErrorMessage;
+        set
+        {
+            if (_requiredErrorMessage != value)
+            {
+                _requiredErrorMessage = value;
                 OnPropertyChanged();
             }
         }
     }
     #endregion
 
-    public PasswordPromptViewModel(string title, string message)
+    public PasswordPromptViewModel(string title, string message, string? errorMessage = null, string? requiredErrorMessage = null)
     {
         _title = title;
         _message = message;
+        _errorMessage = errorMessage ?? string.Empty;
+        _requiredErrorMessage = requiredErrorMessage ?? string.Empty;
     }
 
     protected void OnPropertyChanged([CallerMemberName] string propertyName = null!)

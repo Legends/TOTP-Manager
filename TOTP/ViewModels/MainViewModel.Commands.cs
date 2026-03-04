@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using TOTP.Core.Common;
 using TOTP.Core.Models;
 using TOTP.Commands;
 using TOTP.Infrastructure.Extensions;
@@ -98,7 +99,7 @@ public partial class MainViewModel
             FluentResults.Result exportResult;
             if (toBeEncrypted)
             {
-                var password = _passwordPromptService.Prompt(UI.ui_Settings_Export, UI.ui_EnterExportPassword);
+                var password = _passwordPromptService.PromptForEncryptedExportPassword(UI.ui_Settings_Export);
                 if (string.IsNullOrWhiteSpace(password))
                 {
                     _messageService.ShowWarning(UI.ui_ExportPasswordRequired);
@@ -118,9 +119,11 @@ public partial class MainViewModel
                 return;
             }
 
-            var psi = new ProcessStartInfo { FileName = path, UseShellExecute = true };
-
-            Process.Start(psi);
+            if (!toBeEncrypted && _settingsService.Current.OpenExportFileAfterExport)
+            {
+                var psi = new ProcessStartInfo { FileName = path, UseShellExecute = true };
+                Process.Start(psi);
+            }
         }
         catch (Exception ex)
         {
@@ -172,19 +175,35 @@ public partial class MainViewModel
                 return;
             }
 
-            string? password = null;
             var extension = Path.GetExtension(path);
+            FluentResults.Result<System.Collections.Generic.List<OtpEntry>> importResult;
             if (extension.Equals(".totp", StringComparison.OrdinalIgnoreCase))
             {
-                password = _passwordPromptService.Prompt(UI.ui_Settings_Import, UI.ui_EnterImportPassword);
+                var password = _passwordPromptService.Prompt(
+                    UI.ui_Settings_Import,
+                    UI.ui_EnterImportPassword,
+                    requiredErrorMessage: UI.ui_ImportPasswordRequired,
+                    validatePasswordAsync: async enteredPassword =>
+                    {
+                        var validationResult = await _exportService.ImportFromFileAsync(path, enteredPassword);
+                        return validationResult.GetErrorCode() == AppErrorCode.ImportWrongPasswordOrTampered
+                            ? UI.err_ImportWrongPasswordOrTampered
+                            : null;
+                    });
+
                 if (string.IsNullOrWhiteSpace(password))
                 {
-                    _messageService.ShowWarning(UI.ui_ImportPasswordRequired);
+                    // User canceled import-password prompt: exit quietly.
                     return;
                 }
+
+                importResult = await _exportService.ImportFromFileAsync(path, password);
+            }
+            else
+            {
+                importResult = await _exportService.ImportFromFileAsync(path, null);
             }
 
-            var importResult = await _exportService.ImportFromFileAsync(path, password);
             if (importResult.IsFailed)
             {
                 _messageService.ShowResultError(importResult);
