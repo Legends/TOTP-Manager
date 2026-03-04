@@ -450,7 +450,9 @@ public partial class MainViewModel : IMainViewModel
     private readonly IAccountsWorkflowService _accountsWorkflow;
     private readonly IDebounceService _debounceService;
     private readonly IQrCodeService _qrService;
+    private readonly IExportService _exportService;
     private readonly IFileDialogService _fileDialogService;
+    private readonly IPasswordPromptService _passwordPromptService;
     private readonly IMainViewSessionController _mainViewSessionController;
     private readonly IQrPreviewService _qrPreviewService;
 
@@ -466,11 +468,13 @@ public partial class MainViewModel : IMainViewModel
 
         ILogger<MainViewModel> logger,
         IQrCodeService svcQr,
+        IExportService exportService,
         IMessageService messageService,
         IClipboardService clipboardService,
         IAccountsWorkflowService accountsWorkflow,
         IDebounceService debounceService,
         IFileDialogService fileDialogService,
+        IPasswordPromptService passwordPromptService,
         IQrPreviewService qrPreviewService,
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
@@ -483,6 +487,8 @@ public partial class MainViewModel : IMainViewModel
         _settingsFactory = settingsFactory;
         _qrScannerDialogFactory = qrScannerDialogFactory;
         _fileDialogService = fileDialogService;
+        _exportService = exportService;
+        _passwordPromptService = passwordPromptService;
         _qrPreviewService = qrPreviewService;
         _logger = logger;
         _qrService = svcQr;
@@ -537,7 +543,8 @@ public partial class MainViewModel : IMainViewModel
             SettingsVm = _settingsFactory(
                 CloseSettingsViewCommand,
                 SaveSettingsView,
-                ExportOtps);
+                ExportOtps,
+                ImportOtps);
 
             await SettingsVm.LoadAsync();
 

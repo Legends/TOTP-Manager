@@ -34,6 +34,7 @@ public static class DependencyInjection
 
         // 2. The Vault & DAL logic
         services.AddSingleton<IVaultService, VaultService>();
+        services.AddSingleton<IExportService, ExportService>();
 
         services.AddSingleton<IOtpDAL>(sp =>
         {

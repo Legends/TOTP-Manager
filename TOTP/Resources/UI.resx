@@ -277,7 +277,7 @@
     <value>Authorization</value>
   </data>
   <data name="ui_Settings_Tab_Export" xml:space="preserve">
-    <value>Export</value>
+    <value>Backup &amp; Restore</value>
   </data>
   <data name="ui_Settings_Title" xml:space="preserve">
     <value>Settings</value>
@@ -315,8 +315,47 @@
   <data name="ui_Settings_Export_Encrypt" xml:space="preserve">
     <value>Export encrypted</value>
   </data>
+  <data name="ui_Settings_Export_Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
   <data name="ui_Settings_Export" xml:space="preserve">
     <value>Export accounts</value>
+  </data>
+  <data name="ui_Settings_Import" xml:space="preserve">
+    <value>Import accounts</value>
+  </data>
+  <data name="ui_Settings_Import_ConflictStrategy" xml:space="preserve">
+    <value>When entry already exists</value>
+  </data>
+  <data name="ui_Settings_Import_Conflict_Skip" xml:space="preserve">
+    <value>Skip existing (Recommended)</value>
+  </data>
+  <data name="ui_Settings_Import_Conflict_Replace" xml:space="preserve">
+    <value>Replace existing</value>
+  </data>
+  <data name="ui_Settings_Import_Conflict_KeepBoth" xml:space="preserve">
+    <value>Keep both</value>
+  </data>
+  <data name="ui_EnterExportPassword" xml:space="preserve">
+    <value>Enter password for encrypted export</value>
+  </data>
+  <data name="ui_EnterImportPassword" xml:space="preserve">
+    <value>Enter backup password for encrypted import</value>
+  </data>
+  <data name="ui_ExportPasswordRequired" xml:space="preserve">
+    <value>Password is required for encrypted export.</value>
+  </data>
+  <data name="ui_ImportPasswordRequired" xml:space="preserve">
+    <value>Password is required for encrypted import.</value>
+  </data>
+  <data name="ui_Import_NoEntriesFound" xml:space="preserve">
+    <value>No entries found in selected import file.</value>
+  </data>
+  <data name="ui_Import_ResultSummary" xml:space="preserve">
+    <value>Import processed {0} entries. Added: {1}, Replaced: {2}, Skipped: {3}, Failed: {4}.</value>
+  </data>
+  <data name="ui_Import_PreviewSummary" xml:space="preserve">
+    <value>Import preview:\nTotal entries: {0}\nConflicts with existing: {1}\nSelected strategy: {2}\nProjected result -> Add: {3}, Replace: {4}, Skip: {5}\n\nContinue with import?</value>
   </data>
   <data name="ui_btnDetails" xml:space="preserve">
     <value>Details</value>
@@ -388,7 +427,7 @@
     <value>The selected import file could not be found.</value>
   </data>
   <data name="err_ImportInvalidFile" xml:space="preserve">
-    <value>The selected file is not a valid encrypted export.</value>
+    <value>The selected file is not a valid import file.</value>
   </data>
   <data name="err_ImportWrongPasswordOrTampered" xml:space="preserve">
     <value>Import failed. The password is wrong or the file was modified.</value>

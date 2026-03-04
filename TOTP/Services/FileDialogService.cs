@@ -18,6 +18,19 @@
 
             return dlg.ShowDialog() == true ? dlg.FileName : null;
         }
+
+        public string? ShowOpenFileDialog(string filter, string defaultExt)
+        {
+            var dlg = new OpenFileDialog
+            {
+                Filter = filter,
+                DefaultExt = defaultExt,
+                CheckFileExists = true,
+                Multiselect = false
+            };
+
+            return dlg.ShowDialog() == true ? dlg.FileName : null;
+        }
     }
 
 }

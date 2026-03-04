@@ -205,7 +205,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The selected file is not a valid encrypted export..
+        ///   Looks up a localized string similar to The selected file is not a valid import file..
         /// </summary>
         internal static string err_ImportInvalidFile {
             get {
@@ -655,11 +655,38 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enter password for encrypted export.
+        /// </summary>
+        internal static string ui_EnterExportPassword {
+            get {
+                return ResourceManager.GetString("ui_EnterExportPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter backup password for encrypted import.
+        /// </summary>
+        internal static string ui_EnterImportPassword {
+            get {
+                return ResourceManager.GetString("ui_EnterImportPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Export all accounts to file.
         /// </summary>
         internal static string ui_Export {
             get {
                 return ResourceManager.GetString("ui_Export", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password is required for encrypted export..
+        /// </summary>
+        internal static string ui_ExportPasswordRequired {
+            get {
+                return ResourceManager.GetString("ui_ExportPasswordRequired", resourceCulture);
             }
         }
         
@@ -705,6 +732,42 @@ namespace TOTP.Resources {
         internal static string ui_Header_Secret {
             get {
                 return ResourceManager.GetString("ui_Header_Secret", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No entries found in selected import file..
+        /// </summary>
+        internal static string ui_Import_NoEntriesFound {
+            get {
+                return ResourceManager.GetString("ui_Import_NoEntriesFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import preview:\nTotal entries: {0}\nConflicts with existing: {1}\nSelected strategy: {2}\nProjected result -&gt; Add: {3}, Replace: {4}, Skip: {5}\n\nContinue with import?.
+        /// </summary>
+        internal static string ui_Import_PreviewSummary {
+            get {
+                return ResourceManager.GetString("ui_Import_PreviewSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import processed {0} entries. Added: {1}, Replaced: {2}, Skipped: {3}, Failed: {4}..
+        /// </summary>
+        internal static string ui_Import_ResultSummary {
+            get {
+                return ResourceManager.GetString("ui_Import_ResultSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password is required for encrypted import..
+        /// </summary>
+        internal static string ui_ImportPasswordRequired {
+            get {
+                return ResourceManager.GetString("ui_ImportPasswordRequired", resourceCulture);
             }
         }
         
@@ -817,6 +880,60 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Format.
+        /// </summary>
+        internal static string ui_Settings_Export_Format {
+            get {
+                return ResourceManager.GetString("ui_Settings_Export_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import accounts.
+        /// </summary>
+        internal static string ui_Settings_Import {
+            get {
+                return ResourceManager.GetString("ui_Settings_Import", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Keep both.
+        /// </summary>
+        internal static string ui_Settings_Import_Conflict_KeepBoth {
+            get {
+                return ResourceManager.GetString("ui_Settings_Import_Conflict_KeepBoth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace existing.
+        /// </summary>
+        internal static string ui_Settings_Import_Conflict_Replace {
+            get {
+                return ResourceManager.GetString("ui_Settings_Import_Conflict_Replace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skip existing (Recommended).
+        /// </summary>
+        internal static string ui_Settings_Import_Conflict_Skip {
+            get {
+                return ResourceManager.GetString("ui_Settings_Import_Conflict_Skip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When entry already exists.
+        /// </summary>
+        internal static string ui_Settings_Import_ConflictStrategy {
+            get {
+                return ResourceManager.GetString("ui_Settings_Import_ConflictStrategy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Windows lock screen.
         /// </summary>
         internal static string ui_Settings_LockOnWindowsLock {
@@ -889,7 +1006,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export.
+        ///   Looks up a localized string similar to Backup &amp; Restore.
         /// </summary>
         internal static string ui_Settings_Tab_Export {
             get {

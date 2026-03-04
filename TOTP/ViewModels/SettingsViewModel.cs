@@ -13,9 +13,22 @@ using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Infrastructure.Common;
+using TOTP.Resources;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.ViewModels;
+
+public sealed class ImportConflictOptionItem
+{
+    public ImportConflictOptionItem(ImportConflictStrategy strategy, string displayName)
+    {
+        Strategy = strategy;
+        DisplayName = displayName;
+    }
+
+    public ImportConflictStrategy Strategy { get; }
+    public string DisplayName { get; }
+}
 
 public sealed class SettingsViewModel : INotifyPropertyChanged
 {
@@ -129,7 +142,34 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public double QrPreviewScaleFactor { get => _qrPreviewScaleFactor; set { _qrPreviewScaleFactor = value; OnPropertyChanged(); } }
 
     private bool _exportEncrypt = true;
-    public bool ExportEncrypt { get => _exportEncrypt; set { _exportEncrypt = value; OnPropertyChanged(); } }
+    public bool ExportEncrypt
+    {
+        get => _exportEncrypt;
+        set
+        {
+            if (_exportEncrypt == value)
+            {
+                return;
+            }
+
+            _exportEncrypt = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsExportFormatSelectionEnabled));
+
+            // Encrypted export is always JSON payload.
+            if (_exportEncrypt)
+            {
+                SelectedExportFormat = ExportFileFormat.Json;
+            }
+        }
+    }
+
+    private ExportFileFormat _selectedExportFormat = ExportFileFormat.Json;
+    public ExportFileFormat SelectedExportFormat
+    {
+        get => _selectedExportFormat;
+        set { _selectedExportFormat = value; OnPropertyChanged(); }
+    }
 
     private bool _hideSecretsByDefault = true;
     public bool HideSecretsByDefault { get => _hideSecretsByDefault; set { _hideSecretsByDefault = value; OnPropertyChanged(); } }
@@ -146,6 +186,19 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     }
 
     public List<AppLogLevel> AvailableLogLevels { get; }
+    public List<ExportFileFormat> AvailableExportFormats { get; }
+    public List<ImportConflictOptionItem> AvailableImportConflictOptions { get; }
+    private ImportConflictOptionItem _selectedImportConflictOption = null!;
+    public ImportConflictOptionItem SelectedImportConflictOption
+    {
+        get => _selectedImportConflictOption;
+        set
+        {
+            _selectedImportConflictOption = value;
+            OnPropertyChanged();
+        }
+    }
+    public bool IsExportFormatSelectionEnabled => !ExportEncrypt;
     public bool IsCliOverrideActive => _logSwitchService.IsCliOverrideActive;
     public string ClrOverrideText => _logSwitchService.IsCliOverrideActive ?
         $"(Overridden via CLI to {SelectedLogLevel})" :
@@ -156,12 +209,14 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public ICommand SaveCommand { get; }
     public ICommand CloseCommand { get; }
     public ICommand ExportCommand { get; }
+    public ICommand ImportCommand { get; }
     public ICommand OpenLogFolderCommand { get; }
 
     public delegate SettingsViewModel SettingsViewModelFactory(
         ICommand closeCommand,
         Action saveAction,
-        Func<bool, Task> actionExportOtps);
+        Func<bool, ExportFileFormat, Task> actionExportOtps,
+        Func<ImportConflictStrategy, Task> actionImportOtps);
 
     private ISettingsService _settingsSvc;
     IAppSettings _appSettings => _settingsSvc.Current;
@@ -175,7 +230,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
                             ILogSwitchService logSwitchService,
                             ICommand closeCommand,
                             Action saveAction,
-                            Func<bool, Task> actionExportOtps)
+                            Func<bool, ExportFileFormat, Task> actionExportOtps,
+                            Func<ImportConflictStrategy, Task> actionImportOtps)
     {
         _logSwitchService = logSwitchService;
         _settingsSvc = settingsSvc;
@@ -185,10 +241,19 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync);
-        ExportCommand = new AsyncCommand(() => actionExportOtps(ExportEncrypt));
+        ExportCommand = new AsyncCommand(() => actionExportOtps(ExportEncrypt, SelectedExportFormat));
+        ImportCommand = new AsyncCommand(() => actionImportOtps(SelectedImportConflictOption.Strategy));
         OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder);
 
         AvailableLogLevels = Enum.GetValues(typeof(AppLogLevel)).Cast<AppLogLevel>().ToList();
+        AvailableExportFormats = Enum.GetValues(typeof(ExportFileFormat)).Cast<ExportFileFormat>().ToList();
+        AvailableImportConflictOptions =
+        [
+            new ImportConflictOptionItem(ImportConflictStrategy.SkipExisting, UI.ui_Settings_Import_Conflict_Skip),
+            new ImportConflictOptionItem(ImportConflictStrategy.ReplaceExisting, UI.ui_Settings_Import_Conflict_Replace),
+            new ImportConflictOptionItem(ImportConflictStrategy.KeepBoth, UI.ui_Settings_Import_Conflict_KeepBoth)
+        ];
+        _selectedImportConflictOption = AvailableImportConflictOptions.First();
         _selectedLogLevel = _logSwitchService.MinimumLevel;
  
     }
@@ -222,6 +287,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             MaxQrPreviewScale);
         _qrPreviewService.PreviewScaleFactor = QrPreviewScaleFactor;
         ExportEncrypt = _appSettings.ExportEncrypt;
+        SelectedExportFormat = ExportFileFormat.Json;
+        SelectedImportConflictOption = AvailableImportConflictOptions.First();
         HideSecretsByDefault = _appSettings.HideSecretsByDefault;
     }
 

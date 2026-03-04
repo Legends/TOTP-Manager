@@ -155,24 +155,58 @@
                 </ScrollViewer>
             </syncfusion:TabItemExt>
 
-            <!-- EXPORT -->
+            <!-- BACKUP & RESTORE -->
             <syncfusion:TabItemExt Header="{xaml:Resx Key=ui_Settings_Tab_Export}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
                     <StackPanel Margin="0,10,0,0">
-                        <!--<TextBlock Text="{xaml:Resx Key=ui_Settings_Section_Export}"
-                              Foreground="White"
-                              FontWeight="Bold"
-                              Margin="0,0,0,10"/>-->
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_Export}"
+                                   Foreground="White"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,6"/>
 
                         <CheckBox Content="{xaml:Resx Key=ui_Settings_Export_Encrypt}"
                              Foreground="White"
                              IsChecked="{Binding ExportEncrypt, Mode=TwoWay}"
                              Margin="0,0,0,8"/>
 
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_Export_Format}"
+                                   Foreground="White"
+                                   FontWeight="SemiBold"
+                                   Margin="0,4,0,6"/>
+
+                        <ComboBox ItemsSource="{Binding AvailableExportFormats}"
+                                  SelectedItem="{Binding SelectedExportFormat, Mode=TwoWay}"
+                                  IsEnabled="{Binding IsExportFormatSelectionEnabled}"
+                                  Height="30"
+                                  Margin="0,0,0,8"/>
+
                         <Button Content="{xaml:Resx Key=ui_Settings_Export}"
                            Command="{Binding ExportCommand}"
                            Height="34"
                            Margin="0,10,0,0"/>
+
+                        <Border Height="1" Background="#394B74" Margin="0,16,0,16"/>
+
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_Import}"
+                                   Foreground="White"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,6"/>
+
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_Import_ConflictStrategy}"
+                                   Foreground="White"
+                                   FontWeight="SemiBold"
+                                   Margin="0,4,0,6"/>
+
+                        <ComboBox ItemsSource="{Binding AvailableImportConflictOptions}"
+                                  SelectedItem="{Binding SelectedImportConflictOption, Mode=TwoWay}"
+                                  DisplayMemberPath="DisplayName"
+                                  Height="30"
+                                  Margin="0,0,0,8"/>
+
+                        <Button Content="{xaml:Resx Key=ui_Settings_Import}"
+                                Command="{Binding ImportCommand}"
+                                Height="34"
+                                Margin="0,10,0,0"/>
                     </StackPanel>
                 </ScrollViewer>
             </syncfusion:TabItemExt>
