@@ -12,7 +12,9 @@ namespace TOTP.Services;
 public sealed class QrPreviewService : IQrPreviewService
 {
     private const double InlineQrBaseWidth = 160d;
+    private Window? _overlayWindow;
     private Window? _previewWindow;
+    private bool _isClosing;
     private readonly ISettingsService _settingsService;
     public double PreviewScaleFactor { get; set; }
 
@@ -26,7 +28,7 @@ public sealed class QrPreviewService : IQrPreviewService
 
     public void Toggle(BitmapSource? source)
     {
-        if (_previewWindow != null)
+        if (_previewWindow != null || _overlayWindow != null)
         {
             Close();
             return;
@@ -74,9 +76,42 @@ public sealed class QrPreviewService : IQrPreviewService
             Child = previewImage
         };
 
+        var owner = Application.Current?.MainWindow;
+        var overlayLeft = owner?.Left ?? 0d;
+        var overlayTop = owner?.Top ?? 0d;
+        var overlayWidth = owner?.ActualWidth > 0 ? owner.ActualWidth : SystemParameters.PrimaryScreenWidth;
+        var overlayHeight = owner?.ActualHeight > 0 ? owner.ActualHeight : SystemParameters.PrimaryScreenHeight;
+
+        _overlayWindow = new Window
+        {
+            Owner = owner,
+            ShowInTaskbar = false,
+            Topmost = false,
+            ShowActivated = false,
+            WindowStyle = WindowStyle.None,
+            ResizeMode = ResizeMode.NoResize,
+            AllowsTransparency = true,
+            Background = new SolidColorBrush(Color.FromArgb(120, 0, 0, 0)),
+            WindowStartupLocation = WindowStartupLocation.Manual,
+            Left = overlayLeft,
+            Top = overlayTop,
+            Width = overlayWidth,
+            Height = overlayHeight
+        };
+
+        _overlayWindow.MouseLeftButtonUp += (_, _) => Close();
+        _overlayWindow.Closed += (_, _) =>
+        {
+            _overlayWindow = null;
+            if (!_isClosing && _previewWindow != null)
+            {
+                Close();
+            }
+        };
+
         _previewWindow = new Window
         {
-            Owner = Application.Current?.MainWindow,
+            Owner = owner,
             ShowInTaskbar = false,
             Topmost = true,
             WindowStyle = WindowStyle.None,
@@ -88,20 +123,52 @@ public sealed class QrPreviewService : IQrPreviewService
             Content = container
         };
 
-        _previewWindow.MouseLeftButtonUp += (_, _) => Close();
-        _previewWindow.Closed += (_, _) => _previewWindow = null;
+        _previewWindow.Closed += (_, _) =>
+        {
+            _previewWindow = null;
+            if (!_isClosing && _overlayWindow != null)
+            {
+                Close();
+            }
+        };
+
+        _overlayWindow.Show();
         _previewWindow.Show();
+        _previewWindow.Activate();
     }
 
     public void Close()
     {
-        if (_previewWindow == null)
+        if (_overlayWindow == null && _previewWindow == null)
         {
             return;
         }
 
-        var window = _previewWindow;
+        _isClosing = true;
+
+        var overlayWindow = _overlayWindow;
+        var previewWindow = _previewWindow;
+        _overlayWindow = null;
         _previewWindow = null;
-        window.Close();
+
+        overlayWindow?.Close();
+        previewWindow?.Close();
+
+        _isClosing = false;
+
+        var owner = Application.Current?.MainWindow;
+        if (owner != null)
+        {
+            owner.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (owner.WindowState == WindowState.Minimized)
+                {
+                    owner.WindowState = WindowState.Normal;
+                }
+
+                owner.Activate();
+                owner.Focus();
+            }));
+        }
     }
 }
