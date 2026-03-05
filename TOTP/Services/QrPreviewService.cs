@@ -88,6 +88,7 @@ public sealed class QrPreviewService : IQrPreviewService
             ShowInTaskbar = false,
             Topmost = false,
             ShowActivated = false,
+            Focusable = false,
             WindowStyle = WindowStyle.None,
             ResizeMode = ResizeMode.NoResize,
             AllowsTransparency = true,
@@ -100,7 +101,11 @@ public sealed class QrPreviewService : IQrPreviewService
             Height = overlayHeight
         };
 
-        _overlayWindow.MouseLeftButtonUp += (_, _) => Close();
+        _overlayWindow.MouseLeftButtonUp += (s, e) =>
+        {
+            e.Handled = true;
+            Close();
+        };
         _overlayWindow.Closed += (_, _) =>
         {
             _overlayWindow = null;
@@ -115,6 +120,7 @@ public sealed class QrPreviewService : IQrPreviewService
             Owner = owner,
             ShowInTaskbar = false,
             Topmost = true,
+            ShowActivated = false,
             WindowStyle = WindowStyle.None,
             ResizeMode = ResizeMode.NoResize,
             AllowsTransparency = true,
@@ -135,7 +141,6 @@ public sealed class QrPreviewService : IQrPreviewService
 
         _overlayWindow.Show();
         _previewWindow.Show();
-        _previewWindow.Activate();
     }
 
     public void Close()
@@ -157,19 +162,5 @@ public sealed class QrPreviewService : IQrPreviewService
 
         _isClosing = false;
 
-        var owner = Application.Current?.MainWindow;
-        if (owner != null)
-        {
-            owner.Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (owner.WindowState == WindowState.Minimized)
-                {
-                    owner.WindowState = WindowState.Normal;
-                }
-
-                owner.Activate();
-                owner.Focus();
-            }));
-        }
     }
 }
