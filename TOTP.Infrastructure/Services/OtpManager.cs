@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using FluentResults;
-using Microsoft.Extensions.Logging;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
 
@@ -10,10 +9,8 @@ namespace TOTP.Infrastructure.Services;
 /// Provides methods for managing otp items, including adding, updating, retrieving, and deleting otps.
 /// </summary>
 /// <param name="otpDal">The data access layer used to persist and retrieve otp information.</param>
-/// <param name="logger">The logger used to record operational and error information for the otps manager.</param>
 public class OtpManager(
-    IOtpDAL otpDal,
-    ILogger<OtpManager> logger) : IOtpManager
+    IOtpDAL otpDal) : IOtpManager
 {
     public async Task<Result> AddNewAsync(OtpEntry newItem)
     {

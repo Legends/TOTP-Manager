@@ -4,7 +4,6 @@ using System.Windows.Input;
 using TOTP.Infrastructure.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Views.Interfaces;
-using ActivityKind = TOTP.Core.Security.Models.ActivityKind;
 
 namespace TOTP.Services;
 
@@ -20,7 +19,6 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
 {
     private static readonly TimeSpan MouseMoveThrottle = TimeSpan.FromMilliseconds(2000);
 
-    private readonly IUserActivityService _activityService;
     private readonly IActivityHeartbeat _heartbeat;
     private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 
@@ -29,8 +27,7 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
 
     public WpfInputActivityMonitor(IActivityHeartbeat heartbeat)
     {
-        //_activityService = activityService;
-        _heartbeat = heartbeat; // Injected!
+        _heartbeat = heartbeat;
         _lastMouseMoveTicks = _stopwatch.ElapsedTicks;
     }
 
@@ -67,7 +64,6 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
         if (ShouldIgnoreActivity())
             return;
 
-        //_activityService.NotifyActivity(ActivityKind.MouseClick);
         _heartbeat.RecordActivity();
     }
 
@@ -77,7 +73,6 @@ public sealed class WpfInputActivityMonitor : IInputActivityMonitor
             return;
 
         _heartbeat.RecordActivity();
-        //_activityService.NotifyActivity(ActivityKind.MouseWheel);
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)

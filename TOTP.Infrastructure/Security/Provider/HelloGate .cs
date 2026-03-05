@@ -57,7 +57,7 @@ public sealed class HelloGate : IHelloGate
 
             return rsa.Decrypt(wrappedDek, RSAEncryptionPadding.OaepSHA256);
         }
-        catch (CryptographicException ex)
+        catch (CryptographicException)
         {
             _logger.LogWarning("TPM/Hello unwrap failed. User might have cancelled or hardware changed.");
             return null;

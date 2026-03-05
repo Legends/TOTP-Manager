@@ -655,15 +655,6 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter password for encrypted export.
-        /// </summary>
-        internal static string ui_EnterExportPassword {
-            get {
-                return ResourceManager.GetString("ui_EnterExportPassword", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enter password for encrypted import.
         /// </summary>
         internal static string ui_EnterImportPassword {
@@ -723,15 +714,6 @@ namespace TOTP.Resources {
         internal static string ui_ExportPwd_MasterPasswordLabel {
             get {
                 return ResourceManager.GetString("ui_ExportPwd_MasterPasswordLabel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Warning: This export will stay protected by your current master password. If you change the app master password later, this backup will still require the old password used now..
-        /// </summary>
-        internal static string ui_ExportPwd_MasterWarning {
-            get {
-                return ResourceManager.GetString("ui_ExportPwd_MasterWarning", resourceCulture);
             }
         }
         
@@ -1155,24 +1137,6 @@ namespace TOTP.Resources {
         internal static string ui_Settings_Section_Logging {
             get {
                 return ResourceManager.GetString("ui_Settings_Section_Logging", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Authorization.
-        /// </summary>
-        internal static string ui_Settings_Tab_Authorization {
-            get {
-                return ResourceManager.GetString("ui_Settings_Tab_Authorization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Diagnostics.
-        /// </summary>
-        internal static string ui_Settings_Tab_Diagnostics {
-            get {
-                return ResourceManager.GetString("ui_Settings_Tab_Diagnostics", resourceCulture);
             }
         }
         

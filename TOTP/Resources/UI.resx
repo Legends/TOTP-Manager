@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -272,11 +272,7 @@
   </data>
   <data name="ui_Settings_LockOnWindowsLock" xml:space="preserve">
     <value>Windows lock screen</value>
-  </data>
-  <data name="ui_Settings_Tab_Authorization" xml:space="preserve">
-    <value>Authorization</value>
-  </data>
-  <data name="ui_Settings_Tab_Export" xml:space="preserve">
+  </data>  <data name="ui_Settings_Tab_Export" xml:space="preserve">
     <value>Backup &amp; Restore</value>
   </data>
   <data name="ui_Settings_Title" xml:space="preserve">
@@ -299,11 +295,7 @@
   </data>
   <data name="ui_Setup_Password" xml:space="preserve">
     <value>Setup your password</value>
-  </data>
-  <data name="ui_Settings_Tab_Diagnostics" xml:space="preserve">
-    <value>Diagnostics</value>
-  </data>
-  <data name="ui_Settings_Section_Logging" xml:space="preserve">
+  </data>  <data name="ui_Settings_Section_Logging" xml:space="preserve">
     <value>Logging</value>
   </data>
   <data name="ui_Settings_Logging_Level" xml:space="preserve">
@@ -338,11 +330,7 @@
   </data>
   <data name="ui_Settings_Import_Conflict_KeepBoth" xml:space="preserve">
     <value>Keep both</value>
-  </data>
-  <data name="ui_EnterExportPassword" xml:space="preserve">
-    <value>Enter password for encrypted export</value>
-  </data>
-  <data name="ui_ExportPwd_PromptMessage" xml:space="preserve">
+  </data>  <data name="ui_ExportPwd_PromptMessage" xml:space="preserve">
     <value>Choose way of encryption</value>
   </data>
   <data name="ui_ExportPwd_UseMasterOption" xml:space="preserve">
@@ -350,11 +338,7 @@
   </data>
   <data name="ui_ExportPwd_MasterPasswordLabel" xml:space="preserve">
     <value>Current master password</value>
-  </data>
-  <data name="ui_ExportPwd_MasterWarning" xml:space="preserve">
-    <value>Warning: This export will stay protected by your current master password. If you change the app master password later, this backup will still require the old password used now.</value>
-  </data>
-  <data name="ui_ExportPwd_UseCustomOption" xml:space="preserve">
+  </data>  <data name="ui_ExportPwd_UseCustomOption" xml:space="preserve">
     <value>Use custom export password</value>
   </data>
   <data name="ui_ExportPwd_CustomPasswordLabel" xml:space="preserve">
