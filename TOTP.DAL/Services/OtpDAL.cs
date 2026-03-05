@@ -14,7 +14,7 @@ public sealed class OtpDAL : IOtpDAL
     private readonly string _secretsPath;
     private readonly IVaultService _vaultService;
     private readonly ILogger<OtpDAL> _logger;
-    private static readonly SemaphoreSlim Semaphore = new(1, 1);
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     public OtpDAL(ILogger<OtpDAL> logger, IVaultService vaultService, string? storageFilePath = null)
     {
@@ -33,7 +33,7 @@ public sealed class OtpDAL : IOtpDAL
 
     public async Task<Result<List<OtpEntry>>> GetAllAsync()
     {
-        await Semaphore.WaitAsync();
+        await _semaphore.WaitAsync();
         try
         {
             if (!File.Exists(_secretsPath))
@@ -49,12 +49,12 @@ public sealed class OtpDAL : IOtpDAL
             _logger.LogError(ex, "Failed to load accounts.");
             return Result.Fail(OtpDalErrorMapper.MapReadError(ex));
         }
-        finally { Semaphore.Release(); }
+        finally { _semaphore.Release(); }
     }
 
     public async Task<Result> ExportEncryptedAsync(string targetPath)
     {
-        await Semaphore.WaitAsync();
+        await _semaphore.WaitAsync();
         try
         {
             var data = await GetAllInternalAsync();
@@ -67,7 +67,7 @@ public sealed class OtpDAL : IOtpDAL
             _logger.LogError(ex, "Export failed to {Path}", targetPath);
             return Result.Fail(OtpDalErrorMapper.MapExportError(ex));
         }
-        finally { Semaphore.Release(); }
+        finally { _semaphore.Release(); }
     }
 
     private async Task<List<OtpEntry>> GetAllInternalAsync()
@@ -99,7 +99,7 @@ public sealed class OtpDAL : IOtpDAL
 
     private async Task<Result> ExecuteWriteAsync(Action<List<OtpEntry>> action, AppErrorCode operationCode, string operationMessage)
     {
-        await Semaphore.WaitAsync();
+        await _semaphore.WaitAsync();
         try
         {
             var list = await GetAllInternalAsync();
@@ -117,7 +117,7 @@ public sealed class OtpDAL : IOtpDAL
             _logger.LogError(ex, "Storage operation failed.");
             return Result.Fail(OtpDalErrorMapper.MapWriteError(ex, operationCode, operationMessage));
         }
-        finally { Semaphore.Release(); }
+        finally { _semaphore.Release(); }
     }
 
     public async Task<Result> ReEncryptStorageAsync() => await ExportEncryptedAsync(_secretsPath);
@@ -189,6 +189,6 @@ public sealed class OtpDAL : IOtpDAL
 
     public void Dispose()
     {
-        Semaphore.Dispose();
+        _semaphore.Dispose();
     }
 }

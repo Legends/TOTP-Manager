@@ -30,7 +30,7 @@ public sealed class ImportConflictOptionItem
     public string DisplayName { get; }
 }
 
-public sealed partial class SettingsViewModel : INotifyPropertyChanged
+public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposable
 {
     private const double MinQrPreviewScale = 1.0;
     private const double MaxQrPreviewScale = 6.0;
@@ -513,6 +513,16 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    public void Dispose()
+    {
+        _saveDebounceCts?.Cancel();
+        _saveDebounceCts?.Dispose();
+        _saveDebounceCts = null;
+
+        _authGateDebounceCts?.Cancel();
+        _authGateDebounceCts?.Dispose();
+        _authGateDebounceCts = null;
+    }
 }
 
 

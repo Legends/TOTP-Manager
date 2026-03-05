@@ -13,6 +13,7 @@ public sealed class IdleMonitoringBackgroundServiceTests
     [Fact]
     public async Task ExecuteAsync_WhenUnlockedAndIdleTimeoutReached_CallsLock()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var state = new AuthorizationState();
         state.Unlock();
 
@@ -33,14 +34,14 @@ public sealed class IdleMonitoringBackgroundServiceTests
             .GetField("<LastActivity>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
             .SetValue(sut, DateTime.UtcNow - TimeSpan.FromMinutes(1));
 
-        await sut.StartAsync(CancellationToken.None);
+        await sut.StartAsync(cancellationToken);
         try
         {
-            await Task.Delay(TimeSpan.FromSeconds(6));
+            await Task.Delay(TimeSpan.FromSeconds(6), cancellationToken);
         }
         finally
         {
-            await sut.StopAsync(CancellationToken.None);
+            await sut.StopAsync(cancellationToken);
         }
 
         auth.Verify(a => a.Lock(), Times.AtLeastOnce);
@@ -49,6 +50,7 @@ public sealed class IdleMonitoringBackgroundServiceTests
     [Fact]
     public async Task ExecuteAsync_WhenIdleTimeoutDisabled_DoesNotLock()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var state = new AuthorizationState();
         state.Unlock();
 
@@ -62,14 +64,14 @@ public sealed class IdleMonitoringBackgroundServiceTests
         var logger = new Mock<ILogger<IdleMonitoringBackgroundService>>();
         var sut = new IdleMonitoringBackgroundService(auth.Object, settings.Object, logger.Object);
 
-        await sut.StartAsync(CancellationToken.None);
+        await sut.StartAsync(cancellationToken);
         try
         {
-            await Task.Delay(TimeSpan.FromSeconds(6));
+            await Task.Delay(TimeSpan.FromSeconds(6), cancellationToken);
         }
         finally
         {
-            await sut.StopAsync(CancellationToken.None);
+            await sut.StopAsync(cancellationToken);
         }
 
         auth.Verify(a => a.Lock(), Times.Never);

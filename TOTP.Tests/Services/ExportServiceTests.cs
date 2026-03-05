@@ -39,9 +39,10 @@ public sealed class ExportServiceTests
     [Fact]
     public async Task ImportFromFileAsync_WhenExtensionUnsupported_ReturnsInvalidFileError()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "accounts.xml");
-        await File.WriteAllTextAsync(path, "<accounts/>");
+        await File.WriteAllTextAsync(path, "<accounts/>", cancellationToken);
 
         var result = await _sut.ImportFromFileAsync(path);
 
@@ -120,9 +121,10 @@ public sealed class ExportServiceTests
     [Fact]
     public async Task ImportFromEncryptedFileAsync_WhenHeaderInvalid_ReturnsInvalidFile()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "invalid.totp");
-        await File.WriteAllBytesAsync(path, "not-a-valid-header"u8.ToArray());
+        await File.WriteAllBytesAsync(path, "not-a-valid-header"u8.ToArray(), cancellationToken);
 
         var result = await _sut.ImportFromEncryptedFileAsync("pw", path);
 

@@ -29,7 +29,7 @@ using TOTP.Views.Interfaces;
 
 namespace TOTP.ViewModels;
 
-public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext
+public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext, IDisposable
 {
     #region ### COMMON PROPS AND VARS ###
 

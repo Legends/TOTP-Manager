@@ -86,6 +86,7 @@ public sealed class QrScannerViewModelTests
     [Fact]
     public async Task Start_CalledTwice_StartsRunnerOnlyOnce()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var invocations = 0;
         var runner = new FakeRunner(async (token, onPreview, onFirstFrame, onDecoded) =>
         {
@@ -98,7 +99,7 @@ public sealed class QrScannerViewModelTests
         vm.Start();
         vm.Start();
 
-        await Task.Delay(120);
+        await Task.Delay(120, cancellationToken);
 
         Assert.Equal(1, invocations);
     }
@@ -113,6 +114,7 @@ public sealed class QrScannerViewModelTests
 
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 1200)
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var start = Environment.TickCount64;
         while (!condition())
         {
@@ -121,7 +123,7 @@ public sealed class QrScannerViewModelTests
                 throw new TimeoutException("Condition was not met in time.");
             }
 
-            await Task.Delay(20);
+            await Task.Delay(20, cancellationToken);
         }
     }
 

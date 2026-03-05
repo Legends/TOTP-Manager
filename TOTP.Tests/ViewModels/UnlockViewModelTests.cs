@@ -81,6 +81,7 @@ public sealed class UnlockViewModelTests
     [Fact]
     public async Task ChooseHelloCommand_WhenSetupAndUnlockSucceed_LeavesStatusMessageEmpty()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var vm = CreateSut(out var auth, out _, out _);
         auth.Setup(a => a.ConfigureHelloAsync()).ReturnsAsync(AuthorizationResult.Success);
         auth.Setup(a => a.TryUnlockWithHelloAsync()).ReturnsAsync(AuthorizationResult.Success);
@@ -88,7 +89,7 @@ public sealed class UnlockViewModelTests
         vm.StatusMessage = "old";
         vm.ChooseHelloCommand.Execute(null);
 
-        await Task.Delay(80);
+        await Task.Delay(80, cancellationToken);
 
         Assert.True(string.IsNullOrWhiteSpace(vm.StatusMessage));
     }
@@ -126,6 +127,7 @@ public sealed class UnlockViewModelTests
 
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 1200)
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var start = Environment.TickCount64;
         while (!condition())
         {
@@ -134,7 +136,7 @@ public sealed class UnlockViewModelTests
                 throw new TimeoutException("Condition was not met in time.");
             }
 
-            await Task.Delay(20);
+            await Task.Delay(20, cancellationToken);
         }
     }
 }

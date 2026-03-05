@@ -92,6 +92,7 @@ public partial class MainViewModel
 
     private void OnLocked()
     {
+        _debounceService.Cancel("Search");
         _qrPreviewService.Close();
         _otpLoadedFromStore = false;
         AllOtps.Clear();
@@ -116,6 +117,29 @@ public partial class MainViewModel
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            _debounceService.Cancel("Search");
+        }
+        catch
+        {
+            // best-effort cleanup
+        }
+
+        LocalizationService.LanguageChanged -= LocalizationService_LanguageChanged;
+        _mainViewSessionController.SessionStateChanged -= SessionController_SessionStateChanged;
+
+        if (_collectionHooked)
+        {
+            AllOtps.CollectionChanged -= Source_CollectionChanged;
+            _collectionHooked = false;
+        }
+
+        StopTotpTimer();
     }
 
     #endregion

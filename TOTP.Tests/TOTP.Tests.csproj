@@ -9,6 +9,7 @@
     <DelaySign>False</DelaySign>
     <AssemblyOriginatorKeyFile>totp-sign-key.snk</AssemblyOriginatorKeyFile>
     <PublicSign>true</PublicSign>
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -51,7 +52,6 @@
     <Compile Remove="Integration\SecretsManagerIntegrationTests.cs" />
     <Compile Remove="Integration\TotpManagerIntegrationTests.cs" />
     <Compile Remove="Services\TotpManagerTests.cs" />
-    <Compile Remove="Utilities\DebounceServiceTests.cs" />
   </ItemGroup>
 
   <!-- In TOTP.Tests.csproj -->

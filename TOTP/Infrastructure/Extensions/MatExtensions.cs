@@ -1,5 +1,6 @@
-﻿using OpenCvSharp;
+using OpenCvSharp;
 using System;
+using System.Runtime.InteropServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -12,9 +13,9 @@ namespace TOTP.Infrastructure.Extensions
             if (mat is null) throw new ArgumentNullException(nameof(mat));
             if (mat.Empty()) throw new ArgumentException("Empty Mat.", nameof(mat));
 
-            // Choose WPF pixel format based on channels
             PixelFormat wpfFormat;
             Mat src = mat;
+            Mat? converted = null;
 
             switch (mat.Type().Channels)
             {
@@ -22,9 +23,9 @@ namespace TOTP.Infrastructure.Extensions
                     wpfFormat = PixelFormats.Gray8;
                     if (mat.Type() != MatType.CV_8UC1)
                     {
-                        var tmp = new Mat();
-                        mat.ConvertTo(tmp, MatType.CV_8UC1);
-                        src = tmp;
+                        converted = new Mat();
+                        mat.ConvertTo(converted, MatType.CV_8UC1);
+                        src = converted;
                     }
                     break;
 
@@ -32,9 +33,9 @@ namespace TOTP.Infrastructure.Extensions
                     wpfFormat = PixelFormats.Bgr24;
                     if (mat.Type() != MatType.CV_8UC3)
                     {
-                        var tmp = new Mat();
-                        mat.ConvertTo(tmp, MatType.CV_8UC3);
-                        src = tmp;
+                        converted = new Mat();
+                        mat.ConvertTo(converted, MatType.CV_8UC3);
+                        src = converted;
                     }
                     break;
 
@@ -42,32 +43,42 @@ namespace TOTP.Infrastructure.Extensions
                     wpfFormat = PixelFormats.Bgra32;
                     if (mat.Type() != MatType.CV_8UC4)
                     {
-                        var tmp = new Mat();
-                        mat.ConvertTo(tmp, MatType.CV_8UC4);
-                        src = tmp;
+                        converted = new Mat();
+                        mat.ConvertTo(converted, MatType.CV_8UC4);
+                        src = converted;
                     }
                     break;
 
                 default:
-                    // Fallback: convert to BGR24
                     wpfFormat = PixelFormats.Bgr24;
-                    var conv = new Mat();
-                    if (mat.Channels() == 2) Cv2.CvtColor(mat, conv, ColorConversionCodes.BGR5652BGR);
-                    else Cv2.CvtColor(mat, conv, ColorConversionCodes.BGRA2BGR);
-                    src = conv;
+                    converted = new Mat();
+                    if (mat.Channels() == 2) Cv2.CvtColor(mat, converted, ColorConversionCodes.BGR5652BGR);
+                    else Cv2.CvtColor(mat, converted, ColorConversionCodes.BGRA2BGR);
+                    src = converted;
                     break;
             }
 
-            // Create BitmapSource directly from Mat buffer (zero-copy-ish; respects stride)
-            return BitmapSource.Create(
-                src.Width,
-                src.Height,
-                96, 96,
-                wpfFormat,
-                null,
-                src.Data,
-                (int)(src.Step() * src.Height),
-                (int)src.Step());
+            try
+            {
+                var stride = (int)src.Step();
+                var size = stride * src.Height;
+                var pixels = new byte[size];
+                Marshal.Copy(src.Data, pixels, 0, size);
+
+                return BitmapSource.Create(
+                    src.Width,
+                    src.Height,
+                    96,
+                    96,
+                    wpfFormat,
+                    null,
+                    pixels,
+                    stride);
+            }
+            finally
+            {
+                converted?.Dispose();
+            }
         }
     }
 }

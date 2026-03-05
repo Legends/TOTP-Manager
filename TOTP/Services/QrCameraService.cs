@@ -93,9 +93,6 @@ public sealed class QrCameraService : IDisposable
             using var frame = new Mat();
             WriteableBitmap? wb = null;
 
-            // Create detector once (expensive to construct per frame)
-            var detector = new QRCodeDetector();
-
             // Throttle decode to e.g. every 150 ms
             var sw = Stopwatch.StartNew();
             bool decoding = false;
@@ -131,6 +128,7 @@ public sealed class QrCameraService : IDisposable
                     _ = Task.Run(() =>
                     {
                         using var clone = frame.Clone(); // avoid mutating frame being rendered
+                        using var detector = new QRCodeDetector();
                         string text = detector.DetectAndDecode(clone, out _);
                         decoding = false;
 
@@ -186,7 +184,7 @@ public sealed class QrCameraService : IDisposable
 public static class CvToWpf
 {
     // Create (or reuse) a WriteableBitmap compatible with the mat
-    public static WriteableBitmap EnsureWriteableBitmap(WriteableBitmap wb, Mat mat)
+    public static WriteableBitmap EnsureWriteableBitmap(WriteableBitmap? wb, Mat mat)
     {
         if (mat.Empty()) throw new ArgumentException("Mat is empty.", nameof(mat));
         // We will write BGRA32 into WPF

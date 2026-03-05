@@ -59,6 +59,7 @@ public sealed class OtpDalIntegrationTests
     [Fact]
     public async Task ExportEncryptedAsync_WritesDecryptableBlob()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var temp = new TempDir();
         var storagePath = Path.Combine(temp.Path, "master.totp");
         var exportPath = Path.Combine(temp.Path, "export.totp");
@@ -72,7 +73,7 @@ public sealed class OtpDalIntegrationTests
 
         Assert.True(exportResult.IsSuccess);
         Assert.True(File.Exists(exportPath));
-        var exportedBlob = await File.ReadAllBytesAsync(exportPath);
+        var exportedBlob = await File.ReadAllBytesAsync(exportPath, cancellationToken);
         var exportedItems = vault.DecryptVault(exportedBlob);
         var exported = Assert.Single(exportedItems);
         Assert.Equal(entry.ID, exported.ID);
@@ -154,9 +155,10 @@ public sealed class OtpDalIntegrationTests
     [Fact]
     public async Task GetAllAsync_WhenVaultThrowsCryptographicException_ReturnsDecryptFailedError()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var temp = new TempDir();
         var storagePath = Path.Combine(temp.Path, "master.totp");
-        await File.WriteAllBytesAsync(storagePath, Encoding.UTF8.GetBytes("blob"));
+        await File.WriteAllBytesAsync(storagePath, Encoding.UTF8.GetBytes("blob"), cancellationToken);
         var sut = CreateSut(storagePath, new ThrowingVaultService(new CryptographicException("bad")));
 
         var result = await sut.GetAllAsync();

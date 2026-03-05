@@ -40,6 +40,7 @@ public sealed class HelloUnlockViewModelTests
     [Fact]
     public async Task UnlockWithHelloCommand_WhenSuccess_ClearsExistingMessage()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var auth = new Mock<IAuthorizationService>();
         auth.SetupGet(a => a.State).Returns(new TOTP.Core.Security.AuthorizationState());
         auth.Setup(a => a.TryUnlockWithHelloAsync()).ReturnsAsync(AuthorizationResult.Success);
@@ -50,13 +51,14 @@ public sealed class HelloUnlockViewModelTests
         };
 
         vm.UnlockWithHelloCommand.Execute(null);
-        await Task.Delay(80);
+        await Task.Delay(80, cancellationToken);
 
         Assert.True(string.IsNullOrWhiteSpace(vm.Message));
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 1000)
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var start = Environment.TickCount64;
         while (!condition())
         {
@@ -65,7 +67,7 @@ public sealed class HelloUnlockViewModelTests
                 throw new TimeoutException("Condition was not met in time.");
             }
 
-            await Task.Delay(20);
+            await Task.Delay(20, cancellationToken);
         }
     }
 }

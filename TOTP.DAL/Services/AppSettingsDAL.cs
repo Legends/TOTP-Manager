@@ -99,4 +99,9 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
         }
         finally { _lock.Release(); }
     }
+
+    public void Dispose()
+    {
+        _lock.Dispose();
+    }
 }

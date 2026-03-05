@@ -51,6 +51,7 @@ public sealed class MainViewSessionControllerTests
     [Fact]
     public async Task AuthorizationStateChanged_WhenUnlocked_CallsOnUnlockedAndReattachesMonitor()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var (sut, _, monitor, state, _) = CreateSut(lockOnMinimize: true);
         var window = new Mock<IMainWindow>();
         window.SetupGet(w => w.IsActive).Returns(true);
@@ -66,7 +67,7 @@ public sealed class MainViewSessionControllerTests
             onLocked: () => { });
 
         state.Unlock();
-        await WaitFor(unlockedCalled.Task);
+        await WaitFor(unlockedCalled.Task, cancellationToken: cancellationToken);
 
         Assert.Equal(AppSessionLockState.Unlocked, sut.SessionState);
         monitor.Verify(m => m.Attach(window.Object), Times.AtLeast(2));
@@ -75,6 +76,7 @@ public sealed class MainViewSessionControllerTests
     [Fact]
     public async Task AuthorizationStateChanged_WhenLocked_CallsOnLockedAndDetachesMonitor()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var (sut, _, monitor, state, _) = CreateSut(lockOnMinimize: true);
         var window = new Mock<IMainWindow>();
         window.SetupGet(w => w.IsActive).Returns(true);
@@ -86,23 +88,23 @@ public sealed class MainViewSessionControllerTests
             onLocked: () => lockedCalled.TrySetResult(true));
 
         state.Unlock();
-        await Task.Delay(50);
+        await Task.Delay(50, cancellationToken);
         state.Lock();
-        await WaitFor(lockedCalled.Task);
+        await WaitFor(lockedCalled.Task, cancellationToken: cancellationToken);
 
         Assert.Equal(AppSessionLockState.Locked, sut.SessionState);
         monitor.Verify(m => m.Detach(), Times.AtLeastOnce);
     }
 
-    private static async Task WaitFor(Task task, int timeoutMs = 1500)
+    private static async Task WaitFor(Task task, int timeoutMs = 1500, CancellationToken cancellationToken = default)
     {
-        var completed = await Task.WhenAny(task, Task.Delay(timeoutMs));
+        var completed = await Task.WhenAny(task, Task.Delay(timeoutMs, cancellationToken));
         if (completed != task)
         {
             throw new TimeoutException("Expected callback was not observed in time.");
         }
 
-        await task;
+        await task.WaitAsync(cancellationToken);
     }
 
     private static (
@@ -125,4 +127,3 @@ public sealed class MainViewSessionControllerTests
         return (sut, auth, monitor, state, settings);
     }
 }
-

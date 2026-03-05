@@ -80,6 +80,7 @@ public sealed class AppSettingsDalIntegrationTests
     [Fact]
     public async Task LoadAsync_WhenLegacyAuthorizationProfileStored_MapsToAppSettings()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "settings.totp");
         var sut = new AppSettingsDAL(path, NullLogger<AppSettingsDAL>.Instance);
@@ -88,7 +89,7 @@ public sealed class AppSettingsDalIntegrationTests
         // while AuthorizationProfile can still deserialize Gate/PasswordSalt from same payload.
         var json = Encoding.UTF8.GetBytes("""{"Authorization":5,"Gate":1,"PasswordSalt":"CQgH"}""");
         var encrypted = ProtectedData.Protect(json, null, DataProtectionScope.CurrentUser);
-        await File.WriteAllBytesAsync(path, encrypted);
+        await File.WriteAllBytesAsync(path, encrypted, cancellationToken);
 
         var result = await sut.LoadAsync();
 
@@ -101,11 +102,12 @@ public sealed class AppSettingsDalIntegrationTests
     [Fact]
     public async Task LoadAsync_WhenEncryptedBlobIsInvalid_ReturnsDecryptError()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "settings.totp");
         var sut = new AppSettingsDAL(path, NullLogger<AppSettingsDAL>.Instance);
 
-        await File.WriteAllBytesAsync(path, Encoding.UTF8.GetBytes("not-dpapi"));
+        await File.WriteAllBytesAsync(path, Encoding.UTF8.GetBytes("not-dpapi"), cancellationToken);
 
         var result = await sut.LoadAsync();
 
@@ -116,12 +118,13 @@ public sealed class AppSettingsDalIntegrationTests
     [Fact]
     public async Task LoadAsync_WhenDecryptedJsonIsInvalid_ReturnsDeserializeError()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "settings.totp");
         var sut = new AppSettingsDAL(path, NullLogger<AppSettingsDAL>.Instance);
 
         var encrypted = ProtectedData.Protect(Encoding.UTF8.GetBytes("{not-valid-json"), null, DataProtectionScope.CurrentUser);
-        await File.WriteAllBytesAsync(path, encrypted);
+        await File.WriteAllBytesAsync(path, encrypted, cancellationToken);
 
         var result = await sut.LoadAsync();
 
