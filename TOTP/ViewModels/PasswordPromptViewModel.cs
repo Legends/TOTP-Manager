@@ -62,6 +62,12 @@ public class PasswordPromptViewModel : INotifyPropertyChanged
                 {
                     ErrorMessage = string.Empty;
                 }
+
+                if (ConfirmCommand is AsyncCommand confirmCommand)
+                {
+                    confirmCommand.RaiseCanExecuteChanged();
+                }
+
                 OnPropertyChanged();
             }
         }
@@ -103,8 +109,10 @@ public class PasswordPromptViewModel : INotifyPropertyChanged
         _message = message;
         _errorMessage = errorMessage ?? string.Empty;
         _requiredErrorMessage = requiredErrorMessage ?? string.Empty;
-        ConfirmCommand = new AsyncCommand(ConfirmAsync);
+        ConfirmCommand = new AsyncCommand(ConfirmAsync, CanConfirm);
     }
+
+    private bool CanConfirm() => !string.IsNullOrWhiteSpace(Title);
 
     private async Task ConfirmAsync()
     {
@@ -134,3 +142,4 @@ public class PasswordPromptViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
+

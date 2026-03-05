@@ -177,6 +177,9 @@
   <data name="tooltip_AuthenticatorAppScan" xml:space="preserve">
     <value>Scan the code with your authenticator app</value>
   </data>
+  <data name="tooltip_ClickToCopyCode" xml:space="preserve">
+    <value>Click to copy</value>
+  </data>
   <data name="ui_btnAdd" xml:space="preserve">
     <value>Add</value>
   </data>
@@ -272,7 +275,8 @@
   </data>
   <data name="ui_Settings_LockOnWindowsLock" xml:space="preserve">
     <value>Windows lock screen</value>
-  </data>  <data name="ui_Settings_Tab_Export" xml:space="preserve">
+  </data>
+  <data name="ui_Settings_Tab_Export" xml:space="preserve">
     <value>Backup &amp; Restore</value>
   </data>
   <data name="ui_Settings_Title" xml:space="preserve">
@@ -295,7 +299,8 @@
   </data>
   <data name="ui_Setup_Password" xml:space="preserve">
     <value>Setup your password</value>
-  </data>  <data name="ui_Settings_Section_Logging" xml:space="preserve">
+  </data>
+  <data name="ui_Settings_Section_Logging" xml:space="preserve">
     <value>Logging</value>
   </data>
   <data name="ui_Settings_Logging_Level" xml:space="preserve">
@@ -330,7 +335,8 @@
   </data>
   <data name="ui_Settings_Import_Conflict_KeepBoth" xml:space="preserve">
     <value>Keep both</value>
-  </data>  <data name="ui_ExportPwd_PromptMessage" xml:space="preserve">
+  </data>
+  <data name="ui_ExportPwd_PromptMessage" xml:space="preserve">
     <value>Choose way of encryption</value>
   </data>
   <data name="ui_ExportPwd_UseMasterOption" xml:space="preserve">
@@ -338,7 +344,8 @@
   </data>
   <data name="ui_ExportPwd_MasterPasswordLabel" xml:space="preserve">
     <value>Current master password</value>
-  </data>  <data name="ui_ExportPwd_UseCustomOption" xml:space="preserve">
+  </data>
+  <data name="ui_ExportPwd_UseCustomOption" xml:space="preserve">
     <value>Use custom export password</value>
   </data>
   <data name="ui_ExportPwd_CustomPasswordLabel" xml:space="preserve">

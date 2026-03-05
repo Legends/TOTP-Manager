@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Input;
 
 namespace TOTP.Commands;
@@ -19,7 +19,7 @@ public class BaseCommand : ICommand
     /// </summary>
     /// <param name="execute">The execution logic.</param>
     public BaseCommand(Action<object?> execute)
-        : this(execute, null)
+        : this(execute, AlwaysCanExecute)
     {
     }
 
@@ -53,8 +53,17 @@ public class BaseCommand : ICommand
 
     public void Execute(object? parameter)
     {
-        _execute(parameter);
+        try
+        {
+            _execute(parameter);
+        }
+        catch (Exception ex)
+        {
+            CommandExceptionLogger.LogUnhandled(nameof(BaseCommand), ex);
+        }
     }
 
     #endregion
+
+    private static bool AlwaysCanExecute(object? _) => true;
 }

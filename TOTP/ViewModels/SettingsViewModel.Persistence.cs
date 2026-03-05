@@ -134,15 +134,41 @@ public sealed partial class SettingsViewModel
         {
             resetToDefaultsCommand.RaiseCanExecuteChanged();
         }
+
+        if (SaveCommand is AsyncCommand saveCommand)
+        {
+            saveCommand.RaiseCanExecuteChanged();
+        }
+
+        if (ExportCommand is AsyncCommand exportCommand)
+        {
+            exportCommand.RaiseCanExecuteChanged();
+        }
+
+        if (ImportCommand is AsyncCommand importCommand)
+        {
+            importCommand.RaiseCanExecuteChanged();
+        }
+
+        if (OpenLogFolderCommand is RelayCommand openLogFolderCommand)
+        {
+            openLogFolderCommand.RaiseCanExecuteChanged();
+        }
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        if (name == nameof(CanResetToDefaults) || name == nameof(NewPassword) || name == nameof(ConfirmPassword) || name == nameof(IsPasswordSelected))
+        if (name == nameof(CanResetToDefaults) ||
+            name == nameof(NewPassword) ||
+            name == nameof(ConfirmPassword) ||
+            name == nameof(IsPasswordSelected) ||
+            name == nameof(SelectedExportFormat) ||
+            name == nameof(SelectedImportConflictOption))
         {
             RaiseCommandStates();
         }
     }
 }
+

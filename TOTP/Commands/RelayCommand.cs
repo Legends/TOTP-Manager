@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Input;
 
 namespace TOTP.Commands;
@@ -31,36 +31,31 @@ public class RelayCommand<T> : ICommand
 
     public void Execute(object? parameter)
     {
-        if (parameter is T t)
+        try
         {
-            _execute(t);
-            return;
-        }
+            if (parameter is T t)
+            {
+                _execute(t);
+                return;
+            }
 
-        if (parameter is null && default(T) is null)
+            if (parameter is null && default(T) is null)
+            {
+                _execute(default!);
+                return;
+            }
+
+            throw new InvalidCastException($"Invalid command parameter. Expected {typeof(T)}, got {parameter?.GetType()}");
+        }
+        catch (Exception ex)
         {
-            _execute(default!);
-            return;
+            CommandExceptionLogger.LogUnhandled($"RelayCommand<{typeof(T).Name}>", ex);
         }
-
-        throw new InvalidCastException($"Invalid command parameter. Expected {typeof(T)}, got {parameter?.GetType()}");
     }
 
     public event EventHandler? CanExecuteChanged;
 
     public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
-
-    //public event EventHandler? CanExecuteChanged
-    //{
-    //    add => CommandManager.RequerySuggested += value;
-    //    remove => CommandManager.RequerySuggested -= value;
-    //}
-
-    // Optional: force a refresh immediately
-    //public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
-
-    //public void RaiseCanExecuteChanged()
-    //    => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }
 
 public sealed class RelayCommand : RelayCommand<object?>
@@ -75,7 +70,7 @@ public sealed class RelayCommand : RelayCommand<object?>
     }
 
     // Keeps compatibility with: new RelayCommand(p => ...)
-    // Your existing API uses Func<bool> (no parameter) for canExecute — preserved here.
+    // Your existing API uses Func<bool> (no parameter) for canExecute - preserved here.
     public RelayCommand(Action<object?> execute, Func<bool>? canExecute = null)
         : base(
             execute ?? throw new ArgumentNullException(nameof(execute)),

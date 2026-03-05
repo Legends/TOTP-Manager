@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
+using TOTP.Commands;
 using TOTP.Helper;
 using TOTP.Infrastructure;
 using TOTP.Infrastructure.Common;
@@ -68,6 +69,8 @@ internal static class Program
 
             // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
             await host.StartAsync(); // All BackgroundServices run now! TOTP.Infrastructure.Services
+
+            CommandExceptionLogger.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
 
             // the SynchronizationContext is established when the first DispatcherObject is created like Application
             var app = new App(); 
@@ -138,3 +141,5 @@ internal static class Program
         return mainWindow;
     }
 }
+
+

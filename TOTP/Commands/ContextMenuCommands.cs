@@ -1,4 +1,4 @@
-﻿using Syncfusion.UI.Xaml.Grid;
+using Syncfusion.UI.Xaml.Grid;
 using System.Windows.Input;
 
 namespace TOTP.Commands;
@@ -6,8 +6,11 @@ namespace TOTP.Commands;
 public static class ContextMenuCommands
 {
     private static ICommand? _cut;
-    public static ICommand Cut => _cut ??= new BaseCommand(OnCutClicked);
+    public static ICommand Cut => _cut ??= new BaseCommand(OnCutClicked, CanCut);
 
+    private static bool CanCut(object? obj) =>
+        obj is GridRecordContextMenuInfo contextInfo &&
+        contextInfo.DataGrid is not null;
 
     private static void OnCutClicked(object? obj)
     {

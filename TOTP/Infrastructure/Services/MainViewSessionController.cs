@@ -13,7 +13,6 @@ using TOTP.Views.Interfaces;
 
 namespace TOTP.Security;
 
- 
 public sealed class MainViewSessionController : IMainViewSessionController
 {
     private readonly IAuthorizationService _authorization;
@@ -44,8 +43,8 @@ public sealed class MainViewSessionController : IMainViewSessionController
         _inputActivityMonitor = inputActivityMonitor;
         _settingsService = settingsService;
 
-        WindowStateChangedCommand = new RelayCommand<WindowState>(OnWindowStateChanged);
-        DetachWindowCommand = new RelayCommand(DetachWindow);
+        WindowStateChangedCommand = new RelayCommand<WindowState>(OnWindowStateChanged, CanHandleWindowStateChange);
+        DetachWindowCommand = new RelayCommand(DetachWindow, CanDetachWindow);
 
         _authorization.State.Changed += AuthorizationState_Changed;
     }
@@ -86,6 +85,7 @@ public sealed class MainViewSessionController : IMainViewSessionController
         {
             _attachedWindow = window;
             _inputActivityMonitor.Attach(window);
+            RaiseCommandStates();
         }
         catch (Exception ex)
         {
@@ -93,12 +93,22 @@ public sealed class MainViewSessionController : IMainViewSessionController
         }
     }
 
+    private bool CanHandleWindowStateChange(WindowState state)
+    {
+        return _attachedWindow != null &&
+               state == WindowState.Minimized &&
+               _settingsService.Current.LockOnMinimize;
+    }
+
+    private bool CanDetachWindow() => _attachedWindow != null;
+
     private void DetachWindow()
     {
         try
         {
             _inputActivityMonitor.Detach();
             _attachedWindow = null;
+            RaiseCommandStates();
         }
         catch (Exception ex)
         {
@@ -179,10 +189,24 @@ public sealed class MainViewSessionController : IMainViewSessionController
         {
             SessionState = state;
             SessionStateChanged?.Invoke(this, state);
+            RaiseCommandStates();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred in a subscriber of SessionStateChanged.");
+        }
+    }
+
+    private void RaiseCommandStates()
+    {
+        if (WindowStateChangedCommand is RelayCommand<WindowState> windowStateChangedCommand)
+        {
+            windowStateChangedCommand.RaiseCanExecuteChanged();
+        }
+
+        if (DetachWindowCommand is RelayCommand detachWindowCommand)
+        {
+            detachWindowCommand.RaiseCanExecuteChanged();
         }
     }
 }

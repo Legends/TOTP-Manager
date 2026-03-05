@@ -5,7 +5,6 @@ using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
-using TOTP.Security.Interfaces;
 
 namespace TOTP.ViewModels;
 
@@ -30,8 +29,18 @@ public sealed class HelloUnlockViewModel : INotifyPropertyChanged
     public HelloUnlockViewModel(IAuthorizationService auth)
     {
         _auth = auth;
-        UnlockWithHelloCommand = new AsyncCommand(UnlockAsync);
+        UnlockWithHelloCommand = new AsyncCommand(UnlockAsync, CanUnlockWithHello);
+
+        _auth.State.Changed += (_, _) =>
+        {
+            if (UnlockWithHelloCommand is AsyncCommand asyncCommand)
+            {
+                asyncCommand.RaiseCanExecuteChanged();
+            }
+        };
     }
+
+    private bool CanUnlockWithHello() => !_auth.State.IsUnlocked;
 
     private async Task UnlockAsync()
     {
@@ -47,3 +56,4 @@ public sealed class HelloUnlockViewModel : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
+

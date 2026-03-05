@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -39,7 +39,14 @@ namespace TOTP.Commands
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Unhandled exception in AsyncCommand");
+                if (_logger != null)
+                {
+                    _logger.LogError(ex, "Unhandled exception in AsyncCommand");
+                }
+                else
+                {
+                    CommandExceptionLogger.LogUnhandled(nameof(AsyncCommand), ex);
+                }
             }
             finally
             {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -12,6 +12,7 @@ using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Infrastructure.Common;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
 
@@ -420,6 +421,21 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
 
     private ISettingsService _settingsSvc;
     IAppSettings _appSettings => _settingsSvc.Current;
+    private bool CanSaveSettings() => !_isLoadingSettings;
+
+    private bool CanExportSettings() =>
+        !_isLoadingSettings &&
+        AvailableExportFormats.Contains(SelectedExportFormat);
+
+    private bool CanImportSettings() =>
+        !_isLoadingSettings &&
+        SelectedImportConflictOption != null;
+
+    private bool CanOpenLogFolder()
+    {
+        var path = System.IO.Path.GetDirectoryName(StringsConstants.AppLogPath);
+        return !string.IsNullOrWhiteSpace(path) && System.IO.Directory.Exists(path);
+    }
     #endregion
 
     #region  ### CONSTRUCTOR ###
@@ -444,12 +460,12 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
         _saveAction = saveAction;
         
         CloseCommand = closeCommand;
-        SaveCommand = new AsyncCommand(SaveAndCloseAsync);
+        SaveCommand = new AsyncCommand(SaveAndCloseAsync, CanSaveSettings);
         ChangePasswordCommand = new AsyncCommand(ChangePasswordAsync, () => IsPasswordSelected && (!string.IsNullOrWhiteSpace(NewPassword) || !string.IsNullOrWhiteSpace(ConfirmPassword)));
         ResetToDefaultsCommand = new AsyncCommand(ResetToDefaultsAsync, () => CanResetToDefaults);
-        ExportCommand = new AsyncCommand(() => _settingsTransferWorkflowService.ExportAsync(ExportEncrypt, SelectedExportFormat));
-        ImportCommand = new AsyncCommand(() => _settingsTransferWorkflowService.ImportAsync(SelectedImportConflictOption.Strategy));
-        OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder);
+        ExportCommand = new AsyncCommand(() => _settingsTransferWorkflowService.ExportAsync(ExportEncrypt, SelectedExportFormat), CanExportSettings);
+        ImportCommand = new AsyncCommand(() => _settingsTransferWorkflowService.ImportAsync(SelectedImportConflictOption.Strategy), CanImportSettings);
+        OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder, CanOpenLogFolder);
 
         AvailableLogLevels = Enum.GetValues(typeof(AppLogLevel)).Cast<AppLogLevel>().ToList();
         AvailableExportFormats = [];
@@ -498,3 +514,8 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
     }
 
 }
+
+
+
+
+

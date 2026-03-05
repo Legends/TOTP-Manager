@@ -1,5 +1,3 @@
-using System;
-using Microsoft.Extensions.Logging;
 using TOTP.Commands;
 
 namespace TOTP.ViewModels;
@@ -11,27 +9,36 @@ public partial class MainViewModel
     private void SetupCommandEventhandler()
     {
         CloseSettingsViewCommand = new RelayCommand(
-             CloseSettingsView,
-             () => IsSettingsViewOpen);
+            CloseSettingsView,
+            () => IsSettingsViewOpen);
 
-        OpenSettingsCommand = new RelayCommand(OpenSettingsView);
+        OpenSettingsCommand = new RelayCommand(OpenSettingsView, CanOpenSettings);
 
-        CopyCodeCommand = new RelayCommand<OtpViewModel>(model => CopyTotpCodeToClipboard());
-        GenerateQrCommand = new RelayCommand<OtpViewModel>(model => GenerateQrCodeImage());
-        ToggleQrPreviewCommand = new RelayCommand<System.Windows.Media.Imaging.BitmapSource?>(source => _qrPreviewService.Toggle(source));
-        ExportSecretsCommand = new AsyncCommand(_accountTransferWorkflowService.ExportSecretsToFileAsync);
+        CopyCodeCommand = new RelayCommand<OtpViewModel>(
+            _ => CopyTotpCodeToClipboard(),
+            _ => CanCopyCode());
+
+        GenerateQrCommand = new RelayCommand<OtpViewModel>(
+            _ => GenerateQrCodeImage(),
+            _ => CanGenerateQr());
+
+        ToggleQrPreviewCommand = new RelayCommand<System.Windows.Media.Imaging.BitmapSource?>(
+            source => _qrPreviewService.Toggle(source),
+            source => source != null);
+
+        ExportSecretsCommand = new AsyncCommand(_accountTransferWorkflowService.ExportSecretsToFileAsync, CanExportSecrets);
         ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);
 
-        OpenFlyoutEditModeCommand = new RelayCommand<OtpViewModel>(OpenFlyoutEditMode);
+        OpenFlyoutEditModeCommand = new RelayCommand<OtpViewModel>(OpenFlyoutEditMode, CanOpenFlyoutEditMode);
         OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
-        SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateOtpEntryAsync);
-        CancelFlyoutCommand = new RelayCommand(CancelFlyout);
+        SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateOtpEntryAsync, CanSaveEditFlyout);
+        CancelFlyoutCommand = new RelayCommand(CancelFlyout, () => IsEditAddFlyoutOpen);
 
-        RowSelectionChangedCommand = new AsyncCommand<OtpViewModel>(OnRowSelectionChangedAsync);
-        DeleteSecretCommand = new AsyncCommand<OtpViewModel>(DeleteOtpEntryAsync, null, _logger);
-        BeginEditCommand = new RelayCommand<OtpViewModel>(OnBeginEdit);
-        EndEditCommand = new AsyncCommand<OtpViewModel>(OnEndEditAsync);
-        DoubleClickCommand = new RelayCommand<OtpViewModel>(OnDoubleClick);
+        RowSelectionChangedCommand = new AsyncCommand<OtpViewModel>(OnRowSelectionChangedAsync, CanProcessRowSelection);
+        DeleteSecretCommand = new AsyncCommand<OtpViewModel>(DeleteOtpEntryAsync, CanDeleteSecret, _logger);
+        BeginEditCommand = new RelayCommand<OtpViewModel>(OnBeginEdit, CanBeginEdit);
+        EndEditCommand = new AsyncCommand<OtpViewModel>(OnEndEditAsync, CanEndEdit);
+        DoubleClickCommand = new RelayCommand<OtpViewModel>(OnDoubleClick, CanHandleDoubleClick);
 
         ToggleSearchBoxCommand = new RelayCommand(() =>
         {
@@ -44,8 +51,50 @@ public partial class MainViewModel
         }, () => !IsGridEditing);
 
         ClearSearchCommand = new RelayCommand(ClearSearchTextbox, () => IsSearchVisible);
-
     }
+
+    private bool CanOpenSettings() => !IsSettingsViewOpen && IsUnlocked;
+
+    private bool CanCopyCode() =>
+        SelectedAccount != null &&
+        !string.IsNullOrWhiteSpace(TotpCode);
+
+    private bool CanGenerateQr() =>
+        SelectedAccount != null &&
+        !string.IsNullOrWhiteSpace(SelectedAccount.Secret);
+
+    private bool CanExportSecrets() =>
+        IsUnlocked &&
+        !IsGridEditing &&
+        AllOtps.Count > 0;
+
+    private bool CanOpenFlyoutEditMode(OtpViewModel? item) =>
+        item != null &&
+        !IsGridEditing &&
+        !IsEditAddFlyoutOpen;
+
+    private bool CanSaveEditFlyout() =>
+        IsEditAddFlyoutOpen &&
+        CurrentSecretBeingEditedOrAdded != null;
+
+    private bool CanProcessRowSelection(OtpViewModel? item) =>
+        item != null &&
+        !IsGridEditing;
+
+    private bool CanDeleteSecret(OtpViewModel? item) =>
+        item != null &&
+        !IsGridEditing;
+
+    private bool CanBeginEdit(OtpViewModel? item) =>
+        item != null &&
+        !IsEditAddFlyoutOpen;
+
+    private bool CanEndEdit(OtpViewModel? item) =>
+        item != null;
+
+    private bool CanHandleDoubleClick(OtpViewModel? item) =>
+        item != null &&
+        !IsGridEditing;
 
     private void OpenSettingsView()
     {
@@ -65,3 +114,4 @@ public partial class MainViewModel
         IsSettingsViewOpen = false;
     }
 }
+

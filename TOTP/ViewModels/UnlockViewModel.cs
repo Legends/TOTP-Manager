@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Logging;
-using Serilog;
-using Serilog.Core;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -14,11 +11,9 @@ namespace TOTP.ViewModels;
 
 public sealed class UnlockViewModel : INotifyPropertyChanged
 {
-
     #region PROPS AND VARS
 
     private readonly IAuthorizationService _auth;
-
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -44,14 +39,15 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         get => _currentGate;
         private set
         {
-            _currentGate = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasSelectedSetupGate));
+            _currentGate = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasSelectedSetupGate));
+            RaiseGateCommandStates();
         }
     }
 
     public HelloUnlockViewModel HelloUnlockVM { get; }
     public PasswordUnlockViewModel PasswordUnlockVM { get; }
-
-    private ISettingsService _settingsService;
 
     public ICommand ChooseHelloCommand { get; }
     public ICommand ChoosePasswordCommand { get; }
@@ -61,21 +57,14 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
     public UnlockViewModel(IAuthorizationService auth, HelloUnlockViewModel helloVM, PasswordUnlockViewModel pwdVM, ISettingsService settingsService)
     {
         _auth = auth;
-        _settingsService = settingsService;
 
         HelloUnlockVM = helloVM;
         PasswordUnlockVM = pwdVM;
 
-        ChooseHelloCommand = new AsyncCommand(ChooseHelloAsync);
-        ChoosePasswordCommand = new RelayCommand(ChoosePassword);
+        ChooseHelloCommand = new AsyncCommand(ChooseHelloAsync, CanChooseHello);
+        ChoosePasswordCommand = new RelayCommand(ChoosePassword, CanChoosePassword);
 
         _auth.State.Changed += (_, _) => SyncFromState();
-        //if (!settingsService.Current.Authorization.HasHelloSetup)
-        //{
-        //    //ConfiguredGate = AuthorizationGateKind.Password; // if Hello is not available, default to Password setup
-        //    IsConfigured = true;
-        //    ChoosePassword();
-        //}
 
         SyncFromState();
     }
@@ -98,9 +87,28 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         CurrentGate = ConfiguredGate switch
         {
             AuthorizationGateKind.Hello => HelloUnlockVM,
-            AuthorizationGateKind.Password => PasswordUnlockVM, // should be PasswordSetupGate
+            AuthorizationGateKind.Password => PasswordUnlockVM,
             _ => null
         };
+
+        RaiseGateCommandStates();
+    }
+
+    private bool CanChooseHello() => !IsConfigured && CurrentGate is null;
+
+    private bool CanChoosePassword() => !IsConfigured && CurrentGate is null;
+
+    private void RaiseGateCommandStates()
+    {
+        if (ChooseHelloCommand is AsyncCommand chooseHelloCommand)
+        {
+            chooseHelloCommand.RaiseCanExecuteChanged();
+        }
+
+        if (ChoosePasswordCommand is RelayCommand choosePasswordCommand)
+        {
+            choosePasswordCommand.RaiseCanExecuteChanged();
+        }
     }
 
     private async Task ChooseHelloAsync()
@@ -128,7 +136,7 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
     private void ChoosePassword()
     {
         StatusMessage = null;
-        PasswordUnlockVM.EnterSetupMode();     // shows confirm field etc.
+        PasswordUnlockVM.EnterSetupMode();
         CurrentGate = PasswordUnlockVM;
     }
 

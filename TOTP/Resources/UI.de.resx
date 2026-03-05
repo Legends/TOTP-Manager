@@ -119,7 +119,8 @@
   </resheader>
   <data name="ex_Adding_New_TOTP" xml:space="preserve">
     <value>Fehler beim Erstellen eines neuen TOTP</value>
-  </data>  <data name="ex_DeletingSecret" xml:space="preserve">
+  </data>
+  <data name="ex_DeletingSecret" xml:space="preserve">
     <value>Fehler beim Löschen des Schlüssels</value>
   </data>
   <data name="ex_DeletingSecret_0" xml:space="preserve">
@@ -127,12 +128,14 @@
   </data>
   <data name="ex_Error_Generating_TOTP" xml:space="preserve">
     <value>Fehler beim Generieren des TOTP Codes</value>
-  </data>  <data name="ex_FatalError" xml:space="preserve">
+  </data>
+  <data name="ex_FatalError" xml:space="preserve">
     <value>Ein fataler Anwendungsfehler ist aufgetreten. Die Anwendung wird jetzt heruntergefahren.\n\nFür nähre Details die Logfiles analysieren.</value>
   </data>
   <data name="ex_Filtering_Secrets" xml:space="preserve">
     <value>Fehler beim Filtern der Schlüssel</value>
-  </data>  <data name="ex_Selecting_Secret" xml:space="preserve">
+  </data>
+  <data name="ex_Selecting_Secret" xml:space="preserve">
     <value>Fehler beim Selektieren des Schlüssels</value>
   </data>
   <data name="ex_UnexpectedError" xml:space="preserve">
@@ -143,7 +146,8 @@
   </data>
   <data name="ex_UpdatingSecret_0" xml:space="preserve">
     <value>Fehler beim Aktualisieren des Schlüssels: {0}</value>
-  </data>  <data name="msg_BackroundTaskException" xml:space="preserve">
+  </data>
+  <data name="msg_BackroundTaskException" xml:space="preserve">
     <value>Ein Hintergrundprozess ist fehlgeschlagen. Sie können die Anwendung weiterhin verwenden.</value>
   </data>
   <data name="msg_ConfirmDeleteSecret" xml:space="preserve">
@@ -154,20 +158,27 @@
   </data>
   <data name="msg_ErrorParsingOtpUrl" xml:space="preserve">
     <value>Fehler beim Parsen der OTP URL</value>
-  </data>  <data name="msg_PlatformRequired" xml:space="preserve">
+  </data>
+  <data name="msg_PlatformRequired" xml:space="preserve">
     <value>Feld platform darf nicht leer sein.</value>
-  </data>  <data name="msg_Platform_Exists" xml:space="preserve">
+  </data>
+  <data name="msg_Platform_Exists" xml:space="preserve">
     <value>plattform '{0}' ist bereits vorhanden</value>
-  </data>  <data name="msg_SecretInvalidFormat" xml:space="preserve">
+  </data>
+  <data name="msg_SecretInvalidFormat" xml:space="preserve">
     <value>Der Schlüssel muss im Base32 Format sein</value>
   </data>
   <data name="msg_SecretRequired" xml:space="preserve">
     <value>Feld Schlüssel darf nicht leer sein.</value>
-  </data>  <data name="tooltip_AddNew" xml:space="preserve">
+  </data>
+  <data name="tooltip_AddNew" xml:space="preserve">
     <value>Neues Konto hinzufügen</value>
   </data>
   <data name="tooltip_AuthenticatorAppScan" xml:space="preserve">
     <value>Scanne den Kode mit deiner Authenticator-App</value>
+  </data>
+  <data name="tooltip_ClickToCopyCode" xml:space="preserve">
+    <value>Klicke zum Kopieren</value>
   </data>
   <data name="ui_btnAdd" xml:space="preserve">
     <value>Hinzufügen</value>
@@ -204,7 +215,8 @@
   </data>
   <data name="ui_Caption_Warning" xml:space="preserve">
     <value>Achtung</value>
-  </data>  <data name="ui_Edit_Entry" xml:space="preserve">
+  </data>
+  <data name="ui_Edit_Entry" xml:space="preserve">
     <value>Eintrag ändern</value>
   </data>
   <data name="ui_Export" xml:space="preserve">
@@ -224,9 +236,11 @@
   </data>
   <data name="ui_Header_Secret" xml:space="preserve">
     <value>schlüssel</value>
-  </data>  <data name="ui_label_Search_Dots" xml:space="preserve">
+  </data>
+  <data name="ui_label_Search_Dots" xml:space="preserve">
     <value>Suche...</value>
-  </data>  <data name="ui_ScanQR" xml:space="preserve">
+  </data>
+  <data name="ui_ScanQR" xml:space="preserve">
     <value>QR Kode scannen</value>
   </data>
   <data name="ui_Settings_Auth_Lock_Session" xml:space="preserve">
@@ -261,7 +275,8 @@
   </data>
   <data name="ui_Settings_LockOnWindowsLock" xml:space="preserve">
     <value>Windows Sperrbildschrim</value>
-  </data>  <data name="ui_Settings_Tab_Export" xml:space="preserve">
+  </data>
+  <data name="ui_Settings_Tab_Export" xml:space="preserve">
     <value>Sichern &amp; Wiederherstellen</value>
   </data>
   <data name="ui_Settings_Title" xml:space="preserve">
@@ -284,9 +299,11 @@
   </data>
   <data name="ui_Setup_Password" xml:space="preserve">
     <value>Passwort einrichten</value>
-  </data>  <data name="ui_Settings_Section_Logging" xml:space="preserve">
+  </data>
+  <data name="ui_Settings_Section_Logging" xml:space="preserve">
     <value>Protokolierung</value>
-  </data>  <data name="ui_Settings_Logging_Level" xml:space="preserve">
+  </data>
+  <data name="ui_Settings_Logging_Level" xml:space="preserve">
     <value>Protokollierungsebene</value>
   </data>
   <data name="ui_Settings_Logging_OpenFolder" xml:space="preserve">
@@ -318,7 +335,8 @@
   </data>
   <data name="ui_Settings_Import_Conflict_KeepBoth" xml:space="preserve">
     <value>Beide behalten</value>
-  </data>  <data name="ui_ExportPwd_PromptMessage" xml:space="preserve">
+  </data>
+  <data name="ui_ExportPwd_PromptMessage" xml:space="preserve">
     <value>Wählen Sie einen Verschlüsselungsweg</value>
   </data>
   <data name="ui_ExportPwd_UseMasterOption" xml:space="preserve">
@@ -326,7 +344,8 @@
   </data>
   <data name="ui_ExportPwd_MasterPasswordLabel" xml:space="preserve">
     <value>Aktuelles Master-Passwort</value>
-  </data>  <data name="ui_ExportPwd_UseCustomOption" xml:space="preserve">
+  </data>
+  <data name="ui_ExportPwd_UseCustomOption" xml:space="preserve">
     <value>Eigenes Export-Passwort verwenden</value>
   </data>
   <data name="ui_ExportPwd_CustomPasswordLabel" xml:space="preserve">

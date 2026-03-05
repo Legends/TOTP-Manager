@@ -29,7 +29,7 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
     {
         _title = title;
         _passwordValidationService = passwordValidationService;
-        ConfirmCommand = new AsyncCommand(ConfirmAsync);
+        ConfirmCommand = new AsyncCommand(ConfirmAsync, CanConfirm);
     }
 
     public string Title
@@ -59,6 +59,7 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
 
             _useMasterPassword = value;
             ErrorMessage = string.Empty;
+            RaiseConfirmCanExecuteChanged();
             OnPropertyChanged();
             OnPropertyChanged(nameof(UseCustomPassword));
         }
@@ -85,6 +86,8 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             {
                 ErrorMessage = string.Empty;
             }
+
+            RaiseConfirmCanExecuteChanged();
             OnPropertyChanged();
         }
     }
@@ -104,6 +107,8 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             {
                 ErrorMessage = string.Empty;
             }
+
+            RaiseConfirmCanExecuteChanged();
             OnPropertyChanged();
         }
     }
@@ -123,6 +128,8 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             {
                 ErrorMessage = string.Empty;
             }
+
+            RaiseConfirmCanExecuteChanged();
             OnPropertyChanged();
         }
     }
@@ -143,6 +150,8 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
     }
 
     public string SelectedPassword { get; private set; } = string.Empty;
+
+    private bool CanConfirm() => !string.IsNullOrWhiteSpace(Title);
 
     private async Task ConfirmAsync()
     {
@@ -188,8 +197,17 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
         RequestClose?.Invoke(this, EventArgs.Empty);
     }
 
+    private void RaiseConfirmCanExecuteChanged()
+    {
+        if (ConfirmCommand is AsyncCommand confirmCommand)
+        {
+            confirmCommand.RaiseCanExecuteChanged();
+        }
+    }
+
     private void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
+

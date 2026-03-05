@@ -176,6 +176,7 @@
 
                 <Label x:Name="lblCode"
                        Cursor="Hand"
+                       ToolTip="{xaml:Resx Key=tooltip_ClickToCopyCode}"
                        Content="{Binding TotpCode }"
                        HorizontalContentAlignment="Center"
                        Height="{Binding CodeLabelHeight}"

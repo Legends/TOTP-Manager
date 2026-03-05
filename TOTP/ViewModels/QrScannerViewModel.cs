@@ -56,8 +56,8 @@ namespace TOTP.ViewModels
         {
             _qrScannerRunner = qrScannerRunner;
             _logger = logger;
-            CancelCommand = new RelayCommand(Cancel);
-            CloseCameraWindowCommand = new RelayCommand(Cancel);
+            CancelCommand = new RelayCommand(Cancel, CanCancelOrClose);
+            CloseCameraWindowCommand = new RelayCommand(Cancel, CanCancelOrClose);
         }
 
         public void Start()
@@ -69,11 +69,17 @@ namespace TOTP.ViewModels
 
             _cts = new CancellationTokenSource();
             _cameraTask = RunCameraLoopAsync(_cts.Token);
+            RaiseCommandStates();
         }
 
         public void Stop()
         {
             _cts?.Cancel();
+        }
+
+        private bool CanCancelOrClose()
+        {
+            return _cameraTask == null || !_cameraTask.IsCompleted;
         }
 
         private void Cancel()
@@ -112,6 +118,10 @@ namespace TOTP.ViewModels
                 ErrorMessage = ex.Message;
                 RequestClose(dialogResult: false);
             }
+            finally
+            {
+                RaiseCommandStates();
+            }
         }
 
         public void Dispose()
@@ -124,6 +134,23 @@ namespace TOTP.ViewModels
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to dispose QR scanner cancellation token source.");
+            }
+            finally
+            {
+                RaiseCommandStates();
+            }
+        }
+
+        private void RaiseCommandStates()
+        {
+            if (CancelCommand is RelayCommand cancelCommand)
+            {
+                cancelCommand.RaiseCanExecuteChanged();
+            }
+
+            if (CloseCameraWindowCommand is RelayCommand closeCommand)
+            {
+                closeCommand.RaiseCanExecuteChanged();
             }
         }
 

@@ -529,6 +529,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Click to copy.
+        /// </summary>
+        internal static string tooltip_ClickToCopyCode {
+            get {
+                return ResourceManager.GetString("tooltip_ClickToCopyCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add.
         /// </summary>
         internal static string ui_btnAdd {

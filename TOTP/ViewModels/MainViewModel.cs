@@ -73,6 +73,9 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext
 
             if (CloseSettingsViewCommand is RelayCommand closeCmd)
                 closeCmd.RaiseCanExecuteChanged();
+
+            if (OpenSettingsCommand is RelayCommand openSettingsCommand)
+                openSettingsCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -108,6 +111,11 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext
             _sessionState = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsUnlocked));
+
+            if (OpenSettingsCommand is RelayCommand openSettingsCommand)
+                openSettingsCommand.RaiseCanExecuteChanged();
+
+            ExportSecretsCommand?.RaiseCanExecuteChanged();
         }
     }
 
@@ -159,6 +167,10 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext
             _isAddMode = value;
             //IsEditPlatformFocused = value;
             OnPropertyChanged();
+
+            SaveEditFlyoutAsyncCommand?.RaiseCanExecuteChanged();
+            if (CancelFlyoutCommand is RelayCommand cancelFlyoutCommand)
+                cancelFlyoutCommand.RaiseCanExecuteChanged();
             OnPropertyChanged(nameof(EditPanelTitle));
             OnPropertyChanged(nameof(SaveButtonLabel));
             OnPropertyChanged(nameof(CancelButtonLabel));
@@ -187,6 +199,10 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext
             _isEditFlyoutOpen = value;
             IsEditPlatformFocused = value;
             OnPropertyChanged();
+
+            SaveEditFlyoutAsyncCommand?.RaiseCanExecuteChanged();
+            if (CancelFlyoutCommand is RelayCommand cancelFlyoutCommand)
+                cancelFlyoutCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -198,7 +214,12 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext
     public OtpViewModel? CurrentSecretBeingEditedOrAdded
     {
         get => _editingSecret;
-        set { _editingSecret = value; OnPropertyChanged(); }
+        set
+        {
+            _editingSecret = value;
+            OnPropertyChanged();
+            SaveEditFlyoutAsyncCommand?.RaiseCanExecuteChanged();
+        }
     }
 
     #endregion
@@ -310,6 +331,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext
             OpenFlyoutAddModeCommand.RaiseCanExecuteChanged();
             ToggleSearchBoxCommand.RaiseCanExecuteChanged();
             ScanQrAndAddCommand.RaiseCanExecuteChanged();
+            ExportSecretsCommand?.RaiseCanExecuteChanged();
         }
     }
 
@@ -329,6 +351,12 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext
 
                 _selectedAccount = value;
                 OnPropertyChanged();
+
+                if (CopyCodeCommand is RelayCommand<OtpViewModel> copyCodeCommand)
+                    copyCodeCommand.RaiseCanExecuteChanged();
+
+                if (GenerateQrCommand is RelayCommand<OtpViewModel> generateQrCommand)
+                    generateQrCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -595,4 +623,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext
     #endregion REGION COMMANDS
 
 }
+
+
+
+
 
