@@ -1,12 +1,13 @@
 using TOTP.Core.Common;
 using TOTP.Core.Models;
 using TOTP.Infrastructure.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace TOTP.Tests.Services;
 
 public sealed class ExportServiceTests
 {
-    private readonly ExportService _sut = new();
+    private readonly ExportService _sut = new(NullLogger<ExportService>.Instance);
 
     [Theory]
     [InlineData(ExportFileFormat.Json, ".json")]

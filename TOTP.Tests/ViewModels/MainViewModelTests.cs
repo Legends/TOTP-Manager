@@ -296,6 +296,44 @@ public sealed class MainViewModelTests : IDisposable
     }
 
     [Fact]
+    public void ToggleSearchBoxCommand_CanExecute_TracksGridEditingState()
+    {
+        using var ctx = new MainVmTestContext();
+        Assert.True(ctx.Sut.ToggleSearchBoxCommand.CanExecute(null));
+
+        ctx.Sut.IsGridEditing = true;
+
+        Assert.False(ctx.Sut.ToggleSearchBoxCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void ToggleSearchBoxCommand_WhenOpening_SetsVisibleAndFocus()
+    {
+        using var ctx = new MainVmTestContext();
+        Assert.False(ctx.Sut.IsSearchVisible);
+        Assert.False(ctx.Sut.IsSearchFocused);
+
+        ctx.Sut.ToggleSearchBoxCommand.Execute(null);
+
+        Assert.True(ctx.Sut.IsSearchVisible);
+        Assert.True(ctx.Sut.IsSearchFocused);
+    }
+
+    [Fact]
+    public void ClearSearchCommand_WhenExecuted_ClearsSearchTextAndKeepsVisibleState()
+    {
+        using var ctx = new MainVmTestContext();
+        ctx.Sut.IsSearchVisible = true;
+        ctx.Sut.SearchText = "github";
+
+        ctx.Sut.ClearSearchCommand.Execute(null);
+
+        Assert.True(ctx.Sut.IsSearchVisible);
+        Assert.Equal(string.Empty, ctx.Sut.SearchText);
+        Assert.True(ctx.Sut.IsSearchFocused);
+    }
+
+    [Fact]
     public async Task AddOrUpdateOtpEntryAsync_AddMode_WhenCurrentItemMissing_DoesNothing()
     {
         using var ctx = new MainVmTestContext();
@@ -331,6 +369,40 @@ public sealed class MainViewModelTests : IDisposable
 
         ctx.Message.Verify(m => m.ConfirmWarning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         ctx.AccountsWorkflow.Verify(s => s.DeleteAsync(It.IsAny<OtpViewModel>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteOtpEntryAsync_WhenDeleteFails_ShowsResultErrorAndKeepsItem()
+    {
+        using var ctx = new MainVmTestContext();
+        var item = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
+        ctx.Sut.AllOtps.Add(item);
+        ctx.Message.Setup(m => m.ConfirmWarning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+        ctx.AccountsWorkflow.Setup(s => s.DeleteAsync(item)).ReturnsAsync(Result.Fail("delete failed"));
+
+        await ctx.Sut.DeleteOtpEntryAsync(item);
+
+        Assert.Single(ctx.Sut.AllOtps);
+        ctx.Message.Verify(m => m.ShowResultError(It.IsAny<Result>(), item.Issuer), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateOtpEntryAsync_WhenFailed_DoesNotMutateEntryOrClearPreviousVersion()
+    {
+        using var ctx = new MainVmTestContext();
+        var id = Guid.NewGuid();
+        var existing = new OtpViewModel(id, "GitHub", "AAAA", "john");
+        var updated = new OtpViewModel(id, "GitHub", "BBBB", "john.doe");
+        ctx.Sut.AllOtps.Add(existing);
+        ctx.Sut.PreviousVersion = existing.Copy();
+        ctx.AccountsWorkflow.Setup(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), updated)).ReturnsAsync(Result.Fail("update failed"));
+
+        await ctx.Sut.UpdateOtpEntryAsync(updated);
+
+        Assert.Equal("AAAA", existing.Secret);
+        Assert.Equal("john", existing.AccountName);
+        Assert.NotNull(ctx.Sut.PreviousVersion);
+        ctx.Message.Verify(m => m.ShowResultError(It.IsAny<Result>(), updated.Issuer), Times.Once);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Extensions.Logging;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Services.Interfaces;
@@ -13,15 +14,18 @@ public sealed class PasswordPromptService : IPasswordPromptService
     private readonly IAuthorizationService _authorizationService;
     private readonly IPasswordValidationService _passwordValidationService;
     private readonly IPasswordPromptDialogFactory _dialogFactory;
+    private readonly ILogger<PasswordPromptService> _logger;
 
     public PasswordPromptService(
         IAuthorizationService authorizationService,
         IPasswordValidationService passwordValidationService,
-        IPasswordPromptDialogFactory dialogFactory)
+        IPasswordPromptDialogFactory dialogFactory,
+        ILogger<PasswordPromptService> logger)
     {
         _authorizationService = authorizationService;
         _passwordValidationService = passwordValidationService;
         _dialogFactory = dialogFactory;
+        _logger = logger;
     }
 
     public string? PromptForEncryptedExportPassword(string title)
@@ -71,14 +75,15 @@ public sealed class PasswordPromptService : IPasswordPromptService
         return viewModel.Password;
     }
 
-    private static Window? GetMainWindowSafe()
+    private Window? GetMainWindowSafe()
     {
         try
         {
             return Application.Current?.MainWindow;
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException ex)
         {
+            _logger.LogWarning(ex, "Failed to access Application.Current.MainWindow in password prompt service.");
             return null;
         }
     }

@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Globalization;
 using FluentResults;
+using Microsoft.Extensions.Logging;
 using NSec.Cryptography;
 using TOTP.Core.Common;
 using TOTP.Infrastructure.Common;
@@ -25,6 +26,12 @@ public sealed class ExportService : IExportService
 
     private static readonly Argon2id _kdf = PasswordBasedKeyDerivationAlgorithm.Argon2id(in _argonParameters);
     private static readonly AeadAlgorithm _algoAead = AeadAlgorithm.Aes256Gcm;
+    private readonly ILogger<ExportService> _logger;
+
+    public ExportService(ILogger<ExportService> logger)
+    {
+        _logger = logger;
+    }
 
     public async Task<Result<List<OtpEntry>>> ImportFromFileAsync(string filePath, string? password = null)
     {
@@ -51,6 +58,7 @@ public sealed class ExportService : IExportService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Import from file failed for path {Path}.", filePath);
             return Result.Fail(ExportServiceErrorMapper.MapImportError(ex));
         }
     }
@@ -65,6 +73,7 @@ public sealed class ExportService : IExportService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Export to file failed for path {Path} with format {Format}.", filePath, format);
             return Result.Fail(ExportServiceErrorMapper.MapExportError(ex));
         }
     }
@@ -98,6 +107,7 @@ public sealed class ExportService : IExportService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Encrypted export failed for path {Path} with format {Format}.", filePath, format);
             return Result.Fail(ExportServiceErrorMapper.MapExportError(ex));
         }
         finally
@@ -159,6 +169,7 @@ public sealed class ExportService : IExportService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Encrypted import failed for path {Path}.", filePath);
             return Result.Fail(ExportServiceErrorMapper.MapImportError(ex));
         }
         finally

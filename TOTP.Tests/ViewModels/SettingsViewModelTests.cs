@@ -136,6 +136,62 @@ public sealed class SettingsViewModelTests
     }
 
     [Fact]
+    public async Task SelectedExportFormat_WhenEncrypted_IgnoresPlainFormatSelection()
+    {
+        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
+        await vm.LoadAsync();
+
+        vm.SelectedExportFormat = ExportFileFormat.Csv;
+
+        Assert.Equal(ExportFileFormat.Totp, vm.SelectedExportFormat);
+        Assert.Equal([ExportFileFormat.Totp], vm.AvailableExportFormats);
+    }
+
+    [Fact]
+    public async Task ExportEncrypt_WhenDisabled_EnablesFormatSelectionAndShowsPlainFormats()
+    {
+        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
+        await vm.LoadAsync();
+
+        vm.ExportEncrypt = false;
+
+        Assert.True(vm.IsExportFormatSelectionEnabled);
+        Assert.Contains(ExportFileFormat.Json, vm.AvailableExportFormats);
+        Assert.Contains(ExportFileFormat.Csv, vm.AvailableExportFormats);
+        Assert.Contains(ExportFileFormat.Txt, vm.AvailableExportFormats);
+        Assert.DoesNotContain(ExportFileFormat.Totp, vm.AvailableExportFormats);
+        Assert.Equal(ExportFileFormat.Json, vm.SelectedExportFormat);
+    }
+
+    [Fact]
+    public async Task OpenExportFileAfterExport_WhenEncrypted_RemainsFalse()
+    {
+        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
+        await vm.LoadAsync();
+
+        vm.OpenExportFileAfterExport = true;
+
+        Assert.False(vm.OpenExportFileAfterExport);
+        Assert.False(vm.IsOpenExportFileAfterExportOptionEnabled);
+    }
+
+    [Fact]
+    public async Task CanResetToDefaults_WhenOnlyExportEncryptChanged_IsTrue()
+    {
+        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
+        await vm.LoadAsync();
+
+        Assert.False(vm.CanResetToDefaults);
+        vm.ExportEncrypt = false;
+
+        Assert.True(vm.CanResetToDefaults);
+    }
+
+    [Fact]
     public async Task ChangePasswordCommand_CanExecuteOnlyForPasswordGateWithInput()
     {
         var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();

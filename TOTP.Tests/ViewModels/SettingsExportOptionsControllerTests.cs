@@ -132,4 +132,69 @@ public sealed class SettingsExportOptionsControllerTests
 
         Assert.False(sut.OpenExportFileAfterExport);
     }
+
+    [Theory]
+    [InlineData(ExportFileFormat.Json)]
+    [InlineData(ExportFileFormat.Csv)]
+    [InlineData(ExportFileFormat.Txt)]
+    public void SetSelectedExportFormat_WhenPlainMode_AllowsEveryPlainFormat(ExportFileFormat format)
+    {
+        var sut = new SettingsExportOptionsController();
+        sut.SetExportEncrypt(false);
+
+        var changed = sut.SetSelectedExportFormat(format);
+
+        Assert.Equal(format != ExportFileFormat.Json, changed);
+        Assert.Equal(format, sut.SelectedExportFormat);
+    }
+
+    [Theory]
+    [InlineData(ExportFileFormat.Json)]
+    [InlineData(ExportFileFormat.Csv)]
+    [InlineData(ExportFileFormat.Txt)]
+    public void SetSelectedExportFormat_WhenEncryptedMode_AlwaysKeepsTotp(ExportFileFormat requested)
+    {
+        var sut = new SettingsExportOptionsController();
+        sut.SetExportEncrypt(true);
+
+        var changed = sut.SetSelectedExportFormat(requested);
+
+        Assert.False(changed);
+        Assert.Equal(ExportFileFormat.Totp, sut.SelectedExportFormat);
+        Assert.Equal([ExportFileFormat.Totp], sut.AvailableFormats);
+    }
+
+    [Fact]
+    public void SetExportEncrypt_TransitionMatrix_PreservesRememberedOpenAfterExportAcrossMultipleToggles()
+    {
+        var sut = new SettingsExportOptionsController();
+
+        sut.SetExportEncrypt(false);
+        sut.SetOpenExportFileAfterExport(true);
+        sut.SetExportEncrypt(true);
+        Assert.False(sut.OpenExportFileAfterExport);
+        Assert.True(sut.OpenExportFileAfterExportBeforeEncrypt);
+
+        sut.SetExportEncrypt(false);
+        Assert.True(sut.OpenExportFileAfterExport);
+
+        sut.SetOpenExportFileAfterExport(false);
+        sut.SetExportEncrypt(true);
+        Assert.False(sut.OpenExportFileAfterExport);
+        Assert.False(sut.OpenExportFileAfterExportBeforeEncrypt);
+
+        sut.SetExportEncrypt(false);
+        Assert.False(sut.OpenExportFileAfterExport);
+    }
+
+    [Fact]
+    public void SetExportEncrypt_FalseAfterEncryptedWithTotp_DefaultsFormatToJson()
+    {
+        var sut = new SettingsExportOptionsController();
+        Assert.Equal(ExportFileFormat.Totp, sut.SelectedExportFormat);
+
+        sut.SetExportEncrypt(false);
+
+        Assert.Equal(ExportFileFormat.Json, sut.SelectedExportFormat);
+    }
 }

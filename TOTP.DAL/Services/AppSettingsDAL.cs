@@ -60,8 +60,9 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
             {
                 return Result.Ok<IAppSettings?>(await JsonSerializer.DeserializeAsync<AppSettings>(ms));
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
+                _logger.LogInformation(ex, "Settings payload is not AppSettings. Falling back to legacy AuthorizationProfile parsing.");
                 // Fallback logic for legacy profiles
                 ms.Position = 0;
                 var legacy = await JsonSerializer.DeserializeAsync<AuthorizationProfile>(ms);

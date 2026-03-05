@@ -1,5 +1,6 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 
@@ -19,7 +20,7 @@ public sealed class QrScannerViewModelTests
             await Task.CompletedTask;
         });
 
-        var vm = new QrScannerViewModel(runner);
+        var vm = new QrScannerViewModel(runner, NullLogger<QrScannerViewModel>.Instance);
         vm.CloseRequested += (_, e) => closeEvents.Add(e.DialogResult);
 
         vm.Start();
@@ -40,7 +41,7 @@ public sealed class QrScannerViewModelTests
         var runner = new FakeRunner((token, onPreview, onFirstFrame, onDecoded) =>
             Task.FromException(new InvalidOperationException("No camera found.")));
 
-        var vm = new QrScannerViewModel(runner);
+        var vm = new QrScannerViewModel(runner, NullLogger<QrScannerViewModel>.Instance);
         vm.CloseRequested += (_, e) => closeEvents.Add(e.DialogResult);
 
         vm.Start();
@@ -70,7 +71,7 @@ public sealed class QrScannerViewModelTests
             }
         });
 
-        var vm = new QrScannerViewModel(runner);
+        var vm = new QrScannerViewModel(runner, NullLogger<QrScannerViewModel>.Instance);
         vm.CloseRequested += (_, e) => closeEvents.Add(e.DialogResult);
 
         vm.Start();
@@ -92,7 +93,7 @@ public sealed class QrScannerViewModelTests
             await Task.Delay(80, token);
         });
 
-        var vm = new QrScannerViewModel(runner);
+        var vm = new QrScannerViewModel(runner, NullLogger<QrScannerViewModel>.Instance);
 
         vm.Start();
         vm.Start();

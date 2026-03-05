@@ -32,7 +32,10 @@ public sealed class SingleInstanceGuard : IDisposable
             if (_owns)
                 m.ReleaseMutex();
         }
-        catch (ApplicationException) { /* not owner */ }
+        catch (ApplicationException ex)
+        {
+            Trace.TraceWarning($"SingleInstanceGuard.ReleaseMutex skipped because current thread does not own mutex: {ex.Message}");
+        }
 
     }
     public static void ActivateExistingWindow(string processName)
