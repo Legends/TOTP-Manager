@@ -91,7 +91,7 @@ internal static class Program
                         // Stops all Background-Services (TOTP.UI.WPF: => Infrastructure.Services) gracefully.
                         // Waits until they are stopped.
                         // Dispose is called after that, which disposes all services.
-                        await host?.StopAsync();
+                        await host.StopAsync();
                     }
                 }
                 catch (Exception ex)

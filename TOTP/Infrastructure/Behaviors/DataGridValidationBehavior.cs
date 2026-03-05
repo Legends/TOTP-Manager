@@ -87,7 +87,8 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
         {
             case nameof(OtpViewModel.Issuer):
                 //UiValidation.Use(item).ValidatePlatform()
-                validationResult = UiValidation.ValidatePlatformName(e.NewValue?.ToString());
+                var newPlatform = e.NewValue?.ToString() ?? string.Empty;
+                validationResult = UiValidation.ValidatePlatformName(newPlatform);
                 error = ValidationMessageMapper.ToMessage(validationResult);
 
                 if (validationResult == ValidationError.None)
@@ -95,12 +96,13 @@ public class DataGridValidationBehavior : Behavior<SfDataGrid>
                     var accountList = (AssociatedObject.ItemsSource as IEnumerable<OtpViewModel>)?
                         .Where(sivm => !ReferenceEquals(sivm, item))
                         .Select(sivm => sivm.ToDomain())
-                        .ToList();
+                        .ToList()
+                        ?? [];
 
-                    var duplicate = UiValidation.PlatformNameDuplicateExists(e.NewValue?.ToString(), accountList);
+                    var duplicate = UiValidation.PlatformNameDuplicateExists(newPlatform, accountList);
 
                     if (duplicate == ValidationError.PlatformAlreadyExists)
-                        error = ValidationMessageMapper.ToMessage(duplicate, e.NewValue?.ToString());
+                        error = ValidationMessageMapper.ToMessage(duplicate, newPlatform);
                 }
 
                 break;

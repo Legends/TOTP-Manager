@@ -12,5 +12,5 @@ public interface IHelloGate
 
     // Hardware-bound persistence methods
     Task<byte[]> ProtectKeyAsync(byte[] rawDek, string keyId);
-    Task<byte[]> UnprotectKeyAsync(byte[] wrappedDek, string keyId);
+    Task<byte[]?> UnprotectKeyAsync(byte[] wrappedDek, string keyId);
 }

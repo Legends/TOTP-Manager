@@ -185,7 +185,7 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
                     // TODO: we have to wire new items with duplicateCheck handler ! soemthing wrong here
                     var isDuplicate = _duplicateCheck?.Invoke(this);
                     if (isDuplicate == ValidationError.PlatformAlreadyExists)
-                        errors.Add(ValidationMessageMapper.ToMessage(isDuplicate.Value, this.Issuer));
+                        errors.Add(ValidationMessageMapper.ToMessage(ValidationError.PlatformAlreadyExists, Issuer ?? string.Empty));
                     break;
 
                 case nameof(Secret):

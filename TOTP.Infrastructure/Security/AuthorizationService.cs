@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Linq;
+using TOTP.Core.Models;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
@@ -125,7 +126,7 @@ public sealed class AuthorizationService : IAuthorizationService
 
         var wrapped = await _passwordService.WrapKeyAsync(rawDek, password);
 
-        //_appSettings ??= new AppSettings();
+        _appSettings ??= _settingsService.Current ?? new AppSettings();
         _appSettings.Authorization = new AuthorizationProfile
         {
             Gate = AuthorizationGateKind.Password,

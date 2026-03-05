@@ -68,7 +68,7 @@ public sealed class AccountsWorkflowService(
     {
         try
         {
-            return await otpManager.UpdateAsync(previous?.ToDomain(), updated.ToDomain());
+            return await otpManager.UpdateAsync(previous?.ToDomain()!, updated.ToDomain());
         }
         catch (Exception ex)
         {
@@ -97,5 +97,5 @@ public sealed class AccountsWorkflowService(
         => UiValidation.Use(item, source).ValidateAll().PlatformNameDuplicateExists(excludeSelf: true).Errors;
 
     public ValidationError CheckDuplicateIssuer(OtpViewModel current, IEnumerable<OtpViewModel> source)
-        => UiValidation.PlatformNameDuplicateExists(current.Issuer, source.Where(item => !item.Equals(current)).Select(it => it.ToDomain()).ToList());
+        => UiValidation.PlatformNameDuplicateExists(current.Issuer ?? string.Empty, source.Where(item => !item.Equals(current)).Select(it => it.ToDomain()).ToList());
 }

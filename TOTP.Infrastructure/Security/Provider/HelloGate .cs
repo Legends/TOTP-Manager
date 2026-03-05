@@ -46,7 +46,7 @@ public sealed class HelloGate : IHelloGate
         });
     }
 
-    public async Task<byte[]> UnprotectKeyAsync(byte[] wrappedDek, string keyId)
+    public async Task<byte[]?> UnprotectKeyAsync(byte[] wrappedDek, string keyId)
     {
         try
         {
