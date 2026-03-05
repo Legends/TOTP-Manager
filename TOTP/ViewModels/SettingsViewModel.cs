@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -34,6 +35,16 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 {
     private const double MinQrPreviewScale = 1.0;
     private const double MaxQrPreviewScale = 6.0;
+    private static readonly ExportFileFormat[] PlainExportFormats =
+    [
+        ExportFileFormat.Json,
+        ExportFileFormat.Csv,
+        ExportFileFormat.Txt
+    ];
+    private static readonly ExportFileFormat[] EncryptedExportFormats =
+    [
+        ExportFileFormat.Totp
+    ];
 
     #region ### PROPERTIES/FIELDS ###
 
@@ -142,6 +153,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public double QrPreviewScaleFactor { get => _qrPreviewScaleFactor; set { _qrPreviewScaleFactor = value; OnPropertyChanged(); } }
 
     private bool _exportEncrypt = true;
+    private bool _openExportFileAfterExportBeforeEncrypt = true;
     public bool ExportEncrypt
     {
         get => _exportEncrypt;
@@ -152,20 +164,25 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
                 return;
             }
 
+            if (value)
+            {
+                _openExportFileAfterExportBeforeEncrypt = OpenExportFileAfterExport;
+            }
+
             _exportEncrypt = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsExportFormatSelectionEnabled));
             OnPropertyChanged(nameof(IsOpenExportFileAfterExportOptionEnabled));
 
-            // Encrypted export is always JSON payload.
-            if (_exportEncrypt)
-            {
-                SelectedExportFormat = ExportFileFormat.Json;
-            }
+            OpenExportFileAfterExport = _exportEncrypt
+                ? false
+                : _openExportFileAfterExportBeforeEncrypt;
+
+            UpdateAvailableExportFormats();
         }
     }
 
-    private ExportFileFormat _selectedExportFormat = ExportFileFormat.Json;
+    private ExportFileFormat _selectedExportFormat = ExportFileFormat.Totp;
     public ExportFileFormat SelectedExportFormat
     {
         get => _selectedExportFormat;
@@ -187,7 +204,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     }
 
     public List<AppLogLevel> AvailableLogLevels { get; }
-    public List<ExportFileFormat> AvailableExportFormats { get; }
+    public ObservableCollection<ExportFileFormat> AvailableExportFormats { get; }
     public List<ImportConflictOptionItem> AvailableImportConflictOptions { get; }
     private ImportConflictOptionItem _selectedImportConflictOption = null!;
     public ImportConflictOptionItem SelectedImportConflictOption
@@ -215,6 +232,11 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
             _openExportFileAfterExport = value;
             OnPropertyChanged();
+
+            if (!ExportEncrypt)
+            {
+                _openExportFileAfterExportBeforeEncrypt = value;
+            }
         }
     }
 
@@ -265,7 +287,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder);
 
         AvailableLogLevels = Enum.GetValues(typeof(AppLogLevel)).Cast<AppLogLevel>().ToList();
-        AvailableExportFormats = Enum.GetValues(typeof(ExportFileFormat)).Cast<ExportFileFormat>().ToList();
+        AvailableExportFormats = [];
+        UpdateAvailableExportFormats();
         AvailableImportConflictOptions =
         [
             new ImportConflictOptionItem(ImportConflictStrategy.SkipExisting, UI.ui_Settings_Import_Conflict_Skip),
@@ -305,9 +328,13 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             MinQrPreviewScale,
             MaxQrPreviewScale);
         _qrPreviewService.PreviewScaleFactor = QrPreviewScaleFactor;
-        ExportEncrypt = _appSettings.ExportEncrypt;
         OpenExportFileAfterExport = _appSettings.OpenExportFileAfterExport;
-        SelectedExportFormat = ExportFileFormat.Json;
+        _openExportFileAfterExportBeforeEncrypt = _appSettings.OpenExportFileAfterExport;
+        ExportEncrypt = _appSettings.ExportEncrypt;
+        OpenExportFileAfterExport = ExportEncrypt
+            ? false
+            : _openExportFileAfterExportBeforeEncrypt;
+        UpdateAvailableExportFormats();
         SelectedImportConflictOption = AvailableImportConflictOptions.First();
         HideSecretsByDefault = _appSettings.HideSecretsByDefault;
     }
@@ -377,7 +404,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             MinQrPreviewScale,
             MaxQrPreviewScale);
         _appSettings.ExportEncrypt = ExportEncrypt;
-        _appSettings.OpenExportFileAfterExport = OpenExportFileAfterExport;
+        _appSettings.OpenExportFileAfterExport = _openExportFileAfterExportBeforeEncrypt;
         _appSettings.HideSecretsByDefault = HideSecretsByDefault;
 
         var saveResult = await _settingsSvc.SaveAsync();
@@ -404,6 +431,22 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         var path = System.IO.Path.GetDirectoryName(StringsConstants.AppLogPath);
         if (System.IO.Directory.Exists(path))
             Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
+    }
+
+    private void UpdateAvailableExportFormats()
+    {
+        var formats = ExportEncrypt ? EncryptedExportFormats : PlainExportFormats;
+
+        AvailableExportFormats.Clear();
+        foreach (var format in formats)
+        {
+            AvailableExportFormats.Add(format);
+        }
+
+        if (!AvailableExportFormats.Contains(SelectedExportFormat))
+        {
+            SelectedExportFormat = AvailableExportFormats.First();
+        }
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
