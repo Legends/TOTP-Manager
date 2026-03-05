@@ -53,6 +53,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     private readonly IAuthorizationService _authorizationService;
     private readonly ILogSwitchService _logSwitchService;
     private readonly IQrPreviewService _qrPreviewService;
+    private readonly IPasswordValidationService _passwordValidationService;
+    private readonly IMessageService _messageService;
     private readonly Action _saveAction;
     private CancellationTokenSource? _saveDebounceCts;
     private CancellationTokenSource? _authGateDebounceCts;
@@ -146,6 +148,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         {
             _newPassword = value;
             OnPropertyChanged();
+            NewPasswordError = null;
             RaiseCommandStates();
         }
     }
@@ -158,7 +161,32 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         {
             _confirmPassword = value;
             OnPropertyChanged();
+            ConfirmPasswordError = null;
             RaiseCommandStates();
+        }
+    }
+
+    private string? _newPasswordError;
+    public string? NewPasswordError
+    {
+        get => _newPasswordError;
+        set
+        {
+            if (string.Equals(_newPasswordError, value, StringComparison.Ordinal)) return;
+            _newPasswordError = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string? _confirmPasswordError;
+    public string? ConfirmPasswordError
+    {
+        get => _confirmPasswordError;
+        set
+        {
+            if (string.Equals(_confirmPasswordError, value, StringComparison.Ordinal)) return;
+            _confirmPasswordError = value;
+            OnPropertyChanged();
         }
     }
     #endregion
@@ -430,6 +458,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public SettingsViewModel(ISettingsService settingsSvc,
                             IAuthorizationService authorizationService,
                             IQrPreviewService qrPreviewService,
+                            IPasswordValidationService passwordValidationService,
+                            IMessageService messageService,
                             ILogSwitchService logSwitchService,
                             ICommand closeCommand,
                             Action saveAction,
@@ -440,6 +470,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         _settingsSvc = settingsSvc;
         _authorizationService = authorizationService;
         _qrPreviewService = qrPreviewService;
+        _passwordValidationService = passwordValidationService;
+        _messageService = messageService;
         _saveAction = saveAction;
         
         CloseCommand = closeCommand;
@@ -553,10 +585,24 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         // CASE 2: Password Changes
         if (!string.IsNullOrWhiteSpace(NewPassword))
         {
-            var result = await _authorizationService.ChangePasswordAsync(NewPassword, ConfirmPassword);
+            var validation = _passwordValidationService.ValidateNewWithConfirmation(
+                NewPassword,
+                ConfirmPassword,
+                UI.ui_Password_Required,
+                UI.ui_Password_MinLength_Format,
+                UI.ui_Password_ConfirmRequired,
+                UI.ui_Password_Mismatch);
+
+            if (!validation.IsValid)
+            {
+                AuthError = validation.PasswordError ?? validation.ConfirmPasswordError ?? UI.ui_Password_ValidationFailed;
+                return false;
+            }
+
+            var result = await _authorizationService.ChangePasswordAsync(string.Empty, NewPassword);
             if (result != AuthorizationResult.Success)
             {
-                AuthError = "Passwords must match and be at least 8 characters.";
+                AuthError = UI.ui_Password_ValidationFailed;
                 return false;
             }
         }
@@ -707,21 +753,36 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     {
         AuthError = null;
 
-        if (string.IsNullOrWhiteSpace(NewPassword))
+        if (!ValidateChangePasswordInputs())
         {
-            AuthError = "Password cannot be empty.";
             return;
         }
 
-        var result = await _authorizationService.ChangePasswordAsync(NewPassword, ConfirmPassword);
+        var result = await _authorizationService.ChangePasswordAsync(string.Empty, NewPassword);
         if (result != AuthorizationResult.Success)
         {
-            AuthError = "Passwords must match and be at least 8 characters.";
+            AuthError = UI.ui_Password_ValidationFailed;
             return;
         }
 
         NewPassword = string.Empty;
         ConfirmPassword = string.Empty;
+        _messageService.ShowSuccess(UI.ui_Password_ChangeSuccess, 2);
+    }
+
+    private bool ValidateChangePasswordInputs()
+    {
+        var validation = _passwordValidationService.ValidateNewWithConfirmation(
+            NewPassword,
+            ConfirmPassword,
+            UI.ui_Password_Required,
+            UI.ui_Password_MinLength_Format,
+            UI.ui_Password_ConfirmRequired,
+            UI.ui_Password_Mismatch);
+
+        NewPasswordError = validation.PasswordError;
+        ConfirmPasswordError = validation.ConfirmPasswordError;
+        return validation.IsValid;
     }
 
     private async Task ResetToDefaultsAsync()
@@ -790,4 +851,5 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             RaiseCommandStates();
         }
     }
+
 }

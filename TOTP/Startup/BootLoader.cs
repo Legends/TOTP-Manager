@@ -145,8 +145,10 @@ public static class BootLoader
                         var settingsSvc = serviceProvider.GetRequiredService<ISettingsService>();
                         var authService = serviceProvider.GetRequiredService<IAuthorizationService>();
                         var qrPreviewService = serviceProvider.GetRequiredService<IQrPreviewService>();
+                        var passwordValidationService = serviceProvider.GetRequiredService<IPasswordValidationService>();
+                        var messageService = serviceProvider.GetRequiredService<IMessageService>();
                         var logging = serviceProvider.GetRequiredService<ILogSwitchService>();
-                        return new SettingsViewModel(settingsSvc, authService, qrPreviewService, logging, closeCmd, saveAct, exportTst, importTst);
+                        return new SettingsViewModel(settingsSvc, authService, qrPreviewService, passwordValidationService, messageService, logging, closeCmd, saveAct, exportTst, importTst);
                     });
 
                 services.AddSingleton<UnlockViewModel>();

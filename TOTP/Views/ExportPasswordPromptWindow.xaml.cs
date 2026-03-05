@@ -1,66 +1,16 @@
 using Syncfusion.Windows.Shared;
 using System;
 using System.Windows;
-using TOTP.Resources;
 using TOTP.ViewModels;
-using System.Threading.Tasks;
 
 namespace TOTP.Views;
 
 public partial class ExportPasswordPromptWindow : ChromelessWindow
 {
-    public string? SelectedPassword { get; private set; }
-    public Func<string, Task<bool>>? ValidateMasterPasswordAsync { get; set; }
-
     public ExportPasswordPromptWindow()
     {
         InitializeComponent();
-    }
-
-    private async void OkButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is not ExportPasswordPromptViewModel vm)
-        {
-            return;
-        }
-
-        if (vm.UseMasterPassword)
-        {
-            if (string.IsNullOrWhiteSpace(vm.MasterPassword))
-            {
-                vm.ErrorMessage = UI.ui_ExportPasswordRequired;
-                return;
-            }
-
-            if (ValidateMasterPasswordAsync != null)
-            {
-                var isValid = await ValidateMasterPasswordAsync(vm.MasterPassword);
-                if (!isValid)
-                {
-                    vm.ErrorMessage = UI.ui_ExportPwd_WrongMasterPassword;
-                    return;
-                }
-            }
-
-            SelectedPassword = vm.MasterPassword;
-            DialogResult = true;
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(vm.CustomPassword) || string.IsNullOrWhiteSpace(vm.ConfirmCustomPassword))
-        {
-            vm.ErrorMessage = UI.ui_ExportPasswordRequired;
-            return;
-        }
-
-        if (!string.Equals(vm.CustomPassword, vm.ConfirmCustomPassword, StringComparison.Ordinal))
-        {
-            vm.ErrorMessage = UI.ui_ExportPwd_CustomPasswordMismatch;
-            return;
-        }
-
-        SelectedPassword = vm.CustomPassword;
-        DialogResult = true;
+        DataContextChanged += OnDataContextChanged;
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -68,6 +18,35 @@ public partial class ExportPasswordPromptWindow : ChromelessWindow
         base.OnSourceInitialized(e);
         CenterWithinOwnerOrScreen();
         Opacity = 1d;
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        if (DataContext is ExportPasswordPromptViewModel vm)
+        {
+            vm.RequestClose -= OnViewModelRequestClose;
+        }
+
+        DataContextChanged -= OnDataContextChanged;
+        base.OnClosed(e);
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.OldValue is ExportPasswordPromptViewModel oldVm)
+        {
+            oldVm.RequestClose -= OnViewModelRequestClose;
+        }
+
+        if (e.NewValue is ExportPasswordPromptViewModel newVm)
+        {
+            newVm.RequestClose += OnViewModelRequestClose;
+        }
+    }
+
+    private void OnViewModelRequestClose(object? sender, EventArgs e)
+    {
+        DialogResult = true;
     }
 
     private void CenterWithinOwnerOrScreen()

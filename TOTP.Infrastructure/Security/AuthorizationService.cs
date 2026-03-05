@@ -12,6 +12,7 @@ public sealed class AuthorizationService : IAuthorizationService
     private readonly ISettingsService _settingsService;
     private readonly ISecurityContext _securityContext;
     private readonly IMasterPasswordService _passwordService;
+    private readonly IPasswordValidationService _passwordValidationService;
     private readonly IHelloGate _helloGate;
     private readonly ILogger<AuthorizationService> _logger;
 
@@ -24,6 +25,7 @@ public sealed class AuthorizationService : IAuthorizationService
         ISettingsService settingsService,
         ISecurityContext securityContext,
         IMasterPasswordService passwordService,
+        IPasswordValidationService passwordValidationService,
         IHelloGate helloGate,
         AuthorizationState state,
         ILogger<AuthorizationService> logger)
@@ -31,6 +33,7 @@ public sealed class AuthorizationService : IAuthorizationService
         _settingsService = settingsService;
         _securityContext = securityContext;
         _passwordService = passwordService;
+        _passwordValidationService = passwordValidationService;
         _helloGate = helloGate;
         State = state;
         _logger = logger;
@@ -112,7 +115,10 @@ public sealed class AuthorizationService : IAuthorizationService
 
     public async Task<AuthorizationResult> ConfigurePasswordAsync(string password, string confirmPassword)
     {
-        if (password != confirmPassword) return AuthorizationResult.InvalidCredentials;
+        if (!_passwordValidationService.IsValidNewWithConfirmation(password, confirmPassword))
+        {
+            return AuthorizationResult.InvalidCredentials;
+        }
 
         // Generate a cryptographically strong 256-bit DEK
         byte[] rawDek = RandomNumberGenerator.GetBytes(32);
@@ -173,10 +179,42 @@ public sealed class AuthorizationService : IAuthorizationService
 
     public async Task<AuthorizationResult> ChangePasswordAsync(string currentPassword, string newPassword)
     {
-        var currentAuth = await TryUnlockWithPasswordAsync(currentPassword);
-        if (currentAuth != AuthorizationResult.Success) return currentAuth;
+        if (!_passwordValidationService.IsValidNew(newPassword))
+        {
+            return AuthorizationResult.InvalidCredentials;
+        }
 
-        return await ConfigurePasswordAsync(newPassword, newPassword);
+        if (_appSettings?.Authorization == null || !_appSettings.Authorization.IsConfigured)
+        {
+            return AuthorizationResult.NotConfigured;
+        }
+
+        // If already unlocked, use the active DEK. Otherwise validate current password first.
+        if (!_securityContext.IsUnlocked)
+        {
+            var currentAuth = await TryUnlockWithPasswordAsync(currentPassword);
+            if (currentAuth != AuthorizationResult.Success)
+            {
+                return currentAuth;
+            }
+        }
+
+        var currentDek = _securityContext.GetDek();
+        var wrapped = await _passwordService.WrapKeyAsync(currentDek, newPassword);
+
+        _appSettings.Authorization.PasswordSalt = wrapped.Salt;
+        _appSettings.Authorization.ArgonIterations = wrapped.Iterations;
+        _appSettings.Authorization.ArgonMemorySize = wrapped.MemorySize;
+        _appSettings.Authorization.PasswordWrappedDek = wrapped.WrappedDek;
+        _appSettings.Authorization.DekNonce = wrapped.Nonce;
+
+        if (!await SaveCurrentProfileAsync())
+        {
+            return AuthorizationResult.Failed;
+        }
+
+        State.SetProfile(_appSettings.Authorization);
+        return AuthorizationResult.Success;
     }
 
     public void Logout() => Lock();

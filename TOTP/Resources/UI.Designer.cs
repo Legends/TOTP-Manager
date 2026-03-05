@@ -862,6 +862,78 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Password changed successfully..
+        /// </summary>
+        internal static string ui_Password_ChangeSuccess {
+            get {
+                return ResourceManager.GetString("ui_Password_ChangeSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please confirm the password..
+        /// </summary>
+        internal static string ui_Password_ConfirmRequired {
+            get {
+                return ResourceManager.GetString("ui_Password_ConfirmRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password must be at least {0} characters..
+        /// </summary>
+        internal static string ui_Password_MinLength_Format {
+            get {
+                return ResourceManager.GetString("ui_Password_MinLength_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Passwords do not match..
+        /// </summary>
+        internal static string ui_Password_Mismatch {
+            get {
+                return ResourceManager.GetString("ui_Password_Mismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password is required..
+        /// </summary>
+        internal static string ui_Password_Required {
+            get {
+                return ResourceManager.GetString("ui_Password_Required", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password setup failed. Check the password requirements..
+        /// </summary>
+        internal static string ui_Password_SetupFailed {
+            get {
+                return ResourceManager.GetString("ui_Password_SetupFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password validation failed..
+        /// </summary>
+        internal static string ui_Password_ValidationFailed {
+            get {
+                return ResourceManager.GetString("ui_Password_ValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password verification failed..
+        /// </summary>
+        internal static string ui_Password_VerificationFailed {
+            get {
+                return ResourceManager.GetString("ui_Password_VerificationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scan QR Code.
         /// </summary>
         internal static string ui_ScanQR {

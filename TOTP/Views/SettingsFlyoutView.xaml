@@ -7,6 +7,7 @@
              xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
              xmlns:local="clr-namespace:Syncfusion.Windows.Shared;assembly=Syncfusion.Shared.WPF"
+             xmlns:userControls="clr-namespace:TOTP.UserControls"
              xmlns:attached="clr-namespace:TOTP.Infrastructure.AttachedProperties"
              xmlns:behaviors="clr-namespace:TOTP.Infrastructure.Behaviors"
              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}">
@@ -93,13 +94,22 @@
                                            FontSize="13"/>
                             </GroupBox.Header>
                             <StackPanel Margin="10">
-                                <PasswordBox Height="30" Margin="0,0,0,10"
-                                             behaviors:PasswordBoxHelper.BindPassword="True"
-                                             behaviors:PasswordBoxHelper.BoundPassword="{Binding NewPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <userControls:RevealableSecretBox Margin="0,0,0,10"
+                                                                  Secret="{Binding NewPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                  ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
+                                                                  ToggleToolTip="{xaml:Resx Key=ui_btnShowHideSecret}" />
+                                <TextBlock Text="{Binding NewPasswordError}"
+                                           Style="{StaticResource InlineErrorTextStyle}"
+                                           Visibility="{Binding NewPasswordError, Converter={StaticResource StringToVisibilityConverterCollapsed}}"
+                                           Margin="0,0,0,8" />
 
-                                <PasswordBox Height="30"
-                                             behaviors:PasswordBoxHelper.BindPassword="True"
-                                             behaviors:PasswordBoxHelper.BoundPassword="{Binding ConfirmPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <userControls:RevealableSecretBox Secret="{Binding ConfirmPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                  ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
+                                                                  ToggleToolTip="{xaml:Resx Key=ui_btnShowHideSecret}" />
+                                <TextBlock Text="{Binding ConfirmPasswordError}"
+                                           Style="{StaticResource InlineErrorTextStyle}"
+                                           Visibility="{Binding ConfirmPasswordError, Converter={StaticResource StringToVisibilityConverterCollapsed}}"
+                                           Margin="0,0,0,8" />
 
                                 <Button Content="{xaml:Resx Key=ui_Settings_Auth_Password_SetChange}"
                                         Command="{Binding ChangePasswordCommand}"

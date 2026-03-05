@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using TOTP.Commands;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
-using TOTP.Security.Interfaces;
+using TOTP.Resources;
 
 namespace TOTP.ViewModels;
 
@@ -19,6 +19,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
 
 
     private readonly IAuthorizationService _auth;
+    private readonly IPasswordValidationService _passwordValidationService;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -76,9 +77,13 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
 
     #region ### CONSTRUCTOR ###
 
-    public PasswordUnlockViewModel(IAuthorizationService auth, ILogger<PasswordUnlockViewModel> logger)
+    public PasswordUnlockViewModel(
+        IAuthorizationService auth,
+        IPasswordValidationService passwordValidationService,
+        ILogger<PasswordUnlockViewModel> logger)
     {
         _auth = auth;
+        _passwordValidationService = passwordValidationService;
         UnlockCommand = new AsyncCommand(
             execute: async () => await UnlockAsync(),
             canExecute: () => ValidatePassword(Password),
@@ -114,14 +119,18 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
 
     private bool CanSavePassword()
     {
-        if (string.IsNullOrWhiteSpace(Password)) return false;
-        if (Password.Length < 3) return false;           // example rule
         if (IsSetup)
         {
-            if (!string.Equals(Password, ConfirmPassword)) return false;
+            return _passwordValidationService.ValidateNewWithConfirmation(
+                Password,
+                ConfirmPassword,
+                UI.ui_Password_Required,
+                UI.ui_Password_MinLength_Format,
+                UI.ui_Password_ConfirmRequired,
+                UI.ui_Password_Mismatch).IsValid;
         }
 
-        return true;
+        return _passwordValidationService.ValidateRequired(Password, UI.ui_Password_Required).IsValid;
     }
 
     private async Task SavePassword()
@@ -131,7 +140,9 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         // 1. Defensive validation
         if (!CanSavePassword())
         {
-            Message = "Passwords must match and not be empty.";
+            Message = IsSetup
+                ? BuildSetupValidationMessage()
+                : UI.ui_Password_Required;
             return;
         }
 
@@ -156,8 +167,8 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     public void EnterSetupMode()
     {
         IsSetup = true;
-        Password = null;
-        ConfirmPassword = null;
+        Password = string.Empty;
+        ConfirmPassword = string.Empty;
         Message = null;
     }
 
@@ -174,16 +185,30 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
 
         if (string.IsNullOrWhiteSpace(Password))
         {
-            Message = "Password required!";
+            Message = UI.ui_Password_Required;
             return AuthorizationResult.InvalidCredentials; // Or a specific "Empty" result
         }
 
         if (IsSetup)
         {
+            var setupValidation = _passwordValidationService.ValidateNewWithConfirmation(
+                Password,
+                ConfirmPassword,
+                UI.ui_Password_Required,
+                UI.ui_Password_MinLength_Format,
+                UI.ui_Password_ConfirmRequired,
+                UI.ui_Password_Mismatch);
+
+            if (!setupValidation.IsValid)
+            {
+                Message = setupValidation.PasswordError ?? setupValidation.ConfirmPasswordError ?? UI.ui_Password_SetupFailed;
+                return AuthorizationResult.InvalidCredentials;
+            }
+
             var cfg = await _auth.ConfigurePasswordAsync(Password ?? "", ConfirmPassword ?? "");
             if (cfg != AuthorizationResult.Success)
             {
-                Message = "Password setup failed (min length 8, and both fields must match).";
+                Message = UI.ui_Password_SetupFailed;
             }
 
             return cfg;
@@ -193,10 +218,23 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         var unlock = await _auth.TryUnlockWithPasswordAsync(Password);
         if (unlock != AuthorizationResult.Success)
         {
-            Message = "Password verification failed.";
+            Message = UI.ui_Password_VerificationFailed;
         }
 
         return unlock;
+    }
+
+    private string BuildSetupValidationMessage()
+    {
+        var validation = _passwordValidationService.ValidateNewWithConfirmation(
+            Password,
+            ConfirmPassword,
+            UI.ui_Password_Required,
+            UI.ui_Password_MinLength_Format,
+            UI.ui_Password_ConfirmRequired,
+            UI.ui_Password_Mismatch);
+
+        return validation.PasswordError ?? validation.ConfirmPasswordError ?? UI.ui_Password_SetupFailed;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

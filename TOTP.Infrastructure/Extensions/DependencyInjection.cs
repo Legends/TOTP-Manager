@@ -31,6 +31,7 @@ public static class DependencyInjection
         // 1. Master Password & Security Context
         services.AddSingleton<ISecurityContext, SecurityContext>();
         services.AddTransient<IMasterPasswordService, MasterPasswordService>();
+        services.AddSingleton<IPasswordValidationService, PasswordValidationService>();
 
         // 2. The Vault & DAL logic
         services.AddSingleton<IVaultService, VaultService>();

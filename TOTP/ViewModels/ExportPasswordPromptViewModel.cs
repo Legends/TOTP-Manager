@@ -1,10 +1,17 @@
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using TOTP.Commands;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Resources;
 
 namespace TOTP.ViewModels;
 
 public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
 {
+    private readonly IPasswordValidationService _passwordValidationService;
     private string _title;
     private bool _useMasterPassword = true;
     private string _masterPassword = string.Empty;
@@ -13,10 +20,16 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
     private string _errorMessage = string.Empty;
 
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event EventHandler? RequestClose;
 
-    public ExportPasswordPromptViewModel(string title)
+    public Func<string, Task<bool>>? ValidateMasterPasswordAsync { get; set; }
+    public ICommand ConfirmCommand { get; }
+
+    public ExportPasswordPromptViewModel(string title, IPasswordValidationService passwordValidationService)
     {
         _title = title;
+        _passwordValidationService = passwordValidationService;
+        ConfirmCommand = new AsyncCommand(ConfirmAsync);
     }
 
     public string Title
@@ -127,6 +140,52 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             _errorMessage = value;
             OnPropertyChanged();
         }
+    }
+
+    public string SelectedPassword { get; private set; } = string.Empty;
+
+    private async Task ConfirmAsync()
+    {
+        if (UseMasterPassword)
+        {
+            var requiredValidation = _passwordValidationService.ValidateRequired(MasterPassword, UI.ui_ExportPasswordRequired);
+            if (!requiredValidation.IsValid)
+            {
+                ErrorMessage = requiredValidation.PasswordError ?? UI.ui_ExportPasswordRequired;
+                return;
+            }
+
+            if (ValidateMasterPasswordAsync != null)
+            {
+                var isValid = await ValidateMasterPasswordAsync(MasterPassword);
+                if (!isValid)
+                {
+                    ErrorMessage = UI.ui_ExportPwd_WrongMasterPassword;
+                    return;
+                }
+            }
+
+            SelectedPassword = MasterPassword;
+            RequestClose?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        var validation = _passwordValidationService.ValidateNewWithConfirmation(
+            CustomPassword,
+            ConfirmCustomPassword,
+            UI.ui_Password_Required,
+            UI.ui_Password_MinLength_Format,
+            UI.ui_ExportPasswordRequired,
+            UI.ui_ExportPwd_CustomPasswordMismatch);
+
+        if (!validation.IsValid)
+        {
+            ErrorMessage = validation.PasswordError ?? validation.ConfirmPasswordError ?? UI.ui_ExportPasswordRequired;
+            return;
+        }
+
+        SelectedPassword = CustomPassword;
+        RequestClose?.Invoke(this, EventArgs.Empty);
     }
 
     private void OnPropertyChanged([CallerMemberName] string propertyName = "")

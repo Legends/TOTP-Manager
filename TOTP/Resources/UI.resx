@@ -489,4 +489,28 @@
   <data name="ui_Settings_Export_Success" xml:space="preserve">
     <value>Export successful</value>
   </data>
+  <data name="ui_Password_Required" xml:space="preserve">
+    <value>Password is required.</value>
+  </data>
+  <data name="ui_Password_ConfirmRequired" xml:space="preserve">
+    <value>Please confirm the password.</value>
+  </data>
+  <data name="ui_Password_Mismatch" xml:space="preserve">
+    <value>Passwords do not match.</value>
+  </data>
+  <data name="ui_Password_MinLength_Format" xml:space="preserve">
+    <value>Password must be at least {0} characters.</value>
+  </data>
+  <data name="ui_Password_ValidationFailed" xml:space="preserve">
+    <value>Password validation failed.</value>
+  </data>
+  <data name="ui_Password_ChangeSuccess" xml:space="preserve">
+    <value>Password changed successfully.</value>
+  </data>
+  <data name="ui_Password_SetupFailed" xml:space="preserve">
+    <value>Password setup failed. Check the password requirements.</value>
+  </data>
+  <data name="ui_Password_VerificationFailed" xml:space="preserve">
+    <value>Password verification failed.</value>
+  </data>
 </root>

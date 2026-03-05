@@ -12,20 +12,20 @@ namespace TOTP.Services;
 public sealed class PasswordPromptService : IPasswordPromptService
 {
     private readonly IAuthorizationService _authorizationService;
+    private readonly IPasswordValidationService _passwordValidationService;
 
-    public PasswordPromptService(IAuthorizationService authorizationService)
+    public PasswordPromptService(
+        IAuthorizationService authorizationService,
+        IPasswordValidationService passwordValidationService)
     {
         _authorizationService = authorizationService;
+        _passwordValidationService = passwordValidationService;
     }
 
     public string? PromptForEncryptedExportPassword(string title)
     {
-        var viewModel = new ExportPasswordPromptViewModel(title);
-
-        var dialog = new ExportPasswordPromptWindow
+        var viewModel = new ExportPasswordPromptViewModel(title, _passwordValidationService)
         {
-            DataContext = viewModel,
-            Owner = Application.Current?.MainWindow,
             ValidateMasterPasswordAsync = async password =>
             {
                 var result = await _authorizationService.TryUnlockWithPasswordAsync(password);
@@ -33,13 +33,19 @@ public sealed class PasswordPromptService : IPasswordPromptService
             }
         };
 
+        var dialog = new ExportPasswordPromptWindow
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow
+        };
+
         var result = dialog.ShowDialog();
-        if (result != true || string.IsNullOrWhiteSpace(dialog.SelectedPassword))
+        if (result != true || string.IsNullOrWhiteSpace(viewModel.SelectedPassword))
         {
             return null;
         }
 
-        return dialog.SelectedPassword;
+        return viewModel.SelectedPassword;
     }
 
     public string? Prompt(
