@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
+using TOTP.Core.Validation;
 using TOTP.ViewModels;
 
 namespace TOTP.Validation;
-
 
 public record ValidationResult(bool IsValid, ValidationError Error);
 internal class UiValidation
@@ -61,7 +61,7 @@ internal class UiValidation
         return this;
     }
 
-   
+
     /// <summary>
     /// Checks for account duplicates in source list.
     /// If source is not provided, it will use the one provided in the constructor.
@@ -87,7 +87,7 @@ internal class UiValidation
         return this;
     }
 
-    
+
     public bool IsValid => _errors.Count == 0;
     public IReadOnlyList<ValidationError> Errors => _errors;
 
@@ -103,6 +103,7 @@ internal class UiValidation
             ? ValidationError.PlatformRequired
             : ValidationError.None;
     }
+
     public static ValidationError PlatformNameDuplicateExists(string platform, IEnumerable<OtpEntry> source)
     {
         // Check duplicates in the bound list (ignore the current row)
@@ -110,6 +111,7 @@ internal class UiValidation
             .Any(x => string.Equals(x.Issuer, platform, StringComparison.OrdinalIgnoreCase));
         return duplicate ? ValidationError.PlatformAlreadyExists : ValidationError.None;
     }
+
     public static ValidationError ValidateSecretValue(string? secretValue)
     {
         return string.IsNullOrWhiteSpace(secretValue)
@@ -121,16 +123,6 @@ internal class UiValidation
 
     public static bool IsValidBase32Format(string secretValue)
     {
-        try
-        {
-            var bytes = OtpNet.Base32Encoding.ToBytes(secretValue);
-            return bytes.Length > 0;
-        }
-        catch
-        {
-            return false;
-        }
+        return SecretValidation.IsValidBase32Secret(secretValue);
     }
 }
-
-

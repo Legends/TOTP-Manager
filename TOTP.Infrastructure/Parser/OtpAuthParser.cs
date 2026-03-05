@@ -1,25 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
+using TOTP.Core.Validation;
 
 namespace TOTP.Infrastructure.Parser
 {
     public static class OtpauthParser
     {
-
         public static string NormalizeBase32SecretForUri(string secret)
         {
-            if (secret is null) throw new ArgumentNullException(nameof(secret));
-
-            // common copy/paste hygiene
-            var s = secret.Trim()
-                .Replace(" ", "")
-                .Replace("-", "")
-                .ToUpperInvariant()
-                .TrimEnd('=');
-
-            return s;
+            return SecretValidation.NormalizeBase32Secret(secret);
         }
+
         public sealed class TOTPData
         {
             /// <summary>
@@ -58,6 +50,10 @@ namespace TOTP.Infrastructure.Parser
             if (!query.TryGetValue("secret", out var secret) || string.IsNullOrWhiteSpace(secret))
                 throw new ArgumentException("Missing 'secret' parameter.");
 
+            var normalizedSecret = NormalizeBase32SecretForUri(secret);
+            if (!SecretValidation.IsValidBase32Secret(normalizedSecret))
+                throw new ArgumentException("Invalid Base32 secret.");
+
             query.TryGetValue("issuer", out var issuerParam);
             query.TryGetValue("algorithm", out var alg);
             query.TryGetValue("digits", out var digitsStr);
@@ -71,7 +67,7 @@ namespace TOTP.Infrastructure.Parser
             {
                 Label = label,
                 Issuer = issuer,
-                SecretBase32 = secret,
+                SecretBase32 = normalizedSecret,
                 Algorithm = string.IsNullOrWhiteSpace(alg) ? "SHA1" : alg!,
                 Digits = digits,
                 Period = period
@@ -90,6 +86,7 @@ namespace TOTP.Infrastructure.Parser
                 var val = kv.Length > 1 ? WebUtility.UrlDecode(kv[1]) : "";
                 dict[key] = val;
             }
+
             return dict;
         }
     }

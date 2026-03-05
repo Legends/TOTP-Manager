@@ -89,4 +89,25 @@ public sealed class UiValidationTests
         Assert.False(UiValidation.IsValidBase32Format("@notbase32@"));
         Assert.True(UiValidation.IsValidBase32Format("JBSWY3DPEHPK3PXP"));
     }
+
+    [Fact]
+    public void IsValidBase32Format_RejectsCharactersOutsideBase32Alphabet()
+    {
+        Assert.False(UiValidation.IsValidBase32Format("ABCD0EFG"));
+        Assert.False(UiValidation.IsValidBase32Format("ABCD1EFG"));
+        Assert.False(UiValidation.IsValidBase32Format("ABCD8EFG"));
+        Assert.False(UiValidation.IsValidBase32Format("ABCD9EFG"));
+    }
+
+    [Fact]
+    public void IsValidBase32Format_AllowsCommonSeparatorsAndPadding_WhenNormalized()
+    {
+        Assert.True(UiValidation.IsValidBase32Format(" jbsw-y3dp ehpk3pxp== "));
+    }
+
+    [Fact]
+    public void IsValidBase32Format_RejectsTooShortSecrets()
+    {
+        Assert.False(UiValidation.IsValidBase32Format("JBSWY3DP"));
+    }
 }
