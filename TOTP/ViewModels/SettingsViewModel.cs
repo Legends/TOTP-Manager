@@ -310,6 +310,8 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(OpenExportFileAfterExport));
 
             UpdateAvailableExportFormats();
+            // Force ComboBox resync after source list/encryption mode transitions.
+            OnPropertyChanged(nameof(SelectedExportFormat));
             OnPropertyChanged(nameof(CanResetToDefaults));
             QueueGeneralSettingsSave();
         }

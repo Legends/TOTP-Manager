@@ -1,12 +1,10 @@
 using FluentResults;
 using Notification.Wpf;
-using Notification.Wpf.Base;
 using Notification.Wpf.Constants;
 using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Threading;
 using TOTP.Core.Common;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
@@ -15,27 +13,14 @@ namespace TOTP.Services;
 
 public sealed class MessageService : IMessageService
 {
-    private const string NotificationAreaName = "MainWindowNotificationArea";
-    private readonly NotificationManager _notificationManager = new();
     private readonly ILogFileService _logFileService;
+    private readonly INotificationUiClient _notificationUiClient;
     private static int msgDuration = 5;
-    private static readonly TextContentSettings TitleTextSettings = new()
-    {
-        FontFamily = new FontFamily("Segoe UI Semibold"),
-        FontSize = 13,
-        TextAlignment = TextAlignment.Left
-    };
 
-    private static readonly TextContentSettings MessageTextSettings = new()
-    {
-        FontFamily = new FontFamily("Segoe UI"),
-        FontSize = 12,
-        TextAlignment = TextAlignment.Left
-    };
-
-    public MessageService(ILogFileService logFileService)
+    public MessageService(ILogFileService logFileService, INotificationUiClient notificationUiClient)
     {
         _logFileService = logFileService;
+        _notificationUiClient = notificationUiClient;
     }
 
     public void ShowResultError(IResultBase result, string? context = null)
@@ -90,44 +75,40 @@ public sealed class MessageService : IMessageService
 
             if (buttonAction == null || string.IsNullOrWhiteSpace(buttonText))
             {
-                _notificationManager.Show(
-                    title,
-                    message,
-                    type,
-                    NotificationAreaName,
-                    expirationTime: TimeSpan.FromSeconds(durationSeconds ?? msgDuration),
-                    onClose: null,
-                    onClick: type == NotificationType.Error ? _logFileService.OpenCurrentLogFile : null,
-                    trim: NotificationTextTrimType.NoTrim,
-                    RowsCountWhenTrim: 2,
-                    CloseOnClick: true,
-                    TitleSettings: TitleTextSettings,
-                    MessageSettings: MessageTextSettings,
-                    ShowXbtn: true,
-                    icon: GetIconForType(type));
+                _notificationUiClient.Show(new NotificationShowRequest
+                {
+                    Title = title,
+                    Message = message,
+                    Type = type,
+                    ExpirationTime = TimeSpan.FromSeconds(durationSeconds ?? msgDuration),
+                    OnClick = type == NotificationType.Error ? _logFileService.OpenCurrentLogFile : null,
+                    OnClose = null,
+                    LeftButton = null,
+                    LeftButtonText = null,
+                    RightButton = null,
+                    RightButtonText = null,
+                    CloseOnClick = true,
+                    Icon = GetIconForType(type)
+                });
 
                 return;
             }
 
-            _notificationManager.Show(
-                title,
-                message,
-                type,
-                NotificationAreaName,
-                expirationTime: TimeSpan.FromSeconds(durationSeconds ?? msgDuration),
-                onClick: null,
-                onClose: null,
-                LeftButton: buttonAction,
-                LeftButtonText: buttonText,
-                RightButton: null,
-                RightButtonText: null,
-                trim: NotificationTextTrimType.NoTrim,
-                RowsCountWhenTrim: 2,
-                CloseOnClick: false,
-                TitleSettings: TitleTextSettings,
-                MessageSettings: MessageTextSettings,
-                ShowXbtn: true,
-                icon: GetIconForType(type));
+            _notificationUiClient.Show(new NotificationShowRequest
+            {
+                Title = title,
+                Message = message,
+                Type = type,
+                ExpirationTime = TimeSpan.FromSeconds(durationSeconds ?? msgDuration),
+                OnClick = null,
+                OnClose = null,
+                LeftButton = buttonAction,
+                LeftButtonText = buttonText,
+                RightButton = null,
+                RightButtonText = null,
+                CloseOnClick = false,
+                Icon = GetIconForType(type)
+            });
         });
     }
 
@@ -138,49 +119,23 @@ public sealed class MessageService : IMessageService
         string? ok,
         string? cancel)
     {
-        bool result = false;
+        var result = false;
 
         RunOnUiThread(() =>
         {
             ConfigureNotificationSizing();
             ConfigureNotificationTheme();
 
-            var frame = new DispatcherFrame();
-            var completed = false;
-
-            void Complete(bool value)
+            result = _notificationUiClient.Confirm(new NotificationConfirmRequest
             {
-                if (completed)
-                {
-                    return;
-                }
-
-                completed = true;
-                result = value;
-                frame.Continue = false;
-            }
-
-            _notificationManager.Show(
-                title,
-                message,
-                type,
-                NotificationAreaName,
-                expirationTime: TimeSpan.MaxValue,
-                onClick: type == NotificationType.Error ? _logFileService.OpenCurrentLogFile : null,
-                onClose: () => Complete(false),
-                LeftButton: () => Complete(true),
-                LeftButtonText: ok ?? UI.ui_btnOK,
-                RightButton: () => Complete(false),
-                RightButtonText: cancel ?? UI.ui_btnCancel,
-                trim: NotificationTextTrimType.NoTrim,
-                RowsCountWhenTrim: 2,
-                CloseOnClick: false,
-                TitleSettings: TitleTextSettings,
-                MessageSettings: MessageTextSettings,
-                ShowXbtn: true,
-                icon: GetIconForType(type));
-
-            Dispatcher.PushFrame(frame);
+                Title = title,
+                Message = message,
+                Type = type,
+                OkText = ok ?? UI.ui_btnOK,
+                CancelText = cancel ?? UI.ui_btnCancel,
+                OnClick = type == NotificationType.Error ? _logFileService.OpenCurrentLogFile : null,
+                Icon = GetIconForType(type)
+            });
         });
 
         return result;
@@ -203,7 +158,6 @@ public sealed class MessageService : IMessageService
         var window = Application.Current?.MainWindow;
         var width = window?.ActualWidth > 0 ? window.ActualWidth : window?.Width ?? 300d;
 
-        // Keep notifications inside the compact app window.
         var maxWidth = Math.Floor(Math.Clamp(width - 28d, 180d, 290d));
         var minWidth = Math.Floor(Math.Clamp(maxWidth - 70d, 140d, maxWidth));
 
@@ -215,11 +169,11 @@ public sealed class MessageService : IMessageService
 
     private static void ConfigureNotificationTheme()
     {
-        var defaultBackground = new SolidColorBrush(Color.FromArgb(204, 47, 47, 47)); // #2F2F2F @ 0.8
-        var infoBackground = new SolidColorBrush(Color.FromArgb(204, 37, 99, 235));    // blue
-        var warningBackground = new SolidColorBrush(Color.FromArgb(204, 217, 163, 0)); // yellow
-        var errorBackground = new SolidColorBrush(Color.FromArgb(204, 194, 39, 46));   // red
-        var successBackground = new SolidColorBrush(Color.FromArgb(204, 46, 125, 50)); // green
+        var defaultBackground = new SolidColorBrush(Color.FromArgb(204, 47, 47, 47));
+        var infoBackground = new SolidColorBrush(Color.FromArgb(204, 37, 99, 235));
+        var warningBackground = new SolidColorBrush(Color.FromArgb(204, 217, 163, 0));
+        var errorBackground = new SolidColorBrush(Color.FromArgb(204, 194, 39, 46));
+        var successBackground = new SolidColorBrush(Color.FromArgb(204, 46, 125, 50));
 
         NotificationConstants.DefaultForegroundColor = Brushes.White;
         NotificationConstants.DefaultBackgroundColor = defaultBackground;
@@ -261,5 +215,4 @@ public sealed class MessageService : IMessageService
             Margin = new Thickness(0)
         };
     }
-
 }

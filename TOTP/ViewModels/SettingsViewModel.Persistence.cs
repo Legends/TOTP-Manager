@@ -116,7 +116,11 @@ public sealed partial class SettingsViewModel
         if (!AvailableExportFormats.Contains(SelectedExportFormat))
         {
             SelectedExportFormat = AvailableExportFormats.First();
+            return;
         }
+
+        // Keep ComboBox selection in sync after ItemsSource rebuild, even when the value did not change.
+        OnPropertyChanged(nameof(SelectedExportFormat));
     }
 
     private void RaiseCommandStates()

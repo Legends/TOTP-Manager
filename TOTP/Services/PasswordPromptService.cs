@@ -5,7 +5,6 @@ using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
-using TOTP.Views;
 
 namespace TOTP.Services;
 
@@ -13,13 +12,16 @@ public sealed class PasswordPromptService : IPasswordPromptService
 {
     private readonly IAuthorizationService _authorizationService;
     private readonly IPasswordValidationService _passwordValidationService;
+    private readonly IPasswordPromptDialogFactory _dialogFactory;
 
     public PasswordPromptService(
         IAuthorizationService authorizationService,
-        IPasswordValidationService passwordValidationService)
+        IPasswordValidationService passwordValidationService,
+        IPasswordPromptDialogFactory dialogFactory)
     {
         _authorizationService = authorizationService;
         _passwordValidationService = passwordValidationService;
+        _dialogFactory = dialogFactory;
     }
 
     public string? PromptForEncryptedExportPassword(string title)
@@ -33,11 +35,9 @@ public sealed class PasswordPromptService : IPasswordPromptService
             }
         };
 
-        var dialog = new ExportPasswordPromptWindow
-        {
-            DataContext = viewModel,
-            Owner = Application.Current?.MainWindow
-        };
+        var dialog = _dialogFactory.CreateExportPasswordPromptDialog();
+        dialog.DataContext = viewModel;
+        dialog.Owner = GetMainWindowSafe();
 
         var result = dialog.ShowDialog();
         if (result != true || string.IsNullOrWhiteSpace(viewModel.SelectedPassword))
@@ -58,11 +58,9 @@ public sealed class PasswordPromptService : IPasswordPromptService
         var viewModel = new PasswordPromptViewModel(title, message, errorMessage, requiredErrorMessage);
         viewModel.ValidatePasswordAsync = validatePasswordAsync;
 
-        var dialog = new PasswordPromptWindow
-        {
-            DataContext = viewModel,
-            Owner = Application.Current?.MainWindow
-        };
+        var dialog = _dialogFactory.CreatePasswordPromptDialog();
+        dialog.DataContext = viewModel;
+        dialog.Owner = GetMainWindowSafe();
 
         var result = dialog.ShowDialog();
         if (result != true || string.IsNullOrWhiteSpace(viewModel.Password))
@@ -71,5 +69,17 @@ public sealed class PasswordPromptService : IPasswordPromptService
         }
 
         return viewModel.Password;
+    }
+
+    private static Window? GetMainWindowSafe()
+    {
+        try
+        {
+            return Application.Current?.MainWindow;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
     }
 }

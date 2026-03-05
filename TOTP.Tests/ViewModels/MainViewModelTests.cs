@@ -1,261 +1,501 @@
-﻿using Moq;
-using Moq.AutoMock;
-using System.Diagnostics;
-using TOTP.Core.Common;
+using FluentResults;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using System.Collections.ObjectModel;
+using System.Windows.Input;
+using TOTP.Commands;
+using TOTP.Core.Enums;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
-using TOTP.Extensions;
-using TOTP.Interfaces;
+using TOTP.Core.Security;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
+using TOTP.Core.Services.Interfaces;
+using TOTP.Infrastructure.Common;
+using TOTP.Infrastructure.Services;
+using TOTP.Security.Interfaces;
+using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
+using TOTP.Views.Interfaces;
 
 namespace TOTP.Tests.ViewModels;
 
-public class MainViewModelTests : IClassFixture<MyFixture>
+public sealed class MainViewModelTests : IDisposable
 {
-    private readonly MyFixture _fixture;
+    private readonly string _settingsPath = StringsConstants.AppSettingsJsonFilePath;
+    private readonly string? _settingsBackup;
 
-    public MainViewModelTests(MyFixture fixture)
+    public MainViewModelTests()
     {
-        _fixture = fixture;
-        Debug.WriteLine("MainViewModelTests constructor called. This method is called before each test.");
+        _settingsBackup = File.Exists(_settingsPath) ? File.ReadAllText(_settingsPath) : null;
+        File.WriteAllText(_settingsPath, """{"Localization":{"Culture":"en"}}""");
     }
 
     [Fact]
-    public void AddNewSecretCommand_ShouldAddNewSecret_WhenManagerReturnsSuccess()
+    public async Task InitializeMainViewAsync_LoadsSettingsAndInitializesSession()
     {
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
+        using var ctx = new MainVmTestContext();
+        var mainWindow = new Mock<IMainWindow>();
 
-        var secretItem = new SecretItemViewModel(Guid.NewGuid(), "TestKey", "TestValue", "user@test.com");
+        await ctx.Sut.InitializeMainViewAsync(mainWindow.Object);
 
-        mocker.GetMock<ITotpManager>()
-            .Setup(m => m.AddNewSecretAsync())
-            .ReturnsAsync((true, secretItem.ToDomain()));
-
-        var vm = mocker.CreateInstance<MainViewModel>();
-        var initialCount = vm.AllSecrets.Count;
-
-        vm.AddNewSecretCommand.Execute(null);
-
-        Assert.Equal(initialCount + 1, vm.AllSecrets.Count);
-        Assert.Contains(secretItem, vm.AllSecrets);
+        Assert.False(ctx.Sut.IsBusy);
+        Assert.NotNull(ctx.Sut.SettingsVm);
+        ctx.SettingsDialog.Verify(s => s.CreateAndLoadAsync(
+            ctx.Sut.CloseSettingsViewCommand,
+            It.IsAny<Action>(),
+            ctx.Sut), Times.Once);
+        ctx.Session.Verify(s => s.InitializeAsync(mainWindow.Object), Times.Once);
     }
 
     [Fact]
-    public void DeleteSecretCommand_ShouldRemoveSecret_WhenManagerDeletesSuccessfully()
+    public async Task OnUnlockedCallback_LoadsAccountsOnlyOnce()
     {
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
-
-        var vm = mocker.CreateInstance<MainViewModel>();
-
-        var secret = new SecretItemViewModel(Guid.NewGuid(), "DeleteKey", "DeleteValue");
-        mocker.GetMock<ITotpManager>().Setup(m => m.DeleteSecretAsync(secret.ToDomain())).Returns(Task.FromResult(true));
-
-        vm.AllSecrets.Add(secret);
-        var initialCount = vm.AllSecrets.Count;
-
-        vm.DeleteSecretCommand.Execute(secret);
-
-        Assert.Equal(initialCount - 1, vm.AllSecrets.Count);
-        Assert.DoesNotContain(secret, vm.AllSecrets);
-    }
-
-    [Fact]
-    public void SearchText_ShouldFilterSecrets()
-    {
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
-        var vm = mocker.CreateInstance<MainViewModel>();
-
-        vm.AllSecrets.Add(new SecretItemViewModel(Guid.NewGuid(), "apple", "value1"));
-        vm.AllSecrets.Add(new SecretItemViewModel(Guid.NewGuid(), "banana", "value2"));
-
-        vm.SearchText = "apple";
-        vm.ApplySearchFilter(); // made method internal and set [assembly:InternalsVisibleTo(..) in TOTP.csproj asemblyinfo.cs
-
-        // or use reflection to call the private method
-        //var method = typeof(MainViewModel).GetMethod("UpdateSearchFilter", BindingFlags.NonPublic | BindingFlags.Instance);
-        //method?.Invoke(vm, null);
-
-        Assert.Single(vm.FilteredSecrets);
-        Assert.Equal("apple", vm.FilteredSecrets[0].Platform);
-    }
-
-    [Fact]
-    public void ClearSearchCommand_ShouldClearSearchText()
-    {
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
-
-        var vm = mocker.CreateInstance<MainViewModel>();
-        vm.SearchText = "query";
-
-        vm.ClearSearchCommand.Execute(null);
-
-        Assert.True(string.IsNullOrEmpty(vm.SearchText));
-    }
-
-    [Fact]
-    public void BeginEditCommand_ShouldSetIsBeingEdited()
-    {
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
-        var vm = mocker.CreateInstance<MainViewModel>();
-
-        var secret = new SecretItemViewModel(Guid.NewGuid(), "key", "value");
-        vm.AllSecrets.Add(secret);
-
-        vm.BeginEditCommand.Execute(secret);
-
-        Assert.True(secret.IsBeingEdited);
-    }
-
-    [Fact]
-    public void EndEditCommand_ShouldUpdateSecret_AndResetPreviousVersion()
-    {
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
-        var vm = mocker.CreateInstance<MainViewModel>();
-
-        var oldSecret = new SecretItemViewModel(Guid.NewGuid(), "key", "old");
-        var updatedSecret = new SecretItemViewModel(oldSecret.ID, "key", "new");
-        vm.AllSecrets.Add(updatedSecret);
-        vm.PreviousVersion = oldSecret;
-
-        vm.EndEditCommand.Execute(updatedSecret);
-        var secretList = vm.AllSecrets.Select(s => s.ToDomain()).ToList();
-        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecretAsync(oldSecret.ToDomain(), updatedSecret.ToDomain(), new List<SecretItem>()), Times.Once);
-        Assert.Null(vm.PreviousVersion);
-    }
-
-    [Fact]
-    public void ToggleSearchBoxCommand_ShouldToggleSearchVisibility()
-    {
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
-        var vm = mocker.CreateInstance<MainViewModel>();
-
-        var initial = vm.IsSearchVisible;
-        vm.ToggleSearchBoxCommand.Execute(null);
-
-        Assert.NotEqual(initial, vm.IsSearchVisible);
-    }
-
-    [Fact]
-    public void DoubleClickCommand_ShouldEnableEditMode()
-    {
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
-        var vm = mocker.CreateInstance<MainViewModel>();
-
-        var secret = new SecretItemViewModel(Guid.NewGuid(), "key", "value");
-        vm.AllSecrets.Add(secret);
-
-        vm.DoubleClickCommand.Execute(secret);
-
-        Assert.True(secret.IsBeingEdited);
-    }
-
-    [Fact]
-    public void UpdateSecretCommand_ShouldCallUpdate_WhenSecretChanged()
-    {
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
-        var vm = mocker.CreateInstance<MainViewModel>();
-
-        var old = new SecretItemViewModel(Guid.NewGuid(), "p1", "old");
-        var updated = new SecretItemViewModel(old.ID, "p1", "new");
-
-        vm.PreviousVersion = old;
-        vm.UpdateSecretCommand.Execute(updated);
-        var secretList = vm.AllSecrets.Select(s => s.ToDomain()).ToList();
-        mocker.GetMock<ITotpManager>().Verify(m => m.UpdateSecretAsync(old.ToDomain(), updated.ToDomain(), secretList), Times.Once);
-    }
-
-    [Fact]
-    public void SearchText_ShouldRaisePropertyChanged()
-    {
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
-        var vm = mocker.CreateInstance<MainViewModel>();
-
-        var eventRaised = false;
-        vm.PropertyChanged += (s, e) =>
+        using var ctx = new MainVmTestContext();
+        var loaded = new ObservableCollection<OtpViewModel>
         {
-            if (e.PropertyName == nameof(vm.SearchText))
-                eventRaised = true;
+            new(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP")
         };
+        ctx.AccountsWorkflow.Setup(s => s.LoadAllAsync()).ReturnsAsync(Result.Ok(loaded));
 
-        vm.SearchText = "test";
+        await ctx.InvokeUnlockedAsync();
+        await ctx.InvokeUnlockedAsync();
 
-        Assert.True(eventRaised);
+        Assert.Single(ctx.Sut.AllOtps);
+        ctx.AccountsWorkflow.Verify(s => s.LoadAllAsync(), Times.Once);
     }
 
-    [StaFact]
-    public async Task OnSecretSelected_ShouldGenerateTotp_AndCopyToClipboard()
+    [Fact]
+    public async Task OnLockedCallback_ResetsUiAndClearsAccounts()
     {
-        var secret = new SecretItemViewModel(Guid.NewGuid(), "TestPlatform", "JBSWY3DPEHPK3PXP");
+        using var ctx = new MainVmTestContext();
+        var otp = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
+        ctx.AccountsWorkflow.Setup(s => s.LoadAllAsync()).ReturnsAsync(Result.Ok(new ObservableCollection<OtpViewModel> { otp }));
+        await ctx.InvokeUnlockedAsync();
 
-        var mocker = new AutoMocker();
-        SetupSecretsDataSourceMock(mocker);
+        ctx.Sut.IsSecretVisible = true;
+        ctx.Sut.IsGridEditing = true;
+        ctx.Sut.IsInlineEditing = true;
+        ctx.Sut.SelectedAccount = otp;
+        ctx.Sut.OpenFlyoutAddMode();
+        ctx.Sut.SearchText = "github";
+        ctx.Sut.IsSearchVisible = true;
 
-        var vm = mocker.CreateInstance<MainViewModel>();
+        ctx.InvokeLocked();
 
-        string? capturedText = null;
+        Assert.Empty(ctx.Sut.AllOtps);
+        Assert.False(ctx.Sut.IsSecretVisible);
+        Assert.False(ctx.Sut.IsGridEditing);
+        Assert.False(ctx.Sut.IsInlineEditing);
+        Assert.False(ctx.Sut.IsSettingsViewOpen);
+        Assert.Null(ctx.Sut.SelectedAccount);
+        Assert.False(ctx.Sut.IsEditAddFlyoutOpen);
+        ctx.QrPreview.Verify(q => q.Close(), Times.Once);
+    }
 
-        mocker.GetMock<IQrCodeService>()
-            .Setup(qs => qs.BuildOtpAuthUri(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Returns("otpauth://totp/Test:acc?secret=JBSWY3DPEHPK3PXP&issuer=Test&algorithm=SHA1&digits=6&period=30");
+    [Fact]
+    public async Task AddOrUpdateOtpEntryAsync_AddMode_WhenValid_AddsAndClosesFlyout()
+    {
+        using var ctx = new MainVmTestContext();
+        ctx.AccountsWorkflow.Setup(s => s.ValidateForCreate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
+            .Returns([]);
+        ctx.AccountsWorkflow.Setup(s => s.AddAsync(It.IsAny<OtpViewModel>())).ReturnsAsync(Result.Ok());
 
-        static byte[] OneByOnePng()
+        ctx.Sut.OpenFlyoutAddMode();
+        Assert.NotNull(ctx.Sut.CurrentSecretBeingEditedOrAdded);
+        ctx.Sut.CurrentSecretBeingEditedOrAdded!.Issuer = "GitHub";
+        ctx.Sut.CurrentSecretBeingEditedOrAdded!.Secret = "JBSWY3DPEHPK3PXP";
+
+        await ctx.Sut.AddOrUpdateOtpEntryAsync();
+
+        Assert.Single(ctx.Sut.AllOtps);
+        Assert.False(ctx.Sut.IsEditAddFlyoutOpen);
+        ctx.AccountsWorkflow.Verify(s => s.AddAsync(It.IsAny<OtpViewModel>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AddOrUpdateOtpEntryAsync_AddMode_WhenValidationFails_DoesNotAdd()
+    {
+        using var ctx = new MainVmTestContext();
+        ctx.AccountsWorkflow.Setup(s => s.ValidateForCreate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
+            .Returns([ValidationError.PlatformRequired]);
+
+        ctx.Sut.OpenFlyoutAddMode();
+        Assert.NotNull(ctx.Sut.CurrentSecretBeingEditedOrAdded);
+        ctx.Sut.CurrentSecretBeingEditedOrAdded!.Issuer = "";
+        ctx.Sut.CurrentSecretBeingEditedOrAdded!.Secret = "invalid";
+
+        await ctx.Sut.AddOrUpdateOtpEntryAsync();
+
+        Assert.Empty(ctx.Sut.AllOtps);
+        Assert.True(ctx.Sut.IsEditAddFlyoutOpen);
+        ctx.AccountsWorkflow.Verify(s => s.AddAsync(It.IsAny<OtpViewModel>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateOtpEntryAsync_WhenSuccess_UpdatesEntryAndClearsPreviousVersion()
+    {
+        using var ctx = new MainVmTestContext();
+        var id = Guid.NewGuid();
+        var existing = new OtpViewModel(id, "GitHub", "AAAA", "john");
+        var updated = new OtpViewModel(id, "GitHub", "BBBB", "john.doe");
+        ctx.Sut.AllOtps.Add(existing);
+        ctx.Sut.PreviousVersion = existing.Copy();
+        ctx.Sut.ShowGenerateQrCodeLink = true; // skip qr image refresh branch
+        ctx.AccountsWorkflow.Setup(s => s.UpdateAsync(It.IsAny<OtpViewModel>(), updated)).ReturnsAsync(Result.Ok());
+
+        await ctx.Sut.UpdateOtpEntryAsync(updated);
+
+        Assert.Equal("BBBB", existing.Secret);
+        Assert.Equal("john.doe", existing.AccountName);
+        Assert.Null(ctx.Sut.PreviousVersion);
+    }
+
+    [Fact]
+    public async Task DeleteOtpEntryAsync_WhenConfirmed_RemovesItem()
+    {
+        using var ctx = new MainVmTestContext();
+        var item = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
+        ctx.Sut.AllOtps.Add(item);
+        ctx.Sut.SelectedAccount = item;
+        ctx.Message.Setup(m => m.ConfirmWarning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+        ctx.AccountsWorkflow.Setup(s => s.DeleteAsync(item)).ReturnsAsync(Result.Ok());
+
+        await ctx.Sut.DeleteOtpEntryAsync(item);
+
+        Assert.Empty(ctx.Sut.AllOtps);
+        ctx.AccountsWorkflow.Verify(s => s.DeleteAsync(item), Times.Once);
+    }
+
+    [Fact]
+    public async Task OnRowSelectionChangedAsync_WhenValid_ComputesAndCopiesCode()
+    {
+        using var ctx = new MainVmTestContext(clearClipboardEnabled: false);
+        var item = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
+
+        await ctx.Sut.OnRowSelectionChangedAsync(item);
+
+        Assert.Same(item, ctx.Sut.SelectedAccount);
+        Assert.False(string.IsNullOrWhiteSpace(ctx.Sut.TotpCode));
+        ctx.Clipboard.Verify(c => c.SetText(It.IsAny<string>()), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public void CopyTotpCodeToClipboard_WhenAutoClearEnabled_UsesScheduledClear()
+    {
+        using var ctx = new MainVmTestContext(clearClipboardEnabled: true, clearSeconds: 42);
+        ctx.Sut.TotpCode = "123456";
+
+        ctx.Sut.CopyTotpCodeToClipboard();
+
+        ctx.Clipboard.Verify(c => c.CopyAndScheduleClear("123456", TimeSpan.FromSeconds(42)), Times.Once);
+    }
+
+    [Fact]
+    public void SearchText_WhenChanged_TriggersDebounce()
+    {
+        using var ctx = new MainVmTestContext();
+
+        ctx.Sut.SearchText = "git";
+
+        ctx.Debounce.Verify(d => d.Debounce("Search", 300, It.IsAny<Action>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AddOrUpdateOtpEntryAsync_EditMode_WhenValidationFails_DoesNotUpdateOrCloseFlyout()
+    {
+        using var ctx = new MainVmTestContext();
+        var existing = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
+        ctx.Sut.AllOtps.Add(existing);
+        ctx.AccountsWorkflow.Setup(s => s.ValidateForUpdate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
+            .Returns([ValidationError.PlatformRequired]);
+
+        ctx.Sut.OpenFlyoutEditMode(existing);
+        Assert.NotNull(ctx.Sut.CurrentSecretBeingEditedOrAdded);
+        ctx.Sut.CurrentSecretBeingEditedOrAdded!.Issuer = string.Empty;
+
+        await ctx.Sut.AddOrUpdateOtpEntryAsync();
+
+        Assert.True(ctx.Sut.IsEditAddFlyoutOpen);
+        ctx.AccountsWorkflow.Verify(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.IsAny<OtpViewModel>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddOrUpdateOtpEntryAsync_EditMode_WhenValid_UpdatesAndClosesFlyout()
+    {
+        using var ctx = new MainVmTestContext();
+        var id = Guid.NewGuid();
+        var existing = new OtpViewModel(id, "GitHub", "AAAA", "john");
+        ctx.Sut.AllOtps.Add(existing);
+        ctx.Sut.ShowGenerateQrCodeLink = true;
+        ctx.AccountsWorkflow.Setup(s => s.ValidateForUpdate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
+            .Returns([]);
+        ctx.AccountsWorkflow.Setup(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.IsAny<OtpViewModel>()))
+            .ReturnsAsync(Result.Ok());
+
+        ctx.Sut.OpenFlyoutEditMode(existing);
+        Assert.NotNull(ctx.Sut.CurrentSecretBeingEditedOrAdded);
+        ctx.Sut.CurrentSecretBeingEditedOrAdded!.Secret = "BBBB";
+
+        await ctx.Sut.AddOrUpdateOtpEntryAsync();
+
+        Assert.False(ctx.Sut.IsEditAddFlyoutOpen);
+        Assert.Equal("BBBB", existing.Secret);
+        ctx.AccountsWorkflow.Verify(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.Is<OtpViewModel>(o => o.ID == id)), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteOtpEntryAsync_WhenNotConfirmed_DoesNotDelete()
+    {
+        using var ctx = new MainVmTestContext();
+        var item = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
+        ctx.Sut.AllOtps.Add(item);
+        ctx.Message.Setup(m => m.ConfirmWarning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(false);
+
+        await ctx.Sut.DeleteOtpEntryAsync(item);
+
+        Assert.Single(ctx.Sut.AllOtps);
+        ctx.AccountsWorkflow.Verify(s => s.DeleteAsync(It.IsAny<OtpViewModel>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task OnRowSelectionChangedAsync_WhenGridEditing_ReturnsWithoutSelection()
+    {
+        using var ctx = new MainVmTestContext(clearClipboardEnabled: false);
+        var item = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
+        ctx.Sut.IsGridEditing = true;
+
+        await ctx.Sut.OnRowSelectionChangedAsync(item);
+
+        Assert.Null(ctx.Sut.SelectedAccount);
+        ctx.Clipboard.Verify(c => c.SetText(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public void CopyTotpCodeToClipboard_WhenAutoClearSecondsInvalid_UsesDefault15Seconds()
+    {
+        using var ctx = new MainVmTestContext(clearClipboardEnabled: true, clearSeconds: 0);
+        ctx.Sut.TotpCode = "123456";
+
+        ctx.Sut.CopyTotpCodeToClipboard();
+
+        ctx.Clipboard.Verify(c => c.CopyAndScheduleClear("123456", TimeSpan.FromSeconds(15)), Times.Once);
+    }
+
+    [Fact]
+    public void ToggleSearchBoxCommand_WhenClosing_ClearsSearchText()
+    {
+        using var ctx = new MainVmTestContext();
+        ctx.Sut.SearchText = "github";
+        ctx.Sut.IsSearchVisible = true;
+
+        ctx.Sut.ToggleSearchBoxCommand.Execute(null);
+
+        Assert.False(ctx.Sut.IsSearchVisible);
+        Assert.Equal(string.Empty, ctx.Sut.SearchText);
+    }
+
+    [Fact]
+    public async Task AddOrUpdateOtpEntryAsync_AddMode_WhenCurrentItemMissing_DoesNothing()
+    {
+        using var ctx = new MainVmTestContext();
+        ctx.Sut.OpenFlyoutAddMode();
+        ctx.Sut.CurrentSecretBeingEditedOrAdded = null;
+
+        await ctx.Sut.AddOrUpdateOtpEntryAsync();
+
+        Assert.Empty(ctx.Sut.AllOtps);
+        ctx.AccountsWorkflow.Verify(s => s.AddAsync(It.IsAny<OtpViewModel>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddOrUpdateOtpEntryAsync_EditMode_WhenCurrentItemMissing_DoesNothing()
+    {
+        using var ctx = new MainVmTestContext();
+        var existing = new OtpViewModel(Guid.NewGuid(), "GitHub", "AAAA");
+        ctx.Sut.AllOtps.Add(existing);
+        ctx.Sut.OpenFlyoutEditMode(existing);
+        ctx.Sut.CurrentSecretBeingEditedOrAdded = null;
+
+        await ctx.Sut.AddOrUpdateOtpEntryAsync();
+
+        ctx.AccountsWorkflow.Verify(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.IsAny<OtpViewModel>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteOtpEntryAsync_WhenItemNull_DoesNothing()
+    {
+        using var ctx = new MainVmTestContext();
+
+        await ctx.Sut.DeleteOtpEntryAsync(null);
+
+        ctx.Message.Verify(m => m.ConfirmWarning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        ctx.AccountsWorkflow.Verify(s => s.DeleteAsync(It.IsAny<OtpViewModel>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task OnRowSelectionChangedAsync_WhenItemNull_DoesNothing()
+    {
+        using var ctx = new MainVmTestContext(clearClipboardEnabled: false);
+
+        await ctx.Sut.OnRowSelectionChangedAsync(null);
+
+        Assert.Null(ctx.Sut.SelectedAccount);
+        Assert.Equal(string.Empty, ctx.Sut.TotpCode);
+        ctx.Clipboard.Verify(c => c.SetText(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public void OpenFlyoutAddModeCommand_CanExecute_TracksGridEditingState()
+    {
+        using var ctx = new MainVmTestContext();
+        Assert.True(ctx.Sut.OpenFlyoutAddModeCommand.CanExecute(null));
+
+        ctx.Sut.IsGridEditing = true;
+
+        Assert.False(ctx.Sut.OpenFlyoutAddModeCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void ClearSearchCommand_CanExecute_TracksSearchVisibility()
+    {
+        using var ctx = new MainVmTestContext();
+        Assert.False(ctx.Sut.ClearSearchCommand.CanExecute(null));
+
+        ctx.Sut.IsSearchVisible = true;
+
+        Assert.True(ctx.Sut.ClearSearchCommand.CanExecute(null));
+    }
+
+    public void Dispose()
+    {
+        try
         {
-            using var bmp = new System.Drawing.Bitmap(1, 1);
-            using var ms = new MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-            return ms.ToArray();
+            if (_settingsBackup is null)
+            {
+                if (File.Exists(_settingsPath))
+                {
+                    File.Delete(_settingsPath);
+                }
+            }
+            else
+            {
+                File.WriteAllText(_settingsPath, _settingsBackup);
+            }
+        }
+        catch
+        {
+            // best-effort cleanup
+        }
+    }
+
+    private sealed class MainVmTestContext : IDisposable
+    {
+        public MainVmTestContext(bool clearClipboardEnabled = true, int clearSeconds = 15)
+        {
+            var appSettings = new AppSettings
+            {
+                ClearClipboardEnabled = clearClipboardEnabled,
+                ClearClipboardSeconds = clearSeconds
+            };
+
+            SettingsService.SetupGet(s => s.Current).Returns(appSettings);
+            LogSwitch.SetupGet(l => l.MinimumLevel).Returns(AppLogLevel.Information);
+            LogSwitch.Setup(l => l.GetLevel()).Returns(AppLogLevel.Information);
+
+            Session.Setup(s => s.IsUnlocked).Returns(true);
+            Session.Setup(s => s.ConfigureCallbacks(It.IsAny<Func<Task>>(), It.IsAny<Action>()))
+                .Callback<Func<Task>, Action>((u, l) =>
+                {
+                    Unlocked = u;
+                    Locked = l;
+                });
+
+            var settingsVm = CreateSettingsViewModel();
+            var unlockVm = CreateUnlockViewModel();
+            SettingsDialog.Setup(s => s.CreateAndLoadAsync(It.IsAny<ICommand>(), It.IsAny<Action>(), It.IsAny<IAccountsCollectionContext>()))
+                .ReturnsAsync(settingsVm);
+
+            Sut = new MainViewModel(
+                NullLogger<MainViewModel>.Instance,
+                QrCode.Object,
+                ExportService.Object,
+                Message.Object,
+                Clipboard.Object,
+                AccountsWorkflow.Object,
+                TransferWorkflow.Object,
+                Debounce.Object,
+                FileDialogs.Object,
+                PasswordPrompt.Object,
+                QrPreview.Object,
+                Session.Object,
+                unlockVm,
+                () => QrScannerDialog.Object,
+                SettingsDialog.Object,
+                SettingsService.Object);
         }
 
+        public MainViewModel Sut { get; }
+        public Mock<IAccountsWorkflowService> AccountsWorkflow { get; } = new();
+        public Mock<IMessageService> Message { get; } = new();
+        public Mock<IClipboardService> Clipboard { get; } = new();
+        public Mock<IDebounceService> Debounce { get; } = new();
+        public Mock<IQrPreviewService> QrPreview { get; } = new();
+        public Mock<ISettingsDialogOrchestrationService> SettingsDialog { get; } = new();
+        public Mock<IMainViewSessionController> Session { get; } = new();
+        public Mock<ISettingsService> SettingsService { get; } = new();
 
-        mocker.GetMock<IQrCodeService>()
-            .Setup(qs => qs.GenerateQr(It.IsAny<string>()))
-            .Returns(OneByOnePng());
+        private Mock<IQrCodeService> QrCode { get; } = new();
+        private Mock<IExportService> ExportService { get; } = new();
+        private Mock<IAccountTransferWorkflowService> TransferWorkflow { get; } = new();
+        private Mock<IFileDialogService> FileDialogs { get; } = new();
+        private Mock<IPasswordPromptService> PasswordPrompt { get; } = new();
+        private Mock<IQrScannerDialogService> QrScannerDialog { get; } = new();
+        private Mock<ILogSwitchService> LogSwitch { get; } = new();
 
+        private Mock<IAuthorizationService> Authorization { get; } = new();
+        private Mock<ISettingsAuthorizationWorkflowService> SettingsAuthWorkflow { get; } = new();
+        private Mock<ISettingsPersistenceService> SettingsPersistence { get; } = new();
+        private Mock<ISettingsTransferWorkflowService> SettingsTransferWorkflow { get; } = new();
 
-        mocker.GetMock<IClipboardService>().Setup(c => c.SetText(It.IsAny<string>()))
-            .Callback<string>(text => capturedText = text);
+        public Func<Task> Unlocked { get; private set; } = () => Task.CompletedTask;
+        public Action Locked { get; private set; } = () => { };
 
-#pragma warning disable CS8601
-        mocker.GetMock<ITotpManager>().Setup(m =>
-                m.TryComputeCode(It.IsAny<string>(), out It.Ref<string>.IsAny, out It.Ref<Exception>.IsAny))
-            .Returns(true)
-            .Callback((string input, out string code, out Exception? error) =>
-            {
-                code = "123456";
-                error = null;
-            });
-#pragma warning restore CS8601
+        public Task InvokeUnlockedAsync() => Unlocked();
+        public void InvokeLocked() => Locked();
 
-        var delayMock = mocker.GetMock<IDelayService>();
-        delayMock.Setup(d => d.Delay(It.IsAny<int>())).Returns(Task.CompletedTask);
+        public void Dispose()
+        {
+            Sut.TotpUiTimer?.Dispose();
+            Sut.TotpUiTimer = null;
+        }
 
-        vm.SelectedSecret = secret;
+        private SettingsViewModel CreateSettingsViewModel()
+        {
+            return new SettingsViewModel(
+                SettingsService.Object,
+                Authorization.Object,
+                SettingsAuthWorkflow.Object,
+                SettingsPersistence.Object,
+                SettingsTransferWorkflow.Object,
+                Message.Object,
+                LogSwitch.Object,
+                new RelayCommand(() => { }),
+                () => { });
+        }
 
-        await vm.OnSecretSelectedAsync();
+        private UnlockViewModel CreateUnlockViewModel()
+        {
+            var state = new AuthorizationState();
+            Authorization.SetupGet(a => a.State).Returns(state);
 
-        delayMock.Verify(d => d.Delay(It.IsAny<int>()), Times.Once);
+            var hello = new HelloUnlockViewModel(Authorization.Object);
+            var pwd = new PasswordUnlockViewModel(
+                Authorization.Object,
+                Mock.Of<IPasswordValidationService>(),
+                NullLogger<PasswordUnlockViewModel>.Instance);
 
-        Assert.Contains("TestPlatform", vm.CurrentCodeLabel);
-        Assert.False(vm.IsCodeCopiedVisible);
+            return new UnlockViewModel(Authorization.Object, hello, pwd, SettingsService.Object);
+        }
     }
-
-    private static void SetupSecretsDataSourceMock(AutoMocker mocker)
-    {
-        var secrets = new List<SecretItemViewModel>();
-        var secretsManagerMock = new Mock<ISecretsManager>();
-        secretsManagerMock.Setup(m => m.GetAllSecretsAsync()).ReturnsAsync(Result<List<SecretItem>>.Success(secrets.Select(sivm => sivm.ToDomain()).ToList()));
-        mocker.Use<ISecretsManager>(secretsManagerMock.Object);
-    }
-
-
 }

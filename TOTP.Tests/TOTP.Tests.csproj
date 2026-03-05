@@ -51,7 +51,6 @@
     <Compile Remove="Integration\SecretsManagerIntegrationTests.cs" />
     <Compile Remove="Integration\TotpManagerIntegrationTests.cs" />
     <Compile Remove="Services\TotpManagerTests.cs" />
-    <Compile Remove="ViewModels\MainViewModelTests.cs" />
     <Compile Remove="Utilities\DebounceServiceTests.cs" />
   </ItemGroup>
 

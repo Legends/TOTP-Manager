@@ -1,4 +1,3 @@
-﻿using OpenCvSharp;
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -7,12 +6,13 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
-using TOTP.Infrastructure.Extensions;
+using TOTP.Services.Interfaces;
 
 namespace TOTP.ViewModels
 {
     public sealed class QrScannerViewModel : INotifyPropertyChanged, IDisposable
     {
+        private readonly IQrScannerRunner _qrScannerRunner;
         private CancellationTokenSource? _cts;
         private Task? _cameraTask;
 
@@ -50,8 +50,9 @@ namespace TOTP.ViewModels
         public ICommand CancelCommand { get; }
         public ICommand CloseCameraWindowCommand { get; } // for Escape binding
 
-        public QrScannerViewModel()
+        public QrScannerViewModel(IQrScannerRunner qrScannerRunner)
         {
+            _qrScannerRunner = qrScannerRunner;
             CancelCommand = new RelayCommand(Cancel);
             CloseCameraWindowCommand = new RelayCommand(Cancel);
         }
@@ -85,72 +86,17 @@ namespace TOTP.ViewModels
 
         private async Task RunCameraLoopAsync(CancellationToken token)
         {
-            VideoCapture? cap = null;
-
             try
             {
-                // Open camera on background thread
-                cap = await Task.Run(() =>
-                {
-                    try
-                    {
-                        var c = new VideoCapture(0, VideoCaptureAPIs.DSHOW);
-                        if (!c.IsOpened()) c.Open(0);
-                        if (!c.IsOpened()) return null;
-
-                        c.Set(VideoCaptureProperties.FrameWidth, 1280);
-                        c.Set(VideoCaptureProperties.FrameHeight, 720);
-                        c.Set(VideoCaptureProperties.Fps, 30);
-                        try { c.Set(VideoCaptureProperties.FourCC, FourCC.MJPG); } catch { }
-                        try { c.Set(VideoCaptureProperties.BufferSize, 1); } catch { }
-
-                        return c;
-                    }
-                    catch
-                    {
-                        return null;
-                    }
-                }, token).ConfigureAwait(false);
-
-                if (cap == null)
-                {
-                    ErrorMessage = "No camera found.";
-                    RequestClose(dialogResult: false);
-                    return;
-                }
-
-                using var frame = new Mat();
-                var detector = new QRCodeDetector();
-                var firstFrameShown = false;
-
-                while (!token.IsCancellationRequested)
-                {
-                    if (!cap.Read(frame) || frame.Empty())
-                        continue;
-
-                    // Decode
-                    var decoded = detector.DetectAndDecode(frame, out _);
-                    if (!string.IsNullOrEmpty(decoded))
+                await _qrScannerRunner.RunAsync(
+                    token,
+                    onPreview: bmp => PreviewImage = bmp,
+                    onFirstFrame: () => IsInitializing = false,
+                    onDecoded: decoded =>
                     {
                         DecodedText = decoded;
                         RequestClose(dialogResult: true);
-                        return;
-                    }
-
-                    // Preview: create BitmapSource off UI-thread, Freeze it, assign (safe)
-                    var bmp = frame.ToBitmapSource();
-                    bmp.Freeze();
-
-                    PreviewImage = bmp;
-
-                    if (!firstFrameShown)
-                    {
-                        IsInitializing = false;
-                        firstFrameShown = true;
-                    }
-
-                    await Task.Delay(10, token).ConfigureAwait(false);
-                }
+                    });
             }
             catch (OperationCanceledException)
             {
@@ -160,11 +106,6 @@ namespace TOTP.ViewModels
             {
                 ErrorMessage = ex.Message;
                 RequestClose(dialogResult: false);
-            }
-            finally
-            {
-                try { cap?.Release(); } catch { }
-                cap?.Dispose();
             }
         }
 

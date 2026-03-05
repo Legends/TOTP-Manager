@@ -10,11 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using TOTP.Services.Interfaces;
 
 public sealed class QrCameraService : IDisposable
 {
     private readonly object _gate = new();
-    private VideoCapture? _cap;
+    private readonly IVideoCaptureFactory _videoCaptureFactory;
+    private IVideoCaptureAdapter? _cap;
     private bool _initialized;
 
     public int DeviceIndex { get; private set; } = 0;
@@ -23,6 +25,16 @@ public sealed class QrCameraService : IDisposable
     public int Fps { get; private set; } = 30;
 
     public bool IsOpen => _cap != null && _cap.IsOpened();
+
+    public QrCameraService()
+        : this(new OpenCvVideoCaptureFactory())
+    {
+    }
+
+    public QrCameraService(IVideoCaptureFactory videoCaptureFactory)
+    {
+        _videoCaptureFactory = videoCaptureFactory;
+    }
 
     public async Task InitializeAsync(int deviceIndex = 0, int width = 1280, int height = 720, int fps = 30)
     {
@@ -36,7 +48,7 @@ public sealed class QrCameraService : IDisposable
 
                 DeviceIndex = deviceIndex; Width = width; Height = height; Fps = fps;
 
-                _cap = new VideoCapture();
+                _cap = _videoCaptureFactory.Create();
                 if (!_cap.Open(DeviceIndex, VideoCaptureAPIs.DSHOW))
                 {
                     if (!_cap.Open(DeviceIndex))
@@ -92,7 +104,7 @@ public sealed class QrCameraService : IDisposable
 
             while (!ct.IsCancellationRequested)
             {
-                if (!_cap.Read(frame) || frame.Empty())
+                if (_cap == null || !_cap.Read(frame) || frame.Empty())
                     continue;
 
                 // render preview
@@ -144,7 +156,7 @@ public sealed class QrCameraService : IDisposable
 
             while (!ct.IsCancellationRequested)
             {
-                if (!_cap.Read(frame) || frame.Empty()) continue;
+                if (_cap == null || !_cap.Read(frame) || frame.Empty()) continue;
 
                 await target.Dispatcher.InvokeAsync(() =>
                 {

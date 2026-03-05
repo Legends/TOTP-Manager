@@ -114,7 +114,9 @@ public static class BootLoader
                 services.AddSingleton<IDebounceService, DebounceService>();
                 services.AddSingleton<ILogFileService, LogFileService>();
                 services.AddSingleton<IQrPreviewService, QrPreviewService>();
+                services.AddSingleton<IPasswordPromptDialogFactory, PasswordPromptDialogFactory>();
                 services.AddSingleton<IPasswordPromptService, PasswordPromptService>();
+                services.AddSingleton<INotificationUiClient, NotificationUiClient>();
                 services.AddSingleton<IMessageService, MessageService>();
                 services.AddSingleton<IAccountsWorkflowService, AccountsWorkflowService>();
                 services.AddSingleton<IAccountTransferWorkflowService, AccountTransferWorkflowService>();
@@ -123,6 +125,10 @@ public static class BootLoader
                 services.AddSingleton<ISettingsPersistenceService, SettingsPersistenceService>();
                 services.AddTransient<IFileDialogService, FileDialogService>();
                 services.AddSingleton<IQrCodeService, QrCodeService>();
+                services.AddTransient<IQrScannerRunner, QrScannerRunner>();
+                services.AddTransient<IVideoCaptureFactory, OpenCvVideoCaptureFactory>();
+                services.AddTransient<IQrCodeDecoder, OpenCvQrCodeDecoder>();
+                services.AddTransient<IFrameBitmapSourceConverter, MatBitmapSourceConverter>();
 
 
 
