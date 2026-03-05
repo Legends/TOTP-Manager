@@ -226,6 +226,7 @@
                 </ScrollViewer>
             </syncfusion:TabItemExt>
 
+            <!--DIAGNOSTICS TAB-->
             <syncfusion:TabItemExt Header="{xaml:Resx Key=ui_Settings_Tab_Diagnostics}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
                     <StackPanel Margin="0,10,0,0">
