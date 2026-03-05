@@ -8,7 +8,7 @@ using System.Text.Json;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 
-namespace TOTP.Core.Security.Services;
+namespace TOTP.Infrastructure.Security;
 
 public sealed class VaultService : IVaultService
 {

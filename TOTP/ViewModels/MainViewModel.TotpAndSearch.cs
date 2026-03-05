@@ -3,7 +3,6 @@ using Syncfusion.Linq;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -12,9 +11,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using TOTP.Infrastructure.Parser;
 using TOTP.Resources;
+using TOTP.Services.Interfaces;
 using TOTP.Validation;
 using TOTP.ViewModels.Interfaces;
-using static TOTP.ViewModels.SettingsViewModel;
 
 namespace TOTP.ViewModels;
 
@@ -133,7 +132,6 @@ public partial class MainViewModel
 
     public int ElapsedSeconds => PeriodSeconds - RemainingSeconds;
 
-    private readonly SettingsViewModelFactory _settingsFactory;
     private void OnRowSelectionImplementation()
     {
 
@@ -263,40 +261,6 @@ public partial class MainViewModel
         QrCodeImage = bmp;
         ShowGenerateQrCodeLink = false;
         IsQrVisible = true;
-    }
-
-    #endregion
-
-    #region ### EXPORT SECRETS TO EXTERNAL FILE ###
-
-    private async Task ExportSecretsToFile()
-    {
-        try
-        {
-            var path = _fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Accounts");
-
-            if (path == null)
-                return;
-
-            var result = await _accountsWorkflow.GetAllEntriesSortedAsync();
-            if (result.IsFailed)
-            {
-                _messageService.ShowResultError(result);
-                return;
-            }
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(result.Value, options));
-
-            var psi = new ProcessStartInfo { FileName = path, UseShellExecute = true };
-
-            Process.Start(psi);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Export secrets to file failed.");
-            _messageService.ShowError(UI.ex_UnexpectedError);
-        }
     }
 
     #endregion

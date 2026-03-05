@@ -13,9 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using TOTP.Core.Enums;
 using TOTP.Core.Interfaces;
-using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
-using TOTP.Core.Security.Services;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
 using TOTP.DAL.Services;
@@ -32,7 +30,6 @@ using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
-using static TOTP.ViewModels.SettingsViewModel;
 
 #endregion
 
@@ -102,13 +99,9 @@ public static class BootLoader
                 // 1. Register the platform-specific infrastructure
                 services.AddSingleton<IDispatcherService, WpfDispatcherService>();
 
-                // 2. Register the Core state (it will receive the WpfDispatcherService via DI)
-                services.AddSingleton<AuthorizationState>();
-
                 #region ### SECURITY & CORE SERVICES ###
 
                 // Security Infrastructure
-                services.AddSingleton<IKeyWrappingService, KeyWrappingService>();
                 services.AddSingleton<IHelloGate, HelloGate>();
                 services.AddSingleton<IMainViewSessionController, MainViewSessionController>();
 
@@ -124,6 +117,10 @@ public static class BootLoader
                 services.AddSingleton<IPasswordPromptService, PasswordPromptService>();
                 services.AddSingleton<IMessageService, MessageService>();
                 services.AddSingleton<IAccountsWorkflowService, AccountsWorkflowService>();
+                services.AddSingleton<IAccountTransferWorkflowService, AccountTransferWorkflowService>();
+                services.AddSingleton<ISettingsDialogOrchestrationService, SettingsDialogOrchestrationService>();
+                services.AddSingleton<ISettingsAuthorizationWorkflowService, SettingsAuthorizationWorkflowService>();
+                services.AddSingleton<ISettingsPersistenceService, SettingsPersistenceService>();
                 services.AddTransient<IFileDialogService, FileDialogService>();
                 services.AddSingleton<IQrCodeService, QrCodeService>();
 
@@ -137,19 +134,6 @@ public static class BootLoader
 
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();
                 services.AddTransient<SettingsViewModel>();
-
-                // Register the Delegate Factory for Settings
-                services.AddSingleton<SettingsViewModelFactory>(serviceProvider =>
-                    (closeCmd, saveAct, exportTst, importTst) =>
-                    {
-                        var settingsSvc = serviceProvider.GetRequiredService<ISettingsService>();
-                        var authService = serviceProvider.GetRequiredService<IAuthorizationService>();
-                        var qrPreviewService = serviceProvider.GetRequiredService<IQrPreviewService>();
-                        var passwordValidationService = serviceProvider.GetRequiredService<IPasswordValidationService>();
-                        var messageService = serviceProvider.GetRequiredService<IMessageService>();
-                        var logging = serviceProvider.GetRequiredService<ILogSwitchService>();
-                        return new SettingsViewModel(settingsSvc, authService, qrPreviewService, passwordValidationService, messageService, logging, closeCmd, saveAct, exportTst, importTst);
-                    });
 
                 services.AddSingleton<UnlockViewModel>();
                 services.AddSingleton<HelloUnlockViewModel>();

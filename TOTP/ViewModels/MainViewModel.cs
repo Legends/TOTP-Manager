@@ -24,13 +24,12 @@ using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views.Interfaces;
-using static TOTP.ViewModels.SettingsViewModel;
 
 #endregion
 
 namespace TOTP.ViewModels;
 
-public partial class MainViewModel : IMainViewModel
+public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext
 {
     #region ### COMMON PROPS AND VARS ###
 
@@ -42,6 +41,7 @@ public partial class MainViewModel : IMainViewModel
     }
 
     private readonly Func<IQrScannerDialogService> _qrScannerDialogFactory;
+    private readonly ISettingsDialogOrchestrationService _settingsDialogOrchestrationService;
     private ISettingsService _settingsService;
     public IGridFilterRefresher GridFilterRefresher { get; set; } = NullGridFilterRefresher.Instance;
 
@@ -448,6 +448,7 @@ public partial class MainViewModel : IMainViewModel
     private readonly IClipboardService _clipboardService;
     private readonly IMessageService _messageService;
     private readonly IAccountsWorkflowService _accountsWorkflow;
+    private readonly IAccountTransferWorkflowService _accountTransferWorkflowService;
     private readonly IDebounceService _debounceService;
     private readonly IQrCodeService _qrService;
     private readonly IExportService _exportService;
@@ -472,6 +473,7 @@ public partial class MainViewModel : IMainViewModel
         IMessageService messageService,
         IClipboardService clipboardService,
         IAccountsWorkflowService accountsWorkflow,
+        IAccountTransferWorkflowService accountTransferWorkflowService,
         IDebounceService debounceService,
         IFileDialogService fileDialogService,
         IPasswordPromptService passwordPromptService,
@@ -479,12 +481,13 @@ public partial class MainViewModel : IMainViewModel
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
         Func<IQrScannerDialogService> qrScannerDialogFactory,
-        SettingsViewModelFactory settingsFactory, ISettingsService settingsService)
+        ISettingsDialogOrchestrationService settingsDialogOrchestrationService,
+        ISettingsService settingsService)
     {
         IsBusy = true;
 
         _settingsService = settingsService;
-        _settingsFactory = settingsFactory;
+        _settingsDialogOrchestrationService = settingsDialogOrchestrationService;
         _qrScannerDialogFactory = qrScannerDialogFactory;
         _fileDialogService = fileDialogService;
         _exportService = exportService;
@@ -496,6 +499,7 @@ public partial class MainViewModel : IMainViewModel
         _debounceService = debounceService;
         _clipboardService = clipboardService;
         _accountsWorkflow = accountsWorkflow;
+        _accountTransferWorkflowService = accountTransferWorkflowService;
         _mainViewSessionController = sessionController;
 
         AllOtps = new ObservableCollection<OtpViewModel>();
@@ -534,19 +538,10 @@ public partial class MainViewModel : IMainViewModel
         try
         {
 
-            var loadResult = await _settingsService.LoadAsync();
-            if (loadResult.IsFailed)
-            {
-                throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
-            }
-
-            SettingsVm = _settingsFactory(
+            SettingsVm = await _settingsDialogOrchestrationService.CreateAndLoadAsync(
                 CloseSettingsViewCommand,
                 SaveSettingsView,
-                ExportOtps,
-                ImportOtps);
-
-            await SettingsVm.LoadAsync();
+                this);
 
             await _mainViewSessionController.InitializeAsync(mainWindow);
 

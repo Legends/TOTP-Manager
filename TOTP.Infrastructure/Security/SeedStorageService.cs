@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using TOTP.Core.Security.Interfaces;
 
-namespace TOTP.Core.Security.Services;
+namespace TOTP.Infrastructure.Security;
 
 public sealed class SeedStorageService(
     ISecurityContext securityContext) : ISeedStorageService

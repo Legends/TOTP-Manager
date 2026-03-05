@@ -33,6 +33,8 @@ artifacts
 *.old
 *.orig
 *.rej
+*.dmp
+TOTP.Tests/TestResults/
 
 # NuGet packages
 *.nupkg

@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using TOTP.Core.Security.Interfaces;
 
-namespace TOTP.Core.Security.Services;
+namespace TOTP.Infrastructure.Security;
 
 public sealed class SecurityContext : ISecurityContext, IDisposable
 {

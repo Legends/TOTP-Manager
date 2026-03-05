@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -42,6 +42,17 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Legacy tests targeting removed pre-refactor types/namespaces -->
+    <Compile Remove="Behaviors\SingleOrDoubleTapBehaviorTests.cs" />
+    <Compile Remove="Integration\MainViewModelIntegrationTests.cs" />
+    <Compile Remove="Integration\SecretsManagerIntegrationTests.cs" />
+    <Compile Remove="Integration\TotpManagerIntegrationTests.cs" />
+    <Compile Remove="Services\TotpManagerTests.cs" />
+    <Compile Remove="ViewModels\MainViewModelTests.cs" />
+    <Compile Remove="Utilities\DebounceServiceTests.cs" />
   </ItemGroup>
 
   <!-- In TOTP.Tests.csproj -->

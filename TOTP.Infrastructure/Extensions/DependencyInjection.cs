@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
-using TOTP.Core.Security.Services;
 using TOTP.Core.Services.Interfaces;
 using TOTP.DAL.Services;
 using TOTP.Infrastructure.Common;

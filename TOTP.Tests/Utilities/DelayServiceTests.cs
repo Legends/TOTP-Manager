@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using TOTP.Services;
+using TOTP.Infrastructure.Services;
 
 namespace TOTP.Tests.Utilities;
 

@@ -1,5 +1,5 @@
 ﻿using System.Windows.Media.Imaging;
-using TOTP.Services;
+using TOTP.Infrastructure.Services;
 
 namespace TOTP.Tests.Services;
 
