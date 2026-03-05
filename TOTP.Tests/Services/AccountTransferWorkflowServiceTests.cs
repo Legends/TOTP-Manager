@@ -563,4 +563,63 @@ public sealed class AccountTransferWorkflowServiceTests
 
         Assert.Contains(allOtps, o => string.Equals(o.Issuer, "GitHub (imported 2)", StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public async Task ExportOtpsAsync_WhenDependencyThrows_LogsAndShowsUnexpectedError()
+    {
+        var fileDialog = new Mock<IFileDialogService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
+        var export = new Mock<IExportService>();
+        var prompt = new Mock<IPasswordPromptService>();
+        var message = new Mock<IMessageService>();
+        var settings = new Mock<ISettingsService>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
+
+        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Throws(new InvalidOperationException("dialog failure"));
+
+        var sut = new AccountTransferWorkflowService(
+            fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
+
+        await sut.ExportOtpsAsync(false, ExportFileFormat.Json);
+
+        message.Verify(m => m.ShowError(TOTP.Resources.UI.ex_UnexpectedError), Times.Once);
+        VerifyLog(logger, LogLevel.Error, Times.Once());
+    }
+
+    [Fact]
+    public async Task ImportOtpsAsync_WhenDependencyThrows_LogsAndShowsUnexpectedError()
+    {
+        var allOtps = new ObservableCollection<OtpViewModel>();
+        var fileDialog = new Mock<IFileDialogService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
+        var export = new Mock<IExportService>();
+        var prompt = new Mock<IPasswordPromptService>();
+        var message = new Mock<IMessageService>();
+        var settings = new Mock<ISettingsService>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
+
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+            .Throws(new InvalidOperationException("dialog failure"));
+
+        var sut = new AccountTransferWorkflowService(
+            fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
+
+        await sut.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, allOtps);
+
+        message.Verify(m => m.ShowError(TOTP.Resources.UI.ex_UnexpectedError), Times.Once);
+        VerifyLog(logger, LogLevel.Error, Times.Once());
+    }
+
+    private static void VerifyLog(Mock<ILogger<AccountTransferWorkflowService>> logger, LogLevel level, Times times)
+    {
+        logger.Verify(
+            x => x.Log(
+                It.Is<LogLevel>(l => l == level),
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((_, _) => true),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            times);
+    }
 }

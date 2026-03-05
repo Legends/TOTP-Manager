@@ -439,6 +439,64 @@ public sealed class MainViewModelTests : IDisposable
         Assert.True(ctx.Sut.ClearSearchCommand.CanExecute(null));
     }
 
+    [Fact]
+    public void ExportSecretsCommand_CanExecute_TracksUnlockEditAndDataState()
+    {
+        using var ctx = new MainVmTestContext();
+        var item = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
+
+        Assert.False(ctx.Sut.ExportSecretsCommand.CanExecute(null));
+
+        ctx.Sut.AllOtps.Add(item);
+        Assert.True(ctx.Sut.ExportSecretsCommand.CanExecute(null));
+
+        ctx.Sut.IsGridEditing = true;
+        Assert.False(ctx.Sut.ExportSecretsCommand.CanExecute(null));
+
+        ctx.Sut.IsGridEditing = false;
+        ctx.InvokeLocked();
+        Assert.False(ctx.Sut.ExportSecretsCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void CopyCodeCommand_CanExecute_RequiresSelectionAndCode()
+    {
+        using var ctx = new MainVmTestContext();
+        var item = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
+
+        Assert.False(ctx.Sut.CopyCodeCommand.CanExecute(item));
+
+        ctx.Sut.SelectedAccount = item;
+        Assert.False(ctx.Sut.CopyCodeCommand.CanExecute(item));
+
+        ctx.Sut.TotpCode = "123456";
+        Assert.True(ctx.Sut.CopyCodeCommand.CanExecute(item));
+    }
+
+    [Fact]
+    public void DeleteSecretCommand_CanExecute_RespectsGridEditMode()
+    {
+        using var ctx = new MainVmTestContext();
+        var item = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
+
+        Assert.True(ctx.Sut.DeleteSecretCommand.CanExecute(item));
+
+        ctx.Sut.IsGridEditing = true;
+        Assert.False(ctx.Sut.DeleteSecretCommand.CanExecute(item));
+    }
+
+    [Fact]
+    public void OpenSettingsCommand_CanExecute_RespectsLockState()
+    {
+        using var ctx = new MainVmTestContext();
+
+        Assert.True(ctx.Sut.OpenSettingsCommand.CanExecute(null));
+
+        ctx.Session.Setup(s => s.IsUnlocked).Returns(false);
+
+        Assert.False(ctx.Sut.OpenSettingsCommand.CanExecute(null));
+    }
+
     public void Dispose()
     {
         try

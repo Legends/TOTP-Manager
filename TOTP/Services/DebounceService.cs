@@ -12,28 +12,26 @@ public class DebounceService : IDebounceService
 
     public void Debounce(string key, int milliseconds, Action action)
     {
-        if (_timers.TryGetValue(key, out var timer))
+        if (_timers.TryRemove(key, out var existingTimer))
         {
-            timer.Stop();
+            existingTimer.Stop();
         }
-        else
-        {
-            // make sure we are on the UI Dispatcher
-            timer = new DispatcherTimer(DispatcherPriority.Normal, Application.Current.Dispatcher);
-            _timers[key] = timer;
-        }
+
+        // make sure we are on the UI Dispatcher
+        var timer = new DispatcherTimer(DispatcherPriority.Normal, Application.Current.Dispatcher);
+        _timers[key] = timer;
 
         timer.Interval = TimeSpan.FromMilliseconds(milliseconds);
-        timer.Tick -= OnTimerTick; // Prevent duplicate
-        timer.Tick += OnTimerTick;
-
-        void OnTimerTick(object? sender, EventArgs e)
+        EventHandler? onTimerTick = null;
+        onTimerTick = (_, _) =>
         {
             timer.Stop();
-            timer.Tick -= OnTimerTick;
+            timer.Tick -= onTimerTick;
             _timers.TryRemove(key, out _);
             action();
-        }
+        };
+
+        timer.Tick += onTimerTick;
 
         timer.Start();
     }

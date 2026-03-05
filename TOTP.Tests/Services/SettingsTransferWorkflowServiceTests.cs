@@ -55,4 +55,24 @@ public sealed class SettingsTransferWorkflowServiceTests
 
         accountTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, empty), Times.Once);
     }
+
+    [Fact]
+    public async Task ImportAsync_UsesCurrentCollectionInstanceAtCallTime()
+    {
+        var accountTransfer = new Mock<IAccountTransferWorkflowService>();
+        var context = new Mock<IAccountsCollectionContext>();
+        var first = new ObservableCollection<OtpViewModel>();
+        var second = new ObservableCollection<OtpViewModel>();
+        context.SetupSequence(c => c.AllOtps)
+            .Returns(first)
+            .Returns(second);
+
+        var sut = new SettingsTransferWorkflowService(accountTransfer.Object, context.Object);
+
+        await sut.ImportAsync(ImportConflictStrategy.SkipExisting);
+        await sut.ImportAsync(ImportConflictStrategy.SkipExisting);
+
+        accountTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, It.Is<ObservableCollection<OtpViewModel>>(o => ReferenceEquals(o, first))), Times.Once);
+        accountTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, It.Is<ObservableCollection<OtpViewModel>>(o => ReferenceEquals(o, second))), Times.Once);
+    }
 }
