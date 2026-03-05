@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TOTP.Commands;
@@ -53,6 +54,10 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     private readonly ILogSwitchService _logSwitchService;
     private readonly IQrPreviewService _qrPreviewService;
     private readonly Action _saveAction;
+    private CancellationTokenSource? _saveDebounceCts;
+    private CancellationTokenSource? _authGateDebounceCts;
+    private bool _isLoadingSettings;
+    private bool _suppressAuthAutoSave;
 
     #region UI State
 
@@ -77,6 +82,10 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             _isHelloSelected = value;
             OnPropertyChanged();
             if (value) IsPasswordSelected = false;
+            if (!_suppressAuthAutoSave)
+            {
+                QueueAuthorizationGateSave();
+            }
         }
     }
 
@@ -90,6 +99,11 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             _isPasswordSelected = value;
             OnPropertyChanged();
             if (value) IsHelloSelected = false;
+            if (!_suppressAuthAutoSave)
+            {
+                QueueAuthorizationGateSave();
+            }
+            RaiseCommandStates();
         }
     }
 
@@ -128,29 +142,140 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public string NewPassword
     {
         get => _newPassword;
-        set { _newPassword = value; OnPropertyChanged(); }
+        set
+        {
+            _newPassword = value;
+            OnPropertyChanged();
+            RaiseCommandStates();
+        }
     }
 
     private string _confirmPassword = string.Empty;
     public string ConfirmPassword
     {
         get => _confirmPassword;
-        set { _confirmPassword = value; OnPropertyChanged(); }
+        set
+        {
+            _confirmPassword = value;
+            OnPropertyChanged();
+            RaiseCommandStates();
+        }
     }
     #endregion
 
     #region General Settings
     private bool _lockOnSessionLock = true;
-    public bool LockOnSessionLock { get => _lockOnSessionLock; set { _lockOnSessionLock = value; OnPropertyChanged(); } }
+    public bool LockOnSessionLock
+    {
+        get => _lockOnSessionLock;
+        set
+        {
+            if (_lockOnSessionLock == value) return;
+            _lockOnSessionLock = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            QueueGeneralSettingsSave();
+        }
+    }
+
+    private bool _lockOnMinimize = true;
+    public bool LockOnMinimize
+    {
+        get => _lockOnMinimize;
+        set
+        {
+            if (_lockOnMinimize == value) return;
+            _lockOnMinimize = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            QueueGeneralSettingsSave();
+        }
+    }
+
+    private bool _lockOnIdleTimeout = true;
+    public bool LockOnIdleTimeout
+    {
+        get => _lockOnIdleTimeout;
+        set
+        {
+            if (_lockOnIdleTimeout == value)
+            {
+                return;
+            }
+
+            _lockOnIdleTimeout = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsIdleTimeoutMinutesEnabled));
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            QueueGeneralSettingsSave();
+        }
+    }
+
+    private int _idleTimeoutMinutes = 10;
+    public int IdleTimeoutMinutes
+    {
+        get => _idleTimeoutMinutes;
+        set
+        {
+            var clamped = Math.Clamp(value, 1, 1440);
+            if (_idleTimeoutMinutes == clamped)
+            {
+                return;
+            }
+
+            _idleTimeoutMinutes = clamped;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            QueueGeneralSettingsSave();
+        }
+    }
+
+    public bool IsIdleTimeoutMinutesEnabled => LockOnIdleTimeout;
 
     private bool _clearClipboardEnabled = true;
-    public bool ClearClipboardEnabled { get => _clearClipboardEnabled; set { _clearClipboardEnabled = value; OnPropertyChanged(); } }
+    public bool ClearClipboardEnabled
+    {
+        get => _clearClipboardEnabled;
+        set
+        {
+            if (_clearClipboardEnabled == value) return;
+            _clearClipboardEnabled = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            QueueGeneralSettingsSave();
+        }
+    }
 
     private int _clearClipboardSeconds = 15;
-    public int ClearClipboardSeconds { get => _clearClipboardSeconds; set { _clearClipboardSeconds = value; OnPropertyChanged(); } }
+    public int ClearClipboardSeconds
+    {
+        get => _clearClipboardSeconds;
+        set
+        {
+            var clamped = Math.Clamp(value, 1, 300);
+            if (_clearClipboardSeconds == clamped) return;
+            _clearClipboardSeconds = clamped;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            QueueGeneralSettingsSave();
+        }
+    }
 
     private double _qrPreviewScaleFactor = 2.0;
-    public double QrPreviewScaleFactor { get => _qrPreviewScaleFactor; set { _qrPreviewScaleFactor = value; OnPropertyChanged(); } }
+    public double QrPreviewScaleFactor
+    {
+        get => _qrPreviewScaleFactor;
+        set
+        {
+            var clamped = Math.Clamp(value, MinQrPreviewScale, MaxQrPreviewScale);
+            var halfStep = Math.Round(clamped * 2d, MidpointRounding.AwayFromZero) / 2d;
+            if (Math.Abs(_qrPreviewScaleFactor - halfStep) < 0.001d) return;
+            _qrPreviewScaleFactor = halfStep;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            QueueGeneralSettingsSave();
+        }
+    }
 
     private bool _exportEncrypt = true;
     private bool _openExportFileAfterExportBeforeEncrypt = true;
@@ -179,6 +304,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
                 : _openExportFileAfterExportBeforeEncrypt;
 
             UpdateAvailableExportFormats();
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            QueueGeneralSettingsSave();
         }
     }
 
@@ -186,11 +313,28 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public ExportFileFormat SelectedExportFormat
     {
         get => _selectedExportFormat;
-        set { _selectedExportFormat = value; OnPropertyChanged(); }
+        set
+        {
+            if (_selectedExportFormat == value) return;
+            _selectedExportFormat = value;
+            OnPropertyChanged();
+            QueueGeneralSettingsSave();
+        }
     }
 
     private bool _hideSecretsByDefault = true;
-    public bool HideSecretsByDefault { get => _hideSecretsByDefault; set { _hideSecretsByDefault = value; OnPropertyChanged(); } }
+    public bool HideSecretsByDefault
+    {
+        get => _hideSecretsByDefault;
+        set
+        {
+            if (_hideSecretsByDefault == value) return;
+            _hideSecretsByDefault = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            QueueGeneralSettingsSave();
+        }
+    }
 
     private AppLogLevel _selectedLogLevel;
     public AppLogLevel SelectedLogLevel
@@ -200,6 +344,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         {
             _selectedLogLevel = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            QueueGeneralSettingsSave();
         }
     }
 
@@ -236,7 +382,9 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             if (!ExportEncrypt)
             {
                 _openExportFileAfterExportBeforeEncrypt = value;
+                OnPropertyChanged(nameof(CanResetToDefaults));
             }
+            QueueGeneralSettingsSave();
         }
     }
 
@@ -244,11 +392,25 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public string ClrOverrideText => _logSwitchService.IsCliOverrideActive ?
         $"(Overridden via CLI to {SelectedLogLevel})" :
         "";
+    public bool CanResetToDefaults =>
+        LockOnSessionLock != true ||
+        LockOnMinimize != true ||
+        LockOnIdleTimeout != true ||
+        IdleTimeoutMinutes != (int)AppSettings.DefaultIdleTimeout.TotalMinutes ||
+        ClearClipboardEnabled != true ||
+        ClearClipboardSeconds != AppSettings.DefaultClearClipboardSeconds ||
+        Math.Abs(QrPreviewScaleFactor - AppSettings.DefaultQrPreviewScaleFactor) > 0.001d ||
+        ExportEncrypt != true ||
+        _openExportFileAfterExportBeforeEncrypt != true ||
+        HideSecretsByDefault != true ||
+        SelectedLogLevel != AppLogLevel.Information;
 
     #endregion
 
     public ICommand SaveCommand { get; }
     public ICommand CloseCommand { get; }
+    public ICommand ChangePasswordCommand { get; }
+    public ICommand ResetToDefaultsCommand { get; }
     public ICommand ExportCommand { get; }
     public ICommand ImportCommand { get; }
     public ICommand OpenLogFolderCommand { get; }
@@ -282,6 +444,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync);
+        ChangePasswordCommand = new AsyncCommand(ChangePasswordAsync, () => IsPasswordSelected && (!string.IsNullOrWhiteSpace(NewPassword) || !string.IsNullOrWhiteSpace(ConfirmPassword)));
+        ResetToDefaultsCommand = new AsyncCommand(ResetToDefaultsAsync, () => CanResetToDefaults);
         ExportCommand = new AsyncCommand(() => actionExportOtps(ExportEncrypt, SelectedExportFormat));
         ImportCommand = new AsyncCommand(() => actionImportOtps(SelectedImportConflictOption.Strategy));
         OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder);
@@ -304,39 +468,52 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public async Task LoadAsync()
     {
-        IsHelloAvailable = await _authorizationService.IsHelloAvailableAsync();
-        
-
-        SelectedLogLevel = _logSwitchService.IsCliOverrideActive ? _logSwitchService.GetLevel() : _appSettings.MinimumLogLevel;
-
-        // Match UI Radio Buttons to Profile Gate
-        IsHelloSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Hello;
-        IsPasswordSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Password;
-
-        // Fallback if Hello was saved but is no longer available on this hardware
-        if (!IsHelloAvailable && IsHelloSelected)
+        _isLoadingSettings = true;
+        try
         {
-            IsHelloSelected = false;
-            IsPasswordSelected = true;
-        }
+            IsHelloAvailable = await _authorizationService.IsHelloAvailableAsync();
 
-        LockOnSessionLock = _appSettings.LockOnSessionLock;
-        ClearClipboardEnabled = _appSettings.ClearClipboardEnabled;
-        ClearClipboardSeconds = _appSettings.ClearClipboardSeconds > 0 ? _appSettings.ClearClipboardSeconds : 15;
-        QrPreviewScaleFactor = Math.Clamp(
-            _appSettings.QrPreviewScaleFactor > 0 ? _appSettings.QrPreviewScaleFactor : AppSettings.DefaultQrPreviewScaleFactor,
-            MinQrPreviewScale,
-            MaxQrPreviewScale);
-        _qrPreviewService.PreviewScaleFactor = QrPreviewScaleFactor;
-        OpenExportFileAfterExport = _appSettings.OpenExportFileAfterExport;
-        _openExportFileAfterExportBeforeEncrypt = _appSettings.OpenExportFileAfterExport;
-        ExportEncrypt = _appSettings.ExportEncrypt;
-        OpenExportFileAfterExport = ExportEncrypt
-            ? false
-            : _openExportFileAfterExportBeforeEncrypt;
-        UpdateAvailableExportFormats();
-        SelectedImportConflictOption = AvailableImportConflictOptions.First();
-        HideSecretsByDefault = _appSettings.HideSecretsByDefault;
+
+            SelectedLogLevel = _logSwitchService.IsCliOverrideActive ? _logSwitchService.GetLevel() : _appSettings.MinimumLogLevel;
+
+            // Match UI Radio Buttons to Profile Gate
+            IsHelloSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Hello;
+            IsPasswordSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Password;
+
+            // Fallback if Hello was saved but is no longer available on this hardware
+            if (!IsHelloAvailable && IsHelloSelected)
+            {
+                IsHelloSelected = false;
+                IsPasswordSelected = true;
+            }
+
+            LockOnSessionLock = _appSettings.LockOnSessionLock;
+            LockOnMinimize = _appSettings.LockOnMinimize;
+            LockOnIdleTimeout = _appSettings.IdleTimeout > TimeSpan.Zero;
+            IdleTimeoutMinutes = (int)Math.Max(1, _appSettings.IdleTimeout.TotalMinutes);
+            ClearClipboardEnabled = _appSettings.ClearClipboardEnabled;
+            ClearClipboardSeconds = _appSettings.ClearClipboardSeconds > 0 ? _appSettings.ClearClipboardSeconds : 15;
+            QrPreviewScaleFactor = Math.Clamp(
+                _appSettings.QrPreviewScaleFactor > 0 ? _appSettings.QrPreviewScaleFactor : AppSettings.DefaultQrPreviewScaleFactor,
+                MinQrPreviewScale,
+                MaxQrPreviewScale);
+            _qrPreviewService.PreviewScaleFactor = QrPreviewScaleFactor;
+            OpenExportFileAfterExport = _appSettings.OpenExportFileAfterExport;
+            _openExportFileAfterExportBeforeEncrypt = _appSettings.OpenExportFileAfterExport;
+            ExportEncrypt = _appSettings.ExportEncrypt;
+            OpenExportFileAfterExport = ExportEncrypt
+                ? false
+                : _openExportFileAfterExportBeforeEncrypt;
+            UpdateAvailableExportFormats();
+            SelectedImportConflictOption = AvailableImportConflictOptions.First();
+            HideSecretsByDefault = _appSettings.HideSecretsByDefault;
+        }
+        finally
+        {
+            _isLoadingSettings = false;
+            OnPropertyChanged(nameof(CanResetToDefaults));
+            RaiseCommandStates();
+        }
     }
 
     async Task SaveAndCloseAsync()
@@ -391,12 +568,13 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     private async Task SaveGeneralSettingsAsync()
     {
-        // Sync Gate choice
-        _appSettings.Authorization.Gate = IsHelloSelected ? AuthorizationGateKind.Hello : AuthorizationGateKind.Password;
-        //ILogSwitchService.
         _appSettings.MinimumLogLevel = SelectedLogLevel;
 
         _appSettings.LockOnSessionLock = LockOnSessionLock;
+        _appSettings.LockOnMinimize = LockOnMinimize;
+        _appSettings.IdleTimeout = LockOnIdleTimeout
+            ? TimeSpan.FromMinutes(Math.Max(1, IdleTimeoutMinutes))
+            : TimeSpan.Zero;
         _appSettings.ClearClipboardEnabled = ClearClipboardEnabled;
         _appSettings.ClearClipboardSeconds = ClearClipboardSeconds;
         _appSettings.QrPreviewScaleFactor = Math.Clamp(
@@ -433,6 +611,147 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
             Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
     }
 
+    private void QueueGeneralSettingsSave(int delayMs = 200)
+    {
+        if (_isLoadingSettings)
+        {
+            return;
+        }
+
+        _saveDebounceCts?.Cancel();
+        _saveDebounceCts?.Dispose();
+        _saveDebounceCts = new CancellationTokenSource();
+        _ = SaveGeneralSettingsDebouncedAsync(_saveDebounceCts.Token, delayMs);
+    }
+
+    private async Task SaveGeneralSettingsDebouncedAsync(CancellationToken token, int delayMs)
+    {
+        try
+        {
+            await Task.Delay(delayMs, token);
+            await SaveGeneralSettingsAsync();
+        }
+        catch (TaskCanceledException)
+        {
+            // expected when user changes multiple settings quickly
+        }
+    }
+
+    private void QueueAuthorizationGateSave(int delayMs = 120)
+    {
+        if (_isLoadingSettings || _suppressAuthAutoSave)
+        {
+            return;
+        }
+
+        _authGateDebounceCts?.Cancel();
+        _authGateDebounceCts?.Dispose();
+        _authGateDebounceCts = new CancellationTokenSource();
+        _ = SaveAuthorizationGateDebouncedAsync(_authGateDebounceCts.Token, delayMs);
+    }
+
+    private async Task SaveAuthorizationGateDebouncedAsync(CancellationToken token, int delayMs)
+    {
+        try
+        {
+            await Task.Delay(delayMs, token);
+            await ApplyAuthorizationGateSelectionAsync();
+        }
+        catch (TaskCanceledException)
+        {
+            // expected when toggling quickly
+        }
+    }
+
+    private async Task ApplyAuthorizationGateSelectionAsync()
+    {
+        AuthError = null;
+        var selectedGate = IsHelloSelected ? AuthorizationGateKind.Hello : AuthorizationGateKind.Password;
+        if (_appSettings.Authorization.Gate == selectedGate)
+        {
+            return;
+        }
+
+        if (selectedGate == AuthorizationGateKind.Hello)
+        {
+            if (!IsHelloAvailable)
+            {
+                AuthError = "Windows Hello is not supported on this device.";
+                return;
+            }
+
+            if (!_appSettings.Authorization.HasHelloSetup)
+            {
+                var configureResult = await _authorizationService.ConfigureHelloAsync();
+                if (configureResult != AuthorizationResult.Success)
+                {
+                    AuthError = "Windows Hello setup failed.";
+                    return;
+                }
+            }
+        }
+
+        _appSettings.Authorization.Gate = selectedGate;
+        var saveResult = await _settingsSvc.SaveAsync();
+        if (saveResult.IsFailed)
+        {
+            AuthError = string.Join("; ", saveResult.Errors.Select(e => e.Message));
+            _suppressAuthAutoSave = true;
+            IsHelloSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Hello;
+            IsPasswordSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Password;
+            _suppressAuthAutoSave = false;
+        }
+    }
+
+    private async Task ChangePasswordAsync()
+    {
+        AuthError = null;
+
+        if (string.IsNullOrWhiteSpace(NewPassword))
+        {
+            AuthError = "Password cannot be empty.";
+            return;
+        }
+
+        var result = await _authorizationService.ChangePasswordAsync(NewPassword, ConfirmPassword);
+        if (result != AuthorizationResult.Success)
+        {
+            AuthError = "Passwords must match and be at least 8 characters.";
+            return;
+        }
+
+        NewPassword = string.Empty;
+        ConfirmPassword = string.Empty;
+    }
+
+    private async Task ResetToDefaultsAsync()
+    {
+        _isLoadingSettings = true;
+        try
+        {
+            LockOnSessionLock = true;
+            LockOnMinimize = true;
+            LockOnIdleTimeout = true;
+            IdleTimeoutMinutes = (int)AppSettings.DefaultIdleTimeout.TotalMinutes;
+            ClearClipboardEnabled = true;
+            ClearClipboardSeconds = AppSettings.DefaultClearClipboardSeconds;
+            QrPreviewScaleFactor = AppSettings.DefaultQrPreviewScaleFactor;
+            ExportEncrypt = true;
+            _openExportFileAfterExportBeforeEncrypt = true;
+            OpenExportFileAfterExport = false;
+            HideSecretsByDefault = true;
+            SelectedLogLevel = AppLogLevel.Information;
+        }
+        finally
+        {
+            _isLoadingSettings = false;
+        }
+
+        await SaveGeneralSettingsAsync();
+        OnPropertyChanged(nameof(CanResetToDefaults));
+        RaiseCommandStates();
+    }
+
     private void UpdateAvailableExportFormats()
     {
         var formats = ExportEncrypt ? EncryptedExportFormats : PlainExportFormats;
@@ -449,6 +768,26 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    private void RaiseCommandStates()
+    {
+        if (ChangePasswordCommand is AsyncCommand changePasswordCommand)
+        {
+            changePasswordCommand.RaiseCanExecuteChanged();
+        }
+
+        if (ResetToDefaultsCommand is AsyncCommand resetToDefaultsCommand)
+        {
+            resetToDefaultsCommand.RaiseCanExecuteChanged();
+        }
+    }
+
     private void OnPropertyChanged([CallerMemberName] string? name = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        if (name == nameof(CanResetToDefaults) || name == nameof(NewPassword) || name == nameof(ConfirmPassword) || name == nameof(IsPasswordSelected))
+        {
+            RaiseCommandStates();
+        }
+    }
 }

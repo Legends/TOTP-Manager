@@ -23,13 +23,16 @@ namespace TOTP.Infrastructure.Services;
 public sealed class SessionLockBackgroundService : BackgroundService
 {
     private readonly IAuthorizationService _authorizationService;
+    private readonly ISettingsService _settingsService;
     private readonly ILogger<SessionLockBackgroundService> _logger;
 
     public SessionLockBackgroundService(
         IAuthorizationService authorizationService,
+        ISettingsService settingsService,
         ILogger<SessionLockBackgroundService> logger)
     {
         _authorizationService = authorizationService;
+        _settingsService = settingsService;
         _logger = logger;
     }
 
@@ -47,6 +50,11 @@ public sealed class SessionLockBackgroundService : BackgroundService
     {
         if (e.Reason == SessionSwitchReason.SessionLock)
         {
+            if (!_settingsService.Current.LockOnSessionLock)
+            {
+                return;
+            }
+
             try
             {
                 _logger.LogInformation("Windows session locked. Locking application.");

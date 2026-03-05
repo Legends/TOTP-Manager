@@ -11,6 +11,7 @@
     <converters:BoolToVisibilityConverterCollapsed x:Key="BoolToVisibilityConverterCollapsed" />
     <converters:SecretMaskConverter x:Key="SecretMaskConverter" />
     <converters:ProgressValueToBrushConverter x:Key="ProgressValueToBrushConverter" />
+    <converters:MultiplyConverter x:Key="MultiplyConverter" />
     <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverterCollapsed"
                                             Collapse="True" />
     <!-- Brushes -->

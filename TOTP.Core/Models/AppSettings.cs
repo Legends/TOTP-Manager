@@ -18,6 +18,8 @@ public sealed class AppSettings : IAppSettings
 
     public bool LockOnSessionLock { get; set; } = true;
 
+    public bool LockOnMinimize { get; set; } = true;
+
     public bool ClearClipboardEnabled { get; set; } = true;
 
     public int ClearClipboardSeconds { get; set; } = DefaultClearClipboardSeconds;

@@ -18,6 +18,7 @@ public sealed class MainViewSessionController : IMainViewSessionController
 {
     private readonly IAuthorizationService _authorization;
     private readonly IInputActivityMonitor _inputActivityMonitor;
+    private readonly ISettingsService _settingsService;
     private readonly ILogger<MainViewSessionController> _logger;
 
     private Func<Task>? _onUnlockedAsync;
@@ -35,11 +36,13 @@ public sealed class MainViewSessionController : IMainViewSessionController
     public MainViewSessionController(
         IAuthorizationService authorization,
         IInputActivityMonitor inputActivityMonitor,
+        ISettingsService settingsService,
         ILogger<MainViewSessionController> logger)
     {
         _logger = logger;
         _authorization = authorization;
         _inputActivityMonitor = inputActivityMonitor;
+        _settingsService = settingsService;
 
         WindowStateChangedCommand = new RelayCommand<WindowState>(OnWindowStateChanged);
         DetachWindowCommand = new RelayCommand(DetachWindow);
@@ -119,7 +122,7 @@ public sealed class MainViewSessionController : IMainViewSessionController
 
     private void OnWindowStateChanged(WindowState state)
     {
-        if (state == WindowState.Minimized)
+        if (state == WindowState.Minimized && _settingsService.Current.LockOnMinimize)
             Lock();
     }
 

@@ -53,7 +53,7 @@ public sealed class IdleMonitoringBackgroundService : BackgroundService, IActivi
         {
             if (!_authService.State.IsUnlocked) continue;
 
-            if (DateTime.UtcNow - LastActivity > timeout)
+            if (timeout > TimeSpan.Zero && DateTime.UtcNow - LastActivity > timeout)
             {
                 _logger.LogInformation("Idle timeout reached ({Timeout}). Locking app.", timeout);
 
