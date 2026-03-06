@@ -301,6 +301,56 @@ public partial class MainViewModel
                 }
 
                 var newAccountItem = new OtpViewModel(Guid.NewGuid(), otp.Issuer ?? string.Empty, otp.SecretBase32, otp.Label);
+                var existing = FindMatchingEntry(newAccountItem, AllOtps);
+
+                if (existing != null)
+                {
+                    if (SecretsEquivalent(existing.Secret, newAccountItem.Secret))
+                    {
+                        _messageService.ShowInfo("Account already exists. No changes applied.");
+                        return;
+                    }
+
+                    var shouldUpdate = _messageService.ConfirmInfo(
+                        $"Account '{existing.Issuer}' already exists. Update existing account with the scanned values?",
+                        "Update existing",
+                        "More options");
+
+                    if (shouldUpdate)
+                    {
+                        var updated = newAccountItem.Copy();
+                        if (updated == null)
+                            return;
+
+                        updated.ID = existing.ID;
+
+                        var updateResult = await _accountsWorkflow.UpdateAsync(existing, updated);
+                        if (updateResult.IsFailed)
+                        {
+                            _messageService.ShowResultError(updateResult, existing.Issuer);
+                            return;
+                        }
+
+                        existing.UpdateSelf(updated);
+                        _messageService.ShowSuccess("Account updated from scanned QR.", 2);
+
+                        if (SelectedAccount?.ID == existing.ID && !ShowGenerateQrCodeLink)
+                            UpdateQRCode();
+
+                        return;
+                    }
+
+                    var keepBoth = _messageService.ConfirmInfo(
+                        "Do you want to keep both entries?",
+                        "Keep both",
+                        UI.ui_btnCancel);
+
+                    if (!keepBoth)
+                        return;
+
+                    newAccountItem.ID = Guid.NewGuid();
+                    newAccountItem.Issuer = CreateKeepBothIssuer(newAccountItem.Issuer, AllOtps);
+                }
 
                 var validationErrors = _accountsWorkflow.ValidateForCreate(newAccountItem, AllOtps);
                 if (validationErrors.Count > 0)
@@ -343,6 +393,43 @@ public partial class MainViewModel
             _logger.LogError(ex, UI.ex_Adding_New_TOTP);
             _messageService.ShowError(UI.ex_Adding_New_TOTP );
         }
+    }
+
+    private static OtpViewModel? FindMatchingEntry(OtpViewModel incoming, System.Collections.Generic.IEnumerable<OtpViewModel> allOtps)
+    {
+        var byIssuerAndAccount = allOtps.FirstOrDefault(existing =>
+            string.Equals(existing.Issuer ?? string.Empty, incoming.Issuer ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(existing.AccountName ?? string.Empty, incoming.AccountName ?? string.Empty, StringComparison.OrdinalIgnoreCase));
+        if (byIssuerAndAccount != null)
+            return byIssuerAndAccount;
+
+        return allOtps.FirstOrDefault(existing =>
+            string.Equals(existing.Issuer ?? string.Empty, incoming.Issuer ?? string.Empty, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string CreateKeepBothIssuer(string? baseIssuer, System.Collections.Generic.IEnumerable<OtpViewModel> allOtps)
+    {
+        var source = string.IsNullOrWhiteSpace(baseIssuer) ? "Imported" : baseIssuer.Trim();
+        var candidate = $"{source} (imported)";
+        var suffix = 2;
+
+        while (allOtps.Any(item => string.Equals(item.Issuer ?? string.Empty, candidate, StringComparison.OrdinalIgnoreCase)))
+        {
+            candidate = $"{source} (imported {suffix})";
+            suffix++;
+        }
+
+        return candidate;
+    }
+
+    private static bool SecretsEquivalent(string? left, string? right)
+    {
+        static string Normalize(string? value) =>
+            new string((value ?? string.Empty).Where(ch => !char.IsWhiteSpace(ch) && ch != '-').ToArray())
+                .TrimEnd('=')
+                .ToUpperInvariant();
+
+        return string.Equals(Normalize(left), Normalize(right), StringComparison.Ordinal);
     }
 
     #endregion
