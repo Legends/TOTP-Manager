@@ -30,6 +30,7 @@ public sealed class PasswordPromptService : IPasswordPromptService
 
     public string? PromptForEncryptedExportPassword(string title)
     {
+        string? confirmedPassword = null;
         var viewModel = new ExportPasswordPromptViewModel(title, _passwordValidationService)
         {
             ValidateMasterPasswordAsync = async password =>
@@ -38,18 +39,32 @@ public sealed class PasswordPromptService : IPasswordPromptService
                 return result == AuthorizationResult.Success;
             }
         };
+        viewModel.PasswordConfirmed += OnPasswordConfirmed;
 
         var dialog = _dialogFactory.CreateExportPasswordPromptDialog();
         dialog.DataContext = viewModel;
         dialog.Owner = GetMainWindowSafe();
-
-        var result = dialog.ShowDialog();
-        if (result != true || string.IsNullOrWhiteSpace(viewModel.SelectedPassword))
+        try
         {
-            return null;
+            var result = dialog.ShowDialog();
+            if (result != true || string.IsNullOrWhiteSpace(confirmedPassword))
+            {
+                return null;
+            }
+
+            return confirmedPassword;
+        }
+        finally
+        {
+            viewModel.PasswordConfirmed -= OnPasswordConfirmed;
+            viewModel.ClearSensitiveData();
+            dialog.DataContext = null;
         }
 
-        return viewModel.SelectedPassword;
+        void OnPasswordConfirmed(object? _, string password)
+        {
+            confirmedPassword = password;
+        }
     }
 
     public string? Prompt(
@@ -59,20 +74,40 @@ public sealed class PasswordPromptService : IPasswordPromptService
         string? requiredErrorMessage = null,
         Func<string, Task<string?>>? validatePasswordAsync = null)
     {
-        var viewModel = new PasswordPromptViewModel(title, message, errorMessage, requiredErrorMessage);
+        string? confirmedPassword = null;
+        var viewModel = new PasswordPromptViewModel(
+            title,
+            message,
+            _passwordValidationService,
+            errorMessage,
+            requiredErrorMessage);
         viewModel.ValidatePasswordAsync = validatePasswordAsync;
+        viewModel.PasswordConfirmed += OnPasswordConfirmed;
 
         var dialog = _dialogFactory.CreatePasswordPromptDialog();
         dialog.DataContext = viewModel;
         dialog.Owner = GetMainWindowSafe();
-
-        var result = dialog.ShowDialog();
-        if (result != true || string.IsNullOrWhiteSpace(viewModel.Password))
+        try
         {
-            return null;
+            var result = dialog.ShowDialog();
+            if (result != true || string.IsNullOrWhiteSpace(confirmedPassword))
+            {
+                return null;
+            }
+
+            return confirmedPassword;
+        }
+        finally
+        {
+            viewModel.PasswordConfirmed -= OnPasswordConfirmed;
+            viewModel.ClearSensitiveData();
+            dialog.DataContext = null;
         }
 
-        return viewModel.Password;
+        void OnPasswordConfirmed(object? _, string password)
+        {
+            confirmedPassword = password;
+        }
     }
 
     private Window? GetMainWindowSafe()

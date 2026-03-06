@@ -1,3 +1,6 @@
+using Moq;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Resources;
 using TOTP.ViewModels;
 
@@ -8,7 +11,12 @@ public sealed class PasswordPromptViewModelTests
     [Fact]
     public async Task ConfirmCommand_WithEmptyPassword_UsesCustomRequiredErrorIfProvided()
     {
-        var vm = new PasswordPromptViewModel("Title", "Msg", requiredErrorMessage: "required");
+        var validation = new Mock<IPasswordValidationService>();
+        validation
+            .Setup(v => v.ValidateRequired("", "required"))
+            .Returns(new PasswordValidationResult { PasswordError = "required" });
+
+        var vm = new PasswordPromptViewModel("Title", "Msg", validation.Object, requiredErrorMessage: "required");
 
         var closed = false;
         vm.RequestClose += (_, _) => closed = true;
@@ -23,7 +31,12 @@ public sealed class PasswordPromptViewModelTests
     [Fact]
     public async Task ConfirmCommand_WithEmptyPassword_UsesDefaultRequiredResourceWhenMissingCustom()
     {
-        var vm = new PasswordPromptViewModel("Title", "Msg");
+        var validation = new Mock<IPasswordValidationService>();
+        validation
+            .Setup(v => v.ValidateRequired("", UI.ui_ImportPasswordRequired))
+            .Returns(new PasswordValidationResult { PasswordError = UI.ui_ImportPasswordRequired });
+
+        var vm = new PasswordPromptViewModel("Title", "Msg", validation.Object);
 
         vm.ConfirmCommand.Execute(null);
         await WaitUntilAsync(() => vm.HasErrorMessage);
@@ -34,7 +47,12 @@ public sealed class PasswordPromptViewModelTests
     [Fact]
     public async Task ConfirmCommand_WhenValidatorReturnsError_SetsErrorAndDoesNotClose()
     {
-        var vm = new PasswordPromptViewModel("Title", "Msg")
+        var validation = new Mock<IPasswordValidationService>();
+        validation
+            .Setup(v => v.ValidateRequired("pw", UI.ui_ImportPasswordRequired))
+            .Returns(new PasswordValidationResult());
+
+        var vm = new PasswordPromptViewModel("Title", "Msg", validation.Object)
         {
             Password = "pw",
             ValidatePasswordAsync = _ => Task.FromResult<string?>("bad password")
@@ -53,7 +71,12 @@ public sealed class PasswordPromptViewModelTests
     [Fact]
     public async Task ConfirmCommand_WhenValidatorPasses_ClosesDialog()
     {
-        var vm = new PasswordPromptViewModel("Title", "Msg")
+        var validation = new Mock<IPasswordValidationService>();
+        validation
+            .Setup(v => v.ValidateRequired("pw", UI.ui_ImportPasswordRequired))
+            .Returns(new PasswordValidationResult());
+
+        var vm = new PasswordPromptViewModel("Title", "Msg", validation.Object)
         {
             Password = "pw",
             ValidatePasswordAsync = _ => Task.FromResult<string?>(null)
@@ -72,7 +95,7 @@ public sealed class PasswordPromptViewModelTests
     [Fact]
     public void PasswordSetter_ClearsExistingErrorMessage()
     {
-        var vm = new PasswordPromptViewModel("Title", "Msg", errorMessage: "initial");
+        var vm = new PasswordPromptViewModel("Title", "Msg", Mock.Of<IPasswordValidationService>(), errorMessage: "initial");
 
         Assert.True(vm.HasErrorMessage);
 
@@ -85,7 +108,7 @@ public sealed class PasswordPromptViewModelTests
     [Fact]
     public void Constructor_SetsInitialProperties()
     {
-        var vm = new PasswordPromptViewModel("T", "M", errorMessage: "E", requiredErrorMessage: "R");
+        var vm = new PasswordPromptViewModel("T", "M", Mock.Of<IPasswordValidationService>(), errorMessage: "E", requiredErrorMessage: "R");
 
         Assert.Equal("T", vm.Title);
         Assert.Equal("M", vm.Message);

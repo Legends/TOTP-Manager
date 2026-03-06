@@ -207,6 +207,8 @@ public sealed class AccountTransferWorkflowServiceTests
         await sut.ExportOtpsAsync(toBeEncrypted: true, ExportFileFormat.Csv);
 
         export.Verify(e => e.ExportToEncryptedFileAsync(It.IsAny<IEnumerable<OtpEntry>>(), "secret", "backup.totp", ExportFileFormat.Json), Times.Once);
+        message.Verify(m => m.ShowWarning(TOTP.Resources.UI.ui_ExportPasswordRequired), Times.Never);
+        message.Verify(m => m.ShowSuccess(TOTP.Resources.UI.ui_Settings_Export_Success, 1), Times.Once);
     }
 
     [Fact]

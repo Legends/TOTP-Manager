@@ -43,6 +43,7 @@ public partial class PasswordPromptWindow : ChromelessWindow
         if (DataContext is PasswordPromptViewModel vm)
         {
             vm.RequestClose -= OnViewModelRequestClose;
+            vm.ClearSensitiveData();
         }
 
         DataContextChanged -= OnDataContextChanged;

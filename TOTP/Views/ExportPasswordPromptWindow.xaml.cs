@@ -25,6 +25,7 @@ public partial class ExportPasswordPromptWindow : ChromelessWindow
         if (DataContext is ExportPasswordPromptViewModel vm)
         {
             vm.RequestClose -= OnViewModelRequestClose;
+            vm.ClearSensitiveData();
         }
 
         DataContextChanged -= OnDataContextChanged;

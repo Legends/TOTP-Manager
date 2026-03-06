@@ -89,6 +89,39 @@ public sealed class PasswordPromptServiceTests
     }
 
     [Fact]
+    public void PromptForEncryptedExportPassword_WhenViewModelIsClearedOnDialogClose_StillReturnsConfirmedPassword()
+    {
+        var auth = new Mock<IAuthorizationService>();
+        var validation = new Mock<IPasswordValidationService>();
+        var dialogFactory = new Mock<IPasswordPromptDialogFactory>();
+        var dialog = new FakeDialog();
+
+        dialogFactory.Setup(f => f.CreateExportPasswordPromptDialog()).Returns(dialog);
+        validation.Setup(v => v.ValidateRequired("new-master", It.IsAny<string>())).Returns(new PasswordValidationResult());
+        auth.Setup(a => a.TryUnlockWithPasswordAsync("new-master")).ReturnsAsync(AuthorizationResult.Success);
+
+        dialog.OnShowDialog = () =>
+        {
+            var vm = (ExportPasswordPromptViewModel)dialog.DataContext!;
+            var closed = false;
+            vm.RequestClose += (_, _) => closed = true;
+            vm.MasterPassword = "new-master";
+            vm.ConfirmCommand.Execute(null);
+            SpinWait.SpinUntil(() => closed, 1000);
+
+            // Simulate window OnClosed sensitive-data cleanup before ShowDialog() returns.
+            vm.ClearSensitiveData();
+            return true;
+        };
+
+        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object, NullLogger<PasswordPromptService>.Instance);
+
+        var result = sut.PromptForEncryptedExportPassword("Export");
+
+        Assert.Equal("new-master", result);
+    }
+
+    [Fact]
     public void Prompt_WhenConfirmedAndValidationPasses_ReturnsPassword()
     {
         var auth = new Mock<IAuthorizationService>();
@@ -97,6 +130,8 @@ public sealed class PasswordPromptServiceTests
         var dialog = new FakeDialog();
 
         dialogFactory.Setup(f => f.CreatePasswordPromptDialog()).Returns(dialog);
+        validation.Setup(v => v.ValidateRequired("import-pass", It.IsAny<string>()))
+            .Returns(new PasswordValidationResult());
 
         dialog.OnShowDialog = () =>
         {
@@ -126,6 +161,8 @@ public sealed class PasswordPromptServiceTests
         var dialog = new FakeDialog();
 
         dialogFactory.Setup(f => f.CreatePasswordPromptDialog()).Returns(dialog);
+        validation.Setup(v => v.ValidateRequired("import-pass", It.IsAny<string>()))
+            .Returns(new PasswordValidationResult());
 
         dialog.OnShowDialog = () =>
         {
@@ -158,6 +195,40 @@ public sealed class PasswordPromptServiceTests
         var result = sut.Prompt("Title", "Message");
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public void Prompt_WhenViewModelIsClearedOnDialogClose_StillReturnsConfirmedPassword()
+    {
+        var auth = new Mock<IAuthorizationService>();
+        var validation = new Mock<IPasswordValidationService>();
+        var dialogFactory = new Mock<IPasswordPromptDialogFactory>();
+        var dialog = new FakeDialog();
+
+        dialogFactory.Setup(f => f.CreatePasswordPromptDialog()).Returns(dialog);
+        validation.Setup(v => v.ValidateRequired("import-pass", It.IsAny<string>()))
+            .Returns(new PasswordValidationResult());
+
+        dialog.OnShowDialog = () =>
+        {
+            var vm = (PasswordPromptViewModel)dialog.DataContext!;
+            var closed = false;
+            vm.RequestClose += (_, _) => closed = true;
+            vm.Password = "import-pass";
+            vm.ValidatePasswordAsync = _ => Task.FromResult<string?>(null);
+            vm.ConfirmCommand.Execute(null);
+            SpinWait.SpinUntil(() => closed, 1000);
+
+            // Simulate window OnClosed sensitive-data cleanup before ShowDialog() returns.
+            vm.ClearSensitiveData();
+            return true;
+        };
+
+        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object, NullLogger<PasswordPromptService>.Instance);
+
+        var result = sut.Prompt("Title", "Message");
+
+        Assert.Equal("import-pass", result);
     }
 
     private static IPasswordPromptDialogFactory CreateFactoryFor(FakeDialog? exportDialog, FakeDialog? promptDialog)

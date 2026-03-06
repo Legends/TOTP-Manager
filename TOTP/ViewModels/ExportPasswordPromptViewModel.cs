@@ -1,50 +1,23 @@
 using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using TOTP.Commands;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Resources;
 
 namespace TOTP.ViewModels;
 
-public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
+public sealed class ExportPasswordPromptViewModel : PasswordPromptViewModelBase
 {
-    private readonly IPasswordValidationService _passwordValidationService;
-    private string _title;
     private bool _useMasterPassword = true;
     private string _masterPassword = string.Empty;
     private string _customPassword = string.Empty;
     private string _confirmCustomPassword = string.Empty;
-    private string _errorMessage = string.Empty;
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-    public event EventHandler? RequestClose;
 
     public Func<string, Task<bool>>? ValidateMasterPasswordAsync { get; set; }
-    public ICommand ConfirmCommand { get; }
+    public event EventHandler<string>? PasswordConfirmed;
 
     public ExportPasswordPromptViewModel(string title, IPasswordValidationService passwordValidationService)
+        : base(title, passwordValidationService)
     {
-        _title = title;
-        _passwordValidationService = passwordValidationService;
-        ConfirmCommand = new AsyncCommand(ConfirmAsync, CanConfirm);
-    }
-
-    public string Title
-    {
-        get => _title;
-        set
-        {
-            if (_title == value)
-            {
-                return;
-            }
-
-            _title = value;
-            OnPropertyChanged();
-        }
     }
 
     public bool UseMasterPassword
@@ -58,7 +31,7 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             }
 
             _useMasterPassword = value;
-            ErrorMessage = string.Empty;
+            ClearErrorMessage();
             RaiseConfirmCanExecuteChanged();
             OnPropertyChanged();
             OnPropertyChanged(nameof(UseCustomPassword));
@@ -82,11 +55,7 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             }
 
             _masterPassword = value;
-            if (!string.IsNullOrWhiteSpace(_errorMessage))
-            {
-                ErrorMessage = string.Empty;
-            }
-
+            ClearErrorMessage();
             RaiseConfirmCanExecuteChanged();
             OnPropertyChanged();
         }
@@ -103,11 +72,7 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             }
 
             _customPassword = value;
-            if (!string.IsNullOrWhiteSpace(_errorMessage))
-            {
-                ErrorMessage = string.Empty;
-            }
-
+            ClearErrorMessage();
             RaiseConfirmCanExecuteChanged();
             OnPropertyChanged();
         }
@@ -124,44 +89,22 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
             }
 
             _confirmCustomPassword = value;
-            if (!string.IsNullOrWhiteSpace(_errorMessage))
-            {
-                ErrorMessage = string.Empty;
-            }
-
+            ClearErrorMessage();
             RaiseConfirmCanExecuteChanged();
-            OnPropertyChanged();
-        }
-    }
-
-    public string ErrorMessage
-    {
-        get => _errorMessage;
-        set
-        {
-            if (_errorMessage == value)
-            {
-                return;
-            }
-
-            _errorMessage = value;
             OnPropertyChanged();
         }
     }
 
     public string SelectedPassword { get; private set; } = string.Empty;
 
-    private bool CanConfirm() => !string.IsNullOrWhiteSpace(Title);
-
-    private async Task ConfirmAsync()
+    protected override async Task<bool> ConfirmCoreAsync()
     {
         if (UseMasterPassword)
         {
-            var requiredValidation = _passwordValidationService.ValidateRequired(MasterPassword, UI.ui_ExportPasswordRequired);
-            if (!requiredValidation.IsValid)
+            if (!ValidateRequired(MasterPassword, UI.ui_ExportPasswordRequired, out var requiredError))
             {
-                ErrorMessage = requiredValidation.PasswordError ?? UI.ui_ExportPasswordRequired;
-                return;
+                SetError(requiredError);
+                return false;
             }
 
             if (ValidateMasterPasswordAsync != null)
@@ -169,45 +112,44 @@ public sealed class ExportPasswordPromptViewModel : INotifyPropertyChanged
                 var isValid = await ValidateMasterPasswordAsync(MasterPassword);
                 if (!isValid)
                 {
-                    ErrorMessage = UI.ui_ExportPwd_WrongMasterPassword;
-                    return;
+                    SetError(UI.ui_ExportPwd_WrongMasterPassword);
+                    return false;
                 }
             }
 
             SelectedPassword = MasterPassword;
-            RequestClose?.Invoke(this, EventArgs.Empty);
-            return;
+            PasswordConfirmed?.Invoke(this, SelectedPassword);
+            return true;
         }
 
-        var validation = _passwordValidationService.ValidateNewWithConfirmation(
+        var isValidCustomPassword = ValidateNewWithConfirmation(
             CustomPassword,
             ConfirmCustomPassword,
             UI.ui_Password_Required,
             UI.ui_Password_MinLength_Format,
             UI.ui_ExportPasswordRequired,
-            UI.ui_ExportPwd_CustomPasswordMismatch);
+            UI.ui_ExportPwd_CustomPasswordMismatch,
+            out var customValidationError);
 
-        if (!validation.IsValid)
+        if (!isValidCustomPassword)
         {
-            ErrorMessage = validation.PasswordError ?? validation.ConfirmPasswordError ?? UI.ui_ExportPasswordRequired;
-            return;
+            SetError(customValidationError);
+            return false;
         }
 
         SelectedPassword = CustomPassword;
-        RequestClose?.Invoke(this, EventArgs.Empty);
+        PasswordConfirmed?.Invoke(this, SelectedPassword);
+        return true;
     }
 
-    private void RaiseConfirmCanExecuteChanged()
+    public override void ClearSensitiveData()
     {
-        if (ConfirmCommand is AsyncCommand confirmCommand)
-        {
-            confirmCommand.RaiseCanExecuteChanged();
-        }
-    }
-
-    private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        base.ClearSensitiveData();
+        _masterPassword = string.Empty;
+        _customPassword = string.Empty;
+        _confirmCustomPassword = string.Empty;
+        SelectedPassword = string.Empty;
+        ValidateMasterPasswordAsync = null;
     }
 }
 
