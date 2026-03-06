@@ -1,86 +1,120 @@
 # TOTP Manager
 
-A security-first desktop authenticator for managing Time-based One-Time Passwords (TOTP) on Windows.
+TOTP Manager is a Windows desktop app (WPF) for managing and generating Time-based One-Time Passwords (TOTP) locally.
 
-## Project Overview
+## Scope
 
-TOTP Manager is a Windows WPF application for storing and generating 2FA/TOTP codes locally.  
-It is designed for users who want stronger protection than typical authenticator apps by combining:
+- Local token storage and code generation
+- Import/export workflows for backup and migration
+- Authorization flows based on master password and optional Windows Hello support
 
-- Modern password-based key derivation (Argon2id)
-- Windows-native local secret protection (DPAPI)
-- Secure backup/export workflows
-- Strict local-first handling of secrets
+## Core Security Design
 
-### Why it is more secure than many standard apps
+- Secrets are encrypted before they are written to disk
+- Password-derived key material uses Argon2id
+- Additional local protection uses Windows DPAPI
+- Sensitive actions require explicit authorization
 
-- Secrets are encrypted at rest, not stored in readable form.
-- Local credential material is protected with OS-backed protection (DPAPI).
-- Password hardening uses Argon2id, which is resilient against brute-force attacks.
-- Security-sensitive actions use explicit authorization flows.
-- Secure-by-design is the baseline, not an optional mode.
+See also:
+- `docs/security/THREAT_MODEL.md`
+- `docs/security/SECURITY_VERIFICATION.md`
+- `docs/security/PENTEST_PLAN.md`
 
-## Key Features
+## Features
 
-- TOTP generation for standard authenticator-compatible services
-- Secure local vault for OTP seeds/accounts
-- Encrypted export/import for backup and migration
-- Backup rotation support to reduce risk from stale backups
-- Authorization mode switching (master password and/or Windows Hello flow)
-- Security-focused settings and recovery flows
+- Secure local vault for tokens
+- Create, edit, and delete TOTP tokens
+- Generate rotating 6-digit TOTP codes
+- Search and manage tokens in the main grid
+- Encrypted export/import for backups (`.totp`)
+- Backup rotation support
+- Localization resources (English/German)
 
-## Installation
+## Requirements
 
-1. Go to the latest release page on GitHub.
-2. Download the current Windows package (`.zip` release artifact).
-3. Extract to a trusted local folder.
-4. Launch `TOTP.UI.WPF.exe`.
-5. On first run, complete initial security setup (master password / authorization settings).
+- Windows 10/11
+- .NET 9 SDK (for local build/test)
 
-## Usage Guide
+## Build
 
-### Add a new token
+```powershell
+dotnet restore TOTP.sln
+dotnet build TOTP.sln -c Debug
+```
 
-1. Open the app and choose **Add Token**.
-2. Enter issuer/account details.
-3. Paste secret (or import from supported format).
-4. Save and verify generated code updates every 30 seconds.
+## Test
 
-### Manage backups
+```powershell
+dotnet test TOTP.sln -c Debug
+```
 
-1. Open **Settings > Export/Import**.
-2. Choose encrypted export (`.totp`) for recommended backups.
-3. Select destination and confirm password/authorization.
-4. Store backups in a protected location (offline copy recommended).
-5. Periodically rotate old backups and keep only required recovery points.
+## Run (Local)
 
-### Configure security settings
+```powershell
+dotnet run --project .\TOTP\TOTP.UI.WPF.csproj
+```
 
-1. Go to **Settings > Security**.
-2. Change master password when needed.
-3. Configure preferred authorization mode.
-4. Review export/import and recovery options after changes.
+## Release Installation
 
-## Security Transparency (High-Level)
+1. Download the latest release archive from GitHub.
+2. Extract it to a local folder.
+3. Start `TOTP.UI.WPF.exe`.
+4. Complete first-run security setup.
 
-Your secrets are protected in two layers:
+## Token Management (CRUD + QR)
 
-- **Layer 1: Password hardening (Argon2id)**  
-  Your password is transformed into strong cryptographic material that is expensive to brute-force.
+These are the primary workflows in the app.
 
-- **Layer 2: Windows local protection (DPAPI)**  
-  Local credential artifacts are additionally protected using your Windows account context.
+### Create token
 
-In short: your TOTP data is encrypted before storage, and decryption is only possible through authorized flows.
+1. Click the `+` button or press `Ctrl + A`.
+2. Enter issuer, account label, secret, digits, and period.
+3. Save to create the token.
 
-## Important Notes
+### Read token
 
-- Keep your master password in a safe place.
-- Use encrypted backups regularly.
-- Do not share exported backup files without encryption.
-- Keep your Windows account and device security (PIN/biometric/OS updates) in good health.
+1. Open the main token list.
+2. Select a token to view current code and metadata.
+3. Use search to quickly filter by issuer/account.
+
+### Update token
+
+1. Select a token.
+2. Right-click the row and choose `Edit` for full edit.
+3. For quick inline edit, double-click the row to edit only the issuer name.
+4. Save changes.
+
+### Delete token
+
+1. Select a token.
+2. Right-click the row and choose `Delete`.
+3. Confirm removal.
+
+### Generate QR code from token
+
+1. Select an existing token.
+2. Click "Show QR code".
+3. The app generates a QR code from the token's OTP configuration.
+4. Click the QR code in order to enlarge it.
+
+### Scan QR code to add TOTP
+
+1. Click the camera symbol.
+2. The camera activates and is ready to scan.
+3. Scan the `otpauth://` QR code from the provider.
+4. Review parsed token details and save.
+
+## Backup and Recovery Notes
+
+- Keep encrypted backups in a protected location
+- Validate restore procedure regularly
+- Keep master password and Windows account recovery options available
+
+## Contributing
+
+See `CONTRIBUTING.md` for contribution and workflow details.
 
 ## Support
 
-- Open an issue in the GitHub repository for bugs or feature requests.
-- For security reports, use the project’s responsible disclosure/security channel if available.
+- Bugs and feature requests: GitHub Issues
+- Security topics: follow the repository security process/documentation
