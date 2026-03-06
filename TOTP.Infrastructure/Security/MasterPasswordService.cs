@@ -62,16 +62,23 @@ public sealed class MasterPasswordService : IMasterPasswordService
                 var argon2 = PasswordBasedKeyDerivationAlgorithm.Argon2id(argonParams);
                 byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 
-                // 3. Derive KEK specifically for Aes256Gcm
-                using var kek = argon2.DeriveKey(passwordBytes, salt, AeadAlgorithm.Aes256Gcm);
+                try
+                {
+                    // 3. Derive KEK specifically for Aes256Gcm
+                    using var kek = argon2.DeriveKey(passwordBytes, salt, AeadAlgorithm.Aes256Gcm);
 
-                // 4. Wrap DEK
-                var aes = AeadAlgorithm.Aes256Gcm;
-                byte[] wrappedDek = aes.Encrypt(kek, nonce, null, rawDek);
+                    // 4. Wrap DEK
+                    var aes = AeadAlgorithm.Aes256Gcm;
+                    byte[] wrappedDek = aes.Encrypt(kek, nonce, null, rawDek);
 
-                _logger.LogInformation("Key wrapping completed successfully.");
+                    _logger.LogInformation("Key wrapping completed successfully.");
 
-                return (wrappedDek, salt, DefaultPasses, DefaultMemorySizeKiB, nonce);
+                    return (wrappedDek, salt, DefaultPasses, DefaultMemorySizeKiB, nonce);
+                }
+                finally
+                {
+                    Array.Clear(passwordBytes, 0, passwordBytes.Length);
+                }
             }
             catch (Exception ex)
             {
@@ -105,10 +112,17 @@ public sealed class MasterPasswordService : IMasterPasswordService
                 var argon2 = PasswordBasedKeyDerivationAlgorithm.Argon2id(argonParams);
                 byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 
-                using var kek = argon2.DeriveKey(passwordBytes, salt, AeadAlgorithm.Aes256Gcm);
+                try
+                {
+                    using var kek = argon2.DeriveKey(passwordBytes, salt, AeadAlgorithm.Aes256Gcm);
 
-                var aes = AeadAlgorithm.Aes256Gcm;
-                return aes.Decrypt(kek, nonce, null, wrappedDek);
+                    var aes = AeadAlgorithm.Aes256Gcm;
+                    return aes.Decrypt(kek, nonce, null, wrappedDek);
+                }
+                finally
+                {
+                    Array.Clear(passwordBytes, 0, passwordBytes.Length);
+                }
             }
             catch (CryptographicException)
             {

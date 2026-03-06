@@ -4,11 +4,15 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Syncfusion.UI.Xaml.Grid;
+using Syncfusion.UI.Xaml.ScrollAxis;
+using Helper = TOTP.Helper.Common;
 
 namespace TOTP.UserControls
 {
     public partial class RevealableSecretBox : UserControl
     {
+        private bool _isSyncingSecret;
 
         #region ### PROPERTIES ###
 
@@ -19,7 +23,10 @@ namespace TOTP.UserControls
                 nameof(Secret),
                 typeof(string),
                 typeof(RevealableSecretBox),
-                new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+                new FrameworkPropertyMetadata(
+                    string.Empty,
+                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                    OnSecretChanged));
 
         public string Secret
         {
@@ -244,6 +251,64 @@ namespace TOTP.UserControls
         public RevealableSecretBox()
         {
             InitializeComponent();
+        }
+
+        private static void OnSecretChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var control = (RevealableSecretBox)d;
+            if (control._isSyncingSecret || control.PartPasswordBox == null || control.PartPasswordBoxVisible == null)
+            {
+                return;
+            }
+
+            var newValue = e.NewValue as string ?? string.Empty;
+
+            // Keep both controls synchronized without the attached PasswordBox helper.
+            if (!string.Equals(control.PartPasswordBox.Password, newValue, StringComparison.Ordinal))
+            {
+                control.PartPasswordBox.Password = newValue;
+            }
+
+            if (!string.Equals(control.PartPasswordBoxVisible.Text, newValue, StringComparison.Ordinal))
+            {
+                control.PartPasswordBoxVisible.Text = newValue;
+            }
+        }
+
+        private void PartPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isSyncingSecret)
+            {
+                return;
+            }
+
+            try
+            {
+                _isSyncingSecret = true;
+                Secret = PartPasswordBox.Password;
+            }
+            finally
+            {
+                _isSyncingSecret = false;
+            }
+        }
+
+        private void PartPasswordBox_OnLostFocus(object sender, RoutedEventArgs e)
+        {
+            var grid = Helper.Common.FindParent<SfDataGrid>((DependencyObject)sender);
+            if (grid == null || grid.CurrentCellInfo == null)
+            {
+                return;
+            }
+
+            // Move to another cell to trigger validation
+            var currentIndex = 1;
+            var nextIndex = currentIndex + 1 < grid.Columns.Count ? currentIndex + 1 : currentIndex - 1;
+
+            if (nextIndex >= 0 && nextIndex < grid.Columns.Count)
+            {
+                grid.MoveCurrentCell(new RowColumnIndex(0, 0), true);
+            }
         }
 
         private void TryAutoFocus()

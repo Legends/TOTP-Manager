@@ -20,14 +20,14 @@ public sealed class SeedStorageService(
             throw new InvalidOperationException("Vault is locked. Decryption key not available.");
 
         // 1. Get the DEK from SecurityContext
-        byte[] dek = securityContext.GetDek();
+        byte[] dek = securityContext.GetDekCopy();
+        byte[] data = Encoding.UTF8.GetBytes(plainSeed);
 
         try
         {
             // 2. Setup NSec key and nonce
             using var key = Key.Import(_algorithm, dek, KeyBlobFormat.RawSymmetricKey);
             byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
-            byte[] data = Encoding.UTF8.GetBytes(plainSeed);
 
             // 3. Encrypt with GCM (Authenticated Encryption)
             byte[] encryptedData = _algorithm.Encrypt(key, nonce, null, data);
@@ -36,8 +36,8 @@ public sealed class SeedStorageService(
         }
         finally
         {
-            // The SecurityContext returns a copy or access to the key; 
-            // ensure we don't leave extra copies in this method's scope if unnecessary.
+            Array.Clear(dek, 0, dek.Length);
+            Array.Clear(data, 0, data.Length);
         }
     }
 
@@ -49,12 +49,18 @@ public sealed class SeedStorageService(
         if (!securityContext.IsUnlocked)
             throw new InvalidOperationException("Vault is locked.");
 
-        byte[] dek = securityContext.GetDek();
-
-        using var key = Key.Import(_algorithm, dek, KeyBlobFormat.RawSymmetricKey);
-
-        // Decrypt returns null if the authentication tag is invalid (tampering detection)
-        byte[]? decryptedData = _algorithm.Decrypt(key, nonce, null, encryptedSeed);
+        byte[] dek = securityContext.GetDekCopy();
+        byte[]? decryptedData;
+        try
+        {
+            using var key = Key.Import(_algorithm, dek, KeyBlobFormat.RawSymmetricKey);
+            // Decrypt returns null if the authentication tag is invalid (tampering detection)
+            decryptedData = _algorithm.Decrypt(key, nonce, null, encryptedSeed);
+        }
+        finally
+        {
+            Array.Clear(dek, 0, dek.Length);
+        }
 
         if (decryptedData == null)
             throw new CryptographicException("Failed to decrypt seed. Data may be corrupted or key is invalid.");

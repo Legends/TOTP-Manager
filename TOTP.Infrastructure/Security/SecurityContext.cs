@@ -30,12 +30,14 @@ public sealed class SecurityContext : ISecurityContext, IDisposable
     }
 
     /// <summary>
-    /// Returns the active DEK. 
-    /// Note: The caller should use this key immediately and NOT store it in a long-lived field.
+    /// Returns a copy of the active DEK.
+    /// Callers must clear the returned buffer after use.
     /// </summary>
-    public byte[] GetDek()
+    public byte[] GetDekCopy()
     {
-        return _rawDek ?? throw new InvalidOperationException("Vault is locked. Access denied.");
+        return _rawDek != null
+            ? (byte[])_rawDek.Clone()
+            : throw new InvalidOperationException("Vault is locked. Access denied.");
     }
 
     /// <summary>

@@ -35,7 +35,7 @@ public sealed class VaultServiceTests
         var dek = RandomNumberGenerator.GetBytes(32);
         var security = new Mock<ISecurityContext>();
         security.SetupGet(s => s.IsUnlocked).Returns(true);
-        security.Setup(s => s.GetDek()).Returns(dek);
+        security.Setup(s => s.GetDekCopy()).Returns(() => (byte[])dek.Clone());
         var sut = new VaultService(security.Object);
         List<OtpEntry> input =
         [
@@ -59,7 +59,7 @@ public sealed class VaultServiceTests
         var dek = RandomNumberGenerator.GetBytes(32);
         var security = new Mock<ISecurityContext>();
         security.SetupGet(s => s.IsUnlocked).Returns(true);
-        security.Setup(s => s.GetDek()).Returns(dek);
+        security.Setup(s => s.GetDekCopy()).Returns(() => (byte[])dek.Clone());
         var sut = new VaultService(security.Object);
 
         Assert.Throws<CryptographicException>(() => { sut.DecryptVault([1, 2, 3]); });
@@ -71,7 +71,7 @@ public sealed class VaultServiceTests
         var dek = RandomNumberGenerator.GetBytes(32);
         var security = new Mock<ISecurityContext>();
         security.SetupGet(s => s.IsUnlocked).Returns(true);
-        security.Setup(s => s.GetDek()).Returns(dek);
+        security.Setup(s => s.GetDekCopy()).Returns(() => (byte[])dek.Clone());
         var sut = new VaultService(security.Object);
         var wrongHeader = "XXXX"u8.ToArray();
         var nonce = RandomNumberGenerator.GetBytes(12);
@@ -86,7 +86,7 @@ public sealed class VaultServiceTests
         var dek = RandomNumberGenerator.GetBytes(32);
         var security = new Mock<ISecurityContext>();
         security.SetupGet(s => s.IsUnlocked).Returns(true);
-        security.Setup(s => s.GetDek()).Returns(dek);
+        security.Setup(s => s.GetDekCopy()).Returns(() => (byte[])dek.Clone());
         var sut = new VaultService(security.Object);
         var blob = sut.EncryptVault([new OtpEntry(Guid.NewGuid(), "GitHub", "SECRET")]);
 

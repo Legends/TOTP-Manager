@@ -28,17 +28,25 @@ public sealed class VaultService : IVaultService
         var json = JsonSerializer.Serialize(entries, new JsonSerializerOptions { WriteIndented = true });
         byte[] data = Encoding.UTF8.GetBytes(json);
         byte[] nonce = RandomNumberGenerator.GetBytes(Algorithm.NonceSize);
+        var dek = _securityContext.GetDekCopy();
+        try
+        {
+            using var key = Key.Import(Algorithm, dek, KeyBlobFormat.RawSymmetricKey);
+            byte[] encrypted = Algorithm.Encrypt(key, nonce, null, data);
 
-        using var key = Key.Import(Algorithm, _securityContext.GetDek(), KeyBlobFormat.RawSymmetricKey);
-        byte[] encrypted = Algorithm.Encrypt(key, nonce, null, data);
+            // Combine: Header + Nonce + Ciphertext
+            byte[] result = new byte[FileHeader.Length + nonce.Length + encrypted.Length];
+            Buffer.BlockCopy(FileHeader, 0, result, 0, FileHeader.Length);
+            Buffer.BlockCopy(nonce, 0, result, FileHeader.Length, nonce.Length);
+            Buffer.BlockCopy(encrypted, 0, result, FileHeader.Length + nonce.Length, encrypted.Length);
 
-        // Combine: Header + Nonce + Ciphertext
-        byte[] result = new byte[FileHeader.Length + nonce.Length + encrypted.Length];
-        Buffer.BlockCopy(FileHeader, 0, result, 0, FileHeader.Length);
-        Buffer.BlockCopy(nonce, 0, result, FileHeader.Length, nonce.Length);
-        Buffer.BlockCopy(encrypted, 0, result, FileHeader.Length + nonce.Length, encrypted.Length);
-
-        return result;
+            return result;
+        }
+        finally
+        {
+            Array.Clear(dek, 0, dek.Length);
+            Array.Clear(data, 0, data.Length);
+        }
     }
 
     public List<OtpEntry> DecryptVault(byte[] encryptedBlob)
@@ -54,8 +62,17 @@ public sealed class VaultService : IVaultService
         byte[] nonce = encryptedBlob.Skip(FileHeader.Length).Take(Algorithm.NonceSize).ToArray();
         byte[] ciphertext = encryptedBlob.Skip(FileHeader.Length + Algorithm.NonceSize).ToArray();
 
-        using var key = Key.Import(Algorithm, _securityContext.GetDek(), KeyBlobFormat.RawSymmetricKey);
-        byte[]? decrypted = Algorithm.Decrypt(key, nonce, null, ciphertext);
+        var dek = _securityContext.GetDekCopy();
+        byte[]? decrypted;
+        try
+        {
+            using var key = Key.Import(Algorithm, dek, KeyBlobFormat.RawSymmetricKey);
+            decrypted = Algorithm.Decrypt(key, nonce, null, ciphertext);
+        }
+        finally
+        {
+            Array.Clear(dek, 0, dek.Length);
+        }
 
         if (decrypted == null) throw new CryptographicException("Decryption failed (Wrong key or tampered data).");
 

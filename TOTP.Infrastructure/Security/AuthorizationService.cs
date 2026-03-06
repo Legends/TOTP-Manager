@@ -92,9 +92,16 @@ public sealed class AuthorizationService : IAuthorizationService
 
         if (dek == null) return AuthorizationResult.InvalidCredentials;
 
-        _securityContext.SetDek(dek);
-        State.Unlock();
-        return AuthorizationResult.Success;
+        try
+        {
+            _securityContext.SetDek(dek);
+            State.Unlock();
+            return AuthorizationResult.Success;
+        }
+        finally
+        {
+            Array.Clear(dek, 0, dek.Length);
+        }
     }
 
     public async Task<AuthorizationResult> TryUnlockWithHelloAsync()
@@ -109,9 +116,16 @@ public sealed class AuthorizationService : IAuthorizationService
         var dek = await _helloGate.UnprotectKeyAsync(auth.HelloWrappedDek, auth.HelloKeyId!);
         if (dek == null) return AuthorizationResult.PasswordRequired;
 
-        _securityContext.SetDek(dek);
-        State.Unlock();
-        return AuthorizationResult.Success;
+        try
+        {
+            _securityContext.SetDek(dek);
+            State.Unlock();
+            return AuthorizationResult.Success;
+        }
+        finally
+        {
+            Array.Clear(dek, 0, dek.Length);
+        }
     }
 
     public async Task<AuthorizationResult> ConfigurePasswordAsync(string password, string confirmPassword)
@@ -123,28 +137,34 @@ public sealed class AuthorizationService : IAuthorizationService
 
         // Generate a cryptographically strong 256-bit DEK
         byte[] rawDek = RandomNumberGenerator.GetBytes(32);
-
-        var wrapped = await _passwordService.WrapKeyAsync(rawDek, password);
-
-        _appSettings ??= _settingsService.Current ?? new AppSettings();
-        _appSettings.Authorization = new AuthorizationProfile
+        try
         {
-            Gate = AuthorizationGateKind.Password,
-            PasswordSalt = wrapped.Salt,
-            ArgonIterations = wrapped.Iterations,
-            ArgonMemorySize = wrapped.MemorySize,
-            PasswordWrappedDek = wrapped.WrappedDek,
-            DekNonce = wrapped.Nonce
-        };
+            var wrapped = await _passwordService.WrapKeyAsync(rawDek, password);
 
-        if (!await SaveCurrentProfileAsync())
-            return AuthorizationResult.Failed;
+            _appSettings ??= _settingsService.Current ?? new AppSettings();
+            _appSettings.Authorization = new AuthorizationProfile
+            {
+                Gate = AuthorizationGateKind.Password,
+                PasswordSalt = wrapped.Salt,
+                ArgonIterations = wrapped.Iterations,
+                ArgonMemorySize = wrapped.MemorySize,
+                PasswordWrappedDek = wrapped.WrappedDek,
+                DekNonce = wrapped.Nonce
+            };
 
-        _securityContext.SetDek(rawDek);
-        State.SetProfile(_appSettings.Authorization);
-        State.Unlock();
+            if (!await SaveCurrentProfileAsync())
+                return AuthorizationResult.Failed;
 
-        return AuthorizationResult.Success;
+            _securityContext.SetDek(rawDek);
+            State.SetProfile(_appSettings.Authorization);
+            State.Unlock();
+
+            return AuthorizationResult.Success;
+        }
+        finally
+        {
+            Array.Clear(rawDek, 0, rawDek.Length);
+        }
     }
 
     public async Task<AuthorizationResult> ConfigureHelloAsync()
@@ -153,7 +173,16 @@ public sealed class AuthorizationService : IAuthorizationService
         if (_appSettings?.Authorization == null) return AuthorizationResult.NotConfigured;
 
         string keyId = $"TOTP_TPM_{Guid.NewGuid()}";
-        var helloWrapped = await _helloGate.ProtectKeyAsync(_securityContext.GetDek(), keyId);
+        byte[] helloWrapped;
+        var dekCopy = _securityContext.GetDekCopy();
+        try
+        {
+            helloWrapped = await _helloGate.ProtectKeyAsync(dekCopy, keyId);
+        }
+        finally
+        {
+            Array.Clear(dekCopy, 0, dekCopy.Length);
+        }
 
         _appSettings.Authorization.HelloWrappedDek = helloWrapped;
         _appSettings.Authorization.HelloKeyId = keyId;
@@ -200,8 +229,16 @@ public sealed class AuthorizationService : IAuthorizationService
             }
         }
 
-        var currentDek = _securityContext.GetDek();
-        var wrapped = await _passwordService.WrapKeyAsync(currentDek, newPassword);
+        var currentDek = _securityContext.GetDekCopy();
+        (byte[] WrappedDek, byte[] Salt, int Iterations, int MemorySize, byte[] Nonce) wrapped;
+        try
+        {
+            wrapped = await _passwordService.WrapKeyAsync(currentDek, newPassword);
+        }
+        finally
+        {
+            Array.Clear(currentDek, 0, currentDek.Length);
+        }
 
         _appSettings.Authorization.PasswordSalt = wrapped.Salt;
         _appSettings.Authorization.ArgonIterations = wrapped.Iterations;
