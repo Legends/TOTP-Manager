@@ -35,12 +35,12 @@ TOTP Manager is a Windows desktop app (WPF) for managing and generating `Time-ba
     <td align="center" width="33%">
       <img src="docs/images/readme/screenshot-1.png" alt="Main window with account list" width="200" /><br/>
       <b>Main List View</b><br/>
-      <sub>Account grid before selecting an entry.</sub>
+      <sub>Account grid</sub>
     </td>
    <td align="center" width="33%">
       <img src="docs/images/readme/screenshot-2.png" alt="Selected account with active OTP code" width="200" /><br/>
       <b>Active OTP</b><br/>
-      <sub>Selected account with generated code and countdown ring.</sub>
+      <sub>Selected account with generated code.</sub>
     </td>
     <td align="center" width="33%">
       <img src="docs/images/readme/screenshot-3.png" alt="Generated QR code for selected account" width="200" /><br/>
@@ -52,12 +52,12 @@ TOTP Manager is a Windows desktop app (WPF) for managing and generating `Time-ba
     <td align="center" width="33%">
       <img src="docs/images/readme/screenshot-4.png" alt="Edit account flyout" width="200" /><br/>
       <b>Edit Account</b><br/>
-      <sub>Flyout for updating platform, secret, and account fields.</sub>
+      <sub>Edit form for updating issuer, secret, and account fields.</sub>
     </td>
     <td align="center" width="33%">
       <img src="docs/images/readme/screenshot-6.png" alt="Filtered account list with active OTP" width="200" /><br/>
       <b>Focused Search Result</b><br/>
-      <sub>Filtered account list with an active OTP and quick QR action.</sub>
+      <sub>Filtered account list.</sub>
     </td>   
     <td align="center" width="33%">
       <img src="docs/images/readme/screenshot-5.png" alt="Enlarged QR preview overlay" width="200" /><br/>
