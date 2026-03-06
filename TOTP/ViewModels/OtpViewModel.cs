@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -84,19 +84,19 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
         set;
     }
 
-    private string? _accountName;
+    private string? _tokenName;
     /// <summary>
-    /// like johne@doe.com, this is the "account name" or "username" associated with the platform.
+    /// like johne@doe.com, this is the "token name" or "username" associated with the platform.
     /// Optional, but often useful for disambiguation.
     /// </summary>
-    public string? AccountName
+    public string? TokenName
     {
-        get => _accountName;
+        get => _tokenName;
         set
         {
-            if (_accountName != value)
+            if (_tokenName != value)
             {
-                _accountName = value;
+                _tokenName = value;
                 OnPropertyChanged();
             }
         }
@@ -115,12 +115,12 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
 
 
     [JsonConstructor]
-    public OtpViewModel(Guid id, string issuer, string secret, string? account = null)
+    public OtpViewModel(Guid id, string issuer, string secret, string? token = null)
     {
         ID = id;
         Issuer = issuer;
         Secret = secret;
-        AccountName = account;
+        TokenName = token;
     }
 
 
@@ -248,7 +248,7 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
     {
         this.Issuer = changed.Issuer;
         this.Secret = changed.Secret;
-        this.AccountName = changed.AccountName;
+        this.TokenName = changed.TokenName;
     }
 
     #region Inline Error Properties (for flyout binding)
@@ -283,16 +283,16 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
         }
     }
 
-    private string? _accountError;
+    private string? _tokenError;
     [JsonIgnore]
-    public string? AccountError
+    public string? TokenError
     {
-        get => _accountError;
+        get => _tokenError;
         private set
         {
-            if (_accountError != value)
+            if (_tokenError != value)
             {
-                _accountError = value;
+                _tokenError = value;
                 OnPropertyChanged();
             }
         }
@@ -305,7 +305,7 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
     {
         PlatformError = this[nameof(Issuer)];
         SecretError = this[nameof(Secret)];
-        AccountError = this[nameof(AccountName)];
+        TokenError = this[nameof(TokenName)];
     }
 
     #endregion
@@ -315,7 +315,7 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
 
 
 /// <summary>
-/// Compares SecretItemViewModel by value (Platform, Account, Secret),
+/// Compares SecretItemViewModel by value (Platform, Token, Secret),
 /// case-insensitive, ignoring whitespace/padding in Secret.
 /// </summary>
 public sealed class OtpViewModelValueComparer : IEqualityComparer<OtpViewModel>
@@ -325,7 +325,7 @@ public sealed class OtpViewModelValueComparer : IEqualityComparer<OtpViewModel>
     public bool Equals(OtpViewModel? x, OtpViewModel? y)
     {
         return ReferenceEquals(x, y) || x is not null && y is not null && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.Issuer), Norm(y.Issuer))
-            && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.AccountName), Norm(y.AccountName))
+            && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.TokenName), Norm(y.TokenName))
             && SecretsEqual(x.Secret, y.Secret);
     }
 
@@ -334,7 +334,7 @@ public sealed class OtpViewModelValueComparer : IEqualityComparer<OtpViewModel>
         var hc = new HashCode();
 
         hc.Add(Norm(obj.Issuer), StringComparer.OrdinalIgnoreCase);
-        hc.Add(Norm(obj.AccountName), StringComparer.OrdinalIgnoreCase);
+        hc.Add(Norm(obj.TokenName), StringComparer.OrdinalIgnoreCase);
         hc.Add(NormSecret(obj.Secret), StringComparer.OrdinalIgnoreCase);
 
         return hc.ToHashCode();

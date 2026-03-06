@@ -44,7 +44,7 @@ public partial class MainViewModel
 
     #endregion
 
-    private async Task EnsureAccountsLoadedAsync()
+    private async Task EnsureTokensLoadedAsync()
     {
         if (_otpLoadedFromStore)
             return;
@@ -75,7 +75,7 @@ public partial class MainViewModel
 
     private ValidationError DuplicateCheck(OtpViewModel si)
     {
-        return _accountsWorkflow.CheckDuplicateIssuer(si, AllOtps);
+        return _tokensWorkflow.CheckDuplicateIssuer(si, AllOtps);
     }
 
     #region ### AUTHORIZATION ###
@@ -87,7 +87,7 @@ public partial class MainViewModel
 
     private async Task OnUnlockedAsync()
     {
-        await EnsureAccountsLoadedAsync();
+        await EnsureTokensLoadedAsync();
     }
 
     private void OnLocked()
@@ -105,7 +105,7 @@ public partial class MainViewModel
         IsSecretVisible = false;
         IsGridEditing = false;
         IsInlineEditing = false;
-        SelectedAccount = null;
+        SelectedToken = null;
     }
 
     #endregion
@@ -150,7 +150,7 @@ public partial class MainViewModel
     {
         try
         {
-            var result = await _accountsWorkflow.LoadAllAsync();
+            var result = await _tokensWorkflow.LoadAllAsync();
 
             if (result.IsFailed)
             {

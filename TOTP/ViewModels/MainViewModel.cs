@@ -29,7 +29,7 @@ using TOTP.Views.Interfaces;
 
 namespace TOTP.ViewModels;
 
-public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext, IDisposable
+public partial class MainViewModel : IMainViewModel, ITokensCollectionContext, IDisposable
 {
     #region ### COMMON PROPS AND VARS ###
 
@@ -339,7 +339,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
     private OtpViewModel? _selectedAccount;
 
-    public OtpViewModel? SelectedAccount
+    public OtpViewModel? SelectedToken
     {
         get => _selectedAccount;
         set
@@ -475,8 +475,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
     private readonly IClipboardService _clipboardService;
     private readonly IMessageService _messageService;
-    private readonly IAccountsWorkflowService _accountsWorkflow;
-    private readonly IAccountTransferWorkflowService _accountTransferWorkflowService;
+    private readonly ITokensWorkflowService _tokensWorkflow;
+    private readonly ITokenTransferWorkflowService _tokenTransferWorkflowService;
     private readonly IDebounceService _debounceService;
     private readonly IQrCodeService _qrService;
     private readonly IExportService _exportService;
@@ -500,8 +500,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         IExportService exportService,
         IMessageService messageService,
         IClipboardService clipboardService,
-        IAccountsWorkflowService accountsWorkflow,
-        IAccountTransferWorkflowService accountTransferWorkflowService,
+        ITokensWorkflowService tokensWorkflow,
+        ITokenTransferWorkflowService tokenTransferWorkflowService,
         IDebounceService debounceService,
         IFileDialogService fileDialogService,
         IPasswordPromptService passwordPromptService,
@@ -526,8 +526,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         _messageService = messageService;
         _debounceService = debounceService;
         _clipboardService = clipboardService;
-        _accountsWorkflow = accountsWorkflow;
-        _accountTransferWorkflowService = accountTransferWorkflowService;
+        _tokensWorkflow = tokensWorkflow;
+        _tokenTransferWorkflowService = tokenTransferWorkflowService;
         _mainViewSessionController = sessionController;
 
         AllOtps = new ObservableCollection<OtpViewModel>();

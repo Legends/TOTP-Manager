@@ -49,34 +49,34 @@ public sealed class MainViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task OnUnlockedCallback_LoadsAccountsOnlyOnce()
+    public async Task OnUnlockedCallback_LoadsTokensOnlyOnce()
     {
         using var ctx = new MainVmTestContext();
         var loaded = new ObservableCollection<OtpViewModel>
         {
             new(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP")
         };
-        ctx.AccountsWorkflow.Setup(s => s.LoadAllAsync()).ReturnsAsync(Result.Ok(loaded));
+        ctx.TokensWorkflow.Setup(s => s.LoadAllAsync()).ReturnsAsync(Result.Ok(loaded));
 
         await ctx.InvokeUnlockedAsync();
         await ctx.InvokeUnlockedAsync();
 
         Assert.Single(ctx.Sut.AllOtps);
-        ctx.AccountsWorkflow.Verify(s => s.LoadAllAsync(), Times.Once);
+        ctx.TokensWorkflow.Verify(s => s.LoadAllAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task OnLockedCallback_ResetsUiAndClearsAccounts()
+    public async Task OnLockedCallback_ResetsUiAndClearsTokens()
     {
         using var ctx = new MainVmTestContext();
         var otp = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
-        ctx.AccountsWorkflow.Setup(s => s.LoadAllAsync()).ReturnsAsync(Result.Ok(new ObservableCollection<OtpViewModel> { otp }));
+        ctx.TokensWorkflow.Setup(s => s.LoadAllAsync()).ReturnsAsync(Result.Ok(new ObservableCollection<OtpViewModel> { otp }));
         await ctx.InvokeUnlockedAsync();
 
         ctx.Sut.IsSecretVisible = true;
         ctx.Sut.IsGridEditing = true;
         ctx.Sut.IsInlineEditing = true;
-        ctx.Sut.SelectedAccount = otp;
+        ctx.Sut.SelectedToken = otp;
         ctx.Sut.OpenFlyoutAddMode();
         ctx.Sut.SearchText = "github";
         ctx.Sut.IsSearchVisible = true;
@@ -88,7 +88,7 @@ public sealed class MainViewModelTests : IDisposable
         Assert.False(ctx.Sut.IsGridEditing);
         Assert.False(ctx.Sut.IsInlineEditing);
         Assert.False(ctx.Sut.IsSettingsViewOpen);
-        Assert.Null(ctx.Sut.SelectedAccount);
+        Assert.Null(ctx.Sut.SelectedToken);
         Assert.False(ctx.Sut.IsEditAddFlyoutOpen);
         ctx.QrPreview.Verify(q => q.Close(), Times.Once);
     }
@@ -97,9 +97,9 @@ public sealed class MainViewModelTests : IDisposable
     public async Task AddOrUpdateOtpEntryAsync_AddMode_WhenValid_AddsAndClosesFlyout()
     {
         using var ctx = new MainVmTestContext();
-        ctx.AccountsWorkflow.Setup(s => s.ValidateForCreate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
+        ctx.TokensWorkflow.Setup(s => s.ValidateForCreate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
             .Returns([]);
-        ctx.AccountsWorkflow.Setup(s => s.AddAsync(It.IsAny<OtpViewModel>())).ReturnsAsync(Result.Ok());
+        ctx.TokensWorkflow.Setup(s => s.AddAsync(It.IsAny<OtpViewModel>())).ReturnsAsync(Result.Ok());
 
         ctx.Sut.OpenFlyoutAddMode();
         Assert.NotNull(ctx.Sut.CurrentSecretBeingEditedOrAdded);
@@ -110,14 +110,14 @@ public sealed class MainViewModelTests : IDisposable
 
         Assert.Single(ctx.Sut.AllOtps);
         Assert.False(ctx.Sut.IsEditAddFlyoutOpen);
-        ctx.AccountsWorkflow.Verify(s => s.AddAsync(It.IsAny<OtpViewModel>()), Times.Once);
+        ctx.TokensWorkflow.Verify(s => s.AddAsync(It.IsAny<OtpViewModel>()), Times.Once);
     }
 
     [Fact]
     public async Task AddOrUpdateOtpEntryAsync_AddMode_WhenValidationFails_DoesNotAdd()
     {
         using var ctx = new MainVmTestContext();
-        ctx.AccountsWorkflow.Setup(s => s.ValidateForCreate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
+        ctx.TokensWorkflow.Setup(s => s.ValidateForCreate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
             .Returns([ValidationError.PlatformRequired]);
 
         ctx.Sut.OpenFlyoutAddMode();
@@ -129,7 +129,7 @@ public sealed class MainViewModelTests : IDisposable
 
         Assert.Empty(ctx.Sut.AllOtps);
         Assert.True(ctx.Sut.IsEditAddFlyoutOpen);
-        ctx.AccountsWorkflow.Verify(s => s.AddAsync(It.IsAny<OtpViewModel>()), Times.Never);
+        ctx.TokensWorkflow.Verify(s => s.AddAsync(It.IsAny<OtpViewModel>()), Times.Never);
     }
 
     [Fact]
@@ -142,12 +142,12 @@ public sealed class MainViewModelTests : IDisposable
         ctx.Sut.AllOtps.Add(existing);
         ctx.Sut.PreviousVersion = existing.Copy();
         ctx.Sut.ShowGenerateQrCodeLink = true; // skip qr image refresh branch
-        ctx.AccountsWorkflow.Setup(s => s.UpdateAsync(It.IsAny<OtpViewModel>(), updated)).ReturnsAsync(Result.Ok());
+        ctx.TokensWorkflow.Setup(s => s.UpdateAsync(It.IsAny<OtpViewModel>(), updated)).ReturnsAsync(Result.Ok());
 
         await ctx.Sut.UpdateOtpEntryAsync(updated);
 
         Assert.Equal("BBBB", existing.Secret);
-        Assert.Equal("john.doe", existing.AccountName);
+        Assert.Equal("john.doe", existing.TokenName);
         Assert.Null(ctx.Sut.PreviousVersion);
     }
 
@@ -157,14 +157,14 @@ public sealed class MainViewModelTests : IDisposable
         using var ctx = new MainVmTestContext();
         var item = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
         ctx.Sut.AllOtps.Add(item);
-        ctx.Sut.SelectedAccount = item;
+        ctx.Sut.SelectedToken = item;
         ctx.Message.Setup(m => m.ConfirmWarning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-        ctx.AccountsWorkflow.Setup(s => s.DeleteAsync(item)).ReturnsAsync(Result.Ok());
+        ctx.TokensWorkflow.Setup(s => s.DeleteAsync(item)).ReturnsAsync(Result.Ok());
 
         await ctx.Sut.DeleteOtpEntryAsync(item);
 
         Assert.Empty(ctx.Sut.AllOtps);
-        ctx.AccountsWorkflow.Verify(s => s.DeleteAsync(item), Times.Once);
+        ctx.TokensWorkflow.Verify(s => s.DeleteAsync(item), Times.Once);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public sealed class MainViewModelTests : IDisposable
 
         await ctx.Sut.OnRowSelectionChangedAsync(item);
 
-        Assert.Same(item, ctx.Sut.SelectedAccount);
+        Assert.Same(item, ctx.Sut.SelectedToken);
         Assert.False(string.IsNullOrWhiteSpace(ctx.Sut.TotpCode));
         ctx.Clipboard.Verify(c => c.SetText(It.IsAny<string>()), Times.AtLeastOnce);
     }
@@ -207,7 +207,7 @@ public sealed class MainViewModelTests : IDisposable
         using var ctx = new MainVmTestContext();
         var existing = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
         ctx.Sut.AllOtps.Add(existing);
-        ctx.AccountsWorkflow.Setup(s => s.ValidateForUpdate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
+        ctx.TokensWorkflow.Setup(s => s.ValidateForUpdate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
             .Returns([ValidationError.PlatformRequired]);
 
         ctx.Sut.OpenFlyoutEditMode(existing);
@@ -217,7 +217,7 @@ public sealed class MainViewModelTests : IDisposable
         await ctx.Sut.AddOrUpdateOtpEntryAsync();
 
         Assert.True(ctx.Sut.IsEditAddFlyoutOpen);
-        ctx.AccountsWorkflow.Verify(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.IsAny<OtpViewModel>()), Times.Never);
+        ctx.TokensWorkflow.Verify(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.IsAny<OtpViewModel>()), Times.Never);
     }
 
     [Fact]
@@ -228,9 +228,9 @@ public sealed class MainViewModelTests : IDisposable
         var existing = new OtpViewModel(id, "GitHub", "AAAA", "john");
         ctx.Sut.AllOtps.Add(existing);
         ctx.Sut.ShowGenerateQrCodeLink = true;
-        ctx.AccountsWorkflow.Setup(s => s.ValidateForUpdate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
+        ctx.TokensWorkflow.Setup(s => s.ValidateForUpdate(It.IsAny<OtpViewModel>(), It.IsAny<IEnumerable<OtpViewModel>>()))
             .Returns([]);
-        ctx.AccountsWorkflow.Setup(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.IsAny<OtpViewModel>()))
+        ctx.TokensWorkflow.Setup(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.IsAny<OtpViewModel>()))
             .ReturnsAsync(Result.Ok());
 
         ctx.Sut.OpenFlyoutEditMode(existing);
@@ -241,7 +241,7 @@ public sealed class MainViewModelTests : IDisposable
 
         Assert.False(ctx.Sut.IsEditAddFlyoutOpen);
         Assert.Equal("BBBB", existing.Secret);
-        ctx.AccountsWorkflow.Verify(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.Is<OtpViewModel>(o => o.ID == id)), Times.Once);
+        ctx.TokensWorkflow.Verify(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.Is<OtpViewModel>(o => o.ID == id)), Times.Once);
     }
 
     [Fact]
@@ -255,7 +255,7 @@ public sealed class MainViewModelTests : IDisposable
         await ctx.Sut.DeleteOtpEntryAsync(item);
 
         Assert.Single(ctx.Sut.AllOtps);
-        ctx.AccountsWorkflow.Verify(s => s.DeleteAsync(It.IsAny<OtpViewModel>()), Times.Never);
+        ctx.TokensWorkflow.Verify(s => s.DeleteAsync(It.IsAny<OtpViewModel>()), Times.Never);
     }
 
     [Fact]
@@ -267,7 +267,7 @@ public sealed class MainViewModelTests : IDisposable
 
         await ctx.Sut.OnRowSelectionChangedAsync(item);
 
-        Assert.Null(ctx.Sut.SelectedAccount);
+        Assert.Null(ctx.Sut.SelectedToken);
         ctx.Clipboard.Verify(c => c.SetText(It.IsAny<string>()), Times.Never);
     }
 
@@ -343,7 +343,7 @@ public sealed class MainViewModelTests : IDisposable
         await ctx.Sut.AddOrUpdateOtpEntryAsync();
 
         Assert.Empty(ctx.Sut.AllOtps);
-        ctx.AccountsWorkflow.Verify(s => s.AddAsync(It.IsAny<OtpViewModel>()), Times.Never);
+        ctx.TokensWorkflow.Verify(s => s.AddAsync(It.IsAny<OtpViewModel>()), Times.Never);
     }
 
     [Fact]
@@ -357,7 +357,7 @@ public sealed class MainViewModelTests : IDisposable
 
         await ctx.Sut.AddOrUpdateOtpEntryAsync();
 
-        ctx.AccountsWorkflow.Verify(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.IsAny<OtpViewModel>()), Times.Never);
+        ctx.TokensWorkflow.Verify(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.IsAny<OtpViewModel>()), Times.Never);
     }
 
     [Fact]
@@ -368,7 +368,7 @@ public sealed class MainViewModelTests : IDisposable
         await ctx.Sut.DeleteOtpEntryAsync(null);
 
         ctx.Message.Verify(m => m.ConfirmWarning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        ctx.AccountsWorkflow.Verify(s => s.DeleteAsync(It.IsAny<OtpViewModel>()), Times.Never);
+        ctx.TokensWorkflow.Verify(s => s.DeleteAsync(It.IsAny<OtpViewModel>()), Times.Never);
     }
 
     [Fact]
@@ -378,7 +378,7 @@ public sealed class MainViewModelTests : IDisposable
         var item = new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP");
         ctx.Sut.AllOtps.Add(item);
         ctx.Message.Setup(m => m.ConfirmWarning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-        ctx.AccountsWorkflow.Setup(s => s.DeleteAsync(item)).ReturnsAsync(Result.Fail("delete failed"));
+        ctx.TokensWorkflow.Setup(s => s.DeleteAsync(item)).ReturnsAsync(Result.Fail("delete failed"));
 
         await ctx.Sut.DeleteOtpEntryAsync(item);
 
@@ -395,12 +395,12 @@ public sealed class MainViewModelTests : IDisposable
         var updated = new OtpViewModel(id, "GitHub", "BBBB", "john.doe");
         ctx.Sut.AllOtps.Add(existing);
         ctx.Sut.PreviousVersion = existing.Copy();
-        ctx.AccountsWorkflow.Setup(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), updated)).ReturnsAsync(Result.Fail("update failed"));
+        ctx.TokensWorkflow.Setup(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), updated)).ReturnsAsync(Result.Fail("update failed"));
 
         await ctx.Sut.UpdateOtpEntryAsync(updated);
 
         Assert.Equal("AAAA", existing.Secret);
-        Assert.Equal("john", existing.AccountName);
+        Assert.Equal("john", existing.TokenName);
         Assert.NotNull(ctx.Sut.PreviousVersion);
         ctx.Message.Verify(m => m.ShowResultError(It.IsAny<Result>(), updated.Issuer), Times.Once);
     }
@@ -412,7 +412,7 @@ public sealed class MainViewModelTests : IDisposable
 
         await ctx.Sut.OnRowSelectionChangedAsync(null);
 
-        Assert.Null(ctx.Sut.SelectedAccount);
+        Assert.Null(ctx.Sut.SelectedToken);
         Assert.Equal(string.Empty, ctx.Sut.TotpCode);
         ctx.Clipboard.Verify(c => c.SetText(It.IsAny<string>()), Times.Never);
     }
@@ -466,7 +466,7 @@ public sealed class MainViewModelTests : IDisposable
 
         Assert.False(ctx.Sut.CopyCodeCommand.CanExecute(item));
 
-        ctx.Sut.SelectedAccount = item;
+        ctx.Sut.SelectedToken = item;
         Assert.False(ctx.Sut.CopyCodeCommand.CanExecute(item));
 
         ctx.Sut.TotpCode = "123456";
@@ -543,7 +543,7 @@ public sealed class MainViewModelTests : IDisposable
 
             var settingsVm = CreateSettingsViewModel();
             var unlockVm = CreateUnlockViewModel();
-            SettingsDialog.Setup(s => s.CreateAndLoadAsync(It.IsAny<ICommand>(), It.IsAny<Action>(), It.IsAny<IAccountsCollectionContext>()))
+            SettingsDialog.Setup(s => s.CreateAndLoadAsync(It.IsAny<ICommand>(), It.IsAny<Action>(), It.IsAny<ITokensCollectionContext>()))
                 .ReturnsAsync(settingsVm);
 
             Sut = new MainViewModel(
@@ -552,7 +552,7 @@ public sealed class MainViewModelTests : IDisposable
                 ExportService.Object,
                 Message.Object,
                 Clipboard.Object,
-                AccountsWorkflow.Object,
+                TokensWorkflow.Object,
                 TransferWorkflow.Object,
                 Debounce.Object,
                 FileDialogs.Object,
@@ -566,7 +566,7 @@ public sealed class MainViewModelTests : IDisposable
         }
 
         public MainViewModel Sut { get; }
-        public Mock<IAccountsWorkflowService> AccountsWorkflow { get; } = new();
+        public Mock<ITokensWorkflowService> TokensWorkflow { get; } = new();
         public Mock<IMessageService> Message { get; } = new();
         public Mock<IClipboardService> Clipboard { get; } = new();
         public Mock<IDebounceService> Debounce { get; } = new();
@@ -577,7 +577,7 @@ public sealed class MainViewModelTests : IDisposable
 
         private Mock<IQrCodeService> QrCode { get; } = new();
         private Mock<IExportService> ExportService { get; } = new();
-        private Mock<IAccountTransferWorkflowService> TransferWorkflow { get; } = new();
+        private Mock<ITokenTransferWorkflowService> TransferWorkflow { get; } = new();
         private Mock<IFileDialogService> FileDialogs { get; } = new();
         private Mock<IPasswordPromptService> PasswordPrompt { get; } = new();
         private Mock<IQrScannerDialogService> QrScannerDialog { get; } = new();

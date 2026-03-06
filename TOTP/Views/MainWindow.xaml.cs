@@ -1,4 +1,4 @@
-﻿using OpenCvSharp.ML;
+using OpenCvSharp.ML;
 using Syncfusion.SfSkinManager;
 using Syncfusion.Windows.Shared;
 using System;
@@ -45,7 +45,7 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         base.OnContentRendered(e);
         
         // Setup RefreshFilter callable from View
-        _vm.GridFilterRefresher = new GridFilterRefresher(AccountsSectionView.AccountsGridControl);
+        _vm.GridFilterRefresher = new GridFilterRefresher(TokensSectionView.TokensGridControl);
  
     }
  

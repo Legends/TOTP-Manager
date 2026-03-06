@@ -49,7 +49,7 @@ public sealed class OtpDalIntegrationTests
         Assert.True(afterUpdate.IsSuccess);
         var updatedEntry = Assert.Single(afterUpdate.Value);
         Assert.Equal("BBBB", updatedEntry.Secret);
-        Assert.Equal("john.doe", updatedEntry.AccountName);
+        Assert.Equal("john.doe", updatedEntry.TokenName);
 
         Assert.True((await sut.DeleteAsync(updated)).IsSuccess);
 

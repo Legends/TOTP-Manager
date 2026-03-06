@@ -3,7 +3,7 @@ using TOTP.ViewModels;
 
 namespace TOTP.Services.Interfaces;
 
-public interface IAccountsCollectionContext
+public interface ITokensCollectionContext
 {
     ObservableCollection<OtpViewModel> AllOtps { get; }
 }

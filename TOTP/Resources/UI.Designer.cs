@@ -61,42 +61,6 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account could not be created..
-        /// </summary>
-        internal static string err_AccountsCreateFailed {
-            get {
-                return ResourceManager.GetString("err_AccountsCreateFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The account could not be deleted..
-        /// </summary>
-        internal static string err_AccountsDeleteFailed {
-            get {
-                return ResourceManager.GetString("err_AccountsDeleteFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Accounts could not be loaded..
-        /// </summary>
-        internal static string err_AccountsLoadFailed {
-            get {
-                return ResourceManager.GetString("err_AccountsLoadFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The account could not be updated..
-        /// </summary>
-        internal static string err_AccountsUpdateFailed {
-            get {
-                return ResourceManager.GetString("err_AccountsUpdateFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Application settings could not be decrypted..
         /// </summary>
         internal static string err_AppSettingsDecryptFailed {
@@ -241,7 +205,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account &apos;{0}&apos; could not be created..
+        ///   Looks up a localized string similar to The token &apos;{0}&apos; could not be created..
         /// </summary>
         internal static string err_OtpCreateFailed {
             get {
@@ -250,7 +214,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account &apos;{0}&apos; could not be deleted..
+        ///   Looks up a localized string similar to The token &apos;{0}&apos; could not be deleted..
         /// </summary>
         internal static string err_OtpDeleteFailed {
             get {
@@ -277,7 +241,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Stored account data could not be decrypted..
+        ///   Looks up a localized string similar to Stored token data could not be decrypted..
         /// </summary>
         internal static string err_OtpStorageDecryptFailed {
             get {
@@ -286,7 +250,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account data could not be encrypted before saving..
+        ///   Looks up a localized string similar to Token data could not be encrypted before saving..
         /// </summary>
         internal static string err_OtpStorageEncryptionFailed {
             get {
@@ -295,7 +259,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Accounts could not be loaded from storage..
+        ///   Looks up a localized string similar to Tokens could not be loaded from storage..
         /// </summary>
         internal static string err_OtpStorageReadFailed {
             get {
@@ -304,7 +268,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Accounts could not be saved to storage..
+        ///   Looks up a localized string similar to Tokens could not be saved to storage..
         /// </summary>
         internal static string err_OtpStorageWriteFailed {
             get {
@@ -313,7 +277,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account &apos;{0}&apos; could not be updated..
+        ///   Looks up a localized string similar to The token &apos;{0}&apos; could not be updated..
         /// </summary>
         internal static string err_OtpUpdateFailed {
             get {
@@ -336,6 +300,42 @@ namespace TOTP.Resources {
         internal static string err_SettingsServiceSaveFailed {
             get {
                 return ResourceManager.GetString("err_SettingsServiceSaveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The token could not be created..
+        /// </summary>
+        internal static string err_TokensCreateFailed {
+            get {
+                return ResourceManager.GetString("err_TokensCreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The token could not be deleted..
+        /// </summary>
+        internal static string err_TokensDeleteFailed {
+            get {
+                return ResourceManager.GetString("err_TokensDeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tokens could not be loaded..
+        /// </summary>
+        internal static string err_TokensLoadFailed {
+            get {
+                return ResourceManager.GetString("err_TokensLoadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The token could not be updated..
+        /// </summary>
+        internal static string err_TokensUpdateFailed {
+            get {
+                return ResourceManager.GetString("err_TokensUpdateFailed", resourceCulture);
             }
         }
         
@@ -448,7 +448,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account: &quot;{0}&quot;.
+        ///   Looks up a localized string similar to Token: &quot;{0}&quot;.
         /// </summary>
         internal static string msg_ConfirmDeleteSecret {
             get {
@@ -511,7 +511,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add new account.
+        ///   Looks up a localized string similar to Add new token.
         /// </summary>
         internal static string tooltip_AddNew {
             get {
@@ -673,7 +673,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export all accounts to file.
+        ///   Looks up a localized string similar to Export all tokens to file.
         /// </summary>
         internal static string ui_Export {
             get {
@@ -772,7 +772,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to account.
+        ///   Looks up a localized string similar to token.
         /// </summary>
         internal static string ui_Header_Account {
             get {
@@ -1006,7 +1006,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export accounts.
+        ///   Looks up a localized string similar to Export tokens.
         /// </summary>
         internal static string ui_Settings_Export {
             get {
@@ -1051,7 +1051,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Import accounts.
+        ///   Looks up a localized string similar to Import tokens.
         /// </summary>
         internal static string ui_Settings_Import {
             get {

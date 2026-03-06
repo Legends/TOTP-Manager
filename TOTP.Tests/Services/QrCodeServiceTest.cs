@@ -1,4 +1,4 @@
-﻿using System.Windows.Media.Imaging;
+using System.Windows.Media.Imaging;
 using TOTP.Infrastructure.Services;
 
 namespace TOTP.Tests.Services;
@@ -12,10 +12,10 @@ public class QrCodeServiceTests
         var qrCodeService = new QrCodeService();
         string issuer = "TestPlatform";
         string secret = "JBSWY3DPEHPK3PXP";
-        string account = "test@example.com";
+        string token = "test@example.com";
 
         // Act
-        var uri = qrCodeService.BuildOtpAuthUri(issuer, secret, account);
+        var uri = qrCodeService.BuildOtpAuthUri(issuer, secret, token);
         byte[] pngBytes = qrCodeService.GenerateQr(uri);
 
         using MemoryStream ms = new(pngBytes);

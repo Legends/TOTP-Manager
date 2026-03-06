@@ -31,7 +31,7 @@ public partial class MainViewModel
             return;
         }
 
-        if (SelectedAccount != null && IsInlineEditing && SelectedAccount.ID != selectedSecretItem.ID)
+        if (SelectedToken != null && IsInlineEditing && SelectedToken.ID != selectedSecretItem.ID)
             IsInlineEditing = false;
 
         if (IsGridEditing || IsInlineEditing)
@@ -45,25 +45,25 @@ public partial class MainViewModel
 
         if (_isDoubleClick)
         {
-            if (SelectedAccount == null)
+            if (SelectedToken == null)
                 TotpUiTimer?.Dispose();
 
             return;
         }
 
-        if (SelectedAccount?.ID == selectedSecretItem.ID)
+        if (SelectedToken?.ID == selectedSecretItem.ID)
             return;
 
-        SelectedAccount = ComputeTotpCode(selectedSecretItem, out _activeTotp);
+        SelectedToken = ComputeTotpCode(selectedSecretItem, out _activeTotp);
         CopyTotpCodeToClipboard();
 
-        var currentKey = SelectedAccount.Issuer;
+        var currentKey = SelectedToken.Issuer;
 
         try
         {
-            if (currentKey == SelectedAccount.Issuer)
+            if (currentKey == SelectedToken.Issuer)
             {
-                if (SelectedAccount != null && !SelectedAccount.IsBeingEdited && !IsContextmenuOpen)
+                if (SelectedToken != null && !SelectedToken.IsBeingEdited && !IsContextmenuOpen)
                     try
                     {
                         OnRowSelectionImplementation();
@@ -154,14 +154,14 @@ public partial class MainViewModel
         TotpUiTimer?.Dispose();
         TotpUiTimer = new System.Threading.Timer(_ =>
         {
-            if (_activeTotp is null || SelectedAccount is null)
+            if (_activeTotp is null || SelectedToken is null)
             {
                 return;
             }
 
             Debug.WriteLine("#######  Timer is running  #####");
 
-            if (_activeTotp is null || SelectedAccount is null) throw new NullReferenceException(nameof(_activeTotp));
+            if (_activeTotp is null || SelectedToken is null) throw new NullReferenceException(nameof(_activeTotp));
 
             const int period = 30;
             long unix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -188,7 +188,7 @@ public partial class MainViewModel
 
         var normalizedSecret = OtpauthParser.NormalizeBase32SecretForUri(item.Secret);
         var issuer = item.Issuer ?? string.Empty;
-        var uri = _qrService.BuildOtpAuthUri(issuer, normalizedSecret, item.AccountName);
+        var uri = _qrService.BuildOtpAuthUri(issuer, normalizedSecret, item.TokenName);
         byte[] pngBytes = _qrService.GenerateQr(uri);
 
         var bmp = new BitmapImage();
@@ -254,10 +254,10 @@ public partial class MainViewModel
 
     private void GenerateQrCodeImage()
     {
-        if (SelectedAccount == null)
+        if (SelectedToken == null)
             return;
 
-        var bmp = GenerateQRCodeImage(SelectedAccount);
+        var bmp = GenerateQRCodeImage(SelectedToken);
         QrCodeImage = bmp;
         ShowGenerateQrCodeLink = false;
         IsQrVisible = true;

@@ -33,7 +33,7 @@ public sealed class ExportServiceTests
         Assert.Equal(id, import.Value[0].ID);
         Assert.Equal("GitHub, Inc.", import.Value[0].Issuer);
         Assert.Equal("AAAABBBB", import.Value[0].Secret);
-        Assert.Equal("john\"doe", import.Value[0].AccountName);
+        Assert.Equal("john\"doe", import.Value[0].TokenName);
     }
 
     [Fact]
@@ -95,10 +95,10 @@ public sealed class ExportServiceTests
 
         Assert.True(export.IsSuccess);
         Assert.True(import.IsSuccess);
-        var account = Assert.Single(import.Value);
-        Assert.Equal("Azure", account.Issuer);
-        Assert.Equal("ABCD1234", account.Secret);
-        Assert.Equal("tenant-user", account.AccountName);
+        var token = Assert.Single(import.Value);
+        Assert.Equal("Azure", token.Issuer);
+        Assert.Equal("ABCD1234", token.Secret);
+        Assert.Equal("tenant-user", token.TokenName);
     }
 
     [Fact]

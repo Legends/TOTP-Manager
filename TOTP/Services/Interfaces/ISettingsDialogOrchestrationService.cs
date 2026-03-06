@@ -10,5 +10,5 @@ public interface ISettingsDialogOrchestrationService
     Task<SettingsViewModel> CreateAndLoadAsync(
         ICommand closeCommand,
         Action saveAction,
-        IAccountsCollectionContext accountsCollectionContext);
+        ITokensCollectionContext accountsCollectionContext);
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.Json.Serialization;
 
 namespace TOTP.Core.Models
@@ -15,16 +15,16 @@ namespace TOTP.Core.Models
         public string Secret { get; }
 
         [JsonPropertyName("account_name")]
-        public string? AccountName { get; }
+        public string? TokenName { get; }
 
         // JsonConstructor wird benötigt, da die Properties nur 'get' haben
         [JsonConstructor]
-        public OtpEntry(Guid id, string issuer, string secret, string? accountName = null)
+        public OtpEntry(Guid id, string issuer, string secret, string? tokenName = null)
         {
             ID = id;
             Issuer = issuer;
             Secret = secret;
-            AccountName = accountName;
+            TokenName = tokenName;
         }
 
         public bool Equals(OtpEntry? other) => other is not null && ID == other.ID;

@@ -25,7 +25,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         var sut = new SettingsDialogOrchestrationService(
             settings.Object,
             Mock.Of<IAuthorizationService>(),
-            Mock.Of<IAccountTransferWorkflowService>(),
+            Mock.Of<ITokenTransferWorkflowService>(),
             Mock.Of<ISettingsAuthorizationWorkflowService>(),
             Mock.Of<ISettingsPersistenceService>(),
             Mock.Of<IMessageService>(),
@@ -50,7 +50,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         var auth = new Mock<IAuthorizationService>();
         var authWorkflow = new Mock<ISettingsAuthorizationWorkflowService>();
         var persistence = new Mock<ISettingsPersistenceService>();
-        var accountTransfer = new Mock<IAccountTransferWorkflowService>();
+        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
         var message = new Mock<IMessageService>();
         var logSwitch = new Mock<ILogSwitchService>();
 
@@ -81,7 +81,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         var sut = new SettingsDialogOrchestrationService(
             settings.Object,
             auth.Object,
-            accountTransfer.Object,
+            tokenTransfer.Object,
             authWorkflow.Object,
             persistence.Object,
             message.Object,
@@ -97,7 +97,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task CreateAndLoadAsync_WiresTransferCommandsToAccountTransferWorkflow()
+    public async Task CreateAndLoadAsync_WiresTransferCommandsToTokenTransferWorkflow()
     {
         var appSettings = new AppSettings
         {
@@ -108,7 +108,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         var auth = new Mock<IAuthorizationService>();
         var authWorkflow = new Mock<ISettingsAuthorizationWorkflowService>();
         var persistence = new Mock<ISettingsPersistenceService>();
-        var accountTransfer = new Mock<IAccountTransferWorkflowService>();
+        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
         var message = new Mock<IMessageService>();
         var logSwitch = new Mock<ILogSwitchService>();
 
@@ -116,7 +116,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         {
             new(Guid.NewGuid(), "GitHub", "AAAA", "john")
         };
-        var context = new Mock<IAccountsCollectionContext>();
+        var context = new Mock<ITokensCollectionContext>();
         context.SetupGet(c => c.AllOtps).Returns(contextOtps);
 
         settings.SetupGet(s => s.Current).Returns(appSettings);
@@ -143,13 +143,13 @@ public sealed class SettingsDialogOrchestrationServiceTests
         logSwitch.SetupGet(l => l.MinimumLevel).Returns(AppLogLevel.Information);
         logSwitch.SetupGet(l => l.IsCliOverrideActive).Returns(false);
 
-        accountTransfer.Setup(a => a.ExportOtpsAsync(false, ExportFileFormat.Csv)).Returns(Task.CompletedTask);
-        accountTransfer.Setup(a => a.ImportOtpsAsync(ImportConflictStrategy.ReplaceExisting, contextOtps)).Returns(Task.CompletedTask);
+        tokenTransfer.Setup(a => a.ExportOtpsAsync(false, ExportFileFormat.Csv)).Returns(Task.CompletedTask);
+        tokenTransfer.Setup(a => a.ImportOtpsAsync(ImportConflictStrategy.ReplaceExisting, contextOtps)).Returns(Task.CompletedTask);
 
         var sut = new SettingsDialogOrchestrationService(
             settings.Object,
             auth.Object,
-            accountTransfer.Object,
+            tokenTransfer.Object,
             authWorkflow.Object,
             persistence.Object,
             message.Object,
@@ -165,13 +165,13 @@ public sealed class SettingsDialogOrchestrationServiceTests
 
         await WaitUntilAsync(() => true, 100);
 
-        accountTransfer.Verify(a => a.ExportOtpsAsync(false, ExportFileFormat.Csv), Times.Once);
-        accountTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.ReplaceExisting, contextOtps), Times.Once);
+        tokenTransfer.Verify(a => a.ExportOtpsAsync(false, ExportFileFormat.Csv), Times.Once);
+        tokenTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.ReplaceExisting, contextOtps), Times.Once);
     }
 
-    private static IAccountsCollectionContext CreateContext()
+    private static ITokensCollectionContext CreateContext()
     {
-        var context = new Mock<IAccountsCollectionContext>();
+        var context = new Mock<ITokensCollectionContext>();
         context.SetupGet(c => c.AllOtps).Returns(new ObservableCollection<OtpViewModel>());
         return context.Object;
     }

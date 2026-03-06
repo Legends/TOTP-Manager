@@ -19,14 +19,14 @@ using TOTP.ViewModels;
 
 namespace TOTP.Services;
 
-public sealed class AccountTransferWorkflowService(
+public sealed class TokenTransferWorkflowService(
     IFileDialogService fileDialogService,
-    IAccountsWorkflowService accountsWorkflow,
+    ITokensWorkflowService tokensWorkflow,
     IExportService exportService,
     IPasswordPromptService passwordPromptService,
     IMessageService messageService,
     ISettingsService settingsService,
-    ILogger<AccountTransferWorkflowService> logger) : IAccountTransferWorkflowService
+    ILogger<TokenTransferWorkflowService> logger) : ITokenTransferWorkflowService
 {
     public async Task ExportSecretsToFileAsync()
     {
@@ -39,7 +39,7 @@ public sealed class AccountTransferWorkflowService(
                 return;
             }
 
-            var result = await accountsWorkflow.GetAllEntriesSortedAsync();
+            var result = await tokensWorkflow.GetAllEntriesSortedAsync();
             if (result.IsFailed)
             {
                 messageService.ShowResultError(result);
@@ -73,7 +73,7 @@ public sealed class AccountTransferWorkflowService(
                 return;
             }
 
-            var result = await accountsWorkflow.GetAllEntriesSortedAsync();
+            var result = await tokensWorkflow.GetAllEntriesSortedAsync();
             if (result.IsFailed)
             {
                 messageService.ShowResultError(result);
@@ -202,7 +202,7 @@ public sealed class AccountTransferWorkflowService(
                     {
                         var updated = incoming.ToViewModel();
                         updated.ID = existing.ID;
-                        var updateResult = await accountsWorkflow.UpdateAsync(existing, updated);
+                        var updateResult = await tokensWorkflow.UpdateAsync(existing, updated);
                         if (updateResult.IsFailed)
                         {
                             failed++;
@@ -218,7 +218,7 @@ public sealed class AccountTransferWorkflowService(
                     incomingVm.Issuer = CreateKeepBothIssuer(incomingVm.Issuer, allOtps);
                 }
 
-                var addResult = await accountsWorkflow.AddAsync(incomingVm);
+                var addResult = await tokensWorkflow.AddAsync(incomingVm);
                 if (addResult.IsFailed)
                 {
                     failed++;
@@ -280,7 +280,7 @@ public sealed class AccountTransferWorkflowService(
 
         var byIssuerAndAccount = allOtps.FirstOrDefault(existing =>
             string.Equals(existing.Issuer ?? string.Empty, incoming.Issuer ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(existing.AccountName ?? string.Empty, incoming.AccountName ?? string.Empty, StringComparison.OrdinalIgnoreCase));
+            string.Equals(existing.TokenName ?? string.Empty, incoming.TokenName ?? string.Empty, StringComparison.OrdinalIgnoreCase));
         if (byIssuerAndAccount != null)
         {
             return byIssuerAndAccount;

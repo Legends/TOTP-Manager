@@ -26,8 +26,8 @@ public partial class MainViewModel
             source => _qrPreviewService.Toggle(source),
             source => source != null);
 
-        ExportSecretsCommand = new AsyncCommand(_accountTransferWorkflowService.ExportSecretsToFileAsync, CanExportSecrets);
-        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);
+        ExportSecretsCommand = new AsyncCommand(_tokenTransferWorkflowService.ExportSecretsToFileAsync, CanExportSecrets);
+        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddTokenAsync, () => !_isGridInEditMode);
 
         OpenFlyoutEditModeCommand = new RelayCommand<OtpViewModel>(OpenFlyoutEditMode, CanOpenFlyoutEditMode);
         OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
@@ -56,12 +56,12 @@ public partial class MainViewModel
     private bool CanOpenSettings() => !IsSettingsViewOpen && IsUnlocked;
 
     private bool CanCopyCode() =>
-        SelectedAccount != null &&
+        SelectedToken != null &&
         !string.IsNullOrWhiteSpace(TotpCode);
 
     private bool CanGenerateQr() =>
-        SelectedAccount != null &&
-        !string.IsNullOrWhiteSpace(SelectedAccount.Secret);
+        SelectedToken != null &&
+        !string.IsNullOrWhiteSpace(SelectedToken.Secret);
 
     private bool CanExportSecrets() =>
         IsUnlocked &&

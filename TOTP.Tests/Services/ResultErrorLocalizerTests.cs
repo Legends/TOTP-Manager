@@ -30,10 +30,10 @@ public sealed class ResultErrorLocalizerTests
         [AppErrorCode.ImportWrongPasswordOrTampered, UI.err_ImportWrongPasswordOrTampered],
         [AppErrorCode.ImportInvalidPayload, UI.err_ImportInvalidPayload],
         [AppErrorCode.ImportUnknownFailed, UI.err_ImportUnknownFailed],
-        [AppErrorCode.AccountsLoadFailed, UI.err_AccountsLoadFailed],
-        [AppErrorCode.AccountsCreateFailed, UI.err_AccountsCreateFailed],
-        [AppErrorCode.AccountsUpdateFailed, UI.err_AccountsUpdateFailed],
-        [AppErrorCode.AccountsDeleteFailed, UI.err_AccountsDeleteFailed],
+        [AppErrorCode.TokensLoadFailed, UI.err_TokensLoadFailed],
+        [AppErrorCode.TokensCreateFailed, UI.err_TokensCreateFailed],
+        [AppErrorCode.TokensUpdateFailed, UI.err_TokensUpdateFailed],
+        [AppErrorCode.TokensDeleteFailed, UI.err_TokensDeleteFailed],
         [AppErrorCode.SettingsServiceLoadFailed, UI.err_SettingsServiceLoadFailed],
         [AppErrorCode.SettingsServiceSaveFailed, UI.err_SettingsServiceSaveFailed]
     ];

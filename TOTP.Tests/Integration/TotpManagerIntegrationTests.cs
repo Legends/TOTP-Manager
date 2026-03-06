@@ -31,7 +31,7 @@ public class TotpManagerIntegrationTests : IDisposable
         // Set up mocks
         _mocker.GetMock<IPlatformSecretDialogService>()
             .Setup(x => x.ShowForm(It.IsAny<string?>(), It.IsAny<string?>()))
-            .Returns((true, _initialSecret.Platform, _initialSecret.Secret, _initialSecret.Account));
+            .Returns((true, _initialSecret.Platform, _initialSecret.Secret, _initialSecret.Token));
 
         _mocker.GetMock<IMessageService>()
             .Setup(x => x.ShowMessageDialog(
@@ -49,7 +49,7 @@ public class TotpManagerIntegrationTests : IDisposable
         _secretsManager = new SecretsManager(_mocker.Get<ILogger<SecretsManager>>(), _testPath);
         _mocker.Use<ISecretsManager>(_secretsManager);
 
-        _mocker.GetMock<IPlatformSecretDialogService>().Setup(ips => ips.ShowForm()).Returns((true, _initialSecret.Platform, _initialSecret.Secret, _initialSecret.Account));
+        _mocker.GetMock<IPlatformSecretDialogService>().Setup(ips => ips.ShowForm()).Returns((true, _initialSecret.Platform, _initialSecret.Secret, _initialSecret.Token));
 
         // Create real TotpManager
         _totpManager = _mocker.CreateInstance<TotpManager>();

@@ -94,8 +94,8 @@ public sealed class OtpDAL : IOtpDAL
             }
         }, AppErrorCode.OtpUpdateFailed, "Failed to update OTP entry.");
 
-    public async Task<Result> DeleteAsync(OtpEntry account) =>
-        await ExecuteWriteAsync(list => list.RemoveAll(x => x.ID == account.ID), AppErrorCode.OtpDeleteFailed, "Failed to delete OTP entry.");
+    public async Task<Result> DeleteAsync(OtpEntry token) =>
+        await ExecuteWriteAsync(list => list.RemoveAll(x => x.ID == token.ID), AppErrorCode.OtpDeleteFailed, "Failed to delete OTP entry.");
 
     private async Task<Result> ExecuteWriteAsync(Action<List<OtpEntry>> action, AppErrorCode operationCode, string operationMessage)
     {

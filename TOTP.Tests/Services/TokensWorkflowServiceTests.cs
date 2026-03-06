@@ -11,7 +11,7 @@ using TOTP.ViewModels;
 
 namespace TOTP.Tests.Services;
 
-public sealed class AccountsWorkflowServiceTests
+public sealed class TokensWorkflowServiceTests
 {
     [Fact]
     public async Task LoadAllAsync_WhenManagerSucceeds_MapsToViewModels()
@@ -30,7 +30,7 @@ public sealed class AccountsWorkflowServiceTests
         Assert.True(result.IsSuccess);
         Assert.Single(result.Value);
         Assert.Equal("GitHub", result.Value[0].Issuer);
-        Assert.Equal("john", result.Value[0].AccountName);
+        Assert.Equal("john", result.Value[0].TokenName);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class AccountsWorkflowServiceTests
     }
 
     [Fact]
-    public async Task LoadAllAsync_WhenManagerThrows_ReturnsAccountsLoadFailed()
+    public async Task LoadAllAsync_WhenManagerThrows_ReturnsTokensLoadFailed()
     {
         var manager = new Mock<IOtpManager>();
         manager.Setup(m => m.GetAllOtpEntriesSortedAsync()).ThrowsAsync(new InvalidOperationException("boom"));
@@ -59,11 +59,11 @@ public sealed class AccountsWorkflowServiceTests
         var result = await sut.LoadAllAsync();
 
         Assert.True(result.IsFailed);
-        AssertAppError(result.Errors, AppErrorCode.AccountsLoadFailed);
+        AssertAppError(result.Errors, AppErrorCode.TokensLoadFailed);
     }
 
     [Fact]
-    public async Task GetAllEntriesSortedAsync_WhenManagerThrows_ReturnsAccountsLoadFailed()
+    public async Task GetAllEntriesSortedAsync_WhenManagerThrows_ReturnsTokensLoadFailed()
     {
         var manager = new Mock<IOtpManager>();
         manager.Setup(m => m.GetAllOtpEntriesSortedAsync()).ThrowsAsync(new InvalidOperationException("boom"));
@@ -73,11 +73,11 @@ public sealed class AccountsWorkflowServiceTests
         var result = await sut.GetAllEntriesSortedAsync();
 
         Assert.True(result.IsFailed);
-        AssertAppError(result.Errors, AppErrorCode.AccountsLoadFailed);
+        AssertAppError(result.Errors, AppErrorCode.TokensLoadFailed);
     }
 
     [Fact]
-    public async Task AddAsync_WhenManagerThrows_ReturnsAccountsCreateFailed()
+    public async Task AddAsync_WhenManagerThrows_ReturnsTokensCreateFailed()
     {
         var manager = new Mock<IOtpManager>();
         manager.Setup(m => m.AddNewAsync(It.IsAny<OtpEntry>())).ThrowsAsync(new Exception("boom"));
@@ -87,7 +87,7 @@ public sealed class AccountsWorkflowServiceTests
         var result = await sut.AddAsync(new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "john"));
 
         Assert.True(result.IsFailed);
-        AssertAppError(result.Errors, AppErrorCode.AccountsCreateFailed);
+        AssertAppError(result.Errors, AppErrorCode.TokensCreateFailed);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public sealed class AccountsWorkflowServiceTests
     }
 
     [Fact]
-    public async Task UpdateAsync_WhenManagerThrows_ReturnsAccountsUpdateFailed()
+    public async Task UpdateAsync_WhenManagerThrows_ReturnsTokensUpdateFailed()
     {
         var manager = new Mock<IOtpManager>();
         manager.Setup(m => m.UpdateAsync(It.IsAny<OtpEntry>(), It.IsAny<OtpEntry>())).ThrowsAsync(new Exception("boom"));
@@ -145,11 +145,11 @@ public sealed class AccountsWorkflowServiceTests
             new OtpViewModel(Guid.NewGuid(), "new", "JBSWY3DPEHPK3PXP", "john"));
 
         Assert.True(result.IsFailed);
-        AssertAppError(result.Errors, AppErrorCode.AccountsUpdateFailed);
+        AssertAppError(result.Errors, AppErrorCode.TokensUpdateFailed);
     }
 
     [Fact]
-    public async Task DeleteAsync_WhenManagerThrows_ReturnsAccountsDeleteFailed()
+    public async Task DeleteAsync_WhenManagerThrows_ReturnsTokensDeleteFailed()
     {
         var manager = new Mock<IOtpManager>();
         manager.Setup(m => m.DeleteAsync(It.IsAny<OtpEntry>())).ThrowsAsync(new Exception("boom"));
@@ -159,7 +159,7 @@ public sealed class AccountsWorkflowServiceTests
         var result = await sut.DeleteAsync(new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "john"));
 
         Assert.True(result.IsFailed);
-        AssertAppError(result.Errors, AppErrorCode.AccountsDeleteFailed);
+        AssertAppError(result.Errors, AppErrorCode.TokensDeleteFailed);
     }
 
     [Fact]
@@ -222,8 +222,8 @@ public sealed class AccountsWorkflowServiceTests
         Assert.Equal(ValidationError.PlatformAlreadyExists, duplicate);
     }
 
-    private static AccountsWorkflowService CreateSut(Mock<IOtpManager> manager)
-        => new(manager.Object, Mock.Of<ILogger<AccountsWorkflowService>>());
+    private static TokensWorkflowService CreateSut(Mock<IOtpManager> manager)
+        => new(manager.Object, Mock.Of<ILogger<TokensWorkflowService>>());
 
     private static void AssertAppError(IReadOnlyList<IError> errors, AppErrorCode expectedCode)
     {
