@@ -1,8 +1,10 @@
 using TOTP.Infrastructure.Common;
 using TOTP.Services;
+using TOTP.Tests.Common;
 
 namespace TOTP.Tests.Services;
 
+[Collection(NonParallelCollectionDefinition.NonParallel)]
 public sealed class LocalizationServiceTests : IDisposable
 {
     private readonly string _settingsPath = StringsConstants.AppSettingsJsonFilePath;

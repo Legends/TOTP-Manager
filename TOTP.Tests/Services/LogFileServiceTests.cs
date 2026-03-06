@@ -1,9 +1,11 @@
 using System.Reflection;
 using TOTP.Infrastructure.Common;
 using TOTP.Services;
+using TOTP.Tests.Common;
 
 namespace TOTP.Tests.Services;
 
+[Collection(NonParallelCollectionDefinition.NonParallel)]
 public sealed class LogFileServiceTests : IDisposable
 {
     private readonly string _logsDir = StringsConstants.AppLogDirectoryPath;

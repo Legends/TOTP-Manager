@@ -5,9 +5,11 @@ using TOTP.Core.Common;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.DAL.Services;
+using TOTP.Tests.Common;
 
 namespace TOTP.Tests.Integration;
 
+[Collection(NonParallelCollectionDefinition.NonParallel)]
 public sealed class OtpDalIntegrationTests
 {
     [Fact]

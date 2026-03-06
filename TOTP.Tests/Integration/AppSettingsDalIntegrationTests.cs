@@ -7,9 +7,11 @@ using TOTP.Core.Enums;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Models;
 using TOTP.DAL.Services;
+using TOTP.Tests.Common;
 
 namespace TOTP.Tests.Integration;
 
+[Collection(NonParallelCollectionDefinition.NonParallel)]
 public sealed class AppSettingsDalIntegrationTests
 {
     [Fact]
