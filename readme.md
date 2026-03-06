@@ -54,12 +54,11 @@ TOTP Manager is a Windows desktop app (WPF) for managing and generating `Time-ba
       <b>Edit Account</b><br/>
       <sub>Flyout for updating platform, secret, and account fields.</sub>
     </td>
-      <td align="center" width="33%">
+    <td align="center" width="33%">
       <img src="docs/images/readme/screenshot-6.png" alt="Filtered account list with active OTP" width="200" /><br/>
       <b>Focused Search Result</b><br/>
       <sub>Filtered account list with an active OTP and quick QR action.</sub>
-    </td>
-   
+    </td>   
     <td align="center" width="33%">
       <img src="docs/images/readme/screenshot-5.png" alt="Enlarged QR preview overlay" width="200" /><br/>
       <b>QR Preview Overlay</b><br/>
@@ -145,7 +144,7 @@ These are the primary workflows in the app.
 
 ## Requirements
 
-- Windows 10/11
+- Supported systems: Windows only (Windows 10/11)
 - .NET 9 SDK (for local build/test)
 
 ## Build
