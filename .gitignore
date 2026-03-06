@@ -64,3 +64,9 @@ _ReSharper*/
 # Rider
 .idea/
 /ResXManager.config.xml
+
+# Decompiled/re-signed third-party artifacts (must not be committed)
+Moq.AutoMock.signed.dll
+Moq.AutoMock.il
+Moq.AutoMock.res
+Moq.AutoMock.Resources.Strings.resources

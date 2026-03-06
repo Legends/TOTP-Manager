@@ -45,7 +45,7 @@
                                NavigationMode="Cell"
                                LiveDataUpdateMode="AllowDataShaping"
                                MaxHeight="200"
-                               Margin="0,0,0,20"
+                               Margin="0,0,0,0"
                                BorderBrush="#1D3366"
                                BorderThickness="1,0,0,0"
                                RowSelectionBrush="#1D3366"

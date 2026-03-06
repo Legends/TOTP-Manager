@@ -1,12 +1,85 @@
 # TOTP Manager
 
-TOTP Manager is a Windows desktop app (WPF) for managing and generating Time-based One-Time Passwords (TOTP) locally.
+TOTP Manager is a Windows desktop app (WPF) for managing and generating `Time-based One-Time Passwords (TOTP)`  locally.
+
+## Table of Contents
+
+- [Scope](#scope)
+- [Screenshots](#screenshots)
+- [TOTP Defaults](#totp-defaults)
+- [Account Management (CRUD + QR)](#account-management-crud--qr)
+- [Core Security Design](#core-security-design)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Build](#build)
+- [Test](#test)
+- [Run (Local)](#run-local)
+- [Release Installation](#release-installation)
+- [Backup and Recovery Notes](#backup-and-recovery-notes)
+- [Contributing](#contributing)
+- [Licensing](#licensing)
+- [Support](#support)
+
+
 
 ## Scope
 
 - Local account storage and code generation
 - Import/export workflows for backup and migration
 - Authorization flows based on master password and optional Windows Hello support
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/images/readme/screenshot-1.png" alt="Main window with account list" width="200" /><br/>
+      <b>Main List View</b><br/>
+      <sub>Account grid before selecting an entry.</sub>
+    </td>
+   <td align="center" width="33%">
+      <img src="docs/images/readme/screenshot-2.png" alt="Selected account with active OTP code" width="200" /><br/>
+      <b>Active OTP</b><br/>
+      <sub>Selected account with generated code and countdown ring.</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/images/readme/screenshot-3.png" alt="Generated QR code for selected account" width="200" /><br/>
+      <b>Inline QR Generation</b><br/>
+      <sub>Gerated QR code can be scanned by mobile devices for quick account transfers.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/images/readme/screenshot-4.png" alt="Edit account flyout" width="200" /><br/>
+      <b>Edit Account</b><br/>
+      <sub>Flyout for updating platform, secret, and account fields.</sub>
+    </td>
+      <td align="center" width="33%">
+      <img src="docs/images/readme/screenshot-6.png" alt="Filtered account list with active OTP" width="200" /><br/>
+      <b>Focused Search Result</b><br/>
+      <sub>Filtered account list with an active OTP and quick QR action.</sub>
+    </td>
+   
+    <td align="center" width="33%">
+      <img src="docs/images/readme/screenshot-5.png" alt="Enlarged QR preview overlay" width="200" /><br/>
+      <b>QR Preview Overlay</b><br/>
+      <sub>Enlarged QR view for easier scanning on another device.</sub>
+    </td>
+  </tr>
+</table>
+
+## TOTP Defaults
+
+- Algorithm: `SHA1`
+- Digits: `6`
+- Time step (period): `30` seconds
+
+These defaults are used for generated `otpauth://` QR data and for standard TOTP code generation in the app.
+
+See also:
+- [THREAT_MODEL.md](docs/security/THREAT_MODEL.md)
+- [SECURITY_VERIFICATION.md](docs/security/SECURITY_VERIFICATION.md)
+- [PENTEST_PLAN.md](docs/security/PENTEST_PLAN.md)
 
 ## Account Management (CRUD + QR)
 
@@ -18,7 +91,7 @@ These are the primary workflows in the app.
 2. Enter issuer, account label, secret, digits, and period.
 3. Save to create the account.
 
-### Read account
+### Select account
 
 1. Open the main account list.
 2. Click an account entry to view current code and metadata.
@@ -59,11 +132,6 @@ These are the primary workflows in the app.
 - Password-derived key material uses Argon2id
 - Additional local protection uses Windows DPAPI
 - Sensitive actions require explicit authorization
-
-See also:
-- `docs/security/THREAT_MODEL.md`
-- `docs/security/SECURITY_VERIFICATION.md`
-- `docs/security/PENTEST_PLAN.md`
 
 ## Features
 
@@ -115,6 +183,11 @@ dotnet run --project .\TOTP\TOTP.UI.WPF.csproj
 ## Contributing
 
 See `CONTRIBUTING.md` for contribution and workflow details.
+
+## Licensing
+
+- Project license: [LICENSE.txt](LICENSE.txt)
+- Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 
 ## Support
 

@@ -21,8 +21,8 @@
                     DockPanel.Dock="Right" />
         </DockPanel>
 
-        <!-- Platform -->
-        <TextBlock Text="{xaml:Resx Key=ui_Header_Platform}"
+        <!-- Issuer -->
+        <TextBlock Text="issuer"
                    FontWeight="Bold"
                    Foreground="White"
                    Margin="0,6,0,2" />
@@ -55,7 +55,7 @@
                                         Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
 
         <!-- Account -->
-        <TextBlock Text="{xaml:Resx Key=ui_Header_Account}"
+        <TextBlock Text="account"
                    FontWeight="Bold"
                    Foreground="White"
                    Margin="0,10,0,2" />

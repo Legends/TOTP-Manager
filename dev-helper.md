@@ -40,6 +40,10 @@ verify:
 
 	sn -v Moq.AutoMock.signed.dll
 
+IMPORTANT:
+- These generated artifacts are for local experiments only.
+- Do not commit `Moq.AutoMock.*` artifacts to this repository.
+
 copy to destination directory
 
 ## Windows Icon Cache Not Refreshed
