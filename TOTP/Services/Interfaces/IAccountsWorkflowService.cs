@@ -8,10 +8,10 @@ using TOTP.ViewModels;
 
 namespace TOTP.Services.Interfaces;
 
-public interface ITokensWorkflowService
+public interface IAccountsWorkflowService
 {
     Task<Result<ObservableCollection<OtpViewModel>>> LoadAllAsync();
-    Task<Result<ObservableCollection<OtpEntry>>> GetAllEntriesSortedAsync();
+    Task<Result<ObservableCollection<Account>>> GetAllEntriesSortedAsync();
     Task<Result> AddAsync(OtpViewModel item);
     Task<Result> UpdateAsync(OtpViewModel? previous, OtpViewModel updated);
     Task<Result> DeleteAsync(OtpViewModel item);

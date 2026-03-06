@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace TOTP.Core.Models
 {
-    public sealed class OtpEntry : IEquatable<OtpEntry>
+    public sealed class Account : IEquatable<Account>
     {
         [JsonPropertyName("id")]
         public Guid ID { get; set; }
@@ -15,20 +15,20 @@ namespace TOTP.Core.Models
         public string Secret { get; }
 
         [JsonPropertyName("account_name")]
-        public string? TokenName { get; }
+        public string? AccountName { get; }
 
         // JsonConstructor wird benötigt, da die Properties nur 'get' haben
         [JsonConstructor]
-        public OtpEntry(Guid id, string issuer, string secret, string? tokenName = null)
+        public Account(Guid id, string issuer, string secret, string? accountName = null)
         {
             ID = id;
             Issuer = issuer;
             Secret = secret;
-            TokenName = tokenName;
+            AccountName = accountName;
         }
 
-        public bool Equals(OtpEntry? other) => other is not null && ID == other.ID;
-        public override bool Equals(object? obj) => Equals(obj as OtpEntry);
+        public bool Equals(Account? other) => other is not null && ID == other.ID;
+        public override bool Equals(object? obj) => Equals(obj as Account);
         public override int GetHashCode() => ID.GetHashCode();
     }
 }

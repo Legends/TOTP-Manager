@@ -33,7 +33,7 @@ public sealed class ExportService : IExportService
         _logger = logger;
     }
 
-    public async Task<Result<List<OtpEntry>>> ImportFromFileAsync(string filePath, string? password = null)
+    public async Task<Result<List<Account>>> ImportFromFileAsync(string filePath, string? password = null)
     {
         try
         {
@@ -63,7 +63,7 @@ public sealed class ExportService : IExportService
         }
     }
 
-    public async Task<Result> ExportToFileAsync(IEnumerable<OtpEntry> accounts, string filePath, ExportFileFormat format)
+    public async Task<Result> ExportToFileAsync(IEnumerable<Account> accounts, string filePath, ExportFileFormat format)
     {
         try
         {
@@ -78,7 +78,7 @@ public sealed class ExportService : IExportService
         }
     }
 
-    public async Task<Result> ExportToEncryptedFileAsync(IEnumerable<OtpEntry> accounts, string password, string filePath, ExportFileFormat format)
+    public async Task<Result> ExportToEncryptedFileAsync(IEnumerable<Account> accounts, string password, string filePath, ExportFileFormat format)
     {
         byte[]? plaintext = null;
         byte[]? passwordBytes = null;
@@ -117,7 +117,7 @@ public sealed class ExportService : IExportService
         }
     }
 
-    public async Task<Result<List<OtpEntry>>> ImportFromEncryptedFileAsync(string password, string filePath)
+    public async Task<Result<List<Account>>> ImportFromEncryptedFileAsync(string password, string filePath)
     {
         byte[]? passwordBytes = null;
 
@@ -178,7 +178,7 @@ public sealed class ExportService : IExportService
         }
     }
 
-    private static string SerializeTokens(IEnumerable<OtpEntry> accounts, ExportFileFormat format)
+    private static string SerializeTokens(IEnumerable<Account> accounts, ExportFileFormat format)
     {
         return format switch
         {
@@ -189,18 +189,18 @@ public sealed class ExportService : IExportService
         };
     }
 
-    private static List<OtpEntry> DeserializeTokens(string content, ExportFileFormat format)
+    private static List<Account> DeserializeTokens(string content, ExportFileFormat format)
     {
         return format switch
         {
-            ExportFileFormat.Json => JsonSerializer.Deserialize<List<OtpEntry>>(content) ?? [],
+            ExportFileFormat.Json => JsonSerializer.Deserialize<List<Account>>(content) ?? [],
             ExportFileFormat.Txt => ParseTxt(content),
             ExportFileFormat.Csv => ParseCsv(content),
-            _ => JsonSerializer.Deserialize<List<OtpEntry>>(content) ?? []
+            _ => JsonSerializer.Deserialize<List<Account>>(content) ?? []
         };
     }
 
-    private static string BuildCsv(IEnumerable<OtpEntry> accounts)
+    private static string BuildCsv(IEnumerable<Account> accounts)
     {
         static string Escape(string? value)
         {
@@ -214,20 +214,20 @@ public sealed class ExportService : IExportService
         }
 
         var lines = new List<string> { "id,issuer,account_name,secret" };
-        lines.AddRange(accounts.Select(a => $"{a.ID},{Escape(a.Issuer)},{Escape(a.TokenName)},{Escape(a.Secret)}"));
+        lines.AddRange(accounts.Select(a => $"{a.ID},{Escape(a.Issuer)},{Escape(a.AccountName)},{Escape(a.Secret)}"));
         return string.Join(Environment.NewLine, lines);
     }
 
-    private static string BuildTxt(IEnumerable<OtpEntry> accounts)
+    private static string BuildTxt(IEnumerable<Account> accounts)
     {
         var lines = new List<string> { "issuer|account_name|secret|id" };
-        lines.AddRange(accounts.Select(a => $"{a.Issuer}|{a.TokenName}|{a.Secret}|{a.ID}"));
+        lines.AddRange(accounts.Select(a => $"{a.Issuer}|{a.AccountName}|{a.Secret}|{a.ID}"));
         return string.Join(Environment.NewLine, lines);
     }
 
-    private static List<OtpEntry> ParseTxt(string content)
+    private static List<Account> ParseTxt(string content)
     {
-        var result = new List<OtpEntry>();
+        var result = new List<Account>();
         var lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
         foreach (var line in lines)
         {
@@ -243,18 +243,18 @@ public sealed class ExportService : IExportService
             }
 
             var issuer = parts[0];
-            var tokenName = string.IsNullOrWhiteSpace(parts[1]) ? null : parts[1];
+            var accountName = string.IsNullOrWhiteSpace(parts[1]) ? null : parts[1];
             var secret = parts[2];
             var id = parts.Length >= 4 && Guid.TryParse(parts[3], out var parsedId) ? parsedId : Guid.NewGuid();
-            result.Add(new OtpEntry(id, issuer, secret, tokenName));
+            result.Add(new Account(id, issuer, secret, accountName));
         }
 
         return result;
     }
 
-    private static List<OtpEntry> ParseCsv(string content)
+    private static List<Account> ParseCsv(string content)
     {
-        var result = new List<OtpEntry>();
+        var result = new List<Account>();
         var lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
         if (lines.Length <= 1)
         {
@@ -271,9 +271,9 @@ public sealed class ExportService : IExportService
 
             var id = Guid.TryParse(row[0], out var parsedId) ? parsedId : Guid.NewGuid();
             var issuer = row[1];
-            var tokenName = string.IsNullOrWhiteSpace(row[2]) ? null : row[2];
+            var accountName = string.IsNullOrWhiteSpace(row[2]) ? null : row[2];
             var secret = row[3];
-            result.Add(new OtpEntry(id, issuer, secret, tokenName));
+            result.Add(new Account(id, issuer, secret, accountName));
         }
 
         return result;

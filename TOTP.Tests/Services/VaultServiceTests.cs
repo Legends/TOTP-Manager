@@ -37,7 +37,7 @@ public sealed class VaultServiceTests
         security.SetupGet(s => s.IsUnlocked).Returns(true);
         security.Setup(s => s.GetDekCopy()).Returns(() => (byte[])dek.Clone());
         var sut = new VaultService(security.Object);
-        List<OtpEntry> input =
+        List<Account> input =
         [
             new(Guid.NewGuid(), "GitHub", "AAAA", "john"),
             new(Guid.NewGuid(), "Google", "BBBB")
@@ -50,7 +50,7 @@ public sealed class VaultServiceTests
         Assert.Equal(input[0].ID, output[0].ID);
         Assert.Equal(input[0].Issuer, output[0].Issuer);
         Assert.Equal(input[0].Secret, output[0].Secret);
-        Assert.Equal(input[0].TokenName, output[0].TokenName);
+        Assert.Equal(input[0].AccountName, output[0].AccountName);
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public sealed class VaultServiceTests
         security.SetupGet(s => s.IsUnlocked).Returns(true);
         security.Setup(s => s.GetDekCopy()).Returns(() => (byte[])dek.Clone());
         var sut = new VaultService(security.Object);
-        var blob = sut.EncryptVault([new OtpEntry(Guid.NewGuid(), "GitHub", "SECRET")]);
+        var blob = sut.EncryptVault([new Account(Guid.NewGuid(), "GitHub", "SECRET")]);
 
         blob[^1] ^= 0xFF;
 

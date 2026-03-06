@@ -5,28 +5,28 @@ namespace TOTP.Infrastructure.Services;
 
 public class QrCodeService : IQrCodeService
 {
-    // otpauth://totp/{issuer}:{token}?secret={secret}&issuer={issuer}
+    // otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}
     // otpauth://totp/?secret={secret}&issuer={issuer}
 
-    //public BitmapImage GenerateQr(string issuer, string secret, string? token = "")
+    //public BitmapImage GenerateQr(string issuer, string secret, string? account = "")
     //{
-    //    var uri = !string.IsNullOrWhiteSpace(token)
-    //        ? $"otpauth://totp/{issuer}:{token}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30"
+    //    var uri = !string.IsNullOrWhiteSpace(account)
+    //        ? $"otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30"
     //        : $"otpauth://totp/?secret={secret}&issuer={issuer}";
     //    return GenerateQrCodeImage(uri);
     //}
 
-    //public string BuildOtpAuthUri(string issuer, string secret, string? token = "")
+    //public string BuildOtpAuthUri(string issuer, string secret, string? account = "")
     //{
-    //    return !string.IsNullOrWhiteSpace(token)
-    //        ? $"otpauth://totp/{issuer}:{token}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30"
+    //    return !string.IsNullOrWhiteSpace(account)
+    //        ? $"otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30"
     //        : $"otpauth://totp/?secret={secret}&issuer={issuer}";
     //}
 
-    public string BuildOtpAuthUri(string issuer, string secret, string? token = "")
+    public string BuildOtpAuthUri(string issuer, string secret, string? account = "")
     {
-        string label = !string.IsNullOrWhiteSpace(token)
-            ? $"{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(token)}"
+        string label = !string.IsNullOrWhiteSpace(account)
+            ? $"{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(account)}"
             : Uri.EscapeDataString(issuer);
 
         string query = $"secret={Uri.EscapeDataString(secret)}" +
@@ -39,9 +39,9 @@ public class QrCodeService : IQrCodeService
 
     /// <summary>
     ///     string issuer = "platform-name";
-    ///     string token = "user@example.com or username";
+    ///     string account = "user@example.com or username";
     ///     string secret = "JBSWY3DPEHPK3PXP"; // Base32 encoded
-    ///     string uri = $"otpauth://totp/{issuer}:{token}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period
+    ///     string uri = $"otpauth://totp/{issuer}:{account}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period
     ///     =30";
     /// </summary>
     /// <param name="uri"></param>

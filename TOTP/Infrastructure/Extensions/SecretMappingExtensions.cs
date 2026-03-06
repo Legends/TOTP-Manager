@@ -3,16 +3,16 @@ using TOTP.ViewModels;
 
 namespace TOTP.Infrastructure.Extensions;
 
-public static class TokenMappingExtensions
+public static class AccountMappingExtensions
 {
-    public static OtpEntry ToDomain(this OtpViewModel vm)
-        => new(vm.ID, vm.Issuer ?? string.Empty, vm.Secret ?? string.Empty, vm.TokenName ?? string.Empty);
+    public static Account ToDomain(this OtpViewModel vm)
+        => new(vm.ID, vm.Issuer ?? string.Empty, vm.Secret ?? string.Empty, vm.AccountName ?? string.Empty);
 
-    public static OtpViewModel ToViewModel(this OtpEntry s)
+    public static OtpViewModel ToViewModel(this Account s)
         => new(
               s.ID,
               s.Issuer,
               s.Secret,
-              s.TokenName
+              s.AccountName
         );
 }

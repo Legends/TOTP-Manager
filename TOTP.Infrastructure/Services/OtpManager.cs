@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using FluentResults;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
@@ -12,31 +12,31 @@ namespace TOTP.Infrastructure.Services;
 public class OtpManager(
     IOtpDAL otpDal) : IOtpManager
 {
-    public async Task<Result> AddNewAsync(OtpEntry newItem)
+    public async Task<Result> AddNewAsync(Account newItem)
     {
         return await otpDal.AddNewAsync(newItem);
     }
 
-    public async Task<Result> UpdateAsync(OtpEntry previous, OtpEntry updated)
+    public async Task<Result> UpdateAsync(Account previous, Account updated)
     {
         ArgumentNullException.ThrowIfNull(updated);
         return await otpDal.UpdateAsync(updated);
     }
 
-    public async Task<Result<ObservableCollection<OtpEntry>>> GetAllOtpEntriesSortedAsync()
+    public async Task<Result<ObservableCollection<Account>>> GetAllOtpEntriesSortedAsync()
     {
         var result = await otpDal.GetAllAsync();
 
         if (result.IsFailed)
             return result.ToResult();
 
-        result.Value.Sort(new Comparison<OtpEntry>((a, b) => string.Compare(a.Issuer, b.Issuer, StringComparison.OrdinalIgnoreCase)));
+        result.Value.Sort(new Comparison<Account>((a, b) => string.Compare(a.Issuer, b.Issuer, StringComparison.OrdinalIgnoreCase)));
 
         var allOtps = result.Value ?? [];
-        return Result.Ok(new ObservableCollection<OtpEntry>((allOtps)));
+        return Result.Ok(new ObservableCollection<Account>((allOtps)));
     }
 
-    public async Task<Result> DeleteAsync(OtpEntry item)
+    public async Task<Result> DeleteAsync(Account item)
     {
         return await otpDal.DeleteAsync(item);
     }

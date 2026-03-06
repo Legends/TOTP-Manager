@@ -104,7 +104,7 @@ internal class UiValidation
             : ValidationError.None;
     }
 
-    public static ValidationError PlatformNameDuplicateExists(string platform, IEnumerable<OtpEntry> source)
+    public static ValidationError PlatformNameDuplicateExists(string platform, IEnumerable<Account> source)
     {
         // Check duplicates in the bound list (ignore the current row)
         bool duplicate = source

@@ -1,4 +1,4 @@
-﻿using NSec.Cryptography;
+using NSec.Cryptography;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +21,7 @@ public sealed class VaultService : IVaultService
         _securityContext = securityContext ?? throw new ArgumentNullException(nameof(securityContext));
     }
 
-    public byte[] EncryptVault(List<OtpEntry> entries)
+    public byte[] EncryptVault(List<Account> entries)
     {
         if (!_securityContext.IsUnlocked) throw new InvalidOperationException("Security context locked.");
 
@@ -49,7 +49,7 @@ public sealed class VaultService : IVaultService
         }
     }
 
-    public List<OtpEntry> DecryptVault(byte[] encryptedBlob)
+    public List<Account> DecryptVault(byte[] encryptedBlob)
     {
         if (!_securityContext.IsUnlocked) throw new InvalidOperationException("Security context locked.");
 
@@ -79,7 +79,7 @@ public sealed class VaultService : IVaultService
         try
         {
             var json = Encoding.UTF8.GetString(decrypted);
-            return JsonSerializer.Deserialize<List<OtpEntry>>(json) ?? [];
+            return JsonSerializer.Deserialize<List<Account>>(json) ?? [];
         }
         finally { Array.Clear(decrypted, 0, decrypted.Length); }
     }

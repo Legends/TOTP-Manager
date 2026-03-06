@@ -1,4 +1,4 @@
-<UserControl x:Class="TOTP.Views.EditAddTokenFlyoutView"
+<UserControl x:Class="TOTP.Views.EditAddAccountFlyoutView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:props="clr-namespace:TOTP.Infrastructure.AttachedProperties"
@@ -54,18 +54,18 @@
                    Visibility="{Binding CurrentSecretBeingEditedOrAdded.SecretError,
                                         Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
 
-        <!-- Token -->
+        <!-- Account -->
         <TextBlock Text="{xaml:Resx Key=ui_Header_Account}"
                    FontWeight="Bold"
                    Foreground="White"
                    Margin="0,10,0,2" />
 
-        <TextBox Text="{Binding CurrentSecretBeingEditedOrAdded.TokenName, UpdateSourceTrigger=PropertyChanged}"
+        <TextBox Text="{Binding CurrentSecretBeingEditedOrAdded.AccountName, UpdateSourceTrigger=PropertyChanged}"
                  Height="30" />
 
-        <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.TokenError}"
+        <TextBlock Text="{Binding CurrentSecretBeingEditedOrAdded.AccountError}"
                    Style="{StaticResource InlineErrorTextStyle}"
-                   Visibility="{Binding CurrentSecretBeingEditedOrAdded.TokenError,
+                   Visibility="{Binding CurrentSecretBeingEditedOrAdded.AccountError,
                                         Converter={StaticResource StringToVisibilityConverterCollapsed}}" />
 
         <!-- Buttons -->

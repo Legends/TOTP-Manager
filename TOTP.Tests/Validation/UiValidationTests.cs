@@ -36,7 +36,7 @@ public sealed class UiValidationTests
     {
         var source = new[]
         {
-            new OtpEntry(Guid.NewGuid(), "GitHub", "AAAA", "john")
+            new Account(Guid.NewGuid(), "GitHub", "AAAA", "john")
         };
 
         var result = UiValidation.PlatformNameDuplicateExists("github", source);

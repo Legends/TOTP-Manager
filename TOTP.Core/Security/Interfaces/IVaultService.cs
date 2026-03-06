@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +9,6 @@ namespace TOTP.Core.Security.Interfaces;
 
 public interface IVaultService
 {
-    byte[] EncryptVault(List<OtpEntry> entries);
-    List<OtpEntry> DecryptVault(byte[] encryptedBlob);
+    byte[] EncryptVault(List<Account> entries);
+    List<Account> DecryptVault(byte[] encryptedBlob);
 }

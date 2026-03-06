@@ -12,10 +12,10 @@ public class QrCodeServiceTests
         var qrCodeService = new QrCodeService();
         string issuer = "TestPlatform";
         string secret = "JBSWY3DPEHPK3PXP";
-        string token = "test@example.com";
+        string account = "test@example.com";
 
         // Act
-        var uri = qrCodeService.BuildOtpAuthUri(issuer, secret, token);
+        var uri = qrCodeService.BuildOtpAuthUri(issuer, secret, account);
         byte[] pngBytes = qrCodeService.GenerateQr(uri);
 
         using MemoryStream ms = new(pngBytes);

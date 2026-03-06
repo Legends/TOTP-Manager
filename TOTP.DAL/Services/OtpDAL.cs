@@ -31,14 +31,14 @@ public sealed class OtpDAL : IOtpDAL
         }
     }
 
-    public async Task<Result<List<OtpEntry>>> GetAllAsync()
+    public async Task<Result<List<Account>>> GetAllAsync()
     {
         await _semaphore.WaitAsync();
         try
         {
             if (!File.Exists(_secretsPath))
             {
-                return Result.Ok<List<OtpEntry>>(new());
+                return Result.Ok<List<Account>>(new());
             }
 
             byte[] blob = await File.ReadAllBytesAsync(_secretsPath);
@@ -70,7 +70,7 @@ public sealed class OtpDAL : IOtpDAL
         finally { _semaphore.Release(); }
     }
 
-    private async Task<List<OtpEntry>> GetAllInternalAsync()
+    private async Task<List<Account>> GetAllInternalAsync()
     {
         if (!File.Exists(_secretsPath))
         {
@@ -81,10 +81,10 @@ public sealed class OtpDAL : IOtpDAL
         return _vaultService.DecryptVault(blob);
     }
 
-    public async Task<Result> AddNewAsync(OtpEntry newItem) =>
+    public async Task<Result> AddNewAsync(Account newItem) =>
         await ExecuteWriteAsync(list => list.Add(newItem), AppErrorCode.OtpCreateFailed, "Failed to create OTP entry.");
 
-    public async Task<Result> UpdateAsync(OtpEntry updated) =>
+    public async Task<Result> UpdateAsync(Account updated) =>
         await ExecuteWriteAsync(list =>
         {
             var idx = list.FindIndex(x => x.ID == updated.ID);
@@ -94,10 +94,10 @@ public sealed class OtpDAL : IOtpDAL
             }
         }, AppErrorCode.OtpUpdateFailed, "Failed to update OTP entry.");
 
-    public async Task<Result> DeleteAsync(OtpEntry token) =>
-        await ExecuteWriteAsync(list => list.RemoveAll(x => x.ID == token.ID), AppErrorCode.OtpDeleteFailed, "Failed to delete OTP entry.");
+    public async Task<Result> DeleteAsync(Account account) =>
+        await ExecuteWriteAsync(list => list.RemoveAll(x => x.ID == account.ID), AppErrorCode.OtpDeleteFailed, "Failed to delete OTP entry.");
 
-    private async Task<Result> ExecuteWriteAsync(Action<List<OtpEntry>> action, AppErrorCode operationCode, string operationMessage)
+    private async Task<Result> ExecuteWriteAsync(Action<List<Account>> action, AppErrorCode operationCode, string operationMessage)
     {
         await _semaphore.WaitAsync();
         try

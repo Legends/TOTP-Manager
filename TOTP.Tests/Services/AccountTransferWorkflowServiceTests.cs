@@ -12,23 +12,23 @@ using TOTP.ViewModels;
 
 namespace TOTP.Tests.Services;
 
-public sealed class TokenTransferWorkflowServiceTests
+public sealed class AccountTransferWorkflowServiceTests
 {
     [Fact]
     public async Task ExportOtpsAsync_WhenSaveDialogCanceled_DoesNothing()
     {
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns((string?)null);
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object,
             accounts.Object,
             export.Object,
@@ -40,28 +40,28 @@ public sealed class TokenTransferWorkflowServiceTests
         await sut.ExportOtpsAsync(toBeEncrypted: false, ExportFileFormat.Json);
 
         accounts.Verify(a => a.GetAllEntriesSortedAsync(), Times.Never);
-        export.Verify(e => e.ExportToFileAsync(It.IsAny<IEnumerable<OtpEntry>>(), It.IsAny<string>(), It.IsAny<ExportFileFormat>()), Times.Never);
+        export.Verify(e => e.ExportToFileAsync(It.IsAny<IEnumerable<Account>>(), It.IsAny<string>(), It.IsAny<ExportFileFormat>()), Times.Never);
     }
 
     [Fact]
     public async Task ExportOtpsAsync_WhenEncryptedAndPasswordMissing_ShowsWarning()
     {
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns("backup.totp");
         accounts.Setup(a => a.GetAllEntriesSortedAsync())
-            .ReturnsAsync(Result.Ok(new ObservableCollection<OtpEntry>()));
+            .ReturnsAsync(Result.Ok(new ObservableCollection<Account>()));
         prompt.Setup(p => p.PromptForEncryptedExportPassword(It.IsAny<string>()))
             .Returns((string?)null);
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object,
             accounts.Object,
             export.Object,
@@ -73,24 +73,24 @@ public sealed class TokenTransferWorkflowServiceTests
         await sut.ExportOtpsAsync(toBeEncrypted: true, ExportFileFormat.Json);
 
         message.Verify(m => m.ShowWarning(TOTP.Resources.UI.ui_ExportPasswordRequired), Times.Once);
-        export.Verify(e => e.ExportToEncryptedFileAsync(It.IsAny<IEnumerable<OtpEntry>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ExportFileFormat>()), Times.Never);
+        export.Verify(e => e.ExportToEncryptedFileAsync(It.IsAny<IEnumerable<Account>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ExportFileFormat>()), Times.Never);
     }
 
     [Fact]
     public async Task ImportOtpsAsync_WhenOpenDialogCanceled_DoesNothing()
     {
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns((string?)null);
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object,
             accounts.Object,
             export.Object,
@@ -108,19 +108,19 @@ public sealed class TokenTransferWorkflowServiceTests
     public async Task ImportOtpsAsync_WhenImportFails_ShowsResultError()
     {
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
-            .ReturnsAsync(Result.Fail<List<OtpEntry>>("import failed"));
+            .ReturnsAsync(Result.Fail<List<Account>>("import failed"));
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object,
             accounts.Object,
             export.Object,
@@ -138,26 +138,26 @@ public sealed class TokenTransferWorkflowServiceTests
     public async Task ExportOtpsAsync_WhenPlain_CallsExportToFileWithSelectedFormat()
     {
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         var appSettings = new AppSettings { OpenExportFileAfterExport = false };
         settings.SetupGet(s => s.Current).Returns(appSettings);
         fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns("backup.json");
         accounts.Setup(a => a.GetAllEntriesSortedAsync())
-            .ReturnsAsync(Result.Ok(new ObservableCollection<OtpEntry>
+            .ReturnsAsync(Result.Ok(new ObservableCollection<Account>
             {
                 new(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "john")
             }));
-        export.Setup(e => e.ExportToFileAsync(It.IsAny<IEnumerable<OtpEntry>>(), "backup.json", ExportFileFormat.Json))
+        export.Setup(e => e.ExportToFileAsync(It.IsAny<IEnumerable<Account>>(), "backup.json", ExportFileFormat.Json))
             .ReturnsAsync(Result.Ok());
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object,
             accounts.Object,
             export.Object,
@@ -168,7 +168,7 @@ public sealed class TokenTransferWorkflowServiceTests
 
         await sut.ExportOtpsAsync(toBeEncrypted: false, ExportFileFormat.Json);
 
-        export.Verify(e => e.ExportToFileAsync(It.IsAny<IEnumerable<OtpEntry>>(), "backup.json", ExportFileFormat.Json), Times.Once);
+        export.Verify(e => e.ExportToFileAsync(It.IsAny<IEnumerable<Account>>(), "backup.json", ExportFileFormat.Json), Times.Once);
         message.Verify(m => m.ShowSuccess(TOTP.Resources.UI.ui_Settings_Export_Success, 1), Times.Once);
     }
 
@@ -176,26 +176,26 @@ public sealed class TokenTransferWorkflowServiceTests
     public async Task ExportOtpsAsync_WhenEncryptedWithPassword_CallsEncryptedExport()
     {
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         settings.SetupGet(s => s.Current).Returns(new AppSettings());
         fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns("backup.totp");
         accounts.Setup(a => a.GetAllEntriesSortedAsync())
-            .ReturnsAsync(Result.Ok(new ObservableCollection<OtpEntry>
+            .ReturnsAsync(Result.Ok(new ObservableCollection<Account>
             {
                 new(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "john")
             }));
         prompt.Setup(p => p.PromptForEncryptedExportPassword(It.IsAny<string>())).Returns("secret");
-        export.Setup(e => e.ExportToEncryptedFileAsync(It.IsAny<IEnumerable<OtpEntry>>(), "secret", "backup.totp", ExportFileFormat.Json))
+        export.Setup(e => e.ExportToEncryptedFileAsync(It.IsAny<IEnumerable<Account>>(), "secret", "backup.totp", ExportFileFormat.Json))
             .ReturnsAsync(Result.Ok());
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object,
             accounts.Object,
             export.Object,
@@ -206,7 +206,7 @@ public sealed class TokenTransferWorkflowServiceTests
 
         await sut.ExportOtpsAsync(toBeEncrypted: true, ExportFileFormat.Csv);
 
-        export.Verify(e => e.ExportToEncryptedFileAsync(It.IsAny<IEnumerable<OtpEntry>>(), "secret", "backup.totp", ExportFileFormat.Json), Times.Once);
+        export.Verify(e => e.ExportToEncryptedFileAsync(It.IsAny<IEnumerable<Account>>(), "secret", "backup.totp", ExportFileFormat.Json), Times.Once);
         message.Verify(m => m.ShowWarning(TOTP.Resources.UI.ui_ExportPasswordRequired), Times.Never);
         message.Verify(m => m.ShowSuccess(TOTP.Resources.UI.ui_Settings_Export_Success, 1), Times.Once);
     }
@@ -215,19 +215,19 @@ public sealed class TokenTransferWorkflowServiceTests
     public async Task ImportOtpsAsync_WhenNoImportedEntries_ShowsInfo()
     {
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
-            .ReturnsAsync(Result.Ok(new List<OtpEntry>()));
+            .ReturnsAsync(Result.Ok(new List<Account>()));
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object,
             accounts.Object,
             export.Object,
@@ -251,23 +251,23 @@ public sealed class TokenTransferWorkflowServiceTests
         };
 
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
-            .ReturnsAsync(Result.Ok(new List<OtpEntry>
+            .ReturnsAsync(Result.Ok(new List<Account>
             {
                 new(Guid.NewGuid(), "GitHub", "ZZZZYYYYXXXXWWWW", "john")
             }));
         message.Setup(m => m.ConfirmInfo(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object,
             accounts.Object,
             export.Object,
@@ -289,20 +289,20 @@ public sealed class TokenTransferWorkflowServiceTests
         var allOtps = new ObservableCollection<OtpViewModel>();
 
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
-            .ReturnsAsync(Result.Ok(new List<OtpEntry> { new(Guid.NewGuid(), "GitHub", "AAAA", "john") }));
+            .ReturnsAsync(Result.Ok(new List<Account> { new(Guid.NewGuid(), "GitHub", "AAAA", "john") }));
         message.Setup(m => m.ConfirmInfo(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(false);
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, allOtps);
@@ -322,24 +322,24 @@ public sealed class TokenTransferWorkflowServiceTests
         };
 
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
-            .ReturnsAsync(Result.Ok(new List<OtpEntry>
+            .ReturnsAsync(Result.Ok(new List<Account>
             {
                 new(Guid.NewGuid(), "GitHub", "NEWSECRET", "john")
             }));
         message.Setup(m => m.ConfirmInfo(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
         accounts.Setup(a => a.UpdateAsync(It.IsAny<OtpViewModel>(), It.IsAny<OtpViewModel>())).ReturnsAsync(Result.Ok());
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ImportOtpsAsync(ImportConflictStrategy.ReplaceExisting, allOtps);
@@ -358,24 +358,24 @@ public sealed class TokenTransferWorkflowServiceTests
         };
 
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
-            .ReturnsAsync(Result.Ok(new List<OtpEntry>
+            .ReturnsAsync(Result.Ok(new List<Account>
             {
                 new(Guid.NewGuid(), "GitHub", "NEWSECRET", "john")
             }));
         message.Setup(m => m.ConfirmInfo(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
         accounts.Setup(a => a.AddAsync(It.IsAny<OtpViewModel>())).ReturnsAsync(Result.Ok());
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ImportOtpsAsync(ImportConflictStrategy.KeepBoth, allOtps);
@@ -390,12 +390,12 @@ public sealed class TokenTransferWorkflowServiceTests
     {
         var allOtps = new ObservableCollection<OtpViewModel>();
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("import.totp");
@@ -407,7 +407,7 @@ public sealed class TokenTransferWorkflowServiceTests
             It.IsAny<Func<string, Task<string?>>>()))
             .Returns((string?)null);
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, allOtps);
@@ -420,48 +420,48 @@ public sealed class TokenTransferWorkflowServiceTests
     public async Task ExportOtpsAsync_WhenTokensLoadFails_ShowsResultError()
     {
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         settings.SetupGet(s => s.Current).Returns(new AppSettings());
         fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns("backup.json");
         accounts.Setup(a => a.GetAllEntriesSortedAsync())
-            .ReturnsAsync(Result.Fail<ObservableCollection<OtpEntry>>("load failed"));
+            .ReturnsAsync(Result.Fail<ObservableCollection<Account>>("load failed"));
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ExportOtpsAsync(false, ExportFileFormat.Json);
 
         message.Verify(m => m.ShowResultError(It.Is<IResultBase>(r => r.IsFailed), null), Times.Once);
-        export.Verify(e => e.ExportToFileAsync(It.IsAny<IEnumerable<OtpEntry>>(), It.IsAny<string>(), It.IsAny<ExportFileFormat>()), Times.Never);
+        export.Verify(e => e.ExportToFileAsync(It.IsAny<IEnumerable<Account>>(), It.IsAny<string>(), It.IsAny<ExportFileFormat>()), Times.Never);
     }
 
     [Fact]
     public async Task ExportOtpsAsync_WhenExportFails_ShowsResultError()
     {
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         settings.SetupGet(s => s.Current).Returns(new AppSettings());
         fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns("backup.json");
         accounts.Setup(a => a.GetAllEntriesSortedAsync())
-            .ReturnsAsync(Result.Ok(new ObservableCollection<OtpEntry> { new(Guid.NewGuid(), "GitHub", "AAAA", "john") }));
-        export.Setup(e => e.ExportToFileAsync(It.IsAny<IEnumerable<OtpEntry>>(), "backup.json", ExportFileFormat.Json))
+            .ReturnsAsync(Result.Ok(new ObservableCollection<Account> { new(Guid.NewGuid(), "GitHub", "AAAA", "john") }));
+        export.Setup(e => e.ExportToFileAsync(It.IsAny<IEnumerable<Account>>(), "backup.json", ExportFileFormat.Json))
             .ReturnsAsync(Result.Fail("export failed"));
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ExportOtpsAsync(false, ExportFileFormat.Json);
@@ -474,12 +474,12 @@ public sealed class TokenTransferWorkflowServiceTests
     {
         var allOtps = new ObservableCollection<OtpViewModel>();
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("import.totp");
@@ -491,9 +491,9 @@ public sealed class TokenTransferWorkflowServiceTests
                 It.IsAny<Func<string, Task<string?>>>()))
             .Returns("pw123");
         export.Setup(e => e.ImportFromFileAsync("import.totp", "pw123"))
-            .ReturnsAsync(Result.Ok(new List<OtpEntry>()));
+            .ReturnsAsync(Result.Ok(new List<Account>()));
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, allOtps);
@@ -511,21 +511,21 @@ public sealed class TokenTransferWorkflowServiceTests
         };
 
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
-            .ReturnsAsync(Result.Ok(new List<OtpEntry> { new(Guid.NewGuid(), "GitHub", "NEWSECRET", "john") }));
+            .ReturnsAsync(Result.Ok(new List<Account> { new(Guid.NewGuid(), "GitHub", "NEWSECRET", "john") }));
         message.Setup(m => m.ConfirmInfo(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
         accounts.Setup(a => a.UpdateAsync(It.IsAny<OtpViewModel>(), It.IsAny<OtpViewModel>())).ReturnsAsync(Result.Fail("update failed"));
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ImportOtpsAsync(ImportConflictStrategy.ReplaceExisting, allOtps);
@@ -544,21 +544,21 @@ public sealed class TokenTransferWorkflowServiceTests
         };
 
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
-            .ReturnsAsync(Result.Ok(new List<OtpEntry> { new(Guid.NewGuid(), "GitHub", "NEWSECRET", "john") }));
+            .ReturnsAsync(Result.Ok(new List<Account> { new(Guid.NewGuid(), "GitHub", "NEWSECRET", "john") }));
         message.Setup(m => m.ConfirmInfo(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
         accounts.Setup(a => a.AddAsync(It.IsAny<OtpViewModel>())).ReturnsAsync(Result.Ok());
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ImportOtpsAsync(ImportConflictStrategy.KeepBoth, allOtps);
@@ -570,17 +570,17 @@ public sealed class TokenTransferWorkflowServiceTests
     public async Task ExportOtpsAsync_WhenDependencyThrows_LogsAndShowsUnexpectedError()
     {
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Throws(new InvalidOperationException("dialog failure"));
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ExportOtpsAsync(false, ExportFileFormat.Json);
@@ -594,17 +594,17 @@ public sealed class TokenTransferWorkflowServiceTests
     {
         var allOtps = new ObservableCollection<OtpViewModel>();
         var fileDialog = new Mock<IFileDialogService>();
-        var accounts = new Mock<ITokensWorkflowService>();
+        var accounts = new Mock<IAccountsWorkflowService>();
         var export = new Mock<IExportService>();
         var prompt = new Mock<IPasswordPromptService>();
         var message = new Mock<IMessageService>();
         var settings = new Mock<ISettingsService>();
-        var logger = new Mock<ILogger<TokenTransferWorkflowService>>();
+        var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
             .Throws(new InvalidOperationException("dialog failure"));
 
-        var sut = new TokenTransferWorkflowService(
+        var sut = new AccountTransferWorkflowService(
             fileDialog.Object, accounts.Object, export.Object, prompt.Object, message.Object, settings.Object, logger.Object);
 
         await sut.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, allOtps);
@@ -613,7 +613,7 @@ public sealed class TokenTransferWorkflowServiceTests
         VerifyLog(logger, LogLevel.Error, Times.Once());
     }
 
-    private static void VerifyLog(Mock<ILogger<TokenTransferWorkflowService>> logger, LogLevel level, Times times)
+    private static void VerifyLog(Mock<ILogger<AccountTransferWorkflowService>> logger, LogLevel level, Times times)
     {
         logger.Verify(
             x => x.Log(

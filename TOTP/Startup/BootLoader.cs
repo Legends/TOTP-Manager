@@ -118,8 +118,8 @@ public static class BootLoader
                 services.AddSingleton<IPasswordPromptService, PasswordPromptService>();
                 services.AddSingleton<INotificationUiClient, NotificationUiClient>();
                 services.AddSingleton<IMessageService, MessageService>();
-                services.AddSingleton<ITokensWorkflowService, TokensWorkflowService>();
-                services.AddSingleton<ITokenTransferWorkflowService, TokenTransferWorkflowService>();
+                services.AddSingleton<IAccountsWorkflowService, AccountsWorkflowService>();
+                services.AddSingleton<IAccountTransferWorkflowService, AccountTransferWorkflowService>();
                 services.AddSingleton<ISettingsDialogOrchestrationService, SettingsDialogOrchestrationService>();
                 services.AddSingleton<ISettingsAuthorizationWorkflowService, SettingsAuthorizationWorkflowService>();
                 services.AddSingleton<ISettingsPersistenceService, SettingsPersistenceService>();

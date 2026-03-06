@@ -33,7 +33,7 @@ public sealed class OtpDalIntegrationTests
         var sut = CreateSut(storagePath, new EchoVaultService());
 
         var id = Guid.NewGuid();
-        var created = new OtpEntry(id, "GitHub", "AAAA", "john");
+        var created = new Account(id, "GitHub", "AAAA", "john");
 
         Assert.True((await sut.AddNewAsync(created)).IsSuccess);
 
@@ -42,14 +42,14 @@ public sealed class OtpDalIntegrationTests
         var createdEntry = Assert.Single(afterCreate.Value);
         Assert.Equal("AAAA", createdEntry.Secret);
 
-        var updated = new OtpEntry(id, "GitHub", "BBBB", "john.doe");
+        var updated = new Account(id, "GitHub", "BBBB", "john.doe");
         Assert.True((await sut.UpdateAsync(updated)).IsSuccess);
 
         var afterUpdate = await sut.GetAllAsync();
         Assert.True(afterUpdate.IsSuccess);
         var updatedEntry = Assert.Single(afterUpdate.Value);
         Assert.Equal("BBBB", updatedEntry.Secret);
-        Assert.Equal("john.doe", updatedEntry.TokenName);
+        Assert.Equal("john.doe", updatedEntry.AccountName);
 
         Assert.True((await sut.DeleteAsync(updated)).IsSuccess);
 
@@ -68,7 +68,7 @@ public sealed class OtpDalIntegrationTests
         var vault = new EchoVaultService();
         var sut = CreateSut(storagePath, vault);
 
-        var entry = new OtpEntry(Guid.NewGuid(), "Google", "CCCC", "a@b.com");
+        var entry = new Account(Guid.NewGuid(), "Google", "CCCC", "a@b.com");
         Assert.True((await sut.AddNewAsync(entry)).IsSuccess);
 
         var exportResult = await sut.ExportEncryptedAsync(exportPath);
@@ -88,7 +88,7 @@ public sealed class OtpDalIntegrationTests
         using var temp = new TempDir();
         var storagePath = Path.Combine(temp.Path, "master.totp");
         var sut = CreateSut(storagePath, new EchoVaultService());
-        Assert.True((await sut.AddNewAsync(new OtpEntry(Guid.NewGuid(), "GitLab", "DDDD"))).IsSuccess);
+        Assert.True((await sut.AddNewAsync(new Account(Guid.NewGuid(), "GitLab", "DDDD"))).IsSuccess);
 
         var target = Path.Combine(temp.Path, "missing", "export.totp");
 
@@ -105,7 +105,7 @@ public sealed class OtpDalIntegrationTests
         var storagePath = Path.Combine(temp.Path, "master.totp");
         var sut = CreateSut(storagePath, new EchoVaultService());
 
-        var entry = new OtpEntry(Guid.NewGuid(), "Azure", "EEEE");
+        var entry = new Account(Guid.NewGuid(), "Azure", "EEEE");
         Assert.True((await sut.AddNewAsync(entry)).IsSuccess);
 
         var reEncryptResult = await sut.ReEncryptStorageAsync();
@@ -137,7 +137,7 @@ public sealed class OtpDalIntegrationTests
         var storagePath = Path.Combine(temp.Path, "master.totp");
         var sut = CreateSut(storagePath, new EchoVaultService());
 
-        Assert.True((await sut.AddNewAsync(new OtpEntry(Guid.NewGuid(), "One", "1111"))).IsSuccess);
+        Assert.True((await sut.AddNewAsync(new Account(Guid.NewGuid(), "One", "1111"))).IsSuccess);
         Assert.True((await sut.BackupOtpEntriesStorageFileAsync()).IsSuccess);
         var bak1 = storagePath + ".bak1";
         Assert.True(File.Exists(bak1));
@@ -147,7 +147,7 @@ public sealed class OtpDalIntegrationTests
         var secondWrite = File.GetLastWriteTimeUtc(bak1);
         Assert.Equal(firstWrite, secondWrite);
 
-        Assert.True((await sut.AddNewAsync(new OtpEntry(Guid.NewGuid(), "Two", "2222"))).IsSuccess);
+        Assert.True((await sut.AddNewAsync(new Account(Guid.NewGuid(), "Two", "2222"))).IsSuccess);
         Assert.True((await sut.BackupOtpEntriesStorageFileAsync()).IsSuccess);
 
         Assert.True(File.Exists(storagePath + ".bak1"));
@@ -174,17 +174,17 @@ public sealed class OtpDalIntegrationTests
 
     private sealed class EchoVaultService : IVaultService
     {
-        public List<OtpEntry> DecryptVault(byte[] encryptedBlob) =>
-            System.Text.Json.JsonSerializer.Deserialize<List<OtpEntry>>(encryptedBlob) ?? [];
+        public List<Account> DecryptVault(byte[] encryptedBlob) =>
+            System.Text.Json.JsonSerializer.Deserialize<List<Account>>(encryptedBlob) ?? [];
 
-        public byte[] EncryptVault(List<OtpEntry> entries) =>
+        public byte[] EncryptVault(List<Account> entries) =>
             System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(entries);
     }
 
     private sealed class ThrowingVaultService(Exception exception) : IVaultService
     {
-        public List<OtpEntry> DecryptVault(byte[] encryptedBlob) => throw exception;
-        public byte[] EncryptVault(List<OtpEntry> entries) => throw exception;
+        public List<Account> DecryptVault(byte[] encryptedBlob) => throw exception;
+        public byte[] EncryptVault(List<Account> entries) => throw exception;
     }
 
     private sealed class TempDir : IDisposable

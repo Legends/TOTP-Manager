@@ -75,7 +75,7 @@ public partial class MainViewModel
 
     private ValidationError DuplicateCheck(OtpViewModel si)
     {
-        return _tokensWorkflow.CheckDuplicateIssuer(si, AllOtps);
+        return _accountsWorkflow.CheckDuplicateIssuer(si, AllOtps);
     }
 
     #region ### AUTHORIZATION ###
@@ -105,7 +105,7 @@ public partial class MainViewModel
         IsSecretVisible = false;
         IsGridEditing = false;
         IsInlineEditing = false;
-        SelectedToken = null;
+        SelectedAccount = null;
     }
 
     #endregion
@@ -150,7 +150,7 @@ public partial class MainViewModel
     {
         try
         {
-            var result = await _tokensWorkflow.LoadAllAsync();
+            var result = await _accountsWorkflow.LoadAllAsync();
 
             if (result.IsFailed)
             {

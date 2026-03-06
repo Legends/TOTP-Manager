@@ -84,7 +84,7 @@
                     Visibility="{Binding IsUnlocked, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
 
             <components:MainToolbarSection />
-            <components:TokensSection x:Name="TokensSectionView" />
+            <components:AccountsSection x:Name="AccountsSectionView" />
         </StackPanel>
 
         <Grid>
@@ -93,7 +93,7 @@
                                        CloseCommand="{Binding CancelFlyoutCommand}"
                                        PanelWidth="300">
                 <userControls:FlyoutHost.FlyoutContent>
-                    <views:EditAddTokenFlyoutView />
+                    <views:EditAddAccountFlyoutView />
                 </userControls:FlyoutHost.FlyoutContent>
             </userControls:FlyoutHost>
 

@@ -26,16 +26,16 @@ public partial class MainViewModel
             source => _qrPreviewService.Toggle(source),
             source => source != null);
 
-        ExportSecretsCommand = new AsyncCommand(_tokenTransferWorkflowService.ExportSecretsToFileAsync, CanExportSecrets);
-        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddTokenAsync, () => !_isGridInEditMode);
+        ExportSecretsCommand = new AsyncCommand(_accountTransferWorkflowService.ExportSecretsToFileAsync, CanExportSecrets);
+        ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);
 
         OpenFlyoutEditModeCommand = new RelayCommand<OtpViewModel>(OpenFlyoutEditMode, CanOpenFlyoutEditMode);
         OpenFlyoutAddModeCommand = new RelayCommand(OpenFlyoutAddMode, () => !_isGridInEditMode);
-        SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateOtpEntryAsync, CanSaveEditFlyout);
+        SaveEditFlyoutAsyncCommand = new AsyncCommand(AddOrUpdateAccountAsync, CanSaveEditFlyout);
         CancelFlyoutCommand = new RelayCommand(CancelFlyout, () => IsEditAddFlyoutOpen);
 
         RowSelectionChangedCommand = new AsyncCommand<OtpViewModel>(OnRowSelectionChangedAsync, CanProcessRowSelection);
-        DeleteSecretCommand = new AsyncCommand<OtpViewModel>(DeleteOtpEntryAsync, CanDeleteSecret, _logger);
+        DeleteSecretCommand = new AsyncCommand<OtpViewModel>(DeleteAccountAsync, CanDeleteSecret, _logger);
         BeginEditCommand = new RelayCommand<OtpViewModel>(OnBeginEdit, CanBeginEdit);
         EndEditCommand = new AsyncCommand<OtpViewModel>(OnEndEditAsync, CanEndEdit);
         DoubleClickCommand = new RelayCommand<OtpViewModel>(OnDoubleClick, CanHandleDoubleClick);
@@ -56,12 +56,12 @@ public partial class MainViewModel
     private bool CanOpenSettings() => !IsSettingsViewOpen && IsUnlocked;
 
     private bool CanCopyCode() =>
-        SelectedToken != null &&
+        SelectedAccount != null &&
         !string.IsNullOrWhiteSpace(TotpCode);
 
     private bool CanGenerateQr() =>
-        SelectedToken != null &&
-        !string.IsNullOrWhiteSpace(SelectedToken.Secret);
+        SelectedAccount != null &&
+        !string.IsNullOrWhiteSpace(SelectedAccount.Secret);
 
     private bool CanExportSecrets() =>
         IsUnlocked &&

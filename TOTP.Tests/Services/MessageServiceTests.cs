@@ -28,7 +28,7 @@ public sealed class MessageServiceTests
         var log = new Mock<ILogFileService>();
         var sut = new MessageService(log.Object, client);
 
-        var result = Result.Fail(new AppError(AppErrorCode.TokensDeleteFailed, "tech"));
+        var result = Result.Fail(new AppError(AppErrorCode.AccountsDeleteFailed, "tech"));
 
         sut.ShowResultError(result);
 

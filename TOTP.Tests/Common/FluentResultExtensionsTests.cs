@@ -16,9 +16,9 @@ public sealed class FluentResultExtensionsTests
     [Fact]
     public void GetErrorCode_PrefersAppErrorInstance()
     {
-        var result = Result.Fail(new AppError(AppErrorCode.TokensUpdateFailed, "err"));
+        var result = Result.Fail(new AppError(AppErrorCode.AccountsUpdateFailed, "err"));
 
-        Assert.Equal(AppErrorCode.TokensUpdateFailed, result.GetErrorCode());
+        Assert.Equal(AppErrorCode.AccountsUpdateFailed, result.GetErrorCode());
     }
 
     [Fact]

@@ -12,8 +12,8 @@ public sealed class SettingsTransferWorkflowServiceTests
     [Fact]
     public async Task ExportAsync_ForwardsEncryptionAndFormat()
     {
-        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
-        var context = new Mock<ITokensCollectionContext>();
+        var tokenTransfer = new Mock<IAccountTransferWorkflowService>();
+        var context = new Mock<IAccountsCollectionContext>();
         context.SetupGet(c => c.AllOtps).Returns(new ObservableCollection<OtpViewModel>());
 
         var sut = new SettingsTransferWorkflowService(tokenTransfer.Object, context.Object);
@@ -26,8 +26,8 @@ public sealed class SettingsTransferWorkflowServiceTests
     [Fact]
     public async Task ImportAsync_ForwardsStrategyAndExactContextCollectionReference()
     {
-        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
-        var context = new Mock<ITokensCollectionContext>();
+        var tokenTransfer = new Mock<IAccountTransferWorkflowService>();
+        var context = new Mock<IAccountsCollectionContext>();
         var otps = new ObservableCollection<OtpViewModel>
         {
             new(Guid.NewGuid(), "GitHub", "AAAA", "john")
@@ -44,8 +44,8 @@ public sealed class SettingsTransferWorkflowServiceTests
     [Fact]
     public async Task ImportAsync_WithEmptyCollection_StillCallsWorkflow()
     {
-        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
-        var context = new Mock<ITokensCollectionContext>();
+        var tokenTransfer = new Mock<IAccountTransferWorkflowService>();
+        var context = new Mock<IAccountsCollectionContext>();
         var empty = new ObservableCollection<OtpViewModel>();
         context.SetupGet(c => c.AllOtps).Returns(empty);
 
@@ -59,8 +59,8 @@ public sealed class SettingsTransferWorkflowServiceTests
     [Fact]
     public async Task ImportAsync_UsesCurrentCollectionInstanceAtCallTime()
     {
-        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
-        var context = new Mock<ITokensCollectionContext>();
+        var tokenTransfer = new Mock<IAccountTransferWorkflowService>();
+        var context = new Mock<IAccountsCollectionContext>();
         var first = new ObservableCollection<OtpViewModel>();
         var second = new ObservableCollection<OtpViewModel>();
         context.SetupSequence(c => c.AllOtps)

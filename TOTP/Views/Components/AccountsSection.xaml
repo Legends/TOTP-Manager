@@ -1,4 +1,4 @@
-<UserControl x:Class="TOTP.Views.Components.TokensSection"
+<UserControl x:Class="TOTP.Views.Components.AccountsSection"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
@@ -28,7 +28,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <syncfusion:SfDataGrid x:Name="TokensGrid"
+        <syncfusion:SfDataGrid x:Name="AccountsGrid"
                                ItemsSource="{Binding AllOtps}"
                                CellStyle="{StaticResource {x:Type sfGrid:GridCell}}"
                                Grid.Row="0"
@@ -154,7 +154,7 @@
                     Orientation="Vertical"
                     HorizontalAlignment="Center">
             <Label x:Name="lblSelectedPlatformName"
-                   Content="{Binding SelectedToken.Issuer }"
+                   Content="{Binding SelectedAccount.Issuer }"
                    VerticalContentAlignment="Center"
                    HorizontalContentAlignment="Center"
                    HorizontalAlignment="Center"

@@ -1,4 +1,4 @@
-﻿using FluentResults;
+using FluentResults;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,10 +8,10 @@ namespace TOTP.Core.Services.Interfaces;
 
 public interface IOtpDAL : IDisposable
 {
-    Task<Result<List<OtpEntry>>> GetAllAsync();
-    Task<Result> AddNewAsync(OtpEntry newItem);
-    Task<Result> UpdateAsync(OtpEntry updated);
-    Task<Result> DeleteAsync(OtpEntry otp);
+    Task<Result<List<Account>>> GetAllAsync();
+    Task<Result> AddNewAsync(Account newItem);
+    Task<Result> UpdateAsync(Account updated);
+    Task<Result> DeleteAsync(Account otp);
     Task<Result> BackupOtpEntriesStorageFileAsync();
     // Added for professional key rotation
     Task<Result> ReEncryptStorageAsync();

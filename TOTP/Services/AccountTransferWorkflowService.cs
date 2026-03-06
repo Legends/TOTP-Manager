@@ -19,14 +19,14 @@ using TOTP.ViewModels;
 
 namespace TOTP.Services;
 
-public sealed class TokenTransferWorkflowService(
+public sealed class AccountTransferWorkflowService(
     IFileDialogService fileDialogService,
-    ITokensWorkflowService tokensWorkflow,
+    IAccountsWorkflowService accountsWorkflow,
     IExportService exportService,
     IPasswordPromptService passwordPromptService,
     IMessageService messageService,
     ISettingsService settingsService,
-    ILogger<TokenTransferWorkflowService> logger) : ITokenTransferWorkflowService
+    ILogger<AccountTransferWorkflowService> logger) : IAccountTransferWorkflowService
 {
     public async Task ExportSecretsToFileAsync()
     {
@@ -39,7 +39,7 @@ public sealed class TokenTransferWorkflowService(
                 return;
             }
 
-            var result = await tokensWorkflow.GetAllEntriesSortedAsync();
+            var result = await accountsWorkflow.GetAllEntriesSortedAsync();
             if (result.IsFailed)
             {
                 messageService.ShowResultError(result);
@@ -73,7 +73,7 @@ public sealed class TokenTransferWorkflowService(
                 return;
             }
 
-            var result = await tokensWorkflow.GetAllEntriesSortedAsync();
+            var result = await accountsWorkflow.GetAllEntriesSortedAsync();
             if (result.IsFailed)
             {
                 messageService.ShowResultError(result);
@@ -133,7 +133,7 @@ public sealed class TokenTransferWorkflowService(
             }
 
             var extension = Path.GetExtension(path);
-            FluentResults.Result<List<OtpEntry>> importResult;
+            FluentResults.Result<List<Account>> importResult;
             if (extension.Equals(".totp", StringComparison.OrdinalIgnoreCase))
             {
                 var password = passwordPromptService.Prompt(
@@ -202,7 +202,7 @@ public sealed class TokenTransferWorkflowService(
                     {
                         var updated = incoming.ToViewModel();
                         updated.ID = existing.ID;
-                        var updateResult = await tokensWorkflow.UpdateAsync(existing, updated);
+                        var updateResult = await accountsWorkflow.UpdateAsync(existing, updated);
                         if (updateResult.IsFailed)
                         {
                             failed++;
@@ -218,7 +218,7 @@ public sealed class TokenTransferWorkflowService(
                     incomingVm.Issuer = CreateKeepBothIssuer(incomingVm.Issuer, allOtps);
                 }
 
-                var addResult = await tokensWorkflow.AddAsync(incomingVm);
+                var addResult = await accountsWorkflow.AddAsync(incomingVm);
                 if (addResult.IsFailed)
                 {
                     failed++;
@@ -280,7 +280,7 @@ public sealed class TokenTransferWorkflowService(
 
         var byIssuerAndAccount = allOtps.FirstOrDefault(existing =>
             string.Equals(existing.Issuer ?? string.Empty, incoming.Issuer ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(existing.TokenName ?? string.Empty, incoming.TokenName ?? string.Empty, StringComparison.OrdinalIgnoreCase));
+            string.Equals(existing.AccountName ?? string.Empty, incoming.AccountName ?? string.Empty, StringComparison.OrdinalIgnoreCase));
         if (byIssuerAndAccount != null)
         {
             return byIssuerAndAccount;
@@ -305,7 +305,7 @@ public sealed class TokenTransferWorkflowService(
         return candidate;
     }
 
-    private static string BuildImportPreview(IReadOnlyCollection<OtpEntry> importedEntries, ImportConflictStrategy strategy, ObservableCollection<OtpViewModel> allOtps)
+    private static string BuildImportPreview(IReadOnlyCollection<Account> importedEntries, ImportConflictStrategy strategy, ObservableCollection<OtpViewModel> allOtps)
     {
         var conflicts = importedEntries.Count(entry => FindMatchingEntry(entry.ToViewModel(), allOtps) != null);
         var incoming = importedEntries.Count - conflicts;

@@ -26,7 +26,7 @@ public interface IMainViewModel : INotifyPropertyChanged
     ICommand EndEditCommand { get; }
     ICommand DoubleClickCommand { get; }
     void OpenFlyoutAddMode();
-    OtpViewModel? SelectedToken { get; set; }
+    OtpViewModel? SelectedAccount { get; set; }
     bool IsContextmenuOpen { get; set; }
     Task InitializeMainViewAsync(IMainWindow? mainWindow);
     Task OnRowSelectionChangedAsync(OtpViewModel? item);

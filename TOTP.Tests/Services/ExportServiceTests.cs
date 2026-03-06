@@ -18,7 +18,7 @@ public sealed class ExportServiceTests
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "accounts" + extension);
         var id = Guid.NewGuid();
-        List<OtpEntry> input =
+        List<Account> input =
         [
             new(id, "GitHub, Inc.", "AAAABBBB", "john\"doe"),
             new(Guid.NewGuid(), "Google", "CCCCDDDD")
@@ -33,7 +33,7 @@ public sealed class ExportServiceTests
         Assert.Equal(id, import.Value[0].ID);
         Assert.Equal("GitHub, Inc.", import.Value[0].Issuer);
         Assert.Equal("AAAABBBB", import.Value[0].Secret);
-        Assert.Equal("john\"doe", import.Value[0].TokenName);
+        Assert.Equal("john\"doe", import.Value[0].AccountName);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public sealed class ExportServiceTests
         using var temp = new TempDir();
         var encrypted = Path.Combine(temp.Path, "accounts.totp");
         var export = await _sut.ExportToEncryptedFileAsync(
-            [new OtpEntry(Guid.NewGuid(), "GitHub", "SECRET")],
+            [new Account(Guid.NewGuid(), "GitHub", "SECRET")],
             "correct-password",
             encrypted,
             ExportFileFormat.Json);
@@ -88,7 +88,7 @@ public sealed class ExportServiceTests
     {
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "accounts.totp");
-        List<OtpEntry> input = [new(Guid.NewGuid(), "Azure", "ABCD1234", "tenant-user")];
+        List<Account> input = [new(Guid.NewGuid(), "Azure", "ABCD1234", "tenant-user")];
 
         var export = await _sut.ExportToEncryptedFileAsync(input, "pw-123", path, format);
         var import = await _sut.ImportFromEncryptedFileAsync("pw-123", path);
@@ -98,7 +98,7 @@ public sealed class ExportServiceTests
         var token = Assert.Single(import.Value);
         Assert.Equal("Azure", token.Issuer);
         Assert.Equal("ABCD1234", token.Secret);
-        Assert.Equal("tenant-user", token.TokenName);
+        Assert.Equal("tenant-user", token.AccountName);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public sealed class ExportServiceTests
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "accounts.totp");
         Assert.True((await _sut.ExportToEncryptedFileAsync(
-            [new OtpEntry(Guid.NewGuid(), "Google", "XYZ")],
+            [new Account(Guid.NewGuid(), "Google", "XYZ")],
             "right-password",
             path,
             ExportFileFormat.Json)).IsSuccess);
@@ -139,7 +139,7 @@ public sealed class ExportServiceTests
         var path = Path.Combine(temp.Path, "missing", "accounts.totp");
 
         var result = await _sut.ExportToEncryptedFileAsync(
-            [new OtpEntry(Guid.NewGuid(), "GitHub", "SECRET")],
+            [new Account(Guid.NewGuid(), "GitHub", "SECRET")],
             "pw",
             path,
             ExportFileFormat.Json);

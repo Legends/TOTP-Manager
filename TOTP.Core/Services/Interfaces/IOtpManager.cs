@@ -1,4 +1,4 @@
-﻿using FluentResults;
+using FluentResults;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -18,8 +18,8 @@ namespace TOTP.Core.Services.Interfaces;
 public interface IOtpManager
 {
     Task<Result> BackupOtpEntriesStorageFileAsync();
-    Task<Result> AddNewAsync(OtpEntry newItem);
-    Task<Result<ObservableCollection<OtpEntry>>> GetAllOtpEntriesSortedAsync();
+    Task<Result> AddNewAsync(Account newItem);
+    Task<Result<ObservableCollection<Account>>> GetAllOtpEntriesSortedAsync();
 
     ///// <summary>
     ///// Adds a new secret item by prompting the user for key and value.
@@ -35,14 +35,14 @@ public interface IOtpManager
     /// <param name="previous"></param>
     /// <param name="updated"></param>
     /// <returns></returns>
-    Task<Result> UpdateAsync(OtpEntry previous, OtpEntry updated);
+    Task<Result> UpdateAsync(Account previous, Account updated);
 
     /// <summary>
     /// Deletes a secret item from the encrypted secrets file.
     /// </summary>
     /// <param name="item">SecretItem</param>
     /// <returns>true/false</returns>
-    Task<Result> DeleteAsync(OtpEntry item);
+    Task<Result> DeleteAsync(Account item);
 
  
 }

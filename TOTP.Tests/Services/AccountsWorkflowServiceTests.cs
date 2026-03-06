@@ -11,14 +11,14 @@ using TOTP.ViewModels;
 
 namespace TOTP.Tests.Services;
 
-public sealed class TokensWorkflowServiceTests
+public sealed class AccountsWorkflowServiceTests
 {
     [Fact]
     public async Task LoadAllAsync_WhenManagerSucceeds_MapsToViewModels()
     {
         var manager = new Mock<IOtpManager>();
         manager.Setup(m => m.GetAllOtpEntriesSortedAsync())
-            .ReturnsAsync(Result.Ok(new ObservableCollection<OtpEntry>
+            .ReturnsAsync(Result.Ok(new ObservableCollection<Account>
             {
                 new(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "john")
             }));
@@ -30,7 +30,7 @@ public sealed class TokensWorkflowServiceTests
         Assert.True(result.IsSuccess);
         Assert.Single(result.Value);
         Assert.Equal("GitHub", result.Value[0].Issuer);
-        Assert.Equal("john", result.Value[0].TokenName);
+        Assert.Equal("john", result.Value[0].AccountName);
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public sealed class TokensWorkflowServiceTests
     {
         var manager = new Mock<IOtpManager>();
         manager.Setup(m => m.GetAllOtpEntriesSortedAsync())
-            .ReturnsAsync(Result.Fail<ObservableCollection<OtpEntry>>("load failed"));
+            .ReturnsAsync(Result.Fail<ObservableCollection<Account>>("load failed"));
 
         var sut = CreateSut(manager);
 
@@ -59,7 +59,7 @@ public sealed class TokensWorkflowServiceTests
         var result = await sut.LoadAllAsync();
 
         Assert.True(result.IsFailed);
-        AssertAppError(result.Errors, AppErrorCode.TokensLoadFailed);
+        AssertAppError(result.Errors, AppErrorCode.AccountsLoadFailed);
     }
 
     [Fact]
@@ -73,30 +73,30 @@ public sealed class TokensWorkflowServiceTests
         var result = await sut.GetAllEntriesSortedAsync();
 
         Assert.True(result.IsFailed);
-        AssertAppError(result.Errors, AppErrorCode.TokensLoadFailed);
+        AssertAppError(result.Errors, AppErrorCode.AccountsLoadFailed);
     }
 
     [Fact]
     public async Task AddAsync_WhenManagerThrows_ReturnsTokensCreateFailed()
     {
         var manager = new Mock<IOtpManager>();
-        manager.Setup(m => m.AddNewAsync(It.IsAny<OtpEntry>())).ThrowsAsync(new Exception("boom"));
+        manager.Setup(m => m.AddNewAsync(It.IsAny<Account>())).ThrowsAsync(new Exception("boom"));
 
         var sut = CreateSut(manager);
 
         var result = await sut.AddAsync(new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "john"));
 
         Assert.True(result.IsFailed);
-        AssertAppError(result.Errors, AppErrorCode.TokensCreateFailed);
+        AssertAppError(result.Errors, AppErrorCode.AccountsCreateFailed);
     }
 
     [Fact]
     public async Task AddAsync_WhenManagerSucceeds_MapsAndForwardsEntry()
     {
         var manager = new Mock<IOtpManager>();
-        OtpEntry? captured = null;
-        manager.Setup(m => m.AddNewAsync(It.IsAny<OtpEntry>()))
-            .Callback<OtpEntry>(e => captured = e)
+        Account? captured = null;
+        manager.Setup(m => m.AddNewAsync(It.IsAny<Account>()))
+            .Callback<Account>(e => captured = e)
             .ReturnsAsync(Result.Ok());
 
         var sut = CreateSut(manager);
@@ -114,11 +114,11 @@ public sealed class TokensWorkflowServiceTests
     public async Task UpdateAsync_WithNullPrevious_ForwardsNullAndUpdated()
     {
         var manager = new Mock<IOtpManager>();
-        OtpEntry? previousCaptured = new(Guid.NewGuid(), "seed", "seed", "seed");
-        OtpEntry? updatedCaptured = null;
+        Account? previousCaptured = new(Guid.NewGuid(), "seed", "seed", "seed");
+        Account? updatedCaptured = null;
 
-        manager.Setup(m => m.UpdateAsync(It.IsAny<OtpEntry>(), It.IsAny<OtpEntry>()))
-            .Callback<OtpEntry, OtpEntry>((p, u) => { previousCaptured = p; updatedCaptured = u; })
+        manager.Setup(m => m.UpdateAsync(It.IsAny<Account>(), It.IsAny<Account>()))
+            .Callback<Account, Account>((p, u) => { previousCaptured = p; updatedCaptured = u; })
             .ReturnsAsync(Result.Ok());
 
         var sut = CreateSut(manager);
@@ -136,7 +136,7 @@ public sealed class TokensWorkflowServiceTests
     public async Task UpdateAsync_WhenManagerThrows_ReturnsTokensUpdateFailed()
     {
         var manager = new Mock<IOtpManager>();
-        manager.Setup(m => m.UpdateAsync(It.IsAny<OtpEntry>(), It.IsAny<OtpEntry>())).ThrowsAsync(new Exception("boom"));
+        manager.Setup(m => m.UpdateAsync(It.IsAny<Account>(), It.IsAny<Account>())).ThrowsAsync(new Exception("boom"));
 
         var sut = CreateSut(manager);
 
@@ -145,21 +145,21 @@ public sealed class TokensWorkflowServiceTests
             new OtpViewModel(Guid.NewGuid(), "new", "JBSWY3DPEHPK3PXP", "john"));
 
         Assert.True(result.IsFailed);
-        AssertAppError(result.Errors, AppErrorCode.TokensUpdateFailed);
+        AssertAppError(result.Errors, AppErrorCode.AccountsUpdateFailed);
     }
 
     [Fact]
     public async Task DeleteAsync_WhenManagerThrows_ReturnsTokensDeleteFailed()
     {
         var manager = new Mock<IOtpManager>();
-        manager.Setup(m => m.DeleteAsync(It.IsAny<OtpEntry>())).ThrowsAsync(new Exception("boom"));
+        manager.Setup(m => m.DeleteAsync(It.IsAny<Account>())).ThrowsAsync(new Exception("boom"));
 
         var sut = CreateSut(manager);
 
         var result = await sut.DeleteAsync(new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "john"));
 
         Assert.True(result.IsFailed);
-        AssertAppError(result.Errors, AppErrorCode.TokensDeleteFailed);
+        AssertAppError(result.Errors, AppErrorCode.AccountsDeleteFailed);
     }
 
     [Fact]
@@ -222,8 +222,8 @@ public sealed class TokensWorkflowServiceTests
         Assert.Equal(ValidationError.PlatformAlreadyExists, duplicate);
     }
 
-    private static TokensWorkflowService CreateSut(Mock<IOtpManager> manager)
-        => new(manager.Object, Mock.Of<ILogger<TokensWorkflowService>>());
+    private static AccountsWorkflowService CreateSut(Mock<IOtpManager> manager)
+        => new(manager.Object, Mock.Of<ILogger<AccountsWorkflowService>>());
 
     private static void AssertAppError(IReadOnlyList<IError> errors, AppErrorCode expectedCode)
     {

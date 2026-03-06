@@ -25,7 +25,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         var sut = new SettingsDialogOrchestrationService(
             settings.Object,
             Mock.Of<IAuthorizationService>(),
-            Mock.Of<ITokenTransferWorkflowService>(),
+            Mock.Of<IAccountTransferWorkflowService>(),
             Mock.Of<ISettingsAuthorizationWorkflowService>(),
             Mock.Of<ISettingsPersistenceService>(),
             Mock.Of<IMessageService>(),
@@ -50,7 +50,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         var auth = new Mock<IAuthorizationService>();
         var authWorkflow = new Mock<ISettingsAuthorizationWorkflowService>();
         var persistence = new Mock<ISettingsPersistenceService>();
-        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
+        var tokenTransfer = new Mock<IAccountTransferWorkflowService>();
         var message = new Mock<IMessageService>();
         var logSwitch = new Mock<ILogSwitchService>();
 
@@ -97,7 +97,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task CreateAndLoadAsync_WiresTransferCommandsToTokenTransferWorkflow()
+    public async Task CreateAndLoadAsync_WiresTransferCommandsToAccountTransferWorkflow()
     {
         var appSettings = new AppSettings
         {
@@ -108,7 +108,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         var auth = new Mock<IAuthorizationService>();
         var authWorkflow = new Mock<ISettingsAuthorizationWorkflowService>();
         var persistence = new Mock<ISettingsPersistenceService>();
-        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
+        var tokenTransfer = new Mock<IAccountTransferWorkflowService>();
         var message = new Mock<IMessageService>();
         var logSwitch = new Mock<ILogSwitchService>();
 
@@ -116,7 +116,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         {
             new(Guid.NewGuid(), "GitHub", "AAAA", "john")
         };
-        var context = new Mock<ITokensCollectionContext>();
+        var context = new Mock<IAccountsCollectionContext>();
         context.SetupGet(c => c.AllOtps).Returns(contextOtps);
 
         settings.SetupGet(s => s.Current).Returns(appSettings);
@@ -169,9 +169,9 @@ public sealed class SettingsDialogOrchestrationServiceTests
         tokenTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.ReplaceExisting, contextOtps), Times.Once);
     }
 
-    private static ITokensCollectionContext CreateContext()
+    private static IAccountsCollectionContext CreateContext()
     {
-        var context = new Mock<ITokensCollectionContext>();
+        var context = new Mock<IAccountsCollectionContext>();
         context.SetupGet(c => c.AllOtps).Returns(new ObservableCollection<OtpViewModel>());
         return context.Object;
     }

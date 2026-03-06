@@ -84,19 +84,19 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
         set;
     }
 
-    private string? _tokenName;
+    private string? _accountName;
     /// <summary>
-    /// like johne@doe.com, this is the "token name" or "username" associated with the platform.
+    /// like johne@doe.com, this is the "account name" or "username" associated with the platform.
     /// Optional, but often useful for disambiguation.
     /// </summary>
-    public string? TokenName
+    public string? AccountName
     {
-        get => _tokenName;
+        get => _accountName;
         set
         {
-            if (_tokenName != value)
+            if (_accountName != value)
             {
-                _tokenName = value;
+                _accountName = value;
                 OnPropertyChanged();
             }
         }
@@ -115,12 +115,12 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
 
 
     [JsonConstructor]
-    public OtpViewModel(Guid id, string issuer, string secret, string? token = null)
+    public OtpViewModel(Guid id, string issuer, string secret, string? accountName = null)
     {
         ID = id;
         Issuer = issuer;
         Secret = secret;
-        TokenName = token;
+        AccountName = accountName;
     }
 
 
@@ -248,7 +248,7 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
     {
         this.Issuer = changed.Issuer;
         this.Secret = changed.Secret;
-        this.TokenName = changed.TokenName;
+        this.AccountName = changed.AccountName;
     }
 
     #region Inline Error Properties (for flyout binding)
@@ -283,16 +283,16 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
         }
     }
 
-    private string? _tokenError;
+    private string? _accountError;
     [JsonIgnore]
-    public string? TokenError
+    public string? AccountError
     {
-        get => _tokenError;
+        get => _accountError;
         private set
         {
-            if (_tokenError != value)
+            if (_accountError != value)
             {
-                _tokenError = value;
+                _accountError = value;
                 OnPropertyChanged();
             }
         }
@@ -305,7 +305,7 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
     {
         PlatformError = this[nameof(Issuer)];
         SecretError = this[nameof(Secret)];
-        TokenError = this[nameof(TokenName)];
+        AccountError = this[nameof(AccountName)];
     }
 
     #endregion
@@ -315,7 +315,7 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
 
 
 /// <summary>
-/// Compares SecretItemViewModel by value (Platform, Token, Secret),
+/// Compares SecretItemViewModel by value (Platform, Account, Secret),
 /// case-insensitive, ignoring whitespace/padding in Secret.
 /// </summary>
 public sealed class OtpViewModelValueComparer : IEqualityComparer<OtpViewModel>
@@ -325,7 +325,7 @@ public sealed class OtpViewModelValueComparer : IEqualityComparer<OtpViewModel>
     public bool Equals(OtpViewModel? x, OtpViewModel? y)
     {
         return ReferenceEquals(x, y) || x is not null && y is not null && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.Issuer), Norm(y.Issuer))
-            && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.TokenName), Norm(y.TokenName))
+            && StringComparer.OrdinalIgnoreCase.Equals(Norm(x.AccountName), Norm(y.AccountName))
             && SecretsEqual(x.Secret, y.Secret);
     }
 
@@ -334,7 +334,7 @@ public sealed class OtpViewModelValueComparer : IEqualityComparer<OtpViewModel>
         var hc = new HashCode();
 
         hc.Add(Norm(obj.Issuer), StringComparer.OrdinalIgnoreCase);
-        hc.Add(Norm(obj.TokenName), StringComparer.OrdinalIgnoreCase);
+        hc.Add(Norm(obj.AccountName), StringComparer.OrdinalIgnoreCase);
         hc.Add(NormSecret(obj.Secret), StringComparer.OrdinalIgnoreCase);
 
         return hc.ToHashCode();

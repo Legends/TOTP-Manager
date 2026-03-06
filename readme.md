@@ -74,8 +74,10 @@ These are the primary workflows in the app.
 ### Read token
 
 1. Open the main token list.
-2. Select a token to view current code and metadata.
-3. Use search to quickly filter by issuer/account.
+2. Click a token entry to view current code and metadata.
+3. The OTP code is copied to the clipboard immediately when you click a token entry.
+4. The OTP code is also copied immediately when you click the generated OTP code itself.
+5. Use search to quickly filter by issuer/account.
 
 ### Update token
 

@@ -70,7 +70,7 @@ public partial class MainViewModel
 
     #region ### DELETE OTP ENTRY ###
 
-    internal async Task DeleteOtpEntryAsync(OtpViewModel? item)
+    internal async Task DeleteAccountAsync(OtpViewModel? item)
     {
         try
         {
@@ -81,7 +81,7 @@ public partial class MainViewModel
             if (!shouldDelete)
                 return;
 
-            var result = await _tokensWorkflow.DeleteAsync(item);
+            var result = await _accountsWorkflow.DeleteAsync(item);
 
             if (result.IsFailed)
             {
@@ -91,7 +91,7 @@ public partial class MainViewModel
 
             AllOtps.Remove(item);
             OnPropertyChanged(nameof(AllOtps));
-            if (item.ID == SelectedToken?.ID)
+            if (item.ID == SelectedAccount?.ID)
             {
                 StopTotpTimer();
                 ClearCodeGenerationOutput();
@@ -109,11 +109,11 @@ public partial class MainViewModel
 
     #region ### UPDATE OTP ENTRY ###
 
-    public async Task UpdateOtpEntryAsync(OtpViewModel updated)
+    public async Task UpdateAccountAsync(OtpViewModel updated)
     {
         try
         {
-            var result = await _tokensWorkflow.UpdateAsync(PreviousVersion, updated);
+            var result = await _accountsWorkflow.UpdateAsync(PreviousVersion, updated);
 
             if (result.IsFailed)
             {
@@ -126,7 +126,7 @@ public partial class MainViewModel
             itemToBeUpdated?.UpdateSelf(updated);
             OnPropertyChanged(nameof(AllOtps));
 
-            if (updated.ID == SelectedToken?.ID && !ShowGenerateQrCodeLink)
+            if (updated.ID == SelectedAccount?.ID && !ShowGenerateQrCodeLink)
                 UpdateQRCode();
 
             PreviousVersion = null;
@@ -140,13 +140,13 @@ public partial class MainViewModel
 
     private void UpdateQRCode()
     {
-        if (SelectedToken == null)
+        if (SelectedAccount == null)
             return;
 
-        QrCodeImage = GenerateQRCodeImage(SelectedToken);
+        QrCodeImage = GenerateQRCodeImage(SelectedAccount);
     }
 
-    public async Task AddOrUpdateOtpEntryAsync()
+    public async Task AddOrUpdateAccountAsync()
     {
         try
         {
@@ -159,14 +159,14 @@ public partial class MainViewModel
 
                 var current = CurrentSecretBeingEditedOrAdded;
                 current.SetDuplicateCheck(DuplicateCheck);
-                var validationErrors = _tokensWorkflow.ValidateForCreate(current, AllOtps);
+                var validationErrors = _accountsWorkflow.ValidateForCreate(current, AllOtps);
                 if (validationErrors.Count > 0)
                 {
                     current.RefreshValidation();
                     return;
                 }
 
-                var result = await _tokensWorkflow.AddAsync(current);
+                var result = await _accountsWorkflow.AddAsync(current);
 
                 if (result.IsFailed)
                 {
@@ -194,14 +194,14 @@ public partial class MainViewModel
                 if (updated == null)
                     return;
 
-                var validationErrors = _tokensWorkflow.ValidateForUpdate(updated, AllOtps);
+                var validationErrors = _accountsWorkflow.ValidateForUpdate(updated, AllOtps);
                 if (validationErrors.Count > 0)
                 {
                     CurrentSecretBeingEditedOrAdded.RefreshValidation();
                     return;
                 }
 
-                await UpdateOtpEntryAsync(CurrentSecretBeingEditedOrAdded);
+                await UpdateAccountAsync(CurrentSecretBeingEditedOrAdded);
                 IsEditAddFlyoutOpen = false;
             }
         }
@@ -245,7 +245,7 @@ public partial class MainViewModel
                     return;
                 }
 
-                await UpdateOtpEntryAsync(item);
+                await UpdateAccountAsync(item);
             }
 
             PreviousVersion = null;
@@ -276,7 +276,7 @@ public partial class MainViewModel
 
     #region ### QR Code - Create - Scan - Add ###
 
-    public async Task ScanQrAndAddTokenAsync()
+    public async Task ScanQrAndAddAccountAsync()
     {
         try
         {
@@ -302,7 +302,7 @@ public partial class MainViewModel
 
                 var newAccountItem = new OtpViewModel(Guid.NewGuid(), otp.Issuer ?? string.Empty, otp.SecretBase32, otp.Label);
 
-                var validationErrors = _tokensWorkflow.ValidateForCreate(newAccountItem, AllOtps);
+                var validationErrors = _accountsWorkflow.ValidateForCreate(newAccountItem, AllOtps);
                 if (validationErrors.Count > 0)
                 {
 
@@ -321,7 +321,7 @@ public partial class MainViewModel
 
                 try
                 {
-                    var result = await _tokensWorkflow.AddAsync(newAccountItem);
+                    var result = await _accountsWorkflow.AddAsync(newAccountItem);
                     if (result.IsFailed)
                     {
                         _messageService.ShowResultError(result, newAccountItem.Issuer);

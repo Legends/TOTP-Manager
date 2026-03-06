@@ -36,10 +36,10 @@ public enum AppErrorCode
     ImportUnknownFailed,
 
     // Workflow/service boundaries
-    TokensLoadFailed,
-    TokensCreateFailed,
-    TokensUpdateFailed,
-    TokensDeleteFailed,
+    AccountsLoadFailed,
+    AccountsCreateFailed,
+    AccountsUpdateFailed,
+    AccountsDeleteFailed,
     SettingsServiceLoadFailed,
     SettingsServiceSaveFailed
 }
