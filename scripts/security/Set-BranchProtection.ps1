@@ -9,6 +9,9 @@ param(
     [string]$Branch = "master",
 
     [Parameter(Mandatory = $false)]
+    [bool]$RequireLastPushApproval = $false,
+
+    [Parameter(Mandatory = $false)]
     [string]$Token = $env:GITHUB_TOKEN
 )
 
@@ -68,13 +71,16 @@ $uri = "https://api.github.com/repos/$Owner/$Repo/branches/$Branch/protection"
 function New-BranchProtectionPayload {
     param(
         [Parameter(Mandatory = $true)]
-        [bool]$IsOrganizationRepo
+        [bool]$IsOrganizationRepo,
+
+        [Parameter(Mandatory = $true)]
+        [bool]$RequireLastPushApproval
     )
 
     $reviewConfig = @{
         dismiss_stale_reviews           = $true
         require_code_owner_reviews      = $false
-        require_last_push_approval      = $true
+        require_last_push_approval      = $RequireLastPushApproval
         required_approving_review_count = 1
     }
 
@@ -118,10 +124,10 @@ function New-BranchProtectionPayload {
 $repoUri = "https://api.github.com/repos/$Owner/$Repo"
 $repoInfo = Invoke-RestMethod -Uri $repoUri -Method Get -Headers $headers
 $isOrgRepo = $repoInfo.owner.type -eq "Organization"
-$payload = New-BranchProtectionPayload -IsOrganizationRepo:$isOrgRepo
+$payload = New-BranchProtectionPayload -IsOrganizationRepo:$isOrgRepo -RequireLastPushApproval:$RequireLastPushApproval
 
 try {
-    Write-Host "Applying branch protection to $Owner/$Repo ($Branch)..."
+    Write-Host "Applying branch protection to $Owner/$Repo ($Branch), RequireLastPushApproval=$RequireLastPushApproval..."
     Invoke-RestMethod -Uri $uri -Method Put -Headers $headers -Body $payload -ContentType "application/json" | Out-Null
     Write-Host "Branch protection applied successfully."
 }
