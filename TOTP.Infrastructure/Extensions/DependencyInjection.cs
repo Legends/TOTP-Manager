@@ -36,14 +36,14 @@ public static class DependencyInjection
         services.AddSingleton<IVaultService, VaultService>();
         services.AddSingleton<IExportService, ExportService>();
 
-        services.AddSingleton<IOtpDAL>(sp =>
+        services.AddSingleton<IAccountDAL>(sp =>
         {
-            var logger = sp.GetRequiredService<ILogger<OtpDAL>>();
+            var logger = sp.GetRequiredService<ILogger<AccountDAL>>();
             var vault = sp.GetRequiredService<IVaultService>();
             var path = configuration[StringsConstants.TokensStorageFilePathConfigKey]
                        ?? "master.totp";
 
-            return new OtpDAL(logger, vault, path);
+            return new AccountDAL(logger, vault, path);
         });
 
         // 3. Authorization Logic (The bridge)

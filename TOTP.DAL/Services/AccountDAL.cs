@@ -9,14 +9,14 @@ using TOTP.DAL.Common;
 
 namespace TOTP.DAL.Services;
 
-public sealed class OtpDAL : IOtpDAL
+public sealed class AccountDAL : IAccountDAL
 {
     private readonly string _secretsPath;
     private readonly IVaultService _vaultService;
-    private readonly ILogger<OtpDAL> _logger;
+    private readonly ILogger<AccountDAL> _logger;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public OtpDAL(ILogger<OtpDAL> logger, IVaultService vaultService, string? storageFilePath = null)
+    public AccountDAL(ILogger<AccountDAL> logger, IVaultService vaultService, string? storageFilePath = null)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _vaultService = vaultService ?? throw new ArgumentNullException(nameof(vaultService));
@@ -47,7 +47,7 @@ public sealed class OtpDAL : IOtpDAL
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load accounts.");
-            return Result.Fail(OtpDalErrorMapper.MapReadError(ex));
+            return Result.Fail(AccountDalErrorMapper.MapReadError(ex));
         }
         finally { _semaphore.Release(); }
     }
@@ -65,7 +65,7 @@ public sealed class OtpDAL : IOtpDAL
         catch (Exception ex)
         {
             _logger.LogError(ex, "Export failed to {Path}", targetPath);
-            return Result.Fail(OtpDalErrorMapper.MapExportError(ex));
+            return Result.Fail(AccountDalErrorMapper.MapExportError(ex));
         }
         finally { _semaphore.Release(); }
     }
@@ -115,7 +115,7 @@ public sealed class OtpDAL : IOtpDAL
         catch (Exception ex)
         {
             _logger.LogError(ex, "Storage operation failed.");
-            return Result.Fail(OtpDalErrorMapper.MapWriteError(ex, operationCode, operationMessage));
+            return Result.Fail(AccountDalErrorMapper.MapWriteError(ex, operationCode, operationMessage));
         }
         finally { _semaphore.Release(); }
     }

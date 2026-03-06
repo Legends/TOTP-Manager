@@ -9,8 +9,8 @@ namespace TOTP.Infrastructure.Services;
 /// Provides methods for managing otp items, including adding, updating, retrieving, and deleting otps.
 /// </summary>
 /// <param name="otpDal">The data access layer used to persist and retrieve otp information.</param>
-public class OtpManager(
-    IOtpDAL otpDal) : IOtpManager
+public class AccountManager(
+    IAccountDAL otpDal) : IAccountManager
 {
     public async Task<Result> AddNewAsync(Account newItem)
     {

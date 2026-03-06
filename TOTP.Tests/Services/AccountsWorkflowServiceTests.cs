@@ -16,7 +16,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public async Task LoadAllAsync_WhenManagerSucceeds_MapsToViewModels()
     {
-        var manager = new Mock<IOtpManager>();
+        var manager = new Mock<IAccountManager>();
         manager.Setup(m => m.GetAllOtpEntriesSortedAsync())
             .ReturnsAsync(Result.Ok(new ObservableCollection<Account>
             {
@@ -36,7 +36,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public async Task LoadAllAsync_WhenManagerReturnsFailure_PropagatesFailure()
     {
-        var manager = new Mock<IOtpManager>();
+        var manager = new Mock<IAccountManager>();
         manager.Setup(m => m.GetAllOtpEntriesSortedAsync())
             .ReturnsAsync(Result.Fail<ObservableCollection<Account>>("load failed"));
 
@@ -51,7 +51,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public async Task LoadAllAsync_WhenManagerThrows_ReturnsTokensLoadFailed()
     {
-        var manager = new Mock<IOtpManager>();
+        var manager = new Mock<IAccountManager>();
         manager.Setup(m => m.GetAllOtpEntriesSortedAsync()).ThrowsAsync(new InvalidOperationException("boom"));
 
         var sut = CreateSut(manager);
@@ -65,7 +65,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public async Task GetAllEntriesSortedAsync_WhenManagerThrows_ReturnsTokensLoadFailed()
     {
-        var manager = new Mock<IOtpManager>();
+        var manager = new Mock<IAccountManager>();
         manager.Setup(m => m.GetAllOtpEntriesSortedAsync()).ThrowsAsync(new InvalidOperationException("boom"));
 
         var sut = CreateSut(manager);
@@ -79,7 +79,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public async Task AddAsync_WhenManagerThrows_ReturnsTokensCreateFailed()
     {
-        var manager = new Mock<IOtpManager>();
+        var manager = new Mock<IAccountManager>();
         manager.Setup(m => m.AddNewAsync(It.IsAny<Account>())).ThrowsAsync(new Exception("boom"));
 
         var sut = CreateSut(manager);
@@ -93,7 +93,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public async Task AddAsync_WhenManagerSucceeds_MapsAndForwardsEntry()
     {
-        var manager = new Mock<IOtpManager>();
+        var manager = new Mock<IAccountManager>();
         Account? captured = null;
         manager.Setup(m => m.AddNewAsync(It.IsAny<Account>()))
             .Callback<Account>(e => captured = e)
@@ -113,7 +113,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public async Task UpdateAsync_WithNullPrevious_ForwardsNullAndUpdated()
     {
-        var manager = new Mock<IOtpManager>();
+        var manager = new Mock<IAccountManager>();
         Account? previousCaptured = new(Guid.NewGuid(), "seed", "seed", "seed");
         Account? updatedCaptured = null;
 
@@ -135,7 +135,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public async Task UpdateAsync_WhenManagerThrows_ReturnsTokensUpdateFailed()
     {
-        var manager = new Mock<IOtpManager>();
+        var manager = new Mock<IAccountManager>();
         manager.Setup(m => m.UpdateAsync(It.IsAny<Account>(), It.IsAny<Account>())).ThrowsAsync(new Exception("boom"));
 
         var sut = CreateSut(manager);
@@ -151,7 +151,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public async Task DeleteAsync_WhenManagerThrows_ReturnsTokensDeleteFailed()
     {
-        var manager = new Mock<IOtpManager>();
+        var manager = new Mock<IAccountManager>();
         manager.Setup(m => m.DeleteAsync(It.IsAny<Account>())).ThrowsAsync(new Exception("boom"));
 
         var sut = CreateSut(manager);
@@ -165,7 +165,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public void ValidateForCreate_WhenInvalidAndDuplicate_ReturnsAllExpectedErrors()
     {
-        var sut = CreateSut(new Mock<IOtpManager>());
+        var sut = CreateSut(new Mock<IAccountManager>());
         var item = new OtpViewModel(Guid.Empty, "GitHub", "%%%", "john");
         var source = new[] { new OtpViewModel(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "other") };
 
@@ -179,7 +179,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public void ValidateForUpdate_ExcludesSelfButFlagsOtherDuplicate()
     {
-        var sut = CreateSut(new Mock<IOtpManager>());
+        var sut = CreateSut(new Mock<IAccountManager>());
         var id = Guid.NewGuid();
         var item = new OtpViewModel(id, "GitHub", "JBSWY3DPEHPK3PXP", "john");
 
@@ -200,7 +200,7 @@ public sealed class AccountsWorkflowServiceTests
     [Fact]
     public void CheckDuplicateIssuer_UsesIdEqualityToExcludeCurrent()
     {
-        var sut = CreateSut(new Mock<IOtpManager>());
+        var sut = CreateSut(new Mock<IAccountManager>());
         var id = Guid.NewGuid();
         var current = new OtpViewModel(id, "GitHub", "AAAA", "john");
 
@@ -222,7 +222,7 @@ public sealed class AccountsWorkflowServiceTests
         Assert.Equal(ValidationError.PlatformAlreadyExists, duplicate);
     }
 
-    private static AccountsWorkflowService CreateSut(Mock<IOtpManager> manager)
+    private static AccountsWorkflowService CreateSut(Mock<IAccountManager> manager)
         => new(manager.Object, Mock.Of<ILogger<AccountsWorkflowService>>());
 
     private static void AssertAppError(IReadOnlyList<IError> errors, AppErrorCode expectedCode)

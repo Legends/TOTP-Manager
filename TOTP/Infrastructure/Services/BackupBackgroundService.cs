@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -12,10 +12,10 @@ namespace TOTP.Infrastructure.Services;
 
 public sealed class BackupBackgroundService : IHostedService
 {
-    private readonly IOtpManager _accountsManager;
+    private readonly IAccountManager _accountsManager;
     private readonly ILogger<BackupBackgroundService> _logger;
 
-    public BackupBackgroundService(IOtpManager accountsManager, ILogger<BackupBackgroundService> logger)
+    public BackupBackgroundService(IAccountManager accountsManager, ILogger<BackupBackgroundService> logger)
     {
         _accountsManager = accountsManager;
         _logger = logger;

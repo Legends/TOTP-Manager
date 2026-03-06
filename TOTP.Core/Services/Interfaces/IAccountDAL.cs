@@ -6,7 +6,7 @@ using TOTP.Core.Models;
 
 namespace TOTP.Core.Services.Interfaces;
 
-public interface IOtpDAL : IDisposable
+public interface IAccountDAL : IDisposable
 {
     Task<Result<List<Account>>> GetAllAsync();
     Task<Result> AddNewAsync(Account newItem);

@@ -10,7 +10,7 @@ using TOTP.Tests.Common;
 namespace TOTP.Tests.Integration;
 
 [Collection(NonParallelCollectionDefinition.NonParallel)]
-public sealed class OtpDalIntegrationTests
+public sealed class AccountDalIntegrationTests
 {
     [Fact]
     public async Task GetAllAsync_WhenStorageMissing_ReturnsEmptyList()
@@ -169,8 +169,8 @@ public sealed class OtpDalIntegrationTests
         Assert.Equal(AppErrorCode.OtpStorageDecryptFailed, result.GetErrorCode());
     }
 
-    private static OtpDAL CreateSut(string storagePath, IVaultService vault) =>
-        new(NullLogger<OtpDAL>.Instance, vault, storagePath);
+    private static AccountDAL CreateSut(string storagePath, IVaultService vault) =>
+        new(NullLogger<AccountDAL>.Instance, vault, storagePath);
 
     private sealed class EchoVaultService : IVaultService
     {

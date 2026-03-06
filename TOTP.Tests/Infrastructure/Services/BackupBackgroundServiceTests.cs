@@ -11,7 +11,7 @@ public sealed class BackupBackgroundServiceTests
     [Fact]
     public async Task StopAsync_CallsBackupOnce()
     {
-        var otpManager = new Mock<IOtpManager>();
+        var otpManager = new Mock<IAccountManager>();
         otpManager.Setup(m => m.BackupOtpEntriesStorageFileAsync()).ReturnsAsync(Result.Ok());
         var logger = new Mock<ILogger<BackupBackgroundService>>();
 
@@ -25,7 +25,7 @@ public sealed class BackupBackgroundServiceTests
     [Fact]
     public async Task StopAsync_WhenBackupThrows_DoesNotThrow()
     {
-        var otpManager = new Mock<IOtpManager>();
+        var otpManager = new Mock<IAccountManager>();
         otpManager.Setup(m => m.BackupOtpEntriesStorageFileAsync()).ThrowsAsync(new InvalidOperationException("boom"));
         var logger = new Mock<ILogger<BackupBackgroundService>>();
 

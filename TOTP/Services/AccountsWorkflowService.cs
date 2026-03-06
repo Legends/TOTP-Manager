@@ -17,7 +17,7 @@ using TOTP.Validation;
 namespace TOTP.Services;
 
 public sealed class AccountsWorkflowService(
-    IOtpManager otpManager,
+    IAccountManager otpManager,
     ILogger<AccountsWorkflowService> logger) : IAccountsWorkflowService
 {
     public async Task<Result<ObservableCollection<OtpViewModel>>> LoadAllAsync()

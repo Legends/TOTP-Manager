@@ -66,6 +66,11 @@ public sealed partial class SettingsViewModel
         {
             // expected when toggling quickly
         }
+        catch (Exception)
+        {
+            // Never let fire-and-forget debounce faults escape into UnobservedTaskException.
+            AuthError = UI.ex_UnexpectedError;
+        }
     }
 
     private async Task ApplyAuthorizationGateSelectionAsync()
@@ -75,14 +80,27 @@ public sealed partial class SettingsViewModel
             IsHelloSelected,
             IsHelloAvailable);
 
+        if (result is null)
+        {
+            AuthError = UI.ex_UnexpectedError;
+            RevertAuthorizationGateSelectionFromCurrentSettings();
+            return;
+        }
+
         if (!result.IsSuccess)
         {
             AuthError = result.ErrorMessage;
-            _suppressAuthAutoSave = true;
-            IsHelloSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Hello;
-            IsPasswordSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Password;
-            _suppressAuthAutoSave = false;
+            RevertAuthorizationGateSelectionFromCurrentSettings();
         }
+    }
+
+    private void RevertAuthorizationGateSelectionFromCurrentSettings()
+    {
+        var gate = _settingsSvc.Current?.Authorization?.Gate ?? AuthorizationGateKind.Password;
+        _suppressAuthAutoSave = true;
+        IsHelloSelected = gate == AuthorizationGateKind.Hello;
+        IsPasswordSelected = gate == AuthorizationGateKind.Password;
+        _suppressAuthAutoSave = false;
     }
 
     private async Task ChangePasswordAsync()

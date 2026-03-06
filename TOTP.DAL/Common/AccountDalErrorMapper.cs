@@ -3,7 +3,7 @@ using TOTP.Core.Common;
 
 namespace TOTP.DAL.Common;
 
-internal static class OtpDalErrorMapper
+internal static class AccountDalErrorMapper
 {
     public static AppError MapReadError(Exception ex) =>
         ex switch

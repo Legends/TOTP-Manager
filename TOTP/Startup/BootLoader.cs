@@ -105,7 +105,7 @@ public static class BootLoader
                 services.AddSingleton<IHelloGate, HelloGate>();
                 services.AddSingleton<IMainViewSessionController, MainViewSessionController>();
 
-                services.AddSingleton<IOtpManager, OtpManager>();
+                services.AddSingleton<IAccountManager, AccountManager>();
 
                 #endregion
 

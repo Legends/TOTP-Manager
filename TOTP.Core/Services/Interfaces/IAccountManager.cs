@@ -15,7 +15,7 @@ namespace TOTP.Core.Services.Interfaces;
 /// Update
 /// Delete
 /// </summary>
-public interface IOtpManager
+public interface IAccountManager
 {
     Task<Result> BackupOtpEntriesStorageFileAsync();
     Task<Result> AddNewAsync(Account newItem);

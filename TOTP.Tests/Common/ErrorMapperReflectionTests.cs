@@ -28,15 +28,15 @@ public sealed class ErrorMapperReflectionTests
     [InlineData("TOTP.DAL.Common.AppSettingsDalErrorMapper", "MapSaveError", typeof(CryptographicException), AppErrorCode.AppSettingsEncryptFailed)]
     [InlineData("TOTP.DAL.Common.AppSettingsDalErrorMapper", "MapSaveError", typeof(IOException), AppErrorCode.AppSettingsSaveFailed)]
     [InlineData("TOTP.DAL.Common.AppSettingsDalErrorMapper", "MapSaveError", typeof(Exception), AppErrorCode.AppSettingsSaveFailed)]
-    [InlineData("TOTP.DAL.Common.OtpDalErrorMapper", "MapReadError", typeof(UnauthorizedAccessException), AppErrorCode.OtpStorageAccessDenied)]
-    [InlineData("TOTP.DAL.Common.OtpDalErrorMapper", "MapReadError", typeof(CryptographicException), AppErrorCode.OtpStorageDecryptFailed)]
-    [InlineData("TOTP.DAL.Common.OtpDalErrorMapper", "MapReadError", typeof(IOException), AppErrorCode.OtpStorageReadFailed)]
-    [InlineData("TOTP.DAL.Common.OtpDalErrorMapper", "MapReadError", typeof(Exception), AppErrorCode.OtpStorageReadFailed)]
-    [InlineData("TOTP.DAL.Common.OtpDalErrorMapper", "MapExportError", typeof(UnauthorizedAccessException), AppErrorCode.ExportFileAccessDenied)]
-    [InlineData("TOTP.DAL.Common.OtpDalErrorMapper", "MapExportError", typeof(DirectoryNotFoundException), AppErrorCode.ExportFileWriteFailed)]
-    [InlineData("TOTP.DAL.Common.OtpDalErrorMapper", "MapExportError", typeof(CryptographicException), AppErrorCode.ExportEncryptionFailed)]
-    [InlineData("TOTP.DAL.Common.OtpDalErrorMapper", "MapExportError", typeof(IOException), AppErrorCode.ExportFileWriteFailed)]
-    [InlineData("TOTP.DAL.Common.OtpDalErrorMapper", "MapExportError", typeof(Exception), AppErrorCode.ExportUnknownFailed)]
+    [InlineData("TOTP.DAL.Common.AccountDalErrorMapper", "MapReadError", typeof(UnauthorizedAccessException), AppErrorCode.OtpStorageAccessDenied)]
+    [InlineData("TOTP.DAL.Common.AccountDalErrorMapper", "MapReadError", typeof(CryptographicException), AppErrorCode.OtpStorageDecryptFailed)]
+    [InlineData("TOTP.DAL.Common.AccountDalErrorMapper", "MapReadError", typeof(IOException), AppErrorCode.OtpStorageReadFailed)]
+    [InlineData("TOTP.DAL.Common.AccountDalErrorMapper", "MapReadError", typeof(Exception), AppErrorCode.OtpStorageReadFailed)]
+    [InlineData("TOTP.DAL.Common.AccountDalErrorMapper", "MapExportError", typeof(UnauthorizedAccessException), AppErrorCode.ExportFileAccessDenied)]
+    [InlineData("TOTP.DAL.Common.AccountDalErrorMapper", "MapExportError", typeof(DirectoryNotFoundException), AppErrorCode.ExportFileWriteFailed)]
+    [InlineData("TOTP.DAL.Common.AccountDalErrorMapper", "MapExportError", typeof(CryptographicException), AppErrorCode.ExportEncryptionFailed)]
+    [InlineData("TOTP.DAL.Common.AccountDalErrorMapper", "MapExportError", typeof(IOException), AppErrorCode.ExportFileWriteFailed)]
+    [InlineData("TOTP.DAL.Common.AccountDalErrorMapper", "MapExportError", typeof(Exception), AppErrorCode.ExportUnknownFailed)]
     public void InternalErrorMappers_MapExpectedCodes(string typeName, string methodName, Type exceptionType, AppErrorCode expected)
     {
         var ex = (Exception)Activator.CreateInstance(exceptionType)!;
@@ -50,7 +50,7 @@ public sealed class ErrorMapperReflectionTests
     {
         var opCode = AppErrorCode.OtpDeleteFailed;
         var mapped = InvokeMapper(
-            "TOTP.DAL.Common.OtpDalErrorMapper",
+            "TOTP.DAL.Common.AccountDalErrorMapper",
             "MapWriteError",
             [new Exception("x"), opCode, "operation failed"]);
 
@@ -65,7 +65,7 @@ public sealed class ErrorMapperReflectionTests
     {
         var ex = (Exception)Activator.CreateInstance(exceptionType)!;
         var mapped = InvokeMapper(
-            "TOTP.DAL.Common.OtpDalErrorMapper",
+            "TOTP.DAL.Common.AccountDalErrorMapper",
             "MapWriteError",
             [ex, AppErrorCode.OtpCreateFailed, "ignored"]);
 
