@@ -25,7 +25,7 @@ public sealed class QrScannerRunnerTests
     }
 
     [Fact]
-    public async Task RunAsync_WhenDecodeSucceeds_EmitsDecodedAndStopsWithoutPreview()
+    public async Task RunAsync_WhenDecodeSucceeds_EmitsDecodedAndStopsAfterPreview()
     {
         var capture = new FakeCaptureAdapter
         {
@@ -50,7 +50,7 @@ public sealed class QrScannerRunnerTests
             text => decoded = text);
 
         Assert.Equal("otpauth://totp/demo", decoded);
-        Assert.Equal(0, previewCalls);
+        Assert.True(previewCalls >= 1);
     }
 
     [Fact]

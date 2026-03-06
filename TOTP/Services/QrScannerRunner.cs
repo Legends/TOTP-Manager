@@ -1,5 +1,6 @@
 using OpenCvSharp;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -27,15 +28,26 @@ public sealed class QrScannerRunner(
                 try
                 {
                     var c = videoCaptureFactory.Create();
-                    if (!c.IsOpened()) c.Open(0);
+                    if (!c.IsOpened())
+                    {
+                        // Prefer DirectShow on Windows for faster and more reliable startup.
+                        var opened = false;
+                        try { opened = c.Open(0, VideoCaptureAPIs.DSHOW); } catch { }
+                        if (!opened)
+                        {
+                            opened = c.Open(0);
+                        }
+                    }
+
                     if (!c.IsOpened())
                     {
                         c.Dispose();
                         return null;
                     }
 
-                    c.Set(VideoCaptureProperties.FrameWidth, 1280);
-                    c.Set(VideoCaptureProperties.FrameHeight, 720);
+                    // Keep startup resolution moderate to reduce camera warm-up latency.
+                    c.Set(VideoCaptureProperties.FrameWidth, 640);
+                    c.Set(VideoCaptureProperties.FrameHeight, 480);
                     c.Set(VideoCaptureProperties.Fps, 30);
                     try { c.Set(VideoCaptureProperties.FourCC, FourCC.MJPG); } catch { }
                     try { c.Set(VideoCaptureProperties.BufferSize, 1); } catch { }
@@ -55,19 +67,13 @@ public sealed class QrScannerRunner(
 
             using var frame = new Mat();
             var firstFrameShown = false;
+            var decodeStopwatch = Stopwatch.StartNew();
 
             while (!token.IsCancellationRequested)
             {
                 if (!cap.Read(frame) || frame.Empty())
                 {
                     continue;
-                }
-
-                var decoded = qrCodeDecoder.Decode(frame);
-                if (!string.IsNullOrEmpty(decoded))
-                {
-                    onDecoded(decoded);
-                    return;
                 }
 
                 var bmp = frameBitmapSourceConverter.Convert(frame);
@@ -77,6 +83,18 @@ public sealed class QrScannerRunner(
                 {
                     firstFrameShown = true;
                     onFirstFrame();
+                }
+
+                // Decode at a throttled interval so preview appears quickly and smoothly.
+                if (decodeStopwatch.ElapsedMilliseconds >= 120)
+                {
+                    decodeStopwatch.Restart();
+                    var decoded = qrCodeDecoder.Decode(frame);
+                    if (!string.IsNullOrEmpty(decoded))
+                    {
+                        onDecoded(decoded);
+                        return;
+                    }
                 }
 
                 await Task.Delay(10, token).ConfigureAwait(false);
