@@ -1,0 +1,124 @@
+name: Security Audit and Verification
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      dast_target_url:
+        description: "Optional URL target for OWASP ZAP baseline scan (https://...)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
+jobs:
+  dependency-review:
+    name: Dependency Review (PR)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+
+  sast-codeql:
+    name: SAST (CodeQL C#)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+
+      - name: Restore
+        run: dotnet restore TOTP.sln --configfile NuGet.config
+
+      - name: Build
+        run: dotnet build TOTP.sln --configuration Release --no-restore
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+
+  sca-dotnet:
+    name: Dependency Vulnerability Scan (.NET)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: dotnet restore TOTP.sln --configfile NuGet.config
+
+      - name: Scan NuGet vulnerabilities
+        shell: pwsh
+        run: |
+          New-Item -Path artifacts -ItemType Directory -Force | Out-Null
+          dotnet list TOTP.sln package --vulnerable --include-transitive --format json > artifacts/dependency-vulnerabilities.json
+          dotnet list TOTP.sln package --deprecated --include-transitive --format json > artifacts/dependency-deprecated.json
+
+      - name: Upload SCA evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: sca-evidence
+          path: artifacts/*.json
+
+  secrets-scan:
+    name: Secret Scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dast-zap:
+    name: DAST (OWASP ZAP Baseline)
+    if: github.event_name == 'workflow_dispatch' && inputs.dast_target_url != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run ZAP baseline scan
+        run: |
+          mkdir -p artifacts
+          docker run --rm \
+            -v "${PWD}/artifacts:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t "${{ inputs.dast_target_url }}" \
+            -J zap-report.json \
+            -r zap-report.html \
+            -m 5
+
+      - name: Upload DAST evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-zap-evidence
+          path: artifacts/zap-report.*
