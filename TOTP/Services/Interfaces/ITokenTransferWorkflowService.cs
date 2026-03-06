@@ -6,7 +6,7 @@ using TOTP.ViewModels;
 
 namespace TOTP.Services.Interfaces;
 
-public interface IAccountTransferWorkflowService
+public interface ITokenTransferWorkflowService
 {
     Task ExportSecretsToFileAsync();
     Task ExportOtpsAsync(bool toBeEncrypted, ExportFileFormat format);

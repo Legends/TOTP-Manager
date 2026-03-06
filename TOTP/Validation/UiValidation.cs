@@ -63,7 +63,7 @@ internal class UiValidation
 
 
     /// <summary>
-    /// Checks for account duplicates in source list.
+    /// Checks for token duplicates in source list.
     /// If source is not provided, it will use the one provided in the constructor.
     /// If that is also null, it will throw an exception.
     /// </summary>

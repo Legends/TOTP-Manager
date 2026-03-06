@@ -6,12 +6,12 @@ using TOTP.Services.Interfaces;
 namespace TOTP.Services;
 
 public sealed class SettingsTransferWorkflowService(
-    IAccountTransferWorkflowService accountTransferWorkflowService,
-    IAccountsCollectionContext accountsCollectionContext) : ISettingsTransferWorkflowService
+    ITokenTransferWorkflowService tokenTransferWorkflowService,
+    ITokensCollectionContext accountsCollectionContext) : ISettingsTransferWorkflowService
 {
     public Task ExportAsync(bool exportEncrypt, ExportFileFormat selectedExportFormat)
-        => accountTransferWorkflowService.ExportOtpsAsync(exportEncrypt, selectedExportFormat);
+        => tokenTransferWorkflowService.ExportOtpsAsync(exportEncrypt, selectedExportFormat);
 
     public Task ImportAsync(ImportConflictStrategy selectedImportConflictStrategy)
-        => accountTransferWorkflowService.ImportOtpsAsync(selectedImportConflictStrategy, accountsCollectionContext.AllOtps);
+        => tokenTransferWorkflowService.ImportOtpsAsync(selectedImportConflictStrategy, accountsCollectionContext.AllOtps);
 }

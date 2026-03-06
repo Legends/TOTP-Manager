@@ -16,9 +16,9 @@ using TOTP.Validation;
 
 namespace TOTP.Services;
 
-public sealed class AccountsWorkflowService(
+public sealed class TokensWorkflowService(
     IOtpManager otpManager,
-    ILogger<AccountsWorkflowService> logger) : IAccountsWorkflowService
+    ILogger<TokensWorkflowService> logger) : ITokensWorkflowService
 {
     public async Task<Result<ObservableCollection<OtpViewModel>>> LoadAllAsync()
     {
@@ -34,7 +34,7 @@ public sealed class AccountsWorkflowService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to load OTP view models.");
-            return Result.Fail(new AppError(AppErrorCode.AccountsLoadFailed, "Failed to load OTP entries for the UI workflow.", ex));
+            return Result.Fail(new AppError(AppErrorCode.TokensLoadFailed, "Failed to load OTP entries for the UI workflow.", ex));
         }
     }
 
@@ -47,7 +47,7 @@ public sealed class AccountsWorkflowService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to load OTP entries.");
-            return Result.Fail(new AppError(AppErrorCode.AccountsLoadFailed, "Failed to load OTP entries.", ex));
+            return Result.Fail(new AppError(AppErrorCode.TokensLoadFailed, "Failed to load OTP entries.", ex));
         }
     }
 
@@ -60,7 +60,7 @@ public sealed class AccountsWorkflowService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to add OTP entry.");
-            return Result.Fail(new AppError(AppErrorCode.AccountsCreateFailed, "Failed to create OTP entry in workflow.", ex));
+            return Result.Fail(new AppError(AppErrorCode.TokensCreateFailed, "Failed to create OTP entry in workflow.", ex));
         }
     }
 
@@ -73,7 +73,7 @@ public sealed class AccountsWorkflowService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to update OTP entry.");
-            return Result.Fail(new AppError(AppErrorCode.AccountsUpdateFailed, "Failed to update OTP entry in workflow.", ex));
+            return Result.Fail(new AppError(AppErrorCode.TokensUpdateFailed, "Failed to update OTP entry in workflow.", ex));
         }
     }
 
@@ -86,7 +86,7 @@ public sealed class AccountsWorkflowService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to delete OTP entry.");
-            return Result.Fail(new AppError(AppErrorCode.AccountsDeleteFailed, "Failed to delete OTP entry in workflow.", ex));
+            return Result.Fail(new AppError(AppErrorCode.TokensDeleteFailed, "Failed to delete OTP entry in workflow.", ex));
         }
     }
 

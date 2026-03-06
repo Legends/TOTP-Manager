@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace TOTP.Infrastructure.Common
@@ -14,7 +14,7 @@ namespace TOTP.Infrastructure.Common
         public const string AppSettingsFileName = "appsettings.json";
         public static string AppSettingsJsonFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AppSettingsFileName);
         public static readonly string Syncfusion = "syncfusion";
-        public const string AccountsStorageFilePathConfigKey = "Accounts:StorageFilePath";
+        public const string TokensStorageFilePathConfigKey = "Accounts:StorageFilePath";
         public const string AppSettingsStorageFilePathConfigKey = "AppSettings:StorageFilePath";
 
         public class ImgUrl

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
@@ -26,7 +26,7 @@ public interface IMainViewModel : INotifyPropertyChanged
     ICommand EndEditCommand { get; }
     ICommand DoubleClickCommand { get; }
     void OpenFlyoutAddMode();
-    OtpViewModel? SelectedAccount { get; set; }
+    OtpViewModel? SelectedToken { get; set; }
     bool IsContextmenuOpen { get; set; }
     Task InitializeMainViewAsync(IMainWindow? mainWindow);
     Task OnRowSelectionChangedAsync(OtpViewModel? item);

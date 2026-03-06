@@ -3,12 +3,12 @@ using System.Windows.Controls;
 
 namespace TOTP.Views.Components;
 
-public partial class AccountsSection : UserControl
+public partial class TokensSection : UserControl
 {
-    public AccountsSection()
+    public TokensSection()
     {
         InitializeComponent();
     }
 
-    public SfDataGrid AccountsGridControl => AccountsGrid;
+    public SfDataGrid TokensGridControl => TokensGrid;
 }

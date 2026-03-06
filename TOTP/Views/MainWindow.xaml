@@ -1,4 +1,4 @@
-﻿<syncfusion:ChromelessWindow x:Class="TOTP.Views.MainWindow"
+<syncfusion:ChromelessWindow x:Class="TOTP.Views.MainWindow"
                              x:Name="mainWin"
                              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -84,7 +84,7 @@
                     Visibility="{Binding IsUnlocked, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
 
             <components:MainToolbarSection />
-            <components:AccountsSection x:Name="AccountsSectionView" />
+            <components:TokensSection x:Name="TokensSectionView" />
         </StackPanel>
 
         <Grid>
@@ -93,7 +93,7 @@
                                        CloseCommand="{Binding CancelFlyoutCommand}"
                                        PanelWidth="300">
                 <userControls:FlyoutHost.FlyoutContent>
-                    <views:EditAddAccountFlyoutView />
+                    <views:EditAddTokenFlyoutView />
                 </userControls:FlyoutHost.FlyoutContent>
             </userControls:FlyoutHost>
 

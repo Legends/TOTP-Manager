@@ -50,7 +50,7 @@ public sealed class VaultServiceTests
         Assert.Equal(input[0].ID, output[0].ID);
         Assert.Equal(input[0].Issuer, output[0].Issuer);
         Assert.Equal(input[0].Secret, output[0].Secret);
-        Assert.Equal(input[0].AccountName, output[0].AccountName);
+        Assert.Equal(input[0].TokenName, output[0].TokenName);
     }
 
     [Fact]

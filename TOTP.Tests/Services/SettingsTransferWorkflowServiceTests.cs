@@ -12,67 +12,67 @@ public sealed class SettingsTransferWorkflowServiceTests
     [Fact]
     public async Task ExportAsync_ForwardsEncryptionAndFormat()
     {
-        var accountTransfer = new Mock<IAccountTransferWorkflowService>();
-        var context = new Mock<IAccountsCollectionContext>();
+        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
+        var context = new Mock<ITokensCollectionContext>();
         context.SetupGet(c => c.AllOtps).Returns(new ObservableCollection<OtpViewModel>());
 
-        var sut = new SettingsTransferWorkflowService(accountTransfer.Object, context.Object);
+        var sut = new SettingsTransferWorkflowService(tokenTransfer.Object, context.Object);
 
         await sut.ExportAsync(exportEncrypt: true, selectedExportFormat: ExportFileFormat.Totp);
 
-        accountTransfer.Verify(a => a.ExportOtpsAsync(true, ExportFileFormat.Totp), Times.Once);
+        tokenTransfer.Verify(a => a.ExportOtpsAsync(true, ExportFileFormat.Totp), Times.Once);
     }
 
     [Fact]
     public async Task ImportAsync_ForwardsStrategyAndExactContextCollectionReference()
     {
-        var accountTransfer = new Mock<IAccountTransferWorkflowService>();
-        var context = new Mock<IAccountsCollectionContext>();
+        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
+        var context = new Mock<ITokensCollectionContext>();
         var otps = new ObservableCollection<OtpViewModel>
         {
             new(Guid.NewGuid(), "GitHub", "AAAA", "john")
         };
         context.SetupGet(c => c.AllOtps).Returns(otps);
 
-        var sut = new SettingsTransferWorkflowService(accountTransfer.Object, context.Object);
+        var sut = new SettingsTransferWorkflowService(tokenTransfer.Object, context.Object);
 
         await sut.ImportAsync(ImportConflictStrategy.KeepBoth);
 
-        accountTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.KeepBoth, otps), Times.Once);
+        tokenTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.KeepBoth, otps), Times.Once);
     }
 
     [Fact]
     public async Task ImportAsync_WithEmptyCollection_StillCallsWorkflow()
     {
-        var accountTransfer = new Mock<IAccountTransferWorkflowService>();
-        var context = new Mock<IAccountsCollectionContext>();
+        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
+        var context = new Mock<ITokensCollectionContext>();
         var empty = new ObservableCollection<OtpViewModel>();
         context.SetupGet(c => c.AllOtps).Returns(empty);
 
-        var sut = new SettingsTransferWorkflowService(accountTransfer.Object, context.Object);
+        var sut = new SettingsTransferWorkflowService(tokenTransfer.Object, context.Object);
 
         await sut.ImportAsync(ImportConflictStrategy.SkipExisting);
 
-        accountTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, empty), Times.Once);
+        tokenTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, empty), Times.Once);
     }
 
     [Fact]
     public async Task ImportAsync_UsesCurrentCollectionInstanceAtCallTime()
     {
-        var accountTransfer = new Mock<IAccountTransferWorkflowService>();
-        var context = new Mock<IAccountsCollectionContext>();
+        var tokenTransfer = new Mock<ITokenTransferWorkflowService>();
+        var context = new Mock<ITokensCollectionContext>();
         var first = new ObservableCollection<OtpViewModel>();
         var second = new ObservableCollection<OtpViewModel>();
         context.SetupSequence(c => c.AllOtps)
             .Returns(first)
             .Returns(second);
 
-        var sut = new SettingsTransferWorkflowService(accountTransfer.Object, context.Object);
+        var sut = new SettingsTransferWorkflowService(tokenTransfer.Object, context.Object);
 
         await sut.ImportAsync(ImportConflictStrategy.SkipExisting);
         await sut.ImportAsync(ImportConflictStrategy.SkipExisting);
 
-        accountTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, It.Is<ObservableCollection<OtpViewModel>>(o => ReferenceEquals(o, first))), Times.Once);
-        accountTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, It.Is<ObservableCollection<OtpViewModel>>(o => ReferenceEquals(o, second))), Times.Once);
+        tokenTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, It.Is<ObservableCollection<OtpViewModel>>(o => ReferenceEquals(o, first))), Times.Once);
+        tokenTransfer.Verify(a => a.ImportOtpsAsync(ImportConflictStrategy.SkipExisting, It.Is<ObservableCollection<OtpViewModel>>(o => ReferenceEquals(o, second))), Times.Once);
     }
 }

@@ -11,7 +11,7 @@ namespace TOTP.Services;
 public sealed class SettingsDialogOrchestrationService(
     ISettingsService settingsService,
     IAuthorizationService authorizationService,
-    IAccountTransferWorkflowService accountTransferWorkflowService,
+    ITokenTransferWorkflowService tokenTransferWorkflowService,
     ISettingsAuthorizationWorkflowService settingsAuthorizationWorkflowService,
     ISettingsPersistenceService settingsPersistenceService,
     IMessageService messageService,
@@ -20,7 +20,7 @@ public sealed class SettingsDialogOrchestrationService(
     public async Task<SettingsViewModel> CreateAndLoadAsync(
         System.Windows.Input.ICommand closeCommand,
         Action saveAction,
-        IAccountsCollectionContext accountsCollectionContext)
+        ITokensCollectionContext accountsCollectionContext)
     {
         var loadResult = await settingsService.LoadAsync();
         if (loadResult.IsFailed)
@@ -29,7 +29,7 @@ public sealed class SettingsDialogOrchestrationService(
         }
 
         var settingsTransferWorkflowService = new SettingsTransferWorkflowService(
-            accountTransferWorkflowService,
+            tokenTransferWorkflowService,
             accountsCollectionContext);
 
         var vm = new SettingsViewModel(

@@ -1,18 +1,18 @@
-﻿using TOTP.Core.Models;
+using TOTP.Core.Models;
 using TOTP.ViewModels;
 
 namespace TOTP.Infrastructure.Extensions;
 
-public static class AccountMappingExtensions
+public static class TokenMappingExtensions
 {
     public static OtpEntry ToDomain(this OtpViewModel vm)
-        => new(vm.ID, vm.Issuer ?? string.Empty, vm.Secret ?? string.Empty, vm.AccountName ?? string.Empty);
+        => new(vm.ID, vm.Issuer ?? string.Empty, vm.Secret ?? string.Empty, vm.TokenName ?? string.Empty);
 
     public static OtpViewModel ToViewModel(this OtpEntry s)
         => new(
               s.ID,
               s.Issuer,
               s.Secret,
-              s.AccountName
+              s.TokenName
         );
 }

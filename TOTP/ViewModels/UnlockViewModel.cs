@@ -118,7 +118,7 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         var cfg = await _auth.ConfigureHelloAsync();
         if (cfg == AuthorizationResult.NotAvailable)
         {
-            StatusMessage = "Windows Hello is not available on this device/account. Choose Password.";
+            StatusMessage = "Windows Hello is not available on this device/token. Choose Password.";
             return;
         }
         if (cfg != AuthorizationResult.Success)

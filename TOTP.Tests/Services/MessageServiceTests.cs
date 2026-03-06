@@ -28,13 +28,13 @@ public sealed class MessageServiceTests
         var log = new Mock<ILogFileService>();
         var sut = new MessageService(log.Object, client);
 
-        var result = Result.Fail(new AppError(AppErrorCode.AccountsDeleteFailed, "tech"));
+        var result = Result.Fail(new AppError(AppErrorCode.TokensDeleteFailed, "tech"));
 
         sut.ShowResultError(result);
 
         var req = Assert.Single(client.ShowRequests);
         Assert.Equal(UI.ui_Caption_Error, req.Title);
-        Assert.Equal(UI.err_AccountsDeleteFailed, req.Message);
+        Assert.Equal(UI.err_TokensDeleteFailed, req.Message);
         Assert.Equal(NotificationType.Error, req.Type);
         Assert.Equal(UI.ui_btnDetails, req.LeftButtonText);
         Assert.False(req.CloseOnClick);

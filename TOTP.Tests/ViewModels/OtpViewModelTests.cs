@@ -59,7 +59,7 @@ public sealed class OtpViewModelTests
         Assert.Contains(UI.msg_PlatformRequired, vm.PlatformError);
         Assert.Contains(string.Format(UI.msg_Platform_Exists, ""), vm.PlatformError);
         Assert.Equal(UI.msg_SecretInvalidFormat, vm.SecretError);
-        Assert.Equal(string.Empty, vm.AccountError);
+        Assert.Equal(string.Empty, vm.TokenError);
     }
 
     [Fact]
@@ -70,13 +70,13 @@ public sealed class OtpViewModelTests
         vm.BeginEdit();
         vm.Issuer = "Azure";
         vm.Secret = "%%%";
-        vm.AccountName = "other";
+        vm.TokenName = "other";
 
         vm.CancelEdit();
 
         Assert.Equal("GitHub", vm.Issuer);
         Assert.Equal("JBSWY3DPEHPK3PXP", vm.Secret);
-        Assert.Equal("john", vm.AccountName);
+        Assert.Equal("john", vm.TokenName);
     }
 
     [Fact]
@@ -102,11 +102,11 @@ public sealed class OtpViewModelTests
         Assert.Equal(vm.ID, copy!.ID);
         Assert.Equal(vm.Issuer, copy.Issuer);
         Assert.Equal(vm.Secret, copy.Secret);
-        Assert.Equal(vm.AccountName, copy.AccountName);
+        Assert.Equal(vm.TokenName, copy.TokenName);
     }
 
     [Fact]
-    public void UpdateSelf_OverwritesIssuerSecretAndAccount()
+    public void UpdateSelf_OverwritesIssuerSecretAndToken()
     {
         var vm = new OtpViewModel(Guid.NewGuid(), "GitHub", "OLD", "john");
         var changed = new OtpViewModel(vm.ID, "Azure", "NEW", "jane");
@@ -115,7 +115,7 @@ public sealed class OtpViewModelTests
 
         Assert.Equal("Azure", vm.Issuer);
         Assert.Equal("NEW", vm.Secret);
-        Assert.Equal("jane", vm.AccountName);
+        Assert.Equal("jane", vm.TokenName);
     }
 
     [Fact]

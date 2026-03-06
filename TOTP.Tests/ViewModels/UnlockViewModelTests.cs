@@ -69,7 +69,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
     }
 
     [Theory]
-    [InlineData(AuthorizationResult.NotAvailable, "Windows Hello is not available on this device/account. Choose Password.")]
+    [InlineData(AuthorizationResult.NotAvailable, "Windows Hello is not available on this device/token. Choose Password.")]
     [InlineData(AuthorizationResult.Failed, "Failed to configure Windows Hello.")]
     public async Task ChooseHelloCommand_ConfigurationFailure_ShowsExpectedStatusMessage(
         AuthorizationResult configurationResult,

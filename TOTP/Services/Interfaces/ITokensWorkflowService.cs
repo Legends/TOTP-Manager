@@ -8,7 +8,7 @@ using TOTP.ViewModels;
 
 namespace TOTP.Services.Interfaces;
 
-public interface IAccountsWorkflowService
+public interface ITokensWorkflowService
 {
     Task<Result<ObservableCollection<OtpViewModel>>> LoadAllAsync();
     Task<Result<ObservableCollection<OtpEntry>>> GetAllEntriesSortedAsync();
@@ -19,3 +19,4 @@ public interface IAccountsWorkflowService
     IReadOnlyList<ValidationError> ValidateForUpdate(OtpViewModel item, IEnumerable<OtpViewModel> source);
     ValidationError CheckDuplicateIssuer(OtpViewModel current, IEnumerable<OtpViewModel> source);
 }
+

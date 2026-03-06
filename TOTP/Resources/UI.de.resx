@@ -151,7 +151,7 @@
     <value>Ein Hintergrundprozess ist fehlgeschlagen. Sie können die Anwendung weiterhin verwenden.</value>
   </data>
   <data name="msg_ConfirmDeleteSecret" xml:space="preserve">
-    <value>Konto "{0}"</value>
+    <value>Token "{0}"</value>
   </data>
   <data name="msg_DispatcherException" xml:space="preserve">
     <value>Ein unerwarteter Fehler ist aufgetreten. Sie können die Anwendung weiterhin verwenden, aber einige Funktionen funktionieren möglicherweise nicht korrekt.</value>
@@ -172,7 +172,7 @@
     <value>Feld Schlüssel darf nicht leer sein.</value>
   </data>
   <data name="tooltip_AddNew" xml:space="preserve">
-    <value>Neues Konto hinzufügen</value>
+    <value>Neues Token hinzufügen</value>
   </data>
   <data name="tooltip_AuthenticatorAppScan" xml:space="preserve">
     <value>Scanne den Kode mit deiner Authenticator-App</value>
@@ -220,13 +220,13 @@
     <value>Eintrag ändern</value>
   </data>
   <data name="ui_Export" xml:space="preserve">
-    <value>Alle Konten in eine Datei exportieren</value>
+    <value>Alle Token in eine Datei exportieren</value>
   </data>
   <data name="ui_GenerateQR_Code" xml:space="preserve">
     <value>QR Kode anzeigen</value>
   </data>
   <data name="ui_Header_Account" xml:space="preserve">
-    <value>konto</value>
+    <value>token</value>
   </data>
   <data name="ui_Header_Platform" xml:space="preserve">
     <value>plattform</value>
@@ -316,13 +316,13 @@
     <value>Format</value>
   </data>
   <data name="ui_Settings_Export" xml:space="preserve">
-    <value>Konten exportieren</value>
+    <value>Token exportieren</value>
   </data>
   <data name="ui_Settings_Export_OpenAfterExport" xml:space="preserve">
     <value>Exportdatei nach dem Export öffnen</value>
   </data>
   <data name="ui_Settings_Import" xml:space="preserve">
-    <value>Konten importieren</value>
+    <value>Token importieren</value>
   </data>
   <data name="ui_Settings_Import_ConflictStrategy" xml:space="preserve">
     <value>Bei bereits vorhandenem Eintrag</value>
@@ -385,7 +385,7 @@
     <value>Ein unerwarteter Fehler ist aufgetreten.</value>
   </data>
   <data name="err_OtpStorageReadFailed" xml:space="preserve">
-    <value>Konten konnten nicht aus dem Speicher geladen werden.</value>
+    <value>Token konnten nicht aus dem Speicher geladen werden.</value>
   </data>
   <data name="err_OtpStorageAccessDenied" xml:space="preserve">
     <value>Der Zugriff auf den Speicher wurde verweigert.</value>
@@ -394,7 +394,7 @@
     <value>Gespeicherte Kontodaten konnten nicht entschlüsselt werden.</value>
   </data>
   <data name="err_OtpStorageWriteFailed" xml:space="preserve">
-    <value>Konten konnten nicht gespeichert werden.</value>
+    <value>Token konnten nicht gespeichert werden.</value>
   </data>
   <data name="err_OtpStorageEncryptionFailed" xml:space="preserve">
     <value>Kontodaten konnten vor dem Speichern nicht verschlüsselt werden.</value>
@@ -403,13 +403,13 @@
     <value>Die Sicherung des Speichers konnte nicht erstellt werden.</value>
   </data>
   <data name="err_OtpCreateFailed" xml:space="preserve">
-    <value>Das Konto '{0}' konnte nicht erstellt werden.</value>
+    <value>Das Token '{0}' konnte nicht erstellt werden.</value>
   </data>
   <data name="err_OtpUpdateFailed" xml:space="preserve">
-    <value>Das Konto '{0}' konnte nicht aktualisiert werden.</value>
+    <value>Das Token '{0}' konnte nicht aktualisiert werden.</value>
   </data>
   <data name="err_OtpDeleteFailed" xml:space="preserve">
-    <value>Das Konto '{0}' konnte nicht gelöscht werden.</value>
+    <value>Das Token '{0}' konnte nicht gelöscht werden.</value>
   </data>
   <data name="err_AppSettingsLoadFailed" xml:space="preserve">
     <value>Anwendungseinstellungen konnten nicht geladen werden.</value>
@@ -459,17 +459,17 @@
   <data name="err_ImportUnknownFailed" xml:space="preserve">
     <value>Import fehlgeschlagen, unerwarteter Fehler .</value>
   </data>
-  <data name="err_AccountsLoadFailed" xml:space="preserve">
-    <value>Konten konnten nicht geladen werden.</value>
+  <data name="err_TokensLoadFailed" xml:space="preserve">
+    <value>Token konnten nicht geladen werden.</value>
   </data>
-  <data name="err_AccountsCreateFailed" xml:space="preserve">
-    <value>Das Konto konnte nicht erstellt werden.</value>
+  <data name="err_TokensCreateFailed" xml:space="preserve">
+    <value>Das Token konnte nicht erstellt werden.</value>
   </data>
-  <data name="err_AccountsUpdateFailed" xml:space="preserve">
-    <value>Das Konto konnte nicht aktualisiert werden.</value>
+  <data name="err_TokensUpdateFailed" xml:space="preserve">
+    <value>Das Token konnte nicht aktualisiert werden.</value>
   </data>
-  <data name="err_AccountsDeleteFailed" xml:space="preserve">
-    <value>Das Konto konnte nicht gelöscht werden.</value>
+  <data name="err_TokensDeleteFailed" xml:space="preserve">
+    <value>Das Token konnte nicht gelöscht werden.</value>
   </data>
   <data name="err_SettingsServiceLoadFailed" xml:space="preserve">
     <value>Anwendungseinstellungen konnten vom Einstellungsdienst nicht geladen werden.</value>

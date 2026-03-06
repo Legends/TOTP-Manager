@@ -4,7 +4,7 @@ public enum AppErrorCode
 {
     Unknown = 0,
 
-    // OTP storage and account operations
+    // OTP storage and token operations
     OtpStorageReadFailed,
     OtpStorageAccessDenied,
     OtpStorageDecryptFailed,
@@ -36,10 +36,10 @@ public enum AppErrorCode
     ImportUnknownFailed,
 
     // Workflow/service boundaries
-    AccountsLoadFailed,
-    AccountsCreateFailed,
-    AccountsUpdateFailed,
-    AccountsDeleteFailed,
+    TokensLoadFailed,
+    TokensCreateFailed,
+    TokensUpdateFailed,
+    TokensDeleteFailed,
     SettingsServiceLoadFailed,
     SettingsServiceSaveFailed
 }

@@ -54,7 +54,7 @@ public sealed class ExportService : IExportService
             }
 
             var content = await File.ReadAllTextAsync(filePath, Encoding.UTF8);
-            return Result.Ok(DeserializeAccounts(content, format));
+            return Result.Ok(DeserializeTokens(content, format));
         }
         catch (Exception ex)
         {
@@ -67,7 +67,7 @@ public sealed class ExportService : IExportService
     {
         try
         {
-            var payload = SerializeAccounts(accounts, format);
+            var payload = SerializeTokens(accounts, format);
             await File.WriteAllTextAsync(filePath, payload, Encoding.UTF8);
             return Result.Ok();
         }
@@ -85,7 +85,7 @@ public sealed class ExportService : IExportService
 
         try
         {
-            var payload = SerializeAccounts(accounts, format);
+            var payload = SerializeTokens(accounts, format);
             plaintext = Encoding.UTF8.GetBytes(payload);
             passwordBytes = Encoding.UTF8.GetBytes(password);
 
@@ -165,7 +165,7 @@ public sealed class ExportService : IExportService
             }
 
             var content = Encoding.UTF8.GetString(decryptedBytes);
-            return Result.Ok(DeserializeAccounts(content, format));
+            return Result.Ok(DeserializeTokens(content, format));
         }
         catch (Exception ex)
         {
@@ -178,7 +178,7 @@ public sealed class ExportService : IExportService
         }
     }
 
-    private static string SerializeAccounts(IEnumerable<OtpEntry> accounts, ExportFileFormat format)
+    private static string SerializeTokens(IEnumerable<OtpEntry> accounts, ExportFileFormat format)
     {
         return format switch
         {
@@ -189,7 +189,7 @@ public sealed class ExportService : IExportService
         };
     }
 
-    private static List<OtpEntry> DeserializeAccounts(string content, ExportFileFormat format)
+    private static List<OtpEntry> DeserializeTokens(string content, ExportFileFormat format)
     {
         return format switch
         {
@@ -214,14 +214,14 @@ public sealed class ExportService : IExportService
         }
 
         var lines = new List<string> { "id,issuer,account_name,secret" };
-        lines.AddRange(accounts.Select(a => $"{a.ID},{Escape(a.Issuer)},{Escape(a.AccountName)},{Escape(a.Secret)}"));
+        lines.AddRange(accounts.Select(a => $"{a.ID},{Escape(a.Issuer)},{Escape(a.TokenName)},{Escape(a.Secret)}"));
         return string.Join(Environment.NewLine, lines);
     }
 
     private static string BuildTxt(IEnumerable<OtpEntry> accounts)
     {
         var lines = new List<string> { "issuer|account_name|secret|id" };
-        lines.AddRange(accounts.Select(a => $"{a.Issuer}|{a.AccountName}|{a.Secret}|{a.ID}"));
+        lines.AddRange(accounts.Select(a => $"{a.Issuer}|{a.TokenName}|{a.Secret}|{a.ID}"));
         return string.Join(Environment.NewLine, lines);
     }
 
@@ -243,10 +243,10 @@ public sealed class ExportService : IExportService
             }
 
             var issuer = parts[0];
-            var accountName = string.IsNullOrWhiteSpace(parts[1]) ? null : parts[1];
+            var tokenName = string.IsNullOrWhiteSpace(parts[1]) ? null : parts[1];
             var secret = parts[2];
             var id = parts.Length >= 4 && Guid.TryParse(parts[3], out var parsedId) ? parsedId : Guid.NewGuid();
-            result.Add(new OtpEntry(id, issuer, secret, accountName));
+            result.Add(new OtpEntry(id, issuer, secret, tokenName));
         }
 
         return result;
@@ -271,9 +271,9 @@ public sealed class ExportService : IExportService
 
             var id = Guid.TryParse(row[0], out var parsedId) ? parsedId : Guid.NewGuid();
             var issuer = row[1];
-            var accountName = string.IsNullOrWhiteSpace(row[2]) ? null : row[2];
+            var tokenName = string.IsNullOrWhiteSpace(row[2]) ? null : row[2];
             var secret = row[3];
-            result.Add(new OtpEntry(id, issuer, secret, accountName));
+            result.Add(new OtpEntry(id, issuer, secret, tokenName));
         }
 
         return result;

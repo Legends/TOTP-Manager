@@ -15,7 +15,7 @@ namespace TOTP.Infrastructure.Parser
         public sealed class TOTPData
         {
             /// <summary>
-            /// aka Account
+            /// aka Token
             /// </summary>
             public string Label { get; init; } = "";
             public string? Issuer { get; init; }

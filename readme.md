@@ -1,71 +1,86 @@
-![Build Status](https://github.com/Legends/TOTP-Code-Generator/actions/workflows/build-and-test.yml/badge.svg)
-
-<!-- TOC-START (DO NOT REMOVE OR CHANGE COMMENT!) -->
-**Table of Contents**
-- [TOTP Manager App](#totp-manager-app)
-  - [Features](#features)
-  - [Usage](#usage)
-  - [Setup](#setup)
-    - [1. Build from Source](#1-build-from-source)
-    - [2. Use the Prebuilt Zip](#2-use-the-prebuilt-zip)
-<!-- TOC-END (DO NOT REMOVE OR CHANGE COMMENT!) -->
-
----
-
 # TOTP Manager
 
-A WPF application for managing TOTP secrets, generating TOTP codes, and creating corresponding QR codes.
+A security-first desktop authenticator for managing Time-based One-Time Passwords (TOTP) on Windows.
 
-Powered by:
+## Project Overview
 
-- **Otp.NET** – for TOTP code generation  
-- **QRCoder** – for QR code creation  
+TOTP Manager is a Windows WPF application for storing and generating 2FA/TOTP codes locally.  
+It is designed for users who want stronger protection than typical authenticator apps by combining:
 
-<img src="https://i.imgur.com/VtJm8yP.png" alt="TOTP Manager" height="400">
+- Modern password-based key derivation (Argon2id)
+- Windows-native local secret protection (DPAPI)
+- Secure backup/export workflows
+- Strict local-first handling of secrets
 
-## Features
+### Why it is more secure than many standard apps
 
-- Generate TOTP codes and QR codes
-- Create, read, update, and delete TOTP secrets
-- Securely store secrets
-- Search by platform name
+- Secrets are encrypted at rest, not stored in readable form.
+- Local credential material is protected with OS-backed protection (DPAPI).
+- Password hardening uses Argon2id, which is resilient against brute-force attacks.
+- Security-sensitive actions use explicit authorization flows.
+- Secure-by-design is the baseline, not an optional mode.
 
-## Usage
+## Key Features
 
-- **Add new platform:**  click on plus symbol
-- **Generate TOTP:** click on datagrid row
-- **Edit:** 
-    * double-click a field for changing the account name only
-    * right-click a datagrid row and select "Edit" for changing all fields
-- **Delete:** right-click a datagrid row and select "Delete"
+- TOTP generation for standard authenticator-compatible services
+- Secure local vault for OTP seeds/accounts
+- Encrypted export/import for backup and migration
+- Backup rotation support to reduce risk from stale backups
+- Authorization mode switching (master password and/or Windows Hello flow)
+- Security-focused settings and recovery flows
 
-## Setup
+## Installation
 
-You can create a runnable executable in two ways:
+1. Go to the latest release page on GitHub.
+2. Download the current Windows package (`.zip` release artifact).
+3. Extract to a trusted local folder.
+4. Launch `TOTP.UI.WPF.exe`.
+5. On first run, complete initial security setup (master password / authorization settings).
 
-### 1. Build from Source
+## Usage Guide
 
-- Download the source code from the [Releases](https://github.com/Legends/TOTP-Code-Generator/releases) section.
-- Open a PowerShell console, navigate to the `TOTP-Manager-App` folder, and run:
+### Add a new token
 
-```powershell
-.\publish.ps1
-```
+1. Open the app and choose **Add Token**.
+2. Enter issuer/account details.
+3. Paste secret (or import from supported format).
+4. Save and verify generated code updates every 30 seconds.
 
-- To create a fully signed executable (requires a valid code-signing certificate), run:
+### Manage backups
 
-```powershell
-.\publish.ps1 -CertPath ".\certs\my-cert.pfx" -CertPassword "mypassword"
-```
+1. Open **Settings > Export/Import**.
+2. Choose encrypted export (`.totp`) for recommended backups.
+3. Select destination and confirm password/authorization.
+4. Store backups in a protected location (offline copy recommended).
+5. Periodically rotate old backups and keep only required recovery points.
 
-### 2. Use the Prebuilt Zip
+### Configure security settings
 
-- Download `TOTP.UI.WPF.zip` from the [Releases](https://github.com/Legends/TOTP-Code-Generator/releases) section.  
-- Extract the ZIP file.  
-- Run the `.exe` file.  
-  > The executable is unsigned; you will need to accept the Windows SmartScreen prompt.
+1. Go to **Settings > Security**.
+2. Change master password when needed.
+3. Configure preferred authorization mode.
+4. Review export/import and recovery options after changes.
 
-<p align="center">
-  <img src="https://i.imgur.com/wIef0Os.png" alt="SmartScreen prompt" height="200">
-  <img src="https://i.imgur.com/6dz6fZa.png" alt="SmartScreen prompt" height="200">
-</p>
+## Security Transparency (High-Level)
+
+Your secrets are protected in two layers:
+
+- **Layer 1: Password hardening (Argon2id)**  
+  Your password is transformed into strong cryptographic material that is expensive to brute-force.
+
+- **Layer 2: Windows local protection (DPAPI)**  
+  Local credential artifacts are additionally protected using your Windows account context.
+
+In short: your TOTP data is encrypted before storage, and decryption is only possible through authorized flows.
+
+## Important Notes
+
+- Keep your master password in a safe place.
+- Use encrypted backups regularly.
+- Do not share exported backup files without encryption.
+- Keep your Windows account and device security (PIN/biometric/OS updates) in good health.
+
+## Support
+
+- Open an issue in the GitHub repository for bugs or feature requests.
+- For security reports, use the project’s responsible disclosure/security channel if available.

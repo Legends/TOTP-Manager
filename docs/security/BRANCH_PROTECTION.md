@@ -18,7 +18,18 @@ From repository root:
 
 ```powershell
 .\scripts\security\Set-GitHubTokenForCurrentUser.ps1
-.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "master"
+.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "master" -RequireLastPushApproval:$false
+```
+
+## Solo vs Team Mode
+Solo developer (recommended for 1-person repo):
+```powershell
+.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "master" -RequireLastPushApproval:$false
+```
+
+Team mode (enforce another reviewer for the latest push):
+```powershell
+.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "master" -RequireLastPushApproval:$true
 ```
 
 ## Token Storage (Current Windows Account Only)
@@ -55,7 +66,7 @@ Register-SecretVault -Name SecretStore -ModuleName Microsoft.PowerShell.SecretSt
 - Require pull request before merging
 - Require 1 approving review
 - Dismiss stale approvals on new commits
-- Require approval of last push
+- Require approval of last push (configurable via `-RequireLastPushApproval`)
 - Require conversation resolution
 - Require branch to be up to date before merge
 - Enforce protections for admins
@@ -69,3 +80,12 @@ Note:
 ## Verification
 After running, verify in GitHub:
 `Settings -> Branches -> Branch protection rules` (or Rulesets if your org uses rulesets).
+
+## Disable Branch Protection (Script)
+If you need to temporarily remove branch protection:
+
+```powershell
+.\scripts\security\Remove-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "master"
+```
+
+Use this only for emergency maintenance. Re-enable protections immediately afterward.
