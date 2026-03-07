@@ -19,7 +19,7 @@ Modules:
 | DS-02 | Sensitive keys isolated in memory and cleared | Implemented | Partial | Implemented | Partial | Missing | `SecurityContext`, `MasterPasswordService`, `SeedStorageService`, password consume-and-clear, flyout secret cache clearing, and `RevealableSecretBox` unload wipe |
 | DS-03 | Modern crypto + authenticated encryption (AEAD) | Partial | Implemented | Implemented | Implemented | Partial | AES-256-GCM + Argon2id in security services |
 | DS-04 | KDF parameters validated against abuse bounds | Missing | Missing | Implemented | Partial | Missing | `MasterPasswordService` now bounds-checks iterations/memory/salt/nonce |
-| DS-05 | Import parsers resistant to malformed/oversized files | Partial | Partial | Implemented | Partial | Partial | `ExportService` now enforces max import file size (5 MiB) |
+| DS-05 | Import parsers resistant to malformed/oversized files | Partial | Partial | Implemented | Partial | Partial | `ExportService` enforces max import size (5 MiB) and fuzz-style tests cover malformed `.json/.csv/.txt/.totp` import paths |
 | DS-06 | Least-privilege filesystem ACL for secret/settings files | Missing | Missing | Missing | Implemented | Partial | `AccountDAL` + `AppSettingsDAL` now harden ACL to current user on Windows |
 | DS-07 | Secure write pattern (atomic writes, temp file) | Partial | Implemented | Partial | Implemented | Partial | `AccountDAL` temp-write + replace |
 | DS-08 | Authorization required for sensitive operations | Partial | Implemented | Implemented | Partial | Partial | `AuthorizationService`, password/hello gate, session lock services |
