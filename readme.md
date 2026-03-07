@@ -16,6 +16,7 @@ TOTP Manager is a Windows desktop app (WPF) for managing and generating `Time-ba
 - [Run (Local)](#run-local)
 - [Release Installation](#release-installation)
 - [Backup and Recovery Notes](#backup-and-recovery-notes)
+- [Automatic Updates](#automatic-updates)
 - [Contributing](#contributing)
 - [Licensing](#licensing)
 - [Support](#support)
@@ -178,6 +179,12 @@ dotnet run --project .\TOTP\TOTP.UI.WPF.csproj
 - Keep encrypted backups in a protected location
 - Validate restore procedure regularly
 - Keep master password and Windows account recovery options available
+
+## Automatic Updates
+
+- NetSparkle-based update checks are integrated and disabled by default.
+- Update integrity uses Ed25519 appcast signatures (no code-signing certificate required for this mechanism).
+- Setup guide: [AUTO_UPDATE.md](docs/security/AUTO_UPDATE.md)
 
 ## Contributing
 

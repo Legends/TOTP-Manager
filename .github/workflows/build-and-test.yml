@@ -15,6 +15,8 @@ jobs:
     env:
       SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
       SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
+      NETSPARKLE_PUBLIC_KEY: ${{ secrets.NETSPARKLE_PUBLIC_KEY }}
+      NETSPARKLE_PRIVATE_KEY: ${{ secrets.NETSPARKLE_PRIVATE_KEY }}
       SYNCFUSION_LICENSE: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
 
     steps:
@@ -96,9 +98,44 @@ jobs:
       - name: Compress app into zip
         run: Compress-Archive -Path publish\* -DestinationPath TOTP-Manager.zip
 
+      - name: Install NetSparkle appcast tool
+        if: env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != ''
+        run: dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator
+
+      - name: Generate appcast for auto-update
+        if: env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != ''
+        shell: pwsh
+        run: |
+          $keyDir = Join-Path $env:RUNNER_TEMP "netsparkle-keys"
+          New-Item -ItemType Directory -Path $keyDir -Force | Out-Null
+          $pubPath = Join-Path $keyDir "NetSparkle_Ed25519.pub"
+          $privPath = Join-Path $keyDir "NetSparkle_Ed25519.priv"
+          Set-Content -Path $pubPath -Value $env:NETSPARKLE_PUBLIC_KEY -Encoding ASCII
+          Set-Content -Path $privPath -Value $env:NETSPARKLE_PRIVATE_KEY -Encoding ASCII
+          ./scripts/release/Generate-Appcast.ps1 `
+            -ReleaseFolder "./publish" `
+            -BaseDownloadUrl "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/" `
+            -PrivateKeyPath $privPath `
+            -PublicKeyPath $pubPath
+
+      - name: Appcast generation skipped notice
+        if: env.NETSPARKLE_PUBLIC_KEY == '' || env.NETSPARKLE_PRIVATE_KEY == ''
+        run: echo "Appcast generation skipped: NETSPARKLE_PUBLIC_KEY or NETSPARKLE_PRIVATE_KEY is not configured."
+
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: TOTP-Manager.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }} #repo scope token for uploading to release
+
+      - name: Upload auto-update assets to GitHub Release
+        if: env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            publish/TOTP.UI.WPF.exe
+            publish/appcast.xml
+            publish/appcast.xml.signature
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}

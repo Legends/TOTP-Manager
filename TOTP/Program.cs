@@ -20,6 +20,7 @@ using TOTP.Resources;
 using TOTP.Security;
 using TOTP.Security.Interfaces;
 using TOTP.Startup;
+using TOTP.Services.Interfaces;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
 using Windows.Security.Credentials.UI;
@@ -130,6 +131,7 @@ internal static class Program
                 }
 
                 await vm.InitializeMainViewAsync(mainWindow); // called on UI-Thread 
+                await host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync();
                
             }
             catch (Exception e)

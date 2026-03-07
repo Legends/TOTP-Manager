@@ -114,6 +114,7 @@ public static class BootLoader
                 services.AddSingleton<IDebounceService, DebounceService>();
                 services.AddSingleton<ILogFileService, LogFileService>();
                 services.AddSingleton<IQrPreviewService, QrPreviewService>();
+                services.AddSingleton<IAutoUpdateService, AutoUpdateService>();
                 services.AddSingleton<IPasswordPromptDialogFactory, PasswordPromptDialogFactory>();
                 services.AddSingleton<IPasswordPromptService, PasswordPromptService>();
                 services.AddSingleton<INotificationUiClient, NotificationUiClient>();
