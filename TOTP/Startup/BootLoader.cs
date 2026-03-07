@@ -138,6 +138,7 @@ public static class BootLoader
                 services.AddTransient<QrScannerWindow>();
                 services.AddSingleton<IQrScannerDialogService, QrScannerDialogService>();
                 services.AddSingleton<Func<IQrScannerDialogService>>(sp => () => sp.GetRequiredService<IQrScannerDialogService>());
+                services.AddSingleton<Func<QrScannerWindow>>(sp => () => sp.GetRequiredService<QrScannerWindow>());
 
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();
                 services.AddTransient<SettingsViewModel>();

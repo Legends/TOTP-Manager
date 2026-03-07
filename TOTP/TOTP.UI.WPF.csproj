@@ -5,6 +5,7 @@
 		<TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
+		<InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.Extensions.Configuration.Binder.SourceGeneration</InterceptorsNamespaces>
 		<!--<PublishAot>true</PublishAot>-->
 		<!--<UseWindowsForms>true</UseWindowsForms>-->
 		<UserSecretsId>6f888768-43da-4da8-9820-96b854382d72</UserSecretsId>
@@ -30,7 +31,7 @@
 	</ItemGroup>-->
 
 	<PropertyGroup>
-		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<IncludeNativeLibrariesForSelfExtract>false</IncludeNativeLibrariesForSelfExtract>
 		<_SuppressWpfTrimError>true</_SuppressWpfTrimError>
 	</PropertyGroup>
 
@@ -93,15 +94,13 @@
 		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
 		<PackageReference Include="SharpVectors" Version="1.8.4.2" />
 		<PackageReference Include="Syncfusion.Licensing" Version="30.1.41" />
+		<PackageReference Include="Syncfusion.SfGrid.WPF" Version="30.1.41" />
+		<PackageReference Include="Syncfusion.SfInput.WPF" Version="30.1.41" />
+		<PackageReference Include="Syncfusion.SfProgressBar.WPF" Version="30.1.41" />
 		<PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="30.1.41" />
 		<PackageReference Include="Syncfusion.Shared.WPF" Version="30.1.41" />
-		<PackageReference Include="Syncfusion.Themes.FluentLight.WPF" Version="30.1.41" />
 		<PackageReference Include="Syncfusion.Themes.MaterialDarkBlue.WPF" Version="30.1.41" />
-		<PackageReference Include="Syncfusion.Themes.MaterialLightBlue.WPF" Version="30.1.41" />
-		<PackageReference Include="Syncfusion.Themes.Windows11Dark.WPF" Version="30.1.41" />
-		<PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="30.1.41" />
 		<PackageReference Include="Syncfusion.Tools.WPF" Version="30.1.41" />
-		<PackageReference Include="syncfusion.ui.wpf.net" Version="30.1.41" />
 		<PackageReference Include="System.Drawing.Common" Version="9.0.7" />
 		<PackageReference Include="ZXing.Net" Version="0.16.10" />
 	</ItemGroup>

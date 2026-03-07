@@ -102,7 +102,8 @@ internal static class Program
 
             };
 
-            app.Run(mainWindow); // app.Run() is a blocking call. It is the message loop.
+            mainWindow.Show();
+            app.Run(); // app.Run() is a blocking call. It is the message loop.
 
         }
         catch (Exception e)
@@ -124,6 +125,18 @@ internal static class Program
         {
             try
             {
+                if (!mainWindow.IsVisible)
+                {
+                    mainWindow.Show();
+                }
+
+                if (mainWindow.WindowState == WindowState.Minimized)
+                {
+                    mainWindow.WindowState = WindowState.Normal;
+                }
+
+                _ = mainWindow.Activate();
+
                 var loadResult = await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
                 if (loadResult.IsFailed)
                 {
@@ -143,5 +156,4 @@ internal static class Program
         return mainWindow;
     }
 }
-
 

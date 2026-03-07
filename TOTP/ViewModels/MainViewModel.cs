@@ -1,5 +1,6 @@
 #region ### USINGS ###
 using Microsoft.Extensions.Logging;
+using OpenCvSharp;
 using OtpNet;
 using System;
 using System.Collections.ObjectModel;
@@ -8,6 +9,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
@@ -41,6 +44,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     }
 
     private readonly Func<IQrScannerDialogService> _qrScannerDialogFactory;
+    private readonly Func<Views.QrScannerWindow> _qrScannerWindowFactory;
     private readonly ISettingsDialogOrchestrationService _settingsDialogOrchestrationService;
     private ISettingsService _settingsService;
     public IGridFilterRefresher GridFilterRefresher { get; set; } = NullGridFilterRefresher.Instance;
@@ -79,9 +83,11 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         }
     }
 
-    private SettingsViewModel _SettingsVm = null!;
+    private SettingsViewModel? _SettingsVm;
+    private bool _isOpeningSettings;
+    private int _nonCriticalWarmupStarted;
 
-    public SettingsViewModel SettingsVm
+    public SettingsViewModel? SettingsVm
     {
         get => _SettingsVm;
         set
@@ -509,6 +515,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
         Func<IQrScannerDialogService> qrScannerDialogFactory,
+        Func<Views.QrScannerWindow> qrScannerWindowFactory,
         ISettingsDialogOrchestrationService settingsDialogOrchestrationService,
         ISettingsService settingsService)
     {
@@ -517,6 +524,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         _settingsService = settingsService;
         _settingsDialogOrchestrationService = settingsDialogOrchestrationService;
         _qrScannerDialogFactory = qrScannerDialogFactory;
+        _qrScannerWindowFactory = qrScannerWindowFactory;
         _fileDialogService = fileDialogService;
         _exportService = exportService;
         _passwordPromptService = passwordPromptService;
@@ -547,6 +555,92 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
     }
 
+    private async Task EnsureSettingsViewModelLoadedAsync(bool showErrorOnFailure)
+    {
+        if (SettingsVm != null || _isOpeningSettings)
+        {
+            return;
+        }
+
+        _isOpeningSettings = true;
+        if (OpenSettingsCommand is RelayCommand openSettingsCommand)
+        {
+            openSettingsCommand.RaiseCanExecuteChanged();
+        }
+
+        try
+        {
+            var vm = await _settingsDialogOrchestrationService.CreateAndLoadAsync(
+                CloseSettingsViewCommand,
+                SaveSettingsView,
+                this);
+
+            SettingsVm = vm;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize settings view model.");
+            if (showErrorOnFailure)
+            {
+                _messageService.ShowError(UI.ex_FatalError);
+            }
+        }
+        finally
+        {
+            _isOpeningSettings = false;
+            if (OpenSettingsCommand is RelayCommand openSettingsCommandFinal)
+            {
+                openSettingsCommandFinal.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    private async Task WarmUpNonCriticalFeaturesAsync()
+    {
+        if (Interlocked.Exchange(ref _nonCriticalWarmupStarted, 1) == 1)
+        {
+            return;
+        }
+
+        try
+        {
+            await Task.Delay(1200).ConfigureAwait(false);
+
+            if (Application.Current != null)
+            {
+                await Application.Current.Dispatcher
+                    .InvokeAsync(() => EnsureSettingsViewModelLoadedAsync(showErrorOnFailure: false), DispatcherPriority.Background)
+                    .Task
+                    .Unwrap();
+            }
+
+            await Task.Run(() =>
+            {
+                try { _ = Cv2.GetVersionString(); } catch { }
+            }).ConfigureAwait(false);
+
+            if (Application.Current != null)
+            {
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        var scannerWindow = _qrScannerWindowFactory();
+                        (scannerWindow.DataContext as IDisposable)?.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "QR scanner warmup failed.");
+                    }
+                }, DispatcherPriority.ApplicationIdle);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Non-critical feature warmup failed.");
+        }
+    }
+
     #endregion
 
     #region ###  ENTRY-POINT  ###
@@ -565,12 +659,6 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     {
         try
         {
-
-            SettingsVm = await _settingsDialogOrchestrationService.CreateAndLoadAsync(
-                CloseSettingsViewCommand,
-                SaveSettingsView,
-                this);
-
             await _mainViewSessionController.InitializeAsync(mainWindow);
 
             IsBusy = false;

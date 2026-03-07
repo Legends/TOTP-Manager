@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using TOTP.Commands;
 
 namespace TOTP.ViewModels;
@@ -53,7 +54,7 @@ public partial class MainViewModel
         ClearSearchCommand = new RelayCommand(ClearSearchTextbox, () => IsSearchVisible);
     }
 
-    private bool CanOpenSettings() => !IsSettingsViewOpen && IsUnlocked;
+    private bool CanOpenSettings() => !IsSettingsViewOpen && IsUnlocked && !_isOpeningSettings;
 
     private bool CanCopyCode() =>
         SelectedAccount != null &&
@@ -98,6 +99,17 @@ public partial class MainViewModel
 
     private void OpenSettingsView()
     {
+        _ = OpenSettingsViewAsync();
+    }
+
+    private async Task OpenSettingsViewAsync()
+    {
+        await EnsureSettingsViewModelLoadedAsync(showErrorOnFailure: true);
+        if (SettingsVm == null)
+        {
+            return;
+        }
+
         IsSettingsViewOpen = true;
         SettingsVm.RequestFocus();
     }

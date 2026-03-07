@@ -88,6 +88,7 @@ public partial class MainViewModel
     private async Task OnUnlockedAsync()
     {
         await EnsureTokensLoadedAsync();
+        _ = WarmUpNonCriticalFeaturesAsync();
     }
 
     private void OnLocked()
