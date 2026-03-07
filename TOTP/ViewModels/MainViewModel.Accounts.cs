@@ -22,6 +22,7 @@ public partial class MainViewModel
         try
         {
             //throw new Exception("dummy");
+            ClearEditingSecretCache();
             IsAddMode = true;
             IsEditAddFlyoutOpen = true;
             CurrentSecretBeingEditedOrAdded = new OtpViewModel(Guid.NewGuid(), string.Empty, string.Empty, null);
@@ -43,6 +44,7 @@ public partial class MainViewModel
         {
             if (item == null) return;
 
+            ClearEditingSecretCache();
             IsAddMode = false;
             CurrentSecretBeingEditedOrAdded = item.Copy();
             IsEditAddFlyoutOpen = true;
@@ -60,10 +62,10 @@ public partial class MainViewModel
 
     void CancelFlyout()
     {
+        ClearEditingSecretCache();
         IsEditAddFlyoutOpen = false;
         IsAddMode = false;
         IsSecretVisible = false;
-        CurrentSecretBeingEditedOrAdded = null;
     }
 
     #endregion
@@ -180,7 +182,7 @@ public partial class MainViewModel
 
                 AllOtps.Add(itemToAdd);
 
-                CurrentSecretBeingEditedOrAdded = null;
+                ClearEditingSecretCache();
                 IsAddMode = false;
                 IsEditAddFlyoutOpen = false;
             }
@@ -202,6 +204,7 @@ public partial class MainViewModel
                 }
 
                 await UpdateAccountAsync(CurrentSecretBeingEditedOrAdded);
+                ClearEditingSecretCache();
                 IsEditAddFlyoutOpen = false;
             }
         }
@@ -433,4 +436,13 @@ public partial class MainViewModel
     }
 
     #endregion
+
+    private void ClearEditingSecretCache()
+    {
+        if (CurrentSecretBeingEditedOrAdded != null)
+        {
+            CurrentSecretBeingEditedOrAdded.ClearSensitiveData();
+            CurrentSecretBeingEditedOrAdded = null;
+        }
+    }
 }

@@ -240,8 +240,24 @@ public sealed class MainViewModelTests : IDisposable
         await ctx.Sut.AddOrUpdateAccountAsync();
 
         Assert.False(ctx.Sut.IsEditAddFlyoutOpen);
+        Assert.Null(ctx.Sut.CurrentSecretBeingEditedOrAdded);
         Assert.Equal("BBBB", existing.Secret);
         ctx.AccountsWorkflow.Verify(s => s.UpdateAsync(It.IsAny<OtpViewModel?>(), It.Is<OtpViewModel>(o => o.ID == id)), Times.Once);
+    }
+
+    [Fact]
+    public void CancelFlyoutCommand_ClearsTransientEditorSecret()
+    {
+        using var ctx = new MainVmTestContext();
+        ctx.Sut.OpenFlyoutAddMode();
+        var editor = ctx.Sut.CurrentSecretBeingEditedOrAdded;
+        Assert.NotNull(editor);
+        editor!.Secret = "JBSWY3DPEHPK3PXP";
+
+        ctx.Sut.CancelFlyoutCommand.Execute(null);
+
+        Assert.Null(ctx.Sut.CurrentSecretBeingEditedOrAdded);
+        Assert.Equal(string.Empty, editor.Secret);
     }
 
     [Fact]

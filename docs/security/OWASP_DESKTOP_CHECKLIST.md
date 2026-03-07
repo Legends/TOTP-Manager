@@ -16,7 +16,7 @@ Modules:
 | ID | OWASP-aligned control | UI | Core | Infra | DAL | DevSecOps | Evidence |
 |---|---|---|---|---|---|---|---|
 | DS-01 | Sensitive local data encrypted at rest | Partial | Implemented | Implemented | Implemented | Partial | `VaultService`, `AppSettingsDAL` (DPAPI), encrypted `.totp` export |
-| DS-02 | Sensitive keys isolated in memory and cleared | Implemented | Partial | Implemented | Partial | Missing | `SecurityContext`, `MasterPasswordService`, `SeedStorageService`, and password prompt/unlock view models now consume-and-clear entered passwords before async auth |
+| DS-02 | Sensitive keys isolated in memory and cleared | Implemented | Partial | Implemented | Partial | Missing | `SecurityContext`, `MasterPasswordService`, `SeedStorageService`, password prompt/unlock consume-and-clear, and MainViewModel/OtpViewModel now clear transient flyout secret cache on close/success |
 | DS-03 | Modern crypto + authenticated encryption (AEAD) | Partial | Implemented | Implemented | Implemented | Partial | AES-256-GCM + Argon2id in security services |
 | DS-04 | KDF parameters validated against abuse bounds | Missing | Missing | Implemented | Partial | Missing | `MasterPasswordService` now bounds-checks iterations/memory/salt/nonce |
 | DS-05 | Import parsers resistant to malformed/oversized files | Partial | Partial | Implemented | Partial | Partial | `ExportService` now enforces max import file size (5 MiB) |

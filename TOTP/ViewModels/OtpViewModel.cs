@@ -251,6 +251,20 @@ public class OtpViewModel : INotifyPropertyChanged, IEquatable<OtpViewModel>, IE
         this.AccountName = changed.AccountName;
     }
 
+    public void ClearSensitiveData()
+    {
+        Secret = string.Empty;
+        EditingSecret = string.Empty;
+
+        if (_storedValues != null)
+        {
+            _storedValues.Remove(nameof(Secret));
+            _storedValues.Remove(nameof(EditingSecret));
+            _storedValues.Clear();
+            _storedValues = null;
+        }
+    }
+
     #region Inline Error Properties (for flyout binding)
 
     private string? _platformError;
