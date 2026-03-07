@@ -37,7 +37,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore with NuGet.config
-        run: dotnet restore TOTP.sln --configfile NuGet.config
+        run: dotnet restore TOTP.sln --configfile NuGet.config --source https://api.nuget.org/v3/index.json
 
       - name: Build solution
         run: dotnet build --configuration Release --no-restore
@@ -74,7 +74,7 @@ jobs:
           dotnet-version: "9.0.x"
 
       - name: Restore dependencies
-        run: dotnet restore TOTP.sln --configfile NuGet.config
+        run: dotnet restore TOTP.sln --configfile NuGet.config --source https://api.nuget.org/v3/index.json
 
       - name: Publish WPF app
         run: |
