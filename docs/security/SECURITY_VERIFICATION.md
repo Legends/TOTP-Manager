@@ -29,7 +29,7 @@ Workflow: `.github/workflows/security-audit.yml`
 - `security-audit` workflow passes
 - No High/Critical open CodeQL alerts for touched code
 - No known High/Critical vulnerable dependencies without approved exception
-- Release binary is Authenticode-signed in CI using `SIGNING_CERT_BASE64` + `SIGNING_CERT_PASSWORD` repository secrets (ephemeral cert file only)
+- When `SIGNING_CERT_BASE64` and `SIGNING_CERT_PASSWORD` are configured, release binary is Authenticode-signed in CI (ephemeral cert file only)
 
 ## Exception Handling
 When a finding cannot be fixed immediately:

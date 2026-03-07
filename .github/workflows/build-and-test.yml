@@ -77,9 +77,14 @@ jobs:
             --output publish
 
       - name: Sign published executable
+        if: env.SIGNING_CERT_BASE64 != '' && env.SIGNING_CERT_PASSWORD != ''
         shell: pwsh
         run: |
           ./TOTP/Properties/Signing/Sign-App.ps1 -ExePath ./publish/TOTP.UI.WPF.exe
+
+      - name: Signing skipped notice
+        if: env.SIGNING_CERT_BASE64 == '' || env.SIGNING_CERT_PASSWORD == ''
+        run: echo "Signing skipped: SIGNING_CERT_BASE64 or SIGNING_CERT_PASSWORD is not configured."
 
       - name: Compress app into zip
         run: Compress-Archive -Path publish\* -DestinationPath TOTP-Manager.zip
