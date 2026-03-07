@@ -74,7 +74,7 @@ jobs:
           dotnet-version: "9.0.x"
 
       - name: Restore dependencies
-        run: dotnet restore TOTP.sln --configfile NuGet.config --source https://api.nuget.org/v3/index.json
+        run: dotnet restore TOTP/TOTP.UI.WPF.csproj --configfile NuGet.config --source https://api.nuget.org/v3/index.json -r win-x64
 
       - name: Publish WPF app
         run: |
