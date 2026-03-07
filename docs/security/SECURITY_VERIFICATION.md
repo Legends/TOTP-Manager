@@ -17,6 +17,9 @@ Workflow: `.github/workflows/security-audit.yml`
 - Secret scanning:
   - Tool: Gitleaks
   - Evidence: workflow run status and findings in logs
+- Security regression tests:
+  - Tool: targeted `dotnet test` filter in `build-and-test.yml`
+  - Evidence: workflow step `Run security regression tests`
 - DAST (optional, manual trigger):
   - Tool: OWASP ZAP baseline
   - Input: `dast_target_url` in workflow dispatch
@@ -40,3 +43,6 @@ When a finding cannot be fixed immediately:
    - target remediation date
 2. Link issue to release notes/security review
 3. Reassess each release cycle
+
+## Operational Runbooks
+- Signing key rotation and compromise response: `docs/security/SIGNING_KEY_ROTATION.md`

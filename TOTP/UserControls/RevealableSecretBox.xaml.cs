@@ -251,6 +251,12 @@ namespace TOTP.UserControls
         public RevealableSecretBox()
         {
             InitializeComponent();
+            Unloaded += OnUnloaded;
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            ClearSecret();
         }
 
         private static void OnSecretChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -376,6 +382,30 @@ namespace TOTP.UserControls
                 Keyboard.Focus(PartPasswordBox);
                 //PartPasswordBox.SelectAll();
             }), DispatcherPriority.Input);
+        }
+
+        public void ClearSecret()
+        {
+            try
+            {
+                _isSyncingSecret = true;
+
+                Secret = string.Empty;
+
+                if (PartPasswordBox != null)
+                {
+                    PartPasswordBox.Password = string.Empty;
+                }
+
+                if (PartPasswordBoxVisible != null)
+                {
+                    PartPasswordBoxVisible.Text = string.Empty;
+                }
+            }
+            finally
+            {
+                _isSyncingSecret = false;
+            }
         }
     }
 }

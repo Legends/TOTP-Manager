@@ -17,7 +17,9 @@ namespace TOTP.Infrastructure.Logging;
 /// </summary>
 public static class LoggingConfigurator
 {
+    private const string LogOutputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}";
     private static readonly SensitiveDataRedactionEnricher RedactionEnricher = new();
+    private static readonly RedactingTextFormatter RedactingTextFormatter = new(LogOutputTemplate);
 
     // Allows other services to check if the user is forcing a specific log level
     public static AppLogLevel? ManualOverrideLevel { get; private set; }
@@ -67,12 +69,12 @@ public static class LoggingConfigurator
             .Enrich.With(RedactionEnricher)
             .Enrich.WithMachineName()
             .Enrich.WithThreadId()
-            .WriteTo.Debug() // Essential for seeing logs in Visual Studio Output window
+            .WriteTo.Debug(RedactingTextFormatter) // Essential for seeing logs in Visual Studio Output window
             .WriteTo.Async(a => a.File(
+                RedactingTextFormatter,
                 StringsConstants.AppLogFilePath,
                 rollingInterval: RollingInterval.Day,
-                shared: true,
-                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"))
+                shared: true))
             .CreateBootstrapLogger();
 
         if (ManualOverrideLevel.HasValue)
@@ -96,13 +98,13 @@ public static class LoggingConfigurator
             .Enrich.With(RedactionEnricher)
             .Enrich.WithMachineName()
             .Enrich.WithThreadId()
-            .WriteTo.Console()
-            .WriteTo.Debug()
+            .WriteTo.Console(RedactingTextFormatter)
+            .WriteTo.Debug(RedactingTextFormatter)
             .WriteTo.Async(a => a.File(
+                RedactingTextFormatter,
                 StringsConstants.AppLogFilePath,
                 rollingInterval: RollingInterval.Day,
-                shared: true,
-                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"));
+                shared: true));
 
         if (ManualOverrideLevel.HasValue)
         {

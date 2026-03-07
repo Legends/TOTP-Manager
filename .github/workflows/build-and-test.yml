@@ -43,6 +43,13 @@ jobs:
       - name: Run tests
         run: dotnet test --configuration Release --no-build --verbosity normal
 
+      - name: Run security regression tests
+        run: |
+          dotnet test TOTP.Tests/TOTP.Tests.csproj `
+            --configuration Release `
+            --no-build `
+            --filter "FullyQualifiedName~MasterPasswordServiceTests|FullyQualifiedName~ExportServiceTests|FullyQualifiedName~SensitiveDataRedactionEnricherTests|FullyQualifiedName~SensitiveTextRedactorTests|FullyQualifiedName~PasswordUnlockViewModelTests|FullyQualifiedName~PasswordPromptViewModelTests|FullyQualifiedName~ExportPasswordPromptViewModelTests|FullyQualifiedName~MainViewModelTests"
+
   publish:
     needs: build-test
     if: startsWith(github.ref, 'refs/tags/v')
