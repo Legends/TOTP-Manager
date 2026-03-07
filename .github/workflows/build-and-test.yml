@@ -60,6 +60,8 @@ jobs:
     env:
       SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
       SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
+      NETSPARKLE_PUBLIC_KEY: ${{ secrets.NETSPARKLE_PUBLIC_KEY }}
+      NETSPARKLE_PRIVATE_KEY: ${{ secrets.NETSPARKLE_PRIVATE_KEY }}
       SYNCFUSION_LICENSE: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
 
     steps:
@@ -86,24 +88,25 @@ jobs:
             --output publish
 
       - name: Sign published executable
-        if: env.SIGNING_CERT_BASE64 != '' && env.SIGNING_CERT_PASSWORD != ''
+        if: ${{ env.SIGNING_CERT_BASE64 != '' && env.SIGNING_CERT_PASSWORD != '' }}
         shell: pwsh
         run: |
           ./TOTP/Properties/Signing/Sign-App.ps1 -ExePath ./publish/TOTP.UI.WPF.exe
 
       - name: Signing skipped notice
-        if: env.SIGNING_CERT_BASE64 == '' || env.SIGNING_CERT_PASSWORD == ''
-        run: echo "Signing skipped: SIGNING_CERT_BASE64 or SIGNING_CERT_PASSWORD is not configured."
+        if: ${{ env.SIGNING_CERT_BASE64 == '' || env.SIGNING_CERT_PASSWORD == '' }}
+        run: |
+          echo "Signing skipped: SIGNING_CERT_BASE64 or SIGNING_CERT_PASSWORD is not configured."
 
       - name: Compress app into zip
         run: Compress-Archive -Path publish\* -DestinationPath TOTP-Manager.zip
 
       - name: Install NetSparkle appcast tool
-        if: env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != ''
+        if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
         run: dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator
 
       - name: Generate appcast for auto-update
-        if: env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != ''
+        if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
         shell: pwsh
         run: |
           $keyDir = Join-Path $env:RUNNER_TEMP "netsparkle-keys"
@@ -119,8 +122,9 @@ jobs:
             -PublicKeyPath $pubPath
 
       - name: Appcast generation skipped notice
-        if: env.NETSPARKLE_PUBLIC_KEY == '' || env.NETSPARKLE_PRIVATE_KEY == ''
-        run: echo "Appcast generation skipped: NETSPARKLE_PUBLIC_KEY or NETSPARKLE_PRIVATE_KEY is not configured."
+        if: ${{ env.NETSPARKLE_PUBLIC_KEY == '' || env.NETSPARKLE_PRIVATE_KEY == '' }}
+        run: |
+          echo "Appcast generation skipped: NETSPARKLE_PUBLIC_KEY or NETSPARKLE_PRIVATE_KEY is not configured."
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -130,7 +134,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }} #repo scope token for uploading to release
 
       - name: Upload auto-update assets to GitHub Release
-        if: env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != ''
+        if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
         uses: softprops/action-gh-release@v2
         with:
           files: |
