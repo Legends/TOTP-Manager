@@ -114,6 +114,7 @@ public static class BootLoader
                 services.AddSingleton<IDebounceService, DebounceService>();
                 services.AddSingleton<ILogFileService, LogFileService>();
                 services.AddSingleton<IQrPreviewService, QrPreviewService>();
+                services.AddSingleton<IScannerWarmupService, ScannerWarmupService>();
                 services.AddSingleton<IAutoUpdateService, AutoUpdateService>();
                 services.AddSingleton<IPasswordPromptDialogFactory, PasswordPromptDialogFactory>();
                 services.AddSingleton<IPasswordPromptService, PasswordPromptService>();
@@ -138,7 +139,6 @@ public static class BootLoader
                 services.AddTransient<QrScannerWindow>();
                 services.AddSingleton<IQrScannerDialogService, QrScannerDialogService>();
                 services.AddSingleton<Func<IQrScannerDialogService>>(sp => () => sp.GetRequiredService<IQrScannerDialogService>());
-                services.AddSingleton<Func<QrScannerWindow>>(sp => () => sp.GetRequiredService<QrScannerWindow>());
 
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();
                 services.AddTransient<SettingsViewModel>();

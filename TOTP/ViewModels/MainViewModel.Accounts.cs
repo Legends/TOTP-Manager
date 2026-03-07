@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TOTP.Core.Enums;
@@ -286,7 +287,12 @@ public partial class MainViewModel
             if (Application.Current.MainWindow == null)
                 return;
 
+            var scannerSw = Stopwatch.StartNew();
+            var openAttempt = Interlocked.Increment(ref _scannerOpenCount);
+            _logger.LogInformation("scanner.open.begin attempt={Attempt} first_open={FirstOpen}", openAttempt, openAttempt == 1);
             var decodedQrCode = _qrScannerDialogFactory().ScanQrCode(Application.Current.MainWindow);
+            _logger.LogInformation("scanner.open.end attempt={Attempt} first_open={FirstOpen} elapsed_ms={ElapsedMs} decoded={Decoded}",
+                openAttempt, openAttempt == 1, scannerSw.ElapsedMilliseconds, !string.IsNullOrWhiteSpace(decodedQrCode));
 
             if (!string.IsNullOrWhiteSpace(decodedQrCode))
             {

@@ -1,10 +1,10 @@
 #region ### USINGS ###
 using Microsoft.Extensions.Logging;
-using OpenCvSharp;
 using OtpNet;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -44,7 +44,6 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     }
 
     private readonly Func<IQrScannerDialogService> _qrScannerDialogFactory;
-    private readonly Func<Views.QrScannerWindow> _qrScannerWindowFactory;
     private readonly ISettingsDialogOrchestrationService _settingsDialogOrchestrationService;
     private ISettingsService _settingsService;
     public IGridFilterRefresher GridFilterRefresher { get; set; } = NullGridFilterRefresher.Instance;
@@ -490,9 +489,11 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     private readonly IPasswordPromptService _passwordPromptService;
     private readonly IMainViewSessionController _mainViewSessionController;
     private readonly IQrPreviewService _qrPreviewService;
+    private readonly IScannerWarmupService _scannerWarmupService;
 
     private bool _otpLoadedFromStore;
     private bool _collectionHooked;
+    private int _scannerOpenCount;
     //private string _pendingSearchText;
 
     #endregion REGION SERVICES
@@ -512,10 +513,10 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         IFileDialogService fileDialogService,
         IPasswordPromptService passwordPromptService,
         IQrPreviewService qrPreviewService,
+        IScannerWarmupService scannerWarmupService,
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
         Func<IQrScannerDialogService> qrScannerDialogFactory,
-        Func<Views.QrScannerWindow> qrScannerWindowFactory,
         ISettingsDialogOrchestrationService settingsDialogOrchestrationService,
         ISettingsService settingsService)
     {
@@ -524,11 +525,11 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         _settingsService = settingsService;
         _settingsDialogOrchestrationService = settingsDialogOrchestrationService;
         _qrScannerDialogFactory = qrScannerDialogFactory;
-        _qrScannerWindowFactory = qrScannerWindowFactory;
         _fileDialogService = fileDialogService;
         _exportService = exportService;
         _passwordPromptService = passwordPromptService;
         _qrPreviewService = qrPreviewService;
+        _scannerWarmupService = scannerWarmupService;
         _logger = logger;
         _qrService = svcQr;
         _messageService = messageService;
@@ -570,12 +571,15 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
         try
         {
+            var sw = Stopwatch.StartNew();
+            _logger.LogInformation("warmup.settingsvm.begin mode={Mode}", showErrorOnFailure ? "interactive" : "background");
             var vm = await _settingsDialogOrchestrationService.CreateAndLoadAsync(
                 CloseSettingsViewCommand,
                 SaveSettingsView,
                 this);
 
             SettingsVm = vm;
+            _logger.LogInformation("warmup.settingsvm.end mode={Mode} elapsed_ms={ElapsedMs}", showErrorOnFailure ? "interactive" : "background", sw.ElapsedMilliseconds);
         }
         catch (Exception ex)
         {
@@ -604,6 +608,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
         try
         {
+            _logger.LogInformation("warmup.noncritical.begin");
             await Task.Delay(1200).ConfigureAwait(false);
 
             if (Application.Current != null)
@@ -614,26 +619,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
                     .Unwrap();
             }
 
-            await Task.Run(() =>
-            {
-                try { _ = Cv2.GetVersionString(); } catch { }
-            }).ConfigureAwait(false);
-
-            if (Application.Current != null)
-            {
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    try
-                    {
-                        var scannerWindow = _qrScannerWindowFactory();
-                        (scannerWindow.DataContext as IDisposable)?.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "QR scanner warmup failed.");
-                    }
-                }, DispatcherPriority.ApplicationIdle);
-            }
+            _scannerWarmupService.StartWarmupInBackground("mainvm.postunlock");
+            _logger.LogInformation("warmup.noncritical.end");
         }
         catch (Exception ex)
         {

@@ -1,9 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
 using Serilog;
-using Serilog.Events;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -23,13 +21,21 @@ using TOTP.Startup;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
-using Windows.Security.Credentials.UI;
 
 namespace TOTP;
 
-
 internal static class Program
 {
+    private sealed class StartupTiming
+    {
+        public Stopwatch Stopwatch { get; } = Stopwatch.StartNew();
+        public long HostStartedMs { get; set; }
+        public long WindowShowCalledMs { get; set; }
+        public long LoadedStartMs { get; set; }
+        public long SettingsLoadedMs { get; set; }
+        public long MainVmInitializedMs { get; set; }
+        public long LoadedEndMs { get; set; }
+    }
 
     [STAThread]
     public static void Main(string[] args)
@@ -53,8 +59,12 @@ internal static class Program
 
     private static async Task StartApplication(string[] args)
     {
+        var timing = new StartupTiming();
+
         try
         {
+            Log.Information("startup.begin");
+
             var configuration = BootLoader.BuildConfiguration();
             BootLoader.SetCulture(configuration);
             BootLoader.RegisterSyncfusionLicenseKey(configuration);
@@ -68,92 +78,110 @@ internal static class Program
 
             using var host = BootLoader.BuildHostAndConfigureServices(configuration, args);
 
-            // Since there is no SynchronizationContext established yet, await will default to the thread pool anyway.
-            await host.StartAsync(); // All BackgroundServices run now! TOTP.Infrastructure.Services
-
-            CommandExceptionLogger.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
-
-            // the SynchronizationContext is established when the first DispatcherObject is created like Application
-            var app = new App(); 
-           
-
+            var app = new App();
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
-
-            var mainWindow = SetupMainWindow(host, app);
-
 
             app.Exit += async (_, __) =>
             {
                 try
                 {
-                    if (host != null)
-                    {
-                        // Stops all Background-Services (TOTP.UI.WPF: => Infrastructure.Services) gracefully.
-                        // Waits until they are stopped.
-                        // Dispose is called after that, which disposes all services.
-                        await host.StopAsync();
-                    }
+                    await host.StopAsync();
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex, UI.ex_UnexpectedError);
                 }
-
             };
 
-            mainWindow.Show();
-            app.Run(); // app.Run() is a blocking call. It is the message loop.
+            var splash = new SplashWindow();
+            app.MainWindow = splash;
 
+            splash.Loaded += async (_, __) =>
+            {
+                try
+                {
+                    Log.Information("startup.splash.loaded.begin");
+                    await BootstrapMainWindowFromSplashAsync(app, splash, host, timing);
+                }
+                catch (Exception ex)
+                {
+                    Log.Fatal(ex, UI.ex_FatalError);
+                    app.Shutdown(-1);
+                }
+            };
+
+            splash.Show();
+            app.Run();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Log.Fatal(e, UI.ex_FatalError);
+            Log.Fatal(ex, UI.ex_FatalError);
             Environment.Exit(-1);
         }
     }
 
-    private static MainWindow SetupMainWindow(IHost host, App app)
+    private static async Task BootstrapMainWindowFromSplashAsync(App app, SplashWindow splash, IHost host, StartupTiming timing)
+    {
+        await host.StartAsync();
+        timing.HostStartedMs = timing.Stopwatch.ElapsedMilliseconds;
+        Log.Information("startup.host.started elapsed_ms={ElapsedMs}", timing.HostStartedMs);
+
+        CommandExceptionLogger.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
+        host.Services.GetRequiredService<IScannerWarmupService>().StartWarmupInBackground("program.startup");
+
+        var mainWindow = CreateMainWindowShell(host);
+        timing.LoadedStartMs = timing.Stopwatch.ElapsedMilliseconds;
+        Log.Information("startup.mainwindow.loaded.begin");
+
+        var loadResult = await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
+        if (loadResult.IsFailed)
+        {
+            throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
+        }
+        timing.SettingsLoadedMs = timing.Stopwatch.ElapsedMilliseconds;
+        Log.Information("startup.settings.loaded elapsed_ms={ElapsedMs}", timing.SettingsLoadedMs - timing.LoadedStartMs);
+
+        var vm = (IMainViewModel)mainWindow.DataContext;
+        await vm.InitializeMainViewAsync(mainWindow);
+        timing.MainVmInitializedMs = timing.Stopwatch.ElapsedMilliseconds;
+        Log.Information("startup.mainvm.initialized elapsed_ms={ElapsedMs}", timing.MainVmInitializedMs - timing.LoadedStartMs);
+
+        await host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync();
+        timing.LoadedEndMs = timing.Stopwatch.ElapsedMilliseconds;
+        Log.Information("startup.mainwindow.loaded.end elapsed_ms={ElapsedMs}", timing.LoadedEndMs - timing.LoadedStartMs);
+
+        app.MainWindow = mainWindow;
+        mainWindow.Show();
+        if (mainWindow.WindowState == WindowState.Minimized)
+        {
+            mainWindow.WindowState = WindowState.Normal;
+        }
+
+        _ = mainWindow.Activate();
+
+        timing.WindowShowCalledMs = timing.Stopwatch.ElapsedMilliseconds;
+        Log.Information("startup.window.show.called elapsed_ms={ElapsedMs}", timing.WindowShowCalledMs);
+        Log.Information(
+            "startup.summary total_ms={TotalMs} host_started_ms={HostStartedMs} window_show_called_ms={WindowShowCalledMs} loaded_start_ms={LoadedStartMs} settings_loaded_ms={SettingsLoadedMs} mainvm_initialized_ms={MainVmInitializedMs} loaded_end_ms={LoadedEndMs}",
+            timing.Stopwatch.ElapsedMilliseconds,
+            timing.HostStartedMs,
+            timing.WindowShowCalledMs,
+            timing.LoadedStartMs,
+            timing.SettingsLoadedMs,
+            timing.MainVmInitializedMs,
+            timing.LoadedEndMs);
+
+        splash.Close();
+        Log.Information("startup.splash.closed elapsed_ms={ElapsedMs}", timing.Stopwatch.ElapsedMilliseconds);
+    }
+
+    private static MainWindow CreateMainWindowShell(IHost host)
     {
         var vm = host.Services.GetRequiredService<IMainViewModel>();
         var mainWindow = host.Services.GetRequiredService<MainWindow>();
         mainWindow.DataContext = vm;
         mainWindow.ResizeMode = ResizeMode.NoResize;
-        app.MainWindow = mainWindow;
-
-        mainWindow.Loaded += async (_, __) =>
-        {
-            try
-            {
-                if (!mainWindow.IsVisible)
-                {
-                    mainWindow.Show();
-                }
-
-                if (mainWindow.WindowState == WindowState.Minimized)
-                {
-                    mainWindow.WindowState = WindowState.Normal;
-                }
-
-                _ = mainWindow.Activate();
-
-                var loadResult = await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
-                if (loadResult.IsFailed)
-                {
-                    throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
-                }
-
-                await vm.InitializeMainViewAsync(mainWindow); // called on UI-Thread 
-                await host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync();
-               
-            }
-            catch (Exception e)
-            {
-                Log.Fatal(e, UI.ex_FatalError);
-                app.Shutdown(-1);
-            }
-        };
         return mainWindow;
     }
 }
-
