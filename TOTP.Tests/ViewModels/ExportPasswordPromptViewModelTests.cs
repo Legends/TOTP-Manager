@@ -52,6 +52,7 @@ public sealed class ExportPasswordPromptViewModelTests
 
         Assert.Equal(UI.ui_ExportPwd_WrongMasterPassword, vm.ErrorMessage);
         Assert.False(closed);
+        Assert.Equal(string.Empty, vm.MasterPassword);
     }
 
     [Fact]
@@ -76,6 +77,7 @@ public sealed class ExportPasswordPromptViewModelTests
         Assert.Equal("master", vm.SelectedPassword);
         Assert.True(closed);
         Assert.Equal(string.Empty, vm.ErrorMessage);
+        Assert.Equal(string.Empty, vm.MasterPassword);
     }
 
     [Fact]
@@ -103,6 +105,8 @@ public sealed class ExportPasswordPromptViewModelTests
 
         Assert.Equal("mismatch", vm.ErrorMessage);
         Assert.Equal(string.Empty, vm.SelectedPassword);
+        Assert.Equal(string.Empty, vm.CustomPassword);
+        Assert.Equal(string.Empty, vm.ConfirmCustomPassword);
     }
 
     [Fact]
@@ -133,6 +137,8 @@ public sealed class ExportPasswordPromptViewModelTests
 
         Assert.Equal("pw", vm.SelectedPassword);
         Assert.True(closed);
+        Assert.Equal(string.Empty, vm.CustomPassword);
+        Assert.Equal(string.Empty, vm.ConfirmCustomPassword);
     }
 
     [Fact]

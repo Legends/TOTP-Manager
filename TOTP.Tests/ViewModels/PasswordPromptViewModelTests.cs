@@ -66,6 +66,7 @@ public sealed class PasswordPromptViewModelTests
 
         Assert.Equal("bad password", vm.ErrorMessage);
         Assert.False(closed);
+        Assert.Equal(string.Empty, vm.Password);
     }
 
     [Fact]
@@ -90,6 +91,7 @@ public sealed class PasswordPromptViewModelTests
 
         Assert.True(closed);
         Assert.False(vm.HasErrorMessage);
+        Assert.Equal(string.Empty, vm.Password);
     }
 
     [Fact]

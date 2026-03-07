@@ -109,6 +109,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         if (_auth.State.IsUnlocked)
         {
             Password = string.Empty;
+            ConfirmPassword = string.Empty;
         }
 
         if (_auth.State.ConfiguredGate == AuthorizationGateKind.Password && _auth.State.IsConfigured)
@@ -183,7 +184,12 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     {
         Message = null;
 
-        if (string.IsNullOrWhiteSpace(Password))
+        var password = Password;
+        var confirmPassword = ConfirmPassword;
+        Password = string.Empty;
+        ConfirmPassword = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(password))
         {
             Message = UI.ui_Password_Required;
             return AuthorizationResult.InvalidCredentials; // Or a specific "Empty" result
@@ -192,8 +198,8 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         if (IsSetup)
         {
             var setupValidation = _passwordValidationService.ValidateNewWithConfirmation(
-                Password,
-                ConfirmPassword,
+                password,
+                confirmPassword,
                 UI.ui_Password_Required,
                 UI.ui_Password_MinLength_Format,
                 UI.ui_Password_ConfirmRequired,
@@ -205,7 +211,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
                 return AuthorizationResult.InvalidCredentials;
             }
 
-            var cfg = await _auth.ConfigurePasswordAsync(Password ?? "", ConfirmPassword ?? "");
+            var cfg = await _auth.ConfigurePasswordAsync(password, confirmPassword);
             if (cfg != AuthorizationResult.Success)
             {
                 Message = UI.ui_Password_SetupFailed;
@@ -215,7 +221,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         }
 
         // Standard unlock path for non-setup scenarios
-        var unlock = await _auth.TryUnlockWithPasswordAsync(Password);
+        var unlock = await _auth.TryUnlockWithPasswordAsync(password);
         if (unlock != AuthorizationResult.Success)
         {
             Message = UI.ui_Password_VerificationFailed;

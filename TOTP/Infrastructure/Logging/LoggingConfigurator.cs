@@ -17,6 +17,8 @@ namespace TOTP.Infrastructure.Logging;
 /// </summary>
 public static class LoggingConfigurator
 {
+    private static readonly SensitiveDataRedactionEnricher RedactionEnricher = new();
+
     // Allows other services to check if the user is forcing a specific log level
     public static AppLogLevel? ManualOverrideLevel { get; private set; }
 
@@ -62,6 +64,7 @@ public static class LoggingConfigurator
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(LogSwitchService.SharedSwitch)
             .Enrich.FromLogContext()
+            .Enrich.With(RedactionEnricher)
             .Enrich.WithMachineName()
             .Enrich.WithThreadId()
             .WriteTo.Debug() // Essential for seeing logs in Visual Studio Output window
@@ -90,6 +93,7 @@ public static class LoggingConfigurator
             .ReadFrom.Services(services)                   // 2. Allow Serilog to access DI services
             .MinimumLevel.ControlledBy(LogSwitchService.SharedSwitch) // 3. Re-attach the master switch for runtime changes
             .Enrich.FromLogContext()
+            .Enrich.With(RedactionEnricher)
             .Enrich.WithMachineName()
             .Enrich.WithThreadId()
             .WriteTo.Console()

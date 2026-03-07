@@ -70,7 +70,10 @@ public sealed class PasswordPromptViewModel : PasswordPromptViewModelBase
 
     protected override async Task<bool> ConfirmCoreAsync()
     {
-        if (!ValidateRequired(Password, GetRequiredErrorMessage(), out var requiredError))
+        var candidatePassword = Password;
+        Password = string.Empty;
+
+        if (!ValidateRequired(candidatePassword, GetRequiredErrorMessage(), out var requiredError))
         {
             SetError(requiredError);
             return false;
@@ -78,7 +81,7 @@ public sealed class PasswordPromptViewModel : PasswordPromptViewModelBase
 
         if (ValidatePasswordAsync != null)
         {
-            var validationError = await ValidatePasswordAsync(Password);
+            var validationError = await ValidatePasswordAsync(candidatePassword);
             if (!string.IsNullOrWhiteSpace(validationError))
             {
                 SetError(validationError);
@@ -86,7 +89,7 @@ public sealed class PasswordPromptViewModel : PasswordPromptViewModelBase
             }
         }
 
-        PasswordConfirmed?.Invoke(this, Password);
+        PasswordConfirmed?.Invoke(this, candidatePassword);
         return true;
     }
 

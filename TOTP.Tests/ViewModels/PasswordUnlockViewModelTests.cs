@@ -115,6 +115,31 @@ public sealed class PasswordUnlockViewModelTests
         await WaitUntilAsync(() => vm.Message == UI.ui_Password_VerificationFailed);
 
         Assert.Equal(UI.ui_Password_VerificationFailed, vm.Message);
+        Assert.Equal(string.Empty, vm.Password);
+    }
+
+    [Fact]
+    public async Task UnlockCommand_WhenSetupValidationFails_ClearsEnteredPasswords()
+    {
+        var vm = CreateSut(out _, out var validator);
+        vm.EnterSetupMode();
+        vm.Password = "short";
+        vm.ConfirmPassword = "nope";
+
+        validator.Setup(v => v.ValidateNewWithConfirmation(
+                "short",
+                "nope",
+                UI.ui_Password_Required,
+                UI.ui_Password_MinLength_Format,
+                UI.ui_Password_ConfirmRequired,
+                UI.ui_Password_Mismatch))
+            .Returns(new PasswordValidationResult { ConfirmPasswordError = "mismatch" });
+
+        vm.UnlockCommand.Execute(null);
+        await WaitUntilAsync(() => vm.Message == "mismatch");
+
+        Assert.Equal(string.Empty, vm.Password);
+        Assert.Equal(string.Empty, vm.ConfirmPassword);
     }
 
     [Fact]

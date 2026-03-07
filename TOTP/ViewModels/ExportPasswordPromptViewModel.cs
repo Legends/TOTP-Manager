@@ -101,7 +101,10 @@ public sealed class ExportPasswordPromptViewModel : PasswordPromptViewModelBase
     {
         if (UseMasterPassword)
         {
-            if (!ValidateRequired(MasterPassword, UI.ui_ExportPasswordRequired, out var requiredError))
+            var enteredMasterPassword = MasterPassword;
+            MasterPassword = string.Empty;
+
+            if (!ValidateRequired(enteredMasterPassword, UI.ui_ExportPasswordRequired, out var requiredError))
             {
                 SetError(requiredError);
                 return false;
@@ -109,7 +112,7 @@ public sealed class ExportPasswordPromptViewModel : PasswordPromptViewModelBase
 
             if (ValidateMasterPasswordAsync != null)
             {
-                var isValid = await ValidateMasterPasswordAsync(MasterPassword);
+                var isValid = await ValidateMasterPasswordAsync(enteredMasterPassword);
                 if (!isValid)
                 {
                     SetError(UI.ui_ExportPwd_WrongMasterPassword);
@@ -117,14 +120,19 @@ public sealed class ExportPasswordPromptViewModel : PasswordPromptViewModelBase
                 }
             }
 
-            SelectedPassword = MasterPassword;
+            SelectedPassword = enteredMasterPassword;
             PasswordConfirmed?.Invoke(this, SelectedPassword);
             return true;
         }
 
+        var enteredCustomPassword = CustomPassword;
+        var enteredCustomPasswordConfirmation = ConfirmCustomPassword;
+        CustomPassword = string.Empty;
+        ConfirmCustomPassword = string.Empty;
+
         var isValidCustomPassword = ValidateNewWithConfirmation(
-            CustomPassword,
-            ConfirmCustomPassword,
+            enteredCustomPassword,
+            enteredCustomPasswordConfirmation,
             UI.ui_Password_Required,
             UI.ui_Password_MinLength_Format,
             UI.ui_ExportPasswordRequired,
@@ -137,7 +145,7 @@ public sealed class ExportPasswordPromptViewModel : PasswordPromptViewModelBase
             return false;
         }
 
-        SelectedPassword = CustomPassword;
+        SelectedPassword = enteredCustomPassword;
         PasswordConfirmed?.Invoke(this, SelectedPassword);
         return true;
     }
