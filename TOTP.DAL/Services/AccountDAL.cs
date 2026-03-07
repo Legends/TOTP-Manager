@@ -29,6 +29,11 @@ public sealed class AccountDAL : IAccountDAL
         {
             Directory.CreateDirectory(directory);
         }
+
+        if (directory != null)
+        {
+            TryHardenDirectory(directory);
+        }
     }
 
     public async Task<Result<List<Account>>> GetAllAsync()
@@ -60,6 +65,7 @@ public sealed class AccountDAL : IAccountDAL
             var data = await GetAllInternalAsync();
             byte[] blob = _vaultService.EncryptVault(data);
             await File.WriteAllBytesAsync(targetPath, blob);
+            TryHardenFile(targetPath);
             return Result.Ok();
         }
         catch (Exception ex)
@@ -109,6 +115,7 @@ public sealed class AccountDAL : IAccountDAL
             string tempPath = _secretsPath + ".tmp";
             await File.WriteAllBytesAsync(tempPath, blob);
             File.Move(tempPath, _secretsPath, overwrite: true);
+            TryHardenFile(_secretsPath);
 
             return Result.Ok();
         }
@@ -164,6 +171,7 @@ public sealed class AccountDAL : IAccountDAL
                 }
 
                 File.Copy(_secretsPath, Path.Combine(dir, $"{fileName}.bak1"), true);
+                TryHardenFile(Path.Combine(dir, $"{fileName}.bak1"));
                 return Result.Ok();
             }
             catch (Exception ex)
@@ -190,5 +198,29 @@ public sealed class AccountDAL : IAccountDAL
     public void Dispose()
     {
         _semaphore.Dispose();
+    }
+
+    private void TryHardenDirectory(string directoryPath)
+    {
+        try
+        {
+            WindowsFileSecurityHardener.RestrictDirectoryToCurrentUser(directoryPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unable to harden directory ACLs for OTP storage path.");
+        }
+    }
+
+    private void TryHardenFile(string filePath)
+    {
+        try
+        {
+            WindowsFileSecurityHardener.RestrictFileToCurrentUser(filePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unable to harden file ACLs for sensitive file {Path}.", filePath);
+        }
     }
 }

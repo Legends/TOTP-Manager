@@ -28,6 +28,10 @@ public sealed class MasterPasswordService : IMasterPasswordService
 
     private const int SaltSize = 16;
     private const int NonceSize = 12;
+    private const int MinPasses = 1;
+    private const int MaxPasses = 10;
+    private const int MinMemorySizeKiB = 8;
+    private const int MaxMemorySizeKiB = 256 * 1024;
 
     public MasterPasswordService(ILogger<MasterPasswordService> logger)
     {
@@ -95,10 +99,15 @@ public sealed class MasterPasswordService : IMasterPasswordService
         {
             try
             {
-                // Safety check for memory range (NSec minimum is 8 KiB)
-                if (memorySize < 8)
+                if (!IsValidStoredParameters(wrappedDek, salt, iterations, memorySize, nonce))
                 {
-                    _logger.LogError("Stored vault memory size ({Size} KiB) is corrupted or too low.", memorySize);
+                    _logger.LogError(
+                        "Stored key-wrap parameters rejected. Iterations={Iterations}, MemorySize={MemorySize}KiB, SaltLength={SaltLength}, NonceLength={NonceLength}, WrappedLength={WrappedLength}",
+                        iterations,
+                        memorySize,
+                        salt?.Length ?? 0,
+                        nonce?.Length ?? 0,
+                        wrappedDek?.Length ?? 0);
                     return null;
                 }
 
@@ -143,5 +152,30 @@ public sealed class MasterPasswordService : IMasterPasswordService
             throw new ArgumentException("DEK cannot be empty.", nameof(rawDek));
         if (string.IsNullOrWhiteSpace(password))
             throw new ArgumentException("Password cannot be empty.", nameof(password));
+    }
+
+    private static bool IsValidStoredParameters(byte[] wrappedDek, byte[] salt, int iterations, int memorySize, byte[] nonce)
+    {
+        if (wrappedDek == null || salt == null || nonce == null)
+        {
+            return false;
+        }
+
+        if (iterations < MinPasses || iterations > MaxPasses)
+        {
+            return false;
+        }
+
+        if (memorySize < MinMemorySizeKiB || memorySize > MaxMemorySizeKiB)
+        {
+            return false;
+        }
+
+        if (salt.Length != SaltSize || nonce.Length != NonceSize)
+        {
+            return false;
+        }
+
+        return wrappedDek.Length >= AeadAlgorithm.Aes256Gcm.TagSize;
     }
 }

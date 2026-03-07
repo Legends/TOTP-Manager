@@ -14,6 +14,7 @@ jobs:
 
     env:
       SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+      SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
       SYNCFUSION_LICENSE: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
 
     steps:
@@ -49,6 +50,7 @@ jobs:
 
     env:
       SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+      SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
       SYNCFUSION_LICENSE: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
 
     steps:
@@ -73,6 +75,11 @@ jobs:
             -p:IncludeAllContentForSelfExtract=true `
             -p:PublishTrimmed=false `
             --output publish
+
+      - name: Sign published executable
+        shell: pwsh
+        run: |
+          ./TOTP/Properties/Signing/Sign-App.ps1 -ExePath ./publish/TOTP.UI.WPF.exe
 
       - name: Compress app into zip
         run: Compress-Archive -Path publish\* -DestinationPath TOTP-Manager.zip

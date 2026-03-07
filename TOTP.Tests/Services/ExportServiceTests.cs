@@ -63,6 +63,21 @@ public sealed class ExportServiceTests
     }
 
     [Fact]
+    public async Task ImportFromFileAsync_WhenFileTooLarge_ReturnsInvalidFileError()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "oversized.json");
+        var oversized = new string('A', 6 * 1024 * 1024);
+        await File.WriteAllTextAsync(path, oversized, cancellationToken);
+
+        var result = await _sut.ImportFromFileAsync(path);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.ImportInvalidFile, result.GetErrorCode());
+    }
+
+    [Fact]
     public async Task ImportFromFileAsync_WhenEncryptedWithoutPassword_ReturnsWrongPasswordError()
     {
         using var temp = new TempDir();
@@ -125,6 +140,20 @@ public sealed class ExportServiceTests
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "invalid.totp");
         await File.WriteAllBytesAsync(path, "not-a-valid-header"u8.ToArray(), cancellationToken);
+
+        var result = await _sut.ImportFromEncryptedFileAsync("pw", path);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.ImportInvalidFile, result.GetErrorCode());
+    }
+
+    [Fact]
+    public async Task ImportFromEncryptedFileAsync_WhenFileTooLarge_ReturnsInvalidFile()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "oversized.totp");
+        await File.WriteAllBytesAsync(path, new byte[6 * 1024 * 1024], cancellationToken);
 
         var result = await _sut.ImportFromEncryptedFileAsync("pw", path);
 

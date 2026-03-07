@@ -49,13 +49,12 @@ appsettings.*.json
 
 # Publish artifacts
 *.publishsettings
-#*.pfx
+*.pfx
 *.key
 *.cer
 
 # Signing certificate
-#*.pfx
-#*.snk
+cert.txt
 
 # Others
 _ReSharper*/

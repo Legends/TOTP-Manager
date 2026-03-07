@@ -16,6 +16,7 @@ public sealed class ExportService : IExportService
 {
     private static readonly byte[] MagicBytes = Encoding.ASCII.GetBytes("TOTP");
     private const int SaltSize = 16;
+    private const long MaxImportFileBytes = 5 * 1024 * 1024; // 5 MiB hard limit to reduce parser/DoS risk.
 
     private static readonly Argon2Parameters _argonParameters = new()
     {
@@ -37,6 +38,12 @@ public sealed class ExportService : IExportService
     {
         try
         {
+            var sizeValidation = ValidateImportFileSize(filePath);
+            if (sizeValidation.IsFailed)
+            {
+                return Result.Fail(sizeValidation.Errors);
+            }
+
             var extension = Path.GetExtension(filePath);
             if (extension.Equals(".totp", StringComparison.OrdinalIgnoreCase))
             {
@@ -120,9 +127,16 @@ public sealed class ExportService : IExportService
     public async Task<Result<List<Account>>> ImportFromEncryptedFileAsync(string password, string filePath)
     {
         byte[]? passwordBytes = null;
+        byte[]? decryptedBytes = null;
 
         try
         {
+            var sizeValidation = ValidateImportFileSize(filePath);
+            if (sizeValidation.IsFailed)
+            {
+                return Result.Fail(sizeValidation.Errors);
+            }
+
             var fileBytes = await File.ReadAllBytesAsync(filePath);
             int nonceSize = _algoAead.NonceSize;
             int legacyHeaderSize = MagicBytes.Length + SaltSize + nonceSize;
@@ -158,7 +172,7 @@ public sealed class ExportService : IExportService
             passwordBytes = Encoding.UTF8.GetBytes(password);
             using var key = _kdf.DeriveKey(passwordBytes, salt, _algoAead);
 
-            byte[] decryptedBytes = new byte[encryptedData.Length - _algoAead.TagSize];
+            decryptedBytes = new byte[encryptedData.Length - _algoAead.TagSize];
             if (!_algoAead.Decrypt(key, nonce, default, encryptedData, decryptedBytes))
             {
                 return Result.Fail(new AppError(AppErrorCode.ImportWrongPasswordOrTampered, "Import decryption failed."));
@@ -175,6 +189,7 @@ public sealed class ExportService : IExportService
         finally
         {
             if (passwordBytes != null) Array.Clear(passwordBytes, 0, passwordBytes.Length);
+            if (decryptedBytes != null) Array.Clear(decryptedBytes, 0, decryptedBytes.Length);
         }
     }
 
@@ -339,4 +354,16 @@ public sealed class ExportService : IExportService
         return false;
     }
 
+    private static Result ValidateImportFileSize(string filePath)
+    {
+        var info = new FileInfo(filePath);
+        if (info.Exists && info.Length > MaxImportFileBytes)
+        {
+            return Result.Fail(new AppError(
+                AppErrorCode.ImportInvalidFile,
+                $"Import file exceeds maximum allowed size ({MaxImportFileBytes / (1024 * 1024)} MiB)."));
+        }
+
+        return Result.Ok();
+    }
 }

@@ -109,6 +109,7 @@
 		<Content Include="totp.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+		<None Include="..\CONTRIBUTING.md" Link="CONTRIBUTING.md" />
 		<None Include="..\readme.md" Link="readme.md" />
 		<Page Include="App.xaml" />
 		<ProjectReference Include="..\TOTP.Core\TOTP.Core.csproj" />

@@ -3,6 +3,13 @@
 ## Goal
 Require security and quality checks before merge to `master`.
 
+## Branching and Merge Policy
+- Trunk-based development: `master` is the single integration branch.
+- Use short-lived branches only when needed and integrate back quickly.
+- Open PR to `master` for review and checks.
+- Required checks must pass before merge.
+- Direct pushes to protected branches are disallowed by policy.
+
 ## Required Checks
 - `build-test`
 - `sast-codeql`

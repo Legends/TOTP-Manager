@@ -27,9 +27,7 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
             throw new ArgumentException("Path required.", nameof(storageFilePath));
 
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        //_path = storageFilePath;
-
-        _path = storageFilePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TOTP-Manager", "settings.totp");
+        _path = storageFilePath;
         _path = Environment.ExpandEnvironmentVariables(_path);
 
         var directory = Path.GetDirectoryName(_path);
@@ -37,7 +35,11 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
         {
             Directory.CreateDirectory(directory);
         }
-       
+
+        if (directory != null)
+        {
+            TryHardenDirectory(directory);
+        }
     }
 
     public async Task<Result<IAppSettings?>> LoadAsync()
@@ -90,6 +92,7 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
 
             // 3. Atomic Write
             await File.WriteAllBytesAsync(_path, encryptedBytes);
+            TryHardenFile(_path);
             return Result.Ok();
         }
         catch (Exception ex)
@@ -103,5 +106,29 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
     public void Dispose()
     {
         _lock.Dispose();
+    }
+
+    private void TryHardenDirectory(string directoryPath)
+    {
+        try
+        {
+            WindowsFileSecurityHardener.RestrictDirectoryToCurrentUser(directoryPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unable to harden directory ACLs for app settings path.");
+        }
+    }
+
+    private void TryHardenFile(string filePath)
+    {
+        try
+        {
+            WindowsFileSecurityHardener.RestrictFileToCurrentUser(filePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unable to harden file ACLs for settings file.");
+        }
     }
 }
