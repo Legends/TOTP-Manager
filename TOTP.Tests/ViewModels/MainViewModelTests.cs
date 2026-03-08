@@ -574,6 +574,7 @@ public sealed class MainViewModelTests : IDisposable
                 FileDialogs.Object,
                 PasswordPrompt.Object,
                 QrPreview.Object,
+                ScannerWarmup.Object,
                 Session.Object,
                 unlockVm,
                 () => QrScannerDialog.Object,
@@ -587,6 +588,7 @@ public sealed class MainViewModelTests : IDisposable
         public Mock<IClipboardService> Clipboard { get; } = new();
         public Mock<IDebounceService> Debounce { get; } = new();
         public Mock<IQrPreviewService> QrPreview { get; } = new();
+        public Mock<IScannerWarmupService> ScannerWarmup { get; } = new();
         public Mock<ISettingsDialogOrchestrationService> SettingsDialog { get; } = new();
         public Mock<IMainViewSessionController> Session { get; } = new();
         public Mock<ISettingsService> SettingsService { get; } = new();
