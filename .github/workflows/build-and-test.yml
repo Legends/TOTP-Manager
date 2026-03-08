@@ -122,6 +122,7 @@ jobs:
         shell: pwsh
         run: |
           $required = @(
+            "publish/appsettings.json",
             "publish/TOTP.Splash.exe",
             "publish/TOTP.Splash.dll",
             "publish/TOTP.Splash.deps.json",

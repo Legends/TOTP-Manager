@@ -28,7 +28,7 @@
 
 	<PropertyGroup>
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-		<_SuppressWpfTrimError>true</_SuppressWpfTrimError>
+	 
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -60,6 +60,8 @@
 	<ItemGroup>
 		<Content Include="appsettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 		</Content>
 	</ItemGroup>
 
