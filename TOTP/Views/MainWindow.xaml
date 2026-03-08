@@ -42,6 +42,10 @@
         <KeyBinding Modifiers="Control" 
                     Key="A" 
                     Command="{Binding OpenFlyoutAddModeCommand}" />
+        <KeyBinding Modifiers="Control"
+                    Key="E"
+                    Command="{Binding OpenFlyoutEditModeCommand}"
+                    CommandParameter="{Binding SelectedAccount}" />
     </Window.InputBindings>
 
     <i:Interaction.Triggers>
@@ -85,27 +89,7 @@
 
             <components:MainToolbarSection />
             <Grid Margin="0,2,0,0">
-                <ContentControl x:Name="AccountsSectionHost" />
-                <Border x:Name="AccountsSectionPlaceholder"
-                        Background="#13243B"
-                        CornerRadius="8"
-                        Margin="8,4,8,8"
-                        Padding="14"
-                        BorderBrush="#2F4D79"
-                        BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Text="Preparing accounts grid..."
-                                   Foreground="#D9E6FF"
-                                   FontWeight="SemiBold"
-                                   FontSize="13" />
-                        <ProgressBar IsIndeterminate="True"
-                                     Height="4"
-                                     Margin="0,10,0,0"
-                                     Foreground="#6EA8FE"
-                                     Background="#203C63"
-                                     BorderThickness="0" />
-                    </StackPanel>
-                </Border>
+                <components:AccountsSection x:Name="AccountsSectionControl" />
             </Grid>
         </StackPanel>
 

@@ -102,9 +102,11 @@ These are the primary workflows in the app.
 ### Update account
 
 1. Select an account.
-2. Right-click the row and choose `Edit` for full edit.
-3. For quick inline edit, double-click the row to edit only the issuer name.
-4. Save changes.
+2. Press `Ctrl + E` to open the full edit flyout for the selected row.
+3. If no row is selected, `Ctrl + E` does nothing.
+4. Right-click the row and choose `Edit` for full edit.
+5. For quick inline edit, double-click the row to edit only the issuer name.
+6. Save changes.
 
 ### Delete account
 

@@ -206,6 +206,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
             OnPropertyChanged();
 
             SaveEditFlyoutAsyncCommand?.RaiseCanExecuteChanged();
+            if (OpenFlyoutEditModeCommand is RelayCommand<OtpViewModel> openFlyoutEditModeCommand)
+                openFlyoutEditModeCommand.RaiseCanExecuteChanged();
             if (CancelFlyoutCommand is RelayCommand cancelFlyoutCommand)
                 cancelFlyoutCommand.RaiseCanExecuteChanged();
         }
@@ -334,6 +336,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
             _isGridInEditMode = value;
             OnPropertyChanged();
             OpenFlyoutAddModeCommand.RaiseCanExecuteChanged();
+            if (OpenFlyoutEditModeCommand is RelayCommand<OtpViewModel> openFlyoutEditModeCommand)
+                openFlyoutEditModeCommand.RaiseCanExecuteChanged();
             ToggleSearchBoxCommand.RaiseCanExecuteChanged();
             ScanQrAndAddCommand.RaiseCanExecuteChanged();
             ExportSecretsCommand?.RaiseCanExecuteChanged();
@@ -362,6 +366,9 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
                 if (GenerateQrCommand is RelayCommand<OtpViewModel> generateQrCommand)
                     generateQrCommand.RaiseCanExecuteChanged();
+
+                if (OpenFlyoutEditModeCommand is RelayCommand<OtpViewModel> openFlyoutEditModeCommand)
+                    openFlyoutEditModeCommand.RaiseCanExecuteChanged();
             }
         }
     }
