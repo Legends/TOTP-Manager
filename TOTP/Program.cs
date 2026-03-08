@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -228,15 +229,41 @@ internal static class Program
 
     private static SplashProcessHandle StartSplashProcess()
     {
+        var cmd0 = Environment.GetCommandLineArgs().FirstOrDefault();
+        var commandLineDir = Path.GetDirectoryName(cmd0);
         var processDir = Path.GetDirectoryName(Environment.ProcessPath);
-        var primarySplashExePath = string.IsNullOrWhiteSpace(processDir)
-            ? string.Empty
-            : Path.Combine(processDir, "TOTP.Splash.exe");
-        var extractedSplashExePath = Path.Combine(AppContext.BaseDirectory, "TOTP.Splash.exe");
+        var currentDir = Directory.GetCurrentDirectory();
 
-        var splashExePath = File.Exists(primarySplashExePath)
-            ? primarySplashExePath
-            : extractedSplashExePath;
+        var candidates = new List<string>();
+        if (!string.IsNullOrWhiteSpace(commandLineDir))
+        {
+            candidates.Add(Path.Combine(commandLineDir, "TOTP.Splash.exe"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(processDir))
+        {
+            candidates.Add(Path.Combine(processDir, "TOTP.Splash.exe"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(currentDir))
+        {
+            candidates.Add(Path.Combine(currentDir, "TOTP.Splash.exe"));
+        }
+
+        candidates.Add(Path.Combine(AppContext.BaseDirectory, "TOTP.Splash.exe"));
+
+        var existingCandidates = candidates
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(File.Exists)
+            .ToList();
+
+        var splashExePath = existingCandidates
+            .FirstOrDefault(path => !path.Contains("\\AppData\\Local\\Temp\\.net\\", StringComparison.OrdinalIgnoreCase))
+            ?? existingCandidates.FirstOrDefault()
+            ?? string.Empty;
+
+        WriteEarlyStartupTraceToFile(
+            $"startup.splash.path.select cmd0={cmd0} process_dir={processDir} current_dir={currentDir} appcontext_base={AppContext.BaseDirectory} selected={splashExePath} existing={string.Join(";", existingCandidates)}");
 
         if (!File.Exists(splashExePath))
         {
@@ -267,6 +294,20 @@ internal static class Program
             Directory.CreateDirectory(StringsConstants.AppLogDirectoryPath);
             var line =
                 $"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz} [WRN] {message}{Environment.NewLine}{ex}{Environment.NewLine}";
+            File.AppendAllText(StringsConstants.AppLogFilePath, line);
+        }
+        catch
+        {
+            // Best-effort fallback logging only.
+        }
+    }
+
+    private static void WriteEarlyStartupTraceToFile(string message)
+    {
+        try
+        {
+            Directory.CreateDirectory(StringsConstants.AppLogDirectoryPath);
+            var line = $"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz} [INF] {message}{Environment.NewLine}";
             File.AppendAllText(StringsConstants.AppLogFilePath, line);
         }
         catch
