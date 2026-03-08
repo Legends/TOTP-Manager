@@ -264,9 +264,6 @@ public partial class MainViewModel
 
     private void OnDoubleClick(OtpViewModel item)
     {
-        _isDoubleClick = true;
-        Debug.WriteLine("***** _isDoubleClick = true;  ***");
-
         foreach (var s in AllOtps)
             s.IsBeingEdited = false;
 

@@ -20,14 +20,12 @@ public partial class MainViewModel
 {
     #region ### Row/Field Grid Selection  ###
 
-    private bool _isDoubleClick;
-
-    public async Task OnRowSelectionChangedAsync(OtpViewModel? selectedSecretItem)
+    public Task OnRowSelectionChangedAsync(OtpViewModel? selectedSecretItem)
     {
         if (selectedSecretItem == null)
         {
             Debug.WriteLine("OnRowSelectionChangedAsync - early return");
-            return;
+            return Task.CompletedTask;
         }
 
         if (SelectedAccount != null && IsInlineEditing && SelectedAccount.ID != selectedSecretItem.ID)
@@ -36,22 +34,11 @@ public partial class MainViewModel
         if (IsGridEditing || IsInlineEditing)
         {
             Debug.WriteLine("OnRowSelectionChangedAsync - early return");
-            return;
-        }
-
-        _isDoubleClick = false;
-        await Task.Delay(300);
-
-        if (_isDoubleClick)
-        {
-            if (SelectedAccount == null)
-                TotpUiTimer?.Dispose();
-
-            return;
+            return Task.CompletedTask;
         }
 
         if (SelectedAccount?.ID == selectedSecretItem.ID)
-            return;
+            return Task.CompletedTask;
 
         SelectedAccount = ComputeTotpCode(selectedSecretItem, out _activeTotp);
         CopyTotpCodeToClipboard();
@@ -79,10 +66,8 @@ public partial class MainViewModel
             _logger.LogError(e, UI.ex_Selecting_Secret);
             _messageService.ShowError(UI.ex_Selecting_Secret + ": " + e.Message);
         }
-        finally
-        {
-            _isDoubleClick = false;
-        }
+
+        return Task.CompletedTask;
     }
 
     #endregion
