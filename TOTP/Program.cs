@@ -117,8 +117,18 @@ internal static class Program
                 return Task.CompletedTask;
             }
 
-            using var splashHandle = StartSplashProcess();
-            Log.Information("startup.splash.process.started");
+            SplashProcessHandle? splashHandle = null;
+            try
+            {
+                splashHandle = StartSplashProcess();
+                Log.Information("startup.splash.process.started");
+            }
+            catch (Exception ex)
+            {
+                // Splash is non-critical. Continue startup without it.
+                Log.Warning(ex, "startup.splash.process.failed");
+                WriteEarlyStartupFailureToFile("startup.splash.process.failed", ex);
+            }
 
             var configuration = Task.Run(BootLoader.BuildConfiguration).GetAwaiter().GetResult();
             BootLoader.SetCulture(configuration);
@@ -192,10 +202,11 @@ internal static class Program
                 timing.MainVmInitializedMs,
                 timing.LoadedEndMs);
 
-            splashHandle.CloseSplash();
+            splashHandle?.CloseSplash();
             Log.Information("startup.splash.process.closed elapsed_ms={ElapsedMs}", timing.Stopwatch.ElapsedMilliseconds);
 
             app.Run();
+            splashHandle?.Dispose();
             return Task.CompletedTask;
         }
         catch (Exception ex)
@@ -238,5 +249,20 @@ internal static class Program
 
         var process = Process.Start(psi) ?? throw new InvalidOperationException("Failed to launch splash process.");
         return new SplashProcessHandle(closeEvent, process);
+    }
+
+    private static void WriteEarlyStartupFailureToFile(string message, Exception ex)
+    {
+        try
+        {
+            Directory.CreateDirectory(StringsConstants.AppLogDirectoryPath);
+            var line =
+                $"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz} [WRN] {message}{Environment.NewLine}{ex}{Environment.NewLine}";
+            File.AppendAllText(StringsConstants.AppLogFilePath, line);
+        }
+        catch
+        {
+            // Best-effort fallback logging only.
+        }
     }
 }
