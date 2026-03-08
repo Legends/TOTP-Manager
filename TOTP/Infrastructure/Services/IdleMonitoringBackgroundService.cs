@@ -32,43 +32,50 @@ public sealed class IdleMonitoringBackgroundService : BackgroundService, IActivi
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var profileResult = await _settingsService.LoadAsync();
-        if (profileResult.IsFailed)
+        try
         {
-            _logger.LogWarning("Failed to load settings for idle monitoring. Using in-memory defaults.");
+            var profileResult = await _settingsService.LoadAsync();
+            if (profileResult.IsFailed)
+            {
+                _logger.LogWarning("Failed to load settings for idle monitoring. Using in-memory defaults.");
+            }
+
+            // Periodic check every 5 seconds is sufficient for idle timeout.
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+            {
+                var isUnlocked = _authService.State.IsUnlocked;
+
+                // Freshly unlocked session should start a new idle window.
+                if (isUnlocked && !_wasUnlocked)
+                {
+                    RecordActivity();
+                }
+
+                _wasUnlocked = isUnlocked;
+
+                if (!isUnlocked)
+                {
+                    continue;
+                }
+
+                var timeout = _settingsService.Current?.IdleTimeout ?? AppSettings.DefaultIdleTimeout;
+                if (timeout <= TimeSpan.Zero)
+                {
+                    continue;
+                }
+
+                if (DateTime.UtcNow - LastActivity >= timeout)
+                {
+                    _logger.LogInformation("Idle timeout reached ({Timeout}). Locking app.", timeout);
+                    _authService.Lock();
+                }
+            }
         }
-
-        // Periodic check every 5 seconds is sufficient for idle timeout.
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
-
-        while (await timer.WaitForNextTickAsync(stoppingToken))
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-            var isUnlocked = _authService.State.IsUnlocked;
-
-            // Freshly unlocked session should start a new idle window.
-            if (isUnlocked && !_wasUnlocked)
-            {
-                RecordActivity();
-            }
-
-            _wasUnlocked = isUnlocked;
-
-            if (!isUnlocked)
-            {
-                continue;
-            }
-
-            var timeout = _settingsService.Current?.IdleTimeout ?? AppSettings.DefaultIdleTimeout;
-            if (timeout <= TimeSpan.Zero)
-            {
-                continue;
-            }
-
-            if (DateTime.UtcNow - LastActivity >= timeout)
-            {
-                _logger.LogInformation("Idle timeout reached ({Timeout}). Locking app.", timeout);
-                _authService.Lock();
-            }
+            _logger.LogDebug("Idle monitoring service canceled.");
         }
     }
 }

@@ -26,10 +26,6 @@
 		<Page Remove=".github\**" />
 	</ItemGroup>
 
-	<!--<ItemGroup>
-		<Reference Include="WindowsFormsIntegration" />
-	</ItemGroup>-->
-
 	<PropertyGroup>
 		<IncludeNativeLibrariesForSelfExtract>false</IncludeNativeLibrariesForSelfExtract>
 		<_SuppressWpfTrimError>true</_SuppressWpfTrimError>
@@ -204,10 +200,10 @@
 
 	<Target Name="PublishSplashProject"
 	        AfterTargets="Publish"
-	        Condition="'$(SelfContained)' == 'true' and '$(RuntimeIdentifier)' != ''">
+	        Condition="'$(PublishDir)' != ''">
 		<MSBuild Projects="..\TOTP.Splash\TOTP.Splash.csproj"
-		         Targets="Publish"
-		         Properties="Configuration=$(Configuration);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishSingleFile=false;PublishDir=$(PublishDir)" />
+		         Targets="Restore;Publish"
+		         Properties="Configuration=$(Configuration);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishSingleFile=false;PublishDir=$(PublishDir);PublishProfile=" />
 	</Target>
 	
 </Project>
