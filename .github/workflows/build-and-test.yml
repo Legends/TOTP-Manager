@@ -5,8 +5,32 @@ on:
     branches: [master]
     tags:
       - 'v*'  # This triggers release publishing only when a tag is pushed
+    paths:
+      - '.github/workflows/**'
+      - 'NuGet.config'
+      - '*.sln'
+      - '**/*.csproj'
+      - 'TOTP/**'
+      - 'TOTP.Core/**'
+      - 'TOTP.DAL/**'
+      - 'TOTP.Infrastructure/**'
+      - 'TOTP.Splash/**'
+      - 'TOTP.Tests/**'
+      - 'scripts/**'
   pull_request:
     branches: [master]
+    paths:
+      - '.github/workflows/**'
+      - 'NuGet.config'
+      - '*.sln'
+      - '**/*.csproj'
+      - 'TOTP/**'
+      - 'TOTP.Core/**'
+      - 'TOTP.DAL/**'
+      - 'TOTP.Infrastructure/**'
+      - 'TOTP.Splash/**'
+      - 'TOTP.Tests/**'
+      - 'scripts/**'
 
 jobs:
   build-test:
@@ -27,30 +51,29 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.sln
+            NuGet.config
 
       - name: Restore with NuGet.config
-        run: dotnet restore TOTP.sln --configfile NuGet.config --source https://api.nuget.org/v3/index.json
+        run: dotnet restore TOTP.sln --nologo --verbosity minimal --configfile NuGet.config --source https://api.nuget.org/v3/index.json
 
       - name: Build solution
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore --nologo --verbosity minimal
 
-      - name: Run tests
-        run: dotnet test --configuration Release --no-build --verbosity normal
-
-      - name: Run security regression tests
+      - name: Run fast tests (PR)
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
-          dotnet test TOTP.Tests/TOTP.Tests.csproj `
-            --configuration Release `
-            --no-build `
-            --filter "FullyQualifiedName~MasterPasswordServiceTests|FullyQualifiedName~ExportServiceTests|FullyQualifiedName~ExportServiceFuzzTests|FullyQualifiedName~SensitiveDataRedactionEnricherTests|FullyQualifiedName~SensitiveTextRedactorTests|FullyQualifiedName~PasswordUnlockViewModelTests|FullyQualifiedName~PasswordPromptViewModelTests|FullyQualifiedName~ExportPasswordPromptViewModelTests|FullyQualifiedName~MainViewModelTests"
+          dotnet test --configuration Release --no-build --nologo --verbosity minimal `
+            --filter "FullyQualifiedName!~Integration&FullyQualifiedName!~IdleMonitoringBackgroundServiceTests&FullyQualifiedName!~UserActivityServiceTests"
+
+      - name: Run full tests (push/tags)
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          dotnet test --configuration Release --no-build --nologo --verbosity minimal `
+            --logger "console;verbosity=minimal"
 
   publish:
     needs: build-test
@@ -72,21 +95,35 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.sln
+            NuGet.config
 
       - name: Restore dependencies
-        run: dotnet restore TOTP/TOTP.UI.WPF.csproj --configfile NuGet.config --source https://api.nuget.org/v3/index.json -r win-x64
+        run: dotnet restore TOTP/TOTP.UI.WPF.csproj --nologo --verbosity minimal --configfile NuGet.config --source https://api.nuget.org/v3/index.json -r win-x64
 
       - name: Publish WPF app
         run: |
           dotnet publish TOTP/TOTP.UI.WPF.csproj `
             --configuration Release `
             --no-restore `
+            --nologo `
+            --verbosity minimal `
             --runtime win-x64 `
             --self-contained true `
             -p:PublishSingleFile=true `
             -p:IncludeAllContentForSelfExtract=true `
             -p:PublishTrimmed=false `
             --output publish
+
+      - name: Cache .NET global tools
+        id: cache-dotnet-tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.dotnet/tools
+          key: ${{ runner.os }}-dotnet-tools-netsparkle-appcastgenerator-v2
 
       - name: Sign published executable
         if: ${{ env.SIGNING_CERT_BASE64 != '' && env.SIGNING_CERT_PASSWORD != '' }}
@@ -104,7 +141,11 @@ jobs:
 
       - name: Install NetSparkle appcast tool
         if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
-        run: dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator
+        run: |
+          dotnet tool list --global | findstr /I "NetSparkleUpdater.Tools.AppCastGenerator" >nul
+          if ($LASTEXITCODE -ne 0) {
+            dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator --verbosity minimal
+          }
 
       - name: Generate appcast for auto-update
         if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
