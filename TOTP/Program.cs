@@ -162,6 +162,7 @@ internal static class Program
             WriteEarlyStartupTraceToFile("startup.mainwindow.created");
             timing.MainWindowShellCreateEndMs = timing.Stopwatch.ElapsedMilliseconds;
             Log.Information("startup.mainwindow.shell.create.end elapsed_ms={ElapsedMs}", timing.MainWindowShellCreateEndMs - timing.MainWindowShellCreateStartMs);
+            var vm = (IMainViewModel)mainWindow.DataContext;
 
             var postShowInitializationStarted = false;
             mainWindow.Loaded += async (_, __) =>
@@ -178,6 +179,11 @@ internal static class Program
                     timing.LoadedStartMs = timing.Stopwatch.ElapsedMilliseconds;
                     Log.Information("startup.mainwindow.loaded.begin");
 
+                    await vm.InitializeMainViewAsync(mainWindow);
+                    WriteEarlyStartupTraceToFile("startup.mainvm.initialized");
+                    timing.MainVmInitializedMs = timing.Stopwatch.ElapsedMilliseconds;
+                    Log.Information("startup.mainvm.initialized elapsed_ms={ElapsedMs}", timing.MainVmInitializedMs - timing.LoadedStartMs);
+
                     await host.StartAsync();
                     hostStarted = true;
                     timing.HostStartedMs = timing.Stopwatch.ElapsedMilliseconds;
@@ -186,20 +192,8 @@ internal static class Program
                     CommandExceptionLogger.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
                     host.Services.GetRequiredService<IScannerWarmupService>().StartWarmupInBackground("program.startup");
 
-                    var loadResult = await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
-                    if (loadResult.IsFailed)
-                    {
-                        throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
-                    }
-
                     timing.SettingsLoadedMs = timing.Stopwatch.ElapsedMilliseconds;
                     Log.Information("startup.settings.loaded elapsed_ms={ElapsedMs}", timing.SettingsLoadedMs - timing.LoadedStartMs);
-
-                    var vm = (IMainViewModel)mainWindow.DataContext;
-                    await vm.InitializeMainViewAsync(mainWindow);
-                    WriteEarlyStartupTraceToFile("startup.mainvm.initialized");
-                    timing.MainVmInitializedMs = timing.Stopwatch.ElapsedMilliseconds;
-                    Log.Information("startup.mainvm.initialized elapsed_ms={ElapsedMs}", timing.MainVmInitializedMs - timing.LoadedStartMs);
 
                     await host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync();
                     WriteEarlyStartupTraceToFile("startup.autoupdate.initialized");
