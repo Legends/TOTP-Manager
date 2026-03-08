@@ -128,17 +128,27 @@ namespace TOTP.ViewModels
         {
             try
             {
-                _cts?.Cancel();
-                _cts?.Dispose();
+                var cts = Interlocked.Exchange(ref _cts, null);
+                if (cts != null)
+                {
+                    try
+                    {
+                        cts.Cancel();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Already disposed by another shutdown path.
+                    }
+
+                    cts.Dispose();
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to dispose QR scanner cancellation token source.");
             }
-            finally
-            {
-                RaiseCommandStates();
-            }
+
+            RaiseCommandStates();
         }
 
         private void RaiseCommandStates()

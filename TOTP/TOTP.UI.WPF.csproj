@@ -121,6 +121,11 @@
 		<Page Include="App.xaml" />
 		<ProjectReference Include="..\TOTP.Core\TOTP.Core.csproj" />
 		<ProjectReference Include="..\TOTP.Infrastructure\TOTP.Infrastructure.csproj" />
+		<ProjectReference Include="..\TOTP.Splash\TOTP.Splash.csproj"
+		                  ReferenceOutputAssembly="false"
+		                  OutputItemType="Content"
+		                  CopyToOutputDirectory="PreserveNewest"
+		                  CopyToPublishDirectory="PreserveNewest" />
 		<Resource Include="Assets\backgrounds\background-main.png" />
 		<Resource Include="Assets\flags\de.png" />
 		<Resource Include="Assets\flags\en.png" />
@@ -196,5 +201,13 @@
 		<Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;" StandardOutputImportance="High" StandardErrorImportance="High" IgnoreExitCode="false" />
 		<Message Text="🔥 PostBuildSign target invoked" Importance="High" />
 	</Target>-->
+
+	<Target Name="PublishSplashProject"
+	        AfterTargets="Publish"
+	        Condition="'$(SelfContained)' == 'true' and '$(RuntimeIdentifier)' != ''">
+		<MSBuild Projects="..\TOTP.Splash\TOTP.Splash.csproj"
+		         Targets="Publish"
+		         Properties="Configuration=$(Configuration);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishSingleFile=false;PublishDir=$(PublishDir)" />
+	</Target>
 	
 </Project>

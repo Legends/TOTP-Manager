@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Infrastructure", "TOTP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.DAL", "TOTP.DAL\TOTP.DAL.csproj", "{C45E29BB-0ADD-489C-8B10-7469FF5129C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Splash", "TOTP.Splash\TOTP.Splash.csproj", "{8D70365A-FE5B-4F56-B930-9CE37C77BB34}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{C45E29BB-0ADD-489C-8B10-7469FF5129C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C45E29BB-0ADD-489C-8B10-7469FF5129C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C45E29BB-0ADD-489C-8B10-7469FF5129C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D70365A-FE5B-4F56-B930-9CE37C77BB34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D70365A-FE5B-4F56-B930-9CE37C77BB34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D70365A-FE5B-4F56-B930-9CE37C77BB34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D70365A-FE5B-4F56-B930-9CE37C77BB34}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

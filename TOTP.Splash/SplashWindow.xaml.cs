@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace TOTP.Views;
+namespace TOTP.Splash;
 
 public partial class SplashWindow : Window
 {
@@ -13,6 +13,6 @@ public partial class SplashWindow : Window
     protected override void OnContentRendered(EventArgs e)
     {
         base.OnContentRendered(e);
-        Serilog.Log.Information("SplashWindow - ContentRendered");
+        DebugLog.Write("SplashWindow - ContentRendered");
     }
 }
