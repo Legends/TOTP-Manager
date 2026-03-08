@@ -27,7 +27,7 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<IncludeNativeLibrariesForSelfExtract>false</IncludeNativeLibrariesForSelfExtract>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 		<_SuppressWpfTrimError>true</_SuppressWpfTrimError>
 	</PropertyGroup>
 
