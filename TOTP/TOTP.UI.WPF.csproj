@@ -202,8 +202,8 @@
 	        AfterTargets="Publish"
 	        Condition="'$(PublishDir)' != ''">
 		<MSBuild Projects="..\TOTP.Splash\TOTP.Splash.csproj"
-		         Targets="Restore;Publish"
-		         Properties="Configuration=$(Configuration);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishSingleFile=true;IncludeAllContentForSelfExtract=true;IncludeNativeLibrariesForSelfExtract=true;PublishTrimmed=false;PublishDir=$(PublishDir);PublishProfile=" />
+		         Targets="Publish"
+		         Properties="Configuration=$(Configuration);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishSingleFile=true;IncludeAllContentForSelfExtract=true;IncludeNativeLibrariesForSelfExtract=true;PublishTrimmed=false;NoRestore=true;Restore=false;PublishDir=$(PublishDir);PublishProfile=" />
 	</Target>
 	
 </Project>
