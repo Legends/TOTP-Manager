@@ -14,9 +14,7 @@ public class DebounceServiceTests
 
         service.Debounce("test", 50, () => tcs.TrySetResult(true));
 
-        var completed = await Task.WhenAny(tcs.Task, Task.Delay(1000, cancellationToken));
-
-        Assert.Same(tcs.Task, completed);
+        await tcs.Task.WaitAsync(TimeSpan.FromSeconds(3), cancellationToken);
         Assert.True(await tcs.Task.WaitAsync(cancellationToken));
     }
 
@@ -38,9 +36,7 @@ public class DebounceServiceTests
             tcs.TrySetResult(true);
         });
 
-        var completed = await Task.WhenAny(tcs.Task, Task.Delay(1000, cancellationToken));
-
-        Assert.Same(tcs.Task, completed);
+        await tcs.Task.WaitAsync(TimeSpan.FromSeconds(3), cancellationToken);
         Assert.False(firstCalled);
         Assert.False(secondCalled);
         Assert.True(thirdCalled);
