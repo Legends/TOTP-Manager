@@ -110,6 +110,7 @@ internal static class Program
         try
         {
             Log.Information("startup.begin");
+            WriteEarlyStartupTraceToFile("startup.begin");
 
             using var instance = new SingleInstanceGuard(StringsConstants.AssemblyNameWpf);
             if (!instance.IsFirstInstance)
@@ -132,10 +133,12 @@ internal static class Program
             }
 
             var configuration = Task.Run(BootLoader.BuildConfiguration).GetAwaiter().GetResult();
+            WriteEarlyStartupTraceToFile("startup.configuration.loaded");
             BootLoader.SetCulture(configuration);
             BootLoader.RegisterSyncfusionLicenseKey(configuration);
 
             using var host = Task.Run(() => BootLoader.BuildHostAndConfigureServices(configuration, args)).GetAwaiter().GetResult();
+            WriteEarlyStartupTraceToFile("startup.host.built");
             host.StartAsync().GetAwaiter().GetResult();
             timing.HostStartedMs = timing.Stopwatch.ElapsedMilliseconds;
             Log.Information("startup.host.started elapsed_ms={ElapsedMs}", timing.HostStartedMs);
@@ -156,6 +159,7 @@ internal static class Program
             timing.MainWindowShellCreateStartMs = timing.Stopwatch.ElapsedMilliseconds;
             Log.Information("startup.mainwindow.shell.create.begin");
             var mainWindow = CreateMainWindowShell(host);
+            WriteEarlyStartupTraceToFile("startup.mainwindow.created");
             timing.MainWindowShellCreateEndMs = timing.Stopwatch.ElapsedMilliseconds;
             Log.Information("startup.mainwindow.shell.create.end elapsed_ms={ElapsedMs}", timing.MainWindowShellCreateEndMs - timing.MainWindowShellCreateStartMs);
 
@@ -173,10 +177,12 @@ internal static class Program
 
             var vm = (IMainViewModel)mainWindow.DataContext;
             vm.InitializeMainViewAsync(mainWindow).GetAwaiter().GetResult();
+            WriteEarlyStartupTraceToFile("startup.mainvm.initialized");
             timing.MainVmInitializedMs = timing.Stopwatch.ElapsedMilliseconds;
             Log.Information("startup.mainvm.initialized elapsed_ms={ElapsedMs}", timing.MainVmInitializedMs - timing.LoadedStartMs);
 
             host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync().GetAwaiter().GetResult();
+            WriteEarlyStartupTraceToFile("startup.autoupdate.initialized");
             timing.LoadedEndMs = timing.Stopwatch.ElapsedMilliseconds;
             Log.Information("startup.mainwindow.loaded.end elapsed_ms={ElapsedMs}", timing.LoadedEndMs - timing.LoadedStartMs);
 
@@ -212,6 +218,7 @@ internal static class Program
         }
         catch (Exception ex)
         {
+            WriteEarlyStartupFailureToFile("startup.fatal.exception", ex);
             Log.Fatal(ex, UI.ex_FatalError);
             Environment.Exit(-1);
             return Task.CompletedTask;
