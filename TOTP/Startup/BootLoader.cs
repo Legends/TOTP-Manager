@@ -40,7 +40,7 @@ public static class BootLoader
     public static IConfigurationRoot BuildConfiguration()
         => new ConfigurationBuilder()
             .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
-            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            .SetBasePath(StringsConstants.AppRootDirectory)
             .AddJsonFile(StringsConstants.AppSettingsFileName, optional: false, reloadOnChange: true)
             .Build();
 
