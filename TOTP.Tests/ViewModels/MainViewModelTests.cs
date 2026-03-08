@@ -32,7 +32,7 @@ public sealed class MainViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task InitializeMainViewAsync_LoadsSettingsAndInitializesSession()
+    public async Task InitializeMainViewAsync_InitializesSessionAndClearsBusy()
     {
         using var ctx = new MainVmTestContext();
         var mainWindow = new Mock<IMainWindow>();
@@ -40,11 +40,7 @@ public sealed class MainViewModelTests : IDisposable
         await ctx.Sut.InitializeMainViewAsync(mainWindow.Object);
 
         Assert.False(ctx.Sut.IsBusy);
-        Assert.NotNull(ctx.Sut.SettingsVm);
-        ctx.SettingsDialog.Verify(s => s.CreateAndLoadAsync(
-            ctx.Sut.CloseSettingsViewCommand,
-            It.IsAny<Action>(),
-            ctx.Sut), Times.Once);
+        Assert.Null(ctx.Sut.SettingsVm);
         ctx.Session.Verify(s => s.InitializeAsync(mainWindow.Object), Times.Once);
     }
 
