@@ -7,7 +7,7 @@
 		<UseWPF>true</UseWPF>
 		<InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.Extensions.Configuration.Binder.SourceGeneration</InterceptorsNamespaces>
 		<!--<PublishAot>true</PublishAot>-->
-		<!--<UseWindowsForms>true</UseWindowsForms>-->
+		<UseWindowsForms>true</UseWindowsForms>
 		<UserSecretsId>6f888768-43da-4da8-9820-96b854382d72</UserSecretsId>
 		<ApplicationIcon>totp.ico</ApplicationIcon>
 		<PackageIcon>totp.ico</PackageIcon>
