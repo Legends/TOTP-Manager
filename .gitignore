@@ -52,6 +52,7 @@ appsettings.*.json
 *.pfx
 *.key
 *.cer
+publish/
 
 # Signing certificate
 cert.txt
