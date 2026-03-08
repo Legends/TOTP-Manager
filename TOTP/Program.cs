@@ -139,19 +139,19 @@ internal static class Program
 
             using var host = Task.Run(() => BootLoader.BuildHostAndConfigureServices(configuration, args)).GetAwaiter().GetResult();
             WriteEarlyStartupTraceToFile("startup.host.built");
-            host.StartAsync().GetAwaiter().GetResult();
-            timing.HostStartedMs = timing.Stopwatch.ElapsedMilliseconds;
-            Log.Information("startup.host.started elapsed_ms={ElapsedMs}", timing.HostStartedMs);
-
-            CommandExceptionLogger.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
-            host.Services.GetRequiredService<IScannerWarmupService>().StartWarmupInBackground("program.startup");
 
             var app = new App();
             app.InitializeComponent();
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
+            var hostStarted = false;
 
             app.Exit += async (_, __) =>
             {
+                if (!hostStarted)
+                {
+                    return;
+                }
+
                 try { await host.StopAsync(); }
                 catch (Exception ex) { Log.Error(ex, UI.ex_UnexpectedError); }
             };
@@ -163,30 +163,72 @@ internal static class Program
             timing.MainWindowShellCreateEndMs = timing.Stopwatch.ElapsedMilliseconds;
             Log.Information("startup.mainwindow.shell.create.end elapsed_ms={ElapsedMs}", timing.MainWindowShellCreateEndMs - timing.MainWindowShellCreateStartMs);
 
-            timing.LoadedStartMs = timing.Stopwatch.ElapsedMilliseconds;
-            Log.Information("startup.mainwindow.loaded.begin");
-
-            var loadResult = host.Services.GetRequiredService<ISettingsService>().LoadAsync().GetAwaiter().GetResult();
-            if (loadResult.IsFailed)
+            var postShowInitializationStarted = false;
+            mainWindow.Loaded += async (_, __) =>
             {
-                throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
-            }
+                if (postShowInitializationStarted)
+                {
+                    return;
+                }
 
-            timing.SettingsLoadedMs = timing.Stopwatch.ElapsedMilliseconds;
-            Log.Information("startup.settings.loaded elapsed_ms={ElapsedMs}", timing.SettingsLoadedMs - timing.LoadedStartMs);
+                postShowInitializationStarted = true;
 
-            var vm = (IMainViewModel)mainWindow.DataContext;
-            vm.InitializeMainViewAsync(mainWindow).GetAwaiter().GetResult();
-            WriteEarlyStartupTraceToFile("startup.mainvm.initialized");
-            timing.MainVmInitializedMs = timing.Stopwatch.ElapsedMilliseconds;
-            Log.Information("startup.mainvm.initialized elapsed_ms={ElapsedMs}", timing.MainVmInitializedMs - timing.LoadedStartMs);
+                try
+                {
+                    timing.LoadedStartMs = timing.Stopwatch.ElapsedMilliseconds;
+                    Log.Information("startup.mainwindow.loaded.begin");
 
-            host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync().GetAwaiter().GetResult();
-            WriteEarlyStartupTraceToFile("startup.autoupdate.initialized");
-            timing.LoadedEndMs = timing.Stopwatch.ElapsedMilliseconds;
-            Log.Information("startup.mainwindow.loaded.end elapsed_ms={ElapsedMs}", timing.LoadedEndMs - timing.LoadedStartMs);
+                    await host.StartAsync();
+                    hostStarted = true;
+                    timing.HostStartedMs = timing.Stopwatch.ElapsedMilliseconds;
+                    Log.Information("startup.host.started elapsed_ms={ElapsedMs}", timing.HostStartedMs);
+
+                    CommandExceptionLogger.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
+                    host.Services.GetRequiredService<IScannerWarmupService>().StartWarmupInBackground("program.startup");
+
+                    var loadResult = await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
+                    if (loadResult.IsFailed)
+                    {
+                        throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
+                    }
+
+                    timing.SettingsLoadedMs = timing.Stopwatch.ElapsedMilliseconds;
+                    Log.Information("startup.settings.loaded elapsed_ms={ElapsedMs}", timing.SettingsLoadedMs - timing.LoadedStartMs);
+
+                    var vm = (IMainViewModel)mainWindow.DataContext;
+                    await vm.InitializeMainViewAsync(mainWindow);
+                    WriteEarlyStartupTraceToFile("startup.mainvm.initialized");
+                    timing.MainVmInitializedMs = timing.Stopwatch.ElapsedMilliseconds;
+                    Log.Information("startup.mainvm.initialized elapsed_ms={ElapsedMs}", timing.MainVmInitializedMs - timing.LoadedStartMs);
+
+                    await host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync();
+                    WriteEarlyStartupTraceToFile("startup.autoupdate.initialized");
+                    timing.LoadedEndMs = timing.Stopwatch.ElapsedMilliseconds;
+                    Log.Information("startup.mainwindow.loaded.end elapsed_ms={ElapsedMs}", timing.LoadedEndMs - timing.LoadedStartMs);
+                    Log.Information(
+                        "startup.summary total_ms={TotalMs} host_started_ms={HostStartedMs} shell_create_start_ms={ShellCreateStartMs} shell_create_end_ms={ShellCreateEndMs} shell_create_elapsed_ms={ShellCreateElapsedMs} window_show_called_ms={WindowShowCalledMs} loaded_start_ms={LoadedStartMs} settings_loaded_ms={SettingsLoadedMs} mainvm_initialized_ms={MainVmInitializedMs} loaded_end_ms={LoadedEndMs}",
+                        timing.Stopwatch.ElapsedMilliseconds,
+                        timing.HostStartedMs,
+                        timing.MainWindowShellCreateStartMs,
+                        timing.MainWindowShellCreateEndMs,
+                        timing.MainWindowShellCreateEndMs - timing.MainWindowShellCreateStartMs,
+                        timing.WindowShowCalledMs,
+                        timing.LoadedStartMs,
+                        timing.SettingsLoadedMs,
+                        timing.MainVmInitializedMs,
+                        timing.LoadedEndMs);
+                }
+                catch (Exception ex)
+                {
+                    WriteEarlyStartupFailureToFile("startup.postshow.fatal.exception", ex);
+                    Log.Fatal(ex, UI.ex_FatalError);
+                    app.Shutdown(-1);
+                }
+            };
 
             app.MainWindow = mainWindow;
+            splashHandle?.CloseSplash();
+            Log.Information("startup.splash.process.closed elapsed_ms={ElapsedMs}", timing.Stopwatch.ElapsedMilliseconds);
             mainWindow.Show();
             if (mainWindow.WindowState == WindowState.Minimized)
             {
@@ -196,21 +238,6 @@ internal static class Program
 
             timing.WindowShowCalledMs = timing.Stopwatch.ElapsedMilliseconds;
             Log.Information("startup.window.show.called elapsed_ms={ElapsedMs}", timing.WindowShowCalledMs);
-            Log.Information(
-                "startup.summary total_ms={TotalMs} host_started_ms={HostStartedMs} shell_create_start_ms={ShellCreateStartMs} shell_create_end_ms={ShellCreateEndMs} shell_create_elapsed_ms={ShellCreateElapsedMs} window_show_called_ms={WindowShowCalledMs} loaded_start_ms={LoadedStartMs} settings_loaded_ms={SettingsLoadedMs} mainvm_initialized_ms={MainVmInitializedMs} loaded_end_ms={LoadedEndMs}",
-                timing.Stopwatch.ElapsedMilliseconds,
-                timing.HostStartedMs,
-                timing.MainWindowShellCreateStartMs,
-                timing.MainWindowShellCreateEndMs,
-                timing.MainWindowShellCreateEndMs - timing.MainWindowShellCreateStartMs,
-                timing.WindowShowCalledMs,
-                timing.LoadedStartMs,
-                timing.SettingsLoadedMs,
-                timing.MainVmInitializedMs,
-                timing.LoadedEndMs);
-
-            splashHandle?.CloseSplash();
-            Log.Information("startup.splash.process.closed elapsed_ms={ElapsedMs}", timing.Stopwatch.ElapsedMilliseconds);
 
             app.Run();
             splashHandle?.Dispose();

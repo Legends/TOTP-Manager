@@ -32,6 +32,11 @@ internal static class Program
         }
 
         int.TryParse(parentPidArg, out var parentPid);
+        if (ShouldClose(closeEvent, parentPid))
+        {
+            closeEvent.Dispose();
+            return;
+        }
 
         var app = new App();
         var splash = new SplashWindow();
@@ -55,6 +60,12 @@ internal static class Program
             timer.Stop();
             closeEvent.Dispose();
         };
+
+        if (ShouldClose(closeEvent, parentPid))
+        {
+            closeEvent.Dispose();
+            return;
+        }
 
         splash.Show();
         timer.Start();
