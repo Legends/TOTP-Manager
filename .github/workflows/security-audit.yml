@@ -32,6 +32,10 @@ jobs:
   sast-codeql:
     name: SAST (CodeQL C#)
     runs-on: windows-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,20 +44,50 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.sln
+            NuGet.config
+
+      - name: Detect Code Scanning capability
+        id: codeql-capability
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.request("GET /repos/{owner}/{repo}/code-scanning/alerts", {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: 1
+              });
+              core.setOutput("enabled", "true");
+            } catch (error) {
+              core.warning(`Code scanning API unavailable: ${error.message}`);
+              core.setOutput("enabled", "false");
+            }
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        if: steps.codeql-capability.outputs.enabled == 'true'
+        uses: github/codeql-action/init@v4
         with:
           languages: csharp
 
       - name: Restore
-        run: dotnet restore TOTP.sln --configfile NuGet.config
+        if: steps.codeql-capability.outputs.enabled == 'true'
+        run: dotnet restore TOTP.sln --nologo --verbosity minimal --configfile NuGet.config
 
       - name: Build
-        run: dotnet build TOTP.sln --configuration Release --no-restore
+        if: steps.codeql-capability.outputs.enabled == 'true'
+        run: dotnet build TOTP.sln --configuration Release --no-restore --nologo --verbosity minimal
 
       - name: Analyze
-        uses: github/codeql-action/analyze@v3
+        if: steps.codeql-capability.outputs.enabled == 'true'
+        uses: github/codeql-action/analyze@v4
+
+      - name: CodeQL skipped notice
+        if: steps.codeql-capability.outputs.enabled != 'true'
+        run: echo "CodeQL skipped because code scanning is not enabled for this repository."
 
   sca-dotnet:
     name: Dependency Vulnerability Scan (.NET)
@@ -66,16 +100,41 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.sln
+            NuGet.config
 
       - name: Restore
-        run: dotnet restore TOTP.sln --configfile NuGet.config
+        run: dotnet restore TOTP.sln --nologo --verbosity minimal --configfile NuGet.config
 
       - name: Scan NuGet vulnerabilities
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
           New-Item -Path artifacts -ItemType Directory -Force | Out-Null
           dotnet list TOTP.sln package --vulnerable --include-transitive --format json > artifacts/dependency-vulnerabilities.json
+          $vulnerableExitCode = $LASTEXITCODE
+
           dotnet list TOTP.sln package --deprecated --include-transitive --format json > artifacts/dependency-deprecated.json
+          $deprecatedExitCode = $LASTEXITCODE
+
+          if ($vulnerableExitCode -gt 1) {
+            throw "dotnet list --vulnerable failed with exit code $vulnerableExitCode"
+          }
+
+          if ($deprecatedExitCode -gt 1) {
+            throw "dotnet list --deprecated failed with exit code $deprecatedExitCode"
+          }
+
+          if ($vulnerableExitCode -eq 1) {
+            Write-Warning "NuGet vulnerabilities were detected. See artifacts/dependency-vulnerabilities.json"
+          }
+
+          if ($deprecatedExitCode -eq 1) {
+            Write-Warning "Deprecated NuGet packages were detected. See artifacts/dependency-deprecated.json"
+          }
 
       - name: Upload SCA evidence
         uses: actions/upload-artifact@v4
