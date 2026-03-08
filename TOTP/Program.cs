@@ -228,10 +228,19 @@ internal static class Program
 
     private static SplashProcessHandle StartSplashProcess()
     {
-        var splashExePath = Path.Combine(AppContext.BaseDirectory, "TOTP.Splash.exe");
+        var processDir = Path.GetDirectoryName(Environment.ProcessPath);
+        var primarySplashExePath = string.IsNullOrWhiteSpace(processDir)
+            ? string.Empty
+            : Path.Combine(processDir, "TOTP.Splash.exe");
+        var extractedSplashExePath = Path.Combine(AppContext.BaseDirectory, "TOTP.Splash.exe");
+
+        var splashExePath = File.Exists(primarySplashExePath)
+            ? primarySplashExePath
+            : extractedSplashExePath;
+
         if (!File.Exists(splashExePath))
         {
-            Log.Warning("startup.splash.process.missing path={Path}", splashExePath);
+            Log.Warning("startup.splash.process.missing path={Path} process_dir={ProcessDir} appcontext_base={AppContextBaseDirectory}", splashExePath, processDir, AppContext.BaseDirectory);
             throw new FileNotFoundException("Splash executable not found.", splashExePath);
         }
 
