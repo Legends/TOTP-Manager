@@ -31,6 +31,79 @@ namespace TOTP;
 
 internal static class Program
 {
+    private sealed class SplashThreadHost : IDisposable
+    {
+        private readonly ManualResetEventSlim _shown = new(false);
+        private readonly ManualResetEventSlim _closed = new(false);
+        private Thread? _thread;
+        private Dispatcher? _dispatcher;
+        private SplashWindow? _window;
+        private Exception? _startupException;
+
+        public void Start()
+        {
+            _thread = new Thread(ThreadMain)
+            {
+                IsBackground = true,
+                Name = "TOTP Splash"
+            };
+            _thread.SetApartmentState(ApartmentState.STA);
+            _thread.Start();
+
+            _shown.Wait();
+            if (_startupException != null)
+            {
+                throw new InvalidOperationException("Failed to start splash window.", _startupException);
+            }
+        }
+
+        public void Close()
+        {
+            var dispatcher = _dispatcher;
+            if (dispatcher == null)
+            {
+                return;
+            }
+
+            dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                _window?.Close();
+            }));
+
+            _closed.Wait(TimeSpan.FromSeconds(5));
+        }
+
+        public void Dispose()
+        {
+            Close();
+            _shown.Dispose();
+            _closed.Dispose();
+        }
+
+        private void ThreadMain()
+        {
+            try
+            {
+                _dispatcher = Dispatcher.CurrentDispatcher;
+                _window = new SplashWindow();
+                _window.Closed += (_, __) =>
+                {
+                    _closed.Set();
+                    Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
+                };
+                _window.Show();
+                _shown.Set();
+                Dispatcher.Run();
+            }
+            catch (Exception ex)
+            {
+                _startupException = ex;
+                _shown.Set();
+                _closed.Set();
+            }
+        }
+    }
+
     private sealed class StartupStepRecorder
     {
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
@@ -133,21 +206,11 @@ internal static class Program
 
             startupSteps.Mark("single_instance.first_instance");
 
-            var app = new App
-            {
-                ShutdownMode = ShutdownMode.OnExplicitShutdown
-            };
-            startupSteps.Mark("app.created");
-            app.InitializeComponent();
-            startupSteps.Mark("app.initialized");
-
-            SplashWindow? splash = null;
+            SplashThreadHost? splash = null;
             try
             {
-                splash = new SplashWindow();
-                app.MainWindow = splash;
-                splash.Show();
-                FlushPendingUi();
+                splash = new SplashThreadHost();
+                splash.Start();
                 startupSteps.Mark("splash.shown");
                 Log.Information("startup.splash.shown");
             }
@@ -156,6 +219,14 @@ internal static class Program
                 startupSteps.Mark("splash.failed");
                 Log.Warning(ex, "startup.splash.failed");
             }
+
+            var app = new App
+            {
+                ShutdownMode = ShutdownMode.OnExplicitShutdown
+            };
+            startupSteps.Mark("app.created");
+            app.InitializeComponent();
+            startupSteps.Mark("app.initialized");
 
             var configuration = BootLoader.BuildConfiguration();
             startupSteps.Mark("configuration.built");
@@ -200,9 +271,9 @@ internal static class Program
                 if (splash is not null)
                 {
                     splash.Close();
+                    splash.Dispose();
                     splash = null;
                     startupSteps.Mark("splash.closed");
-                    FlushPendingUi();
                 }
 
                 mainWindow.Show();
@@ -310,20 +381,6 @@ internal static class Program
             Environment.Exit(-1);
             return Task.CompletedTask;
         }
-    }
-
-    private static void FlushPendingUi()
-    {
-        var frame = new DispatcherFrame();
-        Dispatcher.CurrentDispatcher.BeginInvoke(
-            DispatcherPriority.Render,
-            new DispatcherOperationCallback(_ =>
-            {
-                frame.Continue = false;
-                return null;
-            }),
-            null);
-        Dispatcher.PushFrame(frame);
     }
 
     private static MainWindow CreateMainWindowShell(IHost host)
