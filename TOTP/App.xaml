@@ -6,7 +6,6 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/Common.xaml"/>
-                <ResourceDictionary Source="/Styles/SfDataGrid.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Local resources go here -->
