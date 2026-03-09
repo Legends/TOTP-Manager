@@ -102,7 +102,20 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore TOTP/TOTP.UI.WPF.csproj --nologo --verbosity minimal --configfile NuGet.config --source https://api.nuget.org/v3/index.json -r win-x64
 
-      - name: Publish WPF app
+      - name: Publish WPF app (fast startup)
+        run: |
+          dotnet publish TOTP/TOTP.UI.WPF.csproj `
+            --configuration Release `
+            --no-restore `
+            --nologo `
+            --verbosity minimal `
+            --runtime win-x64 `
+            --self-contained false `
+            -p:PublishSingleFile=false `
+            -p:PublishTrimmed=false `
+            --output publish-fast
+
+      - name: Publish WPF app (portable single-file)
         run: |
           dotnet publish TOTP/TOTP.UI.WPF.csproj `
             --configuration Release `
@@ -114,7 +127,7 @@ jobs:
             -p:PublishSingleFile=true `
             -p:IncludeAllContentForSelfExtract=true `
             -p:PublishTrimmed=false `
-            --output publish
+            --output publish-portable
 
       - name: Cache .NET global tools
         id: cache-dotnet-tools
@@ -127,15 +140,18 @@ jobs:
         if: ${{ env.SIGNING_CERT_BASE64 != '' && env.SIGNING_CERT_PASSWORD != '' }}
         shell: pwsh
         run: |
-          ./TOTP/Properties/Signing/Sign-App.ps1 -ExePath ./publish/TOTP.UI.WPF.exe
+          ./TOTP/Properties/Signing/Sign-App.ps1 -ExePath ./publish-fast/TOTP.UI.WPF.exe
+          ./TOTP/Properties/Signing/Sign-App.ps1 -ExePath ./publish-portable/TOTP.UI.WPF.exe
 
       - name: Signing skipped notice
         if: ${{ env.SIGNING_CERT_BASE64 == '' || env.SIGNING_CERT_PASSWORD == '' }}
         run: |
           echo "Signing skipped: SIGNING_CERT_BASE64 or SIGNING_CERT_PASSWORD is not configured."
 
-      - name: Compress app into zip
-        run: Compress-Archive -Path publish\* -DestinationPath TOTP-Manager.zip
+      - name: Compress release artifacts
+        run: |
+          Compress-Archive -Path publish-fast\* -DestinationPath TOTP-Manager-fast.zip
+          Compress-Archive -Path publish-portable\* -DestinationPath TOTP-Manager-portable.zip
 
       - name: Install NetSparkle appcast tool
         if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
@@ -156,7 +172,7 @@ jobs:
           Set-Content -Path $pubPath -Value $env:NETSPARKLE_PUBLIC_KEY -Encoding ASCII
           Set-Content -Path $privPath -Value $env:NETSPARKLE_PRIVATE_KEY -Encoding ASCII
           ./scripts/release/Generate-Appcast.ps1 `
-            -ReleaseFolder "./publish" `
+            -ReleaseFolder "./publish-fast" `
             -BaseDownloadUrl "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/" `
             -PrivateKeyPath $privPath `
             -PublicKeyPath $pubPath
@@ -169,7 +185,9 @@ jobs:
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: TOTP-Manager.zip
+          files: |
+            TOTP-Manager-fast.zip
+            TOTP-Manager-portable.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }} #repo scope token for uploading to release
 
@@ -178,8 +196,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            publish/TOTP.UI.WPF.exe
-            publish/appcast.xml
-            publish/appcast.xml.signature
+            publish-fast/TOTP.UI.WPF.exe
+            publish-fast/appcast.xml
+            publish-fast/appcast.xml.signature
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
