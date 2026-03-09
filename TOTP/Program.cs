@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
 using TOTP.Commands;
@@ -57,7 +58,7 @@ internal static class Program
             _process = process;
         }
 
-        public void CloseSplash()
+        public void SignalClose()
         {
             if (Interlocked.Exchange(ref _closed, 1) == 1)
             {
@@ -67,17 +68,21 @@ internal static class Program
             try
             {
                 _closeEvent.Set();
-                if (!_process.HasExited)
-                {
-                    _process.WaitForExit(1500);
-                }
             }
             catch { }
         }
 
         public void Dispose()
         {
-            CloseSplash();
+            SignalClose();
+            try
+            {
+                if (!_process.HasExited)
+                {
+                    _process.WaitForExit(1500);
+                }
+            }
+            catch { }
             _closeEvent.Dispose();
             _process.Dispose();
         }
@@ -124,7 +129,6 @@ internal static class Program
             {
                 splashHandle = StartSplashProcess();
                 Log.Information("startup.splash.process.started");
-                Task.Yield();
             }
             catch (Exception ex)
             {
@@ -133,12 +137,12 @@ internal static class Program
                 WriteEarlyStartupFailureToFile("startup.splash.process.failed", ex);
             }
 
-            var configuration = Task.Run(BootLoader.BuildConfiguration).GetAwaiter().GetResult();
+            var configuration = BootLoader.BuildConfiguration();
             WriteEarlyStartupTraceToFile("startup.configuration.loaded");
             BootLoader.SetCulture(configuration);
             BootLoader.RegisterSyncfusionLicenseKey(configuration);
 
-            using var host = Task.Run(() => BootLoader.BuildHostAndConfigureServices(configuration, args)).GetAwaiter().GetResult();
+            using var host = BootLoader.BuildHostAndConfigureServices(configuration, args);
             WriteEarlyStartupTraceToFile("startup.host.and.services.built");
 
             var app = new App();
@@ -164,6 +168,18 @@ internal static class Program
             timing.MainWindowShellCreateEndMs = timing.Stopwatch.ElapsedMilliseconds;
             Log.Information("startup.mainwindow.shell.create.end elapsed_ms={ElapsedMs}", timing.MainWindowShellCreateEndMs - timing.MainWindowShellCreateStartMs);
             var vm = (IMainViewModel)mainWindow.DataContext;
+            var splashCloseSignaled = 0;
+
+            void SignalSplashCloseWhenReady()
+            {
+                if (Interlocked.Exchange(ref splashCloseSignaled, 1) == 1)
+                {
+                    return;
+                }
+
+                splashHandle?.SignalClose();
+                Log.Information("startup.splash.process.closed elapsed_ms={ElapsedMs}", timing.Stopwatch.ElapsedMilliseconds);
+            }
 
             var postShowInitializationStarted = false;
             mainWindow.Loaded += async (_, __) =>
@@ -190,6 +206,7 @@ internal static class Program
                     Log.Information("startup.settings.loaded elapsed_ms={ElapsedMs}", timing.SettingsLoadedMs - timing.LoadedStartMs);
 
                     await vm.InitializeMainViewAsync(mainWindow);
+
                     WriteEarlyStartupTraceToFile("startup.mainvm.initialized");
                     timing.MainVmInitializedMs = timing.Stopwatch.ElapsedMilliseconds;
                     Log.Information("startup.mainvm.initialized elapsed_ms={ElapsedMs}", timing.MainVmInitializedMs - timing.LoadedStartMs);
@@ -227,9 +244,12 @@ internal static class Program
                 }
             };
 
+            mainWindow.ContentRendered += (_, __) =>
+            {
+                SignalSplashCloseWhenReady();
+            };
+
             app.MainWindow = mainWindow;
-            splashHandle?.CloseSplash();
-            Log.Information("startup.splash.process.closed elapsed_ms={ElapsedMs}", timing.Stopwatch.ElapsedMilliseconds);
             mainWindow.Show();
             if (mainWindow.WindowState == WindowState.Minimized)
             {
