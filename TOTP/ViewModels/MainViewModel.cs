@@ -85,6 +85,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     private SettingsViewModel? _SettingsVm;
     private bool _isOpeningSettings;
     private int _nonCriticalWarmupStarted;
+    private Task<SettingsViewModel?>? _settingsViewModelLoadTask;
 
     public SettingsViewModel? SettingsVm
     {
@@ -563,13 +564,24 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
     }
 
-    private async Task EnsureSettingsViewModelLoadedAsync(bool showErrorOnFailure)
+    private Task<SettingsViewModel?> EnsureSettingsViewModelLoadedAsync(bool showErrorOnFailure)
     {
-        if (SettingsVm != null || _isOpeningSettings)
+        if (SettingsVm != null)
         {
-            return;
+            return Task.FromResult<SettingsViewModel?>(SettingsVm);
         }
 
+        if (_settingsViewModelLoadTask != null)
+        {
+            return _settingsViewModelLoadTask;
+        }
+
+        _settingsViewModelLoadTask = LoadSettingsViewModelAsync(showErrorOnFailure);
+        return _settingsViewModelLoadTask;
+    }
+
+    private async Task<SettingsViewModel?> LoadSettingsViewModelAsync(bool showErrorOnFailure)
+    {
         _isOpeningSettings = true;
         if (OpenSettingsCommand is RelayCommand openSettingsCommand)
         {
@@ -587,6 +599,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
             SettingsVm = vm;
             _logger.LogInformation("warmup.settingsvm.end mode={Mode} elapsed_ms={ElapsedMs}", showErrorOnFailure ? "interactive" : "background", sw.ElapsedMilliseconds);
+            return vm;
         }
         catch (Exception ex)
         {
@@ -595,9 +608,12 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
             {
                 _messageService.ShowError(UI.ex_FatalError);
             }
+
+            return null;
         }
         finally
         {
+            _settingsViewModelLoadTask = null;
             _isOpeningSettings = false;
             if (OpenSettingsCommand is RelayCommand openSettingsCommandFinal)
             {
@@ -616,7 +632,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         try
         {
             _logger.LogInformation("warmup.noncritical.begin");
-            await Task.Delay(1200).ConfigureAwait(false);
+            await Task.Delay(500).ConfigureAwait(false);
 
             if (Application.Current != null)
             {

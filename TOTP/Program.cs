@@ -72,10 +72,14 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        var processEntryUtc = DateTimeOffset.UtcNow;
+        var processEntryTick = Stopwatch.GetTimestamp();
+
         try
         {
             LoggingConfigurator.SetupEarlyLogger(args);
-            StartApplication(args).GetAwaiter().GetResult();
+            Log.Information("process.entry utc={Utc} pid={Pid}", processEntryUtc, Environment.ProcessId);
+            StartApplication(args, processEntryUtc, processEntryTick).GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {
@@ -89,7 +93,7 @@ internal static class Program
         }
     }
 
-    private static Task StartApplication(string[] args)
+    private static Task StartApplication(string[] args, DateTimeOffset processEntryUtc, long processEntryTick)
     {
         var startupSteps = new StartupStepRecorder();
         var startupTableLogged = 0;
@@ -113,6 +117,8 @@ internal static class Program
 
         try
         {
+            var processEntryElapsedMs = (long)((Stopwatch.GetTimestamp() - processEntryTick) * 1000.0 / Stopwatch.Frequency);
+            Log.Information("startup.premain elapsed_ms={ElapsedMs} process_entry_utc={Utc}", processEntryElapsedMs, processEntryUtc);
             Log.Information("startup.begin");
             startupSteps.Mark("startup.begin");
 
@@ -209,9 +215,24 @@ internal static class Program
                 _ = mainWindow.Activate();
             }
 
+            var startupTablePending = false;
+            var mainWindowContentRendered = false;
+            void EmitReadyStartupTableIfPossible()
+            {
+                if (!startupTablePending || !mainWindowContentRendered)
+                {
+                    return;
+                }
+
+                EmitStartupTable(isError: false, "Startup Steps (ready)");
+                startupTablePending = false;
+            }
+
             mainWindow.ContentRendered += (_, __) =>
             {
                 startupSteps.Mark("mainwindow.content_rendered");
+                mainWindowContentRendered = true;
+                EmitReadyStartupTableIfPossible();
             };
 
             if (vm.IsBusy)
@@ -266,7 +287,8 @@ internal static class Program
                     await host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync();
                     startupSteps.Mark("autoupdate.initialized");
                     startupSteps.Mark("startup.ready");
-                    EmitStartupTable(isError: false, "Startup Steps (ready)");
+                    startupTablePending = true;
+                    EmitReadyStartupTableIfPossible();
                 }
                 catch (Exception ex)
                 {

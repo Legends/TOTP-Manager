@@ -1,7 +1,5 @@
-﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -9,9 +7,6 @@ namespace TOTP.UserControls;
 
 public partial class FlyoutHost : UserControl
 {
-
-    #region ### PROPERTIES ####
-
     public static readonly DependencyProperty IsOpenProperty =
         DependencyProperty.Register(
             nameof(IsOpen),
@@ -20,8 +15,8 @@ public partial class FlyoutHost : UserControl
             new FrameworkPropertyMetadata(false));
 
     public static readonly DependencyProperty FlyoutContentProperty =
-    DependencyProperty.Register(nameof(FlyoutContent), typeof(object), typeof(FlyoutHost),
-        new FrameworkPropertyMetadata(null));
+        DependencyProperty.Register(nameof(FlyoutContent), typeof(object), typeof(FlyoutHost),
+            new FrameworkPropertyMetadata(null));
 
     public object? FlyoutContent
     {
@@ -138,8 +133,6 @@ public partial class FlyoutHost : UserControl
         set => SetValue(WarmUpOnLoadProperty, value);
     }
 
-    #endregion
-
     public FlyoutHost()
     {
         InitializeComponent();
@@ -168,9 +161,6 @@ public partial class FlyoutHost : UserControl
         var previousOpacity = HostRoot.Opacity;
         var previousHitTest = HostRoot.IsHitTestVisible;
 
-        // HostRoot.Visibility = Visible wont work, you would override the binding to IsOpen
-        // then after onwarmup the fylout wont show!
-        // All props with bindings have to be set like this:
         HostRoot.SetCurrentValue(VisibilityProperty, Visibility.Visible);
         HostRoot.SetCurrentValue(OpacityProperty, 0d);
         HostRoot.SetCurrentValue(IsHitTestVisibleProperty, false);
@@ -185,6 +175,4 @@ public partial class FlyoutHost : UserControl
         HostRoot.SetCurrentValue(IsHitTestVisibleProperty, previousHitTest);
         HostRoot.SetCurrentValue(VisibilityProperty, previousVisibility);
     }
-
-
 }

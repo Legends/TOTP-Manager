@@ -5,7 +5,6 @@ namespace TOTP.Views;
 
 public partial class PasswordUnlockView : UserControl
 {
-
     public static readonly DependencyProperty AutoFocusProperty =
         DependencyProperty.Register(
             nameof(AutoFocus),
@@ -22,6 +21,5 @@ public partial class PasswordUnlockView : UserControl
     public PasswordUnlockView()
     {
         InitializeComponent();
-        //Loaded += (_, __) => System.Diagnostics.Debug.WriteLine($"PasswordUnlockView.AutoFocus={AutoFocus}");
     }
 }

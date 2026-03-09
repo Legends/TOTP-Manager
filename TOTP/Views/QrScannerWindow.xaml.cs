@@ -1,4 +1,4 @@
-﻿using Syncfusion.Windows.Shared;
+using Syncfusion.Windows.Shared;
 using System.ComponentModel;
 using System.Windows;
 using TOTP.ViewModels;

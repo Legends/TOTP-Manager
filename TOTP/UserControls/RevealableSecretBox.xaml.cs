@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -6,17 +6,12 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Syncfusion.UI.Xaml.Grid;
 using Syncfusion.UI.Xaml.ScrollAxis;
-using Helper = TOTP.Helper.Common;
 
 namespace TOTP.UserControls
 {
     public partial class RevealableSecretBox : UserControl
     {
         private bool _isSyncingSecret;
-
-        #region ### PROPERTIES ###
-
-        // ===== Data =====
 
         public static readonly DependencyProperty SecretProperty =
             DependencyProperty.Register(
@@ -34,7 +29,6 @@ namespace TOTP.UserControls
             set => SetValue(SecretProperty, value);
         }
 
-        // === DP: IsSecretVisible ===
         public static readonly DependencyProperty IsSecretVisibleProperty =
             DependencyProperty.Register(
                 nameof(IsSecretVisible),
@@ -49,8 +43,6 @@ namespace TOTP.UserControls
             get => (bool)GetValue(IsSecretVisibleProperty);
             set => SetValue(IsSecretVisibleProperty, value);
         }
-
-        // ===== Sizes / Layout =====
 
         public static readonly DependencyProperty FieldHeightProperty =
             DependencyProperty.Register(
@@ -136,8 +128,6 @@ namespace TOTP.UserControls
             set => SetValue(IconSizeProperty, value);
         }
 
-        // ===== Styling =====
-
         public static readonly DependencyProperty ToggleButtonStyleProperty =
             DependencyProperty.Register(
                 nameof(ToggleButtonStyle),
@@ -164,7 +154,6 @@ namespace TOTP.UserControls
             set => SetValue(ToggleToolTipProperty, value);
         }
 
-        // Unified field look
         public static readonly DependencyProperty FieldBackgroundProperty =
             DependencyProperty.Register(
                 nameof(FieldBackground),
@@ -217,8 +206,6 @@ namespace TOTP.UserControls
             set => SetValue(FieldCornerRadiusProperty, value);
         }
 
-        // ===== Icon sources =====
-
         public static readonly DependencyProperty EyeClosedIconSourceProperty =
             DependencyProperty.Register(
                 nameof(EyeClosedIconSource),
@@ -245,9 +232,6 @@ namespace TOTP.UserControls
             set => SetValue(EyeOpenIconSourceProperty, value);
         }
 
-        #endregion
-
-
         public RevealableSecretBox()
         {
             InitializeComponent();
@@ -269,7 +253,6 @@ namespace TOTP.UserControls
 
             var newValue = e.NewValue as string ?? string.Empty;
 
-            // Keep both controls synchronized without the attached PasswordBox helper.
             if (!string.Equals(control.PartPasswordBox.Password, newValue, StringComparison.Ordinal))
             {
                 control.PartPasswordBox.Password = newValue;
@@ -301,13 +284,12 @@ namespace TOTP.UserControls
 
         private void PartPasswordBox_OnLostFocus(object sender, RoutedEventArgs e)
         {
-            var grid = Helper.Common.FindParent<SfDataGrid>((DependencyObject)sender);
+            var grid = TOTP.Helper.Common.FindParent<SfDataGrid>((DependencyObject)sender);
             if (grid == null || grid.CurrentCellInfo == null)
             {
                 return;
             }
 
-            // Move to another cell to trigger validation
             var currentIndex = 1;
             var nextIndex = currentIndex + 1 < grid.Columns.Count ? currentIndex + 1 : currentIndex - 1;
 
@@ -319,60 +301,41 @@ namespace TOTP.UserControls
 
         private void TryAutoFocus()
         {
-            // delay until bindings + layout have applied visibility changes
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                var action = (System.Action)(IsSecretVisible ? FocusPasswordVisibleBox : FocusPasswordHiddenBox);
+                var action = (Action)(IsSecretVisible ? FocusPasswordVisibleBox : FocusPasswordHiddenBox);
                 action();
-
             }), DispatcherPriority.Input);
         }
 
-
-        /// <summary>
-        /// Called when the IsSecretVisible property changes by toggling the eye.
-        /// Focuses the appropriate input box based on the new visibility state.
-        /// </summary>
-        /// <param name="d"></param>
-        /// <param name="e"></param>
         private static void OnIsSecretVisibleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var ctrl = (RevealableSecretBox)d;
-
-            //if (ctrl.AutoFocus)
-            //{
             if (ctrl.IsSecretVisible)
                 ctrl.FocusPasswordVisibleBox();
             else
-            {
                 ctrl.FocusPasswordHiddenBox();
-            }
-            //}
         }
 
         public void FocusPasswordVisibleBox()
         {
-
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 if (PartPasswordBoxVisible.Visibility != Visibility.Visible)
                     return;
 
                 PartPasswordBoxVisible.SelectionStart = PartPasswordBoxVisible.Text.Length;
-                PartPasswordBoxVisible.SelectionLength = 0; // Optional: ensures no text is highlighted
-                PartPasswordBoxVisible.Focus();             // Optional: sets focus to the TextBox
-
+                PartPasswordBoxVisible.SelectionLength = 0;
+                PartPasswordBoxVisible.Focus();
                 Keyboard.Focus(PartPasswordBoxVisible);
             }), DispatcherPriority.Input);
-
-
         }
+
         public void FocusPasswordHiddenBox()
         {
             if (!IsVisible || !IsEnabled)
                 return;
 
-            // Wichtig: erst nach Layout/Visibility-Update
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 if (PartPasswordBox.Visibility != Visibility.Visible)
@@ -380,7 +343,6 @@ namespace TOTP.UserControls
 
                 PartPasswordBox.Focus();
                 Keyboard.Focus(PartPasswordBox);
-                //PartPasswordBox.SelectAll();
             }), DispatcherPriority.Input);
         }
 

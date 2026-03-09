@@ -113,7 +113,7 @@
             <userControls:FlyoutHost x:Name="SettingsFlyoutHost"
                                       IsOpen="{Binding DataContext.IsSettingsViewOpen, ElementName=mainWin}"
                                       DataContext="{Binding SettingsVm}"
-                                      WarmUpOnLoad="False"
+                                      WarmUpOnLoad="True"
                                       PanelWidth="300"
                                       OverlayZIndex="20"
                                     >

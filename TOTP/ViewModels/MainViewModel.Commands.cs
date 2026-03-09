@@ -104,14 +104,14 @@ public partial class MainViewModel
 
     private async Task OpenSettingsViewAsync()
     {
-        await EnsureSettingsViewModelLoadedAsync(showErrorOnFailure: true);
-        if (SettingsVm == null)
+        var settingsVm = await EnsureSettingsViewModelLoadedAsync(showErrorOnFailure: true);
+        if (settingsVm == null)
         {
             return;
         }
 
         IsSettingsViewOpen = true;
-        SettingsVm.RequestFocus();
+        settingsVm.RequestFocus();
     }
 
     private void CloseSettingsView()

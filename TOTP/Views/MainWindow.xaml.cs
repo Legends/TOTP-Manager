@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Threading;
 using TOTP.Infrastructure.Adapters;
 using TOTP.UserControls;
 using TOTP.ViewModels.Interfaces;
@@ -22,7 +21,6 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
     private bool _dataGridResourcesLoaded;
     private bool _accountsSectionLoaded;
     private bool _editFlyoutViewLoaded;
-    private bool _settingsFlyoutViewLoaded;
 
     public MainWindow(IMainViewModel vm)
     {
@@ -31,18 +29,12 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         InitializeComponent();
 
         HookFlyoutLazyLoading();
-        HookAccountsSectionLazyLoading();
+        InitializeSettingsFlyout();
+        EnsureAccountsSectionLoaded();
 
         Debug.WriteLine($"MainWindow.ctor.after.InitializeComponent ms={_lifecycleStopwatch.ElapsedMilliseconds}");
         SetupWindowPositionAtStartup();
         Debug.WriteLine($"MainWindow.ctor.end ms={_lifecycleStopwatch.ElapsedMilliseconds}");
-
-        //EventManager.RegisterClassHandler(typeof(UIElement),
-        //    UIElement.GotFocusEvent,
-        //    new RoutedEventHandler((s, e) =>
-        //    {
-        //        System.Diagnostics.Debug.WriteLine($"Focus moved to: {e.Source}");
-        //    }), true);
     }
 
     private void HookFlyoutLazyLoading()
@@ -63,46 +55,19 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
             {
                 if (SettingsFlyoutHost.IsOpen)
                 {
-                    EnsureSettingsFlyoutLoaded();
+                    InitializeSettingsFlyout();
                 }
             });
     }
 
-    private void HookAccountsSectionLazyLoading()
+    private void InitializeSettingsFlyout()
     {
-        _vm.PropertyChanged += (_, e) =>
-        {
-            if (string.Equals(e.PropertyName, "IsUnlocked", StringComparison.Ordinal))
-            {
-                Dispatcher.BeginInvoke(TryLoadAccountsSectionIfUnlocked, DispatcherPriority.Background);
-            }
-        };
-
-        ContentRendered += (_, __) =>
-        {
-            Dispatcher.BeginInvoke(TryLoadAccountsSectionIfUnlocked, DispatcherPriority.Background);
-        };
-    }
-
-    private void TryLoadAccountsSectionIfUnlocked()
-    {
-        if (!IsViewModelUnlocked())
+        if (SettingsFlyoutHost.FlyoutContent != null)
         {
             return;
         }
 
-        EnsureAccountsSectionLoaded();
-    }
-
-    private bool IsViewModelUnlocked()
-    {
-        var isUnlockedProperty = _vm.GetType().GetProperty("IsUnlocked");
-        if (isUnlockedProperty?.PropertyType != typeof(bool))
-        {
-            return true;
-        }
-
-        return (bool)(isUnlockedProperty.GetValue(_vm) ?? false);
+        SettingsFlyoutHost.FlyoutContent = new SettingsFlyoutView();
     }
 
     private void EnsureAccountsSectionLoaded()
@@ -170,17 +135,6 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         _editFlyoutViewLoaded = true;
     }
 
-    private void EnsureSettingsFlyoutLoaded()
-    {
-        if (_settingsFlyoutViewLoaded)
-        {
-            return;
-        }
-
-        SettingsFlyoutHost.FlyoutContent = new SettingsFlyoutView();
-        _settingsFlyoutViewLoaded = true;
-    }
-
     private void SetupWindowPositionAtStartup()
     {
         double screenWidth = SystemParameters.PrimaryScreenWidth;
@@ -189,9 +143,7 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         double windowWidth = this.Width;
         double windowHeight = this.Height;
 
-        // Center horizontally, 1/5 from top
         this.Left = (screenWidth - windowWidth) / 2;
         this.Top = screenHeight / 5;
     }
-
 }
