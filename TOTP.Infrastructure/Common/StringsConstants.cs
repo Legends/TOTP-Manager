@@ -5,12 +5,12 @@ namespace TOTP.Infrastructure.Common
 {
     public static class StringsConstants
     {
-        public const string AppLogPath = "Logs/app.log";
+        public static string AppLogPath => Path.Combine(AppLogDirectoryPath, "app.log");
         public static string AppRootDirectory =>
             Path.GetDirectoryName(Environment.ProcessPath) ??
             AppDomain.CurrentDomain.BaseDirectory;
         public static string AppLogDirectoryPath =>
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TOTPManager", "Logs");
+            Path.Combine(AppRootDirectory, "Logs");
         public static string AppLogFilePath => Path.Combine(AppLogDirectoryPath, "app.log");
         public static string CurrentRollingAppLogFilePath => Path.Combine(AppLogDirectoryPath, $"app{DateTime.Now:yyyyMMdd}.log");
         public const string AssemblyNameWpf = "TOTP.UI.WPF";

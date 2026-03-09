@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -32,17 +33,42 @@ internal static class Program
     private const string SplashTokenArg = "--splash-token";
     private const string SplashParentPidArg = "--splash-parent-pid";
 
-    private sealed class StartupTiming
+    private sealed class StartupStepRecorder
     {
-        public Stopwatch Stopwatch { get; } = Stopwatch.StartNew();
-        public long HostStartedMs { get; set; }
-        public long MainWindowShellCreateStartMs { get; set; }
-        public long MainWindowShellCreateEndMs { get; set; }
-        public long WindowShowCalledMs { get; set; }
-        public long LoadedStartMs { get; set; }
-        public long SettingsLoadedMs { get; set; }
-        public long MainVmInitializedMs { get; set; }
-        public long LoadedEndMs { get; set; }
+        private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+        private readonly List<(int Sequence, string Step, long DeltaMs, long TotalMs)> _steps = [];
+        private readonly object _sync = new();
+        private int _sequence;
+        private long _lastMs;
+
+        public void Mark(string step)
+        {
+            var now = _stopwatch.ElapsedMilliseconds;
+            lock (_sync)
+            {
+                var delta = now - _lastMs;
+                _lastMs = now;
+                _sequence++;
+                _steps.Add((_sequence, step, delta, now));
+            }
+        }
+
+        public string BuildTable(string title)
+        {
+            lock (_sync)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine(title);
+                sb.AppendLine("seq | step                                 | +ms   | total_ms");
+                sb.AppendLine("----+--------------------------------------+-------+---------");
+                foreach (var item in _steps)
+                {
+                    sb.AppendLine($"{item.Sequence,3} | {item.Step,-36} | {item.DeltaMs,5} | {item.TotalMs,8}");
+                }
+
+                return sb.ToString();
+            }
+        }
     }
 
     private sealed class SplashProcessHandle : IDisposable
@@ -57,7 +83,7 @@ internal static class Program
             _process = process;
         }
 
-        public void CloseSplash()
+        public void SignalClose()
         {
             if (Interlocked.Exchange(ref _closed, 1) == 1)
             {
@@ -67,17 +93,21 @@ internal static class Program
             try
             {
                 _closeEvent.Set();
-                if (!_process.HasExited)
-                {
-                    _process.WaitForExit(1500);
-                }
             }
             catch { }
         }
 
         public void Dispose()
         {
-            CloseSplash();
+            SignalClose();
+            try
+            {
+                if (!_process.HasExited)
+                {
+                    _process.WaitForExit(1500);
+                }
+            }
+            catch { }
             _closeEvent.Dispose();
             _process.Dispose();
         }
@@ -105,44 +135,72 @@ internal static class Program
 
     private static Task StartApplication(string[] args)
     {
-        var timing = new StartupTiming();
+        var startupSteps = new StartupStepRecorder();
+        var startupTableLogged = 0;
+
+        void EmitStartupTable(bool isError, string title)
+        {
+            if (Interlocked.Exchange(ref startupTableLogged, 1) == 1)
+            {
+                return;
+            }
+
+            var table = startupSteps.BuildTable(title);
+            if (isError)
+            {
+                Log.Error("{StartupStepsTable}", table);
+                return;
+            }
+
+            Log.Information("{StartupStepsTable}", table);
+        }
 
         try
         {
             Log.Information("startup.begin");
-            WriteEarlyStartupTraceToFile("startup.begin");
+            startupSteps.Mark("startup.begin");
 
             using var instance = new SingleInstanceGuard(StringsConstants.AssemblyNameWpf);
             if (!instance.IsFirstInstance)
             {
+                startupSteps.Mark("single_instance.redirect_existing");
                 SingleInstanceGuard.ActivateExistingWindow(StringsConstants.AssemblyNameWpf);
+                EmitStartupTable(isError: false, "Startup Steps (redirected)");
                 return Task.CompletedTask;
             }
+
+            startupSteps.Mark("single_instance.first_instance");
 
             SplashProcessHandle? splashHandle = null;
             try
             {
                 splashHandle = StartSplashProcess();
+                startupSteps.Mark("splash.process.started");
                 Log.Information("startup.splash.process.started");
             }
             catch (Exception ex)
             {
                 // Splash is non-critical. Continue startup without it.
+                startupSteps.Mark("splash.process.failed");
                 Log.Warning(ex, "startup.splash.process.failed");
-                WriteEarlyStartupFailureToFile("startup.splash.process.failed", ex);
             }
 
-            var configuration = Task.Run(BootLoader.BuildConfiguration).GetAwaiter().GetResult();
-            WriteEarlyStartupTraceToFile("startup.configuration.loaded");
+            var configuration = BootLoader.BuildConfiguration();
+            startupSteps.Mark("configuration.built");
             BootLoader.SetCulture(configuration);
+            startupSteps.Mark("culture.set");
             BootLoader.RegisterSyncfusionLicenseKey(configuration);
+            startupSteps.Mark("syncfusion.license.registered");
 
-            using var host = Task.Run(() => BootLoader.BuildHostAndConfigureServices(configuration, args)).GetAwaiter().GetResult();
-            WriteEarlyStartupTraceToFile("startup.host.built");
+            using var host = BootLoader.BuildHostAndConfigureServices(configuration, args);
+            startupSteps.Mark("host.built");
 
             var app = new App();
+            startupSteps.Mark("app.created");
             app.InitializeComponent();
+            startupSteps.Mark("app.initialized");
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
+            startupSteps.Mark("unhandled_hooks.wired");
             var hostStarted = false;
 
             app.Exit += async (_, __) =>
@@ -156,13 +214,21 @@ internal static class Program
                 catch (Exception ex) { Log.Error(ex, UI.ex_UnexpectedError); }
             };
 
-            timing.MainWindowShellCreateStartMs = timing.Stopwatch.ElapsedMilliseconds;
-            Log.Information("startup.mainwindow.shell.create.begin");
             var mainWindow = CreateMainWindowShell(host);
-            WriteEarlyStartupTraceToFile("startup.mainwindow.created");
-            timing.MainWindowShellCreateEndMs = timing.Stopwatch.ElapsedMilliseconds;
-            Log.Information("startup.mainwindow.shell.create.end elapsed_ms={ElapsedMs}", timing.MainWindowShellCreateEndMs - timing.MainWindowShellCreateStartMs);
+            startupSteps.Mark("mainwindow.shell.created");
             var vm = (IMainViewModel)mainWindow.DataContext;
+            var splashCloseSignaled = 0;
+
+            void SignalSplashCloseWhenReady()
+            {
+                if (Interlocked.Exchange(ref splashCloseSignaled, 1) == 1)
+                {
+                    return;
+                }
+
+                splashHandle?.SignalClose();
+                startupSteps.Mark("splash.close.signaled");
+            }
 
             var postShowInitializationStarted = false;
             mainWindow.Loaded += async (_, __) =>
@@ -176,68 +242,52 @@ internal static class Program
 
                 try
                 {
-                    timing.LoadedStartMs = timing.Stopwatch.ElapsedMilliseconds;
-                    Log.Information("startup.mainwindow.loaded.begin");
-
                     var loadResult = await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
+                    startupSteps.Mark("settings.loaded");
                     if (loadResult.IsFailed)
                     {
                         throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
                     }
 
-                    timing.SettingsLoadedMs = timing.Stopwatch.ElapsedMilliseconds;
-                    Log.Information("startup.settings.loaded elapsed_ms={ElapsedMs}", timing.SettingsLoadedMs - timing.LoadedStartMs);
-
                     await vm.InitializeMainViewAsync(mainWindow);
-                    WriteEarlyStartupTraceToFile("startup.mainvm.initialized");
-                    timing.MainVmInitializedMs = timing.Stopwatch.ElapsedMilliseconds;
-                    Log.Information("startup.mainvm.initialized elapsed_ms={ElapsedMs}", timing.MainVmInitializedMs - timing.LoadedStartMs);
+                    startupSteps.Mark("mainvm.initialized");
 
                     await host.StartAsync();
                     hostStarted = true;
-                    timing.HostStartedMs = timing.Stopwatch.ElapsedMilliseconds;
-                    Log.Information("startup.host.started elapsed_ms={ElapsedMs}", timing.HostStartedMs);
+                    startupSteps.Mark("host.started");
 
                     CommandExceptionLogger.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
                     host.Services.GetRequiredService<IScannerWarmupService>().StartWarmupInBackground("program.startup");
+                    startupSteps.Mark("scanner_warmup.kicked_off");
 
                     await host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync();
-                    WriteEarlyStartupTraceToFile("startup.autoupdate.initialized");
-                    timing.LoadedEndMs = timing.Stopwatch.ElapsedMilliseconds;
-                    Log.Information("startup.mainwindow.loaded.end elapsed_ms={ElapsedMs}", timing.LoadedEndMs - timing.LoadedStartMs);
-                    Log.Information(
-                        "startup.summary total_ms={TotalMs} host_started_ms={HostStartedMs} shell_create_start_ms={ShellCreateStartMs} shell_create_end_ms={ShellCreateEndMs} shell_create_elapsed_ms={ShellCreateElapsedMs} window_show_called_ms={WindowShowCalledMs} loaded_start_ms={LoadedStartMs} settings_loaded_ms={SettingsLoadedMs} mainvm_initialized_ms={MainVmInitializedMs} loaded_end_ms={LoadedEndMs}",
-                        timing.Stopwatch.ElapsedMilliseconds,
-                        timing.HostStartedMs,
-                        timing.MainWindowShellCreateStartMs,
-                        timing.MainWindowShellCreateEndMs,
-                        timing.MainWindowShellCreateEndMs - timing.MainWindowShellCreateStartMs,
-                        timing.WindowShowCalledMs,
-                        timing.LoadedStartMs,
-                        timing.SettingsLoadedMs,
-                        timing.MainVmInitializedMs,
-                        timing.LoadedEndMs);
+                    startupSteps.Mark("autoupdate.initialized");
+                    startupSteps.Mark("startup.ready");
+                    EmitStartupTable(isError: false, "Startup Steps (ready)");
                 }
                 catch (Exception ex)
                 {
-                    WriteEarlyStartupFailureToFile("startup.postshow.fatal.exception", ex);
+                    startupSteps.Mark("startup.failed.in_loaded");
+                    EmitStartupTable(isError: true, "Startup Steps (failed)");
                     Log.Fatal(ex, UI.ex_FatalError);
                     app.Shutdown(-1);
                 }
             };
 
+            mainWindow.ContentRendered += (_, __) =>
+            {
+                startupSteps.Mark("mainwindow.content_rendered");
+                SignalSplashCloseWhenReady();
+            };
+
             app.MainWindow = mainWindow;
-            splashHandle?.CloseSplash();
-            Log.Information("startup.splash.process.closed elapsed_ms={ElapsedMs}", timing.Stopwatch.ElapsedMilliseconds);
             mainWindow.Show();
+            startupSteps.Mark("mainwindow.show.called");
             if (mainWindow.WindowState == WindowState.Minimized)
             {
                 mainWindow.WindowState = WindowState.Normal;
             }
             _ = mainWindow.Activate();
-
-            timing.WindowShowCalledMs = timing.Stopwatch.ElapsedMilliseconds;
-            Log.Information("startup.window.show.called elapsed_ms={ElapsedMs}", timing.WindowShowCalledMs);
 
             app.Run();
             splashHandle?.Dispose();
@@ -245,7 +295,8 @@ internal static class Program
         }
         catch (Exception ex)
         {
-            WriteEarlyStartupFailureToFile("startup.fatal.exception", ex);
+            startupSteps.Mark("startup.failed.outer");
+            EmitStartupTable(isError: true, "Startup Steps (failed)");
             Log.Fatal(ex, UI.ex_FatalError);
             Environment.Exit(-1);
             return Task.CompletedTask;
@@ -296,9 +347,6 @@ internal static class Program
             ?? existingCandidates.FirstOrDefault()
             ?? string.Empty;
 
-        WriteEarlyStartupTraceToFile(
-            $"startup.splash.path.select cmd0={cmd0} process_dir={processDir} current_dir={currentDir} appcontext_base={AppContext.BaseDirectory} selected={splashExePath} existing={string.Join(";", existingCandidates)}");
-
         if (!File.Exists(splashExePath))
         {
             Log.Warning("startup.splash.process.missing path={Path} process_dir={ProcessDir} appcontext_base={AppContextBaseDirectory}", splashExePath, processDir, AppContext.BaseDirectory);
@@ -319,34 +367,5 @@ internal static class Program
 
         var process = Process.Start(psi) ?? throw new InvalidOperationException("Failed to launch splash process.");
         return new SplashProcessHandle(closeEvent, process);
-    }
-
-    private static void WriteEarlyStartupFailureToFile(string message, Exception ex)
-    {
-        try
-        {
-            Directory.CreateDirectory(StringsConstants.AppLogDirectoryPath);
-            var line =
-                $"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz} [WRN] {message}{Environment.NewLine}{ex}{Environment.NewLine}";
-            File.AppendAllText(StringsConstants.AppLogFilePath, line);
-        }
-        catch
-        {
-            // Best-effort fallback logging only.
-        }
-    }
-
-    private static void WriteEarlyStartupTraceToFile(string message)
-    {
-        try
-        {
-            Directory.CreateDirectory(StringsConstants.AppLogDirectoryPath);
-            var line = $"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff zzz} [INF] {message}{Environment.NewLine}";
-            File.AppendAllText(StringsConstants.AppLogFilePath, line);
-        }
-        catch
-        {
-            // Best-effort fallback logging only.
-        }
     }
 }
