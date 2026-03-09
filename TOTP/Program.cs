@@ -124,6 +124,7 @@ internal static class Program
             {
                 splashHandle = StartSplashProcess();
                 Log.Information("startup.splash.process.started");
+                Task.Yield();
             }
             catch (Exception ex)
             {
@@ -138,7 +139,7 @@ internal static class Program
             BootLoader.RegisterSyncfusionLicenseKey(configuration);
 
             using var host = Task.Run(() => BootLoader.BuildHostAndConfigureServices(configuration, args)).GetAwaiter().GetResult();
-            WriteEarlyStartupTraceToFile("startup.host.built");
+            WriteEarlyStartupTraceToFile("startup.host.and.services.built");
 
             var app = new App();
             app.InitializeComponent();
