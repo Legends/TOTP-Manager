@@ -179,6 +179,15 @@ internal static class Program
                     timing.LoadedStartMs = timing.Stopwatch.ElapsedMilliseconds;
                     Log.Information("startup.mainwindow.loaded.begin");
 
+                    var loadResult = await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
+                    if (loadResult.IsFailed)
+                    {
+                        throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
+                    }
+
+                    timing.SettingsLoadedMs = timing.Stopwatch.ElapsedMilliseconds;
+                    Log.Information("startup.settings.loaded elapsed_ms={ElapsedMs}", timing.SettingsLoadedMs - timing.LoadedStartMs);
+
                     await vm.InitializeMainViewAsync(mainWindow);
                     WriteEarlyStartupTraceToFile("startup.mainvm.initialized");
                     timing.MainVmInitializedMs = timing.Stopwatch.ElapsedMilliseconds;
@@ -191,9 +200,6 @@ internal static class Program
 
                     CommandExceptionLogger.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
                     host.Services.GetRequiredService<IScannerWarmupService>().StartWarmupInBackground("program.startup");
-
-                    timing.SettingsLoadedMs = timing.Stopwatch.ElapsedMilliseconds;
-                    Log.Information("startup.settings.loaded elapsed_ms={ElapsedMs}", timing.SettingsLoadedMs - timing.LoadedStartMs);
 
                     await host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync();
                     WriteEarlyStartupTraceToFile("startup.autoupdate.initialized");
