@@ -5,7 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <SignAssembly>True</SignAssembly>
     <DelaySign>False</DelaySign>
+    <AssemblyOriginatorKeyFile>totp-sign-key.snk</AssemblyOriginatorKeyFile>
+    <PublicSign>true</PublicSign>
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
