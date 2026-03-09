@@ -102,6 +102,26 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore TOTP/TOTP.UI.WPF.csproj --nologo --verbosity minimal --configfile NuGet.config --source https://api.nuget.org/v3/index.json -r win-x64
 
+      - name: Compute release version metadata
+        id: versioning
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          if ($tag -notmatch '^v(?<version>\d+\.\d+\.\d+)-rc(?<rc>\d+)$') {
+            throw "Release tag '$tag' does not match expected format v<major>.<minor>.<patch>-rc<nr>."
+          }
+
+          $baseVersion = $Matches.version
+          $releaseVersion = "$baseVersion-rc$($Matches.rc)"
+          $fileVersion = "$baseVersion.$($Matches.rc)"
+
+          "base_version=$baseVersion" >> $env:GITHUB_OUTPUT
+          "release_version=$releaseVersion" >> $env:GITHUB_OUTPUT
+          "file_version=$fileVersion" >> $env:GITHUB_OUTPUT
+
+          Write-Host "Release version: $releaseVersion"
+          Write-Host "File version: $fileVersion"
+
       - name: Publish WPF app (fast startup)
         run: |
           dotnet publish TOTP/TOTP.UI.WPF.csproj `
@@ -113,6 +133,10 @@ jobs:
             --self-contained false `
             -p:PublishSingleFile=false `
             -p:PublishTrimmed=false `
+            -p:Version=${{ steps.versioning.outputs.release_version }} `
+            -p:InformationalVersion=${{ steps.versioning.outputs.release_version }} `
+            -p:FileVersion=${{ steps.versioning.outputs.file_version }} `
+            -p:AssemblyVersion=${{ steps.versioning.outputs.base_version }}.0 `
             --output publish-fast
 
       - name: Publish WPF app (portable single-file)
@@ -127,6 +151,10 @@ jobs:
             -p:PublishSingleFile=true `
             -p:IncludeAllContentForSelfExtract=true `
             -p:PublishTrimmed=false `
+            -p:Version=${{ steps.versioning.outputs.release_version }} `
+            -p:InformationalVersion=${{ steps.versioning.outputs.release_version }} `
+            -p:FileVersion=${{ steps.versioning.outputs.file_version }} `
+            -p:AssemblyVersion=${{ steps.versioning.outputs.base_version }}.0 `
             --output publish-portable
 
       - name: Cache .NET global tools
