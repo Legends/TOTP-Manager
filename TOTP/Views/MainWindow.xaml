@@ -46,6 +46,10 @@
                     Key="E"
                     Command="{Binding OpenFlyoutEditModeCommand}"
                     CommandParameter="{Binding SelectedAccount}" />
+        <KeyBinding Modifiers="Control"
+                    Key="D"
+                    Command="{Binding DeleteSecretCommand}"
+                    CommandParameter="{Binding SelectedAccount}" />
     </Window.InputBindings>
 
     <i:Interaction.Triggers>
