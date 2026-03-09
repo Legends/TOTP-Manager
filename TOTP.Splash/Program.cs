@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 
 namespace TOTP.Splash;
@@ -42,22 +43,47 @@ internal static class Program
         var splash = new SplashWindow();
         app.MainWindow = splash;
 
-        var timer = new DispatcherTimer(DispatcherPriority.Background)
+        var cts = new CancellationTokenSource();
+        Task.Run(() =>
         {
-            Interval = TimeSpan.FromMilliseconds(100)
-        };
-
-        timer.Tick += (_, __) =>
-        {
-            if (ShouldClose(closeEvent, parentPid))
+            try
             {
-                splash.Close();
+                // Wait for the close event or for the parent process to exit
+                while (!cts.Token.IsCancellationRequested)
+                {
+                    // Check the event (wait up to 100ms)
+                    if (closeEvent.WaitOne(100))
+                    {
+                        splash.Dispatcher.BeginInvoke(splash.Close);
+                        break;
+                    }
+
+                    // Fallback: check if parent process is still alive
+                    if (parentPid > 0)
+                    {
+                        try
+                        {
+                            var parent = Process.GetProcessById(parentPid);
+                            if (parent.HasExited)
+                            {
+                                splash.Dispatcher.BeginInvoke(splash.Close);
+                                break;
+                            }
+                        }
+                        catch
+                        {
+                            splash.Dispatcher.BeginInvoke(splash.Close);
+                            break;
+                        }
+                    }
+                }
             }
-        };
+            catch { }
+        });
 
         splash.Closed += (_, __) =>
         {
-            timer.Stop();
+            cts.Cancel();
             closeEvent.Dispose();
         };
 
@@ -68,7 +94,6 @@ internal static class Program
         }
 
         splash.Show();
-        timer.Start();
         app.Run();
     }
 
