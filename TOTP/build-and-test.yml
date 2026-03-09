@@ -135,7 +135,6 @@ jobs:
             -p:PublishTrimmed=false `
             -p:Version=${{ steps.versioning.outputs.release_version }} `
             -p:InformationalVersion=${{ steps.versioning.outputs.release_version }} `
-            -p:IncludeSourceRevisionInInformationalVersion=false `
             -p:FileVersion=${{ steps.versioning.outputs.file_version }} `
             -p:AssemblyVersion=${{ steps.versioning.outputs.base_version }}.0 `
             --output publish-fast
@@ -154,7 +153,6 @@ jobs:
             -p:PublishTrimmed=false `
             -p:Version=${{ steps.versioning.outputs.release_version }} `
             -p:InformationalVersion=${{ steps.versioning.outputs.release_version }} `
-            -p:IncludeSourceRevisionInInformationalVersion=false `
             -p:FileVersion=${{ steps.versioning.outputs.file_version }} `
             -p:AssemblyVersion=${{ steps.versioning.outputs.base_version }}.0 `
             --output publish-portable
