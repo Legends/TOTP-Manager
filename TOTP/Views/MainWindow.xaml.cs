@@ -1,5 +1,6 @@
 using Syncfusion.SfSkinManager;
 using Syncfusion.Windows.Shared;
+using Serilog;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -15,6 +16,7 @@ namespace TOTP.Views;
 public partial class MainWindow : ChromelessWindow, IMainWindow
 {
     private const string SfDataGridDictionaryPath = "Styles/SfDataGrid.xaml";
+    private static readonly bool EnableLifecycleLogging = false;
 
     private readonly Stopwatch _lifecycleStopwatch = Stopwatch.StartNew();
     private readonly IMainViewModel _vm;
@@ -25,16 +27,19 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
     public MainWindow(IMainViewModel vm)
     {
         _vm = vm;
-        Debug.WriteLine($"MainWindow.ctor.begin ms={_lifecycleStopwatch.ElapsedMilliseconds}");
+        LogLifecycle("ctor.begin");
         InitializeComponent();
+        LogLifecycle("ctor.after_initialize_component");
 
         HookFlyoutLazyLoading();
-        InitializeSettingsFlyout();
+        LogLifecycle("ctor.after_hook_flyout_lazy_loading");
+        ScheduleSettingsFlyoutWarmupAfterFirstFrame();
+        LogLifecycle("ctor.after_schedule_settings_flyout_warmup");
         EnsureAccountsSectionLoaded();
+        LogLifecycle("ctor.after_ensure_accounts_section_loaded");
 
-        Debug.WriteLine($"MainWindow.ctor.after.InitializeComponent ms={_lifecycleStopwatch.ElapsedMilliseconds}");
         SetupWindowPositionAtStartup();
-        Debug.WriteLine($"MainWindow.ctor.end ms={_lifecycleStopwatch.ElapsedMilliseconds}");
+        LogLifecycle("ctor.end");
     }
 
     private void HookFlyoutLazyLoading()
@@ -64,39 +69,66 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
     {
         if (SettingsFlyoutHost.FlyoutContent != null)
         {
+            LogLifecycle("settings_flyout.init.skipped_already_initialized");
             return;
         }
 
+        LogLifecycle("settings_flyout.init.begin");
         SettingsFlyoutHost.FlyoutContent = new SettingsFlyoutView();
+        LogLifecycle("settings_flyout.init.end");
+    }
+
+    private void ScheduleSettingsFlyoutWarmupAfterFirstFrame()
+    {
+        var scheduled = false;
+        ContentRendered += (_, __) =>
+        {
+            if (scheduled)
+            {
+                return;
+            }
+
+            scheduled = true;
+            Dispatcher.BeginInvoke(new Action(InitializeSettingsFlyout), System.Windows.Threading.DispatcherPriority.Background);
+        };
     }
 
     private void EnsureAccountsSectionLoaded()
     {
         if (_accountsSectionLoaded)
         {
+            LogLifecycle("accounts_section.load.skipped_already_loaded");
             return;
         }
 
+        LogLifecycle("accounts_section.load.begin");
         EnsureDataGridResourcesLoaded();
+        LogLifecycle("accounts_section.load.after_datagrid_resources");
 
         var accountsSection = new AccountsSection
         {
             DataContext = _vm
         };
+        LogLifecycle("accounts_section.load.after_construct_section");
 
         AccountsSectionHost.Content = accountsSection;
+        LogLifecycle("accounts_section.load.after_assign_content");
         _vm.GridFilterRefresher = new GridFilterRefresher(accountsSection.AccountsGridControl);
+        LogLifecycle("accounts_section.load.after_grid_filter_refresher");
         _vm.RequestGridFilterRefresh?.Invoke();
         _accountsSectionLoaded = true;
+        LogLifecycle("accounts_section.load.end");
     }
 
     private void EnsureDataGridResourcesLoaded()
     {
         if (_dataGridResourcesLoaded)
         {
+            LogLifecycle("datagrid_resources.load.skipped_already_loaded");
             return;
         }
 
+        LogLifecycle("datagrid_resources.load.begin");
         if (Application.Current?.Resources?.MergedDictionaries != null)
         {
             var dictionaries = Application.Current.Resources.MergedDictionaries;
@@ -114,25 +146,31 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
 
             if (!alreadyLoaded)
             {
+                LogLifecycle("datagrid_resources.load.add_dictionary.begin");
                 dictionaries.Add(new ResourceDictionary
                 {
                     Source = new Uri(SfDataGridDictionaryPath, UriKind.Relative)
                 });
+                LogLifecycle("datagrid_resources.load.add_dictionary.end");
             }
         }
 
         _dataGridResourcesLoaded = true;
+        LogLifecycle("datagrid_resources.load.end");
     }
 
     private void EnsureEditFlyoutLoaded()
     {
         if (_editFlyoutViewLoaded)
         {
+            LogLifecycle("edit_flyout.init.skipped_already_loaded");
             return;
         }
 
+        LogLifecycle("edit_flyout.init.begin");
         EditFlyoutHost.FlyoutContent = new EditAddAccountFlyoutView();
         _editFlyoutViewLoaded = true;
+        LogLifecycle("edit_flyout.init.end");
     }
 
     private void SetupWindowPositionAtStartup()
@@ -145,5 +183,18 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
 
         this.Left = (screenWidth - windowWidth) / 2;
         this.Top = screenHeight / 5;
+        LogLifecycle("window_position.set");
+    }
+
+    private void LogLifecycle(string step)
+    {
+        if (!EnableLifecycleLogging)
+        {
+            return;
+        }
+
+        var elapsedMs = _lifecycleStopwatch.ElapsedMilliseconds;
+        Debug.WriteLine($"MainWindow.{step} ms={elapsedMs}");
+        Log.Information("mainwindow.lifecycle step={Step} elapsed_ms={ElapsedMs}", step, elapsedMs);
     }
 }

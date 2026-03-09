@@ -14,7 +14,6 @@ on:
       - 'TOTP.Core/**'
       - 'TOTP.DAL/**'
       - 'TOTP.Infrastructure/**'
-      - 'TOTP.Splash/**'
       - 'TOTP.Tests/**'
       - 'scripts/**'
   pull_request:
@@ -28,7 +27,6 @@ on:
       - 'TOTP.Core/**'
       - 'TOTP.DAL/**'
       - 'TOTP.Infrastructure/**'
-      - 'TOTP.Splash/**'
       - 'TOTP.Tests/**'
       - 'scripts/**'
 
@@ -117,23 +115,6 @@ jobs:
             -p:IncludeAllContentForSelfExtract=true `
             -p:PublishTrimmed=false `
             --output publish
-
-      - name: Validate splash runtime files in publish output
-        shell: pwsh
-        run: |
-          $required = @(
-            "publish/appsettings.json",
-            "publish/TOTP.Splash.exe",
-            "publish/TOTP.Splash.dll",
-            "publish/TOTP.Splash.deps.json",
-            "publish/TOTP.Splash.runtimeconfig.json"
-          )
-          $missing = $required | Where-Object { -not (Test-Path $_) }
-          if ($missing.Count -gt 0) {
-            Write-Error ("Missing splash publish files: " + ($missing -join ", "))
-            exit 1
-          }
-          Write-Host "Splash publish files validated."
 
       - name: Cache .NET global tools
         id: cache-dotnet-tools

@@ -16,7 +16,7 @@ public partial class FlyoutHost : UserControl
 
     public static readonly DependencyProperty FlyoutContentProperty =
         DependencyProperty.Register(nameof(FlyoutContent), typeof(object), typeof(FlyoutHost),
-            new FrameworkPropertyMetadata(null));
+            new FrameworkPropertyMetadata(null, OnFlyoutContentChanged));
 
     public object? FlyoutContent
     {
@@ -147,10 +147,26 @@ public partial class FlyoutHost : UserControl
         host.Loaded += host.OnWarmUpLoaded;
     }
 
+    private static void OnFlyoutContentChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not FlyoutHost host || !host.WarmUpOnLoad || !host.IsLoaded)
+        {
+            return;
+        }
+
+        host.WarmUpContent();
+    }
+
     private void OnWarmUpLoaded(object sender, RoutedEventArgs e)
     {
         Loaded -= OnWarmUpLoaded;
 
+        WarmUpContent();
+    }
+
+    private void WarmUpContent()
+    {
+        
         if (IsOpen)
             return;
 
