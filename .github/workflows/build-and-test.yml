@@ -137,7 +137,7 @@ jobs:
             -p:InformationalVersion=${{ steps.versioning.outputs.release_version }} `
             -p:IncludeSourceRevisionInInformationalVersion=false `
             -p:FileVersion=${{ steps.versioning.outputs.file_version }} `
-            -p:AssemblyVersion=${{ steps.versioning.outputs.base_version }}.0 `
+            -p:AssemblyVersion=${{ steps.versioning.outputs.file_version }} `
             --output publish-fast
 
       - name: Publish WPF app (portable single-file)
@@ -156,7 +156,7 @@ jobs:
             -p:InformationalVersion=${{ steps.versioning.outputs.release_version }} `
             -p:IncludeSourceRevisionInInformationalVersion=false `
             -p:FileVersion=${{ steps.versioning.outputs.file_version }} `
-            -p:AssemblyVersion=${{ steps.versioning.outputs.base_version }}.0 `
+            -p:AssemblyVersion=${{ steps.versioning.outputs.file_version }} `
             --output publish-portable
 
       - name: Cache .NET global tools

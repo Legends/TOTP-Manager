@@ -325,11 +325,26 @@ try {
         if (-not (Test-Path $destinationDirectory)) {
             New-Item -ItemType Directory -Path $destinationDirectory -Force | Out-Null
         }
-        Copy-Item -LiteralPath $_.FullName -Destination $destinationPath -Force
+
+        $copied = $false
+        for ($attempt = 1; $attempt -le 10 -and -not $copied; $attempt++) {
+            try {
+                Copy-Item -LiteralPath $_.FullName -Destination $destinationPath -Force
+                $copied = $true
+            }
+            catch {
+                if ($attempt -eq 10) {
+                    throw
+                }
+
+                Start-Sleep -Milliseconds 500
+            }
+        }
     }
 
     Write-Log "files copied"
-    Start-Process -FilePath $ExecutablePath -WorkingDirectory $TargetDir
+    $targetExecutablePath = Join-Path $TargetDir ([IO.Path]::GetFileName($ExecutablePath))
+    Start-Process -FilePath $targetExecutablePath -WorkingDirectory $TargetDir
     Write-Log "application relaunched"
 }
 catch {
@@ -362,7 +377,13 @@ finally {
             return false;
         }
 
-        _logger.LogInformation("Auto-update custom install helper started. package={PackagePath} install_dir={InstallDirectory}", downloadedFilePath, installDirectory);
+        _logger.LogInformation(
+            "Auto-update custom install helper started. package={PackagePath} install_dir={InstallDirectory} current_exe={CurrentExecutablePath} helper_script={HelperScriptPath} helper_log={HelperLogPath}",
+            downloadedFilePath,
+            installDirectory,
+            currentExecutablePath,
+            helperScriptPath,
+            logPath);
 
         var application = Application.Current;
         if (application != null)
