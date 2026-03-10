@@ -43,6 +43,9 @@ pwsh ./scripts/release/Generate-Appcast.ps1 `
   -PublicKeyPath "C:\secure\NetSparkle_Ed25519.pub"
 ```
 
+Install flow details:
+- see `docs/security/AUTO_UPDATE_INSTALL_PROCESS.md` for the current in-place update and relaunch process used by the custom NetSparkle UI
+
 ## 5. Host Files
 Host these over HTTPS:
 - appcast XML

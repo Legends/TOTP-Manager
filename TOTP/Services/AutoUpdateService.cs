@@ -77,6 +77,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
                 RelaunchAfterUpdate = false,
                 UIFactory = _uiFactory
             };
+
             WireDiagnostics(_sparkle);
 
             var effectiveInterval = ResolveCheckInterval(checkIntervalMinutes);
@@ -250,16 +251,17 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
     private async Task<bool> InstallDownloadedUpdateAsync(AppCastItem item, string? downloadedFilePath)
     {
-        if (string.IsNullOrWhiteSpace(downloadedFilePath) || !File.Exists(downloadedFilePath))
+        if (string.IsNullOrWhiteSpace(downloadedFilePath))
         {
             _logger.LogWarning("Auto-update install helper could not start because the downloaded package was not found. path={Path}", downloadedFilePath);
             return false;
         }
 
-        var downloadedExtension = Path.GetExtension(downloadedFilePath);
-        if (!string.Equals(downloadedExtension, ".zip", StringComparison.OrdinalIgnoreCase))
+        var downloadedPathIsFile = File.Exists(downloadedFilePath);
+        var downloadedPathIsDirectory = Directory.Exists(downloadedFilePath);
+        if (!downloadedPathIsFile && !downloadedPathIsDirectory)
         {
-            _logger.LogWarning("Auto-update custom install helper only supports .zip packages. path={Path}", downloadedFilePath);
+            _logger.LogWarning("Auto-update install helper could not start because the downloaded package path does not exist. path={Path}", downloadedFilePath);
             return false;
         }
 
@@ -285,7 +287,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
         var logPath = Path.Combine(Path.GetTempPath(), "totp-update-helper.log");
         var helperScript = """
 param(
-    [Parameter(Mandatory = $true)][string]$ZipPath,
+    [Parameter(Mandatory = $true)][string]$PackagePath,
     [Parameter(Mandatory = $true)][string]$TargetDir,
     [Parameter(Mandatory = $true)][string]$ExecutablePath,
     [Parameter(Mandatory = $true)][int]$ParentPid,
@@ -315,8 +317,15 @@ try {
         Remove-Item -Path $StageDir -Recurse -Force
     }
 
-    Expand-Archive -LiteralPath $ZipPath -DestinationPath $StageDir -Force
-    Write-Log "archive extracted"
+    if (Test-Path $PackagePath -PathType Container) {
+        New-Item -ItemType Directory -Path $StageDir -Force | Out-Null
+        Copy-Item -LiteralPath (Join-Path $PackagePath '*') -Destination $StageDir -Recurse -Force
+        Write-Log "package directory copied to staging"
+    }
+    else {
+        Expand-Archive -LiteralPath $PackagePath -DestinationPath $StageDir -Force
+        Write-Log "archive extracted"
+    }
 
     Get-ChildItem -LiteralPath $StageDir -Recurse -File | ForEach-Object {
         $relativePath = $_.FullName.Substring($StageDir.Length).TrimStart('\')
@@ -364,7 +373,7 @@ finally {
         var startInfo = new ProcessStartInfo
         {
             FileName = "powershell.exe",
-            Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{helperScriptPath}\" -ZipPath \"{downloadedFilePath}\" -TargetDir \"{installDirectory}\" -ExecutablePath \"{currentExecutablePath}\" -ParentPid {currentProcess.Id} -StageDir \"{stageDirectory}\" -LogPath \"{logPath}\"",
+            Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{helperScriptPath}\" -PackagePath \"{downloadedFilePath}\" -TargetDir \"{installDirectory}\" -ExecutablePath \"{currentExecutablePath}\" -ParentPid {currentProcess.Id} -StageDir \"{stageDirectory}\" -LogPath \"{logPath}\"",
             CreateNoWindow = true,
             UseShellExecute = false,
             WorkingDirectory = installDirectory
