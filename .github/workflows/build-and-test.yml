@@ -206,7 +206,47 @@ jobs:
             -BaseDownloadUrl "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/" `
             -PrivateKeyPath $privPath `
             -PublicKeyPath $pubPath `
-            -FileVersion "${{ steps.versioning.outputs.file_version }}"
+            -FileVersion "${{ steps.versioning.outputs.file_version }}" `
+            -DisplayVersion "${{ steps.versioning.outputs.release_version }}"
+
+      - name: Validate generated appcast versions
+        if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
+        shell: pwsh
+        run: |
+          $appcastPath = "./publish-fast/appcast.xml"
+          if (-not (Test-Path $appcastPath)) {
+            throw "Generated appcast not found: $appcastPath"
+          }
+
+          [xml]$xml = Get-Content -Path $appcastPath -Raw
+          $sparkleNs = "http://www.andymatuschak.org/xml-namespaces/sparkle"
+          $ns = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+          $ns.AddNamespace("sparkle", $sparkleNs)
+
+          $item = $xml.SelectSingleNode("/rss/channel/item")
+          $enclosure = $item.SelectSingleNode("enclosure")
+          $itemVersion = $item.SelectSingleNode("sparkle:version", $ns).InnerText
+          $shortVersion = $item.SelectSingleNode("sparkle:shortVersionString", $ns).InnerText
+          $enclosureVersion = $enclosure.GetAttribute("version", $sparkleNs)
+          $enclosureShortVersion = $enclosure.GetAttribute("shortVersionString", $sparkleNs)
+
+          if ($itemVersion -ne "${{ steps.versioning.outputs.file_version }}") {
+            throw "appcast sparkle:version mismatch. Expected '${{ steps.versioning.outputs.file_version }}' but got '$itemVersion'."
+          }
+
+          if ($enclosureVersion -ne "${{ steps.versioning.outputs.file_version }}") {
+            throw "appcast enclosure sparkle:version mismatch. Expected '${{ steps.versioning.outputs.file_version }}' but got '$enclosureVersion'."
+          }
+
+          if ($shortVersion -ne "${{ steps.versioning.outputs.release_version }}") {
+            throw "appcast sparkle:shortVersionString mismatch. Expected '${{ steps.versioning.outputs.release_version }}' but got '$shortVersion'."
+          }
+
+          if ($enclosureShortVersion -ne "${{ steps.versioning.outputs.release_version }}") {
+            throw "appcast enclosure sparkle:shortVersionString mismatch. Expected '${{ steps.versioning.outputs.release_version }}' but got '$enclosureShortVersion'."
+          }
+
+          Write-Host "Appcast version fields validated."
 
       - name: Appcast generation skipped notice
         if: ${{ env.NETSPARKLE_PUBLIC_KEY == '' || env.NETSPARKLE_PRIVATE_KEY == '' }}
