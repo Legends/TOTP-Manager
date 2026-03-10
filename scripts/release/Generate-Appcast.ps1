@@ -12,6 +12,9 @@ param(
     [string]$PublicKeyPath,
 
     [Parameter(Mandatory = $false)]
+    [string]$MainExecutableName = "TOTP.UI.WPF.exe",
+
+    [Parameter(Mandatory = $false)]
     [string]$FileVersion,
 
     [Parameter(Mandatory = $false)]
@@ -32,8 +35,18 @@ if (-not (Test-Path $PublicKeyPath)) {
     throw "Public key file not found: $PublicKeyPath"
 }
 
+if ([string]::IsNullOrWhiteSpace($MainExecutableName)) {
+    throw "Main executable name must not be empty."
+}
+
+$mainExecutablePath = Join-Path $ReleaseFolder $MainExecutableName
+if (-not (Test-Path $mainExecutablePath)) {
+    throw "Main executable not found: $mainExecutablePath"
+}
+
 Write-Host "[update] Generating appcast for $ReleaseFolder"
 Write-Host "[update] Base download URL: $BaseDownloadUrl"
+Write-Host "[update] Main executable: $MainExecutableName"
 if (-not [string]::IsNullOrWhiteSpace($FileVersion)) {
     Write-Host "[update] Override appcast version: $FileVersion"
 }
@@ -42,8 +55,11 @@ if (-not [string]::IsNullOrWhiteSpace($DisplayVersion)) {
 }
 
 # Requires: dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator
+$tempBinaryDirectory = Join-Path ([IO.Path]::GetTempPath()) ("netsparkle-appcast-" + [Guid]::NewGuid().ToString("N"))
+New-Item -ItemType Directory -Path $tempBinaryDirectory -Force | Out-Null
+
 $arguments = @(
-    '--binaries', "$ReleaseFolder",
+    '--binaries', "$tempBinaryDirectory",
     '--ext', 'exe',
     '--base-url', "$BaseDownloadUrl",
     '--appcast-output-directory', "$ReleaseFolder",
@@ -58,7 +74,15 @@ if (-not [string]::IsNullOrWhiteSpace($FileVersion)) {
     $arguments += @('--file-version', $FileVersion)
 }
 
-netsparkle-generate-appcast @arguments
+try {
+    Copy-Item -Path $mainExecutablePath -Destination (Join-Path $tempBinaryDirectory $MainExecutableName) -Force
+    netsparkle-generate-appcast @arguments
+}
+finally {
+    if (Test-Path $tempBinaryDirectory) {
+        Remove-Item -Path $tempBinaryDirectory -Recurse -Force
+    }
+}
 
 $appcastPath = Join-Path $ReleaseFolder "appcast.xml"
 if (-not (Test-Path $appcastPath)) {
@@ -116,6 +140,23 @@ try {
 }
 finally {
     $writer.Dispose()
+}
+
+$appcastSignature = $null
+if (-not [string]::IsNullOrWhiteSpace($PrivateKeyPath) -and -not [string]::IsNullOrWhiteSpace($PublicKeyPath)) {
+    $appcastSignature = & netsparkle-generate-appcast `
+        --generate-signature $appcastPath `
+        --private-key-override ((Get-Content $PrivateKeyPath -Raw).Trim()) `
+        --public-key-override ((Get-Content $PublicKeyPath -Raw).Trim())
+
+    $signatureValue = ($appcastSignature | Select-String -Pattern '^Signature:\s*(.+)$').Matches.Groups[1].Value.Trim()
+    if ([string]::IsNullOrWhiteSpace($signatureValue)) {
+        throw "Failed to regenerate appcast signature for $appcastPath"
+    }
+
+    $appcastSignaturePath = "$appcastPath.signature"
+    Set-Content -Path $appcastSignaturePath -Value $signatureValue -NoNewline -Encoding utf8
+    Write-Host "[update] Regenerated appcast signature: $appcastSignaturePath"
 }
 
 Write-Host "[update] Appcast generation complete."

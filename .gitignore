@@ -54,6 +54,11 @@ appsettings.*.json
 *.cer
 publish/
 
+# Local updater test artifacts
+updatertest/iis-feed/
+updatertest/iis-feed-debug/
+updatertest/netsparkle keys/
+
 # Signing certificate
 cert.txt
 

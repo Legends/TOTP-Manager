@@ -1,5 +1,13 @@
 # TOTP Manager
 
+[![Platform](https://img.shields.io/badge/platform-Windows_10%2F11-0078D6)](https://github.com/Legends/TOTP-Manager)
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+[![Language](https://img.shields.io/badge/language-C%23-239120)](https://learn.microsoft.com/dotnet/csharp/)
+[![UI](https://img.shields.io/badge/UI-WPF-0C54C2)](https://learn.microsoft.com/dotnet/desktop/wpf/)
+[![Build](https://github.com/Legends/TOTP-Manager/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Legends/TOTP-Manager/actions/workflows/build-and-test.yml)
+[![License](https://img.shields.io/github/license/Legends/TOTP-Manager)](LICENSE.txt)
+[![Latest Release](https://img.shields.io/github/v/release/Legends/TOTP-Manager?display_name=tag)](https://github.com/Legends/TOTP-Manager/releases/latest)
+
 TOTP Manager is a Windows desktop app (WPF) for managing and generating `Time-based One-Time Passwords (TOTP)`  locally.
 
 ## Table of Contents
