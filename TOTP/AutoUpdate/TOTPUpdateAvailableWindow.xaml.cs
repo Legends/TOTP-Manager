@@ -52,7 +52,7 @@ public partial class TOTPUpdateAvailableWindow : Window, IUpdateAvailable
 
     public void HideReleaseNotes()
     {
-        ReleaseNotesPanel.Visibility = Visibility.Collapsed;
+        ReleaseNotesTab.Visibility = Visibility.Collapsed;
     }
 
     public void HideRemindMeLaterButton()
@@ -142,19 +142,21 @@ public partial class TOTPUpdateAvailableWindow : Window, IUpdateAvailable
 
     private static string BuildSummaryText(AppCastItem item, bool isUpdateAlreadyDownloaded)
     {
+        var installedVersion = item.AppVersionInstalled?.ToString() ?? "unknown";
         var version = item.ShortVersion ?? item.Version?.ToString() ?? "unknown";
         if (isUpdateAlreadyDownloaded)
         {
-            return $"Version {version} is already downloaded and ready to install.";
+            return $"Installed version {installedVersion} can now be replaced with {version}.";
         }
 
-        return $"Version {version} is available. The feed and signature are valid, and the updater is ready to download the selected package.";
+        return $"Version {version} is available for the current installation ({installedVersion}). The feed and signature are valid, and the updater is ready to download the selected package.";
     }
 
     private void ApplyCurrentItem(AppCastItem item, bool isUpdateAlreadyDownloaded)
     {
+        InstalledVersionText.Text = $"Installed: {item.AppVersionInstalled?.ToString() ?? "unknown"}";
         SummaryText.Text = BuildSummaryText(item, isUpdateAlreadyDownloaded);
-        CurrentVersionText.Text = $"Version {item.ShortVersion ?? item.Version?.ToString() ?? "unknown"}";
+        CurrentVersionText.Text = $"Available: {item.ShortVersion ?? item.Version?.ToString() ?? "unknown"}";
         PublishDateText.Text = item.PublicationDate == default
             ? "Published: unknown"
             : $"Published: {item.PublicationDate.ToLocalTime():yyyy-MM-dd HH:mm}";

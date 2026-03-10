@@ -26,12 +26,12 @@
         </Style>
     </Window.Resources>
     <Border Margin="10"
-            Padding="20"
-            CornerRadius="14"
+            Padding="18"
+            CornerRadius="12"
             Background="#FF10213F"
             BorderBrush="#FF2F5E9E"
             BorderThickness="1.5">
-        <Grid Width="360">
+        <Grid Width="332">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -43,9 +43,9 @@
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0"
-                    Height="88"
-                    Margin="0,0,0,18"
-                    CornerRadius="12"
+                    Height="74"
+                    Margin="0,0,0,14"
+                    CornerRadius="10"
                     ClipToBounds="True">
                 <Grid>
                     <Image Source="/Assets/backgrounds/background-main.png"
@@ -54,16 +54,16 @@
                     <Rectangle Fill="#B010213F" />
                     <StackPanel Orientation="Horizontal"
                                 VerticalAlignment="Center"
-                                Margin="16,0,16,0">
+                                Margin="14,0,14,0">
                         <Image Source="/Assets/Icons/app.ico"
-                               Width="28"
-                               Height="28"
+                               Width="24"
+                               Height="24"
                                Stretch="Uniform" />
                         <TextBlock Text="Update Transfer"
-                                   Margin="10,0,0,0"
+                                   Margin="8,0,0,0"
                                    VerticalAlignment="Center"
                                    Foreground="White"
-                                   FontSize="18"
+                                   FontSize="16"
                                    FontWeight="SemiBold" />
                     </StackPanel>
                 </Grid>
@@ -78,7 +78,7 @@
                 <TextBlock x:Name="TitleText"
                            Text="Downloading update"
                            Foreground="White"
-                           FontSize="18"
+                           FontSize="16"
                            FontWeight="SemiBold" />
 
                 <Border Grid.Column="1"

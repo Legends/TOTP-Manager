@@ -76,57 +76,55 @@
         </Style>
     </Window.Resources>
     <Border Margin="10"
-            Padding="22"
-            CornerRadius="16"
+            Padding="18"
+            CornerRadius="14"
             Background="#FF10213F"
             BorderBrush="#FF7D7FF4"
             BorderThickness="1.5">
-        <Grid Width="440">
+        <Grid Width="396">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0"
-                    Height="108"
-                    Margin="0,0,0,18"
-                    CornerRadius="12"
+                    Height="84"
+                    Margin="0,0,0,14"
+                    CornerRadius="10"
                     ClipToBounds="True">
                 <Grid>
                     <Image Source="/Assets/backgrounds/background-main.png"
                            Stretch="UniformToFill"
-                           Opacity="0.55" />
+                           Opacity="0.48" />
                     <Rectangle Fill="#B010213F" />
                     <StackPanel Orientation="Horizontal"
                                 VerticalAlignment="Center"
-                                Margin="18,0,18,0">
-                        <Border Width="56"
-                                Height="56"
-                                CornerRadius="14"
+                                Margin="14,0,14,0">
+                        <Border Width="44"
+                                Height="44"
+                                CornerRadius="12"
                                 Background="#FF162B4F"
                                 BorderBrush="#55FFFFFF"
                                 BorderThickness="1">
                             <Image Source="/Assets/Icons/app.ico"
-                                   Width="34"
-                                   Height="34"
+                                   Width="24"
+                                   Height="24"
                                    Stretch="Uniform"
                                    VerticalAlignment="Center"
                                    HorizontalAlignment="Center" />
                         </Border>
-                        <StackPanel Margin="14,0,0,0"
+                        <StackPanel Margin="12,0,0,0"
                                     VerticalAlignment="Center">
                             <TextBlock Text="TOTP Manager Updates"
                                        Foreground="White"
-                                       FontSize="20"
+                                       FontSize="17"
                                        FontWeight="SemiBold" />
-                            <TextBlock Text="Verified appcast, branded prompt, and local-install diagnostics"
-                                       Margin="0,6,0,0"
+                            <TextBlock Text="Verified feed with release notes and installer details"
+                                       Margin="0,4,0,0"
                                        Foreground="#FFD7E6FF"
-                                       FontSize="12"
+                                       FontSize="11"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                     </StackPanel>
@@ -143,12 +141,12 @@
                     <TextBlock x:Name="HeaderText"
                                Text="Update available"
                                Foreground="White"
-                               FontSize="22"
+                               FontSize="19"
                                FontWeight="SemiBold" />
                     <TextBlock x:Name="SummaryText"
-                               Margin="0,10,0,0"
+                               Margin="0,8,0,0"
                                Foreground="#FFCBDAF3"
-                               FontSize="13"
+                               FontSize="12"
                                TextWrapping="Wrap" />
                 </StackPanel>
 
@@ -169,157 +167,137 @@
             </Grid>
 
             <Border Grid.Row="2"
-                    Margin="0,16,0,0"
-                    Padding="12"
-                    Background="#FF162B4F"
+                    Margin="0,14,0,0"
+                    Padding="10"
+                    Background="#141F3559"
                     CornerRadius="10"
                     BorderBrush="#334F80"
                     BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="Available packages"
-                               Foreground="#FFF4F7FF"
-                               FontWeight="SemiBold"
-                               FontSize="13" />
-                    <ListBox x:Name="UpdatesList"
-                             Margin="0,8,0,0"
-                             Background="Transparent"
-                             BorderThickness="0"
-                             SelectionChanged="UpdatesList_OnSelectionChanged"
-                             ItemContainerStyle="{StaticResource PackageListItemStyle}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
+                <TabControl Background="Transparent"
+                            BorderThickness="0">
+                    <TabItem Header="Overview">
+                        <Grid Margin="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel>
+                                <TextBlock x:Name="InstalledVersionText"
+                                           Foreground="#FFCBDAF3"
+                                           FontSize="12"
+                                           TextWrapping="Wrap" />
+                                <TextBlock x:Name="CurrentVersionText"
+                                           Margin="0,6,0,0"
+                                           Foreground="White"
+                                           FontWeight="SemiBold"
+                                           FontSize="13" />
+                                <TextBlock x:Name="ActionHintText"
+                                           Margin="0,8,0,0"
+                                           Foreground="#FFCBDAF3"
+                                           FontSize="12"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Border Grid.Row="1"
+                                    Margin="0,12,0,0"
+                                    Padding="10"
+                                    Background="#10000000"
+                                    CornerRadius="8"
+                                    BorderBrush="#224B79"
+                                    BorderThickness="1">
                                 <StackPanel>
-                                    <DockPanel>
-                                        <TextBlock Text="{Binding Title}"
-                                                   Foreground="White"
-                                                   FontWeight="SemiBold" />
-                                        <Border DockPanel.Dock="Right"
-                                                Padding="8,3"
-                                                CornerRadius="999"
-                                                Background="#183C6AD1">
-                                            <TextBlock Text="{Binding ShortVersion}"
-                                                       Foreground="#FFD7E6FF"
-                                                       FontSize="11"
-                                                       FontWeight="SemiBold" />
-                                        </Border>
-                                    </DockPanel>
-                                    <TextBlock Text="{Binding DownloadLink}"
-                                               Margin="0,6,0,0"
-                                               Foreground="#FF9CC3FF"
-                                               FontSize="11"
-                                               TextWrapping="Wrap" />
+                                    <TextBlock Text="Package selection"
+                                               Foreground="#FFF4F7FF"
+                                               FontWeight="SemiBold"
+                                               FontSize="12" />
+                                    <ListBox x:Name="UpdatesList"
+                                             Margin="0,8,0,0"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             SelectionChanged="UpdatesList_OnSelectionChanged"
+                                             ItemContainerStyle="{StaticResource PackageListItemStyle}">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel>
+                                                    <DockPanel>
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   Foreground="White"
+                                                                   FontWeight="SemiBold" />
+                                                        <Border DockPanel.Dock="Right"
+                                                                Padding="8,3"
+                                                                CornerRadius="999"
+                                                                Background="#183C6AD1">
+                                                            <TextBlock Text="{Binding ShortVersion}"
+                                                                       Foreground="#FFD7E6FF"
+                                                                       FontSize="11"
+                                                                       FontWeight="SemiBold" />
+                                                        </Border>
+                                                    </DockPanel>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
                                 </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </StackPanel>
-            </Border>
+                            </Border>
+                        </Grid>
+                    </TabItem>
 
-            <Grid Grid.Row="3"
-                  Margin="0,16,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="140" />
-                </Grid.ColumnDefinitions>
-
-                <Border Padding="12"
-                        Background="#14000000"
-                        CornerRadius="10"
-                        BorderBrush="#224B79"
-                        BorderThickness="1"
-                        Margin="0,0,12,0">
-                    <StackPanel>
-                        <TextBlock Text="Selected package"
-                                   Foreground="#FFF4F7FF"
-                                   FontWeight="SemiBold"
-                                   FontSize="13" />
-                        <TextBlock x:Name="CurrentVersionText"
-                                   Margin="0,10,0,0"
-                                   Foreground="White"
-                                   FontWeight="SemiBold" />
-                        <TextBlock x:Name="PublishDateText"
-                                   Margin="0,6,0,0"
-                                   Foreground="#FFCBDAF3"
-                                   TextWrapping="Wrap" />
-                        <TextBlock x:Name="PackageSizeText"
-                                   Margin="0,6,0,0"
-                                   Foreground="#FFCBDAF3"
-                                   TextWrapping="Wrap" />
-                        <TextBlock x:Name="SourceText"
-                                   Margin="0,6,0,0"
-                                   Foreground="#FF9CC3FF"
-                                   TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="1"
-                        Padding="12"
-                        Background="#14000000"
-                        CornerRadius="10"
-                        BorderBrush="#224B79"
-                        BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Text="Action"
-                                   Foreground="#FFF4F7FF"
-                                   FontWeight="SemiBold"
-                                   FontSize="13" />
-                        <TextBlock x:Name="ActionHintText"
-                                   Margin="0,10,0,0"
-                                   Foreground="#FFCBDAF3"
-                                   FontSize="12"
-                                   TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <Border x:Name="ReleaseNotesPanel"
-                    Grid.Row="4"
-                    Margin="0,16,0,0"
-                    Padding="12"
-                    Background="#14000000"
-                    CornerRadius="10"
-                    BorderBrush="#224B79"
-                    BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="Release notes"
-                               Foreground="#FFF4F7FF"
-                               FontWeight="SemiBold"
-                               FontSize="13" />
-                    <Grid Margin="0,10,0,0">
-                        <WebBrowser x:Name="ReleaseNotesBrowser"
-                                    Visibility="Visible" />
-                        <ScrollViewer x:Name="ReleaseNotesFallbackPanel"
-                                      VerticalScrollBarVisibility="Auto"
-                                      Visibility="Collapsed">
-                            <TextBlock x:Name="ReleaseNotesFallbackText"
-                                       Foreground="#FFF4F7FF"
+                    <TabItem Header="Details">
+                        <StackPanel Margin="8">
+                            <TextBlock x:Name="PublishDateText"
+                                       Foreground="#FFCBDAF3"
                                        TextWrapping="Wrap" />
-                        </ScrollViewer>
-                    </Grid>
-                </StackPanel>
+                            <TextBlock x:Name="PackageSizeText"
+                                       Margin="0,8,0,0"
+                                       Foreground="#FFCBDAF3"
+                                       TextWrapping="Wrap" />
+                            <TextBlock x:Name="SourceText"
+                                       Margin="0,8,0,0"
+                                       Foreground="#FF9CC3FF"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </TabItem>
+
+                    <TabItem x:Name="ReleaseNotesTab"
+                             Header="Notes">
+                        <Grid Margin="8">
+                            <WebBrowser x:Name="ReleaseNotesBrowser"
+                                        Visibility="Visible" />
+                            <ScrollViewer x:Name="ReleaseNotesFallbackPanel"
+                                          VerticalScrollBarVisibility="Auto"
+                                          Visibility="Collapsed">
+                                <TextBlock x:Name="ReleaseNotesFallbackText"
+                                           Foreground="#FFF4F7FF"
+                                           TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
             </Border>
 
-            <StackPanel Grid.Row="5"
+            <StackPanel Grid.Row="3"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Margin="0,18,0,0">
+                        Margin="0,16,0,0">
                 <Button x:Name="SkipButton"
                         Style="{StaticResource SecondaryButtonStyle}"
-                        Width="92"
+                        Width="84"
                         Height="30"
                         Margin="0,0,8,0"
                         Content="Skip"
                         Click="SkipButton_OnClick" />
                 <Button x:Name="LaterButton"
                         Style="{StaticResource SecondaryButtonStyle}"
-                        Width="120"
+                        Width="108"
                         Height="30"
                         Margin="0,0,8,0"
                         Content="Remind me later"
                         Click="LaterButton_OnClick" />
                 <Button x:Name="InstallButton"
                         Style="{StaticResource PrimaryButtonStyle}"
-                        Width="138"
+                        Width="126"
                         Height="30"
                         Content="Download update"
                         Click="InstallButton_OnClick" />
