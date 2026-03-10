@@ -46,6 +46,41 @@ dotnet test TOTP.Tests\TOTP.Tests.csproj
 
 ## 2. Architecture Deep-Dive
 
+### Current Product Feature Set
+
+The application currently implements these end-user capabilities:
+
+- Local encrypted TOTP vault with on-device storage only
+- TOTP code generation with standard defaults (`SHA1`, `6` digits, `30s` period)
+- Account CRUD workflows
+- Inline account search/filtering in the main grid
+- QR import via camera scanning
+- QR generation and enlarged QR preview for transfer to another device
+- Inline edit flow plus full edit/add flyouts
+- Encrypted export/import workflows for backup and migration
+- Conflict-handling support during import
+- Master password setup and unlock flow
+- Optional Windows Hello setup and unlock support
+- Session locking on logout/manual lock
+- Lock on minimize
+- Lock on Windows session lock
+- Idle-timeout driven auto-lock
+- Clipboard copy of generated TOTP codes
+- Optional delayed clipboard clearing
+- Localization support (currently English/German)
+- Settings flyout for general, security, transfer, and logging options
+- NetSparkle-based automatic update checks using Ed25519-signed appcasts
+- Startup splash screen with dedicated splash UI thread
+- Scanner backend warmup to reduce first QR scan latency
+- Structured file logging with configurable minimum log level
+- Single-instance enforcement with activation of the existing window
+
+The release pipeline currently produces:
+
+- `fast` release artifact: framework-dependent, startup-optimized
+- `portable` release artifact: self-contained single-file
+- GitHub release assets for NetSparkle auto-update (`TOTP.UI.WPF.exe`, `appcast.xml`, `appcast.xml.signature`)
+
 ### Solution Structure
 
 - `TOTP.Core`
