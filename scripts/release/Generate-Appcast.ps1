@@ -12,7 +12,7 @@ param(
     [string]$PublicKeyPath,
 
     [Parameter(Mandatory = $false)]
-    [string]$MainExecutableName = "TOTP.UI.WPF.exe",
+    [string]$MainArtifactName = "TOTP.UI.WPF.exe",
 
     [Parameter(Mandatory = $false)]
     [string]$FileVersion,
@@ -35,18 +35,18 @@ if (-not (Test-Path $PublicKeyPath)) {
     throw "Public key file not found: $PublicKeyPath"
 }
 
-if ([string]::IsNullOrWhiteSpace($MainExecutableName)) {
-    throw "Main executable name must not be empty."
+if ([string]::IsNullOrWhiteSpace($MainArtifactName)) {
+    throw "Main artifact name must not be empty."
 }
 
-$mainExecutablePath = Join-Path $ReleaseFolder $MainExecutableName
-if (-not (Test-Path $mainExecutablePath)) {
-    throw "Main executable not found: $mainExecutablePath"
+$mainArtifactPath = Join-Path $ReleaseFolder $MainArtifactName
+if (-not (Test-Path $mainArtifactPath)) {
+    throw "Main artifact not found: $mainArtifactPath"
 }
 
 Write-Host "[update] Generating appcast for $ReleaseFolder"
 Write-Host "[update] Base download URL: $BaseDownloadUrl"
-Write-Host "[update] Main executable: $MainExecutableName"
+Write-Host "[update] Main artifact: $MainArtifactName"
 if (-not [string]::IsNullOrWhiteSpace($FileVersion)) {
     Write-Host "[update] Override appcast version: $FileVersion"
 }
@@ -58,9 +58,14 @@ if (-not [string]::IsNullOrWhiteSpace($DisplayVersion)) {
 $tempBinaryDirectory = Join-Path ([IO.Path]::GetTempPath()) ("netsparkle-appcast-" + [Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $tempBinaryDirectory -Force | Out-Null
 
+$artifactExtension = [IO.Path]::GetExtension($MainArtifactName).TrimStart('.')
+if ([string]::IsNullOrWhiteSpace($artifactExtension)) {
+    throw "Main artifact must have a file extension: $MainArtifactName"
+}
+
 $arguments = @(
     '--binaries', "$tempBinaryDirectory",
-    '--ext', 'exe',
+    '--ext', $artifactExtension,
     '--base-url', "$BaseDownloadUrl",
     '--appcast-output-directory', "$ReleaseFolder",
     '--output-file-name', 'appcast',
@@ -75,7 +80,7 @@ if (-not [string]::IsNullOrWhiteSpace($FileVersion)) {
 }
 
 try {
-    Copy-Item -Path $mainExecutablePath -Destination (Join-Path $tempBinaryDirectory $MainExecutableName) -Force
+    Copy-Item -Path $mainArtifactPath -Destination (Join-Path $tempBinaryDirectory $MainArtifactName) -Force
     netsparkle-generate-appcast @arguments
 }
 finally {

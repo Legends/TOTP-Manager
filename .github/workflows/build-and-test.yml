@@ -206,6 +206,7 @@ jobs:
             -BaseDownloadUrl "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/" `
             -PrivateKeyPath $privPath `
             -PublicKeyPath $pubPath `
+            -MainArtifactName "TOTP-Manager-fast.zip" `
             -FileVersion "${{ steps.versioning.outputs.file_version }}" `
             -DisplayVersion "${{ steps.versioning.outputs.release_version }}"
 
