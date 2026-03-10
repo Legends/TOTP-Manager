@@ -17,24 +17,6 @@ namespace TOTP.Services;
 
 public sealed class AutoUpdateService : IAutoUpdateService
 {
-    private sealed class VersionInfoSnapshot
-    {
-        public string AssemblyVersion { get; init; } = string.Empty;
-        public string FileVersion { get; init; } = string.Empty;
-        public string ProductVersion { get; init; } = string.Empty;
-        public string InformationalVersion { get; init; } = string.Empty;
-        public string Location { get; init; } = string.Empty;
-        public string ReferenceAssemblyPath { get; init; } = string.Empty;
-    }
-
-    private sealed class NetSparkleLogBridge(ILogger<AutoUpdateService> logger) : LogWriter
-    {
-        public override void PrintMessage(string message, params object[] args)
-        {
-            logger.LogInformation("NetSparkle: " + message, args);
-        }
-    }
-
     private static readonly bool EnableDiagnostics = true;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AutoUpdateService> _logger;
@@ -75,28 +57,19 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
         try
         {
-            var versionInfo = LogCurrentVersion();
+            LogCurrentVersion();
             await LogRemoteAppcastAsync(appcastUrl);
 
             _sparkle = new SparkleUpdater(
                 appcastUrl,
-                new Ed25519Checker(SecurityMode.Strict, publicKey),
-                versionInfo.ReferenceAssemblyPath)
+                new Ed25519Checker(SecurityMode.Strict, publicKey))
             {
                 RelaunchAfterUpdate = true
             };
-            _sparkle.LogWriter = new NetSparkleLogBridge(_logger);
 
             if (EnableDiagnostics)
             {
-                _logger.LogInformation(
-                    "Auto-update diagnostics: netsparkle installed_version={InstalledVersion} last_version_skipped={LastVersionSkipped} reference_assembly={ReferenceAssembly}",
-                    _sparkle.Configuration.InstalledVersion,
-                    _sparkle.Configuration.LastVersionSkipped,
-                    versionInfo.ReferenceAssemblyPath);
-
                 await LogUpdateInfoAsync("quiet check", await _sparkle.CheckForUpdatesQuietly());
-                await LogUpdateInfoAsync("quiet check ignore skipped", await _sparkle.CheckForUpdatesQuietly(true));
             }
 
             _sparkle.StartLoop(checkOnStartup);
@@ -113,12 +86,12 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
     }
 
-    private async Task LogUpdateInfoAsync(string label, UpdateInfo? updateInfo)
+    private Task LogUpdateInfoAsync(string label, UpdateInfo? updateInfo)
     {
         if (updateInfo == null)
         {
             _logger.LogInformation("Auto-update diagnostics: {Label} returned null update info.", label);
-            return;
+            return Task.CompletedTask;
         }
 
         _logger.LogInformation("Auto-update diagnostics: {Label} status={Status}", label, updateInfo.Status);
@@ -128,7 +101,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
         if (updates == null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         foreach (var update in updates)
@@ -142,16 +115,15 @@ public sealed class AutoUpdateService : IAutoUpdateService
                 update.DownloadLink);
         }
 
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
-    private VersionInfoSnapshot LogCurrentVersion()
+    private void LogCurrentVersion()
     {
         var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
         var assemblyVersion = assembly.GetName().Version?.ToString();
         var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         var location = assembly.Location;
-        var referenceAssemblyPath = Process.GetCurrentProcess().MainModule?.FileName ?? location;
         var fileVersion = string.Empty;
         var productVersion = string.Empty;
 
@@ -169,16 +141,6 @@ public sealed class AutoUpdateService : IAutoUpdateService
             productVersion,
             informationalVersion,
             location);
-
-        return new VersionInfoSnapshot
-        {
-            AssemblyVersion = assemblyVersion ?? string.Empty,
-            FileVersion = fileVersion,
-            ProductVersion = productVersion,
-            InformationalVersion = informationalVersion ?? string.Empty,
-            Location = location ?? string.Empty,
-            ReferenceAssemblyPath = referenceAssemblyPath ?? string.Empty
-        };
     }
 
     private async Task LogRemoteAppcastAsync(string appcastUrl)
