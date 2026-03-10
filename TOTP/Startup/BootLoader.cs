@@ -39,9 +39,9 @@ public static class BootLoader
 {
     public static IConfigurationRoot BuildConfiguration()
         => new ConfigurationBuilder()
-            .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
             .SetBasePath(StringsConstants.AppRootDirectory)
             .AddJsonFile(StringsConstants.AppSettingsFileName, optional: false, reloadOnChange: true)
+            .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
             .Build();
 
     public static void SetCulture(IConfiguration configuration)

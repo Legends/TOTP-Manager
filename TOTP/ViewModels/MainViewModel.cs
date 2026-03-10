@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -60,6 +61,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
             _isBusy = value;
             OnPropertyChanged();
+            CheckForUpdatesCommand?.RaiseCanExecuteChanged();
         }
     }
 
@@ -79,6 +81,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
             if (OpenSettingsCommand is RelayCommand openSettingsCommand)
                 openSettingsCommand.RaiseCanExecuteChanged();
+
+            CheckForUpdatesCommand?.RaiseCanExecuteChanged();
         }
     }
 
@@ -122,6 +126,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
                 openSettingsCommand.RaiseCanExecuteChanged();
 
             ExportSecretsCommand?.RaiseCanExecuteChanged();
+            CheckForUpdatesCommand?.RaiseCanExecuteChanged();
         }
     }
 
@@ -342,6 +347,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
             ToggleSearchBoxCommand.RaiseCanExecuteChanged();
             ScanQrAndAddCommand.RaiseCanExecuteChanged();
             ExportSecretsCommand?.RaiseCanExecuteChanged();
+            CheckForUpdatesCommand?.RaiseCanExecuteChanged();
         }
     }
 
@@ -498,6 +504,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     private readonly IMainViewSessionController _mainViewSessionController;
     private readonly IQrPreviewService _qrPreviewService;
     private readonly IScannerWarmupService _scannerWarmupService;
+    private readonly IAutoUpdateService _autoUpdateService;
 
     private bool _otpLoadedFromStore;
     private bool _collectionHooked;
@@ -522,6 +529,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         IPasswordPromptService passwordPromptService,
         IQrPreviewService qrPreviewService,
         IScannerWarmupService scannerWarmupService,
+        IAutoUpdateService autoUpdateService,
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
         Func<IQrScannerDialogService> qrScannerDialogFactory,
@@ -538,6 +546,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         _passwordPromptService = passwordPromptService;
         _qrPreviewService = qrPreviewService;
         _scannerWarmupService = scannerWarmupService;
+        _autoUpdateService = autoUpdateService;
         _logger = logger;
         _qrService = svcQr;
         _messageService = messageService;
@@ -717,6 +726,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     public RelayCommand ToggleSearchBoxCommand { get; private set; } = null!;
     public ICommand UpdateSecretCommand { get; private set; } = null!;
     public AsyncCommand<OtpViewModel> RowSelectionChangedCommand { get; private set; } = null!;
+    public AsyncCommand CheckForUpdatesCommand { get; private set; } = null!;
+    public RelayCommand ShowAboutCommand { get; private set; } = null!;
 
     #endregion REGION COMMANDS
 

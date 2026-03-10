@@ -205,6 +205,13 @@ jobs:
             -PrivateKeyPath $privPath `
             -PublicKeyPath $pubPath
 
+      - name: Normalize and validate appcast signature
+        if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
+        shell: pwsh
+        run: |
+          ./scripts/release/Normalize-AppcastSignature.ps1 `
+            -SignaturePath "./publish-fast/appcast.xml.signature"
+
       - name: Appcast generation skipped notice
         if: ${{ env.NETSPARKLE_PUBLIC_KEY == '' || env.NETSPARKLE_PRIVATE_KEY == '' }}
         run: |

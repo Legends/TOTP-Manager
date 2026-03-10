@@ -1,4 +1,8 @@
+using System;
+using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows;
 using TOTP.Commands;
 
 namespace TOTP.ViewModels;
@@ -14,6 +18,8 @@ public partial class MainViewModel
             () => IsSettingsViewOpen);
 
         OpenSettingsCommand = new RelayCommand(OpenSettingsView, CanOpenSettings);
+        CheckForUpdatesCommand = new AsyncCommand(CheckForUpdatesAsync, CanCheckForUpdates, _logger);
+        ShowAboutCommand = new RelayCommand(ShowAbout);
 
         CopyCodeCommand = new RelayCommand<OtpViewModel>(
             _ => CopyTotpCodeToClipboard(),
@@ -69,6 +75,12 @@ public partial class MainViewModel
         !IsGridEditing &&
         AllOtps.Count > 0;
 
+    private bool CanCheckForUpdates() =>
+        IsUnlocked &&
+        !IsBusy &&
+        !IsGridEditing &&
+        !_isOpeningSettings;
+
     private bool CanOpenFlyoutEditMode(OtpViewModel? item) =>
         item != null &&
         !IsGridEditing &&
@@ -117,6 +129,38 @@ public partial class MainViewModel
     private void CloseSettingsView()
     {
         IsSettingsViewOpen = false;
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        await _autoUpdateService.CheckForUpdatesInteractiveAsync();
+    }
+
+    private void ShowAbout()
+    {
+        var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+        var location = assembly.Location;
+        var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        var assemblyVersion = assembly.GetName().Version?.ToString() ?? "unknown";
+        var productVersion = string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            var versionInfo = FileVersionInfo.GetVersionInfo(location);
+            productVersion = versionInfo.ProductVersion ?? string.Empty;
+        }
+
+        var displayVersion = !string.IsNullOrWhiteSpace(productVersion)
+            ? productVersion
+            : !string.IsNullOrWhiteSpace(informationalVersion)
+                ? informationalVersion
+                : assemblyVersion;
+
+        MessageBox.Show(
+            $"TOTP Manager{Environment.NewLine}{Environment.NewLine}Installed version: {displayVersion}",
+            "About TOTP Manager",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 
     #endregion COMMANDS SETUP

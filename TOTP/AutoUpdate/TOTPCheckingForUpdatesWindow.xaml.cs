@@ -1,0 +1,61 @@
+using NetSparkleUpdater.Interfaces;
+using System;
+using System.Windows;
+
+namespace TOTP.AutoUpdate;
+
+public partial class TOTPCheckingForUpdatesWindow : Window, ICheckingForUpdates
+{
+    public event EventHandler? UpdatesUIClosing;
+
+    public TOTPCheckingForUpdatesWindow()
+    {
+        InitializeComponent();
+        Closed += (_, _) => UpdatesUIClosing?.Invoke(this, EventArgs.Empty);
+    }
+
+    public new void Show()
+    {
+        InvokeOnUi(() =>
+        {
+            ConfigureOwner();
+            if (!IsVisible)
+            {
+                base.Show();
+            }
+
+            Activate();
+        });
+    }
+
+    public new void Close()
+    {
+        InvokeOnUi(() =>
+        {
+            if (IsVisible)
+            {
+                base.Close();
+            }
+        });
+    }
+
+    private void ConfigureOwner()
+    {
+        if (Owner == null && Application.Current?.MainWindow is Window mainWindow && !ReferenceEquals(mainWindow, this))
+        {
+            Owner = mainWindow;
+        }
+    }
+
+    private void InvokeOnUi(Action action)
+    {
+        var dispatcher = Application.Current?.Dispatcher ?? Dispatcher;
+        if (dispatcher.CheckAccess())
+        {
+            action();
+            return;
+        }
+
+        dispatcher.Invoke(action);
+    }
+}

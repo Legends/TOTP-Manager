@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NetSparkleUpdater;
 using NetSparkleUpdater.Enums;
+using NetSparkleUpdater.Events;
 using NetSparkleUpdater.SignatureVerifiers;
 using System;
 using System.Diagnostics;
@@ -10,7 +11,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Xml.Linq;
+using TOTP.AutoUpdate;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;
@@ -18,6 +21,7 @@ namespace TOTP.Services;
 public sealed class AutoUpdateService : IAutoUpdateService
 {
     private static readonly bool EnableDiagnostics = true;
+    private const int DefaultLoopIntervalHours = 24;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AutoUpdateService> _logger;
     private SparkleUpdater? _sparkle;
@@ -47,6 +51,9 @@ public sealed class AutoUpdateService : IAutoUpdateService
         var appcastUrl = _configuration["AutoUpdate:AppcastUrl"];
         var publicKey = _configuration["AutoUpdate:PublicKey"];
         var checkOnStartup = _configuration.GetValue("AutoUpdate:CheckOnStartup", true);
+        var forceStartupCheck = _configuration.GetValue("AutoUpdate:ForceStartupCheck", false);
+        var interactiveDebugCheckOnStartup = _configuration.GetValue("AutoUpdate:InteractiveDebugCheckOnStartup", false);
+        var checkIntervalMinutes = _configuration.GetValue<int?>("AutoUpdate:CheckIntervalMinutes");
 
         if (string.IsNullOrWhiteSpace(appcastUrl) || string.IsNullOrWhiteSpace(publicKey))
         {
@@ -64,15 +71,35 @@ public sealed class AutoUpdateService : IAutoUpdateService
                 appcastUrl,
                 new Ed25519Checker(SecurityMode.Strict, publicKey))
             {
-                RelaunchAfterUpdate = true
+                RelaunchAfterUpdate = true,
+                UIFactory = new TOTPNetSparkleUiFactory()
             };
+            WireDiagnostics(_sparkle);
+
+            var effectiveInterval = ResolveCheckInterval(checkIntervalMinutes);
+            _logger.LogInformation(
+                "Auto-update configuration: check_on_startup={CheckOnStartup} force_startup_check={ForceStartupCheck} interactive_debug_check={InteractiveDebugCheckOnStartup} loop_interval={LoopInterval}",
+                checkOnStartup,
+                forceStartupCheck,
+                interactiveDebugCheckOnStartup,
+                effectiveInterval);
 
             if (EnableDiagnostics)
             {
-                await LogUpdateInfoAsync("quiet check", await _sparkle.CheckForUpdatesQuietly());
+                await LogUpdateInfoAsync("diagnostic quiet check", await _sparkle.CheckForUpdatesQuietly(true));
             }
 
-            _sparkle.StartLoop(checkOnStartup);
+            if (interactiveDebugCheckOnStartup)
+            {
+                _logger.LogWarning(
+                    "Auto-update interactive debug check is enabled. NetSparkle will run a user-request style check on startup.");
+                var interactiveUpdateInfo = await _sparkle.CheckForUpdatesAtUserRequest(true);
+                await LogUpdateInfoAsync("interactive startup check", interactiveUpdateInfo);
+                await ShowDebugUiFallbackAsync(interactiveUpdateInfo);
+            }
+
+            var shouldDoInitialLoopCheck = checkOnStartup && !interactiveDebugCheckOnStartup;
+            _sparkle.StartLoop(shouldDoInitialLoopCheck, forceStartupCheck, effectiveInterval);
             _logger.LogInformation("Auto-update initialized. Appcast={Appcast}", appcastUrl);
         }
         catch (Exception ex)
@@ -84,6 +111,135 @@ public sealed class AutoUpdateService : IAutoUpdateService
             _initialized = true;
         }
 
+    }
+
+    public async Task CheckForUpdatesInteractiveAsync()
+    {
+        if (!_initialized)
+        {
+            await InitializeAsync();
+        }
+
+        if (_sparkle == null)
+        {
+            _logger.LogWarning("Auto-update interactive check requested, but the updater is not initialized.");
+            return;
+        }
+
+        _logger.LogInformation("Auto-update manual check requested by the user.");
+        var updateInfo = await _sparkle.CheckForUpdatesAtUserRequest(true);
+        await LogUpdateInfoAsync("manual interactive check", updateInfo);
+    }
+
+    private void WireDiagnostics(SparkleUpdater sparkle)
+    {
+        sparkle.LoopStarted += _ => _logger.LogInformation("Auto-update event: loop started.");
+        sparkle.LoopFinished += (_, updateRequired) =>
+            _logger.LogInformation("Auto-update event: loop finished. update_required={UpdateRequired}", updateRequired);
+        sparkle.UpdateCheckStarted += _ => _logger.LogInformation("Auto-update event: update check started.");
+        sparkle.UpdateCheckFinished += (_, status) =>
+            _logger.LogInformation("Auto-update event: update check finished. status={Status}", status);
+        sparkle.UpdateDetected += OnUpdateDetected;
+        sparkle.UserRespondedToUpdate += (_, args) =>
+            _logger.LogInformation("Auto-update event: user responded to update prompt. response={Response}", args.Result);
+        sparkle.DownloadStarted += (item, path) =>
+            _logger.LogInformation("Auto-update event: download started. version={Version} path={Path}", item.Version, path);
+        sparkle.DownloadCanceled += (item, path) =>
+            _logger.LogInformation("Auto-update event: download canceled. version={Version} path={Path}", item.Version, path);
+        sparkle.DownloadMadeProgress += (_, item, args) =>
+            _logger.LogInformation(
+                "Auto-update event: download progress. version={Version} downloaded={DownloadedBytes} total={TotalBytes} percentage={Percentage}",
+                item?.Version?.ToString() ?? "unknown",
+                args?.BytesReceived,
+                args?.TotalBytesToReceive,
+                args?.ProgressPercentage);
+        sparkle.DownloadFinished += (item, path) =>
+            _logger.LogInformation("Auto-update event: download finished. version={Version} path={Path}", item.Version, path);
+        sparkle.DownloadedFileIsCorrupt += (item, path) =>
+            _logger.LogWarning("Auto-update event: downloaded file is corrupt. version={Version} path={Path}", item.Version, path);
+        sparkle.DownloadedFileThrewWhileCheckingSignature += (item, path) =>
+            _logger.LogWarning("Auto-update event: downloaded file threw while checking signature. version={Version} path={Path}", item.Version, path);
+        sparkle.DownloadHadError += (item, path, exception) =>
+            _logger.LogWarning(
+                exception,
+                "Auto-update event: download had an error. version={Version} path={Path}",
+                item.Version,
+                path);
+        sparkle.PreparingToExit += (_, args) =>
+        {
+            _logger.LogInformation("Auto-update event: preparing to exit. cancel={Cancel}", args.Cancel);
+        };
+        sparkle.CloseApplication += () =>
+        {
+            _logger.LogInformation("Auto-update event: close application requested.");
+            var application = Application.Current;
+            if (application == null)
+            {
+                _logger.LogWarning("Auto-update close request ignored because there is no current WPF application.");
+                return;
+            }
+
+            if (application.Dispatcher.CheckAccess())
+            {
+                application.Shutdown();
+                return;
+            }
+
+            application.Dispatcher.Invoke(application.Shutdown);
+        };
+    }
+
+    private void OnUpdateDetected(object? sender, UpdateDetectedEventArgs args)
+    {
+        var latestVersion = args.LatestVersion;
+        var appCastItems = args.AppCastItems?.Count ?? 0;
+
+        _logger.LogInformation(
+            "Auto-update event: update detected. latest_version={LatestVersion} latest_short_version={LatestShortVersion} download_url={DownloadUrl} items={ItemCount} next_action={NextAction}",
+            latestVersion?.Version,
+            latestVersion?.ShortVersion,
+            latestVersion?.DownloadLink,
+            appCastItems,
+            args.NextAction);
+    }
+
+    private static TimeSpan ResolveCheckInterval(int? checkIntervalMinutes)
+    {
+        if (checkIntervalMinutes.HasValue && checkIntervalMinutes.Value > 0)
+        {
+            return TimeSpan.FromMinutes(checkIntervalMinutes.Value);
+        }
+
+        return TimeSpan.FromHours(DefaultLoopIntervalHours);
+    }
+
+    private async Task ShowDebugUiFallbackAsync(UpdateInfo? updateInfo)
+    {
+        if (_sparkle == null || updateInfo?.Status != UpdateStatus.UpdateAvailable)
+        {
+            return;
+        }
+
+        var updates = updateInfo.Updates?.ToList();
+        if (updates == null || updates.Count == 0)
+        {
+            _logger.LogWarning("Auto-update debug UI fallback skipped because there were no update candidates.");
+            return;
+        }
+
+        if (Application.Current?.Dispatcher == null)
+        {
+            _logger.LogWarning("Auto-update debug UI fallback skipped because there is no active WPF dispatcher.");
+            return;
+        }
+
+        _logger.LogWarning(
+            "Auto-update debug UI fallback is forcing ShowUpdateNeededUI on the WPF dispatcher. This is only for local diagnosis.");
+
+        await Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            _sparkle.ShowUpdateNeededUI(updates, true);
+        });
     }
 
     private Task LogUpdateInfoAsync(string label, UpdateInfo? updateInfo)
@@ -155,8 +311,9 @@ public sealed class AutoUpdateService : IAutoUpdateService
         var content = await response.Content.ReadAsStringAsync();
 
         _logger.LogInformation(
-            "Auto-update diagnostics: appcast fetch status={StatusCode} content_length={ContentLength}",
+            "Auto-update diagnostics: appcast fetch status={StatusCode} final_uri={FinalUri} content_length={ContentLength}",
             (int)response.StatusCode,
+            response.RequestMessage?.RequestUri?.ToString(),
             content.Length);
 
         var document = XDocument.Parse(content);

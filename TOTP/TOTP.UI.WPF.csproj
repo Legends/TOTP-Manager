@@ -22,9 +22,13 @@
 
 	<ItemGroup>
 		<Compile Remove=".github\**" />
+		<Compile Remove="Properties\NewFolder\**" />
 		<EmbeddedResource Remove=".github\**" />
+		<EmbeddedResource Remove="Properties\NewFolder\**" />
 		<None Remove=".github\**" />
+		<None Remove="Properties\NewFolder\**" />
 		<Page Remove=".github\**" />
+		<Page Remove="Properties\NewFolder\**" />
 	</ItemGroup>
 
 	<PropertyGroup>
@@ -108,14 +112,14 @@
 		<Content Include="totp.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<None Include="..\CONTRIBUTING.md" Link="CONTRIBUTING.md" />
-		<None Include="..\docs\security\AUTO_UPDATE.md" Link="AUTO_UPDATE.md" />
-		<None Include="..\docs\security\BRANCH_PROTECTION.md" Link="BRANCH_PROTECTION.md" />
-		<None Include="..\docs\security\OWASP_DESKTOP_CHECKLIST.md" Link="OWASP_DESKTOP_CHECKLIST.md" />
-		<None Include="..\docs\security\PENTEST_PLAN.md" Link="PENTEST_PLAN.md" />
-		<None Include="..\docs\security\SECURITY_VERIFICATION.md" Link="SECURITY_VERIFICATION.md" />
-		<None Include="..\docs\security\SIGNING_KEY_ROTATION.md" Link="SIGNING_KEY_ROTATION.md" />
-		<None Include="..\docs\security\THREAT_MODEL.md" Link="THREAT_MODEL.md" />
+		<None Include="..\CONTRIBUTING.md" Link="Properties\Docs\CONTRIBUTING.md" />
+		<None Include="..\docs\security\AUTO_UPDATE.md" Link="Properties\Docs\AUTO_UPDATE.md" />
+		<None Include="..\docs\security\BRANCH_PROTECTION.md" Link="Properties\Docs\BRANCH_PROTECTION.md" />
+		<None Include="..\docs\security\OWASP_DESKTOP_CHECKLIST.md" Link="Properties\Docs\OWASP_DESKTOP_CHECKLIST.md" />
+		<None Include="..\docs\security\PENTEST_PLAN.md" Link="Properties\Docs\PENTEST_PLAN.md" />
+		<None Include="..\docs\security\SECURITY_VERIFICATION.md" Link="Properties\Docs\SECURITY_VERIFICATION.md" />
+		<None Include="..\docs\security\SIGNING_KEY_ROTATION.md" Link="Properties\Docs\SIGNING_KEY_ROTATION.md" />
+		<None Include="..\docs\security\THREAT_MODEL.md" Link="Properties\Docs\THREAT_MODEL.md" />
 		<None Include="..\readme.md" Link="readme.md" />
 		<Page Include="App.xaml" />
 		<ProjectReference Include="..\TOTP.Core\TOTP.Core.csproj" />
@@ -183,6 +187,10 @@
 			<Generator>ResXFileCodeGenerator</Generator>
 			<LastGenOutput>UI.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Properties\Docs\" />
 	</ItemGroup>
 
 	<PropertyGroup>
