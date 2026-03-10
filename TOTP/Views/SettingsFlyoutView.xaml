@@ -346,6 +346,35 @@
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
+
+                        <GroupBox Margin="0,12,0,0"
+                                  BorderBrush="#394B74"
+                                  BorderThickness="1">
+                            <GroupBox.Header>
+                                <TextBlock Text="About"
+                                           Foreground="White"
+                                           FontWeight="SemiBold"
+                                           FontSize="13"/>
+                            </GroupBox.Header>
+                            <StackPanel Margin="10">
+                                <TextBlock Text="TOTP Manager"
+                                           Foreground="White"
+                                           FontWeight="SemiBold"
+                                           FontSize="14" />
+                                <TextBlock Text="{Binding RunningVersion, StringFormat=Running version: {0}}"
+                                           Margin="0,8,0,0"
+                                           Foreground="#D7E6FF"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding AssemblyVersion, StringFormat=Assembly version: {0}}"
+                                           Margin="0,6,0,0"
+                                           Foreground="#AFC7E8"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding InstallationPath, StringFormat=Path: {0}}"
+                                           Margin="0,6,0,0"
+                                           Foreground="#8EB6E8"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </GroupBox>
                     </StackPanel>
                 </ScrollViewer>
             </syncfusion:TabItemExt>

@@ -25,6 +25,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
     private readonly IConfiguration _configuration;
     private readonly ILogger<AutoUpdateService> _logger;
     private SparkleUpdater? _sparkle;
+    private TOTPNetSparkleUiFactory? _uiFactory;
     private bool _initialized;
 
     public AutoUpdateService(IConfiguration configuration, ILogger<AutoUpdateService> logger)
@@ -67,12 +68,14 @@ public sealed class AutoUpdateService : IAutoUpdateService
             LogCurrentVersion();
             await LogRemoteAppcastAsync(appcastUrl);
 
+            _uiFactory = new TOTPNetSparkleUiFactory(InstallDownloadedUpdateAsync);
+
             _sparkle = new SparkleUpdater(
                 appcastUrl,
                 new Ed25519Checker(SecurityMode.Strict, publicKey))
             {
-                RelaunchAfterUpdate = true,
-                UIFactory = new TOTPNetSparkleUiFactory()
+                RelaunchAfterUpdate = false,
+                UIFactory = _uiFactory
             };
             WireDiagnostics(_sparkle);
 
@@ -154,7 +157,10 @@ public sealed class AutoUpdateService : IAutoUpdateService
                 args?.TotalBytesToReceive,
                 args?.ProgressPercentage);
         sparkle.DownloadFinished += (item, path) =>
+        {
             _logger.LogInformation("Auto-update event: download finished. version={Version} path={Path}", item.Version, path);
+            _uiFactory?.SetDownloadedFilePath(item, path);
+        };
         sparkle.DownloadedFileIsCorrupt += (item, path) =>
             _logger.LogWarning("Auto-update event: downloaded file is corrupt. version={Version} path={Path}", item.Version, path);
         sparkle.DownloadedFileThrewWhileCheckingSignature += (item, path) =>
@@ -240,6 +246,131 @@ public sealed class AutoUpdateService : IAutoUpdateService
         {
             _sparkle.ShowUpdateNeededUI(updates, true);
         });
+    }
+
+    private async Task<bool> InstallDownloadedUpdateAsync(AppCastItem item, string? downloadedFilePath)
+    {
+        if (string.IsNullOrWhiteSpace(downloadedFilePath) || !File.Exists(downloadedFilePath))
+        {
+            _logger.LogWarning("Auto-update install helper could not start because the downloaded package was not found. path={Path}", downloadedFilePath);
+            return false;
+        }
+
+        var downloadedExtension = Path.GetExtension(downloadedFilePath);
+        if (!string.Equals(downloadedExtension, ".zip", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogWarning("Auto-update custom install helper only supports .zip packages. path={Path}", downloadedFilePath);
+            return false;
+        }
+
+        var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+        var assemblyLocation = assembly.Location;
+        var installDirectory = Path.GetDirectoryName(assemblyLocation);
+        if (string.IsNullOrWhiteSpace(installDirectory) || !Directory.Exists(installDirectory))
+        {
+            _logger.LogWarning("Auto-update install helper could not resolve the installation directory. location={Location}", assemblyLocation);
+            return false;
+        }
+
+        var currentProcess = Process.GetCurrentProcess();
+        var currentExecutablePath = currentProcess.MainModule?.FileName;
+        if (string.IsNullOrWhiteSpace(currentExecutablePath) || !File.Exists(currentExecutablePath))
+        {
+            _logger.LogWarning("Auto-update install helper could not resolve the current executable path.");
+            return false;
+        }
+
+        var helperScriptPath = Path.Combine(Path.GetTempPath(), $"totp-apply-update-{Guid.NewGuid():N}.ps1");
+        var stageDirectory = Path.Combine(Path.GetTempPath(), $"totp-update-stage-{Guid.NewGuid():N}");
+        var logPath = Path.Combine(Path.GetTempPath(), "totp-update-helper.log");
+        var helperScript = """
+param(
+    [Parameter(Mandatory = $true)][string]$ZipPath,
+    [Parameter(Mandatory = $true)][string]$TargetDir,
+    [Parameter(Mandatory = $true)][string]$ExecutablePath,
+    [Parameter(Mandatory = $true)][int]$ParentPid,
+    [Parameter(Mandatory = $true)][string]$StageDir,
+    [Parameter(Mandatory = $true)][string]$LogPath
+)
+
+$ErrorActionPreference = "Stop"
+
+function Write-Log([string]$message) {
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Add-Content -Path $LogPath -Value "$timestamp $message"
+}
+
+try {
+    Write-Log "update helper started"
+
+    try {
+        $parent = Get-Process -Id $ParentPid -ErrorAction Stop
+        $parent.WaitForExit()
+    }
+    catch {
+        Write-Log "parent process already exited"
+    }
+
+    if (Test-Path $StageDir) {
+        Remove-Item -Path $StageDir -Recurse -Force
+    }
+
+    Expand-Archive -LiteralPath $ZipPath -DestinationPath $StageDir -Force
+    Write-Log "archive extracted"
+
+    Get-ChildItem -LiteralPath $StageDir -Recurse -File | ForEach-Object {
+        $relativePath = $_.FullName.Substring($StageDir.Length).TrimStart('\')
+        $destinationPath = Join-Path $TargetDir $relativePath
+        $destinationDirectory = Split-Path -Parent $destinationPath
+        if (-not (Test-Path $destinationDirectory)) {
+            New-Item -ItemType Directory -Path $destinationDirectory -Force | Out-Null
+        }
+        Copy-Item -LiteralPath $_.FullName -Destination $destinationPath -Force
+    }
+
+    Write-Log "files copied"
+    Start-Process -FilePath $ExecutablePath -WorkingDirectory $TargetDir
+    Write-Log "application relaunched"
+}
+catch {
+    Write-Log ("update helper failed: " + $_.Exception.Message)
+    throw
+}
+finally {
+    Start-Sleep -Seconds 1
+    if (Test-Path $StageDir) {
+        Remove-Item -Path $StageDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+""";
+
+        await File.WriteAllTextAsync(helperScriptPath, helperScript);
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "powershell.exe",
+            Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{helperScriptPath}\" -ZipPath \"{downloadedFilePath}\" -TargetDir \"{installDirectory}\" -ExecutablePath \"{currentExecutablePath}\" -ParentPid {currentProcess.Id} -StageDir \"{stageDirectory}\" -LogPath \"{logPath}\"",
+            CreateNoWindow = true,
+            UseShellExecute = false,
+            WorkingDirectory = installDirectory
+        };
+
+        var helperStarted = Process.Start(startInfo) != null;
+        if (!helperStarted)
+        {
+            _logger.LogWarning("Auto-update install helper process failed to start.");
+            return false;
+        }
+
+        _logger.LogInformation("Auto-update custom install helper started. package={PackagePath} install_dir={InstallDirectory}", downloadedFilePath, installDirectory);
+
+        var application = Application.Current;
+        if (application != null)
+        {
+            await application.Dispatcher.InvokeAsync(application.Shutdown);
+        }
+
+        return true;
     }
 
     private Task LogUpdateInfoAsync(string label, UpdateInfo? updateInfo)

@@ -3,6 +3,7 @@ using NetSparkleUpdater.Interfaces;
 using NetSparkleUpdater.UI.WPF;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace TOTP.AutoUpdate;
@@ -10,6 +11,13 @@ namespace TOTP.AutoUpdate;
 internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 {
     private readonly UIFactory _innerFactory = new();
+    private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
+    private TOTPDownloadProgressWindow? _activeProgressWindow;
+
+    public TOTPNetSparkleUiFactory(Func<AppCastItem, string?, Task<bool>>? customInstallHandler = null)
+    {
+        _customInstallHandler = customInstallHandler;
+    }
 
     public bool HideReleaseNotes
     {
@@ -48,7 +56,11 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     public IDownloadProgress CreateProgressWindow(SparkleUpdater sparkle, AppCastItem item)
     {
-        return InvokeOnUi(() => new TOTPDownloadProgressWindow(item));
+        return InvokeOnUi(() =>
+        {
+            _activeProgressWindow = new TOTPDownloadProgressWindow(item, _customInstallHandler);
+            return _activeProgressWindow;
+        });
     }
 
     public ICheckingForUpdates ShowCheckingForUpdates(SparkleUpdater sparkle)
@@ -99,6 +111,19 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     public void Shutdown(SparkleUpdater sparkle)
     {
         _innerFactory.Shutdown(sparkle);
+    }
+
+    public void SetDownloadedFilePath(AppCastItem item, string? downloadedFilePath)
+    {
+        if (_activeProgressWindow == null)
+        {
+            return;
+        }
+
+        if (!ReferenceEquals(_activeProgressWindow, null))
+        {
+            _activeProgressWindow.SetDownloadedFilePath(downloadedFilePath);
+        }
     }
 
     private static T InvokeOnUi<T>(Func<T> factory)

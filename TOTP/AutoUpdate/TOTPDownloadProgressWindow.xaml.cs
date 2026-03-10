@@ -10,18 +10,21 @@ namespace TOTP.AutoUpdate;
 public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
 {
     private readonly AppCastItem _item;
+    private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
     private readonly DateTimeOffset _downloadWindowCreatedAtUtc = DateTimeOffset.UtcNow;
     private static readonly TimeSpan MinimumReadyDelay = TimeSpan.FromMilliseconds(900);
     private bool _downloadFinished;
     private bool _downloadedFileValid;
     private bool _readyStateApplied;
     private int _lastProgressPercentage;
+    private string? _downloadedFilePath;
 
     public event DownloadInstallEventHandler? DownloadProcessCompleted;
 
-    public TOTPDownloadProgressWindow(AppCastItem item)
+    public TOTPDownloadProgressWindow(AppCastItem item, Func<AppCastItem, string?, Task<bool>>? customInstallHandler = null)
     {
         _item = item ?? throw new ArgumentNullException(nameof(item));
+        _customInstallHandler = customInstallHandler;
         InitializeComponent();
 
         VersionText.Text = $"Version {_item.ShortVersion ?? _item.Version?.ToString() ?? "unknown"} from {_item.DownloadLink}";
@@ -34,6 +37,11 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
     public void SetDownloadAndInstallButtonEnabled(bool shouldBeEnabled)
     {
         InvokeOnUi(() => ActionButton.IsEnabled = shouldBeEnabled);
+    }
+
+    public void SetDownloadedFilePath(string? downloadedFilePath)
+    {
+        _downloadedFilePath = downloadedFilePath;
     }
 
     public void Show(bool isOnMainThread)
@@ -152,11 +160,35 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
         return true;
     }
 
-    private void ActionButton_OnClick(object sender, RoutedEventArgs e)
+    private async void ActionButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (!_downloadFinished || !_downloadedFileValid)
         {
             Close();
+            return;
+        }
+
+        if (_customInstallHandler != null)
+        {
+            ActionButton.IsEnabled = false;
+            ProgressStateText.Text = "Installing";
+            ProgressText.Text = "Preparing the update package and replacing the current app files...";
+
+            var wasHandled = await _customInstallHandler(_item, _downloadedFilePath);
+            if (wasHandled)
+            {
+                var handledArgs = new DownloadInstallEventArgs(false)
+                {
+                    WasHandled = true
+                };
+                DownloadProcessCompleted?.Invoke(this, handledArgs);
+                Close();
+                return;
+            }
+
+            ActionButton.IsEnabled = true;
+            ProgressStateText.Text = "Ready";
+            ProgressText.Text = "The update helper could not start. You can try again or close this window.";
             return;
         }
 

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -396,6 +398,9 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
     public string ClrOverrideText => _logSwitchService.IsCliOverrideActive ?
         $"(Overridden via CLI to {SelectedLogLevel})" :
         "";
+    public string RunningVersion { get; }
+    public string AssemblyVersion { get; }
+    public string InstallationPath { get; }
     public bool CanResetToDefaults =>
         LockOnSessionLock != true ||
         LockOnMinimize != true ||
@@ -478,6 +483,26 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
         ];
         _selectedImportConflictOption = AvailableImportConflictOptions.First();
         _selectedLogLevel = _logSwitchService.MinimumLevel;
+
+        var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+        var location = assembly.Location;
+        var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        var assemblyVersion = assembly.GetName().Version?.ToString() ?? "unknown";
+        var productVersion = string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            var versionInfo = FileVersionInfo.GetVersionInfo(location);
+            productVersion = versionInfo.ProductVersion ?? string.Empty;
+        }
+
+        RunningVersion = !string.IsNullOrWhiteSpace(productVersion)
+            ? productVersion
+            : !string.IsNullOrWhiteSpace(informationalVersion)
+                ? informationalVersion
+                : assemblyVersion;
+        AssemblyVersion = assemblyVersion;
+        InstallationPath = string.IsNullOrWhiteSpace(location) ? "unknown" : location;
  
     }
 

@@ -1,6 +1,7 @@
 <Window x:Class="TOTP.AutoUpdate.TOTPUpdateAvailableWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
         WindowStyle="None"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
@@ -173,9 +174,15 @@
                     CornerRadius="10"
                     BorderBrush="#334F80"
                     BorderThickness="1">
-                <TabControl Background="Transparent"
-                            BorderThickness="0">
-                    <TabItem Header="Overview">
+                <syncfusion:TabControlExt Background="Transparent"
+                                          BorderThickness="0"
+                                          TabItemHoverBorderBrush="#FF7D7FF4"
+                                          TabItemHoverBackground="Transparent"
+                                          TabItemHoverForeground="#FFF4F7FF"
+                                          CloseButtonType="Hide"
+                                          TabStripPlacement="Top"
+                                          Foreground="White">
+                    <syncfusion:TabItemExt Header="Overview">
                         <Grid Margin="8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -242,9 +249,9 @@
                                 </StackPanel>
                             </Border>
                         </Grid>
-                    </TabItem>
+                    </syncfusion:TabItemExt>
 
-                    <TabItem Header="Details">
+                    <syncfusion:TabItemExt Header="Details">
                         <StackPanel Margin="8">
                             <TextBlock x:Name="PublishDateText"
                                        Foreground="#FFCBDAF3"
@@ -258,10 +265,10 @@
                                        Foreground="#FF9CC3FF"
                                        TextWrapping="Wrap" />
                         </StackPanel>
-                    </TabItem>
+                    </syncfusion:TabItemExt>
 
-                    <TabItem x:Name="ReleaseNotesTab"
-                             Header="Notes">
+                    <syncfusion:TabItemExt x:Name="ReleaseNotesTab"
+                                           Header="Notes">
                         <Grid Margin="8">
                             <WebBrowser x:Name="ReleaseNotesBrowser"
                                         Visibility="Visible" />
@@ -273,8 +280,8 @@
                                            TextWrapping="Wrap" />
                             </ScrollViewer>
                         </Grid>
-                    </TabItem>
-                </TabControl>
+                    </syncfusion:TabItemExt>
+                </syncfusion:TabControlExt>
             </Border>
 
             <StackPanel Grid.Row="3"
