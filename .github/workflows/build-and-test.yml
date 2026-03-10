@@ -122,6 +122,60 @@ jobs:
           Write-Host "Release version: $releaseVersion"
           Write-Host "File version: $fileVersion"
 
+      - name: Determine whether this tag should be latest
+        id: latest_release
+        shell: pwsh
+        run: |
+          $currentTag = "${{ github.ref_name }}"
+          if ($currentTag -notmatch '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-rc(?<rc>\d+)$') {
+            throw "Release tag '$currentTag' does not match expected format v<major>.<minor>.<patch>-rc<nr>."
+          }
+
+          $tagLines = git ls-remote --tags --refs origin "v*"
+          if (-not $tagLines) {
+            throw "Could not resolve release tags from origin."
+          }
+
+          $releaseTags = foreach ($line in $tagLines) {
+            $parts = $line -split '\s+'
+            if ($parts.Count -lt 2) {
+              continue
+            }
+
+            $ref = $parts[1]
+            if ($ref -notmatch '^refs/tags/(?<tag>v\d+\.\d+\.\d+-rc\d+)$') {
+              continue
+            }
+
+            $tag = $Matches.tag
+            if ($tag -notmatch '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-rc(?<rc>\d+)$') {
+              continue
+            }
+
+            [PSCustomObject]@{
+              Tag = $tag
+              Major = [int]$Matches.major
+              Minor = [int]$Matches.minor
+              Patch = [int]$Matches.patch
+              Rc = [int]$Matches.rc
+            }
+          }
+
+          $highestTag = $releaseTags |
+            Sort-Object Major, Minor, Patch, Rc |
+            Select-Object -Last 1 -ExpandProperty Tag
+
+          if ([string]::IsNullOrWhiteSpace($highestTag)) {
+            throw "Could not determine the highest release tag."
+          }
+
+          $makeLatest = if ($currentTag -eq $highestTag) { 'true' } else { 'false' }
+          "make_latest=$makeLatest" >> $env:GITHUB_OUTPUT
+
+          Write-Host "Current tag: $currentTag"
+          Write-Host "Highest tag: $highestTag"
+          Write-Host "Mark release as latest: $makeLatest"
+
       - name: Publish WPF app (fast startup)
         run: |
           dotnet publish TOTP/TOTP.UI.WPF.csproj `
@@ -258,6 +312,7 @@ jobs:
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          make_latest: ${{ steps.latest_release.outputs.make_latest }}
           files: |
             TOTP-Manager-fast.zip
             TOTP-Manager-portable.zip
@@ -268,6 +323,7 @@ jobs:
         if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
         uses: softprops/action-gh-release@v2
         with:
+          make_latest: ${{ steps.latest_release.outputs.make_latest }}
           files: |
             publish-fast/TOTP.UI.WPF.exe
             publish-fast/appcast.xml
