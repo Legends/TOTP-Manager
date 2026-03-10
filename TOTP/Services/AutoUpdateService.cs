@@ -17,6 +17,24 @@ namespace TOTP.Services;
 
 public sealed class AutoUpdateService : IAutoUpdateService
 {
+    private sealed class VersionInfoSnapshot
+    {
+        public string AssemblyVersion { get; init; } = string.Empty;
+        public string FileVersion { get; init; } = string.Empty;
+        public string ProductVersion { get; init; } = string.Empty;
+        public string InformationalVersion { get; init; } = string.Empty;
+        public string Location { get; init; } = string.Empty;
+        public string ReferenceAssemblyPath { get; init; } = string.Empty;
+    }
+
+    private sealed class NetSparkleLogBridge(ILogger<AutoUpdateService> logger) : LogWriter
+    {
+        public override void PrintMessage(string message, params object[] args)
+        {
+            logger.LogInformation("NetSparkle: " + message, args);
+        }
+    }
+
     private static readonly bool EnableDiagnostics = true;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AutoUpdateService> _logger;
@@ -57,42 +75,28 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
         try
         {
-            LogCurrentVersion();
+            var versionInfo = LogCurrentVersion();
             await LogRemoteAppcastAsync(appcastUrl);
 
             _sparkle = new SparkleUpdater(
                 appcastUrl,
-                new Ed25519Checker(SecurityMode.Strict, publicKey))
+                new Ed25519Checker(SecurityMode.Strict, publicKey),
+                versionInfo.ReferenceAssemblyPath)
             {
                 RelaunchAfterUpdate = true
             };
+            _sparkle.LogWriter = new NetSparkleLogBridge(_logger);
 
             if (EnableDiagnostics)
             {
-                var updateInfo = await _sparkle.CheckForUpdatesQuietly();
-                
-                if (updateInfo == null)
-                {
-                    _logger.LogInformation("Auto-update diagnostics: quiet check returned null update info.");
-                }
-                else
-                {
-                    _logger.LogInformation("Auto-update status:  {status}", updateInfo.Status);
- 
-                     var updates = updateInfo.Updates?.ToList();
-                    _logger.LogInformation("Auto-update diagnostics: quiet check found {Count} update candidate(s).", updates?.Count ?? 0);
+                _logger.LogInformation(
+                    "Auto-update diagnostics: netsparkle installed_version={InstalledVersion} last_version_skipped={LastVersionSkipped} reference_assembly={ReferenceAssembly}",
+                    _sparkle.Configuration.InstalledVersion,
+                    _sparkle.Configuration.LastVersionSkipped,
+                    versionInfo.ReferenceAssemblyPath);
 
-                    if (updates != null)
-                    {
-                        foreach (var update in updates)
-                        {
-                            _logger.LogInformation(
-                                "Auto-update diagnostics: candidate version={Version} url={Url}",
-                                update.Version,
-                                update.DownloadLink);
-                        }
-                    }
-                }
+                await LogUpdateInfoAsync("quiet check", await _sparkle.CheckForUpdatesQuietly());
+                await LogUpdateInfoAsync("quiet check ignore skipped", await _sparkle.CheckForUpdatesQuietly(true));
             }
 
             _sparkle.StartLoop(checkOnStartup);
@@ -109,17 +113,45 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
     }
 
-    private void LogCurrentVersion()
+    private async Task LogUpdateInfoAsync(string label, UpdateInfo? updateInfo)
     {
-        if (!EnableDiagnostics)
+        if (updateInfo == null)
+        {
+            _logger.LogInformation("Auto-update diagnostics: {Label} returned null update info.", label);
+            return;
+        }
+
+        _logger.LogInformation("Auto-update diagnostics: {Label} status={Status}", label, updateInfo.Status);
+
+        var updates = updateInfo.Updates?.ToList();
+        _logger.LogInformation("Auto-update diagnostics: {Label} found {Count} update candidate(s).", label, updates?.Count ?? 0);
+
+        if (updates == null)
         {
             return;
         }
 
+        foreach (var update in updates)
+        {
+            _logger.LogInformation(
+                "Auto-update diagnostics: {Label} candidate app_installed={InstalledVersion} candidate_version={Version} candidate_short_version={ShortVersion} url={Url}",
+                label,
+                update.AppVersionInstalled,
+                update.Version,
+                update.ShortVersion,
+                update.DownloadLink);
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private VersionInfoSnapshot LogCurrentVersion()
+    {
         var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
         var assemblyVersion = assembly.GetName().Version?.ToString();
         var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         var location = assembly.Location;
+        var referenceAssemblyPath = Process.GetCurrentProcess().MainModule?.FileName ?? location;
         var fileVersion = string.Empty;
         var productVersion = string.Empty;
 
@@ -137,6 +169,16 @@ public sealed class AutoUpdateService : IAutoUpdateService
             productVersion,
             informationalVersion,
             location);
+
+        return new VersionInfoSnapshot
+        {
+            AssemblyVersion = assemblyVersion ?? string.Empty,
+            FileVersion = fileVersion,
+            ProductVersion = productVersion,
+            InformationalVersion = informationalVersion ?? string.Empty,
+            Location = location ?? string.Empty,
+            ReferenceAssemblyPath = referenceAssemblyPath ?? string.Empty
+        };
     }
 
     private async Task LogRemoteAppcastAsync(string appcastUrl)
