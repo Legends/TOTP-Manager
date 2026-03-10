@@ -70,13 +70,16 @@ public sealed class AutoUpdateService : IAutoUpdateService
             if (EnableDiagnostics)
             {
                 var updateInfo = await _sparkle.CheckForUpdatesQuietly();
+                
                 if (updateInfo == null)
                 {
                     _logger.LogInformation("Auto-update diagnostics: quiet check returned null update info.");
                 }
                 else
                 {
-                    var updates = updateInfo.Updates?.ToList();
+                    _logger.LogInformation("Auto-update status:  {status}", updateInfo.Status);
+ 
+                     var updates = updateInfo.Updates?.ToList();
                     _logger.LogInformation("Auto-update diagnostics: quiet check found {Count} update candidate(s).", updates?.Count ?? 0);
 
                     if (updates != null)
