@@ -177,7 +177,7 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
             var wasHandled = await _customInstallHandler(_item, _downloadedFilePath);
             if (wasHandled)
             {
-                var handledArgs = new DownloadInstallEventArgs(true)
+                var handledArgs = new DownloadInstallEventArgs(false)
                 {
                     WasHandled = true
                 };

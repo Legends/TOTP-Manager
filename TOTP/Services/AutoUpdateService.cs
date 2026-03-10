@@ -157,6 +157,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
                 args?.BytesReceived,
                 args?.TotalBytesToReceive,
                 args?.ProgressPercentage);
+
         sparkle.DownloadFinished += (item, path) =>
         {
             _logger.LogInformation("Auto-update event: download finished. version={Version} path={Path}", item.Version, path);
@@ -323,8 +324,9 @@ try {
         Write-Log "package directory copied to staging"
     }
     else {
-        Expand-Archive -LiteralPath $PackagePath -DestinationPath $StageDir -Force
-        Write-Log "archive extracted"
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($PackagePath, $StageDir, $true)
+        Write-Log "archive extracted with ZipFile"
     }
 
     Get-ChildItem -LiteralPath $StageDir -Recurse -File | ForEach-Object {
