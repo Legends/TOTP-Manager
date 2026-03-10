@@ -205,7 +205,8 @@ jobs:
             -ReleaseFolder "./publish-fast" `
             -BaseDownloadUrl "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/" `
             -PrivateKeyPath $privPath `
-            -PublicKeyPath $pubPath
+            -PublicKeyPath $pubPath `
+            -FileVersion "${{ steps.versioning.outputs.file_version }}"
 
       - name: Appcast generation skipped notice
         if: ${{ env.NETSPARKLE_PUBLIC_KEY == '' || env.NETSPARKLE_PRIVATE_KEY == '' }}
