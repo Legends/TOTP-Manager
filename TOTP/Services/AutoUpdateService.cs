@@ -324,9 +324,11 @@ try {
         Write-Log "package directory copied to staging"
     }
     else {
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($PackagePath, $StageDir, $true)
-        Write-Log "archive extracted with ZipFile"
+        $tempZipPath = Join-Path ([IO.Path]::GetTempPath()) ("totp-update-package-" + [Guid]::NewGuid().ToString("N") + ".zip")
+        Copy-Item -LiteralPath $PackagePath -Destination $tempZipPath -Force
+        Expand-Archive -LiteralPath $tempZipPath -DestinationPath $StageDir -Force
+        Remove-Item -LiteralPath $tempZipPath -Force -ErrorAction SilentlyContinue
+        Write-Log "archive extracted via temporary .zip copy"
     }
 
     Get-ChildItem -LiteralPath $StageDir -Recurse -File | ForEach-Object {
