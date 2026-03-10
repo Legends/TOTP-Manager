@@ -49,7 +49,7 @@ Write-Host "[update] Base download URL: $BaseDownloadUrl"
     -BaseDownloadUrl $BaseDownloadUrl `
     -PrivateKeyPath $PrivateKeyPath `
     -PublicKeyPath $PublicKeyPath `
-    -MainExecutableName $MainExecutableName `
+    -MainArtifactName $MainExecutableName `
     -FileVersion $FileVersion `
     -DisplayVersion $DisplayVersion
 

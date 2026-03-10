@@ -15,6 +15,9 @@ param(
     [string]$MainArtifactName = "TOTP.UI.WPF.exe",
 
     [Parameter(Mandatory = $false)]
+    [string]$MainArtifactPath,
+
+    [Parameter(Mandatory = $false)]
     [string]$FileVersion,
 
     [Parameter(Mandatory = $false)]
@@ -39,14 +42,23 @@ if ([string]::IsNullOrWhiteSpace($MainArtifactName)) {
     throw "Main artifact name must not be empty."
 }
 
-$mainArtifactPath = Join-Path $ReleaseFolder $MainArtifactName
-if (-not (Test-Path $mainArtifactPath)) {
-    throw "Main artifact not found: $mainArtifactPath"
+$resolvedArtifactPath = $MainArtifactPath
+if ([string]::IsNullOrWhiteSpace($resolvedArtifactPath)) {
+    $resolvedArtifactPath = Join-Path $ReleaseFolder $MainArtifactName
+}
+
+if (-not [IO.Path]::IsPathRooted($resolvedArtifactPath)) {
+    $resolvedArtifactPath = Join-Path (Get-Location) $resolvedArtifactPath
+}
+
+if (-not (Test-Path $resolvedArtifactPath)) {
+    throw "Main artifact not found: $resolvedArtifactPath"
 }
 
 Write-Host "[update] Generating appcast for $ReleaseFolder"
 Write-Host "[update] Base download URL: $BaseDownloadUrl"
 Write-Host "[update] Main artifact: $MainArtifactName"
+Write-Host "[update] Main artifact path: $resolvedArtifactPath"
 if (-not [string]::IsNullOrWhiteSpace($FileVersion)) {
     Write-Host "[update] Override appcast version: $FileVersion"
 }
@@ -80,7 +92,7 @@ if (-not [string]::IsNullOrWhiteSpace($FileVersion)) {
 }
 
 try {
-    Copy-Item -Path $mainArtifactPath -Destination (Join-Path $tempBinaryDirectory $MainArtifactName) -Force
+    Copy-Item -Path $resolvedArtifactPath -Destination (Join-Path $tempBinaryDirectory $MainArtifactName) -Force
     netsparkle-generate-appcast @arguments
 }
 finally {
