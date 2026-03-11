@@ -24,14 +24,19 @@ public sealed class AutoUpdateService : IAutoUpdateService
     private const int DefaultLoopIntervalHours = 24;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AutoUpdateService> _logger;
+    private readonly ILoggerFactory _loggerFactory;
     private SparkleUpdater? _sparkle;
     private TOTPNetSparkleUiFactory? _uiFactory;
     private bool _initialized;
 
-    public AutoUpdateService(IConfiguration configuration, ILogger<AutoUpdateService> logger)
+    public AutoUpdateService(
+        IConfiguration configuration,
+        ILogger<AutoUpdateService> logger,
+        ILoggerFactory loggerFactory)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
     }
 
     public async Task InitializeAsync()
@@ -68,7 +73,9 @@ public sealed class AutoUpdateService : IAutoUpdateService
             LogCurrentVersion();
             await LogRemoteAppcastAsync(appcastUrl);
 
-            _uiFactory = new TOTPNetSparkleUiFactory(InstallDownloadedUpdateAsync);
+            _uiFactory = new TOTPNetSparkleUiFactory(
+                InstallDownloadedUpdateAsync,
+                _loggerFactory.CreateLogger<TOTPDownloadProgressWindow>());
 
             _sparkle = new SparkleUpdater(
                 appcastUrl,
@@ -252,6 +259,9 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
     private async Task<bool> InstallDownloadedUpdateAsync(AppCastItem item, string? downloadedFilePath)
     {
+        System.Windows.MessageBox.Show("InstallDownloadedUpdateAsync");
+        Debugger.Break();
+        Debugger.Launch();
         if (string.IsNullOrWhiteSpace(downloadedFilePath))
         {
             _logger.LogWarning("Auto-update install helper could not start because the downloaded package was not found. path={Path}", downloadedFilePath);

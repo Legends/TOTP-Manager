@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using NetSparkleUpdater;
 using NetSparkleUpdater.Interfaces;
 using NetSparkleUpdater.UI.WPF;
@@ -12,11 +13,15 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 {
     private readonly UIFactory _innerFactory = new();
     private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
+    private readonly ILogger<TOTPDownloadProgressWindow>? _progressWindowLogger;
     private TOTPDownloadProgressWindow? _activeProgressWindow;
 
-    public TOTPNetSparkleUiFactory(Func<AppCastItem, string?, Task<bool>>? customInstallHandler = null)
+    public TOTPNetSparkleUiFactory(
+        Func<AppCastItem, string?, Task<bool>>? customInstallHandler = null,
+        ILogger<TOTPDownloadProgressWindow>? progressWindowLogger = null)
     {
         _customInstallHandler = customInstallHandler;
+        _progressWindowLogger = progressWindowLogger;
     }
 
     public bool HideReleaseNotes
@@ -58,7 +63,16 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     {
         return InvokeOnUi(() =>
         {
-            _activeProgressWindow = new TOTPDownloadProgressWindow(item, _customInstallHandler);
+            var window = new TOTPDownloadProgressWindow(item, _customInstallHandler, _progressWindowLogger);
+            window.Closed += (_, _) =>
+            {
+                if (ReferenceEquals(_activeProgressWindow, window))
+                {
+                    _activeProgressWindow = null;
+                }
+            };
+
+            _activeProgressWindow = window;
             return _activeProgressWindow;
         });
     }
@@ -105,6 +119,11 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     public void ShowDownloadErrorMessage(SparkleUpdater sparkle, string message, string appcastUrl)
     {
+        if (_activeProgressWindow?.DisplayErrorMessage(message) == true)
+        {
+            return;
+        }
+
         _innerFactory.ShowDownloadErrorMessage(sparkle, message, appcastUrl);
     }
 
