@@ -22,6 +22,8 @@ public sealed class AutoUpdateService : IAutoUpdateService
 {
     private static readonly bool EnableDiagnostics = true;
     private const int DefaultLoopIntervalHours = 24;
+    private const string UpdaterBundleFolderName = "TOTP.Updater";
+    private const string UpdaterExecutableName = "TOTP.Updater.exe";
     private readonly IConfiguration _configuration;
     private readonly ILogger<AutoUpdateService> _logger;
     private readonly ILoggerFactory _loggerFactory;
@@ -259,7 +261,6 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
     private async Task<bool> InstallDownloadedUpdateAsync(AppCastItem item, string? downloadedFilePath)
     {
-       
         if (string.IsNullOrWhiteSpace(downloadedFilePath))
         {
             _logger.LogWarning("Auto-update install helper could not start because the downloaded package was not found. path={Path}", downloadedFilePath);
@@ -291,104 +292,27 @@ public sealed class AutoUpdateService : IAutoUpdateService
             return false;
         }
 
-        var helperScriptPath = Path.Combine(Path.GetTempPath(), $"totp-apply-update-{Guid.NewGuid():N}.ps1");
-        var stageDirectory = Path.Combine(Path.GetTempPath(), $"totp-update-stage-{Guid.NewGuid():N}");
+        var updaterSourceDirectory = Path.Combine(installDirectory, UpdaterBundleFolderName);
+        var updaterSourceExecutable = Path.Combine(updaterSourceDirectory, UpdaterExecutableName);
+        if (!File.Exists(updaterSourceExecutable))
+        {
+            _logger.LogWarning(
+                "Auto-update install helper could not start because the updater executable was not found. path={Path}",
+                updaterSourceExecutable);
+            return false;
+        }
+
+        var updaterRuntimeDirectory = Path.Combine(Path.GetTempPath(), $"totp-updater-runtime-{Guid.NewGuid():N}");
+        var updaterRuntimeExecutable = Path.Combine(updaterRuntimeDirectory, UpdaterExecutableName);
         var logPath = Path.Combine(Path.GetTempPath(), "totp-update-helper.log");
-        var helperScript = """
-param(
-    [Parameter(Mandatory = $true)][string]$PackagePath,
-    [Parameter(Mandatory = $true)][string]$TargetDir,
-    [Parameter(Mandatory = $true)][string]$ExecutablePath,
-    [Parameter(Mandatory = $true)][int]$ParentPid,
-    [Parameter(Mandatory = $true)][string]$StageDir,
-    [Parameter(Mandatory = $true)][string]$LogPath
-)
-
-$ErrorActionPreference = "Stop"
-
-function Write-Log([string]$message) {
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Add-Content -Path $LogPath -Value "$timestamp $message"
-}
-
-try {
-    Write-Log "update helper started"
-
-    try {
-        $parent = Get-Process -Id $ParentPid -ErrorAction Stop
-        $parent.WaitForExit()
-    }
-    catch {
-        Write-Log "parent process already exited"
-    }
-
-    if (Test-Path $StageDir) {
-        Remove-Item -Path $StageDir -Recurse -Force
-    }
-
-    if (Test-Path $PackagePath -PathType Container) {
-        New-Item -ItemType Directory -Path $StageDir -Force | Out-Null
-        Copy-Item -LiteralPath (Join-Path $PackagePath '*') -Destination $StageDir -Recurse -Force
-        Write-Log "package directory copied to staging"
-    }
-    else {
-        $tempZipPath = Join-Path ([IO.Path]::GetTempPath()) ("totp-update-package-" + [Guid]::NewGuid().ToString("N") + ".zip")
-        Copy-Item -LiteralPath $PackagePath -Destination $tempZipPath -Force
-        Expand-Archive -LiteralPath $tempZipPath -DestinationPath $StageDir -Force
-        Remove-Item -LiteralPath $tempZipPath -Force -ErrorAction SilentlyContinue
-        Write-Log "archive extracted via temporary .zip copy"
-    }
-
-    Get-ChildItem -LiteralPath $StageDir -Recurse -File | ForEach-Object {
-        $relativePath = $_.FullName.Substring($StageDir.Length).TrimStart('\')
-        $destinationPath = Join-Path $TargetDir $relativePath
-        $destinationDirectory = Split-Path -Parent $destinationPath
-        if (-not (Test-Path $destinationDirectory)) {
-            New-Item -ItemType Directory -Path $destinationDirectory -Force | Out-Null
-        }
-
-        $copied = $false
-        for ($attempt = 1; $attempt -le 10 -and -not $copied; $attempt++) {
-            try {
-                Copy-Item -LiteralPath $_.FullName -Destination $destinationPath -Force
-                $copied = $true
-            }
-            catch {
-                if ($attempt -eq 10) {
-                    throw
-                }
-
-                Start-Sleep -Milliseconds 500
-            }
-        }
-    }
-
-    Write-Log "files copied"
-    $targetExecutablePath = Join-Path $TargetDir ([IO.Path]::GetFileName($ExecutablePath))
-    Start-Process -FilePath $targetExecutablePath -WorkingDirectory $TargetDir
-    Write-Log "application relaunched"
-}
-catch {
-    Write-Log ("update helper failed: " + $_.Exception.Message)
-    throw
-}
-finally {
-    Start-Sleep -Seconds 1
-    if (Test-Path $StageDir) {
-        Remove-Item -Path $StageDir -Recurse -Force -ErrorAction SilentlyContinue
-    }
-}
-""";
-
-        await File.WriteAllTextAsync(helperScriptPath, helperScript);
+        await CopyDirectoryAsync(updaterSourceDirectory, updaterRuntimeDirectory);
 
         var startInfo = new ProcessStartInfo
         {
-            FileName = "powershell.exe",
-            Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{helperScriptPath}\" -PackagePath \"{downloadedFilePath}\" -TargetDir \"{installDirectory}\" -ExecutablePath \"{currentExecutablePath}\" -ParentPid {currentProcess.Id} -StageDir \"{stageDirectory}\" -LogPath \"{logPath}\"",
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            WorkingDirectory = installDirectory
+            FileName = updaterRuntimeExecutable,
+            Arguments = $"--packagePath \"{downloadedFilePath}\" --targetDir \"{installDirectory}\" --exePath \"{currentExecutablePath}\" --parentPid {currentProcess.Id} --logPath \"{logPath}\"",
+            UseShellExecute = true,
+            WorkingDirectory = updaterRuntimeDirectory
         };
 
         var helperStarted = Process.Start(startInfo) != null;
@@ -403,7 +327,7 @@ finally {
             downloadedFilePath,
             installDirectory,
             currentExecutablePath,
-            helperScriptPath,
+            updaterRuntimeExecutable,
             logPath);
 
         var application = Application.Current;
@@ -413,6 +337,32 @@ finally {
         }
 
         return true;
+    }
+
+    private static async Task CopyDirectoryAsync(string sourceDirectory, string destinationDirectory)
+    {
+        Directory.CreateDirectory(destinationDirectory);
+
+        foreach (var directory in Directory.EnumerateDirectories(sourceDirectory, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(sourceDirectory, directory);
+            Directory.CreateDirectory(Path.Combine(destinationDirectory, relativePath));
+        }
+
+        foreach (var file in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(sourceDirectory, file);
+            var destinationPath = Path.Combine(destinationDirectory, relativePath);
+            var destinationFolder = Path.GetDirectoryName(destinationPath);
+            if (!string.IsNullOrWhiteSpace(destinationFolder))
+            {
+                Directory.CreateDirectory(destinationFolder);
+            }
+
+            await using var source = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
+            await using var destination = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true);
+            await source.CopyToAsync(destination);
+        }
     }
 
     private Task LogUpdateInfoAsync(string label, UpdateInfo? updateInfo)

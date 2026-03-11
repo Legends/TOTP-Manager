@@ -624,6 +624,7 @@ public sealed class MainViewModelTests : IDisposable
                 SettingsAuthWorkflow.Object,
                 SettingsPersistence.Object,
                 SettingsTransferWorkflow.Object,
+                AutoUpdate.Object,
                 Message.Object,
                 LogSwitch.Object,
                 new RelayCommand(() => { }),

@@ -124,6 +124,9 @@
 		<Page Include="App.xaml" />
 		<ProjectReference Include="..\TOTP.Core\TOTP.Core.csproj" />
 		<ProjectReference Include="..\TOTP.Infrastructure\TOTP.Infrastructure.csproj" />
+		<ProjectReference Include="..\TOTP.Updater\TOTP.Updater.csproj"
+		                  ReferenceOutputAssembly="false"
+		                  Private="false" />
 		<Resource Include="Assets\backgrounds\background-main.png" />
 		<Resource Include="Assets\flags\de.png" />
 		<Resource Include="Assets\flags\en.png" />
@@ -198,6 +201,36 @@
 		<StartupObject>TOTP.Program</StartupObject>
 		<IncludeSymbols>True</IncludeSymbols>
 	</PropertyGroup>
+
+	<Target Name="CopyUpdaterBundleToOutput" AfterTargets="Build">
+		<MSBuild Projects="..\TOTP.Updater\TOTP.Updater.csproj"
+		         Targets="Build"
+		         Properties="Configuration=$(Configuration)" />
+
+		<ItemGroup>
+			<UpdaterBundleOutput Include="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*"
+			                     Exclude="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\ref\**\*" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(UpdaterBundleOutput)"
+		      DestinationFiles="@(UpdaterBundleOutput->'$(OutDir)TOTP.Updater\%(RecursiveDir)%(Filename)%(Extension)')"
+		      SkipUnchangedFiles="true" />
+	</Target>
+
+	<Target Name="CopyUpdaterBundleToPublish" AfterTargets="Publish">
+		<MSBuild Projects="..\TOTP.Updater\TOTP.Updater.csproj"
+		         Targets="Build"
+		         Properties="Configuration=$(Configuration)" />
+
+		<ItemGroup>
+			<UpdaterBundlePublish Include="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*"
+			                      Exclude="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\ref\**\*" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(UpdaterBundlePublish)"
+		      DestinationFiles="@(UpdaterBundlePublish->'$(PublishDir)TOTP.Updater\%(RecursiveDir)%(Filename)%(Extension)')"
+		      SkipUnchangedFiles="true" />
+	</Target>
 
 	<!--<Target Name="PostBuildSign" AfterTargets="Build" Condition="'$(Configuration)'=='Release'">
 		<Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)Properties\Signing\Sign-App.ps1&quot;" StandardOutputImportance="High" StandardErrorImportance="High" IgnoreExitCode="false" />

@@ -1,8 +1,8 @@
 using NetSparkleUpdater;
 using NetSparkleUpdater.Events;
 using System.Threading;
+using TOTP.AutoUpdate;
 using Xunit;
-using Xunit.StaFact;
 
 namespace TOTP.Tests.AutoUpdate;
 

@@ -288,9 +288,6 @@ internal static class Program
 
             var startupTablePending = false;
             var mainWindowContentRendered = false;
-            var autoUpdateInitialized = false;
-            var autoUpdateInitStarted = false;
-            var hostIsStarted = false;
             void EmitReadyStartupTableIfPossible()
             {
                 if (!startupTablePending || !mainWindowContentRendered)
@@ -301,42 +298,10 @@ internal static class Program
                 EmitStartupTable(isError: false, "Startup Steps (ready)");
                 startupTablePending = false;
             }
-
-            async Task TryInitializeAutoUpdateAsync()
-            {
-                if (autoUpdateInitialized || autoUpdateInitStarted || !hostIsStarted || !mainWindowContentRendered)
-                {
-                    return;
-                }
-
-                autoUpdateInitStarted = true;
-                try
-                {
-                    await host.Services.GetRequiredService<IAutoUpdateService>().InitializeAsync();
-                    startupSteps.Mark("autoupdate.initialized");
-                    autoUpdateInitialized = true;
-                    startupSteps.Mark("startup.ready");
-                    startupTablePending = true;
-                    EmitReadyStartupTableIfPossible();
-                }
-                catch (Exception ex)
-                {
-                    startupSteps.Mark("autoupdate.failed");
-                    EmitStartupTable(isError: true, "Startup Steps (failed)");
-                    Log.Fatal(ex, UI.ex_FatalError);
-                    app.Shutdown(-1);
-                }
-                finally
-                {
-                    autoUpdateInitStarted = false;
-                }
-            }
-
             mainWindow.ContentRendered += (_, __) =>
             {
                 startupSteps.Mark("mainwindow.content_rendered");
                 mainWindowContentRendered = true;
-                _ = app.Dispatcher.BeginInvoke(new Func<Task>(TryInitializeAutoUpdateAsync), DispatcherPriority.Background);
                 EmitReadyStartupTableIfPossible();
             };
 
@@ -383,13 +348,14 @@ internal static class Program
 
                     await host.StartAsync();
                     hostStarted = true;
-                    hostIsStarted = true;
                     startupSteps.Mark("host.started");
 
                     CommandExceptionLogger.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
                     host.Services.GetRequiredService<IScannerWarmupService>().StartWarmupInBackground("program.startup");
                     startupSteps.Mark("scanner_warmup.kicked_off");
-                    await TryInitializeAutoUpdateAsync();
+                    startupSteps.Mark("startup.ready");
+                    startupTablePending = true;
+                    EmitReadyStartupTableIfPossible();
                 }
                 catch (Exception ex)
                 {

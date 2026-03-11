@@ -28,6 +28,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
             Mock.Of<IAccountTransferWorkflowService>(),
             Mock.Of<ISettingsAuthorizationWorkflowService>(),
             Mock.Of<ISettingsPersistenceService>(),
+            Mock.Of<IAutoUpdateService>(),
             Mock.Of<IMessageService>(),
             Mock.Of<ILogSwitchService>());
 
@@ -84,6 +85,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
             tokenTransfer.Object,
             authWorkflow.Object,
             persistence.Object,
+            Mock.Of<IAutoUpdateService>(),
             message.Object,
             logSwitch.Object);
 
@@ -152,6 +154,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
             tokenTransfer.Object,
             authWorkflow.Object,
             persistence.Object,
+            Mock.Of<IAutoUpdateService>(),
             message.Object,
             logSwitch.Object);
 
