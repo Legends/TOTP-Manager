@@ -347,34 +347,165 @@
                             </StackPanel>
                         </GroupBox>
 
-                        <GroupBox Margin="0,12,0,0"
-                                  BorderBrush="#394B74"
-                                  BorderThickness="1">
-                            <GroupBox.Header>
-                                <TextBlock Text="About"
-                                           Foreground="White"
-                                           FontWeight="SemiBold"
-                                           FontSize="13"/>
-                            </GroupBox.Header>
-                            <StackPanel Margin="10">
-                                <TextBlock Text="TOTP Manager"
-                                           Foreground="White"
-                                           FontWeight="SemiBold"
-                                           FontSize="14" />
-                                <TextBlock Text="{Binding RunningVersion, StringFormat=Running version: {0}}"
-                                           Margin="0,8,0,0"
-                                           Foreground="#D7E6FF"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Text="{Binding AssemblyVersion, StringFormat=Assembly version: {0}}"
-                                           Margin="0,6,0,0"
-                                           Foreground="#AFC7E8"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Text="{Binding InstallationPath, StringFormat=Path: {0}}"
-                                           Margin="0,6,0,0"
-                                           Foreground="#8EB6E8"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </syncfusion:TabItemExt>
+
+            <syncfusion:TabItemExt Header="ABOUT">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              Padding="10"
+                              MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.5}">
+                    <StackPanel Margin="0,10,0,0">
+                        <Border CornerRadius="14"
+                                Padding="18"
+                                Margin="0,0,0,12"
+                                Background="#172A49"
+                                BorderBrush="#365B91"
+                                BorderThickness="1.2">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0">
+                                    <TextBlock Text="TOTP Manager"
+                                               Foreground="White"
+                                               FontWeight="SemiBold"
+                                               FontSize="18" />
+                                    <TextBlock Text="Desktop authenticator with signed in-app updates."
+                                               Margin="0,6,0,0"
+                                               Foreground="#B8D2F2"
+                                               FontSize="12"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <UniformGrid Grid.Row="1"
+                                             Margin="0,16,0,0"
+                                             Columns="1">
+                                    <Border Margin="0,0,0,8"
+                                            Padding="12"
+                                            CornerRadius="10"
+                                            Background="#10213C"
+                                            BorderBrush="#294A79"
+                                            BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="Running version"
+                                                       Foreground="#8EB6E8"
+                                                       FontSize="11" />
+                                            <TextBlock Text="{Binding RunningVersion}"
+                                                       Margin="0,4,0,0"
+                                                       Foreground="White"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Margin="0,0,0,8"
+                                            Padding="12"
+                                            CornerRadius="10"
+                                            Background="#10213C"
+                                            BorderBrush="#294A79"
+                                            BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="Assembly version"
+                                                       Foreground="#8EB6E8"
+                                                       FontSize="11" />
+                                            <TextBlock Text="{Binding AssemblyVersion}"
+                                                       Margin="0,4,0,0"
+                                                       Foreground="White"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Padding="12"
+                                            CornerRadius="10"
+                                            Background="#10213C"
+                                            BorderBrush="#294A79"
+                                            BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="Installation path"
+                                                       Foreground="#8EB6E8"
+                                                       FontSize="11" />
+                                            <TextBlock Text="{Binding InstallationPath}"
+                                                       Margin="0,4,0,0"
+                                                       Foreground="White"
+                                                       FontSize="13"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
+
+                                <Border Grid.Row="2"
+                                        Margin="0,18,0,0"
+                                        Padding="14"
+                                        CornerRadius="12"
+                                        Background="#0F1D35"
+                                        BorderBrush="#2C4F82"
+                                        BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0"
+                                                    Margin="0,0,16,0">
+                                            <TextBlock Text="Software updates"
+                                                       Foreground="White"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Text="Checks GitHub for a newer signed release and opens the updater flow if one is available."
+                                                       Margin="0,6,0,0"
+                                                       Foreground="#B8D2F2"
+                                                       FontSize="12"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <Button Grid.Column="1"
+                                                MinWidth="190"
+                                                Height="38"
+                                                Padding="14,0"
+                                                Command="{Binding CheckForUpdatesCommand}">
+                                            <StackPanel Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
+                                                <Grid Width="16"
+                                                      Height="16"
+                                                      Margin="0,0,10,0"
+                                                      Visibility="{Binding IsCheckingForUpdates, Converter={StaticResource BoolToVisibilityConverterCollapsed}}">
+                                                    <Path Data="M 8,1 A 7,7 0 1 1 7.99,1"
+                                                          Stroke="#FFF4F7FF"
+                                                          StrokeThickness="2"
+                                                          StrokeStartLineCap="Round"
+                                                          StrokeEndLineCap="Round"
+                                                          Stretch="Fill"
+                                                          SnapsToDevicePixels="True">
+                                                        <Path.RenderTransform>
+                                                            <RotateTransform CenterX="8" CenterY="8" />
+                                                        </Path.RenderTransform>
+                                                        <Path.Triggers>
+                                                            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                                                <BeginStoryboard>
+                                                                    <Storyboard RepeatBehavior="Forever">
+                                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                                                         From="0"
+                                                                                         To="360"
+                                                                                         Duration="0:0:0.85" />
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </EventTrigger>
+                                                        </Path.Triggers>
+                                                    </Path>
+                                                </Grid>
+                                                <TextBlock Text="{Binding CheckForUpdatesButtonText}"
+                                                           VerticalAlignment="Center"
+                                                           FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </syncfusion:TabItemExt>

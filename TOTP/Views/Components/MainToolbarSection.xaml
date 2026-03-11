@@ -118,15 +118,6 @@
                                          Stretch="Uniform" />
                     </syncfusion:MenuItemAdv.Icon>
                 </syncfusion:MenuItemAdv>
-                <syncfusion:MenuItemAdv Header="Check for updates"
-                                        Command="{Binding CheckForUpdatesCommand}"
-                                        ToolTip="Check for updates">
-                    <syncfusion:MenuItemAdv.Icon>
-                        <Image Source="/Assets/Icons/Info.png"
-                               Width="15"
-                               Height="15" />
-                    </syncfusion:MenuItemAdv.Icon>
-                </syncfusion:MenuItemAdv>
                 <syncfusion:MenuItemAdv Header="About"
                                         Command="{Binding ShowAboutCommand}"
                                         ToolTip="About TOTP Manager">

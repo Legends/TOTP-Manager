@@ -14,6 +14,7 @@ public sealed class SettingsDialogOrchestrationService(
     IAccountTransferWorkflowService accountTransferWorkflowService,
     ISettingsAuthorizationWorkflowService settingsAuthorizationWorkflowService,
     ISettingsPersistenceService settingsPersistenceService,
+    IAutoUpdateService autoUpdateService,
     IMessageService messageService,
     ILogSwitchService logSwitchService) : ISettingsDialogOrchestrationService
 {
@@ -38,6 +39,7 @@ public sealed class SettingsDialogOrchestrationService(
             settingsAuthorizationWorkflowService,
             settingsPersistenceService,
             settingsTransferWorkflowService,
+            autoUpdateService,
             messageService,
             logSwitchService,
             closeCommand,

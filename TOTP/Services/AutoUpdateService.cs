@@ -259,9 +259,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
     private async Task<bool> InstallDownloadedUpdateAsync(AppCastItem item, string? downloadedFilePath)
     {
-        System.Windows.MessageBox.Show("InstallDownloadedUpdateAsync");
-        Debugger.Break();
-        Debugger.Launch();
+       
         if (string.IsNullOrWhiteSpace(downloadedFilePath))
         {
             _logger.LogWarning("Auto-update install helper could not start because the downloaded package was not found. path={Path}", downloadedFilePath);

@@ -20,6 +20,7 @@ public sealed class SettingsViewModelTests
         var authWorkflow = new Mock<ISettingsAuthorizationWorkflowService>();
         var persistence = new Mock<ISettingsPersistenceService>();
         var transfer = new Mock<ISettingsTransferWorkflowService>();
+        var autoUpdate = new Mock<IAutoUpdateService>();
         var message = new Mock<IMessageService>();
         var logSwitch = new Mock<ILogSwitchService>();
 
@@ -33,7 +34,7 @@ public sealed class SettingsViewModelTests
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot());
         logSwitch.SetupGet(l => l.MinimumLevel).Returns(AppLogLevel.Information);
 
-        var vm = CreateSut(settings, auth, authWorkflow, persistence, transfer, message, logSwitch);
+        var vm = CreateSut(settings, auth, authWorkflow, persistence, transfer, autoUpdate, message, logSwitch);
 
         await vm.LoadAsync();
 
@@ -45,7 +46,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task QrPreviewScaleFactor_WhenOutOfRangeOrFractional_ClampsAndRoundsHalfSteps()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot());
         persistence.Setup(p => p.SaveGeneralSettingsAsync(It.IsAny<SettingsGeneralSnapshot>()))
             .ReturnsAsync(new SettingsPersistenceResult(true));
@@ -65,7 +66,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ExportEncrypt_ToggleRestoresPreviousOpenAfterExportChoice()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(
             exportEncrypt: false,
@@ -90,7 +91,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ExportEncrypt_WhenEnabledAfterPlainFormatSelection_UpdatesSelectedFormatToTotpAndRaisesNotification()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: false));
         await vm.LoadAsync();
 
@@ -114,7 +115,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ExportEncrypt_WhenDisabledAfterEncryptedMode_DefaultsFormatToJsonAndRaisesNotification()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
         await vm.LoadAsync();
 
@@ -138,7 +139,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task SelectedExportFormat_WhenEncrypted_IgnoresPlainFormatSelection()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
         await vm.LoadAsync();
 
@@ -151,7 +152,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ExportEncrypt_WhenDisabled_EnablesFormatSelectionAndShowsPlainFormats()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
         await vm.LoadAsync();
 
@@ -168,7 +169,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task OpenExportFileAfterExport_WhenEncrypted_RemainsFalse()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
         await vm.LoadAsync();
 
@@ -181,7 +182,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task CanResetToDefaults_WhenOnlyExportEncryptChanged_IsTrue()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
         await vm.LoadAsync();
 
@@ -194,7 +195,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ChangePasswordCommand_CanExecuteOnlyForPasswordGateWithInput()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot());
 
         await vm.LoadAsync();
@@ -214,7 +215,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ChangePasswordCommand_WhenSuccessful_ClearsInputsAndShowsSuccess()
     {
-        var (_, _, authWorkflow, persistence, _, message, _, vm) = CreateSutWithDependencies();
+        var (_, _, authWorkflow, persistence, _, _, message, _, vm) = CreateSutWithDependencies();
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot());
         authWorkflow.Setup(a => a.ChangePasswordAsync("new-pass", "new-pass"))
@@ -236,7 +237,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ChangePasswordCommand_WhenValidationFails_SetsInlineErrorsWithoutSuccessMessage()
     {
-        var (_, _, authWorkflow, persistence, _, message, _, vm) = CreateSutWithDependencies();
+        var (_, _, authWorkflow, persistence, _, _, message, _, vm) = CreateSutWithDependencies();
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot());
         authWorkflow.Setup(a => a.ChangePasswordAsync("short", "mismatch"))
@@ -264,7 +265,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task IsHelloSelected_WhenGateSaveFails_RollsBackSelectionAndSetsError()
     {
-        var (settings, _, authWorkflow, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (settings, _, authWorkflow, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
 
         var appSettings = new AppSettings
         {
@@ -288,7 +289,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ResetToDefaultsCommand_WhenExecuted_AppliesDefaultsAndSavesOnce()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(lockOnSessionLock: false));
         persistence.Setup(p => p.CreateDefaultGeneralSettings()).Returns(CreateSnapshot());
@@ -311,7 +312,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ResetToDefaultsCommand_AfterPlainExportSelection_RestoresEncryptedTotpSelection()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: false));
         persistence.Setup(p => p.CreateDefaultGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
@@ -333,7 +334,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ResetToDefaultsCommand_WhenEncryptedAlreadyTrue_ReNotifiesSelectedExportFormat()
     {
-        var (_, _, _, persistence, _, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, _, _, _, _, vm) = CreateSutWithDependencies();
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true, lockOnSessionLock: false));
         persistence.Setup(p => p.CreateDefaultGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: true));
         persistence.Setup(p => p.SaveGeneralSettingsAsync(It.IsAny<SettingsGeneralSnapshot>()))
@@ -360,7 +361,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task ExportAndImportCommands_ForwardSelectedOptionsToTransferWorkflow()
     {
-        var (_, _, _, persistence, transfer, _, _, vm) = CreateSutWithDependencies();
+        var (_, _, _, persistence, transfer, _, _, _, vm) = CreateSutWithDependencies();
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot(exportEncrypt: false));
         transfer.Setup(t => t.ExportAsync(false, ExportFileFormat.Csv)).Returns(Task.CompletedTask);
@@ -385,7 +386,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task SaveCommand_WhenAuthorizationFails_DoesNotInvokeSaveAction()
     {
-        var (_, _, authWorkflow, persistence, _, _, _, vm, saveActionCount) = CreateSutWithSaveCounter();
+        var (_, _, authWorkflow, persistence, _, _, _, _, vm, saveActionCount) = CreateSutWithSaveCounter();
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot());
         authWorkflow.Setup(a => a.ApplyAuthorizationSettingsAsync(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -404,7 +405,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task SaveCommand_WhenAuthorizationSucceeds_SavesGeneralSettingsAndInvokesSaveAction()
     {
-        var (_, _, authWorkflow, persistence, _, _, _, vm, saveActionCount) = CreateSutWithSaveCounter();
+        var (_, _, authWorkflow, persistence, _, _, _, _, vm, saveActionCount) = CreateSutWithSaveCounter();
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot());
         authWorkflow.Setup(a => a.ApplyAuthorizationSettingsAsync(It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -419,6 +420,28 @@ public sealed class SettingsViewModelTests
         await WaitUntilAsync(() => saveActionCount() == 1);
 
         persistence.Verify(p => p.SaveGeneralSettingsAsync(It.IsAny<SettingsGeneralSnapshot>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CheckForUpdatesCommand_ForwardsToAutoUpdateService_AndRestoresButtonState()
+    {
+        var (_, _, _, persistence, _, autoUpdate, _, _, vm) = CreateSutWithDependencies();
+        persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot());
+        autoUpdate.Setup(a => a.CheckForUpdatesInteractiveAsync())
+            .Returns(async () => await Task.Delay(50));
+
+        await vm.LoadAsync();
+
+        Assert.Equal("Check for updates", vm.CheckForUpdatesButtonText);
+        Assert.False(vm.IsCheckingForUpdates);
+
+        vm.CheckForUpdatesCommand.Execute(null);
+
+        await WaitUntilAsync(() => vm.IsCheckingForUpdates);
+        await WaitUntilAsync(() => !vm.IsCheckingForUpdates);
+
+        Assert.Equal("Check for updates", vm.CheckForUpdatesButtonText);
+        autoUpdate.Verify(a => a.CheckForUpdatesInteractiveAsync(), Times.Once);
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 1500)
@@ -467,6 +490,7 @@ public sealed class SettingsViewModelTests
         Mock<ISettingsAuthorizationWorkflowService> authWorkflow,
         Mock<ISettingsPersistenceService> persistence,
         Mock<ISettingsTransferWorkflowService> transfer,
+        Mock<IAutoUpdateService> autoUpdate,
         Mock<IMessageService> message,
         Mock<ILogSwitchService> logSwitch,
         SettingsViewModel vm)
@@ -477,6 +501,7 @@ public sealed class SettingsViewModelTests
         var authWorkflow = new Mock<ISettingsAuthorizationWorkflowService>();
         var persistence = new Mock<ISettingsPersistenceService>();
         var transfer = new Mock<ISettingsTransferWorkflowService>();
+        var autoUpdate = new Mock<IAutoUpdateService>();
         var message = new Mock<IMessageService>();
         var logSwitch = new Mock<ILogSwitchService>();
 
@@ -488,8 +513,8 @@ public sealed class SettingsViewModelTests
         logSwitch.SetupGet(l => l.MinimumLevel).Returns(AppLogLevel.Information);
         logSwitch.SetupGet(l => l.IsCliOverrideActive).Returns(false);
 
-        var vm = CreateSut(settings, auth, authWorkflow, persistence, transfer, message, logSwitch);
-        return (settings, auth, authWorkflow, persistence, transfer, message, logSwitch, vm);
+        var vm = CreateSut(settings, auth, authWorkflow, persistence, transfer, autoUpdate, message, logSwitch);
+        return (settings, auth, authWorkflow, persistence, transfer, autoUpdate, message, logSwitch, vm);
     }
 
     private static (Mock<ISettingsService> settings,
@@ -497,6 +522,7 @@ public sealed class SettingsViewModelTests
         Mock<ISettingsAuthorizationWorkflowService> authWorkflow,
         Mock<ISettingsPersistenceService> persistence,
         Mock<ISettingsTransferWorkflowService> transfer,
+        Mock<IAutoUpdateService> autoUpdate,
         Mock<IMessageService> message,
         Mock<ILogSwitchService> logSwitch,
         SettingsViewModel vm,
@@ -512,12 +538,13 @@ public sealed class SettingsViewModelTests
             deps.authWorkflow.Object,
             deps.persistence.Object,
             deps.transfer.Object,
+            deps.autoUpdate.Object,
             deps.message.Object,
             deps.logSwitch.Object,
             new RelayCommand(() => { }),
             () => saveActionCount++);
 
-        return (deps.settings, deps.auth, deps.authWorkflow, deps.persistence, deps.transfer, deps.message, deps.logSwitch, vm, () => saveActionCount);
+        return (deps.settings, deps.auth, deps.authWorkflow, deps.persistence, deps.transfer, deps.autoUpdate, deps.message, deps.logSwitch, vm, () => saveActionCount);
     }
 
     private static SettingsViewModel CreateSut(
@@ -526,6 +553,7 @@ public sealed class SettingsViewModelTests
         Mock<ISettingsAuthorizationWorkflowService> authWorkflow,
         Mock<ISettingsPersistenceService> persistence,
         Mock<ISettingsTransferWorkflowService> transfer,
+        Mock<IAutoUpdateService> autoUpdate,
         Mock<IMessageService> message,
         Mock<ILogSwitchService> logSwitch)
     {
@@ -535,6 +563,7 @@ public sealed class SettingsViewModelTests
             authWorkflow.Object,
             persistence.Object,
             transfer.Object,
+            autoUpdate.Object,
             message.Object,
             logSwitch.Object,
             new RelayCommand(() => { }),

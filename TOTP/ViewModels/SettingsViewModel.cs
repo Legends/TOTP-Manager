@@ -45,6 +45,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
     private readonly ISettingsAuthorizationWorkflowService _settingsAuthorizationWorkflowService;
     private readonly ISettingsPersistenceService _settingsPersistenceService;
     private readonly ISettingsTransferWorkflowService _settingsTransferWorkflowService;
+    private readonly IAutoUpdateService _autoUpdateService;
     private readonly IMessageService _messageService;
     private readonly SettingsExportOptionsController _exportOptions = new();
     private readonly Action _saveAction;
@@ -52,6 +53,8 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
     private CancellationTokenSource? _authGateDebounceCts;
     private bool _isLoadingSettings;
     private bool _suppressAuthAutoSave;
+    private bool _isCheckingForUpdates;
+    private string _checkForUpdatesButtonText = "Check for updates";
 
     #region UI State
 
@@ -184,6 +187,36 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
     #endregion
 
     #region General Settings
+    public bool IsCheckingForUpdates
+    {
+        get => _isCheckingForUpdates;
+        private set
+        {
+            if (_isCheckingForUpdates == value)
+            {
+                return;
+            }
+
+            _isCheckingForUpdates = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string CheckForUpdatesButtonText
+    {
+        get => _checkForUpdatesButtonText;
+        private set
+        {
+            if (string.Equals(_checkForUpdatesButtonText, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _checkForUpdatesButtonText = value;
+            OnPropertyChanged();
+        }
+    }
+
     private bool _lockOnSessionLock = true;
     public bool LockOnSessionLock
     {
@@ -422,6 +455,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
     public ICommand ResetToDefaultsCommand { get; }
     public ICommand ExportCommand { get; }
     public ICommand ImportCommand { get; }
+    public ICommand CheckForUpdatesCommand { get; }
     public ICommand OpenLogFolderCommand { get; }
 
     private ISettingsService _settingsSvc;
@@ -441,18 +475,21 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
         var path = System.IO.Path.GetDirectoryName(StringsConstants.AppLogPath);
         return !string.IsNullOrWhiteSpace(path) && System.IO.Directory.Exists(path);
     }
+
+    private bool CanCheckForUpdates() => !_isLoadingSettings && !IsCheckingForUpdates;
     #endregion
 
     #region  ### CONSTRUCTOR ###
 
     public SettingsViewModel(ISettingsService settingsSvc,
                             IAuthorizationService authorizationService,
-                            ISettingsAuthorizationWorkflowService settingsAuthorizationWorkflowService,
-                            ISettingsPersistenceService settingsPersistenceService,
-                            ISettingsTransferWorkflowService settingsTransferWorkflowService,
-                            IMessageService messageService,
-                            ILogSwitchService logSwitchService,
-                            ICommand closeCommand,
+                             ISettingsAuthorizationWorkflowService settingsAuthorizationWorkflowService,
+                             ISettingsPersistenceService settingsPersistenceService,
+                             ISettingsTransferWorkflowService settingsTransferWorkflowService,
+                             IAutoUpdateService autoUpdateService,
+                             IMessageService messageService,
+                             ILogSwitchService logSwitchService,
+                             ICommand closeCommand,
                             Action saveAction)
     {
         _logSwitchService = logSwitchService;
@@ -461,6 +498,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
         _settingsAuthorizationWorkflowService = settingsAuthorizationWorkflowService;
         _settingsPersistenceService = settingsPersistenceService;
         _settingsTransferWorkflowService = settingsTransferWorkflowService;
+        _autoUpdateService = autoUpdateService;
         _messageService = messageService;
         _saveAction = saveAction;
         
@@ -470,6 +508,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
         ResetToDefaultsCommand = new AsyncCommand(ResetToDefaultsAsync, () => CanResetToDefaults);
         ExportCommand = new AsyncCommand(() => _settingsTransferWorkflowService.ExportAsync(ExportEncrypt, SelectedExportFormat), CanExportSettings);
         ImportCommand = new AsyncCommand(() => _settingsTransferWorkflowService.ImportAsync(SelectedImportConflictOption.Strategy), CanImportSettings);
+        CheckForUpdatesCommand = new AsyncCommand(CheckForUpdatesAsync, CanCheckForUpdates);
         OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder, CanOpenLogFolder);
 
         AvailableLogLevels = Enum.GetValues(typeof(AppLogLevel)).Cast<AppLogLevel>().ToList();

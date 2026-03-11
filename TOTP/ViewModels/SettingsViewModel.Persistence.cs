@@ -150,6 +150,11 @@ public sealed partial class SettingsViewModel
             importCommand.RaiseCanExecuteChanged();
         }
 
+        if (CheckForUpdatesCommand is AsyncCommand checkForUpdatesCommand)
+        {
+            checkForUpdatesCommand.RaiseCanExecuteChanged();
+        }
+
         if (OpenLogFolderCommand is RelayCommand openLogFolderCommand)
         {
             openLogFolderCommand.RaiseCanExecuteChanged();
