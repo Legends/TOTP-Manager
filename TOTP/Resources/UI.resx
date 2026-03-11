@@ -258,6 +258,27 @@
   <data name="ui_Settings_Auth_WindowsHello" xml:space="preserve">
     <value>Windows Hello</value>
   </data>
+  <data name="ui_Settings_About_AppName" xml:space="preserve">
+    <value>TOTP Manager</value>
+  </data>
+  <data name="ui_Settings_About_AssemblyVersion" xml:space="preserve">
+    <value>Assembly version</value>
+  </data>
+  <data name="ui_Settings_About_Description" xml:space="preserve">
+    <value>Desktop authenticator with signed in-app updates.</value>
+  </data>
+  <data name="ui_Settings_About_InstallationPath" xml:space="preserve">
+    <value>Installation path</value>
+  </data>
+  <data name="ui_Settings_About_RunningVersion" xml:space="preserve">
+    <value>Running version</value>
+  </data>
+  <data name="ui_Settings_About_SoftwareUpdates" xml:space="preserve">
+    <value>Software updates</value>
+  </data>
+  <data name="ui_Settings_About_SoftwareUpdatesDescription" xml:space="preserve">
+    <value>Checks GitHub for a newer signed release and opens the updater flow if one is available.</value>
+  </data>
   <data name="ui_Settings_ClearClipboard" xml:space="preserve">
     <value>Clear clipboard</value>
   </data>
@@ -276,8 +297,32 @@
   <data name="ui_Settings_LockOnWindowsLock" xml:space="preserve">
     <value>Windows lock screen</value>
   </data>
+  <data name="ui_Settings_LockOnIdleTimeout" xml:space="preserve">
+    <value>Lock after inactivity</value>
+  </data>
+  <data name="ui_Settings_LockOnMinimize" xml:space="preserve">
+    <value>Lock when app is minimized</value>
+  </data>
+  <data name="ui_Settings_Minutes" xml:space="preserve">
+    <value>minutes</value>
+  </data>
+  <data name="ui_Settings_ResetToDefaults" xml:space="preserve">
+    <value>Reset to defaults</value>
+  </data>
+  <data name="ui_Settings_Section_Common" xml:space="preserve">
+    <value>Common</value>
+  </data>
   <data name="ui_Settings_Tab_Export" xml:space="preserve">
     <value>Backup &amp; Restore</value>
+  </data>
+  <data name="ui_Settings_Tab_About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="ui_Settings_Tab_Misc" xml:space="preserve">
+    <value>Misc</value>
+  </data>
+  <data name="ui_Settings_Tab_Security" xml:space="preserve">
+    <value>Security</value>
   </data>
   <data name="ui_Settings_Title" xml:space="preserve">
     <value>Settings</value>
@@ -302,6 +347,9 @@
   </data>
   <data name="ui_Settings_Section_Logging" xml:space="preserve">
     <value>Logging</value>
+  </data>
+  <data name="ui_Settings_Section_Misc" xml:space="preserve">
+    <value>Misc</value>
   </data>
   <data name="ui_Settings_Logging_Level" xml:space="preserve">
     <value>Logging level</value>

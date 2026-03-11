@@ -1,95 +1,27 @@
 using System.Diagnostics;
+using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Windows.Forms;
+using System.Windows;
 
 namespace TOTP.Updater;
 
-internal static class Program
+public partial class UpdateInstallerForm : Window
 {
-    [STAThread]
-    private static void Main(string[] args)
-    {
-        ApplicationConfiguration.Initialize();
-        using var form = new UpdateInstallerForm(args);
-        Application.Run(form);
-    }
-}
-
-internal sealed class UpdateInstallerForm : Form
-{
-    private readonly Label _titleLabel;
-    private readonly Label _statusLabel;
-    private readonly Label _detailLabel;
-    private readonly ProgressBar _progressBar;
-    private readonly Button _closeButton;
     private readonly UpdateInstallArguments _arguments;
     private bool _readySignalWritten;
 
     public UpdateInstallerForm(string[] args)
     {
         _arguments = UpdateInstallArguments.Parse(args);
+        InitializeComponent();
+        Loaded += OnLoaded;
+    }
 
-        Text = "TOTP Manager Updater";
-        StartPosition = FormStartPosition.CenterScreen;
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
-        MinimizeBox = false;
-        TopMost = true;
-        ClientSize = new Size(520, 220);
-
-        _titleLabel = new Label
-        {
-            Left = 22,
-            Top = 20,
-            Width = 470,
-            Font = new Font("Segoe UI Semibold", 14f, FontStyle.Bold),
-            Text = "Installing update"
-        };
-
-        _statusLabel = new Label
-        {
-            Left = 22,
-            Top = 64,
-            Width = 470,
-            Height = 26,
-            Font = new Font("Segoe UI", 10.5f, FontStyle.Regular),
-            Text = "Preparing updater..."
-        };
-
-        _detailLabel = new Label
-        {
-            Left = 22,
-            Top = 94,
-            Width = 470,
-            Height = 44,
-            Font = new Font("Segoe UI", 9f, FontStyle.Regular),
-            Text = string.Empty
-        };
-
-        _progressBar = new ProgressBar
-        {
-            Left = 22,
-            Top = 148,
-            Width = 470,
-            Height = 22,
-            Style = ProgressBarStyle.Marquee,
-            MarqueeAnimationSpeed = 25
-        };
-
-        _closeButton = new Button
-        {
-            Left = 392,
-            Top = 182,
-            Width = 100,
-            Height = 28,
-            Text = "Close",
-            Enabled = false
-        };
-        _closeButton.Click += (_, _) => Close();
-
-        Controls.AddRange([_titleLabel, _statusLabel, _detailLabel, _progressBar, _closeButton]);
-        Shown += async (_, _) => await RunInstallAsync();
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        Loaded -= OnLoaded;
+        await RunInstallAsync();
     }
 
     private async Task RunInstallAsync()
@@ -114,10 +46,14 @@ internal sealed class UpdateInstallerForm : Form
                 var files = EnumerateStageFiles(stageDirectory);
                 var totalBytes = files.Sum(static file => file.Length);
 
-                UpdateProgress(0, "Installing files...", $"{files.Count} file(s) queued");
+                UpdateProgress(0, "Installing files...", $"{files.Count} file(s) queued", $"{files.Count} item(s) queued");
                 await CopyFilesAsync(files, stageDirectory, _arguments.TargetDirectory, totalBytes);
 
-                UpdateProgress(100, "Relaunching app...", Path.Combine(_arguments.TargetDirectory, Path.GetFileName(_arguments.ExecutablePath)));
+                UpdateProgress(
+                    100,
+                    "Relaunching app...",
+                    Path.Combine(_arguments.TargetDirectory, Path.GetFileName(_arguments.ExecutablePath)),
+                    "100% complete");
                 RelaunchApplication();
                 Log("application relaunched");
                 ScheduleSelfCleanup();
@@ -131,12 +67,13 @@ internal sealed class UpdateInstallerForm : Form
         catch (Exception ex)
         {
             Log($"updater failed: {ex}");
-            _titleLabel.Text = "Update failed";
-            _statusLabel.Text = "The update could not be installed.";
-            _detailLabel.Text = ex.Message;
-            _progressBar.Style = ProgressBarStyle.Blocks;
-            _progressBar.Value = 0;
-            _closeButton.Enabled = true;
+            TitleTextBlock.Text = "Update failed";
+            StatusTextBlock.Text = "The update could not be installed.";
+            DetailTextBlock.Text = ex.Message;
+            ProgressTextBlock.Text = string.Empty;
+            InstallProgressBar.IsIndeterminate = false;
+            InstallProgressBar.Value = 0;
+            CloseButton.IsEnabled = true;
         }
     }
 
@@ -236,12 +173,13 @@ internal sealed class UpdateInstallerForm : Form
             UpdateProgress(
                 totalBytes == 0 ? 0 : (int)Math.Clamp((copiedBytes * 100L) / totalBytes, 0, 100),
                 "Installing files...",
-                $"{copiedFiles}/{files.Count}: {relativePath}");
+                $"{copiedFiles}/{files.Count}: {relativePath}",
+                $"{copiedFiles}/{files.Count} file(s)");
 
             copiedBytes += await CopyFileWithRetriesAsync(sourceFile.FullName, destinationPath, copiedBytes, totalBytes);
         }
 
-        UpdateProgress(100, "Installing files...", "Finalizing copied files");
+        UpdateProgress(100, "Installing files...", "Finalizing copied files", "100% complete");
         Log($"files copied: {files.Count}");
     }
 
@@ -281,7 +219,7 @@ internal sealed class UpdateInstallerForm : Form
             if (totalBytes > 0)
             {
                 var percentage = (int)Math.Clamp(((copiedBytesBeforeFile + fileBytesCopied) * 100L) / totalBytes, 0, 100);
-                UpdateProgress(percentage, "Installing files...", $"{percentage}% complete");
+                UpdateProgress(percentage, "Installing files...", $"{percentage}% complete", $"{percentage}% complete");
             }
         }
 
@@ -351,7 +289,6 @@ internal sealed class UpdateInstallerForm : Form
         }
         catch
         {
-            // best-effort cleanup only
         }
     }
 
@@ -372,38 +309,32 @@ internal sealed class UpdateInstallerForm : Form
             }
             catch
             {
-                // best-effort cleanup only
             }
         }
     }
 
     private void UpdateMarquee(string status, string detail)
     {
-        if (InvokeRequired)
+        Dispatcher.Invoke(() =>
         {
-            Invoke(() => UpdateMarquee(status, detail));
-            return;
-        }
-
-        _progressBar.Style = ProgressBarStyle.Marquee;
-        _progressBar.MarqueeAnimationSpeed = 25;
-        _statusLabel.Text = status;
-        _detailLabel.Text = detail;
+            InstallProgressBar.IsIndeterminate = true;
+            InstallProgressBar.Value = 0;
+            StatusTextBlock.Text = status;
+            DetailTextBlock.Text = detail;
+            ProgressTextBlock.Text = string.Empty;
+        });
     }
 
-    private void UpdateProgress(int percentage, string status, string detail)
+    private void UpdateProgress(int percentage, string status, string detail, string progressText)
     {
-        if (InvokeRequired)
+        Dispatcher.Invoke(() =>
         {
-            Invoke(() => UpdateProgress(percentage, status, detail));
-            return;
-        }
-
-        _progressBar.Style = ProgressBarStyle.Blocks;
-        _progressBar.MarqueeAnimationSpeed = 0;
-        _progressBar.Value = Math.Clamp(percentage, 0, 100);
-        _statusLabel.Text = status;
-        _detailLabel.Text = detail;
+            InstallProgressBar.IsIndeterminate = false;
+            InstallProgressBar.Value = Math.Clamp(percentage, 0, 100);
+            StatusTextBlock.Text = status;
+            DetailTextBlock.Text = detail;
+            ProgressTextBlock.Text = progressText;
+        });
     }
 
     private void Log(string message)
@@ -438,6 +369,11 @@ internal sealed class UpdateInstallerForm : Form
         {
             File.Delete(path);
         }
+    }
+
+    private void CloseButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        Close();
     }
 }
 

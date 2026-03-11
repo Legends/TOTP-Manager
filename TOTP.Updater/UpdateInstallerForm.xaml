@@ -1,0 +1,67 @@
+<Window x:Class="TOTP.Updater.UpdateInstallerForm"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TOTP Manager Updater"
+        Width="520"
+        Height="220"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        Background="#FFF7F9FC">
+    <Grid Margin="22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="TitleTextBlock"
+                   Grid.Row="0"
+                   FontSize="22"
+                   FontWeight="SemiBold"
+                   Foreground="#FF12233F"
+                   Text="Installing update" />
+
+        <TextBlock x:Name="StatusTextBlock"
+                   Grid.Row="1"
+                   Margin="0,16,0,0"
+                   FontSize="14"
+                   Foreground="#FF20324F"
+                   Text="Preparing updater..." />
+
+        <TextBlock x:Name="DetailTextBlock"
+                   Grid.Row="2"
+                   Margin="0,10,0,0"
+                   FontSize="12"
+                   Foreground="#FF4E627F"
+                   TextWrapping="Wrap" />
+
+        <ProgressBar x:Name="InstallProgressBar"
+                     Grid.Row="3"
+                     Height="22"
+                     Margin="0,16,0,0"
+                     IsIndeterminate="True"
+                     Minimum="0"
+                     Maximum="100" />
+
+        <TextBlock x:Name="ProgressTextBlock"
+                   Grid.Row="4"
+                   Margin="0,10,0,0"
+                   FontSize="11"
+                   Foreground="#FF657A96"
+                   TextWrapping="Wrap" />
+
+        <Button x:Name="CloseButton"
+                Grid.Row="5"
+                Width="100"
+                Height="28"
+                Margin="0,16,0,0"
+                HorizontalAlignment="Right"
+                IsEnabled="False"
+                Content="Close"
+                Click="CloseButton_OnClick" />
+    </Grid>
+</Window>

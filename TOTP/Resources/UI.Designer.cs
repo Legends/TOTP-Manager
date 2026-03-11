@@ -934,6 +934,69 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TOTP Manager.
+        /// </summary>
+        internal static string ui_Settings_About_AppName {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_AppName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assembly version.
+        /// </summary>
+        internal static string ui_Settings_About_AssemblyVersion {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_AssemblyVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Desktop authenticator with signed in-app updates..
+        /// </summary>
+        internal static string ui_Settings_About_Description {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installation path.
+        /// </summary>
+        internal static string ui_Settings_About_InstallationPath {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_InstallationPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running version.
+        /// </summary>
+        internal static string ui_Settings_About_RunningVersion {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_RunningVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Software updates.
+        /// </summary>
+        internal static string ui_Settings_About_SoftwareUpdates {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_SoftwareUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checks GitHub for a newer signed release and opens the updater flow if one is available..
+        /// </summary>
+        internal static string ui_Settings_About_SoftwareUpdatesDescription {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_SoftwareUpdatesDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Lock session when ....
         /// </summary>
         internal static string ui_Settings_Auth_Lock_Session {
@@ -1096,6 +1159,24 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Lock after inactivity.
+        /// </summary>
+        internal static string ui_Settings_LockOnIdleTimeout {
+            get {
+                return ResourceManager.GetString("ui_Settings_LockOnIdleTimeout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lock when app is minimized.
+        /// </summary>
+        internal static string ui_Settings_LockOnMinimize {
+            get {
+                return ResourceManager.GetString("ui_Settings_LockOnMinimize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Windows lock screen.
         /// </summary>
         internal static string ui_Settings_LockOnWindowsLock {
@@ -1123,6 +1204,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to minutes.
+        /// </summary>
+        internal static string ui_Settings_Minutes {
+            get {
+                return ResourceManager.GetString("ui_Settings_Minutes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to QR preview scale.
         /// </summary>
         internal static string ui_Settings_QrPreviewScale {
@@ -1141,6 +1231,24 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reset to defaults.
+        /// </summary>
+        internal static string ui_Settings_ResetToDefaults {
+            get {
+                return ResourceManager.GetString("ui_Settings_ResetToDefaults", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Common.
+        /// </summary>
+        internal static string ui_Settings_Section_Common {
+            get {
+                return ResourceManager.GetString("ui_Settings_Section_Common", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Logging.
         /// </summary>
         internal static string ui_Settings_Section_Logging {
@@ -1150,11 +1258,47 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Misc.
+        /// </summary>
+        internal static string ui_Settings_Section_Misc {
+            get {
+                return ResourceManager.GetString("ui_Settings_Section_Misc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to About.
+        /// </summary>
+        internal static string ui_Settings_Tab_About {
+            get {
+                return ResourceManager.GetString("ui_Settings_Tab_About", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Backup &amp; Restore.
         /// </summary>
         internal static string ui_Settings_Tab_Export {
             get {
                 return ResourceManager.GetString("ui_Settings_Tab_Export", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Misc.
+        /// </summary>
+        internal static string ui_Settings_Tab_Misc {
+            get {
+                return ResourceManager.GetString("ui_Settings_Tab_Misc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Security.
+        /// </summary>
+        internal static string ui_Settings_Tab_Security {
+            get {
+                return ResourceManager.GetString("ui_Settings_Tab_Security", resourceCulture);
             }
         }
         

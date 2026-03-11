@@ -1,0 +1,76 @@
+<UserControl x:Class="TOTP.Views.SettingsTabs.SettingsTransferTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
+             xmlns:xaml="clr-namespace:TOTP.Xaml"
+             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  Padding="10"
+                  MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.5}">
+        <StackPanel Margin="0,10,0,0">
+            <GroupBox Margin="0,0,0,12"
+                      BorderBrush="#394B74"
+                      BorderThickness="1">
+                <GroupBox.Header>
+                    <TextBlock Text="{xaml:Resx Key=ui_Settings_Export}"
+                               Foreground="White"
+                               FontWeight="SemiBold"
+                               FontSize="13"/>
+                </GroupBox.Header>
+                <StackPanel Margin="10">
+                    <CheckBox Content="{xaml:Resx Key=ui_Settings_Export_Encrypt}"
+                              Foreground="White"
+                              IsChecked="{Binding ExportEncrypt, Mode=TwoWay}"
+                              Margin="0,0,0,8"/>
+
+                    <TextBlock Text="{xaml:Resx Key=ui_Settings_Export_Format}"
+                               Foreground="White"
+                               Margin="0,4,0,6"/>
+
+                    <ComboBox ItemsSource="{Binding AvailableExportFormats}"
+                              SelectedItem="{Binding SelectedExportFormat, Mode=TwoWay}"
+                              IsEnabled="{Binding IsExportFormatSelectionEnabled}"
+                              Height="30"
+                              Margin="0,0,0,8"/>
+
+                    <CheckBox Content="{xaml:Resx Key=ui_Settings_Export_OpenAfterExport}"
+                              Foreground="White"
+                              IsChecked="{Binding OpenExportFileAfterExport, Mode=TwoWay}"
+                              Margin="0,0,0,8"
+                              IsEnabled="{Binding IsOpenExportFileAfterExportOptionEnabled}" />
+
+                    <Button Content="{xaml:Resx Key=ui_Settings_Export}"
+                            Command="{Binding ExportCommand}"
+                            Height="34"
+                            Margin="0,10,0,0"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox BorderBrush="#394B74"
+                      BorderThickness="1">
+                <GroupBox.Header>
+                    <TextBlock Text="{xaml:Resx Key=ui_Settings_Import}"
+                               Foreground="White"
+                               FontWeight="SemiBold"
+                               FontSize="13"/>
+                </GroupBox.Header>
+                <StackPanel Margin="10">
+                    <TextBlock Text="{xaml:Resx Key=ui_Settings_Import_ConflictStrategy}"
+                               Foreground="White"
+                               Margin="0,4,0,6"/>
+
+                    <ComboBox ItemsSource="{Binding AvailableImportConflictOptions}"
+                              SelectedItem="{Binding SelectedImportConflictOption, Mode=TwoWay}"
+                              DisplayMemberPath="DisplayName"
+                              Height="30"
+                              Margin="0,0,0,8"/>
+
+                    <Button Content="{xaml:Resx Key=ui_Settings_Import}"
+                            Command="{Binding ImportCommand}"
+                            Height="34"
+                            Margin="0,10,0,0"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

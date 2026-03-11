@@ -1,0 +1,154 @@
+<UserControl x:Class="TOTP.Views.SettingsTabs.SettingsSecurityTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
+             xmlns:xaml="clr-namespace:TOTP.Xaml"
+             xmlns:userControls="clr-namespace:TOTP.UserControls"
+             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  Padding="10"
+                  MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.5}">
+        <StackPanel Margin="0,10,0,0">
+            <GroupBox Margin="0,0,0,12"
+                      BorderBrush="#394B74"
+                      BorderThickness="1">
+                <GroupBox.Header>
+                    <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Method}"
+                               Foreground="White"
+                               FontWeight="SemiBold"
+                               FontSize="13"/>
+                </GroupBox.Header>
+                <StackPanel Margin="10">
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,0,0,6">
+                        <RadioButton Content="{xaml:Resx Key=ui_Settings_Auth_WindowsHello}"
+                                     Foreground="White"
+                                     IsChecked="{Binding IsHelloSelected, Mode=TwoWay}"
+                                     IsEnabled="{Binding IsHelloAvailable}"
+                                     VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding HelloUnavailableText}"
+                                   Foreground="#5D729C"
+                                   Margin="8,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Visibility="{Binding IsHelloUnavailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    </StackPanel>
+
+                    <RadioButton Content="{xaml:Resx Key=ui_Settings_Auth_Password}"
+                                 Foreground="White"
+                                 IsChecked="{Binding IsPasswordSelected, Mode=TwoWay}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Margin="0,0,0,12"
+                      BorderBrush="#394B74"
+                      BorderThickness="1"
+                      Visibility="{Binding IsPasswordSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <GroupBox.Header>
+                    <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Password_SetChange}"
+                               Foreground="White"
+                               FontWeight="SemiBold"
+                               FontSize="13"/>
+                </GroupBox.Header>
+                <StackPanel Margin="10">
+                    <userControls:RevealableSecretBox Margin="0,0,0,10"
+                                                      Secret="{Binding NewPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
+                                                      ToggleToolTip="{xaml:Resx Key=ui_btnShowHideSecret}" />
+                    <TextBlock Text="{Binding NewPasswordError}"
+                               Style="{StaticResource InlineErrorTextStyle}"
+                               Visibility="{Binding NewPasswordError, Converter={StaticResource StringToVisibilityConverterCollapsed}}"
+                               Margin="0,0,0,8" />
+
+                    <userControls:RevealableSecretBox Secret="{Binding ConfirmPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
+                                                      ToggleToolTip="{xaml:Resx Key=ui_btnShowHideSecret}" />
+                    <TextBlock Text="{Binding ConfirmPasswordError}"
+                               Style="{StaticResource InlineErrorTextStyle}"
+                               Visibility="{Binding ConfirmPasswordError, Converter={StaticResource StringToVisibilityConverterCollapsed}}"
+                               Margin="0,0,0,8" />
+
+                    <Button Content="{xaml:Resx Key=ui_Settings_Auth_Password_SetChange}"
+                            Command="{Binding ChangePasswordCommand}"
+                            Height="32"
+                            Margin="0,10,0,0"/>
+                </StackPanel>
+            </GroupBox>
+
+            <TextBlock Margin="0,0,0,10"
+                       Text="{Binding AuthError}"
+                       Foreground="#FFEF5350"
+                       FontWeight="SemiBold"
+                       Visibility="{Binding HasAuthError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+            <GroupBox Margin="0,0,0,12"
+                      BorderBrush="#394B74"
+                      BorderThickness="1">
+                <GroupBox.Header>
+                    <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Lock_Session}"
+                               Foreground="White"
+                               FontWeight="SemiBold"
+                               FontSize="13"/>
+                </GroupBox.Header>
+                <StackPanel Margin="10">
+                    <CheckBox Content="{xaml:Resx Key=ui_Settings_LockOnWindowsLock}"
+                              Foreground="White"
+                              IsChecked="{Binding LockOnSessionLock, Mode=TwoWay}"
+                              Margin="0,0,0,8"/>
+
+                    <CheckBox Content="{xaml:Resx Key=ui_Settings_LockOnMinimize}"
+                              Foreground="White"
+                              IsChecked="{Binding LockOnMinimize, Mode=TwoWay}"
+                              Margin="0,0,0,8"/>
+
+                    <CheckBox Content="{xaml:Resx Key=ui_Settings_LockOnIdleTimeout}"
+                              Foreground="White"
+                              IsChecked="{Binding LockOnIdleTimeout, Mode=TwoWay}"
+                              Margin="0,0,0,6"/>
+
+                    <StackPanel Orientation="Horizontal"
+                                Margin="18,0,0,0">
+                        <TextBox Width="60"
+                                 Height="26"
+                                 IsEnabled="{Binding IsIdleTimeoutMinutesEnabled}"
+                                 Text="{Binding IdleTimeoutMinutes, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_Minutes}"
+                                   Foreground="White"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox BorderBrush="#394B74"
+                      BorderThickness="1">
+                <GroupBox.Header>
+                    <TextBlock Text="{xaml:Resx Key=ui_Settings_Section_Common}"
+                               Foreground="White"
+                               FontWeight="SemiBold"
+                               FontSize="13"/>
+                </GroupBox.Header>
+                <StackPanel Margin="10">
+                    <CheckBox Content="{xaml:Resx Key=ui_Settings_ClearClipboard}"
+                              Foreground="White"
+                              IsChecked="{Binding ClearClipboardEnabled, Mode=TwoWay}"
+                              Margin="0,0,0,6"/>
+
+                    <StackPanel Orientation="Horizontal"
+                                Visibility="{Binding ClearClipboardEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_ClearClipboard_After}"
+                                   Foreground="White"
+                                   VerticalAlignment="Center"/>
+                        <TextBox Width="60"
+                                 Height="26"
+                                 Margin="10,0,0,0"
+                                 Text="{Binding ClearClipboardSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="{xaml:Resx Key=ui_Settings_ClearClipboard_Seconds}"
+                                   Foreground="White"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
