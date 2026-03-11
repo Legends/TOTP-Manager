@@ -24,6 +24,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
     private const int DefaultLoopIntervalHours = 24;
     private const string UpdaterBundleFolderName = "TOTP.Updater";
     private const string UpdaterExecutableName = "TOTP.Updater.exe";
+    private static readonly TimeSpan UpdaterReadyTimeout = TimeSpan.FromSeconds(10);
     private readonly IConfiguration _configuration;
     private readonly ILogger<AutoUpdateService> _logger;
     private readonly ILoggerFactory _loggerFactory;
@@ -305,12 +306,13 @@ public sealed class AutoUpdateService : IAutoUpdateService
         var updaterRuntimeDirectory = Path.Combine(Path.GetTempPath(), $"totp-updater-runtime-{Guid.NewGuid():N}");
         var updaterRuntimeExecutable = Path.Combine(updaterRuntimeDirectory, UpdaterExecutableName);
         var logPath = Path.Combine(Path.GetTempPath(), "totp-update-helper.log");
+        var readySignalPath = Path.Combine(Path.GetTempPath(), $"totp-updater-ready-{Guid.NewGuid():N}.signal");
         await CopyDirectoryAsync(updaterSourceDirectory, updaterRuntimeDirectory);
 
         var startInfo = new ProcessStartInfo
         {
             FileName = updaterRuntimeExecutable,
-            Arguments = $"--packagePath \"{downloadedFilePath}\" --targetDir \"{installDirectory}\" --exePath \"{currentExecutablePath}\" --parentPid {currentProcess.Id} --logPath \"{logPath}\"",
+            Arguments = $"--packagePath \"{downloadedFilePath}\" --targetDir \"{installDirectory}\" --exePath \"{currentExecutablePath}\" --parentPid {currentProcess.Id} --logPath \"{logPath}\" --readySignalPath \"{readySignalPath}\"",
             UseShellExecute = true,
             WorkingDirectory = updaterRuntimeDirectory
         };
@@ -330,13 +332,31 @@ public sealed class AutoUpdateService : IAutoUpdateService
             updaterRuntimeExecutable,
             logPath);
 
-        var application = Application.Current;
-        if (application != null)
+        if (!await WaitForUpdaterReadyAsync(readySignalPath))
         {
-            await application.Dispatcher.InvokeAsync(application.Shutdown);
+            _logger.LogWarning(
+                "Auto-update updater process did not signal readiness before timeout. ready_signal={ReadySignalPath}",
+                readySignalPath);
+            return false;
         }
 
         return true;
+    }
+
+    private static async Task<bool> WaitForUpdaterReadyAsync(string readySignalPath)
+    {
+        var start = DateTimeOffset.UtcNow;
+        while (DateTimeOffset.UtcNow - start < UpdaterReadyTimeout)
+        {
+            if (File.Exists(readySignalPath))
+            {
+                return true;
+            }
+
+            await Task.Delay(100);
+        }
+
+        return false;
     }
 
     private static async Task CopyDirectoryAsync(string sourceDirectory, string destinationDirectory)

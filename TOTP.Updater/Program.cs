@@ -24,6 +24,7 @@ internal sealed class UpdateInstallerForm : Form
     private readonly ProgressBar _progressBar;
     private readonly Button _closeButton;
     private readonly UpdateInstallArguments _arguments;
+    private bool _readySignalWritten;
 
     public UpdateInstallerForm(string[] args)
     {
@@ -34,6 +35,7 @@ internal sealed class UpdateInstallerForm : Form
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
+        TopMost = true;
         ClientSize = new Size(520, 220);
 
         _titleLabel = new Label
@@ -97,7 +99,10 @@ internal sealed class UpdateInstallerForm : Form
             CleanupOldTemporaryFolders();
             Directory.CreateDirectory(Path.GetDirectoryName(_arguments.LogPath)!);
             Log("updater started");
+            SignalReady();
 
+            UpdateMarquee("Closing TOTP Manager...", _arguments.PackagePath);
+            await CloseParentApplicationAsync(_arguments.ParentProcessId);
             UpdateMarquee("Waiting for the app to close...", _arguments.PackagePath);
             await WaitForParentProcessExitAsync(_arguments.ParentProcessId);
 
@@ -146,6 +151,32 @@ internal sealed class UpdateInstallerForm : Form
         catch (ArgumentException)
         {
             Log($"parent process already exited: {parentProcessId}");
+        }
+    }
+
+    private async Task CloseParentApplicationAsync(int parentProcessId)
+    {
+        try
+        {
+            using var process = Process.GetProcessById(parentProcessId);
+            if (process.HasExited)
+            {
+                Log($"parent process already closed before close request: {parentProcessId}");
+                return;
+            }
+
+            process.CloseMainWindow();
+            Log($"parent process close requested: {parentProcessId}");
+
+            var deadline = DateTimeOffset.UtcNow.AddSeconds(5);
+            while (!process.HasExited && DateTimeOffset.UtcNow < deadline)
+            {
+                await Task.Delay(100);
+            }
+        }
+        catch (ArgumentException)
+        {
+            Log($"parent process already exited before close request: {parentProcessId}");
         }
     }
 
@@ -381,6 +412,18 @@ internal sealed class UpdateInstallerForm : Form
         File.AppendAllText(_arguments.LogPath, line, Encoding.UTF8);
     }
 
+    private void SignalReady()
+    {
+        if (_readySignalWritten || string.IsNullOrWhiteSpace(_arguments.ReadySignalPath))
+        {
+            return;
+        }
+
+        File.WriteAllText(_arguments.ReadySignalPath, "ready", Encoding.UTF8);
+        _readySignalWritten = true;
+        Log($"ready signal written: {_arguments.ReadySignalPath}");
+    }
+
     private static void TryDeleteDirectory(string path)
     {
         if (Directory.Exists(path))
@@ -405,6 +448,7 @@ internal sealed class UpdateInstallArguments
     public required string ExecutablePath { get; init; }
     public required int ParentProcessId { get; init; }
     public required string LogPath { get; init; }
+    public string? ReadySignalPath { get; init; }
 
     public static UpdateInstallArguments Parse(string[] args)
     {
@@ -422,7 +466,10 @@ internal sealed class UpdateInstallArguments
             ParentProcessId = int.Parse(GetRequired(values, "--parentPid")),
             LogPath = values.TryGetValue("--logPath", out var logPath)
                 ? logPath
-                : Path.Combine(Path.GetTempPath(), "totp-updater.log")
+                : Path.Combine(Path.GetTempPath(), "totp-updater.log"),
+            ReadySignalPath = values.TryGetValue("--readySignalPath", out var readySignalPath)
+                ? readySignalPath
+                : null
         };
     }
 

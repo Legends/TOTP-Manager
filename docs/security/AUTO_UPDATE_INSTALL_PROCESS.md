@@ -18,12 +18,14 @@ When you click `Install update` in the current custom updater flow, this is what
    - current exe path
    - current app PID
    - helper log path
-7. After the updater process starts successfully, the app shuts itself down via WPF `Application.Shutdown()`.
+   - a ready-signal path used to coordinate handoff
+7. The main app waits until the updater window has signaled that it is visible.
+8. Once the updater is visible, the main app closes its progress window and yields control.
 
 Then the dedicated updater process takes over:
 
-1. It waits for the parent app process to exit.
-2. It shows its own install progress window so the user is not left with a silent gap.
+1. It shows its own install progress window and signals readiness.
+2. It requests the parent TOTP process to close.
 3. It stages the update payload:
    - if the package path is a directory, it copies that directory into staging
    - if it is a zip file, it expands the zip into staging
@@ -39,6 +41,7 @@ The intended behavior is:
 - no external installer is launched
 - the installed app folder is updated in place
 - the app is relaunched from the updated install location
+- the updater window is visible before the main app disappears
 - install feedback remains visible after the main app exits
 
 Relevant code:
