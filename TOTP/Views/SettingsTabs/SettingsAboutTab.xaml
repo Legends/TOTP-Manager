@@ -94,29 +94,22 @@
                             Background="#0F1D35"
                             BorderBrush="#2C4F82"
                             BorderThickness="1">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="{xaml:Resx Key=ui_Settings_About_SoftwareUpdates}"
+                                       Foreground="White"
+                                       FontSize="14"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="{xaml:Resx Key=ui_Settings_About_SoftwareUpdatesDescription}"
+                                       Margin="0,6,0,0"
+                                       Foreground="#B8D2F2"
+                                       FontSize="12"
+                                       TextWrapping="Wrap" />
 
-                            <StackPanel Grid.Column="0"
-                                        Margin="0,0,16,0">
-                                <TextBlock Text="{xaml:Resx Key=ui_Settings_About_SoftwareUpdates}"
-                                           Foreground="White"
-                                           FontSize="14"
-                                           FontWeight="SemiBold" />
-                                <TextBlock Text="{xaml:Resx Key=ui_Settings_About_SoftwareUpdatesDescription}"
-                                           Margin="0,6,0,0"
-                                           Foreground="#B8D2F2"
-                                           FontSize="12"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <Button Grid.Column="1"
+                            <Button Margin="0,14,0,0"
                                     MinWidth="190"
                                     Height="38"
                                     Padding="14,0"
+                                    HorizontalAlignment="Left"
                                     Command="{Binding CheckForUpdatesCommand}">
                                 <StackPanel Orientation="Horizontal"
                                             VerticalAlignment="Center">
@@ -153,7 +146,7 @@
                                                FontWeight="SemiBold" />
                                 </StackPanel>
                             </Button>
-                        </Grid>
+                        </StackPanel>
                     </Border>
                 </Grid>
             </Border>

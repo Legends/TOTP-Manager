@@ -109,7 +109,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
                     "Auto-update interactive debug check is enabled. NetSparkle will run a user-request style check on startup.");
                 var interactiveUpdateInfo = await _sparkle.CheckForUpdatesAtUserRequest(true);
                 await LogUpdateInfoAsync("interactive startup check", interactiveUpdateInfo);
-                await ShowDebugUiFallbackAsync(interactiveUpdateInfo);
+                await ShowUpdateUiFallbackAsync(interactiveUpdateInfo, "interactive startup check");
             }
 
             var shouldDoInitialLoopCheck = checkOnStartup && !interactiveDebugCheckOnStartup;
@@ -143,6 +143,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
         _logger.LogInformation("Auto-update manual check requested by the user.");
         var updateInfo = await _sparkle.CheckForUpdatesAtUserRequest(true);
         await LogUpdateInfoAsync("manual interactive check", updateInfo);
+        await ShowUpdateUiFallbackAsync(updateInfo, "manual interactive check");
     }
 
     private void WireDiagnostics(SparkleUpdater sparkle)
@@ -231,7 +232,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
         return TimeSpan.FromHours(DefaultLoopIntervalHours);
     }
 
-    private async Task ShowDebugUiFallbackAsync(UpdateInfo? updateInfo)
+    private async Task ShowUpdateUiFallbackAsync(UpdateInfo? updateInfo, string sourceLabel)
     {
         if (_sparkle == null || updateInfo?.Status != UpdateStatus.UpdateAvailable)
         {
@@ -247,12 +248,11 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
         if (Application.Current?.Dispatcher == null)
         {
-            _logger.LogWarning("Auto-update debug UI fallback skipped because there is no active WPF dispatcher.");
+            _logger.LogWarning("Auto-update UI fallback skipped because there is no active WPF dispatcher. source={SourceLabel}", sourceLabel);
             return;
         }
 
-        _logger.LogWarning(
-            "Auto-update debug UI fallback is forcing ShowUpdateNeededUI on the WPF dispatcher. This is only for local diagnosis.");
+        _logger.LogWarning("Auto-update UI fallback is forcing ShowUpdateNeededUI on the WPF dispatcher. source={SourceLabel}", sourceLabel);
 
         await Application.Current.Dispatcher.InvokeAsync(() =>
         {
