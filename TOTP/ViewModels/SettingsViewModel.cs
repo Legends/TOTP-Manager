@@ -54,7 +54,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
     private bool _isLoadingSettings;
     private bool _suppressAuthAutoSave;
     private bool _isCheckingForUpdates;
-    private string _checkForUpdatesButtonText = "Check for updates";
+    private string _checkForUpdatesButtonText = UI.ui_Settings_About_CheckForUpdates;
 
     #region UI State
 
@@ -429,7 +429,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
 
     public bool IsCliOverrideActive => _logSwitchService.IsCliOverrideActive;
     public string ClrOverrideText => _logSwitchService.IsCliOverrideActive ?
-        $"(Overridden via CLI to {SelectedLogLevel})" :
+        string.Format(UI.ui_Settings_Logging_CliOverride_Format, SelectedLogLevel) :
         "";
     public string RunningVersion { get; }
     public string AssemblyVersion { get; }

@@ -1,6 +1,8 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using System.Windows.Media;
 
 namespace TOTP.UserControls;
@@ -12,7 +14,7 @@ public partial class FlyoutHost : UserControl
             nameof(IsOpen),
             typeof(bool),
             typeof(FlyoutHost),
-            new FrameworkPropertyMetadata(false));
+            new FrameworkPropertyMetadata(false, OnIsOpenChanged));
 
     public static readonly DependencyProperty FlyoutContentProperty =
         DependencyProperty.Register(nameof(FlyoutContent), typeof(object), typeof(FlyoutHost),
@@ -36,7 +38,7 @@ public partial class FlyoutHost : UserControl
 
     public static readonly DependencyProperty PanelWidthProperty =
         DependencyProperty.Register(nameof(PanelWidth), typeof(double), typeof(FlyoutHost),
-            new FrameworkPropertyMetadata(300d));
+            new FrameworkPropertyMetadata(300d, OnPanelWidthChanged));
 
     public double PanelWidth
     {
@@ -147,6 +149,26 @@ public partial class FlyoutHost : UserControl
         host.Loaded += host.OnWarmUpLoaded;
     }
 
+    private static void OnIsOpenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not FlyoutHost host || e.NewValue is not bool isOpen)
+        {
+            return;
+        }
+
+        host.UpdateFlyoutOffset(isOpen);
+    }
+
+    private static void OnPanelWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not FlyoutHost host)
+        {
+            return;
+        }
+
+        host.UpdateFlyoutOffset(host.IsOpen);
+    }
+
     private static void OnFlyoutContentChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not FlyoutHost host || !host.WarmUpOnLoad || !host.IsLoaded)
@@ -190,5 +212,40 @@ public partial class FlyoutHost : UserControl
         HostRoot.SetCurrentValue(OpacityProperty, previousOpacity);
         HostRoot.SetCurrentValue(IsHitTestVisibleProperty, previousHitTest);
         HostRoot.SetCurrentValue(VisibilityProperty, previousVisibility);
+    }
+
+    private void UpdateFlyoutOffset(bool isOpen)
+    {
+        if (FlyoutTranslateTransform is null)
+        {
+            return;
+        }
+
+        if (!IsLoaded)
+        {
+            FlyoutTranslateTransform.BeginAnimation(TranslateTransform.XProperty, null);
+            FlyoutTranslateTransform.X = isOpen ? 0d : PanelWidth;
+            return;
+        }
+
+        FlyoutTranslateTransform.BeginAnimation(TranslateTransform.XProperty, null);
+
+        if (!isOpen)
+        {
+            FlyoutTranslateTransform.X = PanelWidth;
+            return;
+        }
+
+        FlyoutTranslateTransform.X = PanelWidth;
+        var animation = new DoubleAnimation
+        {
+            From = PanelWidth,
+            To = 0d,
+            Duration = TimeSpan.FromSeconds(0.18),
+            FillBehavior = FillBehavior.Stop
+        };
+
+        animation.Completed += (_, __) => FlyoutTranslateTransform.X = 0d;
+        FlyoutTranslateTransform.BeginAnimation(TranslateTransform.XProperty, animation);
     }
 }

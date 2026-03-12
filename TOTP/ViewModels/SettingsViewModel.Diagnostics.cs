@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using TOTP.Core.Common;
+using TOTP.Resources;
 
 namespace TOTP.ViewModels;
 
@@ -9,7 +10,7 @@ public sealed partial class SettingsViewModel
     private async Task CheckForUpdatesAsync()
     {
         IsCheckingForUpdates = true;
-        CheckForUpdatesButtonText = "Checking for updates...";
+        CheckForUpdatesButtonText = UI.ui_Settings_About_CheckingForUpdates;
         RaiseCommandStates();
 
         try
@@ -19,7 +20,7 @@ public sealed partial class SettingsViewModel
         finally
         {
             IsCheckingForUpdates = false;
-            CheckForUpdatesButtonText = "Check for updates";
+            CheckForUpdatesButtonText = UI.ui_Settings_About_CheckForUpdates;
             RaiseCommandStates();
         }
     }

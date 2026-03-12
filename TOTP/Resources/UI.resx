@@ -279,6 +279,12 @@
   <data name="ui_Settings_About_SoftwareUpdatesDescription" xml:space="preserve">
     <value>Checks GitHub for a newer signed release and opens the updater flow if one is available.</value>
   </data>
+  <data name="ui_Settings_About_CheckForUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="ui_Settings_About_CheckingForUpdates" xml:space="preserve">
+    <value>Checking for updates...</value>
+  </data>
   <data name="ui_Settings_ClearClipboard" xml:space="preserve">
     <value>Clear clipboard</value>
   </data>
@@ -356,6 +362,9 @@
   </data>
   <data name="ui_Settings_Logging_OpenFolder" xml:space="preserve">
     <value>Open log folder</value>
+  </data>
+  <data name="ui_Settings_Logging_CliOverride_Format" xml:space="preserve">
+    <value>(Overridden via CLI to {0})</value>
   </data>
   <data name="ui_Settings_Export_Encrypt" xml:space="preserve">
     <value>Export encrypted</value>

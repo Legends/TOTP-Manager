@@ -35,7 +35,6 @@
                              TitleBarForeground="{DynamicResource Brush.Foreground}">
 
     <Window.InputBindings>
-        <KeyBinding Key="Escape" Command="{Binding CloseSettingsViewCommand}" />
         <KeyBinding Modifiers="Control" 
                     Key="F" 
                     Command="{Binding ToggleSearchBoxCommand}" />
@@ -103,20 +102,6 @@
                                        WarmUpOnLoad="False" IsOpen="{Binding IsEditAddFlyoutOpen}"
                                        CloseCommand="{Binding CancelFlyoutCommand}"
                                        PanelWidth="300">
-            </userControls:FlyoutHost>
-
-            <!-- Settings flyout -->
-            <!--
-                If you want to bind properties of the MainViewModel you have to use DataContext.YourProperty, 
-                because this uc is bound to SettingsViewModel in MainViewModel constructor
-            -->
-            <userControls:FlyoutHost x:Name="SettingsFlyoutHost"
-                                      IsOpen="{Binding DataContext.IsSettingsViewOpen, ElementName=mainWin}"
-                                      DataContext="{Binding SettingsVm}"
-                                      WarmUpOnLoad="True"
-                                      PanelWidth="300"
-                                      OverlayZIndex="20"
-                                    >
             </userControls:FlyoutHost>
 
         </Grid>

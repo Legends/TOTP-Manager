@@ -36,8 +36,11 @@
 
         <!-- Flyout panel -->
         <Grid x:Name="FlyoutPanel"
-              Style="{StaticResource FlyoutHostStyle}"
               Panel.ZIndex="{Binding PanelZIndex, ElementName=root}">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="FlyoutTranslateTransform"
+                                    X="{Binding PanelWidth, ElementName=root}" />
+            </Grid.RenderTransform>
 
             <Border Background="{Binding PanelBackground, ElementName=root}"
                     Padding="{Binding PanelPadding, ElementName=root}"

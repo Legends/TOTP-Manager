@@ -258,6 +258,33 @@
   <data name="ui_Settings_Auth_WindowsHello" xml:space="preserve">
     <value>Windows Hello</value>
   </data>
+  <data name="ui_Settings_About_AppName" xml:space="preserve">
+    <value>TOTP Manager</value>
+  </data>
+  <data name="ui_Settings_About_AssemblyVersion" xml:space="preserve">
+    <value>Assembly-Version</value>
+  </data>
+  <data name="ui_Settings_About_Description" xml:space="preserve">
+    <value>Desktop-Authenticator mit signierten In-App-Updates.</value>
+  </data>
+  <data name="ui_Settings_About_InstallationPath" xml:space="preserve">
+    <value>Installationspfad</value>
+  </data>
+  <data name="ui_Settings_About_RunningVersion" xml:space="preserve">
+    <value>Aktive Version</value>
+  </data>
+  <data name="ui_Settings_About_SoftwareUpdates" xml:space="preserve">
+    <value>Software-Updates</value>
+  </data>
+  <data name="ui_Settings_About_SoftwareUpdatesDescription" xml:space="preserve">
+    <value>Prüft GitHub auf eine neuere signierte Version und startet bei Bedarf den Update-Ablauf.</value>
+  </data>
+  <data name="ui_Settings_About_CheckForUpdates" xml:space="preserve">
+    <value>Nach Updates suchen</value>
+  </data>
+  <data name="ui_Settings_About_CheckingForUpdates" xml:space="preserve">
+    <value>Suche nach Updates...</value>
+  </data>
   <data name="ui_Settings_ClearClipboard" xml:space="preserve">
     <value>Zwischenablage löschen</value>
   </data>
@@ -276,8 +303,32 @@
   <data name="ui_Settings_LockOnWindowsLock" xml:space="preserve">
     <value>Windows Sperrbildschrim</value>
   </data>
+  <data name="ui_Settings_LockOnIdleTimeout" xml:space="preserve">
+    <value>Nach Inaktivität sperren</value>
+  </data>
+  <data name="ui_Settings_LockOnMinimize" xml:space="preserve">
+    <value>Beim Minimieren sperren</value>
+  </data>
+  <data name="ui_Settings_Minutes" xml:space="preserve">
+    <value>Minuten</value>
+  </data>
+  <data name="ui_Settings_ResetToDefaults" xml:space="preserve">
+    <value>Auf Standardwerte zurücksetzen</value>
+  </data>
+  <data name="ui_Settings_Section_Common" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
   <data name="ui_Settings_Tab_Export" xml:space="preserve">
     <value>Sichern &amp; Wiederherstellen</value>
+  </data>
+  <data name="ui_Settings_Tab_About" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="ui_Settings_Tab_Misc" xml:space="preserve">
+    <value>Sonstiges</value>
+  </data>
+  <data name="ui_Settings_Tab_Security" xml:space="preserve">
+    <value>Sicherheit</value>
   </data>
   <data name="ui_Settings_Title" xml:space="preserve">
     <value>Einstellungen</value>
@@ -303,11 +354,17 @@
   <data name="ui_Settings_Section_Logging" xml:space="preserve">
     <value>Protokolierung</value>
   </data>
+  <data name="ui_Settings_Section_Misc" xml:space="preserve">
+    <value>Sonstiges</value>
+  </data>
   <data name="ui_Settings_Logging_Level" xml:space="preserve">
     <value>Protokollierungsebene</value>
   </data>
   <data name="ui_Settings_Logging_OpenFolder" xml:space="preserve">
     <value>Protokolierungsordner öffnen</value>
+  </data>
+  <data name="ui_Settings_Logging_CliOverride_Format" xml:space="preserve">
+    <value>(Per CLI auf {0} überschrieben)</value>
   </data>
   <data name="ui_Settings_Export_Encrypt" xml:space="preserve">
     <value>Verschlüsselt exportieren</value>

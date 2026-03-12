@@ -20,6 +20,8 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
 
     private readonly Stopwatch _lifecycleStopwatch = Stopwatch.StartNew();
     private readonly IMainViewModel _vm;
+    private SettingsWindow? _settingsWindow;
+    private bool _closingSettingsWindow;
     private bool _dataGridResourcesLoaded;
     private bool _accountsSectionLoaded;
     private bool _editFlyoutViewLoaded;
@@ -31,10 +33,9 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         InitializeComponent();
         LogLifecycle("ctor.after_initialize_component");
 
+        _vm.PropertyChanged += MainViewModel_PropertyChanged;
         HookFlyoutLazyLoading();
         LogLifecycle("ctor.after_hook_flyout_lazy_loading");
-        ScheduleSettingsFlyoutWarmupAfterFirstFrame();
-        LogLifecycle("ctor.after_schedule_settings_flyout_warmup");
         EnsureAccountsSectionLoaded();
         LogLifecycle("ctor.after_ensure_accounts_section_loaded");
 
@@ -53,44 +54,6 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
                     EnsureEditFlyoutLoaded();
                 }
             });
-
-        DependencyPropertyDescriptor
-            .FromProperty(FlyoutHost.IsOpenProperty, typeof(FlyoutHost))
-            .AddValueChanged(SettingsFlyoutHost, (_, __) =>
-            {
-                if (SettingsFlyoutHost.IsOpen)
-                {
-                    InitializeSettingsFlyout();
-                }
-            });
-    }
-
-    private void InitializeSettingsFlyout()
-    {
-        if (SettingsFlyoutHost.FlyoutContent != null)
-        {
-            LogLifecycle("settings_flyout.init.skipped_already_initialized");
-            return;
-        }
-
-        LogLifecycle("settings_flyout.init.begin");
-        SettingsFlyoutHost.FlyoutContent = new SettingsFlyoutView();
-        LogLifecycle("settings_flyout.init.end");
-    }
-
-    private void ScheduleSettingsFlyoutWarmupAfterFirstFrame()
-    {
-        var scheduled = false;
-        ContentRendered += (_, __) =>
-        {
-            if (scheduled)
-            {
-                return;
-            }
-
-            scheduled = true;
-            Dispatcher.BeginInvoke(new Action(InitializeSettingsFlyout), System.Windows.Threading.DispatcherPriority.Background);
-        };
     }
 
     private void EnsureAccountsSectionLoaded()
@@ -178,12 +141,73 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         double screenWidth = SystemParameters.PrimaryScreenWidth;
         double screenHeight = SystemParameters.PrimaryScreenHeight;
 
-        double windowWidth = this.Width;
-        double windowHeight = this.Height;
+        double windowWidth = Width;
+        double windowHeight = Height;
 
-        this.Left = (screenWidth - windowWidth) / 2;
-        this.Top = screenHeight / 5;
+        Left = (screenWidth - windowWidth) / 2;
+        Top = screenHeight / 5;
         LogLifecycle("window_position.set");
+    }
+
+    private void MainViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(IMainViewModel.IsSettingsViewOpen) &&
+            e.PropertyName != nameof(IMainViewModel.SettingsVm))
+        {
+            return;
+        }
+
+        Dispatcher.Invoke(SyncSettingsWindow);
+    }
+
+    private void SyncSettingsWindow()
+    {
+        if (_vm.IsSettingsViewOpen && _vm.SettingsVm != null)
+        {
+            if (_settingsWindow == null)
+            {
+                _settingsWindow = new SettingsWindow
+                {
+                    Owner = this,
+                    DataContext = _vm.SettingsVm
+                };
+                _settingsWindow.Closed += SettingsWindow_Closed;
+            }
+            else if (!ReferenceEquals(_settingsWindow.DataContext, _vm.SettingsVm))
+            {
+                _settingsWindow.DataContext = _vm.SettingsVm;
+            }
+
+            if (!_settingsWindow.IsVisible)
+            {
+                _settingsWindow.Show();
+            }
+
+            _settingsWindow.Activate();
+            _settingsWindow.Focus();
+            return;
+        }
+
+        if (_settingsWindow != null && _settingsWindow.IsVisible && !_closingSettingsWindow)
+        {
+            _closingSettingsWindow = true;
+            _settingsWindow.Close();
+            _closingSettingsWindow = false;
+        }
+    }
+
+    private void SettingsWindow_Closed(object? sender, EventArgs e)
+    {
+        if (_settingsWindow != null)
+        {
+            _settingsWindow.Closed -= SettingsWindow_Closed;
+            _settingsWindow = null;
+        }
+
+        if (_vm.IsSettingsViewOpen)
+        {
+            _vm.IsSettingsViewOpen = false;
+        }
     }
 
     private void LogLifecycle(string step)

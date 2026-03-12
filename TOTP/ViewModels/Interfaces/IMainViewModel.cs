@@ -15,6 +15,8 @@ namespace TOTP.ViewModels.Interfaces;
 public interface IMainViewModel : INotifyPropertyChanged
 {
     bool IsBusy { get; set; }
+    bool IsSettingsViewOpen { get; set; }
+    SettingsViewModel? SettingsVm { get; }
     ObservableCollection<OtpViewModel> AllOtps { get; }
     IGridFilterRefresher GridFilterRefresher { get; set; }
     Action? RequestGridFilterRefresh { get; set; }
@@ -33,5 +35,6 @@ public interface IMainViewModel : INotifyPropertyChanged
     bool IsGridEditing { get; set; }
     bool IsInlineEditing { get; set; }
     bool IsSecretVisible { get; set; }
+    ICommand CloseSettingsViewCommand { get; }
 
 }

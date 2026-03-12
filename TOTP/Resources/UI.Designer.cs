@@ -952,6 +952,24 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Check for updates.
+        /// </summary>
+        internal static string ui_Settings_About_CheckForUpdates {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_CheckForUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking for updates....
+        /// </summary>
+        internal static string ui_Settings_About_CheckingForUpdates {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_CheckingForUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Desktop authenticator with signed in-app updates..
         /// </summary>
         internal static string ui_Settings_About_Description {
@@ -1182,6 +1200,15 @@ namespace TOTP.Resources {
         internal static string ui_Settings_LockOnWindowsLock {
             get {
                 return ResourceManager.GetString("ui_Settings_LockOnWindowsLock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (Overridden via CLI to {0}).
+        /// </summary>
+        internal static string ui_Settings_Logging_CliOverride_Format {
+            get {
+                return ResourceManager.GetString("ui_Settings_Logging_CliOverride_Format", resourceCulture);
             }
         }
         
