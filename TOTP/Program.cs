@@ -17,7 +17,7 @@ using TOTP.Core.Services;
 using TOTP.Commands;
 using TOTP.Helper;
 using TOTP.Infrastructure;
-using TOTP.Infrastructure.Common;
+using TOTP.Core.Common;
 using TOTP.Infrastructure.Logging;
 using TOTP.Resources;
 using TOTP.Security;

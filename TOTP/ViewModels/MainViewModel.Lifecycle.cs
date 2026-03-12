@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using TOTP.Core.Enums;
 using TOTP.Core.Security.Models;
 using TOTP.Infrastructure.Extensions;
-using TOTP.Infrastructure.Common;
+using TOTP.Core.Common;
 using TOTP.Services;
 using TOTP.Validation;
 using TOTP.ViewModels.Interfaces;

@@ -17,7 +17,7 @@ using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
 using TOTP.DAL.Services;
-using TOTP.Infrastructure.Common;
+using TOTP.Core.Common;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Logging;
 using TOTP.Infrastructure.Security.Provider;

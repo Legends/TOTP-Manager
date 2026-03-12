@@ -9,11 +9,9 @@
         <!-- Header -->
         <DockPanel Margin="0,0,0,10">
             <TextBlock Text="{Binding EditPanelTitle}"
-                       Foreground="White"
-                       FontWeight="Bold"
-                       FontSize="16" />
+                       Style="{StaticResource TextStyle.SectionHeader}" />
             <Button Content="✕"
-                    Foreground="White"
+                    Foreground="{StaticResource Brush.TextPrimary}"
                     Width="26"
                     Height="26"
                     Command="{Binding CancelFlyoutCommand}"
@@ -23,8 +21,7 @@
 
         <!-- Issuer -->
         <TextBlock Text="issuer"
-                   FontWeight="Bold"
-                   Foreground="White"
+                   Style="{StaticResource TextStyle.FieldLabel}"
                    Margin="0,6,0,2" />
 
         <TextBox x:Name="PlatformBox"
@@ -39,8 +36,7 @@
 
         <!-- Secret -->
         <TextBlock Text="{xaml:Resx Key=ui_Header_Secret}"
-                   FontWeight="Bold"
-                   Foreground="White"
+                   Style="{StaticResource TextStyle.FieldLabel}"
                    Margin="0,10,0,-4" />
 
         <userControls:RevealableSecretBox AutoFocus="False"
@@ -56,8 +52,7 @@
 
         <!-- Account -->
         <TextBlock Text="account"
-                   FontWeight="Bold"
-                   Foreground="White"
+                   Style="{StaticResource TextStyle.FieldLabel}"
                    Margin="0,10,0,2" />
 
         <TextBox Text="{Binding CurrentSecretBeingEditedOrAdded.AccountName, UpdateSourceTrigger=PropertyChanged}"
@@ -75,14 +70,12 @@
             <!-- optional: consider moving to host -->
             <Button Content="{Binding SaveButtonLabel}"
                     IsDefault="{Binding IsEditAddFlyoutOpen}" 
-                    FontWeight="Bold"
-                    Foreground="White"
+                    Style="{StaticResource ButtonStyle.PrimaryAction}"
                     Command="{Binding SaveEditFlyoutAsyncCommand}"
                     Margin="0,0,8,0"
                     Padding="14,6" />
                 <Button Content="{Binding CancelButtonLabel}"
-                    Foreground="White"
-                    FontWeight="Bold"
+                    Style="{StaticResource ButtonStyle.SecondaryAction}"
                     Command="{Binding CancelFlyoutCommand}"
                     Padding="14,6" />
         </StackPanel>

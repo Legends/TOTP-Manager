@@ -21,8 +21,8 @@
     </Window.Resources>
 
     <Border CornerRadius="16"
-            Background="#0F1A2D"
-            BorderBrush="#2B4A7A"
+            Background="{StaticResource Brush.SurfaceSplash}"
+            BorderBrush="{StaticResource Brush.BorderSplash}"
             BorderThickness="1.2"
             Padding="20">
         <Grid>
@@ -54,26 +54,22 @@
 
                 <TextBlock Margin="0,14,0,0"
                            Text="Starting TOTP Manager"
-                           Foreground="White"
-                           FontSize="18"
-                           FontWeight="SemiBold"
+                           Style="{StaticResource TextStyle.PageTitle}"
                            HorizontalAlignment="Center" />
 
                 <TextBlock Margin="0,6,0,0"
                            Text="Loading core services..."
-                           Foreground="#B8C7DF"
-                           FontSize="12"
+                           Style="{StaticResource TextStyle.Subheader}"
                            HorizontalAlignment="Center" />
             </StackPanel>
 
             <ProgressBar Grid.Row="1"
                          Height="6"
                          IsIndeterminate="True"
-                         Foreground="#6EA8FE"
-                         Background="#1A2E4E"
+                         Foreground="{StaticResource Brush.AccentProgress}"
+                         Background="{StaticResource Brush.SurfaceSecondaryButton}"
                          BorderThickness="0"
                          Margin="0,16,0,0" />
         </Grid>
     </Border>
 </Window>
-

@@ -14,7 +14,7 @@ using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Infrastructure.Common;
+using TOTP.Core.Common;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
 

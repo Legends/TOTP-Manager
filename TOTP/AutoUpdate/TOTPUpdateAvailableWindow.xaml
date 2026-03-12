@@ -13,11 +13,11 @@
         <Style x:Key="SecondaryButtonStyle"
                TargetType="Button">
             <Setter Property="Background"
-                    Value="#1A2E4E" />
+                    Value="{StaticResource Brush.SurfaceSecondaryButton}" />
             <Setter Property="Foreground"
-                    Value="#FFF4F7FF" />
+                    Value="{StaticResource Brush.TextTertiary}" />
             <Setter Property="BorderBrush"
-                    Value="#335A91" />
+                    Value="{StaticResource Brush.BorderStrong}" />
             <Setter Property="BorderThickness"
                     Value="1" />
             <Setter Property="Padding"
@@ -29,11 +29,11 @@
                TargetType="Button"
                BasedOn="{StaticResource SecondaryButtonStyle}">
             <Setter Property="Background"
-                    Value="#FF7D7FF4" />
+                    Value="{StaticResource Brush.AccentPrimary}" />
             <Setter Property="BorderBrush"
-                    Value="#FF9899FF" />
+                    Value="{StaticResource Brush.BorderAccentSoft}" />
             <Setter Property="Foreground"
-                    Value="White" />
+                    Value="{StaticResource Brush.TextPrimary}" />
         </Style>
         <Style x:Key="PackageListItemStyle"
                TargetType="ListBoxItem">
@@ -59,10 +59,10 @@
                                      Value="True">
                                 <Setter TargetName="ItemBorder"
                                         Property="Background"
-                                        Value="#1F7D7FF4" />
+                                        Value="{StaticResource Brush.AccentChipBackground}" />
                                 <Setter TargetName="ItemBorder"
                                         Property="BorderBrush"
-                                        Value="#FF7D7FF4" />
+                                        Value="{StaticResource Brush.BorderAccent}" />
                             </Trigger>
                             <Trigger Property="IsMouseOver"
                                      Value="True">
@@ -79,8 +79,8 @@
     <Border Margin="10"
             Padding="18"
             CornerRadius="14"
-            Background="#FF10213F"
-            BorderBrush="#FF7D7FF4"
+            Background="{StaticResource Brush.SurfaceCard}"
+            BorderBrush="{StaticResource Brush.BorderAccent}"
             BorderThickness="1.5">
         <Grid Width="396">
             <Grid.RowDefinitions>
@@ -99,7 +99,7 @@
                     <Image Source="/Assets/backgrounds/background-main.png"
                            Stretch="UniformToFill"
                            Opacity="0.48" />
-                    <Rectangle Fill="#B010213F" />
+                    <Rectangle Fill="{StaticResource Brush.SurfaceOverlay}" />
                     <StackPanel Orientation="Horizontal"
                                 VerticalAlignment="Center"
                                 Margin="14,0,14,0">
@@ -119,13 +119,10 @@
                         <StackPanel Margin="12,0,0,0"
                                     VerticalAlignment="Center">
                             <TextBlock Text="TOTP Manager Updates"
-                                       Foreground="White"
-                                       FontSize="17"
-                                       FontWeight="SemiBold" />
+                                       Style="{StaticResource TextStyle.SectionHeader}" />
                             <TextBlock Text="Verified feed with release notes and installer details"
                                        Margin="0,4,0,0"
-                                       Foreground="#FFD7E6FF"
-                                       FontSize="11"
+                                       Style="{StaticResource TextStyle.Caption}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                     </StackPanel>
@@ -141,13 +138,10 @@
                 <StackPanel>
                     <TextBlock x:Name="HeaderText"
                                Text="Update available"
-                               Foreground="White"
-                               FontSize="19"
-                               FontWeight="SemiBold" />
+                               Style="{StaticResource TextStyle.HeroTitle}" />
                     <TextBlock x:Name="SummaryText"
                                Margin="0,8,0,0"
-                               Foreground="#FFCBDAF3"
-                               FontSize="12"
+                               Style="{StaticResource TextStyle.Subheader}"
                                TextWrapping="Wrap" />
                 </StackPanel>
 
@@ -156,13 +150,13 @@
                         VerticalAlignment="Top"
                         Padding="10,5"
                         CornerRadius="999"
-                        Background="#1B7D7FF4"
-                        BorderBrush="#FF7D7FF4"
+                        Background="{StaticResource Brush.AccentChipBackground}"
+                        BorderBrush="{StaticResource Brush.BorderAccent}"
                         BorderThickness="1">
                     <TextBlock x:Name="StatusChipText"
                                Text="Ready"
-                               Foreground="#FFF4F7FF"
-                               FontSize="11"
+                               Foreground="{StaticResource Brush.TextTertiary}"
+                               FontSize="{StaticResource FontSize.Caption}"
                                FontWeight="SemiBold" />
                 </Border>
             </Grid>
@@ -170,7 +164,7 @@
             <Border Grid.Row="2"
                     Margin="0,14,0,0"
                     Padding="10"
-                    Background="#141F3559"
+                    Background="{StaticResource Brush.SurfaceSubtle}"
                     CornerRadius="10"
                     BorderBrush="#334F80"
                     BorderThickness="1">
@@ -192,18 +186,18 @@
 
                             <StackPanel>
                                 <TextBlock x:Name="InstalledVersionText"
-                                           Foreground="#FFCBDAF3"
-                                           FontSize="12"
+                                           Foreground="{StaticResource Brush.TextSecondary}"
+                                           FontSize="{StaticResource FontSize.Body}"
                                            TextWrapping="Wrap" />
                                 <TextBlock x:Name="CurrentVersionText"
                                            Margin="0,6,0,0"
-                                           Foreground="White"
+                                           Foreground="{StaticResource Brush.TextPrimary}"
                                            FontWeight="SemiBold"
-                                           FontSize="13" />
+                                           FontSize="{StaticResource FontSize.Label}" />
                                 <TextBlock x:Name="ActionHintText"
                                            Margin="0,8,0,0"
-                                           Foreground="#FFCBDAF3"
-                                           FontSize="12"
+                                           Foreground="{StaticResource Brush.TextSecondary}"
+                                           FontSize="{StaticResource FontSize.Body}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
 
@@ -216,9 +210,9 @@
                                     BorderThickness="1">
                                 <StackPanel>
                                     <TextBlock Text="Package selection"
-                                               Foreground="#FFF4F7FF"
+                                               Foreground="{StaticResource Brush.TextTertiary}"
                                                FontWeight="SemiBold"
-                                               FontSize="12" />
+                                               FontSize="{StaticResource FontSize.Body}" />
                                     <ListBox x:Name="UpdatesList"
                                              Margin="0,8,0,0"
                                              Background="Transparent"
@@ -230,15 +224,15 @@
                                                 <StackPanel>
                                                     <DockPanel>
                                                         <TextBlock Text="{Binding Title}"
-                                                                   Foreground="White"
+                                                                   Foreground="{StaticResource Brush.TextPrimary}"
                                                                    FontWeight="SemiBold" />
                                                         <Border DockPanel.Dock="Right"
                                                                 Padding="8,3"
                                                                 CornerRadius="999"
                                                                 Background="#183C6AD1">
                                                             <TextBlock Text="{Binding ShortVersion}"
-                                                                       Foreground="#FFD7E6FF"
-                                                                       FontSize="11"
+                                                                       Foreground="{StaticResource Brush.TextTertiary}"
+                                                                       FontSize="{StaticResource FontSize.Caption}"
                                                                        FontWeight="SemiBold" />
                                                         </Border>
                                                     </DockPanel>
@@ -254,15 +248,15 @@
                     <syncfusion:TabItemExt Header="Details">
                         <StackPanel Margin="8">
                             <TextBlock x:Name="PublishDateText"
-                                       Foreground="#FFCBDAF3"
+                                       Foreground="{StaticResource Brush.TextSecondary}"
                                        TextWrapping="Wrap" />
                             <TextBlock x:Name="PackageSizeText"
                                        Margin="0,8,0,0"
-                                       Foreground="#FFCBDAF3"
+                                       Foreground="{StaticResource Brush.TextSecondary}"
                                        TextWrapping="Wrap" />
                             <TextBlock x:Name="SourceText"
                                        Margin="0,8,0,0"
-                                       Foreground="#FF9CC3FF"
+                                       Foreground="{StaticResource Brush.TextInfo}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                     </syncfusion:TabItemExt>
@@ -276,7 +270,7 @@
                                           VerticalScrollBarVisibility="Auto"
                                           Visibility="Collapsed">
                                 <TextBlock x:Name="ReleaseNotesFallbackText"
-                                           Foreground="#FFF4F7FF"
+                                           Foreground="{StaticResource Brush.TextTertiary}"
                                            TextWrapping="Wrap" />
                             </ScrollViewer>
                         </Grid>

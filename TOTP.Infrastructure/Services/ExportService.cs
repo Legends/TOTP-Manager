@@ -6,9 +6,9 @@ using FluentResults;
 using Microsoft.Extensions.Logging;
 using NSec.Cryptography;
 using TOTP.Core.Common;
-using TOTP.Infrastructure.Common;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Infrastructure.Common;
 
 namespace TOTP.Infrastructure.Services;
 

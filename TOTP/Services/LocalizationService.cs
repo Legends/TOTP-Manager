@@ -5,7 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using TOTP.Helper;
-using TOTP.Infrastructure.Common;
+using TOTP.Core.Common;
 
 namespace TOTP.Services
 {

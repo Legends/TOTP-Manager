@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TOTP.Core.Common;
 using TOTP.Core.Interfaces;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.DAL.Services;
-using TOTP.Infrastructure.Common;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
 
@@ -41,7 +41,7 @@ public static class DependencyInjection
             var logger = sp.GetRequiredService<ILogger<AccountDAL>>();
             var vault = sp.GetRequiredService<IVaultService>();
             var path = configuration[StringsConstants.TokensStorageFilePathConfigKey]
-                       ?? "master.totp";
+                       ?? StringsConstants.TokensStorageFileName;
 
             return new AccountDAL(logger, vault, path);
         });

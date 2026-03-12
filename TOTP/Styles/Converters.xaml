@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System.Windows.Controls;assembly=PresentationFramework"
+                    xmlns:converters="clr-namespace:TOTP.Infrastructure.Converters">
+
+    <sys:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+    <converters:BoolToVisibilityConverterCollapsed x:Key="BoolToVisibilityConverterCollapsed" />
+    <converters:SecretMaskConverter x:Key="SecretMaskConverter" />
+    <converters:ProgressValueToBrushConverter x:Key="ProgressValueToBrushConverter" />
+    <converters:MultiplyConverter x:Key="MultiplyConverter" />
+    <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverterCollapsed"
+                                            Collapse="True" />
+</ResourceDictionary>

@@ -46,10 +46,10 @@
                                LiveDataUpdateMode="AllowDataShaping"
                                MaxHeight="200"
                                Margin="0,0,0,0"
-                               BorderBrush="#1D3366"
+                               BorderBrush="{StaticResource Brush.SurfaceGridAccent}"
                                BorderThickness="1,0,0,0"
-                               RowSelectionBrush="#1D3366"
-                               SelectionForegroundBrush="#87CE3E"
+                               RowSelectionBrush="{StaticResource Brush.SurfaceGridAccent}"
+                               SelectionForegroundBrush="{StaticResource Brush.TextHighlight}"
                                CurrentCellBorderBrush="Transparent"
                                CurrentCellBorderThickness="0"
                                HorizontalAlignment="Stretch"
@@ -134,8 +134,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
 
-                    <Separator Background="#1D3366" />
-
+                    <Separator Background="{StaticResource Brush.SurfaceGridAccent}" />
                     <MenuItem Header="{Binding DataGrid.DataContext.DeleteLabel}"
                               Foreground="{DynamicResource Brush.Foreground}"
                               Command="{Binding DataGrid.DataContext.DeleteSecretCommand}"
@@ -159,8 +158,8 @@
                    HorizontalContentAlignment="Center"
                    HorizontalAlignment="Center"
                    FontWeight="Bold"
-                   Foreground="#AA3ADA"
-                   FontSize="15"
+                   Foreground="{StaticResource Brush.TextBrand}"
+                   FontSize="{StaticResource FontSize.Label}"
                    Height="{Binding CodeLabelHeight}" />
 
             <StackPanel Orientation="Horizontal"
@@ -182,8 +181,8 @@
                        HorizontalContentAlignment="Center"
                        Height="{Binding CodeLabelHeight}"
                        FontWeight="Bold"
-                       Foreground="#97B0DF"
-                       FontSize="24"
+                       Foreground="{StaticResource Brush.TextSelection}"
+                       FontSize="{StaticResource FontSize.CodeLabel}"
                        HorizontalAlignment="Center"
                        Margin="0,0">
                     <Label.InputBindings>

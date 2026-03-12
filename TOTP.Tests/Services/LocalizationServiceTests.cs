@@ -1,4 +1,4 @@
-using TOTP.Infrastructure.Common;
+using TOTP.Core.Common;
 using TOTP.Services;
 using TOTP.Tests.Common;
 

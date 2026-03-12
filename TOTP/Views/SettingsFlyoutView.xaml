@@ -17,13 +17,11 @@
 
         <DockPanel Grid.Row="0" Margin="0,0,0,10">
             <TextBlock Text="{xaml:Resx Key=ui_Settings_Title}"
-                       Foreground="White"
-                       FontWeight="Bold"
-                       FontSize="16"
+                       Style="{StaticResource TextStyle.SectionHeader}"
                        VerticalAlignment="Center"/>
 
             <Button Content="✕"
-                    Foreground="White"
+                    Foreground="{StaticResource Brush.TextPrimary}"
                     Width="26"
                     Height="26"
                     Command="{Binding CloseCommand}"
@@ -65,8 +63,7 @@
             <Button Content="{xaml:Resx Key=ui_Settings_ResetToDefaults}"
                     Command="{Binding ResetToDefaultsCommand}"
                     IsEnabled="{Binding CanResetToDefaults}"
-                    Foreground="White"
-                    FontWeight="Bold"
+                    Style="{StaticResource ButtonStyle.SecondaryAction}"
                     Padding="14,6"/>
         </StackPanel>
     </Grid>

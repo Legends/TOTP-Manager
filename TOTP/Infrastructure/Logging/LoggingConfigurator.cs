@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using TOTP.Core.Enums;
 using TOTP.Helper;
-using TOTP.Infrastructure.Common;
+using TOTP.Core.Common;
 
 namespace TOTP.Infrastructure.Logging;
 

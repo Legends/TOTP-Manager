@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
-using TOTP.Infrastructure.Common;
+using TOTP.Core.Common;
 
 namespace TOTP.ViewModels;
 

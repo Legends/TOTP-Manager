@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
 using TOTP.AutoUpdate;
+using TOTP.Core.Common;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;
@@ -24,7 +25,6 @@ public sealed class AutoUpdateService : IAutoUpdateService
 {
     private static readonly bool EnableDiagnostics = true;
     private const int DefaultLoopIntervalHours = 24;
-    private const string AutoUpdateStateFileName = "autoupdate-state.json";
     private const string UpdaterBundleFolderName = "TOTP.Updater";
     private const string UpdaterExecutableName = "TOTP.Updater.exe";
     private static readonly TimeSpan UpdaterReadyTimeout = TimeSpan.FromSeconds(10);
@@ -254,12 +254,10 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
     private Configuration CreateConfiguration(string assemblyLocation)
     {
-        var stateDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "TOTP-Manager");
+        var stateDirectory = StringsConstants.RoamingAppDataDirectoryPath;
         Directory.CreateDirectory(stateDirectory);
 
-        var statePath = Path.Combine(stateDirectory, AutoUpdateStateFileName);
+        var statePath = StringsConstants.AutoUpdateStateFilePath;
         _logger.LogInformation("Auto-update configuration storage path={StatePath}", statePath);
 
         return new JSONConfiguration(new AssemblyDiagnosticsAccessor(assemblyLocation), statePath);

@@ -23,13 +23,10 @@
 
                     <StackPanel Grid.Row="0">
                         <TextBlock Text="{xaml:Resx Key=ui_Settings_About_AppName}"
-                                   Foreground="White"
-                                   FontWeight="SemiBold"
-                                   FontSize="18" />
+                                   Style="{StaticResource TextStyle.PageTitle}" />
                         <TextBlock Text="{xaml:Resx Key=ui_Settings_About_Description}"
                                    Margin="0,6,0,0"
-                                   Foreground="#B8D2F2"
-                                   FontSize="12"
+                                   Style="{StaticResource TextStyle.Subheader}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
 
@@ -43,12 +40,12 @@
                                 BorderThickness="1">
                             <StackPanel>
                                 <TextBlock Text="{xaml:Resx Key=ui_Settings_About_RunningVersion}"
-                                           Foreground="#8EB6E8"
-                                           FontSize="11" />
+                                           Foreground="{StaticResource Brush.TextInfo}"
+                                           FontSize="{StaticResource FontSize.Caption}" />
                                 <TextBlock Text="{Binding RunningVersion}"
                                            Margin="0,4,0,0"
-                                           Foreground="White"
-                                           FontSize="14"
+                                           Foreground="{StaticResource Brush.TextPrimary}"
+                                           FontSize="{StaticResource FontSize.DialogTitle}"
                                            FontWeight="SemiBold" />
                             </StackPanel>
                         </Border>
@@ -60,12 +57,12 @@
                                 BorderThickness="1">
                             <StackPanel>
                                 <TextBlock Text="{xaml:Resx Key=ui_Settings_About_AssemblyVersion}"
-                                           Foreground="#8EB6E8"
-                                           FontSize="11" />
+                                           Foreground="{StaticResource Brush.TextInfo}"
+                                           FontSize="{StaticResource FontSize.Caption}" />
                                 <TextBlock Text="{Binding AssemblyVersion}"
                                            Margin="0,4,0,0"
-                                           Foreground="White"
-                                           FontSize="14"
+                                           Foreground="{StaticResource Brush.TextPrimary}"
+                                           FontSize="{StaticResource FontSize.DialogTitle}"
                                            FontWeight="SemiBold" />
                             </StackPanel>
                         </Border>
@@ -76,12 +73,12 @@
                                 BorderThickness="1">
                             <StackPanel>
                                 <TextBlock Text="{xaml:Resx Key=ui_Settings_About_InstallationPath}"
-                                           Foreground="#8EB6E8"
-                                           FontSize="11" />
+                                           Foreground="{StaticResource Brush.TextInfo}"
+                                           FontSize="{StaticResource FontSize.Caption}" />
                                 <TextBlock Text="{Binding InstallationPath}"
                                            Margin="0,4,0,0"
-                                           Foreground="White"
-                                           FontSize="13"
+                                           Foreground="{StaticResource Brush.TextPrimary}"
+                                           FontSize="{StaticResource FontSize.Label}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
@@ -96,13 +93,12 @@
                             BorderThickness="1">
                         <StackPanel>
                             <TextBlock Text="{xaml:Resx Key=ui_Settings_About_SoftwareUpdates}"
-                                       Foreground="White"
-                                       FontSize="14"
+                                       Foreground="{StaticResource Brush.TextPrimary}"
+                                       FontSize="{StaticResource FontSize.DialogTitle}"
                                        FontWeight="SemiBold" />
                             <TextBlock Text="{xaml:Resx Key=ui_Settings_About_SoftwareUpdatesDescription}"
                                        Margin="0,6,0,0"
-                                       Foreground="#B8D2F2"
-                                       FontSize="12"
+                                       Style="{StaticResource TextStyle.Subheader}"
                                        TextWrapping="Wrap" />
 
                             <Button Margin="0,14,0,0"

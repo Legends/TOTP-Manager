@@ -21,7 +21,7 @@ public sealed class AccountDAL : IAccountDAL
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _vaultService = vaultService ?? throw new ArgumentNullException(nameof(vaultService));
 
-        _secretsPath = storageFilePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TOTP-Manager", "master.totp");
+        _secretsPath = storageFilePath ?? StringsConstants.DefaultTokensStorageFilePath;
         _secretsPath = Environment.ExpandEnvironmentVariables(_secretsPath);
 
         var directory = Path.GetDirectoryName(_secretsPath);

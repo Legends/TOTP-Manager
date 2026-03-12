@@ -14,9 +14,7 @@
                       BorderThickness="1">
                 <GroupBox.Header>
                     <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Method}"
-                               Foreground="White"
-                               FontWeight="SemiBold"
-                               FontSize="13"/>
+                               Style="{StaticResource TextStyle.FieldLabel}"/>
                 </GroupBox.Header>
                 <StackPanel Margin="10">
                     <StackPanel Orientation="Horizontal"
@@ -45,9 +43,7 @@
                       Visibility="{Binding IsPasswordSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <GroupBox.Header>
                     <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Password_SetChange}"
-                               Foreground="White"
-                               FontWeight="SemiBold"
-                               FontSize="13"/>
+                               Style="{StaticResource TextStyle.FieldLabel}"/>
                 </GroupBox.Header>
                 <StackPanel Margin="10">
                     <userControls:RevealableSecretBox Margin="0,0,0,10"
@@ -76,7 +72,7 @@
 
             <TextBlock Margin="0,0,0,10"
                        Text="{Binding AuthError}"
-                       Foreground="#FFEF5350"
+                       Foreground="{StaticResource Brush.ValidationError}"
                        FontWeight="SemiBold"
                        Visibility="{Binding HasAuthError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
@@ -85,9 +81,7 @@
                       BorderThickness="1">
                 <GroupBox.Header>
                     <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Lock_Session}"
-                               Foreground="White"
-                               FontWeight="SemiBold"
-                               FontSize="13"/>
+                               Style="{StaticResource TextStyle.FieldLabel}"/>
                 </GroupBox.Header>
                 <StackPanel Margin="10">
                     <CheckBox Content="{xaml:Resx Key=ui_Settings_LockOnWindowsLock}"
@@ -123,9 +117,7 @@
                       BorderThickness="1">
                 <GroupBox.Header>
                     <TextBlock Text="{xaml:Resx Key=ui_Settings_Section_Common}"
-                               Foreground="White"
-                               FontWeight="SemiBold"
-                               FontSize="13"/>
+                               Style="{StaticResource TextStyle.FieldLabel}"/>
                 </GroupBox.Header>
                 <StackPanel Margin="10">
                     <CheckBox Content="{xaml:Resx Key=ui_Settings_ClearClipboard}"

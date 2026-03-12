@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using TOTP.Infrastructure.Common;
+using TOTP.Core.Common;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;

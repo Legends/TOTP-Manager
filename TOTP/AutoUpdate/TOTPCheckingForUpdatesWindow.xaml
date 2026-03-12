@@ -11,8 +11,8 @@
     <Border Margin="10"
             Padding="20"
             CornerRadius="14"
-            Background="#FF10213F"
-            BorderBrush="#FF2F5E9E"
+            Background="{StaticResource Brush.SurfaceCard}"
+            BorderBrush="{StaticResource Brush.BorderStrong}"
             BorderThickness="1.5">
         <StackPanel Width="280">
             <Border Height="74"
@@ -23,7 +23,7 @@
                     <Image Source="/Assets/backgrounds/background-main.png"
                            Stretch="UniformToFill"
                            Opacity="0.48" />
-                    <Rectangle Fill="#B010213F" />
+                    <Rectangle Fill="{StaticResource Brush.SurfaceOverlay}" />
                     <StackPanel Orientation="Horizontal"
                                 VerticalAlignment="Center"
                                 Margin="14,0,14,0">
@@ -34,26 +34,21 @@
                         <TextBlock Text="TOTP Update Check"
                                    Margin="10,0,0,0"
                                    VerticalAlignment="Center"
-                                   Foreground="White"
-                                   FontSize="17"
-                                   FontWeight="SemiBold" />
+                                   Style="{StaticResource TextStyle.SectionHeader}" />
                     </StackPanel>
                 </Grid>
             </Border>
             <TextBlock Text="Checking for updates"
-                       Foreground="White"
-                       FontSize="18"
-                       FontWeight="SemiBold" />
+                       Style="{StaticResource TextStyle.PageTitle}" />
             <TextBlock Text="Contacting the configured appcast feed and validating signatures."
                        Margin="0,8,0,0"
-                       Foreground="#FFCBDAF3"
-                       FontSize="12"
+                       Style="{StaticResource TextStyle.Subheader}"
                        TextWrapping="Wrap" />
             <ProgressBar Height="8"
                          Margin="0,16,0,0"
                          IsIndeterminate="True"
-                         Foreground="#FF7D7FF4"
-                         Background="#FF193257"
+                         Foreground="{StaticResource Brush.AccentPrimary}"
+                         Background="{StaticResource Brush.SurfaceProgressTrack}"
                          BorderThickness="0" />
         </StackPanel>
     </Border>
