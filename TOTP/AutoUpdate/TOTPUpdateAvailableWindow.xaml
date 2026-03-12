@@ -11,71 +11,76 @@
         AllowsTransparency="True"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <Style x:Key="SecondaryButtonStyle"
-               TargetType="Button">
-            <Setter Property="Background"
-                    Value="{StaticResource Brush.SurfaceSecondaryButton}" />
-            <Setter Property="Foreground"
-                    Value="{StaticResource Brush.TextTertiary}" />
-            <Setter Property="BorderBrush"
-                    Value="{StaticResource Brush.BorderStrong}" />
-            <Setter Property="BorderThickness"
-                    Value="1" />
-            <Setter Property="Padding"
-                    Value="12,6" />
-            <Setter Property="FontWeight"
-                    Value="SemiBold" />
-        </Style>
-        <Style x:Key="PrimaryButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource SecondaryButtonStyle}">
-            <Setter Property="Background"
-                    Value="{StaticResource Brush.AccentPrimary}" />
-            <Setter Property="BorderBrush"
-                    Value="{StaticResource Brush.BorderAccentSoft}" />
-            <Setter Property="Foreground"
-                    Value="{StaticResource Brush.TextPrimary}" />
-        </Style>
-        <Style x:Key="PackageListItemStyle"
-               TargetType="ListBoxItem">
-            <Setter Property="Padding"
-                    Value="0" />
-            <Setter Property="Margin"
-                    Value="0,0,0,8" />
-            <Setter Property="HorizontalContentAlignment"
-                    Value="Stretch" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="ItemBorder"
-                                Padding="10"
-                                Background="#0EFFFFFF"
-                                CornerRadius="8"
-                                BorderBrush="#00000000"
-                                BorderThickness="1">
-                            <ContentPresenter />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsSelected"
-                                     Value="True">
-                                <Setter TargetName="ItemBorder"
-                                        Property="Background"
-                                        Value="{StaticResource Brush.AccentChipBackground}" />
-                                <Setter TargetName="ItemBorder"
-                                        Property="BorderBrush"
-                                        Value="{StaticResource Brush.BorderAccent}" />
-                            </Trigger>
-                            <Trigger Property="IsMouseOver"
-                                     Value="True">
-                                <Setter TargetName="ItemBorder"
-                                        Property="Background"
-                                        Value="#18FFFFFF" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/TOTP.UI.WPF;component/Styles/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="SecondaryButtonStyle"
+                   TargetType="Button">
+                <Setter Property="Background"
+                        Value="{StaticResource Brush.SurfaceSecondaryButton}" />
+                <Setter Property="Foreground"
+                        Value="{StaticResource Brush.TextTertiary}" />
+                <Setter Property="BorderBrush"
+                        Value="{StaticResource Brush.BorderStrong}" />
+                <Setter Property="BorderThickness"
+                        Value="1" />
+                <Setter Property="Padding"
+                        Value="12,6" />
+                <Setter Property="FontWeight"
+                        Value="SemiBold" />
+            </Style>
+            <Style x:Key="PrimaryButtonStyle"
+                   TargetType="Button"
+                   BasedOn="{StaticResource SecondaryButtonStyle}">
+                <Setter Property="Background"
+                        Value="{StaticResource Brush.AccentPrimary}" />
+                <Setter Property="BorderBrush"
+                        Value="{StaticResource Brush.BorderAccentSoft}" />
+                <Setter Property="Foreground"
+                        Value="{StaticResource Brush.TextPrimary}" />
+            </Style>
+            <Style x:Key="PackageListItemStyle"
+                   TargetType="ListBoxItem">
+                <Setter Property="Padding"
+                        Value="0" />
+                <Setter Property="Margin"
+                        Value="0,0,0,8" />
+                <Setter Property="HorizontalContentAlignment"
+                        Value="Stretch" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border x:Name="ItemBorder"
+                                    Padding="10"
+                                    Background="#0EFFFFFF"
+                                    CornerRadius="8"
+                                    BorderBrush="#00000000"
+                                    BorderThickness="1">
+                                <ContentPresenter />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected"
+                                         Value="True">
+                                    <Setter TargetName="ItemBorder"
+                                            Property="Background"
+                                            Value="{StaticResource Brush.AccentChipBackground}" />
+                                    <Setter TargetName="ItemBorder"
+                                            Property="BorderBrush"
+                                            Value="{StaticResource Brush.BorderAccent}" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver"
+                                         Value="True">
+                                    <Setter TargetName="ItemBorder"
+                                            Property="Background"
+                                            Value="#18FFFFFF" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
     </Window.Resources>
     <Border Margin="10"
             Padding="18"

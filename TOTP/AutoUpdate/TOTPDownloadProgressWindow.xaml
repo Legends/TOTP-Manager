@@ -10,21 +10,26 @@
         AllowsTransparency="True"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <Style x:Key="ProgressActionButtonStyle"
-               TargetType="Button">
-            <Setter Property="Background"
-                    Value="{StaticResource Brush.AccentPrimary}" />
-            <Setter Property="Foreground"
-                    Value="{StaticResource Brush.TextPrimary}" />
-            <Setter Property="BorderBrush"
-                    Value="{StaticResource Brush.BorderAccentSoft}" />
-            <Setter Property="BorderThickness"
-                    Value="1" />
-            <Setter Property="Padding"
-                    Value="12,6" />
-            <Setter Property="FontWeight"
-                    Value="SemiBold" />
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/TOTP.UI.WPF;component/Styles/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="ProgressActionButtonStyle"
+                   TargetType="Button">
+                <Setter Property="Background"
+                        Value="{StaticResource Brush.AccentPrimary}" />
+                <Setter Property="Foreground"
+                        Value="{StaticResource Brush.TextPrimary}" />
+                <Setter Property="BorderBrush"
+                        Value="{StaticResource Brush.BorderAccentSoft}" />
+                <Setter Property="BorderThickness"
+                        Value="1" />
+                <Setter Property="Padding"
+                        Value="12,6" />
+                <Setter Property="FontWeight"
+                        Value="SemiBold" />
+            </Style>
+        </ResourceDictionary>
     </Window.Resources>
     <Border Margin="10"
             Padding="18"

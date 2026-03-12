@@ -9,6 +9,13 @@
         Background="Transparent"
         AllowsTransparency="True"
         WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/TOTP.UI.WPF;component/Styles/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <Border Margin="10"
             Padding="20"
             CornerRadius="14"
