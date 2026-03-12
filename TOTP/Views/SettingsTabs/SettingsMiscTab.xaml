@@ -42,7 +42,9 @@
                                Margin="0,0,0,6"/>
 
                     <ComboBox ItemsSource="{Binding AvailableLogLevels}"
-                              SelectedItem="{Binding SelectedLogLevel, Mode=TwoWay}"
+                              SelectedValue="{Binding SelectedLogLevel, Mode=TwoWay}"
+                              SelectedValuePath="Value"
+                              DisplayMemberPath="DisplayName"
                               Height="30"
                               Margin="0,0,0,10"/>
 

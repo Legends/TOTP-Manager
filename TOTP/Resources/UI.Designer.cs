@@ -556,6 +556,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        internal static string ui_btnClose {
+            get {
+                return ResourceManager.GetString("ui_btnClose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         internal static string ui_btnDelete {
@@ -1222,6 +1231,60 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Debug.
+        /// </summary>
+        internal static string ui_Settings_Logging_Level_Debug {
+            get {
+                return ResourceManager.GetString("ui_Settings_Logging_Level_Debug", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error.
+        /// </summary>
+        internal static string ui_Settings_Logging_Level_Error {
+            get {
+                return ResourceManager.GetString("ui_Settings_Logging_Level_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fatal.
+        /// </summary>
+        internal static string ui_Settings_Logging_Level_Fatal {
+            get {
+                return ResourceManager.GetString("ui_Settings_Logging_Level_Fatal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Information.
+        /// </summary>
+        internal static string ui_Settings_Logging_Level_Information {
+            get {
+                return ResourceManager.GetString("ui_Settings_Logging_Level_Information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verbose.
+        /// </summary>
+        internal static string ui_Settings_Logging_Level_Verbose {
+            get {
+                return ResourceManager.GetString("ui_Settings_Logging_Level_Verbose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        internal static string ui_Settings_Logging_Level_Warning {
+            get {
+                return ResourceManager.GetString("ui_Settings_Logging_Level_Warning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Open log folder.
         /// </summary>
         internal static string ui_Settings_Logging_OpenFolder {
@@ -1362,6 +1425,438 @@ namespace TOTP.Resources {
         internal static string ui_UnlockWith_Pwd {
             get {
                 return ResourceManager.GetString("ui_UnlockWith_Pwd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm to download the selected package and then run the installer..
+        /// </summary>
+        internal static string ui_Updater_Available_ActionHint_Download {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_ActionHint_Download", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package is already present locally. Confirm to launch the installer..
+        /// </summary>
+        internal static string ui_Updater_Available_ActionHint_Install {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_ActionHint_Install", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download update.
+        /// </summary>
+        internal static string ui_Updater_Available_Button_Download {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Button_Download", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install update.
+        /// </summary>
+        internal static string ui_Updater_Available_Button_Install {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Button_Install", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remind me later.
+        /// </summary>
+        internal static string ui_Updater_Available_Button_Later {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Button_Later", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skip.
+        /// </summary>
+        internal static string ui_Updater_Available_Button_Skip {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Button_Skip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Available: {0}.
+        /// </summary>
+        internal static string ui_Updater_Available_CurrentVersion_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_CurrentVersion_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update available.
+        /// </summary>
+        internal static string ui_Updater_Available_Header {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ready to install update.
+        /// </summary>
+        internal static string ui_Updater_Available_Header_Ready {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Header_Ready", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installed: {0}.
+        /// </summary>
+        internal static string ui_Updater_Available_InstalledVersion_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_InstalledVersion_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package selection.
+        /// </summary>
+        internal static string ui_Updater_Available_PackageSelection {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_PackageSelection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package size: {0}.
+        /// </summary>
+        internal static string ui_Updater_Available_PackageSize_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_PackageSize_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Published: {0}.
+        /// </summary>
+        internal static string ui_Updater_Available_Published_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Published_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source: {0}.
+        /// </summary>
+        internal static string ui_Updater_Available_Source_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Source_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloaded.
+        /// </summary>
+        internal static string ui_Updater_Available_State_Downloaded {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_State_Downloaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ready.
+        /// </summary>
+        internal static string ui_Updater_Available_State_Ready {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_State_Ready", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verified.
+        /// </summary>
+        internal static string ui_Updater_Available_State_Verified {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_State_Verified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verified feed with release notes and installer details.
+        /// </summary>
+        internal static string ui_Updater_Available_Subtitle {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Subtitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Version {0} is available for the current installation ({1}). The feed and signature are valid, and the updater is ready to download the selected package..
+        /// </summary>
+        internal static string ui_Updater_Available_Summary_Download_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Summary_Download_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installed version {0} can now be replaced with {1}..
+        /// </summary>
+        internal static string ui_Updater_Available_Summary_Install_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Summary_Install_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Details.
+        /// </summary>
+        internal static string ui_Updater_Available_Tab_Details {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Tab_Details", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notes.
+        /// </summary>
+        internal static string ui_Updater_Available_Tab_Notes {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Tab_Notes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Overview.
+        /// </summary>
+        internal static string ui_Updater_Available_Tab_Overview {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Tab_Overview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TOTP Manager Updates.
+        /// </summary>
+        internal static string ui_Updater_Available_Title {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contacting the configured appcast feed and validating signatures..
+        /// </summary>
+        internal static string ui_Updater_Check_Description {
+            get {
+                return ResourceManager.GetString("ui_Updater_Check_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking for updates.
+        /// </summary>
+        internal static string ui_Updater_Check_Header {
+            get {
+                return ResourceManager.GetString("ui_Updater_Check_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TOTP Update Check.
+        /// </summary>
+        internal static string ui_Updater_Check_Title {
+            get {
+                return ResourceManager.GetString("ui_Updater_Check_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unknown.
+        /// </summary>
+        internal static string ui_Updater_Common_Unknown {
+            get {
+                return ResourceManager.GetString("ui_Updater_Common_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The downloaded file did not pass validation..
+        /// </summary>
+        internal static string ui_Updater_Download_Blocked_Description {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Blocked_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download failed verification.
+        /// </summary>
+        internal static string ui_Updater_Download_Blocked_Header {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Blocked_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The update package could not be downloaded completely..
+        /// </summary>
+        internal static string ui_Updater_Download_Error_Description {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Error_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download interrupted.
+        /// </summary>
+        internal static string ui_Updater_Download_Error_Header {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Error_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected package size: {0}.
+        /// </summary>
+        internal static string ui_Updater_Download_ExpectedSize_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_ExpectedSize_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading update.
+        /// </summary>
+        internal static string ui_Updater_Download_Header {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The update helper could not start. You can try again or close this window..
+        /// </summary>
+        internal static string ui_Updater_Download_HelperFailed_Description {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_HelperFailed_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preparing the update package and replacing the current app files....
+        /// </summary>
+        internal static string ui_Updater_Download_Installing_Description {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Installing_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}% downloaded ({1} / {2}).
+        /// </summary>
+        internal static string ui_Updater_Download_Progress_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Progress_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The download completed and passed signature verification..
+        /// </summary>
+        internal static string ui_Updater_Download_Ready_Description {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Ready_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update ready to install.
+        /// </summary>
+        internal static string ui_Updater_Download_Ready_Header {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Ready_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blocked.
+        /// </summary>
+        internal static string ui_Updater_Download_State_Blocked {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_State_Blocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading.
+        /// </summary>
+        internal static string ui_Updater_Download_State_Downloading {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_State_Downloading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error.
+        /// </summary>
+        internal static string ui_Updater_Download_State_Error {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_State_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installing.
+        /// </summary>
+        internal static string ui_Updater_Download_State_Installing {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_State_Installing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update Transfer.
+        /// </summary>
+        internal static string ui_Updater_Download_Title {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Version {0} from {1}.
+        /// </summary>
+        internal static string ui_Updater_Download_VersionInfo_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_VersionInfo_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waiting for download to start....
+        /// </summary>
+        internal static string ui_Updater_Download_Waiting {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Waiting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No embedded release notes were provided in the appcast..
+        /// </summary>
+        internal static string ui_Updater_ReleaseNotes_Empty {
+            get {
+                return ResourceManager.GetString("ui_Updater_ReleaseNotes_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Version {0}.
+        /// </summary>
+        internal static string ui_Updater_ReleaseNotes_Title_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_ReleaseNotes_Title_Format", resourceCulture);
             }
         }
         

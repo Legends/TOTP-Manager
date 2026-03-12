@@ -67,6 +67,25 @@ function Read-CustomVersion {
     }
 }
 
+function Read-CommitMessage {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$DefaultMessage
+    )
+
+    while ($true) {
+        $message = Read-Host "Enter commit message or press Enter to use '$DefaultMessage'"
+        if ([string]::IsNullOrWhiteSpace($message)) {
+            return $DefaultMessage
+        }
+
+        $trimmedMessage = $message.Trim()
+        if (-not [string]::IsNullOrWhiteSpace($trimmedMessage)) {
+            return $trimmedMessage
+        }
+    }
+}
+
 function Get-NextRcTag {
     param(
         [Parameter(Mandatory = $false)]
@@ -180,9 +199,10 @@ while ($true) {
             throw "Unable to determine the current branch for push."
         }
 
+        $commitMessage = Read-CommitMessage -DefaultMessage "chore: prepare release $selectedTag"
         Write-Host "Uncommitted changes found. Committing and pushing branch $branch..." -ForegroundColor Yellow
         git add .
-        git commit -m "chore: prepare release $selectedTag"
+        git commit -m $commitMessage
         git push origin $branch
     }
     else {

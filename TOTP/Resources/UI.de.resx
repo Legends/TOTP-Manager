@@ -198,6 +198,9 @@
   <data name="ui_btnSave" xml:space="preserve">
     <value>Speichern</value>
   </data>
+  <data name="ui_btnClose" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
   <data name="ui_btnScan" xml:space="preserve">
     <value>QR Kode scannen</value>
   </data>
@@ -285,6 +288,150 @@
   <data name="ui_Settings_About_CheckingForUpdates" xml:space="preserve">
     <value>Suche nach Updates...</value>
   </data>
+  <data name="ui_Updater_Common_Unknown" xml:space="preserve">
+    <value>unbekannt</value>
+  </data>
+  <data name="ui_Updater_Check_Title" xml:space="preserve">
+    <value>TOTP-Updateprüfung</value>
+  </data>
+  <data name="ui_Updater_Check_Header" xml:space="preserve">
+    <value>Suche nach Updates</value>
+  </data>
+  <data name="ui_Updater_Check_Description" xml:space="preserve">
+    <value>Der konfigurierte Appcast-Feed wird kontaktiert und Signaturen werden geprüft.</value>
+  </data>
+  <data name="ui_Updater_Download_Title" xml:space="preserve">
+    <value>Update-Transfer</value>
+  </data>
+  <data name="ui_Updater_Download_Header" xml:space="preserve">
+    <value>Update wird heruntergeladen</value>
+  </data>
+  <data name="ui_Updater_Download_State_Downloading" xml:space="preserve">
+    <value>Wird heruntergeladen</value>
+  </data>
+  <data name="ui_Updater_Download_State_Blocked" xml:space="preserve">
+    <value>Blockiert</value>
+  </data>
+  <data name="ui_Updater_Download_State_Error" xml:space="preserve">
+    <value>Fehler</value>
+  </data>
+  <data name="ui_Updater_Download_State_Installing" xml:space="preserve">
+    <value>Installation läuft</value>
+  </data>
+  <data name="ui_Updater_Download_Waiting" xml:space="preserve">
+    <value>Warte auf den Start des Downloads...</value>
+  </data>
+  <data name="ui_Updater_Download_VersionInfo_Format" xml:space="preserve">
+    <value>Version {0} von {1}</value>
+  </data>
+  <data name="ui_Updater_Download_ExpectedSize_Format" xml:space="preserve">
+    <value>Erwartete Paketgröße: {0}</value>
+  </data>
+  <data name="ui_Updater_Download_Progress_Format" xml:space="preserve">
+    <value>{0}% heruntergeladen ({1} / {2})</value>
+  </data>
+  <data name="ui_Updater_Download_Ready_Header" xml:space="preserve">
+    <value>Update zur Installation bereit</value>
+  </data>
+  <data name="ui_Updater_Download_Ready_Description" xml:space="preserve">
+    <value>Der Download wurde abgeschlossen und die Signaturprüfung war erfolgreich.</value>
+  </data>
+  <data name="ui_Updater_Download_Blocked_Header" xml:space="preserve">
+    <value>Download hat die Prüfung nicht bestanden</value>
+  </data>
+  <data name="ui_Updater_Download_Blocked_Description" xml:space="preserve">
+    <value>Die heruntergeladene Datei hat die Validierung nicht bestanden.</value>
+  </data>
+  <data name="ui_Updater_Download_Error_Header" xml:space="preserve">
+    <value>Download unterbrochen</value>
+  </data>
+  <data name="ui_Updater_Download_Error_Description" xml:space="preserve">
+    <value>Das Update-Paket konnte nicht vollständig heruntergeladen werden.</value>
+  </data>
+  <data name="ui_Updater_Download_Installing_Description" xml:space="preserve">
+    <value>Das Update-Paket wird vorbereitet und die aktuellen App-Dateien werden ersetzt...</value>
+  </data>
+  <data name="ui_Updater_Download_HelperFailed_Description" xml:space="preserve">
+    <value>Der Update-Helfer konnte nicht gestartet werden. Sie können es erneut versuchen oder dieses Fenster schließen.</value>
+  </data>
+  <data name="ui_Updater_Available_Title" xml:space="preserve">
+    <value>TOTP-Manager-Updates</value>
+  </data>
+  <data name="ui_Updater_Available_Subtitle" xml:space="preserve">
+    <value>Verifizierter Feed mit Versionshinweisen und Installationsdetails</value>
+  </data>
+  <data name="ui_Updater_Available_Header" xml:space="preserve">
+    <value>Update verfügbar</value>
+  </data>
+  <data name="ui_Updater_Available_Header_Ready" xml:space="preserve">
+    <value>Update zur Installation bereit</value>
+  </data>
+  <data name="ui_Updater_Available_State_Ready" xml:space="preserve">
+    <value>Bereit</value>
+  </data>
+  <data name="ui_Updater_Available_State_Downloaded" xml:space="preserve">
+    <value>Heruntergeladen</value>
+  </data>
+  <data name="ui_Updater_Available_State_Verified" xml:space="preserve">
+    <value>Verifiziert</value>
+  </data>
+  <data name="ui_Updater_Available_Tab_Overview" xml:space="preserve">
+    <value>Überblick</value>
+  </data>
+  <data name="ui_Updater_Available_Tab_Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="ui_Updater_Available_Tab_Notes" xml:space="preserve">
+    <value>Hinweise</value>
+  </data>
+  <data name="ui_Updater_Available_PackageSelection" xml:space="preserve">
+    <value>Paketauswahl</value>
+  </data>
+  <data name="ui_Updater_Available_Button_Skip" xml:space="preserve">
+    <value>Überspringen</value>
+  </data>
+  <data name="ui_Updater_Available_Button_Later" xml:space="preserve">
+    <value>Später erinnern</value>
+  </data>
+  <data name="ui_Updater_Available_Button_Download" xml:space="preserve">
+    <value>Update herunterladen</value>
+  </data>
+  <data name="ui_Updater_Available_Button_Install" xml:space="preserve">
+    <value>Update installieren</value>
+  </data>
+  <data name="ui_Updater_Available_ActionHint_Install" xml:space="preserve">
+    <value>Das Paket ist bereits lokal vorhanden. Bestätigen Sie, um das Installationsprogramm zu starten.</value>
+  </data>
+  <data name="ui_Updater_Available_ActionHint_Download" xml:space="preserve">
+    <value>Bestätigen Sie, um das ausgewählte Paket herunterzuladen und anschließend das Installationsprogramm auszuführen.</value>
+  </data>
+  <data name="ui_Updater_Available_Summary_Install_Format" xml:space="preserve">
+    <value>Die installierte Version {0} kann jetzt durch {1} ersetzt werden.</value>
+  </data>
+  <data name="ui_Updater_Available_Summary_Download_Format" xml:space="preserve">
+    <value>Version {0} ist für die aktuelle Installation ({1}) verfügbar. Feed und Signatur sind gültig, und der Updater ist bereit, das ausgewählte Paket herunterzuladen.</value>
+  </data>
+  <data name="ui_Updater_Available_InstalledVersion_Format" xml:space="preserve">
+    <value>Installiert: {0}</value>
+  </data>
+  <data name="ui_Updater_Available_CurrentVersion_Format" xml:space="preserve">
+    <value>Verfügbar: {0}</value>
+  </data>
+  <data name="ui_Updater_Available_Published_Format" xml:space="preserve">
+    <value>Veröffentlicht: {0}</value>
+  </data>
+  <data name="ui_Updater_Available_PackageSize_Format" xml:space="preserve">
+    <value>Paketgröße: {0}</value>
+  </data>
+  <data name="ui_Updater_Available_Source_Format" xml:space="preserve">
+    <value>Quelle: {0}</value>
+  </data>
+  <data name="ui_Updater_ReleaseNotes_Title_Format" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+  <data name="ui_Updater_ReleaseNotes_Empty" xml:space="preserve">
+    <value>Im Appcast wurden keine eingebetteten Versionshinweise bereitgestellt.</value>
+  </data>
   <data name="ui_Settings_ClearClipboard" xml:space="preserve">
     <value>Zwischenablage löschen</value>
   </data>
@@ -365,6 +512,24 @@
   </data>
   <data name="ui_Settings_Logging_CliOverride_Format" xml:space="preserve">
     <value>(Per CLI auf {0} überschrieben)</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Verbose" xml:space="preserve">
+    <value>Ausführlich</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Debug" xml:space="preserve">
+    <value>Debug</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Information" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Warning" xml:space="preserve">
+    <value>Warnung</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Error" xml:space="preserve">
+    <value>Fehler</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Fatal" xml:space="preserve">
+    <value>Kritisch</value>
   </data>
   <data name="ui_Settings_Export_Encrypt" xml:space="preserve">
     <value>Verschlüsselt exportieren</value>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using TOTP.Resources;
 
 namespace TOTP.AutoUpdate;
 
@@ -20,7 +21,10 @@ internal static class ReleaseNotesFormatter
 
     public static string ToHtmlDocument(AppCastItem item)
     {
-        var title = WebUtility.HtmlEncode(item.Title ?? $"Version {item.ShortVersion ?? item.Version?.ToString() ?? "unknown"}");
+        var title = WebUtility.HtmlEncode(
+            item.Title ?? string.Format(
+                UI.ui_Updater_ReleaseNotes_Title_Format,
+                item.ShortVersion ?? item.Version?.ToString() ?? UI.ui_Updater_Common_Unknown));
         var body = RenderBody(item.Description);
 
         return $$"""
@@ -92,7 +96,7 @@ internal static class ReleaseNotesFormatter
     {
         if (string.IsNullOrWhiteSpace(content))
         {
-            return "No embedded release notes were provided in the appcast.";
+            return UI.ui_Updater_ReleaseNotes_Empty;
         }
 
         var withoutTags = HtmlTagRegex.Replace(content, " ");
@@ -103,7 +107,7 @@ internal static class ReleaseNotesFormatter
     {
         if (string.IsNullOrWhiteSpace(content))
         {
-            return "<p class=\"empty\">No embedded release notes were provided in the appcast.</p>";
+            return $"<p class=\"empty\">{WebUtility.HtmlEncode(UI.ui_Updater_ReleaseNotes_Empty)}</p>";
         }
 
         if (LooksLikeHtml(content))
@@ -240,7 +244,7 @@ internal static class ReleaseNotesFormatter
         CloseLists();
 
         return html.Length == 0
-            ? "<p class=\"empty\">No embedded release notes were provided in the appcast.</p>"
+            ? $"<p class=\"empty\">{WebUtility.HtmlEncode(UI.ui_Updater_ReleaseNotes_Empty)}</p>"
             : html.ToString();
     }
 

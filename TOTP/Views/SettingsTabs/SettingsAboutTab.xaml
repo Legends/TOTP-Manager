@@ -92,11 +92,11 @@
                             BorderBrush="#2C4F82"
                             BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="{xaml:Resx Key=ui_Settings_About_SoftwareUpdates}"
+                            <TextBlock Text="{Binding AboutSoftwareUpdatesText}"
                                        Foreground="{StaticResource Brush.TextPrimary}"
                                        FontSize="{StaticResource FontSize.DialogTitle}"
                                        FontWeight="SemiBold" />
-                            <TextBlock Text="{xaml:Resx Key=ui_Settings_About_SoftwareUpdatesDescription}"
+                            <TextBlock Text="{Binding AboutSoftwareUpdatesDescriptionText}"
                                        Margin="0,6,0,0"
                                        Style="{StaticResource TextStyle.Subheader}"
                                        TextWrapping="Wrap" />
@@ -106,6 +106,7 @@
                                     Height="38"
                                     Padding="14,0"
                                     HorizontalAlignment="Left"
+                                    Style="{StaticResource ButtonStyle.PrimaryAction}"
                                     Command="{Binding CheckForUpdatesCommand}">
                                 <StackPanel Orientation="Horizontal"
                                             VerticalAlignment="Center">
@@ -139,6 +140,7 @@
                                     </Grid>
                                     <TextBlock Text="{Binding CheckForUpdatesButtonText}"
                                                VerticalAlignment="Center"
+                                               Foreground="{StaticResource Brush.TextPrimary}"
                                                FontWeight="SemiBold" />
                                 </StackPanel>
                             </Button>

@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Threading;
 using TOTP.Infrastructure.Adapters;
 using TOTP.UserControls;
 using TOTP.ViewModels.Interfaces;
@@ -22,6 +23,8 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
     private readonly IMainViewModel _vm;
     private SettingsWindow? _settingsWindow;
     private bool _closingSettingsWindow;
+    private bool _settingsWindowPreloadQueued;
+    private bool _settingsWindowPreloaded;
     private bool _dataGridResourcesLoaded;
     private bool _accountsSectionLoaded;
     private bool _editFlyoutViewLoaded;
@@ -158,24 +161,21 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         }
 
         Dispatcher.Invoke(SyncSettingsWindow);
+
+        if (e.PropertyName == nameof(IMainViewModel.SettingsVm))
+        {
+            QueueSettingsWindowPreload();
+        }
     }
 
     private void SyncSettingsWindow()
     {
         if (_vm.IsSettingsViewOpen && _vm.SettingsVm != null)
         {
+            EnsureSettingsWindowCreated();
             if (_settingsWindow == null)
             {
-                _settingsWindow = new SettingsWindow
-                {
-                    Owner = this,
-                    DataContext = _vm.SettingsVm
-                };
-                _settingsWindow.Closed += SettingsWindow_Closed;
-            }
-            else if (!ReferenceEquals(_settingsWindow.DataContext, _vm.SettingsVm))
-            {
-                _settingsWindow.DataContext = _vm.SettingsVm;
+                return;
             }
 
             if (!_settingsWindow.IsVisible)
@@ -196,6 +196,54 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         }
     }
 
+    private void QueueSettingsWindowPreload()
+    {
+        if (_settingsWindowPreloaded || _settingsWindowPreloadQueued || _vm.SettingsVm == null)
+        {
+            return;
+        }
+
+        _settingsWindowPreloadQueued = true;
+        Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
+        {
+            _settingsWindowPreloadQueued = false;
+            if (_settingsWindowPreloaded || _vm.SettingsVm == null)
+            {
+                return;
+            }
+
+            EnsureSettingsWindowCreated();
+            _settingsWindow?.ApplyTemplate();
+            _settingsWindow?.UpdateLayout();
+            _settingsWindowPreloaded = true;
+            LogLifecycle("settings_window.preloaded");
+        }));
+    }
+
+    private void EnsureSettingsWindowCreated()
+    {
+        if (_vm.SettingsVm == null)
+        {
+            return;
+        }
+
+        if (_settingsWindow == null)
+        {
+            _settingsWindow = new SettingsWindow
+            {
+                Owner = this,
+                DataContext = _vm.SettingsVm
+            };
+            _settingsWindow.Closed += SettingsWindow_Closed;
+            return;
+        }
+
+        if (!ReferenceEquals(_settingsWindow.DataContext, _vm.SettingsVm))
+        {
+            _settingsWindow.DataContext = _vm.SettingsVm;
+        }
+    }
+
     private void SettingsWindow_Closed(object? sender, EventArgs e)
     {
         if (_settingsWindow != null)
@@ -208,6 +256,26 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         {
             _vm.IsSettingsViewOpen = false;
         }
+
+        BringMainWindowToFront();
+    }
+
+    private void BringMainWindowToFront()
+    {
+        if (!IsVisible)
+        {
+            Show();
+        }
+
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+
+        Activate();
+        Topmost = true;
+        Topmost = false;
+        Focus();
     }
 
     private void LogLifecycle(string step)

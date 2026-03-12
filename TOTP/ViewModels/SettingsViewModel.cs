@@ -16,6 +16,7 @@ using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Common;
 using TOTP.Resources;
+using TOTP.Services;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.ViewModels;
@@ -29,6 +30,18 @@ public sealed class ImportConflictOptionItem
     }
 
     public ImportConflictStrategy Strategy { get; }
+    public string DisplayName { get; }
+}
+
+public sealed class LogLevelOptionItem
+{
+    public LogLevelOptionItem(AppLogLevel value, string displayName)
+    {
+        Value = value;
+        DisplayName = displayName;
+    }
+
+    public AppLogLevel Value { get; }
     public string DisplayName { get; }
 }
 
@@ -395,9 +408,9 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
         }
     }
 
-    public List<AppLogLevel> AvailableLogLevels { get; }
+    public ObservableCollection<LogLevelOptionItem> AvailableLogLevels { get; }
     public ObservableCollection<ExportFileFormat> AvailableExportFormats { get; }
-    public List<ImportConflictOptionItem> AvailableImportConflictOptions { get; }
+    public ObservableCollection<ImportConflictOptionItem> AvailableImportConflictOptions { get; }
     private ImportConflictOptionItem _selectedImportConflictOption = null!;
     public ImportConflictOptionItem SelectedImportConflictOption
     {
@@ -429,8 +442,10 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
 
     public bool IsCliOverrideActive => _logSwitchService.IsCliOverrideActive;
     public string ClrOverrideText => _logSwitchService.IsCliOverrideActive ?
-        string.Format(UI.ui_Settings_Logging_CliOverride_Format, SelectedLogLevel) :
+        string.Format(UI.ui_Settings_Logging_CliOverride_Format, GetLogLevelDisplayName(SelectedLogLevel)) :
         "";
+    public string AboutSoftwareUpdatesText => UI.ui_Settings_About_SoftwareUpdates;
+    public string AboutSoftwareUpdatesDescriptionText => UI.ui_Settings_About_SoftwareUpdatesDescription;
     public string RunningVersion { get; }
     public string AssemblyVersion { get; }
     public string InstallationPath { get; }
@@ -501,6 +516,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
         _autoUpdateService = autoUpdateService;
         _messageService = messageService;
         _saveAction = saveAction;
+        LocalizationService.LanguageChanged += OnLanguageChanged;
         
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync, CanSaveSettings);
@@ -511,16 +527,11 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
         CheckForUpdatesCommand = new AsyncCommand(CheckForUpdatesAsync, CanCheckForUpdates);
         OpenLogFolderCommand = new RelayCommand(OnOpenLogFolder, CanOpenLogFolder);
 
-        AvailableLogLevels = Enum.GetValues(typeof(AppLogLevel)).Cast<AppLogLevel>().ToList();
+        AvailableLogLevels = [];
         AvailableExportFormats = [];
         UpdateAvailableExportFormats();
-        AvailableImportConflictOptions =
-        [
-            new ImportConflictOptionItem(ImportConflictStrategy.SkipExisting, UI.ui_Settings_Import_Conflict_Skip),
-            new ImportConflictOptionItem(ImportConflictStrategy.ReplaceExisting, UI.ui_Settings_Import_Conflict_Replace),
-            new ImportConflictOptionItem(ImportConflictStrategy.KeepBoth, UI.ui_Settings_Import_Conflict_KeepBoth)
-        ];
-        _selectedImportConflictOption = AvailableImportConflictOptions.First();
+        AvailableImportConflictOptions = [];
+        RebuildLocalizedOptionLists();
         _selectedLogLevel = _logSwitchService.MinimumLevel;
 
         var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
@@ -579,6 +590,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
 
     public void Dispose()
     {
+        LocalizationService.LanguageChanged -= OnLanguageChanged;
         _saveDebounceCts?.Cancel();
         _saveDebounceCts?.Dispose();
         _saveDebounceCts = null;
@@ -586,6 +598,56 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
         _authGateDebounceCts?.Cancel();
         _authGateDebounceCts?.Dispose();
         _authGateDebounceCts = null;
+    }
+
+    private void OnLanguageChanged()
+    {
+        RebuildLocalizedOptionLists();
+        CheckForUpdatesButtonText = IsCheckingForUpdates
+            ? UI.ui_Settings_About_CheckingForUpdates
+            : UI.ui_Settings_About_CheckForUpdates;
+
+        OnPropertyChanged(nameof(ClrOverrideText));
+        OnPropertyChanged(nameof(AboutSoftwareUpdatesText));
+        OnPropertyChanged(nameof(AboutSoftwareUpdatesDescriptionText));
+    }
+
+    private void RebuildLocalizedOptionLists()
+    {
+        var selectedImportStrategy = _selectedImportConflictOption?.Strategy ?? ImportConflictStrategy.SkipExisting;
+
+        AvailableLogLevels.Clear();
+        foreach (var level in Enum.GetValues(typeof(AppLogLevel)).Cast<AppLogLevel>())
+        {
+            AvailableLogLevels.Add(new LogLevelOptionItem(level, GetLogLevelDisplayName(level)));
+        }
+
+        AvailableImportConflictOptions.Clear();
+        AvailableImportConflictOptions.Add(new ImportConflictOptionItem(ImportConflictStrategy.SkipExisting, UI.ui_Settings_Import_Conflict_Skip));
+        AvailableImportConflictOptions.Add(new ImportConflictOptionItem(ImportConflictStrategy.ReplaceExisting, UI.ui_Settings_Import_Conflict_Replace));
+        AvailableImportConflictOptions.Add(new ImportConflictOptionItem(ImportConflictStrategy.KeepBoth, UI.ui_Settings_Import_Conflict_KeepBoth));
+
+        _selectedImportConflictOption = AvailableImportConflictOptions.FirstOrDefault(x => x.Strategy == selectedImportStrategy)
+            ?? AvailableImportConflictOptions.First();
+
+        OnPropertyChanged(nameof(AvailableLogLevels));
+        OnPropertyChanged(nameof(AvailableImportConflictOptions));
+        OnPropertyChanged(nameof(SelectedImportConflictOption));
+        OnPropertyChanged(nameof(SelectedLogLevel));
+    }
+
+    private static string GetLogLevelDisplayName(AppLogLevel level)
+    {
+        return level switch
+        {
+            AppLogLevel.Verbose => UI.ui_Settings_Logging_Level_Verbose,
+            AppLogLevel.Debug => UI.ui_Settings_Logging_Level_Debug,
+            AppLogLevel.Information => UI.ui_Settings_Logging_Level_Information,
+            AppLogLevel.Warning => UI.ui_Settings_Logging_Level_Warning,
+            AppLogLevel.Error => UI.ui_Settings_Logging_Level_Error,
+            AppLogLevel.Fatal => UI.ui_Settings_Logging_Level_Fatal,
+            _ => level.ToString()
+        };
     }
 }
 

@@ -11,6 +11,11 @@
         Topmost="True"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/TOTP.UI.WPF;component/Styles/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
         <Storyboard x:Key="LogoSpinStoryboard" RepeatBehavior="Forever">
             <DoubleAnimation Storyboard.TargetName="LogoRotateTransform"
                              Storyboard.TargetProperty="Angle"
@@ -18,6 +23,7 @@
                              To="360"
                              Duration="0:0:2.0" />
         </Storyboard>
+        </ResourceDictionary>
     </Window.Resources>
 
     <Border CornerRadius="16"

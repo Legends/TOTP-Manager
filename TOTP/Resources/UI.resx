@@ -198,6 +198,9 @@
   <data name="ui_btnSave" xml:space="preserve">
     <value>Save</value>
   </data>
+  <data name="ui_btnClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
   <data name="ui_btnScan" xml:space="preserve">
     <value>Scan QR code</value>
   </data>
@@ -285,6 +288,150 @@
   <data name="ui_Settings_About_CheckingForUpdates" xml:space="preserve">
     <value>Checking for updates...</value>
   </data>
+  <data name="ui_Updater_Common_Unknown" xml:space="preserve">
+    <value>unknown</value>
+  </data>
+  <data name="ui_Updater_Check_Title" xml:space="preserve">
+    <value>TOTP Update Check</value>
+  </data>
+  <data name="ui_Updater_Check_Header" xml:space="preserve">
+    <value>Checking for updates</value>
+  </data>
+  <data name="ui_Updater_Check_Description" xml:space="preserve">
+    <value>Contacting the configured appcast feed and validating signatures.</value>
+  </data>
+  <data name="ui_Updater_Download_Title" xml:space="preserve">
+    <value>Update Transfer</value>
+  </data>
+  <data name="ui_Updater_Download_Header" xml:space="preserve">
+    <value>Downloading update</value>
+  </data>
+  <data name="ui_Updater_Download_State_Downloading" xml:space="preserve">
+    <value>Downloading</value>
+  </data>
+  <data name="ui_Updater_Download_State_Blocked" xml:space="preserve">
+    <value>Blocked</value>
+  </data>
+  <data name="ui_Updater_Download_State_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="ui_Updater_Download_State_Installing" xml:space="preserve">
+    <value>Installing</value>
+  </data>
+  <data name="ui_Updater_Download_Waiting" xml:space="preserve">
+    <value>Waiting for download to start...</value>
+  </data>
+  <data name="ui_Updater_Download_VersionInfo_Format" xml:space="preserve">
+    <value>Version {0} from {1}</value>
+  </data>
+  <data name="ui_Updater_Download_ExpectedSize_Format" xml:space="preserve">
+    <value>Expected package size: {0}</value>
+  </data>
+  <data name="ui_Updater_Download_Progress_Format" xml:space="preserve">
+    <value>{0}% downloaded ({1} / {2})</value>
+  </data>
+  <data name="ui_Updater_Download_Ready_Header" xml:space="preserve">
+    <value>Update ready to install</value>
+  </data>
+  <data name="ui_Updater_Download_Ready_Description" xml:space="preserve">
+    <value>The download completed and passed signature verification.</value>
+  </data>
+  <data name="ui_Updater_Download_Blocked_Header" xml:space="preserve">
+    <value>Download failed verification</value>
+  </data>
+  <data name="ui_Updater_Download_Blocked_Description" xml:space="preserve">
+    <value>The downloaded file did not pass validation.</value>
+  </data>
+  <data name="ui_Updater_Download_Error_Header" xml:space="preserve">
+    <value>Download interrupted</value>
+  </data>
+  <data name="ui_Updater_Download_Error_Description" xml:space="preserve">
+    <value>The update package could not be downloaded completely.</value>
+  </data>
+  <data name="ui_Updater_Download_Installing_Description" xml:space="preserve">
+    <value>Preparing the update package and replacing the current app files...</value>
+  </data>
+  <data name="ui_Updater_Download_HelperFailed_Description" xml:space="preserve">
+    <value>The update helper could not start. You can try again or close this window.</value>
+  </data>
+  <data name="ui_Updater_Available_Title" xml:space="preserve">
+    <value>TOTP Manager Updates</value>
+  </data>
+  <data name="ui_Updater_Available_Subtitle" xml:space="preserve">
+    <value>Verified feed with release notes and installer details</value>
+  </data>
+  <data name="ui_Updater_Available_Header" xml:space="preserve">
+    <value>Update available</value>
+  </data>
+  <data name="ui_Updater_Available_Header_Ready" xml:space="preserve">
+    <value>Ready to install update</value>
+  </data>
+  <data name="ui_Updater_Available_State_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="ui_Updater_Available_State_Downloaded" xml:space="preserve">
+    <value>Downloaded</value>
+  </data>
+  <data name="ui_Updater_Available_State_Verified" xml:space="preserve">
+    <value>Verified</value>
+  </data>
+  <data name="ui_Updater_Available_Tab_Overview" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="ui_Updater_Available_Tab_Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="ui_Updater_Available_Tab_Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="ui_Updater_Available_PackageSelection" xml:space="preserve">
+    <value>Package selection</value>
+  </data>
+  <data name="ui_Updater_Available_Button_Skip" xml:space="preserve">
+    <value>Skip</value>
+  </data>
+  <data name="ui_Updater_Available_Button_Later" xml:space="preserve">
+    <value>Remind me later</value>
+  </data>
+  <data name="ui_Updater_Available_Button_Download" xml:space="preserve">
+    <value>Download update</value>
+  </data>
+  <data name="ui_Updater_Available_Button_Install" xml:space="preserve">
+    <value>Install update</value>
+  </data>
+  <data name="ui_Updater_Available_ActionHint_Install" xml:space="preserve">
+    <value>The package is already present locally. Confirm to launch the installer.</value>
+  </data>
+  <data name="ui_Updater_Available_ActionHint_Download" xml:space="preserve">
+    <value>Confirm to download the selected package and then run the installer.</value>
+  </data>
+  <data name="ui_Updater_Available_Summary_Install_Format" xml:space="preserve">
+    <value>Installed version {0} can now be replaced with {1}.</value>
+  </data>
+  <data name="ui_Updater_Available_Summary_Download_Format" xml:space="preserve">
+    <value>Version {0} is available for the current installation ({1}). The feed and signature are valid, and the updater is ready to download the selected package.</value>
+  </data>
+  <data name="ui_Updater_Available_InstalledVersion_Format" xml:space="preserve">
+    <value>Installed: {0}</value>
+  </data>
+  <data name="ui_Updater_Available_CurrentVersion_Format" xml:space="preserve">
+    <value>Available: {0}</value>
+  </data>
+  <data name="ui_Updater_Available_Published_Format" xml:space="preserve">
+    <value>Published: {0}</value>
+  </data>
+  <data name="ui_Updater_Available_PackageSize_Format" xml:space="preserve">
+    <value>Package size: {0}</value>
+  </data>
+  <data name="ui_Updater_Available_Source_Format" xml:space="preserve">
+    <value>Source: {0}</value>
+  </data>
+  <data name="ui_Updater_ReleaseNotes_Title_Format" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+  <data name="ui_Updater_ReleaseNotes_Empty" xml:space="preserve">
+    <value>No embedded release notes were provided in the appcast.</value>
+  </data>
   <data name="ui_Settings_ClearClipboard" xml:space="preserve">
     <value>Clear clipboard</value>
   </data>
@@ -365,6 +512,24 @@
   </data>
   <data name="ui_Settings_Logging_CliOverride_Format" xml:space="preserve">
     <value>(Overridden via CLI to {0})</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Verbose" xml:space="preserve">
+    <value>Verbose</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Debug" xml:space="preserve">
+    <value>Debug</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Information" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="ui_Settings_Logging_Level_Fatal" xml:space="preserve">
+    <value>Fatal</value>
   </data>
   <data name="ui_Settings_Export_Encrypt" xml:space="preserve">
     <value>Export encrypted</value>

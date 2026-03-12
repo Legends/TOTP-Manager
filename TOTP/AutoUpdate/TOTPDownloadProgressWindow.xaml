@@ -1,6 +1,7 @@
 <Window x:Class="TOTP.AutoUpdate.TOTPDownloadProgressWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:xaml="clr-namespace:TOTP.Xaml"
         WindowStyle="None"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
@@ -59,7 +60,7 @@
                                Width="24"
                                Height="24"
                                Stretch="Uniform" />
-                        <TextBlock Text="Update Transfer"
+                        <TextBlock Text="{xaml:Resx Key=ui_Updater_Download_Title}"
                                    Margin="8,0,0,0"
                                    VerticalAlignment="Center"
                                    Style="{StaticResource TextStyle.SectionHeader}" />
@@ -74,7 +75,7 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock x:Name="TitleText"
-                           Text="Downloading update"
+                           Text="{xaml:Resx Key=ui_Updater_Download_Header}"
                            Style="{StaticResource TextStyle.SectionHeader}" />
 
                 <Border Grid.Column="1"
@@ -84,7 +85,7 @@
                         BorderBrush="{StaticResource Brush.BorderAccent}"
                         BorderThickness="1">
                     <TextBlock x:Name="ProgressStateText"
-                               Text="Downloading"
+                               Text="{xaml:Resx Key=ui_Updater_Download_State_Downloading}"
                                Foreground="{StaticResource Brush.TextTertiary}"
                                FontSize="{StaticResource FontSize.Caption}"
                                FontWeight="SemiBold" />
@@ -124,7 +125,7 @@
                        FontSize="{StaticResource FontSize.Body}"
                        TextWrapping="Wrap"
                        TextTrimming="None"
-                       Text="Waiting for download to start..." />
+                       Text="{xaml:Resx Key=ui_Updater_Download_Waiting}" />
 
             <StackPanel Grid.Row="6"
                         Margin="0,16,0,0">
@@ -142,7 +143,7 @@
                         Height="30"
                         Margin="0,14,0,0"
                         HorizontalAlignment="Right"
-                        Content="Close"
+                        Content="{xaml:Resx Key=ui_btnClose}"
                         Click="ActionButton_OnClick" />
             </StackPanel>
         </Grid>

@@ -1,6 +1,7 @@
 <Window x:Class="TOTP.AutoUpdate.TOTPCheckingForUpdatesWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:xaml="clr-namespace:TOTP.Xaml"
         WindowStyle="None"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
@@ -31,16 +32,16 @@
                                Width="24"
                                Height="24"
                                Stretch="Uniform" />
-                        <TextBlock Text="TOTP Update Check"
+                        <TextBlock Text="{xaml:Resx Key=ui_Updater_Check_Title}"
                                    Margin="10,0,0,0"
                                    VerticalAlignment="Center"
                                    Style="{StaticResource TextStyle.SectionHeader}" />
                     </StackPanel>
                 </Grid>
             </Border>
-            <TextBlock Text="Checking for updates"
+            <TextBlock Text="{xaml:Resx Key=ui_Updater_Check_Header}"
                        Style="{StaticResource TextStyle.PageTitle}" />
-            <TextBlock Text="Contacting the configured appcast feed and validating signatures."
+            <TextBlock Text="{xaml:Resx Key=ui_Updater_Check_Description}"
                        Margin="0,8,0,0"
                        Style="{StaticResource TextStyle.Subheader}"
                        TextWrapping="Wrap" />

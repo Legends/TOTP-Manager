@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using TOTP.Resources;
 
 namespace TOTP.AutoUpdate;
 
@@ -28,12 +29,12 @@ public partial class TOTPUpdateAvailableWindow : Window, IUpdateAvailable
         InitializeComponent();
 
         UpdatesList.ItemsSource = _updates;
-        HeaderText.Text = isUpdateAlreadyDownloaded ? "Ready to install update" : "Update available";
-        StatusChipText.Text = isUpdateAlreadyDownloaded ? "Downloaded" : "Verified";
-        InstallButton.Content = isUpdateAlreadyDownloaded ? "Install update" : "Download update";
+        HeaderText.Text = isUpdateAlreadyDownloaded ? UI.ui_Updater_Available_Header_Ready : UI.ui_Updater_Available_Header;
+        StatusChipText.Text = isUpdateAlreadyDownloaded ? UI.ui_Updater_Available_State_Downloaded : UI.ui_Updater_Available_State_Verified;
+        InstallButton.Content = isUpdateAlreadyDownloaded ? UI.ui_Updater_Available_Button_Install : UI.ui_Updater_Available_Button_Download;
         ActionHintText.Text = isUpdateAlreadyDownloaded
-            ? "The package is already present locally. Confirm to launch the installer."
-            : "Confirm to download the selected package and then run the installer.";
+            ? UI.ui_Updater_Available_ActionHint_Install
+            : UI.ui_Updater_Available_ActionHint_Download;
         UpdatesList.SelectedItem = CurrentItem;
         ApplyCurrentItem(CurrentItem, isUpdateAlreadyDownloaded);
     }
@@ -117,14 +118,21 @@ public partial class TOTPUpdateAvailableWindow : Window, IUpdateAvailable
         }
 
         CurrentItem = item;
-        ApplyCurrentItem(item, Equals(InstallButton.Content, "Install update"));
+        ApplyCurrentItem(item, Equals(InstallButton.Content, UI.ui_Updater_Available_Button_Install));
     }
 
     private void ConfigureOwner()
     {
         if (Owner == null && Application.Current?.MainWindow is Window mainWindow && !ReferenceEquals(mainWindow, this))
         {
-            Owner = mainWindow;
+            if (mainWindow.IsVisible)
+            {
+                Owner = mainWindow;
+            }
+            else
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
         }
     }
 
@@ -142,28 +150,32 @@ public partial class TOTPUpdateAvailableWindow : Window, IUpdateAvailable
 
     private static string BuildSummaryText(AppCastItem item, bool isUpdateAlreadyDownloaded)
     {
-        var installedVersion = item.AppVersionInstalled?.ToString() ?? "unknown";
-        var version = item.ShortVersion ?? item.Version?.ToString() ?? "unknown";
+        var installedVersion = item.AppVersionInstalled?.ToString() ?? UI.ui_Updater_Common_Unknown;
+        var version = item.ShortVersion ?? item.Version?.ToString() ?? UI.ui_Updater_Common_Unknown;
         if (isUpdateAlreadyDownloaded)
         {
-            return $"Installed version {installedVersion} can now be replaced with {version}.";
+            return string.Format(UI.ui_Updater_Available_Summary_Install_Format, installedVersion, version);
         }
 
-        return $"Version {version} is available for the current installation ({installedVersion}). The feed and signature are valid, and the updater is ready to download the selected package.";
+        return string.Format(UI.ui_Updater_Available_Summary_Download_Format, version, installedVersion);
     }
 
     private void ApplyCurrentItem(AppCastItem item, bool isUpdateAlreadyDownloaded)
     {
-        InstalledVersionText.Text = $"Installed: {item.AppVersionInstalled?.ToString() ?? "unknown"}";
+        InstalledVersionText.Text = string.Format(
+            UI.ui_Updater_Available_InstalledVersion_Format,
+            item.AppVersionInstalled?.ToString() ?? UI.ui_Updater_Common_Unknown);
         SummaryText.Text = BuildSummaryText(item, isUpdateAlreadyDownloaded);
-        CurrentVersionText.Text = $"Available: {item.ShortVersion ?? item.Version?.ToString() ?? "unknown"}";
+        CurrentVersionText.Text = string.Format(
+            UI.ui_Updater_Available_CurrentVersion_Format,
+            item.ShortVersion ?? item.Version?.ToString() ?? UI.ui_Updater_Common_Unknown);
         PublishDateText.Text = item.PublicationDate == default
-            ? "Published: unknown"
-            : $"Published: {item.PublicationDate.ToLocalTime():yyyy-MM-dd HH:mm}";
+            ? string.Format(UI.ui_Updater_Available_Published_Format, UI.ui_Updater_Common_Unknown)
+            : string.Format(UI.ui_Updater_Available_Published_Format, item.PublicationDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm"));
         PackageSizeText.Text = item.UpdateSize > 0
-            ? $"Package size: {FormatBytes(item.UpdateSize)}"
-            : "Package size: unknown";
-        SourceText.Text = $"Source: {item.DownloadLink}";
+            ? string.Format(UI.ui_Updater_Available_PackageSize_Format, FormatBytes(item.UpdateSize))
+            : string.Format(UI.ui_Updater_Available_PackageSize_Format, UI.ui_Updater_Common_Unknown);
+        SourceText.Text = string.Format(UI.ui_Updater_Available_Source_Format, item.DownloadLink);
         RenderReleaseNotes(item);
     }
 

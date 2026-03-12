@@ -5,6 +5,7 @@ using NetSparkleUpdater.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
+using TOTP.Resources;
 
 namespace TOTP.AutoUpdate;
 
@@ -34,10 +35,13 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
         _logger = logger;
         InitializeComponent();
 
-        VersionText.Text = $"Version {_item.ShortVersion ?? _item.Version?.ToString() ?? "unknown"} from {_item.DownloadLink}";
+        VersionText.Text = string.Format(
+            UI.ui_Updater_Download_VersionInfo_Format,
+            _item.ShortVersion ?? _item.Version?.ToString() ?? UI.ui_Updater_Common_Unknown,
+            _item.DownloadLink);
         DownloadInfoText.Text = _item.UpdateSize > 0
-            ? $"Expected package size: {FormatBytes(_item.UpdateSize)}"
-            : "Expected package size: unknown";
+            ? string.Format(UI.ui_Updater_Download_ExpectedSize_Format, FormatBytes(_item.UpdateSize))
+            : string.Format(UI.ui_Updater_Download_ExpectedSize_Format, UI.ui_Updater_Common_Unknown);
         ActionButton.IsEnabled = false;
 
         _logger?.LogInformation(
@@ -112,8 +116,12 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
         {
             DownloadProgressBar.IsIndeterminate = false;
             DownloadProgressBar.Value = _lastProgressPercentage;
-            ProgressStateText.Text = "Downloading";
-            ProgressText.Text = $"{args.ProgressPercentage}% downloaded ({FormatBytes(args.BytesReceived)} / {FormatBytes(args.TotalBytesToReceive)})";
+            ProgressStateText.Text = UI.ui_Updater_Download_State_Downloading;
+            ProgressText.Text = string.Format(
+                UI.ui_Updater_Download_Progress_Format,
+                args.ProgressPercentage,
+                FormatBytes(args.BytesReceived),
+                FormatBytes(args.TotalBytesToReceive));
         });
 
         if (_downloadFinished)
@@ -181,10 +189,10 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
                 DownloadProgressBar.IsIndeterminate = false;
                 DownloadProgressBar.Value = 100;
                 ActionButton.IsEnabled = true;
-                TitleText.Text = "Update ready to install";
-                ProgressStateText.Text = "Ready";
-                ProgressText.Text = "The download completed and passed signature verification.";
-                ActionButton.Content = "Install update";
+                TitleText.Text = UI.ui_Updater_Download_Ready_Header;
+                ProgressStateText.Text = UI.ui_Updater_Available_State_Ready;
+                ProgressText.Text = UI.ui_Updater_Download_Ready_Description;
+                ActionButton.Content = UI.ui_Updater_Available_Button_Install;
                 _readyStateApplied = true;
                 _logger?.LogInformation(
                     "Auto-update progress window: ready state applied. version={Version} path={Path}",
@@ -196,10 +204,10 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
             DownloadProgressBar.IsIndeterminate = false;
             DownloadProgressBar.Value = 100;
             ActionButton.IsEnabled = true;
-            TitleText.Text = "Download failed verification";
-            ProgressStateText.Text = "Blocked";
-            ProgressText.Text = "The downloaded file did not pass validation.";
-            ActionButton.Content = "Close";
+            TitleText.Text = UI.ui_Updater_Download_Blocked_Header;
+            ProgressStateText.Text = UI.ui_Updater_Download_State_Blocked;
+            ProgressText.Text = UI.ui_Updater_Download_Blocked_Description;
+            ActionButton.Content = UI.ui_btnClose;
             _readyStateApplied = true;
             _logger?.LogWarning(
                 "Auto-update progress window: blocked state applied due to invalid download. version={Version} path={Path}",
@@ -219,13 +227,13 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
         {
             DownloadProgressBar.IsIndeterminate = false;
             DownloadProgressBar.Value = Math.Clamp(_lastProgressPercentage, 0, 100);
-            TitleText.Text = "Download interrupted";
-            ProgressStateText.Text = "Error";
-            ProgressText.Text = "The update package could not be downloaded completely.";
+            TitleText.Text = UI.ui_Updater_Download_Error_Header;
+            ProgressStateText.Text = UI.ui_Updater_Download_State_Error;
+            ProgressText.Text = UI.ui_Updater_Download_Error_Description;
             ErrorText.Text = errorMessage;
             ErrorText.Visibility = Visibility.Visible;
             ActionButton.IsEnabled = true;
-            ActionButton.Content = "Close";
+            ActionButton.Content = UI.ui_btnClose;
         });
 
         _logger?.LogWarning(
@@ -255,8 +263,8 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
         if (_customInstallHandler != null)
         {
             ActionButton.IsEnabled = false;
-            ProgressStateText.Text = "Installing";
-            ProgressText.Text = "Preparing the update package and replacing the current app files...";
+            ProgressStateText.Text = UI.ui_Updater_Download_State_Installing;
+            ProgressText.Text = UI.ui_Updater_Download_Installing_Description;
 
             var wasHandled = await _customInstallHandler(_item, _downloadedFilePath);
             _logger?.LogInformation(
@@ -276,8 +284,8 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
             }
 
             ActionButton.IsEnabled = true;
-            ProgressStateText.Text = "Ready";
-            ProgressText.Text = "The update helper could not start. You can try again or close this window.";
+            ProgressStateText.Text = UI.ui_Updater_Available_State_Ready;
+            ProgressText.Text = UI.ui_Updater_Download_HelperFailed_Description;
             return;
         }
 
@@ -289,7 +297,14 @@ public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
     {
         if (Owner == null && Application.Current?.MainWindow is Window mainWindow && !ReferenceEquals(mainWindow, this))
         {
-            Owner = mainWindow;
+            if (mainWindow.IsVisible)
+            {
+                Owner = mainWindow;
+            }
+            else
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
         }
     }
 

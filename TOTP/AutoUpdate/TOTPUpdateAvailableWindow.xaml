@@ -1,6 +1,7 @@
 <Window x:Class="TOTP.AutoUpdate.TOTPUpdateAvailableWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:xaml="clr-namespace:TOTP.Xaml"
         xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -118,9 +119,9 @@
                         </Border>
                         <StackPanel Margin="12,0,0,0"
                                     VerticalAlignment="Center">
-                            <TextBlock Text="TOTP Manager Updates"
+                            <TextBlock Text="{xaml:Resx Key=ui_Updater_Available_Title}"
                                        Style="{StaticResource TextStyle.SectionHeader}" />
-                            <TextBlock Text="Verified feed with release notes and installer details"
+                            <TextBlock Text="{xaml:Resx Key=ui_Updater_Available_Subtitle}"
                                        Margin="0,4,0,0"
                                        Style="{StaticResource TextStyle.Caption}"
                                        TextWrapping="Wrap" />
@@ -137,7 +138,7 @@
 
                 <StackPanel>
                     <TextBlock x:Name="HeaderText"
-                               Text="Update available"
+                               Text="{xaml:Resx Key=ui_Updater_Available_Header}"
                                Style="{StaticResource TextStyle.HeroTitle}" />
                     <TextBlock x:Name="SummaryText"
                                Margin="0,8,0,0"
@@ -154,7 +155,7 @@
                         BorderBrush="{StaticResource Brush.BorderAccent}"
                         BorderThickness="1">
                     <TextBlock x:Name="StatusChipText"
-                               Text="Ready"
+                               Text="{xaml:Resx Key=ui_Updater_Available_State_Ready}"
                                Foreground="{StaticResource Brush.TextTertiary}"
                                FontSize="{StaticResource FontSize.Caption}"
                                FontWeight="SemiBold" />
@@ -176,7 +177,7 @@
                                           CloseButtonType="Hide"
                                           TabStripPlacement="Top"
                                           Foreground="White">
-                    <syncfusion:TabItemExt Header="Overview">
+                    <syncfusion:TabItemExt Header="{xaml:Resx Key=ui_Updater_Available_Tab_Overview}">
                         <Grid Margin="8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -209,7 +210,7 @@
                                     BorderBrush="#224B79"
                                     BorderThickness="1">
                                 <StackPanel>
-                                    <TextBlock Text="Package selection"
+                                    <TextBlock Text="{xaml:Resx Key=ui_Updater_Available_PackageSelection}"
                                                Foreground="{StaticResource Brush.TextTertiary}"
                                                FontWeight="SemiBold"
                                                FontSize="{StaticResource FontSize.Body}" />
@@ -245,7 +246,7 @@
                         </Grid>
                     </syncfusion:TabItemExt>
 
-                    <syncfusion:TabItemExt Header="Details">
+                    <syncfusion:TabItemExt Header="{xaml:Resx Key=ui_Updater_Available_Tab_Details}">
                         <StackPanel Margin="8">
                             <TextBlock x:Name="PublishDateText"
                                        Foreground="{StaticResource Brush.TextSecondary}"
@@ -262,7 +263,7 @@
                     </syncfusion:TabItemExt>
 
                     <syncfusion:TabItemExt x:Name="ReleaseNotesTab"
-                                           Header="Notes">
+                                           Header="{xaml:Resx Key=ui_Updater_Available_Tab_Notes}">
                         <Grid Margin="8">
                             <WebBrowser x:Name="ReleaseNotesBrowser"
                                         Visibility="Visible" />
@@ -278,31 +279,35 @@
                 </syncfusion:TabControlExt>
             </Border>
 
-            <StackPanel Grid.Row="3"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Margin="0,16,0,0">
+            <WrapPanel Grid.Row="3"
+                       Orientation="Horizontal"
+                       HorizontalAlignment="Right"
+                       Margin="0,16,0,0"
+                       ItemHeight="30">
                 <Button x:Name="SkipButton"
                         Style="{StaticResource SecondaryButtonStyle}"
-                        Width="84"
+                        MinWidth="84"
                         Height="30"
                         Margin="0,0,8,0"
-                        Content="Skip"
+                        Padding="14,6"
+                        Content="{xaml:Resx Key=ui_Updater_Available_Button_Skip}"
                         Click="SkipButton_OnClick" />
                 <Button x:Name="LaterButton"
                         Style="{StaticResource SecondaryButtonStyle}"
-                        Width="144"
+                        MinWidth="144"
                         Height="30"
                         Margin="0,0,8,0"
-                        Content="Remind me later"
+                        Padding="14,6"
+                        Content="{xaml:Resx Key=ui_Updater_Available_Button_Later}"
                         Click="LaterButton_OnClick" />
                 <Button x:Name="InstallButton"
                         Style="{StaticResource PrimaryButtonStyle}"
-                        Width="126"
+                        MinWidth="126"
                         Height="30"
-                        Content="Download update"
+                        Padding="14,6"
+                        Content="{xaml:Resx Key=ui_Updater_Available_Button_Download}"
                         Click="InstallButton_OnClick" />
-            </StackPanel>
+            </WrapPanel>
         </Grid>
     </Border>
 </Window>

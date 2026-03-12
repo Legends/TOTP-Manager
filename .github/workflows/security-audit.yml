@@ -32,6 +32,8 @@ jobs:
   sast-codeql:
     name: SAST (CodeQL C#)
     runs-on: windows-latest
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
     permissions:
       contents: read
       actions: read
@@ -44,11 +46,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
-          cache: true
-          cache-dependency-path: |
-            **/*.csproj
-            **/*.sln
-            NuGet.config
+
+      - name: Prepare NuGet packages folder
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
 
       - name: Detect Code Scanning capability
         id: codeql-capability
@@ -75,7 +76,7 @@ jobs:
 
       - name: Restore
         if: steps.codeql-capability.outputs.enabled == 'true'
-        run: dotnet restore TOTP.sln --nologo --verbosity minimal --configfile NuGet.config
+        run: dotnet restore TOTP.sln --nologo --verbosity minimal --configfile NuGet.config --source https://api.nuget.org/v3/index.json
 
       - name: Build
         if: steps.codeql-capability.outputs.enabled == 'true'
@@ -92,6 +93,8 @@ jobs:
   sca-dotnet:
     name: Dependency Vulnerability Scan (.NET)
     runs-on: windows-latest
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,14 +103,13 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
-          cache: true
-          cache-dependency-path: |
-            **/*.csproj
-            **/*.sln
-            NuGet.config
+
+      - name: Prepare NuGet packages folder
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
 
       - name: Restore
-        run: dotnet restore TOTP.sln --nologo --verbosity minimal --configfile NuGet.config
+        run: dotnet restore TOTP.sln --nologo --verbosity minimal --configfile NuGet.config --source https://api.nuget.org/v3/index.json
 
       - name: Scan NuGet vulnerabilities
         shell: pwsh

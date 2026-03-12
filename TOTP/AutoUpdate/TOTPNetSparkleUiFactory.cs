@@ -4,8 +4,10 @@ using NetSparkleUpdater.Interfaces;
 using NetSparkleUpdater.UI.WPF;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace TOTP.AutoUpdate;
 
@@ -14,6 +16,9 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     private readonly UIFactory _innerFactory = new();
     private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
     private readonly ILogger<TOTPDownloadProgressWindow>? _progressWindowLogger;
+    private readonly HashSet<Window> _visibleUpdaterWindows = [];
+    private readonly List<Window> _hiddenApplicationWindows = [];
+    private readonly DispatcherTimer _restoreWindowsTimer;
     private TOTPDownloadProgressWindow? _activeProgressWindow;
 
     public TOTPNetSparkleUiFactory(
@@ -22,6 +27,12 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     {
         _customInstallHandler = customInstallHandler;
         _progressWindowLogger = progressWindowLogger;
+        _restoreWindowsTimer = new DispatcherTimer(
+            TimeSpan.FromMilliseconds(150),
+            DispatcherPriority.Background,
+            (_, _) => RestoreApplicationWindowsIfIdle(),
+            Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher);
+        _restoreWindowsTimer.Stop();
     }
 
     public bool HideReleaseNotes
@@ -56,14 +67,14 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     public IUpdateAvailable CreateUpdateAvailableWindow(SparkleUpdater sparkle, List<AppCastItem> updates, bool isUpdateAlreadyDownloaded)
     {
-        return InvokeOnUi(() => new TOTPUpdateAvailableWindow(updates, isUpdateAlreadyDownloaded));
+        return InvokeOnUi(() => PrepareWindow(new TOTPUpdateAvailableWindow(updates, isUpdateAlreadyDownloaded)));
     }
 
     public IDownloadProgress CreateProgressWindow(SparkleUpdater sparkle, AppCastItem item)
     {
         return InvokeOnUi(() =>
         {
-            var window = new TOTPDownloadProgressWindow(item, _customInstallHandler, _progressWindowLogger);
+            var window = PrepareWindow(new TOTPDownloadProgressWindow(item, _customInstallHandler, _progressWindowLogger));
             window.Closed += (_, _) =>
             {
                 if (ReferenceEquals(_activeProgressWindow, window))
@@ -79,7 +90,7 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     public ICheckingForUpdates ShowCheckingForUpdates(SparkleUpdater sparkle)
     {
-        return InvokeOnUi(() => new TOTPCheckingForUpdatesWindow());
+        return InvokeOnUi(() => PrepareWindow(new TOTPCheckingForUpdatesWindow()));
     }
 
     public void Init(SparkleUpdater sparkle)
@@ -154,5 +165,121 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
         }
 
         return dispatcher.Invoke(factory);
+    }
+
+    private T PrepareWindow<T>(T window) where T : Window
+    {
+        window.SourceInitialized += UpdaterWindow_SourceInitialized;
+        window.IsVisibleChanged += UpdaterWindow_IsVisibleChanged;
+        window.Closed += UpdaterWindow_Closed;
+        return window;
+    }
+
+    private void UpdaterWindow_SourceInitialized(object? sender, EventArgs e)
+    {
+        HideApplicationWindows();
+    }
+
+    private void UpdaterWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (sender is not Window window)
+        {
+            return;
+        }
+
+        if (window.IsVisible)
+        {
+            _restoreWindowsTimer.Stop();
+            _visibleUpdaterWindows.Add(window);
+            HideApplicationWindows();
+            return;
+        }
+
+        _visibleUpdaterWindows.Remove(window);
+        ScheduleRestoreApplicationWindows();
+    }
+
+    private void UpdaterWindow_Closed(object? sender, EventArgs e)
+    {
+        if (sender is not Window window)
+        {
+            return;
+        }
+
+        window.SourceInitialized -= UpdaterWindow_SourceInitialized;
+        window.IsVisibleChanged -= UpdaterWindow_IsVisibleChanged;
+        window.Closed -= UpdaterWindow_Closed;
+        _visibleUpdaterWindows.Remove(window);
+        ScheduleRestoreApplicationWindows();
+    }
+
+    private void HideApplicationWindows()
+    {
+        if (_hiddenApplicationWindows.Count > 0)
+        {
+            return;
+        }
+
+        var windows = Application.Current?.Windows.Cast<Window>().ToList();
+        if (windows == null)
+        {
+            return;
+        }
+
+        foreach (var window in windows)
+        {
+            if (!window.IsVisible || IsUpdaterWindow(window))
+            {
+                continue;
+            }
+
+            _hiddenApplicationWindows.Add(window);
+            window.Hide();
+        }
+    }
+
+    private void ScheduleRestoreApplicationWindows()
+    {
+        if (_visibleUpdaterWindows.Count > 0 || _hiddenApplicationWindows.Count == 0)
+        {
+            return;
+        }
+
+        _restoreWindowsTimer.Stop();
+        _restoreWindowsTimer.Start();
+    }
+
+    private void RestoreApplicationWindowsIfIdle()
+    {
+        _restoreWindowsTimer.Stop();
+        if (_visibleUpdaterWindows.Count > 0 || _hiddenApplicationWindows.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var window in _hiddenApplicationWindows.Where(w => w.Owner == null).ToList())
+        {
+            if (!window.IsVisible)
+            {
+                window.Show();
+            }
+        }
+
+        foreach (var window in _hiddenApplicationWindows.Where(w => w.Owner != null).ToList())
+        {
+            if (!window.IsVisible)
+            {
+                window.Show();
+            }
+        }
+
+        _hiddenApplicationWindows.Clear();
+    }
+
+    private static bool IsUpdaterWindow(Window window)
+    {
+        return window is TOTPCheckingForUpdatesWindow
+            or TOTPDownloadProgressWindow
+            or TOTPUpdateAvailableWindow;
     }
 }

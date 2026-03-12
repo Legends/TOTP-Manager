@@ -43,7 +43,14 @@ public partial class TOTPCheckingForUpdatesWindow : Window, ICheckingForUpdates
     {
         if (Owner == null && Application.Current?.MainWindow is Window mainWindow && !ReferenceEquals(mainWindow, this))
         {
-            Owner = mainWindow;
+            if (mainWindow.IsVisible)
+            {
+                Owner = mainWindow;
+            }
+            else
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
         }
     }
 
