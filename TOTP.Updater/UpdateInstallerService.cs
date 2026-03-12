@@ -7,6 +7,8 @@ namespace TOTP.Updater;
 
 internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
 {
+    private static readonly TimeSpan ParentCloseGracePeriod = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan ProcessExitGracePeriod = TimeSpan.FromSeconds(10);
     private bool _readySignalWritten;
 
     public async Task RunAsync(IProgress<InstallerProgressState> progress, CancellationToken cancellationToken = default)
@@ -20,7 +22,7 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
         await CloseParentApplicationAsync(arguments.ParentProcessId, cancellationToken);
 
         progress.Report(CreateState("Installing update", "Waiting for the app to close...", arguments.PackagePath, string.Empty, true, 0, false));
-        await WaitForParentProcessExitAsync(arguments.ParentProcessId, cancellationToken);
+        await WaitForApplicationProcessesExitAsync(cancellationToken);
 
         progress.Report(CreateState("Installing update", "Staging update package...", arguments.PackagePath, string.Empty, true, 0, false));
         var stageDirectory = Path.Combine(Path.GetTempPath(), $"totp-update-stage-{Guid.NewGuid():N}");
@@ -72,17 +74,40 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
         };
     }
 
-    private async Task WaitForParentProcessExitAsync(int parentProcessId, CancellationToken cancellationToken)
+    private async Task WaitForApplicationProcessesExitAsync(CancellationToken cancellationToken)
     {
-        try
+        var deadline = DateTimeOffset.UtcNow.Add(ProcessExitGracePeriod);
+        while (DateTimeOffset.UtcNow < deadline)
         {
-            using var process = Process.GetProcessById(parentProcessId);
-            await process.WaitForExitAsync(cancellationToken);
-            Log($"parent process exited: {parentProcessId}");
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var runningProcesses = GetRunningApplicationProcesses();
+            if (runningProcesses.Count == 0)
+            {
+                Log("all target application processes exited");
+                return;
+            }
+
+            await Task.Delay(200, cancellationToken);
         }
-        catch (ArgumentException)
+
+        var remainingProcesses = GetRunningApplicationProcesses();
+        foreach (var process in remainingProcesses)
         {
-            Log($"parent process already exited: {parentProcessId}");
+            try
+            {
+                Log($"force killing lingering process: pid={process.Id} name={process.ProcessName}");
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Log($"failed to kill lingering process {process.Id}: {ex.Message}");
+            }
+            finally
+            {
+                process.Dispose();
+            }
         }
     }
 
@@ -100,7 +125,7 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
             process.CloseMainWindow();
             Log($"parent process close requested: {parentProcessId}");
 
-            var deadline = DateTimeOffset.UtcNow.AddSeconds(5);
+            var deadline = DateTimeOffset.UtcNow.Add(ParentCloseGracePeriod);
             while (!process.HasExited && DateTimeOffset.UtcNow < deadline)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -110,6 +135,38 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
         catch (ArgumentException)
         {
             Log($"parent process already exited before close request: {parentProcessId}");
+        }
+    }
+
+    private List<Process> GetRunningApplicationProcesses()
+    {
+        var processName = Path.GetFileNameWithoutExtension(arguments.ExecutablePath);
+        var executablePath = Path.GetFullPath(arguments.ExecutablePath);
+
+        return Process.GetProcessesByName(processName)
+            .Where(process => process.Id != Environment.ProcessId)
+            .Where(process => IsMatchingApplicationProcess(process, executablePath))
+            .ToList();
+    }
+
+    private static bool IsMatchingApplicationProcess(Process process, string executablePath)
+    {
+        try
+        {
+            var processPath = process.MainModule?.FileName;
+            if (string.IsNullOrWhiteSpace(processPath))
+            {
+                return false;
+            }
+
+            return string.Equals(
+                Path.GetFullPath(processPath),
+                executablePath,
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
         }
     }
 

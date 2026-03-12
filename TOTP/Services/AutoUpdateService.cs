@@ -415,6 +415,22 @@ public sealed class AutoUpdateService : IAutoUpdateService
             return false;
         }
 
+        var application = Application.Current;
+        if (application == null)
+        {
+            _logger.LogWarning("Auto-update install helper started, but the current WPF application was null during shutdown handoff.");
+            return true;
+        }
+
+        if (application.Dispatcher.CheckAccess())
+        {
+            application.Shutdown();
+        }
+        else
+        {
+            await application.Dispatcher.InvokeAsync(application.Shutdown);
+        }
+
         return true;
     }
 

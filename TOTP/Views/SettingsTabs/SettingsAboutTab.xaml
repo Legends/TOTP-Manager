@@ -101,10 +101,8 @@
 
                             <Button Margin="0,14,0,0"
                                     MinWidth="190"
-                                    Height="38"
-                                    Padding="14,0"
+                                    Height="34"
                                     HorizontalAlignment="Left"
-                                    Style="{StaticResource ButtonStyle.PrimaryAction}"
                                     Command="{Binding CheckForUpdatesCommand}">
                                 <StackPanel Orientation="Horizontal"
                                             VerticalAlignment="Center">
@@ -122,24 +120,31 @@
                                             <Path.RenderTransform>
                                                 <RotateTransform CenterX="8" CenterY="8" />
                                             </Path.RenderTransform>
-                                            <Path.Triggers>
-                                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
-                                                    <BeginStoryboard>
-                                                        <Storyboard RepeatBehavior="Forever">
-                                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                                                                             From="0"
-                                                                             To="360"
-                                                                             Duration="0:0:0.85" />
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </EventTrigger>
-                                            </Path.Triggers>
+                                            <Path.Style>
+                                                <Style TargetType="Path">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsCheckingForUpdates}" Value="True">
+                                                            <DataTrigger.EnterActions>
+                                                                <BeginStoryboard x:Name="SpinnerStoryboard">
+                                                                    <Storyboard RepeatBehavior="Forever">
+                                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                                                         From="0"
+                                                                                         To="360"
+                                                                                         Duration="0:0:0.85" />
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </DataTrigger.EnterActions>
+                                                            <DataTrigger.ExitActions>
+                                                                <StopStoryboard BeginStoryboardName="SpinnerStoryboard" />
+                                                            </DataTrigger.ExitActions>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Path.Style>
                                         </Path>
                                     </Grid>
                                     <TextBlock Text="{Binding CheckForUpdatesButtonText}"
-                                               VerticalAlignment="Center"
-                                               Foreground="{StaticResource Brush.TextPrimary}"
-                                               FontWeight="SemiBold" />
+                                               VerticalAlignment="Center" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>

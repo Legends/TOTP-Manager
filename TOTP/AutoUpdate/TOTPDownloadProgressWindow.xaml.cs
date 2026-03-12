@@ -298,15 +298,11 @@ public partial class TOTPDownloadProgressWindow : ChromelessWindow, IDownloadPro
     {
         if (Owner == null && Application.Current?.MainWindow is Window mainWindow && !ReferenceEquals(mainWindow, this))
         {
-            if (mainWindow.IsVisible)
-            {
-                Owner = mainWindow;
-            }
-            else
-            {
-                WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            }
+            Owner = mainWindow;
+            return;
         }
+
+        WindowStartupLocation = WindowStartupLocation.CenterScreen;
     }
 
     private void InvokeOnUi(Action action)

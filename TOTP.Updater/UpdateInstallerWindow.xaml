@@ -1,17 +1,25 @@
-<Window x:Class="TOTP.Updater.UpdateInstallerWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="TOTP Manager Updater"
-        Width="560"
-        Height="290"
-        ResizeMode="NoResize"
-        WindowStartupLocation="CenterScreen"
-        Topmost="True"
-        Background="Transparent"
-        AllowsTransparency="True"
-        WindowStyle="None"
-        ShowInTaskbar="True">
-    <Window.Resources>
+<syncfusion:ChromelessWindow x:Class="TOTP.Updater.UpdateInstallerWindow"
+                             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                             xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+                             xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
+                             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
+                             Title="TOTP Manager Updater"
+                             Width="560"
+                             Height="290"
+                             ResizeMode="NoResize"
+                             WindowStartupLocation="CenterScreen"
+                             Topmost="True"
+                             Background="Transparent"
+                             AllowsTransparency="True"
+                             WindowStyle="None"
+                             TitleBarHeight="0"
+                             ShowTitle="False"
+                             ShowIcon="False"
+                             ShowMinimizeButton="False"
+                             ShowMaximizeButton="False"
+                             ShowInTaskbar="True">
+    <syncfusion:ChromelessWindow.Resources>
         <Style x:Key="SecondaryButtonStyle"
                TargetType="Button">
             <Setter Property="Background"
@@ -27,7 +35,7 @@
             <Setter Property="FontWeight"
                     Value="SemiBold" />
         </Style>
-    </Window.Resources>
+    </syncfusion:ChromelessWindow.Resources>
 
     <Border Margin="10"
             Padding="18"
@@ -142,10 +150,9 @@
                         Width="100"
                         Height="30"
                         Content="Close"
-                        Style="{StaticResource SecondaryButtonStyle}"
                         Command="{Binding CloseCommand}"
                         IsEnabled="{Binding IsCloseEnabled, Mode=OneWay}" />
             </StackPanel>
         </Grid>
     </Border>
-</Window>
+</syncfusion:ChromelessWindow>

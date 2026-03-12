@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Threading;
+using Syncfusion.Licensing;
 
 namespace TOTP.Updater;
 
@@ -13,6 +14,7 @@ public partial class App : Application
 
         try
         {
+            RegisterSyncfusionLicense();
             var arguments = UpdateInstallArguments.Parse(e.Args);
             var window = new UpdateInstallerWindow(arguments);
             MainWindow = window;
@@ -34,6 +36,15 @@ public partial class App : Application
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
             Shutdown(-1);
+        }
+    }
+
+    private static void RegisterSyncfusionLicense()
+    {
+        var key = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE");
+        if (!string.IsNullOrWhiteSpace(key))
+        {
+            SyncfusionLicenseProvider.RegisterLicense(key);
         }
     }
 

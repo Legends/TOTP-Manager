@@ -17,7 +17,7 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
     private readonly ILogger<TOTPDownloadProgressWindow>? _progressWindowLogger;
     private readonly HashSet<Window> _visibleUpdaterWindows = [];
-    private readonly List<Window> _hiddenApplicationWindows = [];
+    private readonly Dictionary<Window, double> _suppressedApplicationWindows = [];
     private readonly DispatcherTimer _restoreWindowsTimer;
     private TOTPDownloadProgressWindow? _activeProgressWindow;
 
@@ -28,7 +28,7 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
         _customInstallHandler = customInstallHandler;
         _progressWindowLogger = progressWindowLogger;
         _restoreWindowsTimer = new DispatcherTimer(
-            TimeSpan.FromMilliseconds(150),
+            TimeSpan.FromMilliseconds(750),
             DispatcherPriority.Background,
             (_, _) => RestoreApplicationWindowsIfIdle(),
             Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher);
@@ -169,15 +169,9 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     private T PrepareWindow<T>(T window) where T : Window
     {
-        window.SourceInitialized += UpdaterWindow_SourceInitialized;
         window.IsVisibleChanged += UpdaterWindow_IsVisibleChanged;
         window.Closed += UpdaterWindow_Closed;
         return window;
-    }
-
-    private void UpdaterWindow_SourceInitialized(object? sender, EventArgs e)
-    {
-        HideApplicationWindows();
     }
 
     private void UpdaterWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -191,7 +185,7 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
         {
             _restoreWindowsTimer.Stop();
             _visibleUpdaterWindows.Add(window);
-            HideApplicationWindows();
+            SuppressApplicationWindows();
             return;
         }
 
@@ -206,20 +200,14 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
             return;
         }
 
-        window.SourceInitialized -= UpdaterWindow_SourceInitialized;
         window.IsVisibleChanged -= UpdaterWindow_IsVisibleChanged;
         window.Closed -= UpdaterWindow_Closed;
         _visibleUpdaterWindows.Remove(window);
         ScheduleRestoreApplicationWindows();
     }
 
-    private void HideApplicationWindows()
+    private void SuppressApplicationWindows()
     {
-        if (_hiddenApplicationWindows.Count > 0)
-        {
-            return;
-        }
-
         var windows = Application.Current?.Windows.Cast<Window>().ToList();
         if (windows == null)
         {
@@ -233,14 +221,18 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
                 continue;
             }
 
-            _hiddenApplicationWindows.Add(window);
-            window.Hide();
+            if (!_suppressedApplicationWindows.ContainsKey(window))
+            {
+                _suppressedApplicationWindows[window] = window.Opacity;
+            }
+
+            window.Opacity = 0;
         }
     }
 
     private void ScheduleRestoreApplicationWindows()
     {
-        if (_visibleUpdaterWindows.Count > 0 || _hiddenApplicationWindows.Count == 0)
+        if (_visibleUpdaterWindows.Count > 0 || _suppressedApplicationWindows.Count == 0)
         {
             return;
         }
@@ -252,28 +244,20 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     private void RestoreApplicationWindowsIfIdle()
     {
         _restoreWindowsTimer.Stop();
-        if (_visibleUpdaterWindows.Count > 0 || _hiddenApplicationWindows.Count == 0)
+        if (_visibleUpdaterWindows.Count > 0 || _suppressedApplicationWindows.Count == 0)
         {
             return;
         }
 
-        foreach (var window in _hiddenApplicationWindows.Where(w => w.Owner == null).ToList())
+        foreach (var entry in _suppressedApplicationWindows.ToList())
         {
-            if (!window.IsVisible)
+            if (entry.Key.IsLoaded)
             {
-                window.Show();
+                entry.Key.Opacity = entry.Value;
             }
         }
 
-        foreach (var window in _hiddenApplicationWindows.Where(w => w.Owner != null).ToList())
-        {
-            if (!window.IsVisible)
-            {
-                window.Show();
-            }
-        }
-
-        _hiddenApplicationWindows.Clear();
+        _suppressedApplicationWindows.Clear();
     }
 
     private static bool IsUpdaterWindow(Window window)
