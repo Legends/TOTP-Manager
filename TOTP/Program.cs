@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Syncfusion.SfSkinManager;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -225,6 +226,8 @@ internal static class Program
                 ShutdownMode = ShutdownMode.OnExplicitShutdown
             };
             startupSteps.Mark("app.created");
+            SfSkinManager.ApplyStylesOnApplication = true;
+            startupSteps.Mark("syncfusion.apply_styles_on_application");
             app.InitializeComponent();
             startupSteps.Mark("app.initialized");
 
