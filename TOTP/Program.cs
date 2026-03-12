@@ -2,28 +2,29 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Syncfusion.SfSkinManager;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using TOTP.Commands;
+using TOTP.Core.Common;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
-using TOTP.Commands;
 using TOTP.Helper;
 using TOTP.Infrastructure;
-using TOTP.Core.Common;
 using TOTP.Infrastructure.Logging;
 using TOTP.Resources;
 using TOTP.Security;
 using TOTP.Security.Interfaces;
-using TOTP.Startup;
 using TOTP.Services.Interfaces;
+using TOTP.Startup;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
 
@@ -225,6 +226,8 @@ internal static class Program
                 ShutdownMode = ShutdownMode.OnExplicitShutdown
             };
             startupSteps.Mark("app.created");
+            SfSkinManager.ApplyStylesOnApplication = true;
+            startupSteps.Mark("syncfusion.apply_styles_on_application");
             app.InitializeComponent();
             startupSteps.Mark("app.initialized");
 

@@ -641,7 +641,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         try
         {
             _logger.LogInformation("warmup.noncritical.begin");
-            await Task.Delay(500).ConfigureAwait(false);
+            await Task.Delay(100).ConfigureAwait(false);
 
             if (Application.Current != null)
             {

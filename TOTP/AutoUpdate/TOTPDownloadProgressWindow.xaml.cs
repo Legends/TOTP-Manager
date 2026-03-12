@@ -5,11 +5,12 @@ using NetSparkleUpdater.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
+using Syncfusion.Windows.Shared;
 using TOTP.Resources;
 
 namespace TOTP.AutoUpdate;
 
-public partial class TOTPDownloadProgressWindow : Window, IDownloadProgress
+public partial class TOTPDownloadProgressWindow : ChromelessWindow, IDownloadProgress
 {
     private readonly AppCastItem _item;
     private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;

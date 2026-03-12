@@ -7,11 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Syncfusion.Windows.Shared;
 using TOTP.Resources;
 
 namespace TOTP.AutoUpdate;
 
-public partial class TOTPUpdateAvailableWindow : Window, IUpdateAvailable
+public partial class TOTPUpdateAvailableWindow : ChromelessWindow, IUpdateAvailable
 {
     private readonly List<AppCastItem> _updates;
 

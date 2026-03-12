@@ -2,11 +2,9 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:settingsTabs="clr-namespace:TOTP.Views.SettingsTabs"
-             xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
              xmlns:xaml="clr-namespace:TOTP.Xaml"
              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
-             xmlns:attached="clr-namespace:TOTP.Infrastructure.AttachedProperties"
-             syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}">
+             xmlns:attached="clr-namespace:TOTP.Infrastructure.AttachedProperties">
 
     <Grid Margin="0,0,0,0">
         <Grid.RowDefinitions>

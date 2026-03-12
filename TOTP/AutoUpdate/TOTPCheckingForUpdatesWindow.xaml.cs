@@ -1,10 +1,11 @@
 using NetSparkleUpdater.Interfaces;
 using System;
 using System.Windows;
+using Syncfusion.Windows.Shared;
 
 namespace TOTP.AutoUpdate;
 
-public partial class TOTPCheckingForUpdatesWindow : Window, ICheckingForUpdates
+public partial class TOTPCheckingForUpdatesWindow : ChromelessWindow, ICheckingForUpdates
 {
     public event EventHandler? UpdatesUIClosing;
 

@@ -116,6 +116,11 @@ public partial class MainViewModel
 
     private async Task OpenSettingsViewAsync()
     {
+        if (IsSettingsViewOpen)
+        {
+            return;
+        }
+
         var settingsVm = await EnsureSettingsViewModelLoadedAsync(showErrorOnFailure: true);
         if (settingsVm == null)
         {

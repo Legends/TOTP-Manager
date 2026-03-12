@@ -246,18 +246,23 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
 
     private void SettingsWindow_Closed(object? sender, EventArgs e)
     {
+        if (_vm.IsSettingsViewOpen)
+        {
+            _vm.IsSettingsViewOpen = false;
+        }
+
         if (_settingsWindow != null)
         {
             _settingsWindow.Closed -= SettingsWindow_Closed;
             _settingsWindow = null;
         }
 
-        if (_vm.IsSettingsViewOpen)
-        {
-            _vm.IsSettingsViewOpen = false;
-        }
+        _settingsWindowPreloaded = false;
 
         BringMainWindowToFront();
+
+        // Queue background preload for the next time it's needed
+        QueueSettingsWindowPreload();
     }
 
     private void BringMainWindowToFront()
