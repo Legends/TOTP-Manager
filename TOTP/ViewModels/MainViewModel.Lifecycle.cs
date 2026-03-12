@@ -87,8 +87,8 @@ public partial class MainViewModel
 
     private async Task OnUnlockedAsync()
     {
-        await _autoUpdateService.InitializeAsync();
         await EnsureTokensLoadedAsync();
+        await _autoUpdateService.InitializeAsync();
         _ = WarmUpNonCriticalFeaturesAsync();
     }
 

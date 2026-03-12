@@ -159,7 +159,7 @@
                    HorizontalContentAlignment="Center"
                    HorizontalAlignment="Center"
                    FontWeight="Bold"
-                   Foreground="#C9A3DA"
+                   Foreground="#AA3ADA"
                    FontSize="15"
                    Height="{Binding CodeLabelHeight}" />
 

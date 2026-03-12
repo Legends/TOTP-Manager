@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NetSparkleUpdater;
+using NetSparkleUpdater.AssemblyAccessors;
+using NetSparkleUpdater.Configurations;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.Events;
 using NetSparkleUpdater.SignatureVerifiers;
@@ -22,6 +24,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
 {
     private static readonly bool EnableDiagnostics = true;
     private const int DefaultLoopIntervalHours = 24;
+    private const string AutoUpdateStateFileName = "autoupdate-state.json";
     private const string UpdaterBundleFolderName = "TOTP.Updater";
     private const string UpdaterExecutableName = "TOTP.Updater.exe";
     private static readonly TimeSpan UpdaterReadyTimeout = TimeSpan.FromSeconds(10);
@@ -87,8 +90,10 @@ public sealed class AutoUpdateService : IAutoUpdateService
                 RelaunchAfterUpdate = false,
                 UIFactory = _uiFactory
             };
+            _sparkle.Configuration = CreateConfiguration(assemblyLocation: ResolveAssemblyLocation());
 
             WireDiagnostics(_sparkle);
+            LogCurrentUpdateConfigurationState("after configuration load");
 
             var effectiveInterval = ResolveCheckInterval(checkIntervalMinutes);
             _logger.LogInformation(
@@ -100,7 +105,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
             if (EnableDiagnostics)
             {
-                await LogUpdateInfoAsync("diagnostic quiet check", await _sparkle.CheckForUpdatesQuietly(true));
+                await LogUpdateInfoAsync("diagnostic quiet check", await _sparkle.CheckForUpdatesQuietly(false));
             }
 
             if (interactiveDebugCheckOnStartup)
@@ -141,9 +146,21 @@ public sealed class AutoUpdateService : IAutoUpdateService
         }
 
         _logger.LogInformation("Auto-update manual check requested by the user.");
-        var updateInfo = await _sparkle.CheckForUpdatesAtUserRequest(true);
-        await LogUpdateInfoAsync("manual interactive check", updateInfo);
-        await ShowUpdateUiFallbackAsync(updateInfo, "manual interactive check");
+        var checkingWindow = _uiFactory?.ShowCheckingForUpdates(_sparkle);
+        checkingWindow?.Show();
+
+        try
+        {
+            var updateInfo = await _sparkle.CheckForUpdatesQuietly(true);
+            await LogUpdateInfoAsync("manual interactive check", updateInfo);
+            checkingWindow?.Close();
+            checkingWindow = null;
+            await ShowManualCheckResultAsync(updateInfo);
+        }
+        finally
+        {
+            checkingWindow?.Close();
+        }
     }
 
     private void WireDiagnostics(SparkleUpdater sparkle)
@@ -156,7 +173,10 @@ public sealed class AutoUpdateService : IAutoUpdateService
             _logger.LogInformation("Auto-update event: update check finished. status={Status}", status);
         sparkle.UpdateDetected += OnUpdateDetected;
         sparkle.UserRespondedToUpdate += (_, args) =>
+        {
             _logger.LogInformation("Auto-update event: user responded to update prompt. response={Response}", args.Result);
+            LogCurrentUpdateConfigurationState("after user response");
+        };
         sparkle.DownloadStarted += (item, path) =>
             _logger.LogInformation("Auto-update event: download started. version={Version} path={Path}", item.Version, path);
         sparkle.DownloadCanceled += (item, path) =>
@@ -232,6 +252,37 @@ public sealed class AutoUpdateService : IAutoUpdateService
         return TimeSpan.FromHours(DefaultLoopIntervalHours);
     }
 
+    private Configuration CreateConfiguration(string assemblyLocation)
+    {
+        var stateDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "TOTP-Manager");
+        Directory.CreateDirectory(stateDirectory);
+
+        var statePath = Path.Combine(stateDirectory, AutoUpdateStateFileName);
+        _logger.LogInformation("Auto-update configuration storage path={StatePath}", statePath);
+
+        return new JSONConfiguration(new AssemblyDiagnosticsAccessor(assemblyLocation), statePath);
+    }
+
+    private void LogCurrentUpdateConfigurationState(string label)
+    {
+        var configuration = _sparkle?.Configuration;
+        if (configuration == null)
+        {
+            _logger.LogInformation("Auto-update configuration state: {Label} configuration is null.", label);
+            return;
+        }
+
+        _logger.LogInformation(
+            "Auto-update configuration state: {Label} check_for_update={CheckForUpdate} last_check_utc={LastCheckTime} skipped_version={SkippedVersion} did_run_once={DidRunOnce}",
+            label,
+            configuration.CheckForUpdate,
+            configuration.LastCheckTime,
+            configuration.LastVersionSkipped,
+            configuration.DidRunOnce);
+    }
+
     private async Task ShowUpdateUiFallbackAsync(UpdateInfo? updateInfo, string sourceLabel)
     {
         if (_sparkle == null || updateInfo?.Status != UpdateStatus.UpdateAvailable)
@@ -256,7 +307,33 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
         await Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            _sparkle.ShowUpdateNeededUI(updates, true);
+            _sparkle.ShowUpdateNeededUI(updates, false);
+        });
+    }
+
+    private async Task ShowManualCheckResultAsync(UpdateInfo? updateInfo)
+    {
+        if (_sparkle == null)
+        {
+            return;
+        }
+
+        if (Application.Current?.Dispatcher == null)
+        {
+            _logger.LogWarning("Auto-update manual result UI skipped because there is no active WPF dispatcher.");
+            return;
+        }
+
+        await Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var updates = updateInfo?.Updates?.ToList();
+            if (updateInfo?.Status == UpdateStatus.UpdateAvailable && updates is { Count: > 0 })
+            {
+                _sparkle.ShowUpdateNeededUI(updates, false);
+                return;
+            }
+
+            _uiFactory?.ShowVersionIsUpToDate(_sparkle);
         });
     }
 
@@ -422,7 +499,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
         var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
         var assemblyVersion = assembly.GetName().Version?.ToString();
         var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-        var location = assembly.Location;
+        var location = ResolveAssemblyLocation();
         var fileVersion = string.Empty;
         var productVersion = string.Empty;
 
@@ -440,6 +517,12 @@ public sealed class AutoUpdateService : IAutoUpdateService
             productVersion,
             informationalVersion,
             location);
+    }
+
+    private static string ResolveAssemblyLocation()
+    {
+        var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+        return assembly.Location;
     }
 
     private async Task LogRemoteAppcastAsync(string appcastUrl)

@@ -1,4 +1,4 @@
-<Window x:Class="TOTP.Updater.UpdateInstallerForm"
+<Window x:Class="TOTP.Updater.UpdateInstallerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="TOTP Manager Updater"
@@ -67,26 +67,27 @@
                 </Grid>
             </Border>
 
-            <TextBlock x:Name="TitleTextBlock"
+            <TextBlock
                        Grid.Row="1"
                        FontSize="21"
                        FontWeight="SemiBold"
                        Foreground="White"
-                       Text="Installing update" />
+                       Text="{Binding TitleText, Mode=OneWay}" />
 
-            <TextBlock x:Name="StatusTextBlock"
+            <TextBlock
                        Grid.Row="2"
                        Margin="0,12,0,0"
                        FontSize="14"
                        Foreground="#FFCBDAF3"
-                       Text="Preparing updater..." />
+                       Text="{Binding StatusText, Mode=OneWay}" />
 
-            <TextBlock x:Name="DetailTextBlock"
+            <TextBlock
                        Grid.Row="3"
                        Margin="0,8,0,0"
                        FontSize="12"
                        Foreground="#FF9CC3FF"
-                       TextWrapping="Wrap" />
+                       TextWrapping="Wrap"
+                       Text="{Binding DetailText, Mode=OneWay}" />
 
             <Border Grid.Row="4"
                     Margin="0,16,0,0"
@@ -96,19 +97,40 @@
                     BorderBrush="#334F80"
                     BorderThickness="1">
                 <StackPanel>
-                    <ProgressBar x:Name="InstallProgressBar"
+                    <StackPanel Margin="0,0,0,10">
+                        <TextBlock Text="Current step"
+                                   FontSize="10"
+                                   Foreground="#7FA7D8"
+                                   TextWrapping="Wrap" />
+                        <TextBlock
+                                   Margin="0,4,0,0"
+                                   FontSize="12"
+                                   Foreground="#FF9CC3FF"
+                                   TextWrapping="Wrap"
+                                   Text="{Binding DetailText, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <ProgressBar
                                  Height="18"
-                                 IsIndeterminate="True"
                                  Minimum="0"
                                  Maximum="100"
                                  Foreground="#FF7D7FF4"
-                                 Background="#1A2E4E" />
+                                 Background="#1A2E4E"
+                                 IsIndeterminate="{Binding IsIndeterminate, Mode=OneWay}"
+                                 Value="{Binding ProgressValue, Mode=OneWay}" />
 
-                    <TextBlock x:Name="ProgressTextBlock"
-                               Margin="0,10,0,0"
-                               FontSize="11"
-                               Foreground="#FFCBDAF3"
-                               TextWrapping="Wrap" />
+                    <StackPanel Margin="0,10,0,0">
+                        <TextBlock Text="Overall progress"
+                                   FontSize="10"
+                                   Foreground="#7FA7D8"
+                                   TextWrapping="Wrap" />
+                        <TextBlock
+                                   Margin="0,4,0,0"
+                                   FontSize="11"
+                                   Foreground="#FFCBDAF3"
+                                   TextWrapping="Wrap"
+                                   Text="{Binding ProgressText, Mode=OneWay}" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
@@ -116,13 +138,13 @@
                         Margin="0,16,0,0"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
-                <Button x:Name="CloseButton"
+                <Button
                         Width="100"
                         Height="30"
-                        IsEnabled="False"
                         Content="Close"
                         Style="{StaticResource SecondaryButtonStyle}"
-                        Click="CloseButton_OnClick" />
+                        Command="{Binding CloseCommand}"
+                        IsEnabled="{Binding IsCloseEnabled, Mode=OneWay}" />
             </StackPanel>
         </Grid>
     </Border>
