@@ -106,7 +106,6 @@
                                     Height="38"
                                     Padding="14,0"
                                     HorizontalAlignment="Left"
-                                    Style="{StaticResource ButtonStyle.PrimaryAction}"
                                     Command="{Binding CheckForUpdatesCommand}">
                                 <StackPanel Orientation="Horizontal"
                                             VerticalAlignment="Center">
@@ -140,7 +139,6 @@
                                     </Grid>
                                     <TextBlock Text="{Binding CheckForUpdatesButtonText}"
                                                VerticalAlignment="Center"
-                                               Foreground="{StaticResource Brush.TextPrimary}"
                                                FontWeight="SemiBold" />
                                 </StackPanel>
                             </Button>

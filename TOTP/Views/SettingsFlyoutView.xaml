@@ -63,7 +63,6 @@
             <Button Content="{xaml:Resx Key=ui_Settings_ResetToDefaults}"
                     Command="{Binding ResetToDefaultsCommand}"
                     IsEnabled="{Binding CanResetToDefaults}"
-                    Style="{StaticResource ButtonStyle.SecondaryAction}"
                     Padding="14,6"/>
         </StackPanel>
     </Grid>

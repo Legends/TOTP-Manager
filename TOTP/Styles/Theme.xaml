@@ -17,8 +17,6 @@
     <Color x:Key="Color.SurfaceSplash">#FF0F1A2D</Color>
     <Color x:Key="Color.SurfaceSubtle">#141F3559</Color>
     <Color x:Key="Color.SurfaceSecondaryButton">#FF1A2E4E</Color>
-    <Color x:Key="Color.SurfaceSecondaryButtonHover">#FF243C63</Color>
-    <Color x:Key="Color.SurfaceSecondaryButtonPressed">#FF152744</Color>
     <Color x:Key="Color.SurfaceProgressTrack">#FF193257</Color>
     <Color x:Key="Color.SurfaceOverlay">#B010213F</Color>
     <Color x:Key="Color.SurfaceBusyOverlay">#CC000000</Color>
@@ -27,12 +25,9 @@
     <Color x:Key="Color.BorderAccent">#FF7D7FF4</Color>
     <Color x:Key="Color.BorderAccentSoft">#FF9899FF</Color>
     <Color x:Key="Color.BorderStrong">#FF2F5E9E</Color>
-    <Color x:Key="Color.BorderStrongHover">#FF4C78B8</Color>
     <Color x:Key="Color.BorderSplash">#FF2B4A7A</Color>
 
     <Color x:Key="Color.AccentPrimary">#FF7D7FF4</Color>
-    <Color x:Key="Color.AccentPrimaryHover">#FF9193FF</Color>
-    <Color x:Key="Color.AccentPrimaryPressed">#FF6A6CDF</Color>
     <Color x:Key="Color.AccentProgress">#FF6EA8FE</Color>
     <Color x:Key="Color.AccentChipBackground">#1B7D7FF4</Color>
 
@@ -51,8 +46,6 @@
     <SolidColorBrush x:Key="Brush.SurfaceSplash" Color="{StaticResource Color.SurfaceSplash}" />
     <SolidColorBrush x:Key="Brush.SurfaceSubtle" Color="{StaticResource Color.SurfaceSubtle}" />
     <SolidColorBrush x:Key="Brush.SurfaceSecondaryButton" Color="{StaticResource Color.SurfaceSecondaryButton}" />
-    <SolidColorBrush x:Key="Brush.SurfaceSecondaryButtonHover" Color="{StaticResource Color.SurfaceSecondaryButtonHover}" />
-    <SolidColorBrush x:Key="Brush.SurfaceSecondaryButtonPressed" Color="{StaticResource Color.SurfaceSecondaryButtonPressed}" />
     <SolidColorBrush x:Key="Brush.SurfaceProgressTrack" Color="{StaticResource Color.SurfaceProgressTrack}" />
     <SolidColorBrush x:Key="Brush.SurfaceOverlay" Color="{StaticResource Color.SurfaceOverlay}" />
     <SolidColorBrush x:Key="Brush.SurfaceBusyOverlay" Color="{StaticResource Color.SurfaceBusyOverlay}" />
@@ -61,12 +54,9 @@
     <SolidColorBrush x:Key="Brush.BorderAccent" Color="{StaticResource Color.BorderAccent}" />
     <SolidColorBrush x:Key="Brush.BorderAccentSoft" Color="{StaticResource Color.BorderAccentSoft}" />
     <SolidColorBrush x:Key="Brush.BorderStrong" Color="{StaticResource Color.BorderStrong}" />
-    <SolidColorBrush x:Key="Brush.BorderStrongHover" Color="{StaticResource Color.BorderStrongHover}" />
     <SolidColorBrush x:Key="Brush.BorderSplash" Color="{StaticResource Color.BorderSplash}" />
 
     <SolidColorBrush x:Key="Brush.AccentPrimary" Color="{StaticResource Color.AccentPrimary}" />
-    <SolidColorBrush x:Key="Brush.AccentPrimaryHover" Color="{StaticResource Color.AccentPrimaryHover}" />
-    <SolidColorBrush x:Key="Brush.AccentPrimaryPressed" Color="{StaticResource Color.AccentPrimaryPressed}" />
     <SolidColorBrush x:Key="Brush.AccentProgress" Color="{StaticResource Color.AccentProgress}" />
     <SolidColorBrush x:Key="Brush.AccentChipBackground" Color="{StaticResource Color.AccentChipBackground}" />
 
@@ -120,47 +110,8 @@
     </Style>
 
     <Style x:Key="ButtonStyle.SecondaryAction" TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource Brush.SurfaceSecondaryButton}" />
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextTertiary}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Brush.BorderStrong}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="12,6" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource Brush.SurfaceSecondaryButtonHover}" />
-                <Setter Property="BorderBrush" Value="{StaticResource Brush.BorderStrongHover}" />
-                <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource Brush.SurfaceSecondaryButtonPressed}" />
-                <Setter Property="BorderBrush" Value="{StaticResource Brush.BorderStrongHover}" />
-                <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
-            </Trigger>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Opacity" Value="0.65" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 
     <Style x:Key="ButtonStyle.PrimaryAction" TargetType="Button" BasedOn="{StaticResource ButtonStyle.SecondaryAction}">
-        <Setter Property="Background" Value="{StaticResource Brush.AccentPrimary}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Brush.BorderAccentSoft}" />
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource Brush.AccentPrimaryHover}" />
-                <Setter Property="BorderBrush" Value="{StaticResource Brush.BorderAccentSoft}" />
-                <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource Brush.AccentPrimaryPressed}" />
-                <Setter Property="BorderBrush" Value="{StaticResource Brush.BorderAccentSoft}" />
-                <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
-            </Trigger>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Opacity" Value="0.65" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 </ResourceDictionary>
