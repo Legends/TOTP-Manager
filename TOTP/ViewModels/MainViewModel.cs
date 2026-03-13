@@ -678,8 +678,9 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     {
         try
         {
+            _ = WarmUpNonCriticalFeaturesAsync();
             await _mainViewSessionController.InitializeAsync(mainWindow);
-
+            
             IsBusy = false;
 
         }

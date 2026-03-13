@@ -4,37 +4,25 @@ using NetSparkleUpdater.Interfaces;
 using NetSparkleUpdater.UI.WPF;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 
 namespace TOTP.AutoUpdate;
 
 internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 {
-    private sealed record WindowParkingState(double Left, double Top, WindowStartupLocation StartupLocation);
-
     private readonly UIFactory _innerFactory = new();
     private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
-    private readonly ILogger<TOTPDownloadProgressWindow>? _progressWindowLogger;
-    private readonly HashSet<Window> _visibleUpdaterWindows = [];
-    private readonly Dictionary<Window, WindowParkingState> _suppressedApplicationWindows = [];
-    private readonly DispatcherTimer _restoreWindowsTimer;
-    private TOTPDownloadProgressWindow? _activeProgressWindow;
+    private readonly ILogger<AutoUpdateDialogWindow>? _progressWindowLogger;
+    private AutoUpdateDialogWindow? _dialogWindow;
+    private UnifiedDownloadProgress? _activeProgress;
 
     public TOTPNetSparkleUiFactory(
         Func<AppCastItem, string?, Task<bool>>? customInstallHandler = null,
-        ILogger<TOTPDownloadProgressWindow>? progressWindowLogger = null)
+        ILogger<AutoUpdateDialogWindow>? progressWindowLogger = null)
     {
         _customInstallHandler = customInstallHandler;
         _progressWindowLogger = progressWindowLogger;
-        _restoreWindowsTimer = new DispatcherTimer(
-            TimeSpan.FromMilliseconds(750),
-            DispatcherPriority.Background,
-            (_, _) => RestoreApplicationWindowsIfIdle(),
-            Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher);
-        _restoreWindowsTimer.Stop();
     }
 
     public bool HideReleaseNotes
@@ -69,30 +57,21 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     public IUpdateAvailable CreateUpdateAvailableWindow(SparkleUpdater sparkle, List<AppCastItem> updates, bool isUpdateAlreadyDownloaded)
     {
-        return InvokeOnUi(() => PrepareWindow(new TOTPUpdateAvailableWindow(updates, isUpdateAlreadyDownloaded)));
+        return InvokeOnUi(() => new UnifiedUpdateAvailable(GetOrCreateDialogWindow(), updates, isUpdateAlreadyDownloaded));
     }
 
     public IDownloadProgress CreateProgressWindow(SparkleUpdater sparkle, AppCastItem item)
     {
         return InvokeOnUi(() =>
         {
-            var window = PrepareWindow(new TOTPDownloadProgressWindow(item, _customInstallHandler, _progressWindowLogger));
-            window.Closed += (_, _) =>
-            {
-                if (ReferenceEquals(_activeProgressWindow, window))
-                {
-                    _activeProgressWindow = null;
-                }
-            };
-
-            _activeProgressWindow = window;
-            return _activeProgressWindow;
+            _activeProgress = new UnifiedDownloadProgress(GetOrCreateDialogWindow(), item, _customInstallHandler, _progressWindowLogger);
+            return _activeProgress;
         });
     }
 
     public ICheckingForUpdates ShowCheckingForUpdates(SparkleUpdater sparkle)
     {
-        return InvokeOnUi(() => PrepareWindow(new TOTPCheckingForUpdatesWindow()));
+        return InvokeOnUi(() => new UnifiedCheckingForUpdates(GetOrCreateDialogWindow()));
     }
 
     public void Init(SparkleUpdater sparkle)
@@ -102,21 +81,25 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     public void ShowUnknownInstallerFormatMessage(SparkleUpdater sparkle, string downloadFileName)
     {
+        RestoreParkedWindows();
         _innerFactory.ShowUnknownInstallerFormatMessage(sparkle, downloadFileName);
     }
 
     public void ShowVersionIsUpToDate(SparkleUpdater sparkle)
     {
+        RestoreParkedWindows();
         _innerFactory.ShowVersionIsUpToDate(sparkle);
     }
 
     public void ShowVersionIsSkippedByUserRequest(SparkleUpdater sparkle)
     {
+        RestoreParkedWindows();
         _innerFactory.ShowVersionIsSkippedByUserRequest(sparkle);
     }
 
     public void ShowCannotDownloadAppcast(SparkleUpdater sparkle, string appcastUrl)
     {
+        RestoreParkedWindows();
         _innerFactory.ShowCannotDownloadAppcast(sparkle, appcastUrl);
     }
 
@@ -132,11 +115,12 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     public void ShowDownloadErrorMessage(SparkleUpdater sparkle, string message, string appcastUrl)
     {
-        if (_activeProgressWindow?.DisplayErrorMessage(message) == true)
+        if (_activeProgress?.DisplayErrorMessage(message) == true)
         {
             return;
         }
 
+        RestoreParkedWindows();
         _innerFactory.ShowDownloadErrorMessage(sparkle, message, appcastUrl);
     }
 
@@ -147,15 +131,7 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     public void SetDownloadedFilePath(AppCastItem item, string? downloadedFilePath)
     {
-        if (_activeProgressWindow == null)
-        {
-            return;
-        }
-
-        if (!ReferenceEquals(_activeProgressWindow, null))
-        {
-            _activeProgressWindow.SetDownloadedFilePath(downloadedFilePath);
-        }
+        _activeProgress?.SetDownloadedFilePath(downloadedFilePath);
     }
 
     private static T InvokeOnUi<T>(Func<T> factory)
@@ -169,110 +145,26 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
         return dispatcher.Invoke(factory);
     }
 
-    private T PrepareWindow<T>(T window) where T : Window
+    private static void InvokeOnUi(Action action)
     {
-        window.IsVisibleChanged += UpdaterWindow_IsVisibleChanged;
-        window.Closed += UpdaterWindow_Closed;
-        return window;
-    }
-
-    private void UpdaterWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-    {
-        if (sender is not Window window)
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null || dispatcher.CheckAccess())
         {
+            action();
             return;
         }
 
-        if (window.IsVisible)
-        {
-            _restoreWindowsTimer.Stop();
-            _visibleUpdaterWindows.Add(window);
-            SuppressApplicationWindows();
-            return;
-        }
-
-        _visibleUpdaterWindows.Remove(window);
-        ScheduleRestoreApplicationWindows();
+        dispatcher.Invoke(action);
     }
 
-    private void UpdaterWindow_Closed(object? sender, EventArgs e)
+    private AutoUpdateDialogWindow GetOrCreateDialogWindow()
     {
-        if (sender is not Window window)
-        {
-            return;
-        }
-
-        window.IsVisibleChanged -= UpdaterWindow_IsVisibleChanged;
-        window.Closed -= UpdaterWindow_Closed;
-        _visibleUpdaterWindows.Remove(window);
-        ScheduleRestoreApplicationWindows();
+        _dialogWindow ??= new AutoUpdateDialogWindow();
+        return _dialogWindow;
     }
 
-    private void SuppressApplicationWindows()
+    private void RestoreParkedWindows()
     {
-        var windows = Application.Current?.Windows.Cast<Window>().ToList();
-        if (windows == null)
-        {
-            return;
-        }
-
-        foreach (var window in windows)
-        {
-            if (!window.IsVisible || IsUpdaterWindow(window))
-            {
-                continue;
-            }
-
-            if (!_suppressedApplicationWindows.ContainsKey(window))
-            {
-                _suppressedApplicationWindows[window] = new WindowParkingState(
-                    window.Left,
-                    window.Top,
-                    window.WindowStartupLocation);
-            }
-
-            window.WindowStartupLocation = WindowStartupLocation.Manual;
-            window.Left = -32000;
-            window.Top = -32000;
-        }
-    }
-
-    private void ScheduleRestoreApplicationWindows()
-    {
-        if (_visibleUpdaterWindows.Count > 0 || _suppressedApplicationWindows.Count == 0)
-        {
-            return;
-        }
-
-        _restoreWindowsTimer.Stop();
-        _restoreWindowsTimer.Start();
-    }
-
-    private void RestoreApplicationWindowsIfIdle()
-    {
-        _restoreWindowsTimer.Stop();
-        if (_visibleUpdaterWindows.Count > 0 || _suppressedApplicationWindows.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var entry in _suppressedApplicationWindows.ToList())
-        {
-            if (entry.Key.IsLoaded)
-            {
-                entry.Key.Left = entry.Value.Left;
-                entry.Key.Top = entry.Value.Top;
-                entry.Key.WindowStartupLocation = entry.Value.StartupLocation;
-            }
-        }
-
-        _suppressedApplicationWindows.Clear();
-    }
-
-    private static bool IsUpdaterWindow(Window window)
-    {
-        return window is TOTPCheckingForUpdatesWindow
-            or TOTPDownloadProgressWindow
-            or TOTPUpdateAvailableWindow;
+        InvokeOnUi(() => _dialogWindow?.RestoreBackgroundWindowsNow());
     }
 }

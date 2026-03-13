@@ -22,12 +22,13 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
     private readonly Stopwatch _lifecycleStopwatch = Stopwatch.StartNew();
     private readonly IMainViewModel _vm;
     private SettingsWindow? _settingsWindow;
-    private bool _closingSettingsWindow;
     private bool _settingsWindowPreloadQueued;
     private bool _settingsWindowPreloaded;
     private bool _dataGridResourcesLoaded;
     private bool _accountsSectionLoaded;
     private bool _editFlyoutViewLoaded;
+    private bool _allowSettingsWindowClose;
+    private bool _handlingSettingsWindowClosing;
 
     public MainWindow(IMainViewModel vm)
     {
@@ -188,11 +189,9 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
             return;
         }
 
-        if (_settingsWindow != null && _settingsWindow.IsVisible && !_closingSettingsWindow)
+        if (_settingsWindow != null && _settingsWindow.IsVisible)
         {
-            _closingSettingsWindow = true;
-            _settingsWindow.Close();
-            _closingSettingsWindow = false;
+            _settingsWindow.Hide();
         }
     }
 
@@ -234,7 +233,7 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
                 Owner = this,
                 DataContext = _vm.SettingsVm
             };
-            _settingsWindow.Closed += SettingsWindow_Closed;
+            _settingsWindow.Closing += SettingsWindow_Closing;
             return;
         }
 
@@ -244,25 +243,47 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         }
     }
 
-    private void SettingsWindow_Closed(object? sender, EventArgs e)
+    private void SettingsWindow_Closing(object? sender, CancelEventArgs e)
     {
-        if (_vm.IsSettingsViewOpen)
+        if (_allowSettingsWindowClose)
         {
-            _vm.IsSettingsViewOpen = false;
+            return;
         }
 
+        e.Cancel = true;
+        if (_handlingSettingsWindowClosing)
+        {
+            return;
+        }
+
+        try
+        {
+            _handlingSettingsWindowClosing = true;
+            _settingsWindow?.Hide();
+            if (_vm.IsSettingsViewOpen)
+            {
+                _vm.IsSettingsViewOpen = false;
+            }
+
+            BringMainWindowToFront();
+        }
+        finally
+        {
+            _handlingSettingsWindowClosing = false;
+        }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
         if (_settingsWindow != null)
         {
-            _settingsWindow.Closed -= SettingsWindow_Closed;
+            _allowSettingsWindowClose = true;
+            _settingsWindow.Closing -= SettingsWindow_Closing;
+            _settingsWindow.Close();
             _settingsWindow = null;
         }
 
-        _settingsWindowPreloaded = false;
-
-        BringMainWindowToFront();
-
-        // Queue background preload for the next time it's needed
-        QueueSettingsWindowPreload();
+        base.OnClosed(e);
     }
 
     private void BringMainWindowToFront()

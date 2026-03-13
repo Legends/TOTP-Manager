@@ -20,6 +20,7 @@
                              ShowMaximizeButton="False"
                              ShowInTaskbar="True">
     <syncfusion:ChromelessWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <Style x:Key="SecondaryButtonStyle"
                TargetType="Button">
             <Setter Property="Background"
@@ -151,7 +152,8 @@
                         Height="30"
                         Content="Close"
                         Command="{Binding CloseCommand}"
-                        IsEnabled="{Binding IsCloseEnabled, Mode=OneWay}" />
+                        IsEnabled="{Binding IsCloseEnabled, Mode=OneWay}"
+                        Visibility="{Binding IsCloseEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Grid>
     </Border>

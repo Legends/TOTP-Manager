@@ -21,7 +21,7 @@
 
                     <StackPanel Grid.Row="0">
                         <TextBlock Text="{xaml:Resx Key=ui_Settings_About_AppName}"
-                                   Style="{StaticResource TextStyle.PageTitle}" />
+                                   Style="{StaticResource TextStyle.SectionHeader}" />
                         <TextBlock Text="{xaml:Resx Key=ui_Settings_About_Description}"
                                    Margin="0,6,0,0"
                                    Style="{StaticResource TextStyle.Subheader}"

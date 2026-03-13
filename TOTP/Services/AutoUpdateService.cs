@@ -81,7 +81,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
             _uiFactory = new TOTPNetSparkleUiFactory(
                 InstallDownloadedUpdateAsync,
-                _loggerFactory.CreateLogger<TOTPDownloadProgressWindow>());
+                _loggerFactory.CreateLogger<AutoUpdateDialogWindow>());
 
             _sparkle = new SparkleUpdater(
                 appcastUrl,
@@ -324,10 +324,10 @@ public sealed class AutoUpdateService : IAutoUpdateService
 
         await Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            var updates = updateInfo?.Updates?.ToList();
-            if (updateInfo?.Status == UpdateStatus.UpdateAvailable && updates is { Count: > 0 })
+            if (updateInfo?.Status == UpdateStatus.UpdateAvailable)
             {
-                _sparkle.ShowUpdateNeededUI(updates, false);
+                _logger.LogInformation(
+                    "Auto-update manual result UI: update available result already handled by NetSparkle interactive flow.");
                 return;
             }
 
