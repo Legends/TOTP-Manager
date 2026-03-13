@@ -1,11 +1,9 @@
 using NetSparkleUpdater.Interfaces;
 using System;
-using System.Windows;
-using Syncfusion.Windows.Shared;
 
 namespace TOTP.AutoUpdate;
 
-public partial class TOTPCheckingForUpdatesWindow : ChromelessWindow, ICheckingForUpdates
+public partial class TOTPCheckingForUpdatesWindow : AutoUpdateWindowBase, ICheckingForUpdates
 {
     public event EventHandler? UpdatesUIClosing;
 
@@ -17,49 +15,11 @@ public partial class TOTPCheckingForUpdatesWindow : ChromelessWindow, ICheckingF
 
     public new void Show()
     {
-        InvokeOnUi(() =>
-        {
-            ConfigureOwner();
-            if (!IsVisible)
-            {
-                base.Show();
-            }
-
-            Activate();
-        });
+        ShowOwnedWindow();
     }
 
     public new void Close()
     {
-        InvokeOnUi(() =>
-        {
-            if (IsVisible)
-            {
-                base.Close();
-            }
-        });
-    }
-
-    private void ConfigureOwner()
-    {
-        if (Owner == null && Application.Current?.MainWindow is Window mainWindow && !ReferenceEquals(mainWindow, this))
-        {
-            Owner = mainWindow;
-            return;
-        }
-
-        WindowStartupLocation = WindowStartupLocation.CenterScreen;
-    }
-
-    private void InvokeOnUi(Action action)
-    {
-        var dispatcher = Application.Current?.Dispatcher ?? Dispatcher;
-        if (dispatcher.CheckAccess())
-        {
-            action();
-            return;
-        }
-
-        dispatcher.Invoke(action);
+        CloseIfVisible();
     }
 }

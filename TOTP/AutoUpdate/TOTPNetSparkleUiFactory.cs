@@ -13,11 +13,13 @@ namespace TOTP.AutoUpdate;
 
 internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 {
+    private sealed record WindowParkingState(double Left, double Top, WindowStartupLocation StartupLocation);
+
     private readonly UIFactory _innerFactory = new();
     private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
     private readonly ILogger<TOTPDownloadProgressWindow>? _progressWindowLogger;
     private readonly HashSet<Window> _visibleUpdaterWindows = [];
-    private readonly Dictionary<Window, double> _suppressedApplicationWindows = [];
+    private readonly Dictionary<Window, WindowParkingState> _suppressedApplicationWindows = [];
     private readonly DispatcherTimer _restoreWindowsTimer;
     private TOTPDownloadProgressWindow? _activeProgressWindow;
 
@@ -223,10 +225,15 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
             if (!_suppressedApplicationWindows.ContainsKey(window))
             {
-                _suppressedApplicationWindows[window] = window.Opacity;
+                _suppressedApplicationWindows[window] = new WindowParkingState(
+                    window.Left,
+                    window.Top,
+                    window.WindowStartupLocation);
             }
 
-            window.Opacity = 0;
+            window.WindowStartupLocation = WindowStartupLocation.Manual;
+            window.Left = -32000;
+            window.Top = -32000;
         }
     }
 
@@ -253,7 +260,9 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
         {
             if (entry.Key.IsLoaded)
             {
-                entry.Key.Opacity = entry.Value;
+                entry.Key.Left = entry.Value.Left;
+                entry.Key.Top = entry.Value.Top;
+                entry.Key.WindowStartupLocation = entry.Value.StartupLocation;
             }
         }
 

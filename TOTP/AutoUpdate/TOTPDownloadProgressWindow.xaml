@@ -1,22 +1,22 @@
-<syncfusion:ChromelessWindow x:Class="TOTP.AutoUpdate.TOTPDownloadProgressWindow"
-                             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                             xmlns:xaml="clr-namespace:TOTP.Xaml"
-                             xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
-                             ResizeMode="NoResize"
-                             ShowInTaskbar="False"
-                             WindowStyle="None"
-                             TitleBarHeight="0"
-                             ShowTitle="False"
-                             ShowIcon="False"
-                             ShowMinimizeButton="False"
-                             ShowMaximizeButton="False"
-                             AllowsTransparency="True"
-                             SizeToContent="WidthAndHeight"
-                             Background="Transparent"
-                              
-                             WindowStartupLocation="CenterOwner">
-    <syncfusion:ChromelessWindow.Resources>
+<local:AutoUpdateWindowBase x:Class="TOTP.AutoUpdate.TOTPDownloadProgressWindow"
+                            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                            xmlns:local="clr-namespace:TOTP.AutoUpdate"
+                            xmlns:xaml="clr-namespace:TOTP.Xaml"
+                            xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+                            ResizeMode="NoResize"
+                            ShowInTaskbar="False"
+                            WindowStyle="None"
+                            TitleBarHeight="0"
+                            ShowTitle="False"
+                            ShowIcon="False"
+                            ShowMinimizeButton="False"
+                            ShowMaximizeButton="False"
+                            AllowsTransparency="True"
+                            SizeToContent="WidthAndHeight"
+                            Background="Transparent"
+                            WindowStartupLocation="CenterScreen">
+    <local:AutoUpdateWindowBase.Resources>
         <Style x:Key="ProgressActionButtonStyle"
                TargetType="Button">
             <Setter Property="Background"
@@ -32,7 +32,7 @@
             <Setter Property="FontWeight"
                     Value="SemiBold" />
         </Style>
-        </syncfusion:ChromelessWindow.Resources>
+    </local:AutoUpdateWindowBase.Resources>
     <Border Margin="10"
             Padding="18"
             CornerRadius="12"
@@ -155,4 +155,4 @@
             </StackPanel>
         </Grid>
     </Border>
-    </syncfusion:ChromelessWindow>
+</local:AutoUpdateWindowBase>

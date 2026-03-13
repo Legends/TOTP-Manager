@@ -5,12 +5,11 @@ using NetSparkleUpdater.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
-using Syncfusion.Windows.Shared;
 using TOTP.Resources;
 
 namespace TOTP.AutoUpdate;
 
-public partial class TOTPDownloadProgressWindow : ChromelessWindow, IDownloadProgress
+public partial class TOTPDownloadProgressWindow : AutoUpdateWindowBase, IDownloadProgress
 {
     private readonly AppCastItem _item;
     private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
@@ -82,16 +81,7 @@ public partial class TOTPDownloadProgressWindow : ChromelessWindow, IDownloadPro
 
     public void Show(bool isOnMainThread)
     {
-        InvokeOnUi(() =>
-        {
-            ConfigureOwner();
-            if (!IsVisible)
-            {
-                base.Show();
-            }
-
-            Activate();
-        });
+        ShowOwnedWindow();
 
         _logger?.LogInformation(
             "Auto-update progress window: shown. version={Version}",
@@ -133,13 +123,7 @@ public partial class TOTPDownloadProgressWindow : ChromelessWindow, IDownloadPro
 
     public new void Close()
     {
-        InvokeOnUi(() =>
-        {
-            if (IsVisible)
-            {
-                base.Close();
-            }
-        });
+        CloseIfVisible();
     }
 
     public void FinishedDownloadingFile(bool isDownloadedFileValid)
@@ -292,29 +276,6 @@ public partial class TOTPDownloadProgressWindow : ChromelessWindow, IDownloadPro
 
         DownloadProcessCompleted?.Invoke(this, new DownloadInstallEventArgs(true));
         Close();
-    }
-
-    private void ConfigureOwner()
-    {
-        if (Owner == null && Application.Current?.MainWindow is Window mainWindow && !ReferenceEquals(mainWindow, this))
-        {
-            Owner = mainWindow;
-            return;
-        }
-
-        WindowStartupLocation = WindowStartupLocation.CenterScreen;
-    }
-
-    private void InvokeOnUi(Action action)
-    {
-        var dispatcher = Application.Current?.Dispatcher ?? Dispatcher;
-        if (dispatcher.CheckAccess())
-        {
-            action();
-            return;
-        }
-
-        dispatcher.Invoke(action);
     }
 
     private static string FormatBytes(long bytes)

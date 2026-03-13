@@ -7,12 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Syncfusion.Windows.Shared;
 using TOTP.Resources;
 
 namespace TOTP.AutoUpdate;
 
-public partial class TOTPUpdateAvailableWindow : ChromelessWindow, IUpdateAvailable
+public partial class TOTPUpdateAvailableWindow : AutoUpdateWindowBase, IUpdateAvailable
 {
     private readonly List<AppCastItem> _updates;
 
@@ -42,14 +41,7 @@ public partial class TOTPUpdateAvailableWindow : ChromelessWindow, IUpdateAvaila
 
     public void Show(bool isOnMainThread)
     {
-        InvokeOnUi(() =>
-        {
-            ConfigureOwner();
-            if (!IsVisible)
-            {
-                ShowDialog();
-            }
-        });
+        ShowOwnedDialogWindow();
     }
 
     public void HideReleaseNotes()
@@ -80,13 +72,7 @@ public partial class TOTPUpdateAvailableWindow : ChromelessWindow, IUpdateAvaila
 
     public new void Close()
     {
-        InvokeOnUi(() =>
-        {
-            if (IsVisible)
-            {
-                base.Close();
-            }
-        });
+        CloseIfVisible();
     }
 
     private void InstallButton_OnClick(object sender, RoutedEventArgs e)
@@ -120,29 +106,6 @@ public partial class TOTPUpdateAvailableWindow : ChromelessWindow, IUpdateAvaila
 
         CurrentItem = item;
         ApplyCurrentItem(item, Equals(InstallButton.Content, UI.ui_Updater_Available_Button_Install));
-    }
-
-    private void ConfigureOwner()
-    {
-        if (Owner == null && Application.Current?.MainWindow is Window mainWindow && !ReferenceEquals(mainWindow, this))
-        {
-            Owner = mainWindow;
-            return;
-        }
-
-        WindowStartupLocation = WindowStartupLocation.CenterScreen;
-    }
-
-    private void InvokeOnUi(Action action)
-    {
-        var dispatcher = Application.Current?.Dispatcher ?? Dispatcher;
-        if (dispatcher.CheckAccess())
-        {
-            action();
-            return;
-        }
-
-        dispatcher.Invoke(action);
     }
 
     private static string BuildSummaryText(AppCastItem item, bool isUpdateAlreadyDownloaded)
