@@ -158,6 +158,42 @@ public sealed class AutoUpdateDialogWindowTests
     }
 
     [Fact]
+    public void UnifiedUpdateAvailable_Close_AfterInstallResponse_DoesNotDismissDialog()
+    {
+        RunInSta(() =>
+        {
+            EnsureAppResources();
+            var sut = new AutoUpdateDialogWindow
+            {
+                SuppressPresentation = true
+            };
+            var controller = new UnifiedUpdateAvailable(
+                sut,
+                [
+                    new AppCastItem
+                    {
+                        Title = "TOTP Manager",
+                        ShortVersion = "1.0.0.51",
+                        Version = "1.0.0.51",
+                        DownloadLink = "https://example.invalid/TOTP-Manager-fast.zip",
+                        UpdateSize = 54239853
+                    }
+                ],
+                isUpdateAlreadyDownloaded: false);
+
+            controller.Show(isOnMainThread: true);
+            sut.State.InstallCommand.Execute(null);
+            DispatcherUtil.DoEvents();
+
+            controller.Close();
+
+            Assert.Equal(AutoUpdateDialogStep.Progress, sut.State.CurrentStep);
+            Assert.True(sut.State.IsProgressVisible);
+            sut.CloseDialog();
+        });
+    }
+
+    [Fact]
     public void ShowUpdateAvailable_UsesOwnerCenteredMessagingAndRecommendedOffer()
     {
         RunInSta(() =>
