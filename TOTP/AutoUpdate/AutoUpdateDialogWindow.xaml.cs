@@ -63,7 +63,7 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
         InvokeOnUi(() =>
         {
             _state.ShowChecking();
-            EnsurePresented(parkApplicationWindows: false);
+            EnsurePresented(parkApplicationWindows: true);
         });
     }
 

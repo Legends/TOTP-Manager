@@ -5,6 +5,25 @@
              xmlns:xaml="clr-namespace:TOTP.Xaml"
              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
              xmlns:attached="clr-namespace:TOTP.Infrastructure.AttachedProperties">
+    <UserControl.Resources>
+        <Style x:Key="ResetDefaultsButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ButtonStyle.SecondaryAction}">
+            <Style.Triggers>
+                <Trigger Property="IsEnabled"
+                         Value="False">
+                    <Setter Property="Opacity"
+                            Value="1" />
+                    <Setter Property="Background"
+                            Value="{StaticResource Brush.SurfaceSubtle}" />
+                    <Setter Property="BorderBrush"
+                            Value="{StaticResource Brush.BorderAccent}" />
+                    <Setter Property="Foreground"
+                            Value="{StaticResource Brush.TextSecondary}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
 
     <Grid Margin="0,0,0,0">
         <Grid.RowDefinitions>
@@ -61,7 +80,7 @@
             <Button Content="{xaml:Resx Key=ui_Settings_ResetToDefaults}"
                     Command="{Binding ResetToDefaultsCommand}"
                     IsEnabled="{Binding CanResetToDefaults}"
-                    Style="{StaticResource ButtonStyle.SecondaryAction}"
+                    Style="{StaticResource ResetDefaultsButtonStyle}"
                     Padding="14,6"/>
         </StackPanel>
     </Grid>
