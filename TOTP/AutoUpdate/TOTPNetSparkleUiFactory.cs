@@ -4,6 +4,8 @@ using NetSparkleUpdater.Interfaces;
 using NetSparkleUpdater.UI.WPF;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -14,6 +16,7 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     private readonly UIFactory _innerFactory = new();
     private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
     private readonly ILogger<AutoUpdateDialogWindow>? _progressWindowLogger;
+    private readonly Dictionary<string, string> _downloadedPathByItemKey = new(StringComparer.OrdinalIgnoreCase);
     private AutoUpdateDialogWindow? _dialogWindow;
     private UnifiedDownloadProgress? _activeProgress;
 
@@ -57,14 +60,20 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     public IUpdateAvailable CreateUpdateAvailableWindow(SparkleUpdater sparkle, List<AppCastItem> updates, bool isUpdateAlreadyDownloaded)
     {
-        return InvokeOnUi(() => new UnifiedUpdateAvailable(GetOrCreateDialogWindow(), updates, isUpdateAlreadyDownloaded));
+        var effectiveAlreadyDownloaded = isUpdateAlreadyDownloaded || HasAnyKnownDownloadedUpdate(sparkle, updates);
+        _progressWindowLogger?.LogInformation(
+            "Auto-update available dialog: shown. net_sparkle_already_downloaded={NetSparkleAlreadyDownloaded} effective_already_downloaded={EffectiveAlreadyDownloaded} items={ItemCount}",
+            isUpdateAlreadyDownloaded,
+            effectiveAlreadyDownloaded,
+            updates.Count);
+        return InvokeOnUi(() => new UnifiedUpdateAvailable(GetOrCreateDialogWindow(), updates, effectiveAlreadyDownloaded));
     }
 
     public IDownloadProgress CreateProgressWindow(SparkleUpdater sparkle, AppCastItem item)
     {
         return InvokeOnUi(() =>
         {
-            _activeProgress = new UnifiedDownloadProgress(GetOrCreateDialogWindow(), item, _customInstallHandler, _progressWindowLogger);
+            _activeProgress = new UnifiedDownloadProgress(GetOrCreateDialogWindow(), sparkle, item, _customInstallHandler, _progressWindowLogger);
             return _activeProgress;
         });
     }
@@ -131,7 +140,13 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     public void SetDownloadedFilePath(AppCastItem item, string? downloadedFilePath)
     {
+        RememberDownloadedPath(item, downloadedFilePath);
         _activeProgress?.SetDownloadedFilePath(downloadedFilePath);
+    }
+
+    public void NotifyDownloadStarted(AppCastItem item, string? downloadPath)
+    {
+        _activeProgress?.NotifyDownloadStarted(downloadPath);
     }
 
     private static T InvokeOnUi<T>(Func<T> factory)
@@ -166,5 +181,47 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     private void RestoreParkedWindows()
     {
         InvokeOnUi(() => _dialogWindow?.RestoreBackgroundWindowsNow());
+    }
+
+    private bool HasAnyKnownDownloadedUpdate(SparkleUpdater sparkle, IEnumerable<AppCastItem> updates)
+    {
+        return updates.Any(item => TryResolveExistingDownloadedPath(sparkle, item, out _));
+    }
+
+    private bool TryResolveExistingDownloadedPath(SparkleUpdater sparkle, AppCastItem item, out string? path)
+    {
+        var itemKey = GetItemKey(item);
+        if (_downloadedPathByItemKey.TryGetValue(itemKey, out var rememberedPath) && PathExists(rememberedPath))
+        {
+            path = rememberedPath;
+            return true;
+        }
+
+        path = sparkle.GetDownloadPathForAppCastItem(item).GetAwaiter().GetResult();
+        return PathExists(path);
+    }
+
+    private void RememberDownloadedPath(AppCastItem item, string? downloadedFilePath)
+    {
+        if (!PathExists(downloadedFilePath))
+        {
+            return;
+        }
+
+        _downloadedPathByItemKey[GetItemKey(item)] = downloadedFilePath!;
+        _progressWindowLogger?.LogInformation(
+            "Auto-update progress dialog: remembered downloaded path. version={Version} path={Path}",
+            item.ShortVersion ?? item.Version?.ToString() ?? "unknown",
+            downloadedFilePath);
+    }
+
+    private static string GetItemKey(AppCastItem item)
+    {
+        return $"{item.Version}|{item.ShortVersion}|{item.DownloadLink}";
+    }
+
+    private static bool PathExists(string? path)
+    {
+        return !string.IsNullOrWhiteSpace(path) && (File.Exists(path) || Directory.Exists(path));
     }
 }

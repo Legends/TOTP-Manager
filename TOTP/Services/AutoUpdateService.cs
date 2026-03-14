@@ -148,11 +148,13 @@ public sealed class AutoUpdateService : IAutoUpdateService
         _logger.LogInformation("Auto-update manual check requested by the user.");
         var checkingWindow = _uiFactory?.ShowCheckingForUpdates(_sparkle);
         checkingWindow?.Show();
+        LogCurrentUpdateConfigurationState("before manual interactive check");
 
         try
         {
             var updateInfo = await _sparkle.CheckForUpdatesQuietly(true);
             await LogUpdateInfoAsync("manual interactive check", updateInfo);
+            LogCurrentUpdateConfigurationState("after manual interactive check");
             checkingWindow?.Close();
             checkingWindow = null;
             await ShowManualCheckResultAsync(updateInfo);
@@ -178,7 +180,10 @@ public sealed class AutoUpdateService : IAutoUpdateService
             LogCurrentUpdateConfigurationState("after user response");
         };
         sparkle.DownloadStarted += (item, path) =>
+        {
             _logger.LogInformation("Auto-update event: download started. version={Version} path={Path}", item.Version, path);
+            _uiFactory?.NotifyDownloadStarted(item, path);
+        };
         sparkle.DownloadCanceled += (item, path) =>
             _logger.LogInformation("Auto-update event: download canceled. version={Version} path={Path}", item.Version, path);
         sparkle.DownloadMadeProgress += (_, item, args) =>

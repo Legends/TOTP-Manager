@@ -43,6 +43,8 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
     private bool _progressActionEnabled;
     private bool _progressActionBusy;
     private string _progressActionText = UI.ui_btnClose;
+    private bool _progressSecondaryActionVisible;
+    private string _progressSecondaryActionText = UI.ui_btnClose;
     private bool _progressIndeterminate = true;
     private double _progressValue;
     private bool _downloadInstallRequested;
@@ -53,6 +55,7 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
         RemindLaterCommand = new RelayCommand(() => TryRaiseUpdateResponse(UpdateAvailableResult.RemindMeLater));
         SkipCommand = new RelayCommand(() => TryRaiseUpdateResponse(UpdateAvailableResult.SkipUpdate));
         ProgressActionCommand = new RelayCommand(() => ProgressActionRequested?.Invoke());
+        ProgressSecondaryActionCommand = new RelayCommand(() => ProgressSecondaryActionRequested?.Invoke());
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -61,6 +64,8 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
 
     public event Action? ProgressActionRequested;
 
+    public event Action? ProgressSecondaryActionRequested;
+
     public ICommand InstallCommand { get; }
 
     public ICommand RemindLaterCommand { get; }
@@ -68,6 +73,8 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
     public ICommand SkipCommand { get; }
 
     public ICommand ProgressActionCommand { get; }
+
+    public ICommand ProgressSecondaryActionCommand { get; }
 
     public AutoUpdateDialogStep CurrentStep
     {
@@ -136,6 +143,8 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
     public bool ProgressActionEnabled { get => _progressActionEnabled; private set => SetProperty(ref _progressActionEnabled, value); }
     public bool ProgressActionBusy { get => _progressActionBusy; private set => SetProperty(ref _progressActionBusy, value); }
     public string ProgressActionText { get => _progressActionText; private set => SetProperty(ref _progressActionText, value); }
+    public bool ProgressSecondaryActionVisible { get => _progressSecondaryActionVisible; private set => SetProperty(ref _progressSecondaryActionVisible, value); }
+    public string ProgressSecondaryActionText { get => _progressSecondaryActionText; private set => SetProperty(ref _progressSecondaryActionText, value); }
     public bool ProgressIndeterminate { get => _progressIndeterminate; private set => SetProperty(ref _progressIndeterminate, value); }
     public double ProgressValue { get => _progressValue; private set => SetProperty(ref _progressValue, value); }
 
@@ -183,8 +192,10 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
         ProgressErrorText = string.Empty;
         ProgressErrorVisible = false;
         ProgressActionBusy = false;
-        ProgressActionText = UI.ui_btnClose;
-        ProgressActionEnabled = false;
+        ProgressActionText = UI.ui_btnCancel;
+        ProgressSecondaryActionVisible = false;
+        ProgressSecondaryActionText = UI.ui_btnClose;
+        ProgressActionEnabled = true;
         ProgressIndeterminate = true;
         ProgressValue = 0;
     }
@@ -207,6 +218,8 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
         ProgressStateText = UI.ui_Updater_Available_State_Ready;
         ProgressDescriptionText = UI.ui_Updater_Download_Ready_Description;
         ProgressActionText = UI.ui_Updater_Available_Button_Install;
+        ProgressSecondaryActionVisible = true;
+        ProgressSecondaryActionText = UI.ui_Updater_Download_Ready_Button_Later;
         ProgressErrorVisible = false;
         _downloadInstallRequested = true;
     }
@@ -221,6 +234,7 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
         ProgressStateText = UI.ui_Updater_Download_State_Blocked;
         ProgressDescriptionText = UI.ui_Updater_Download_Blocked_Description;
         ProgressActionText = UI.ui_btnClose;
+        ProgressSecondaryActionVisible = false;
         ProgressErrorVisible = false;
         _downloadInstallRequested = false;
     }
@@ -237,6 +251,7 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
         ProgressActionEnabled = true;
         ProgressActionBusy = false;
         ProgressActionText = UI.ui_btnClose;
+        ProgressSecondaryActionVisible = false;
         _downloadInstallRequested = false;
     }
 
@@ -256,6 +271,7 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
         ProgressActionBusy = true;
         ProgressStateText = UI.ui_Updater_Download_State_Installing;
         ProgressDescriptionText = UI.ui_Updater_Download_Installing_Description;
+        ProgressSecondaryActionVisible = false;
     }
 
     public void ShowHelperFailedState()
@@ -264,6 +280,7 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
         ProgressActionBusy = false;
         ProgressStateText = UI.ui_Updater_Available_State_Ready;
         ProgressDescriptionText = UI.ui_Updater_Download_HelperFailed_Description;
+        ProgressSecondaryActionVisible = false;
     }
 
     public void HandleProgressActionRequested()

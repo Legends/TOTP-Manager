@@ -40,6 +40,8 @@ public sealed class AutoUpdateDialogWindowTests
             Assert.Equal("Ready", sut.State.ProgressStateText);
             Assert.Equal("The download completed and passed signature verification.", sut.State.ProgressDescriptionText);
             Assert.Equal("Install update", sut.State.ProgressActionText);
+            Assert.True(sut.State.ProgressSecondaryActionVisible);
+            Assert.Equal("Install later", sut.State.ProgressSecondaryActionText);
             Assert.True(sut.State.ProgressActionEnabled);
             Assert.Equal(100, sut.State.ProgressValue);
             Assert.False(sut.State.ProgressIndeterminate);
@@ -80,6 +82,32 @@ public sealed class AutoUpdateDialogWindowTests
             Assert.True(sut.State.ProgressActionEnabled);
             Assert.Equal(52, sut.State.ProgressValue);
             Assert.False(sut.State.ProgressIndeterminate);
+            sut.CloseDialog();
+        });
+    }
+
+    [Fact]
+    public void ShowDownloadProgress_EnablesCancelActionDuringActiveDownload()
+    {
+        RunInSta(() =>
+        {
+            EnsureAppResources();
+            var sut = new AutoUpdateDialogWindow
+            {
+                SuppressPresentation = true
+            };
+
+            sut.ShowDownloadProgress(new AppCastItem
+            {
+                ShortVersion = "1.0.0.51",
+                Version = "1.0.0.51",
+                DownloadLink = "https://example.invalid/TOTP-Manager-fast.zip",
+                UpdateSize = 54239853
+            });
+
+            Assert.Equal("Cancel", sut.State.ProgressActionText);
+            Assert.True(sut.State.ProgressActionEnabled);
+            Assert.False(sut.State.ProgressSecondaryActionVisible);
             sut.CloseDialog();
         });
     }
@@ -242,6 +270,40 @@ public sealed class AutoUpdateDialogWindowTests
             sut.CloseDialog();
         });
     }
+
+    [Fact]
+    public void ReadyToInstall_SecondaryAction_ClosesDialogWithoutStartingInstall()
+    {
+        RunInSta(() =>
+        {
+            EnsureAppResources();
+            var sut = new AutoUpdateDialogWindow
+            {
+                SuppressPresentation = true
+            };
+
+            sut.ShowDownloadProgress(new AppCastItem
+            {
+                ShortVersion = "1.0.0.51",
+                Version = "1.0.0.51",
+                DownloadLink = "https://example.invalid/TOTP-Manager-fast.zip",
+                UpdateSize = 54239853
+            });
+
+            sut.FinishedDownloadingFile(true);
+
+            Thread.Sleep(1000);
+            DispatcherUtil.DoEvents();
+
+            Assert.True(sut.State.ProgressSecondaryActionVisible);
+
+            sut.State.ProgressSecondaryActionCommand.Execute(null);
+            DispatcherUtil.DoEvents();
+
+            Assert.False(sut.IsVisible);
+        });
+    }
+
 
     private static void EnsureAppResources()
     {

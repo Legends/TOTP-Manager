@@ -1798,6 +1798,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Install later.
+        /// </summary>
+        internal static string ui_Updater_Download_Ready_Button_Later {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_Ready_Button_Later", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The download completed and passed signature verification..
         /// </summary>
         internal static string ui_Updater_Download_Ready_Description {

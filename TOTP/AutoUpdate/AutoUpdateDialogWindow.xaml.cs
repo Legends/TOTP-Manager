@@ -41,6 +41,7 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
         };
         _state.UpdateResponseRequested += OnUpdateResponseRequested;
         _state.ProgressActionRequested += OnProgressActionRequested;
+        _state.ProgressSecondaryActionRequested += OnProgressSecondaryActionRequested;
         _state.PropertyChanged += State_PropertyChanged;
         Loaded += (_, _) =>
         {
@@ -298,6 +299,7 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
         _windowParking.Restore();
         Closing -= AutoUpdateDialogWindow_Closing;
         _state.PropertyChanged -= State_PropertyChanged;
+        _state.ProgressSecondaryActionRequested -= OnProgressSecondaryActionRequested;
         base.OnClosed(e);
     }
 
@@ -329,6 +331,11 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
         }
 
         await progressActionHandler();
+    }
+
+    private void OnProgressSecondaryActionRequested()
+    {
+        CloseDialog();
     }
 
     private static string FormatBytes(long bytes)

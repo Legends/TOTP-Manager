@@ -107,25 +107,38 @@
                        Visibility="{Binding ProgressErrorVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                        Text="{Binding ProgressErrorText}" />
 
-            <Button Width="120"
-                    Height="30"
-                    Margin="0,14,0,0"
-                    HorizontalAlignment="Right"
-                    IsEnabled="{Binding ProgressActionEnabled}"
-                    Command="{Binding ProgressActionCommand}">
-                <StackPanel Orientation="Horizontal"
-                            HorizontalAlignment="Center">
-                    <ProgressBar Width="14"
-                                 Height="14"
-                                 Margin="0,0,8,0"
-                                 IsIndeterminate="True"
-                                 Minimum="0"
-                                 Maximum="100"
-                                 Visibility="{Binding ProgressActionBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,14,0,0">
+                <Button MinWidth="96"
+                        Height="30"
+                        Margin="0,0,8,0"
+                        Padding="14,6"
+                        Command="{Binding ProgressSecondaryActionCommand}"
+                        Visibility="{Binding ProgressSecondaryActionVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock VerticalAlignment="Center"
-                               Text="{Binding ProgressActionText}" />
-                </StackPanel>
-            </Button>
+                               Text="{Binding ProgressSecondaryActionText}" />
+                </Button>
+
+                <Button Width="120"
+                        Height="30"
+                        HorizontalAlignment="Right"
+                        IsEnabled="{Binding ProgressActionEnabled}"
+                        Command="{Binding ProgressActionCommand}">
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center">
+                        <ProgressBar Width="14"
+                                     Height="14"
+                                     Margin="0,0,8,0"
+                                     IsIndeterminate="True"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     Visibility="{Binding ProgressActionBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="{Binding ProgressActionText}" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </UserControl>

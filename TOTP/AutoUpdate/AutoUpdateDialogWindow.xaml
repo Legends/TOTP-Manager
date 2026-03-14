@@ -12,7 +12,13 @@ AllowsTransparency="True"-->
                             xmlns:local="clr-namespace:TOTP.AutoUpdate"
                             ResizeMode="NoResize"
                             ShowInTaskbar="False"
-                            
+                            WindowStyle="None"
+                            TitleBarHeight="0"
+                            ShowTitle="False"
+                            ShowIcon="False"
+                            ShowMinimizeButton="False"
+                            ShowMaximizeButton="False"
+                            AllowsTransparency="True"
                             SizeToContent="WidthAndHeight"
                             Background="Transparent"
                             WindowStartupLocation="CenterOwner">

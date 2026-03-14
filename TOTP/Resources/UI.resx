@@ -336,6 +336,9 @@
   <data name="ui_Updater_Download_Ready_Description" xml:space="preserve">
     <value>The download completed and passed signature verification.</value>
   </data>
+  <data name="ui_Updater_Download_Ready_Button_Later" xml:space="preserve">
+    <value>Install later</value>
+  </data>
   <data name="ui_Updater_Download_Blocked_Header" xml:space="preserve">
     <value>Download failed verification</value>
   </data>

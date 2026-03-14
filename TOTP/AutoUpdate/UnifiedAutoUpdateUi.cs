@@ -5,6 +5,7 @@ using NetSparkleUpdater.Events;
 using NetSparkleUpdater.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TOTP.AutoUpdate;
@@ -105,21 +106,26 @@ internal sealed class UnifiedUpdateAvailable : IUpdateAvailable
 
 internal sealed class UnifiedDownloadProgress : IDownloadProgress
 {
+    private static readonly TimeSpan DownloadStartTimeout = TimeSpan.FromSeconds(20);
     private readonly AutoUpdateDialogWindow _dialog;
     private readonly AppCastItem _item;
+    private readonly SparkleUpdater _sparkle;
     private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
     private readonly ILogger<AutoUpdateDialogWindow>? _logger;
     private string? _downloadedFilePath;
     private bool _downloadFinished;
     private bool _downloadedFileValid;
+    private CancellationTokenSource? _downloadStartTimeoutCts;
 
     public UnifiedDownloadProgress(
         AutoUpdateDialogWindow dialog,
+        SparkleUpdater sparkle,
         AppCastItem item,
         Func<AppCastItem, string?, Task<bool>>? customInstallHandler,
         ILogger<AutoUpdateDialogWindow>? logger)
     {
         _dialog = dialog;
+        _sparkle = sparkle;
         _item = item;
         _customInstallHandler = customInstallHandler;
         _logger = logger;
@@ -136,6 +142,7 @@ internal sealed class UnifiedDownloadProgress : IDownloadProgress
     {
         _dialog.ProgressActionHandler = HandleActionButtonAsync;
         _dialog.ShowDownloadProgress(_item);
+        StartDownloadStartWatchdog();
         _logger?.LogInformation(
             "Auto-update progress dialog: shown. version={Version}",
             _item.ShortVersion ?? _item.Version?.ToString() ?? "unknown");
@@ -143,6 +150,7 @@ internal sealed class UnifiedDownloadProgress : IDownloadProgress
 
     public void OnDownloadProgressChanged(object sender, ItemDownloadProgressEventArgs args)
     {
+        CancelDownloadStartWatchdog();
         _dialog.OnDownloadProgressChanged(args);
     }
 
@@ -153,20 +161,79 @@ internal sealed class UnifiedDownloadProgress : IDownloadProgress
 
     public void FinishedDownloadingFile(bool isDownloadedFileValid)
     {
+        CancelDownloadStartWatchdog();
         _downloadFinished = true;
         _downloadedFileValid = isDownloadedFileValid;
         _dialog.FinishedDownloadingFile(isDownloadedFileValid);
     }
 
+    public void NotifyDownloadStarted(string? downloadPath)
+    {
+        CancelDownloadStartWatchdog();
+        if (!string.IsNullOrWhiteSpace(downloadPath))
+        {
+            _downloadedFilePath = downloadPath;
+        }
+
+        _logger?.LogInformation(
+            "Auto-update progress dialog: download started. version={Version} path={Path}",
+            _item.ShortVersion ?? _item.Version?.ToString() ?? "unknown",
+            _downloadedFilePath);
+    }
+
     public void SetDownloadedFilePath(string? downloadedFilePath)
     {
+        CancelDownloadStartWatchdog();
         _downloadedFilePath = downloadedFilePath;
         _dialog.SetDownloadedFilePath(downloadedFilePath);
     }
 
     public bool DisplayErrorMessage(string errorMessage)
     {
+        CancelDownloadStartWatchdog();
         return _dialog.DisplayErrorMessage(errorMessage);
+    }
+
+    private void StartDownloadStartWatchdog()
+    {
+        CancelDownloadStartWatchdog();
+        _downloadStartTimeoutCts = new CancellationTokenSource();
+        var token = _downloadStartTimeoutCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(DownloadStartTimeout, token);
+                if (token.IsCancellationRequested || _downloadFinished)
+                {
+                    return;
+                }
+
+                const string message = "The update download did not start in time. Check the app log for updater diagnostics and try again.";
+                _logger?.LogWarning(
+                    "Auto-update progress dialog: download start timeout. version={Version} timeout_seconds={TimeoutSeconds} path={Path}",
+                    _item.ShortVersion ?? _item.Version?.ToString() ?? "unknown",
+                    DownloadStartTimeout.TotalSeconds,
+                    _downloadedFilePath);
+                _dialog.DisplayErrorMessage(message);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }, token);
+    }
+
+    private void CancelDownloadStartWatchdog()
+    {
+        if (_downloadStartTimeoutCts == null)
+        {
+            return;
+        }
+
+        _downloadStartTimeoutCts.Cancel();
+        _downloadStartTimeoutCts.Dispose();
+        _downloadStartTimeoutCts = null;
     }
 
     private async Task HandleActionButtonAsync()
@@ -180,6 +247,10 @@ internal sealed class UnifiedDownloadProgress : IDownloadProgress
 
         if (!_downloadFinished || !_downloadedFileValid)
         {
+            _logger?.LogInformation(
+                "Auto-update progress dialog: cancel requested. version={Version}",
+                _item.ShortVersion ?? _item.Version?.ToString() ?? "unknown");
+            _sparkle.CancelFileDownload();
             _dialog.CloseDialog();
             return;
         }
