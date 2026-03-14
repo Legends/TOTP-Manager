@@ -265,7 +265,7 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
                 _vm.IsSettingsViewOpen = false;
             }
 
-            BringMainWindowToFront();
+            BringToFront();
         }
         finally
         {
@@ -286,7 +286,7 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         base.OnClosed(e);
     }
 
-    private void BringMainWindowToFront()
+    public void BringToFront()
     {
         if (!IsVisible)
         {

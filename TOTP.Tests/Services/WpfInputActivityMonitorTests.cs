@@ -86,6 +86,10 @@ public sealed class WpfInputActivityMonitorTests
     {
         public bool IsActive { get; set; }
 
+        public void BringToFront()
+        {
+        }
+
         public event System.Windows.Input.MouseButtonEventHandler? PreviewMouseDown;
         public event System.Windows.Input.MouseWheelEventHandler? PreviewMouseWheel;
         public event System.Windows.Input.KeyEventHandler? PreviewKeyDown;

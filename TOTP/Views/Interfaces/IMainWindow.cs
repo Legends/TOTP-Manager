@@ -6,6 +6,8 @@ public interface IMainWindow
 {
     bool IsActive { get; }
 
+    void BringToFront();
+
     event MouseButtonEventHandler PreviewMouseDown;
     event MouseWheelEventHandler PreviewMouseWheel;
     event KeyEventHandler PreviewKeyDown;

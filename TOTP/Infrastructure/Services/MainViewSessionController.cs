@@ -3,6 +3,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using TOTP.Commands;
 using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
@@ -158,6 +159,7 @@ public sealed class MainViewSessionController : IMainViewSessionController
             {
                 _onLocked?.Invoke();
                 _inputActivityMonitor.Detach();
+                BringLockedWindowToFront();
             }
         }
         catch (Exception ex)
@@ -170,6 +172,32 @@ public sealed class MainViewSessionController : IMainViewSessionController
                 _onLocked?.Invoke();
             }
         }
+    }
+
+    private void BringLockedWindowToFront()
+    {
+        if (_attachedWindow is not Window window)
+        {
+            return;
+        }
+
+        void BringToFrontCore()
+        {
+            if (_attachedWindow is IMainWindow mainWindow)
+            {
+                mainWindow.BringToFront();
+            }
+        }
+
+        if (window.Dispatcher.CheckAccess())
+        {
+            BringToFrontCore();
+            window.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(BringToFrontCore));
+            return;
+        }
+
+        window.Dispatcher.Invoke(BringToFrontCore);
+        window.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(BringToFrontCore));
     }
 
     /// <summary>
