@@ -94,6 +94,11 @@ internal sealed class UnifiedUpdateAvailable : IUpdateAvailable
 
     public void Close()
     {
+        if (Result == UpdateAvailableResult.InstallUpdate)
+        {
+            return;
+        }
+
         _dialog.CloseDialog();
     }
 }

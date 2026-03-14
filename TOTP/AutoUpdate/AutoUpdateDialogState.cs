@@ -13,12 +13,14 @@ namespace TOTP.AutoUpdate;
 internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
 {
     private AutoUpdateDialogStep _currentStep;
-    private IReadOnlyList<AppCastItem> _updates = Array.Empty<AppCastItem>();
-    private AppCastItem? _selectedUpdate;
+    private IReadOnlyList<UpdateOffer> _updates = Array.Empty<UpdateOffer>();
+    private UpdateOffer? _selectedUpdate;
     private string _availableHeaderText = UI.ui_Updater_Available_Header;
     private string _availableSummaryText = string.Empty;
     private string _availableStatusText = UI.ui_Updater_Available_State_Ready;
     private string _availableActionHintText = string.Empty;
+    private string _availableTrustText = string.Empty;
+    private string _availableRecommendationText = string.Empty;
     private string _installedVersionText = string.Empty;
     private string _currentVersionText = string.Empty;
     private string _publishDateText = string.Empty;
@@ -47,9 +49,9 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
 
     public AutoUpdateDialogState()
     {
-        InstallCommand = new RelayCommand(() => UpdateResponseRequested?.Invoke(UpdateAvailableResult.InstallUpdate, SelectedUpdate!));
-        RemindLaterCommand = new RelayCommand(() => UpdateResponseRequested?.Invoke(UpdateAvailableResult.RemindMeLater, SelectedUpdate!));
-        SkipCommand = new RelayCommand(() => UpdateResponseRequested?.Invoke(UpdateAvailableResult.SkipUpdate, SelectedUpdate!));
+        InstallCommand = new RelayCommand(() => TryRaiseUpdateResponse(UpdateAvailableResult.InstallUpdate));
+        RemindLaterCommand = new RelayCommand(() => TryRaiseUpdateResponse(UpdateAvailableResult.RemindMeLater));
+        SkipCommand = new RelayCommand(() => TryRaiseUpdateResponse(UpdateAvailableResult.SkipUpdate));
         ProgressActionCommand = new RelayCommand(() => ProgressActionRequested?.Invoke());
     }
 
@@ -85,13 +87,13 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
     public bool IsAvailableVisible => CurrentStep == AutoUpdateDialogStep.Available;
     public bool IsProgressVisible => CurrentStep == AutoUpdateDialogStep.Progress;
 
-    public IReadOnlyList<AppCastItem> Updates
+    public IReadOnlyList<UpdateOffer> Updates
     {
         get => _updates;
         private set => SetProperty(ref _updates, value);
     }
 
-    public AppCastItem? SelectedUpdate
+    public UpdateOffer? SelectedUpdate
     {
         get => _selectedUpdate;
         set
@@ -109,6 +111,8 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
     public string AvailableSummaryText { get => _availableSummaryText; private set => SetProperty(ref _availableSummaryText, value); }
     public string AvailableStatusText { get => _availableStatusText; private set => SetProperty(ref _availableStatusText, value); }
     public string AvailableActionHintText { get => _availableActionHintText; private set => SetProperty(ref _availableActionHintText, value); }
+    public string AvailableTrustText { get => _availableTrustText; private set => SetProperty(ref _availableTrustText, value); }
+    public string AvailableRecommendationText { get => _availableRecommendationText; private set => SetProperty(ref _availableRecommendationText, value); }
     public string InstalledVersionText { get => _installedVersionText; private set => SetProperty(ref _installedVersionText, value); }
     public string CurrentVersionText { get => _currentVersionText; private set => SetProperty(ref _currentVersionText, value); }
     public string PublishDateText { get => _publishDateText; private set => SetProperty(ref _publishDateText, value); }
@@ -147,7 +151,7 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
         bool hideRemindMeLaterButton,
         bool hideSkipButton)
     {
-        Updates = updates;
+        Updates = UpdateOffer.CreateMany(updates);
         IsDownloadReady = isUpdateAlreadyDownloaded;
         AvailableHeaderText = isUpdateAlreadyDownloaded ? UI.ui_Updater_Available_Header_Ready : UI.ui_Updater_Available_Header;
         AvailableStatusText = isUpdateAlreadyDownloaded ? UI.ui_Updater_Available_State_Downloaded : UI.ui_Updater_Available_State_Verified;
@@ -159,7 +163,7 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
         LaterVisible = !hideRemindMeLaterButton;
         SkipVisible = !hideSkipButton;
         CurrentStep = AutoUpdateDialogStep.Available;
-        SelectedUpdate = updates.Count > 0 ? updates[0] : null;
+        SelectedUpdate = Updates.Count > 0 ? Updates[0] : null;
     }
 
     public void ShowProgress(AppCastItem item)
@@ -267,15 +271,32 @@ internal sealed class AutoUpdateDialogState : INotifyPropertyChanged
         ProgressActionRequested?.Invoke();
     }
 
-    private void UpdateAvailableTexts(AppCastItem item, bool isUpdateAlreadyDownloaded)
+    private void TryRaiseUpdateResponse(UpdateAvailableResult result)
     {
+        var selectedItem = SelectedUpdate?.Item;
+        if (selectedItem == null)
+        {
+            return;
+        }
+
+        UpdateResponseRequested?.Invoke(result, selectedItem);
+    }
+
+    private void UpdateAvailableTexts(UpdateOffer offer, bool isUpdateAlreadyDownloaded)
+    {
+        var item = offer.Item;
         var installedVersion = item.AppVersionInstalled?.ToString() ?? UI.ui_Updater_Common_Unknown;
-        var version = item.ShortVersion ?? item.Version?.ToString() ?? UI.ui_Updater_Common_Unknown;
+        var version = offer.ShortVersion;
+        var downloadHost = offer.SourceHost;
         AvailableSummaryText = isUpdateAlreadyDownloaded
             ? string.Format(UI.ui_Updater_Available_Summary_Install_Format, installedVersion, version)
             : string.Format(UI.ui_Updater_Available_Summary_Download_Format, version, installedVersion);
         InstalledVersionText = string.Format(UI.ui_Updater_Available_InstalledVersion_Format, installedVersion);
         CurrentVersionText = string.Format(UI.ui_Updater_Available_CurrentVersion_Format, version);
+        AvailableTrustText = string.Format(UI.ui_Updater_Available_Trust_Format, downloadHost);
+        AvailableRecommendationText = offer.IsRecommended
+            ? UI.ui_Updater_Available_Recommendation_Primary
+            : UI.ui_Updater_Available_Recommendation_Alternate;
         PublishDateText = item.PublicationDate == default
             ? string.Format(UI.ui_Updater_Available_Published_Format, UI.ui_Updater_Common_Unknown)
             : string.Format(UI.ui_Updater_Available_Published_Format, item.PublicationDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm"));

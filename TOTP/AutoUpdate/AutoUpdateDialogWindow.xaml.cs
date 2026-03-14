@@ -403,10 +403,10 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
                 break;
 
             case AutoUpdateDialogStep.Available:
-                var item = _state.SelectedUpdate;
-                if (item != null)
+                var offer = _state.SelectedUpdate;
+                if (offer != null)
                 {
-                    OnUpdateResponseRequested(UpdateAvailableResult.RemindMeLater, item);
+                    OnUpdateResponseRequested(UpdateAvailableResult.RemindMeLater, offer.Item);
                     break;
                 }
 

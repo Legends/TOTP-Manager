@@ -355,16 +355,16 @@
     <value>The update helper could not start. You can try again or close this window.</value>
   </data>
   <data name="ui_Updater_Available_Title" xml:space="preserve">
-    <value>TOTP Manager Updates</value>
+    <value>TOTP Manager</value>
   </data>
   <data name="ui_Updater_Available_Subtitle" xml:space="preserve">
-    <value>Verified feed with release notes and installer details</value>
+    <value>Signed releases for this installation</value>
   </data>
   <data name="ui_Updater_Available_Header" xml:space="preserve">
-    <value>Update available</value>
+    <value>TOTP Manager update ready</value>
   </data>
   <data name="ui_Updater_Available_Header_Ready" xml:space="preserve">
-    <value>Ready to install update</value>
+    <value>TOTP Manager update downloaded</value>
   </data>
   <data name="ui_Updater_Available_State_Ready" xml:space="preserve">
     <value>Ready</value>
@@ -385,7 +385,7 @@
     <value>Notes</value>
   </data>
   <data name="ui_Updater_Available_PackageSelection" xml:space="preserve">
-    <value>Package selection</value>
+    <value>Choose a signed package for this installation</value>
   </data>
   <data name="ui_Updater_Available_Button_Skip" xml:space="preserve">
     <value>Skip</value>
@@ -400,22 +400,22 @@
     <value>Install update</value>
   </data>
   <data name="ui_Updater_Available_ActionHint_Install" xml:space="preserve">
-    <value>The package is already present locally. Confirm to launch the installer.</value>
+    <value>The signed package is already on this device. Install now to replace the current app files in place.</value>
   </data>
   <data name="ui_Updater_Available_ActionHint_Download" xml:space="preserve">
-    <value>Confirm to download the selected package and then run the installer.</value>
+    <value>TOTP Manager will download the selected signed package, verify it, then switch to the installer.</value>
   </data>
   <data name="ui_Updater_Available_Summary_Install_Format" xml:space="preserve">
-    <value>Installed version {0} can now be replaced with {1}.</value>
+    <value>You are running {0}. Version {1} is already verified and can be installed now.</value>
   </data>
   <data name="ui_Updater_Available_Summary_Download_Format" xml:space="preserve">
-    <value>Version {0} is available for the current installation ({1}). The feed and signature are valid, and the updater is ready to download the selected package.</value>
+    <value>You are running {1}. TOTP Manager recommends version {0} for this installation and will apply it in place after verification.</value>
   </data>
   <data name="ui_Updater_Available_InstalledVersion_Format" xml:space="preserve">
-    <value>Installed: {0}</value>
+    <value>Current installation: {0}</value>
   </data>
   <data name="ui_Updater_Available_CurrentVersion_Format" xml:space="preserve">
-    <value>Available: {0}</value>
+    <value>Recommended release: {0}</value>
   </data>
   <data name="ui_Updater_Available_Published_Format" xml:space="preserve">
     <value>Published: {0}</value>
@@ -425,6 +425,18 @@
   </data>
   <data name="ui_Updater_Available_Source_Format" xml:space="preserve">
     <value>Source: {0}</value>
+  </data>
+  <data name="ui_Updater_Available_Trust_Format" xml:space="preserve">
+    <value>Signed package source: {0}</value>
+  </data>
+  <data name="ui_Updater_Available_Recommendation_Primary" xml:space="preserve">
+    <value>This is the primary release option for the current installation.</value>
+  </data>
+  <data name="ui_Updater_Available_Recommendation_Alternate" xml:space="preserve">
+    <value>This is an alternate signed package. Use it only if you need a different package shape than the recommended one.</value>
+  </data>
+  <data name="ui_Updater_Available_Recommendation_Badge" xml:space="preserve">
+    <value>Recommended</value>
   </data>
   <data name="ui_Updater_ReleaseNotes_Title_Format" xml:space="preserve">
     <value>Version {0}</value>

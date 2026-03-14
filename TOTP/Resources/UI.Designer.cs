@@ -1429,7 +1429,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Confirm to download the selected package and then run the installer..
+        ///   Looks up a localized string similar to TOTP Manager will download the selected signed package, verify it, then switch to the installer..
         /// </summary>
         internal static string ui_Updater_Available_ActionHint_Download {
             get {
@@ -1438,7 +1438,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package is already present locally. Confirm to launch the installer..
+        ///   Looks up a localized string similar to The signed package is already on this device. Install now to replace the current app files in place..
         /// </summary>
         internal static string ui_Updater_Available_ActionHint_Install {
             get {
@@ -1483,7 +1483,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Available: {0}.
+        ///   Looks up a localized string similar to Recommended release: {0}.
         /// </summary>
         internal static string ui_Updater_Available_CurrentVersion_Format {
             get {
@@ -1492,7 +1492,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Update available.
+        ///   Looks up a localized string similar to TOTP Manager update ready.
         /// </summary>
         internal static string ui_Updater_Available_Header {
             get {
@@ -1501,7 +1501,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ready to install update.
+        ///   Looks up a localized string similar to TOTP Manager update downloaded.
         /// </summary>
         internal static string ui_Updater_Available_Header_Ready {
             get {
@@ -1510,7 +1510,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Installed: {0}.
+        ///   Looks up a localized string similar to Current installation: {0}.
         /// </summary>
         internal static string ui_Updater_Available_InstalledVersion_Format {
             get {
@@ -1519,7 +1519,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Package selection.
+        ///   Looks up a localized string similar to Choose a signed package for this installation.
         /// </summary>
         internal static string ui_Updater_Available_PackageSelection {
             get {
@@ -1542,6 +1542,33 @@ namespace TOTP.Resources {
         internal static string ui_Updater_Available_Published_Format {
             get {
                 return ResourceManager.GetString("ui_Updater_Available_Published_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is an alternate signed package. Use it only if you need a different package shape than the recommended one..
+        /// </summary>
+        internal static string ui_Updater_Available_Recommendation_Alternate {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Recommendation_Alternate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recommended.
+        /// </summary>
+        internal static string ui_Updater_Available_Recommendation_Badge {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Recommendation_Badge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is the primary release option for the current installation..
+        /// </summary>
+        internal static string ui_Updater_Available_Recommendation_Primary {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Recommendation_Primary", resourceCulture);
             }
         }
         
@@ -1582,7 +1609,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Verified feed with release notes and installer details.
+        ///   Looks up a localized string similar to Signed releases for this installation.
         /// </summary>
         internal static string ui_Updater_Available_Subtitle {
             get {
@@ -1591,7 +1618,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Version {0} is available for the current installation ({1}). The feed and signature are valid, and the updater is ready to download the selected package..
+        ///   Looks up a localized string similar to You are running {1}. TOTP Manager recommends version {0} for this installation and will apply it in place after verification..
         /// </summary>
         internal static string ui_Updater_Available_Summary_Download_Format {
             get {
@@ -1600,7 +1627,7 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Installed version {0} can now be replaced with {1}..
+        ///   Looks up a localized string similar to You are running {0}. Version {1} is already verified and can be installed now..
         /// </summary>
         internal static string ui_Updater_Available_Summary_Install_Format {
             get {
@@ -1636,11 +1663,20 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TOTP Manager Updates.
+        ///   Looks up a localized string similar to TOTP Manager.
         /// </summary>
         internal static string ui_Updater_Available_Title {
             get {
                 return ResourceManager.GetString("ui_Updater_Available_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Signed package source: {0}.
+        /// </summary>
+        internal static string ui_Updater_Available_Trust_Format {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_Trust_Format", resourceCulture);
             }
         }
         

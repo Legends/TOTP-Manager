@@ -1,4 +1,3 @@
-using NetSparkleUpdater;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -80,7 +79,7 @@ public partial class AutoUpdateAvailableView : UserControl
             return;
         }
 
-        if (UpdatesList.SelectedItem is AppCastItem item)
+        if (UpdatesList.SelectedItem is UpdateOffer item)
         {
             state.SelectedUpdate = item;
         }

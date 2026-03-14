@@ -157,8 +157,60 @@ public sealed class AutoUpdateDialogWindowTests
         });
     }
 
+    [Fact]
+    public void ShowUpdateAvailable_UsesOwnerCenteredMessagingAndRecommendedOffer()
+    {
+        RunInSta(() =>
+        {
+            EnsureAppResources();
+            var sut = new AutoUpdateDialogWindow
+            {
+                SuppressPresentation = true
+            };
+
+            sut.ShowUpdateAvailable(
+                [
+                    new AppCastItem
+                    {
+                        Title = "TOTP Manager Windows Package",
+                        ShortVersion = "1.2.0",
+                        Version = "1.2.0",
+                        AppVersionInstalled = "1.1.0",
+                        DownloadLink = "https://downloads.example.invalid/TOTP-Manager-win.zip",
+                        UpdateSize = 54239853
+                    },
+                    new AppCastItem
+                    {
+                        Title = "TOTP Manager Portable Package",
+                        ShortVersion = "1.2.0",
+                        Version = "1.2.0",
+                        AppVersionInstalled = "1.1.0",
+                        DownloadLink = "https://downloads.example.invalid/TOTP-Manager-portable.zip",
+                        UpdateSize = 1234
+                    }
+                ],
+                isUpdateAlreadyDownloaded: false,
+                hideReleaseNotes: false,
+                hideRemindMeLaterButton: false,
+                hideSkipButton: false);
+
+            Assert.Equal("TOTP Manager update ready", sut.State.AvailableHeaderText);
+            Assert.Equal("Verified", sut.State.AvailableStatusText);
+            Assert.Equal("Current installation: 1.1.0", sut.State.InstalledVersionText);
+            Assert.Equal("Recommended release: 1.2.0", sut.State.CurrentVersionText);
+            Assert.Equal("Signed package source: downloads.example.invalid", sut.State.AvailableTrustText);
+            Assert.Equal("This is the primary release option for the current installation.", sut.State.AvailableRecommendationText);
+            Assert.Equal(2, sut.State.Updates.Count);
+            Assert.True(sut.State.Updates[0].IsRecommended);
+            Assert.False(sut.State.Updates[1].IsRecommended);
+            sut.CloseDialog();
+        });
+    }
+
     private static void EnsureAppResources()
     {
+        TestBootstrap.RegisterSyncfusionLicense();
+
         if (Application.Current != null)
         {
             return;

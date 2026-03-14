@@ -123,11 +123,27 @@
                                            Foreground="{StaticResource Brush.TextPrimary}"
                                            FontWeight="SemiBold"
                                            FontSize="{StaticResource FontSize.Label}" />
+                                <TextBlock Text="{Binding AvailableTrustText}"
+                                           Margin="0,6,0,0"
+                                           Foreground="{StaticResource Brush.TextInfo}"
+                                           FontSize="{StaticResource FontSize.Body}"
+                                           TextWrapping="Wrap" />
                                 <TextBlock Text="{Binding AvailableActionHintText}"
                                            Margin="0,8,0,0"
                                            Foreground="{StaticResource Brush.TextSecondary}"
                                            FontSize="{StaticResource FontSize.Body}"
                                            TextWrapping="Wrap" />
+                                <Border Margin="0,12,0,0"
+                                        Padding="10"
+                                        Background="{StaticResource Brush.AccentChipBackground}"
+                                        CornerRadius="8"
+                                        BorderBrush="{StaticResource Brush.BorderAccent}"
+                                        BorderThickness="1">
+                                    <TextBlock Text="{Binding AvailableRecommendationText}"
+                                               Foreground="{StaticResource Brush.TextTertiary}"
+                                               FontSize="{StaticResource FontSize.Body}"
+                                               TextWrapping="Wrap" />
+                                </Border>
                             </StackPanel>
 
                             <Border Grid.Row="1"
@@ -201,6 +217,29 @@
                                                                 CornerRadius="999"
                                                                 Background="#183C6AD1">
                                                             <TextBlock Text="{Binding ShortVersion}"
+                                                                       Foreground="{StaticResource Brush.TextTertiary}"
+                                                                       FontSize="{StaticResource FontSize.Caption}"
+                                                                       FontWeight="SemiBold" />
+                                                        </Border>
+                                                    </DockPanel>
+                                                    <TextBlock Text="{Binding PackageSummary}"
+                                                               Margin="0,6,0,0"
+                                                               Foreground="{StaticResource Brush.TextSecondary}"
+                                                               FontSize="{StaticResource FontSize.Body}"
+                                                               TextWrapping="Wrap" />
+                                                    <DockPanel Margin="0,6,0,0">
+                                                        <TextBlock Text="{Binding SourceHost}"
+                                                                   Foreground="{StaticResource Brush.TextInfo}"
+                                                                   FontSize="{StaticResource FontSize.Caption}"
+                                                                   TextWrapping="Wrap" />
+                                                        <Border DockPanel.Dock="Right"
+                                                                Padding="8,2"
+                                                                CornerRadius="999"
+                                                                Background="{StaticResource Brush.AccentChipBackground}"
+                                                                BorderBrush="{StaticResource Brush.BorderAccent}"
+                                                                BorderThickness="1"
+                                                                Visibility="{Binding IsRecommended, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                            <TextBlock Text="{xaml:Resx Key=ui_Updater_Available_Recommendation_Badge}"
                                                                        Foreground="{StaticResource Brush.TextTertiary}"
                                                                        FontSize="{StaticResource FontSize.Caption}"
                                                                        FontWeight="SemiBold" />
