@@ -5,7 +5,6 @@ using NetSparkleUpdater.AssemblyAccessors;
 using NetSparkleUpdater.Configurations;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.Events;
-using NetSparkleUpdater.SignatureVerifiers;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -31,18 +30,35 @@ public sealed class AutoUpdateService : IAutoUpdateService
     private readonly IConfiguration _configuration;
     private readonly ILogger<AutoUpdateService> _logger;
     private readonly ILoggerFactory _loggerFactory;
-    private SparkleUpdater? _sparkle;
-    private TOTPNetSparkleUiFactory? _uiFactory;
+    private readonly IAutoUpdateRuntimeFactory _runtimeFactory;
+    private readonly Func<string, Task> _logRemoteAppcastAsync;
+    private readonly Func<string> _resolveAssemblyLocation;
+    private IAutoUpdateClient? _sparkle;
+    private IAutoUpdateUiCoordinator? _uiFactory;
     private bool _initialized;
 
     public AutoUpdateService(
         IConfiguration configuration,
         ILogger<AutoUpdateService> logger,
         ILoggerFactory loggerFactory)
+        : this(configuration, logger, loggerFactory, new NetSparkleAutoUpdateRuntimeFactory())
+    {
+    }
+
+    internal AutoUpdateService(
+        IConfiguration configuration,
+        ILogger<AutoUpdateService> logger,
+        ILoggerFactory loggerFactory,
+        IAutoUpdateRuntimeFactory runtimeFactory,
+        Func<string, Task>? logRemoteAppcastAsync = null,
+        Func<string>? resolveAssemblyLocation = null)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+        _runtimeFactory = runtimeFactory ?? throw new ArgumentNullException(nameof(runtimeFactory));
+        _logRemoteAppcastAsync = logRemoteAppcastAsync ?? LogRemoteAppcastAsync;
+        _resolveAssemblyLocation = resolveAssemblyLocation ?? ResolveAssemblyLocation;
     }
 
     public async Task InitializeAsync()
@@ -77,20 +93,16 @@ public sealed class AutoUpdateService : IAutoUpdateService
         try
         {
             LogCurrentVersion();
-            await LogRemoteAppcastAsync(appcastUrl);
+            await _logRemoteAppcastAsync(appcastUrl);
 
-            _uiFactory = new TOTPNetSparkleUiFactory(
+            var runtime = _runtimeFactory.Create(
+                appcastUrl,
+                publicKey,
                 InstallDownloadedUpdateAsync,
                 _loggerFactory.CreateLogger<AutoUpdateDialogWindow>());
-
-            _sparkle = new SparkleUpdater(
-                appcastUrl,
-                new Ed25519Checker(SecurityMode.Strict, publicKey))
-            {
-                RelaunchAfterUpdate = false,
-                UIFactory = _uiFactory
-            };
-            _sparkle.Configuration = CreateConfiguration(assemblyLocation: ResolveAssemblyLocation());
+            _sparkle = runtime.Client;
+            _uiFactory = runtime.Ui;
+            _sparkle.Configuration = CreateConfiguration(assemblyLocation: _resolveAssemblyLocation());
 
             WireDiagnostics(_sparkle);
             LogCurrentUpdateConfigurationState("after configuration load");
@@ -146,7 +158,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
         }
 
         _logger.LogInformation("Auto-update manual check requested by the user.");
-        var checkingWindow = _uiFactory?.ShowCheckingForUpdates(_sparkle);
+        var checkingWindow = _uiFactory?.ShowCheckingForUpdates();
         checkingWindow?.Show();
         LogCurrentUpdateConfigurationState("before manual interactive check");
 
@@ -165,55 +177,55 @@ public sealed class AutoUpdateService : IAutoUpdateService
         }
     }
 
-    private void WireDiagnostics(SparkleUpdater sparkle)
+    private void WireDiagnostics(IAutoUpdateClient sparkle)
     {
-        sparkle.LoopStarted += _ => _logger.LogInformation("Auto-update event: loop started.");
-        sparkle.LoopFinished += (_, updateRequired) =>
-            _logger.LogInformation("Auto-update event: loop finished. update_required={UpdateRequired}", updateRequired);
-        sparkle.UpdateCheckStarted += _ => _logger.LogInformation("Auto-update event: update check started.");
-        sparkle.UpdateCheckFinished += (_, status) =>
-            _logger.LogInformation("Auto-update event: update check finished. status={Status}", status);
-        sparkle.UpdateDetected += OnUpdateDetected;
-        sparkle.UserRespondedToUpdate += (_, args) =>
+        sparkle.OnLoopStarted(() => _logger.LogInformation("Auto-update event: loop started."));
+        sparkle.OnLoopFinished(updateRequired =>
+            _logger.LogInformation("Auto-update event: loop finished. update_required={UpdateRequired}", updateRequired));
+        sparkle.OnUpdateCheckStarted(() => _logger.LogInformation("Auto-update event: update check started."));
+        sparkle.OnUpdateCheckFinished(status =>
+            _logger.LogInformation("Auto-update event: update check finished. status={Status}", status));
+        sparkle.OnUpdateDetected(OnUpdateDetected);
+        sparkle.OnUserRespondedToUpdate(args =>
         {
             _logger.LogInformation("Auto-update event: user responded to update prompt. response={Response}", args.Result);
             LogCurrentUpdateConfigurationState("after user response");
-        };
-        sparkle.DownloadStarted += (item, path) =>
+        });
+        sparkle.OnDownloadStarted((item, path) =>
         {
             _logger.LogInformation("Auto-update event: download started. version={Version} path={Path}", item.Version, path);
             _uiFactory?.NotifyDownloadStarted(item, path);
-        };
-        sparkle.DownloadCanceled += (item, path) =>
-            _logger.LogInformation("Auto-update event: download canceled. version={Version} path={Path}", item.Version, path);
-        sparkle.DownloadMadeProgress += (_, item, args) =>
+        });
+        sparkle.OnDownloadCanceled((item, path) =>
+            _logger.LogInformation("Auto-update event: download canceled. version={Version} path={Path}", item.Version, path));
+        sparkle.OnDownloadMadeProgress((_, item, args) =>
             _logger.LogInformation(
                 "Auto-update event: download progress. version={Version} downloaded={DownloadedBytes} total={TotalBytes} percentage={Percentage}",
                 item?.Version?.ToString() ?? "unknown",
                 args?.BytesReceived,
                 args?.TotalBytesToReceive,
-                args?.ProgressPercentage);
+                args?.ProgressPercentage));
 
-        sparkle.DownloadFinished += (item, path) =>
+        sparkle.OnDownloadFinished((item, path) =>
         {
             _logger.LogInformation("Auto-update event: download finished. version={Version} path={Path}", item.Version, path);
             _uiFactory?.SetDownloadedFilePath(item, path);
-        };
-        sparkle.DownloadedFileIsCorrupt += (item, path) =>
-            _logger.LogWarning("Auto-update event: downloaded file is corrupt. version={Version} path={Path}", item.Version, path);
-        sparkle.DownloadedFileThrewWhileCheckingSignature += (item, path) =>
-            _logger.LogWarning("Auto-update event: downloaded file threw while checking signature. version={Version} path={Path}", item.Version, path);
-        sparkle.DownloadHadError += (item, path, exception) =>
+        });
+        sparkle.OnDownloadedFileIsCorrupt((item, path) =>
+            _logger.LogWarning("Auto-update event: downloaded file is corrupt. version={Version} path={Path}", item.Version, path));
+        sparkle.OnDownloadedFileThrewWhileCheckingSignature((item, path) =>
+            _logger.LogWarning("Auto-update event: downloaded file threw while checking signature. version={Version} path={Path}", item.Version, path));
+        sparkle.OnDownloadHadError((item, path, exception) =>
             _logger.LogWarning(
                 exception,
                 "Auto-update event: download had an error. version={Version} path={Path}",
                 item.Version,
-                path);
-        sparkle.PreparingToExit += (_, args) =>
+                path));
+        sparkle.OnPreparingToExit(args =>
         {
             _logger.LogInformation("Auto-update event: preparing to exit. cancel={Cancel}", args.Cancel);
-        };
-        sparkle.CloseApplication += () =>
+        });
+        sparkle.OnCloseApplication(() =>
         {
             _logger.LogInformation("Auto-update event: close application requested.");
             var application = Application.Current;
@@ -230,7 +242,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
             }
 
             application.Dispatcher.Invoke(application.Shutdown);
-        };
+        });
     }
 
     private void OnUpdateDetected(object? sender, UpdateDetectedEventArgs args)
@@ -336,7 +348,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
                 return;
             }
 
-            _uiFactory?.ShowVersionIsUpToDate(_sparkle);
+            _uiFactory?.ShowVersionIsUpToDate();
         });
     }
 

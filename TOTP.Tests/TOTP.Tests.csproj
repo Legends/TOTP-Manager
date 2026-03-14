@@ -47,15 +47,6 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- Legacy tests targeting removed pre-refactor types/namespaces -->
-    <Compile Remove="Behaviors\SingleOrDoubleTapBehaviorTests.cs" />
-    <Compile Remove="Integration\MainViewModelIntegrationTests.cs" />
-    <Compile Remove="Integration\SecretsManagerIntegrationTests.cs" />
-    <Compile Remove="Integration\TotpManagerIntegrationTests.cs" />
-    <Compile Remove="Services\TotpManagerTests.cs" />
-  </ItemGroup>
-
   <!-- In TOTP.Tests.csproj -->
   <Target Name="RunTestsAfterBuild" AfterTargets="Build" Condition="'$(CI)' != 'true' AND '$(RunTestsOnBuild)' == 'true'">
     <Exec Command="dotnet test &quot;$(MSBuildProjectFullPath)&quot; --configuration $(Configuration) --no-build" />

@@ -176,17 +176,17 @@ public sealed class MainViewSessionController : IMainViewSessionController
 
     private void BringLockedWindowToFront()
     {
-        if (_attachedWindow is not Window window)
+        if (_attachedWindow is not IMainWindow mainWindow)
         {
             return;
         }
 
-        void BringToFrontCore()
+        void BringToFrontCore() => mainWindow.BringToFront();
+
+        if (_attachedWindow is not Window window)
         {
-            if (_attachedWindow is IMainWindow mainWindow)
-            {
-                mainWindow.BringToFront();
-            }
+            BringToFrontCore();
+            return;
         }
 
         if (window.Dispatcher.CheckAccess())

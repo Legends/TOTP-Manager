@@ -96,6 +96,23 @@ public sealed class MainViewSessionControllerTests
         monitor.Verify(m => m.Detach(), Times.AtLeastOnce);
     }
 
+    [Fact]
+    public void BringLockedWindowToFront_WhenAttachedWindowIsNotWpfWindow_CallsBringToFront()
+    {
+        var (sut, _, _, _, _) = CreateSut(lockOnMinimize: true);
+        var window = new Mock<IMainWindow>();
+        sut.AttachWindow(window.Object);
+
+        var bringToFront = typeof(MainViewSessionController).GetMethod(
+            "BringLockedWindowToFront",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        Assert.NotNull(bringToFront);
+
+        bringToFront!.Invoke(sut, null);
+
+        window.Verify(w => w.BringToFront(), Times.Once);
+    }
+
     private static async Task WaitFor(Task task, int timeoutMs = 1500, CancellationToken cancellationToken = default)
     {
         var completed = await Task.WhenAny(task, Task.Delay(timeoutMs, cancellationToken));
@@ -126,4 +143,44 @@ public sealed class MainViewSessionControllerTests
         var sut = new MainViewSessionController(auth.Object, monitor.Object, settings.Object, logger.Object);
         return (sut, auth, monitor, state, settings);
     }
+
+    private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 1500)
+    {
+        var start = Environment.TickCount64;
+        while (!condition())
+        {
+            if (Environment.TickCount64 - start > timeoutMs)
+            {
+                throw new TimeoutException("Condition was not met in time.");
+            }
+
+            await Task.Delay(20);
+        }
+    }
+
+    private static void RunInSta(Action testBody)
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                testBody();
+            }
+            catch (Exception ex)
+            {
+                failure = ex;
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+
+        if (failure != null)
+        {
+            throw failure;
+        }
+    }
+
 }

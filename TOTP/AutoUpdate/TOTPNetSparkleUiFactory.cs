@@ -16,16 +16,22 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     private readonly UIFactory _innerFactory = new();
     private readonly Func<AppCastItem, string?, Task<bool>>? _customInstallHandler;
     private readonly ILogger<AutoUpdateDialogWindow>? _progressWindowLogger;
+    private readonly Func<SparkleUpdater, AppCastItem, string?> _downloadPathResolver;
+    private readonly Func<AutoUpdateDialogWindow> _dialogFactory;
     private readonly Dictionary<string, string> _downloadedPathByItemKey = new(StringComparer.OrdinalIgnoreCase);
     private AutoUpdateDialogWindow? _dialogWindow;
     private UnifiedDownloadProgress? _activeProgress;
 
     public TOTPNetSparkleUiFactory(
         Func<AppCastItem, string?, Task<bool>>? customInstallHandler = null,
-        ILogger<AutoUpdateDialogWindow>? progressWindowLogger = null)
+        ILogger<AutoUpdateDialogWindow>? progressWindowLogger = null,
+        Func<SparkleUpdater, AppCastItem, string?>? downloadPathResolver = null,
+        Func<AutoUpdateDialogWindow>? dialogFactory = null)
     {
         _customInstallHandler = customInstallHandler;
         _progressWindowLogger = progressWindowLogger;
+        _downloadPathResolver = downloadPathResolver ?? ResolveDownloadPath;
+        _dialogFactory = dialogFactory ?? (() => new AutoUpdateDialogWindow());
     }
 
     public bool HideReleaseNotes
@@ -73,7 +79,12 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     {
         return InvokeOnUi(() =>
         {
-            _activeProgress = new UnifiedDownloadProgress(GetOrCreateDialogWindow(), sparkle, item, _customInstallHandler, _progressWindowLogger);
+            _activeProgress = new UnifiedDownloadProgress(
+                GetOrCreateDialogWindow(),
+                new SparkleUpdateDownloadController(sparkle),
+                item,
+                _customInstallHandler,
+                _progressWindowLogger);
             return _activeProgress;
         });
     }
@@ -174,7 +185,7 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
 
     private AutoUpdateDialogWindow GetOrCreateDialogWindow()
     {
-        _dialogWindow ??= new AutoUpdateDialogWindow();
+        _dialogWindow ??= _dialogFactory();
         return _dialogWindow;
     }
 
@@ -197,7 +208,7 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
             return true;
         }
 
-        path = sparkle.GetDownloadPathForAppCastItem(item).GetAwaiter().GetResult();
+        path = _downloadPathResolver(sparkle, item);
         return PathExists(path);
     }
 
@@ -223,5 +234,10 @@ internal sealed class TOTPNetSparkleUiFactory : IUIFactory
     private static bool PathExists(string? path)
     {
         return !string.IsNullOrWhiteSpace(path) && (File.Exists(path) || Directory.Exists(path));
+    }
+
+    private static string? ResolveDownloadPath(SparkleUpdater sparkle, AppCastItem item)
+    {
+        return sparkle.GetDownloadPathForAppCastItem(item).GetAwaiter().GetResult();
     }
 }
