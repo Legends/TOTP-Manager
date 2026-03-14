@@ -183,7 +183,6 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
             {
                 _settingsWindow.Show();
             }
-
             _settingsWindow.Activate();
             _settingsWindow.Focus();
             return;
