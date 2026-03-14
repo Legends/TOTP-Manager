@@ -10,6 +10,7 @@
     <AssemblyOriginatorKeyFile>totp-sign-key.snk</AssemblyOriginatorKeyFile>
     <PublicSign>true</PublicSign>
     <NoWarn>$(NoWarn);CS8002</NoWarn>
+    <UserSecretsId>eae90785-030b-456f-b23c-5ab39239447f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -56,9 +57,7 @@
   </ItemGroup>
 
   <!-- In TOTP.Tests.csproj -->
-  <Target Name="RunTestsAfterBuild"
-          AfterTargets="Build"
-          Condition="'$(CI)' != 'true' AND '$(RunTestsOnBuild)' == 'true'">
+  <Target Name="RunTestsAfterBuild" AfterTargets="Build" Condition="'$(CI)' != 'true' AND '$(RunTestsOnBuild)' == 'true'">
     <Exec Command="dotnet test &quot;$(MSBuildProjectFullPath)&quot; --configuration $(Configuration) --no-build" />
   </Target>
 
