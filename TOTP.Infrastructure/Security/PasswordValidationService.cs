@@ -6,7 +6,8 @@ namespace TOTP.Infrastructure.Security;
 
 public sealed class PasswordValidationService : IPasswordValidationService
 {
-    public int MinimumLength => 8;
+    // TODO: Change back to 8 or 6 chrs
+    public int MinimumLength => 2;
 
     public bool IsValidRequired(string? password) =>
         !string.IsNullOrWhiteSpace(password);
