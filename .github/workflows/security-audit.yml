@@ -12,19 +12,51 @@ on:
         required: false
         type: string
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ACTIONLINT_VERSION: 1.7.12
+
 permissions:
   contents: read
   actions: read
   security-events: write
 
 jobs:
+  workflow-lint:
+    name: Workflow Lint (actionlint)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install actionlint
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${ACTIONLINT_VERSION}"
+          archive="actionlint_${version}_linux_amd64.tar.gz"
+          checksums="actionlint_${version}_checksums.txt"
+          base_url="https://github.com/rhysd/actionlint/releases/download/v${version}"
+
+          curl -fsSLO "${base_url}/${archive}"
+          curl -fsSLO "${base_url}/${checksums}"
+          grep " ${archive}\$" "${checksums}" | sha256sum -c -
+          tar -xzf "${archive}" actionlint
+          chmod +x ./actionlint
+
+      - name: Lint GitHub Actions workflows
+        shell: bash
+        run: ./actionlint -color
+
   dependency-review:
     name: Dependency Review (PR)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
@@ -40,10 +72,10 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "9.0.x"
 
@@ -53,18 +85,30 @@ jobs:
 
       - name: Detect Code Scanning capability
         id: codeql-capability
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             try {
-              await github.request("GET /repos/{owner}/{repo}/code-scanning/alerts", {
+              const { data: repo } = await github.rest.repos.get({
                 owner: context.repo.owner,
-                repo: context.repo.repo,
-                per_page: 1
+                repo: context.repo.repo
               });
-              core.setOutput("enabled", "true");
+
+              const visibility = repo.visibility ?? (repo.private ? "private" : "public");
+              const security = repo.security_and_analysis ?? {};
+              const codeSecurityStatus = security.code_security?.status;
+              const advancedSecurityStatus = security.advanced_security?.status;
+              const isEnabled =
+                visibility === "public" ||
+                codeSecurityStatus === "enabled" ||
+                advancedSecurityStatus === "enabled";
+
+              core.setOutput("enabled", isEnabled ? "true" : "false");
+              if (!isEnabled) {
+                core.notice("CodeQL skipped because GitHub Code Security is not enabled for this repository.");
+              }
             } catch (error) {
-              core.warning(`Code scanning API unavailable: ${error.message}`);
+              core.notice(`CodeQL capability check could not confirm availability: ${error.message}`);
               core.setOutput("enabled", "false");
             }
 
@@ -97,10 +141,10 @@ jobs:
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "9.0.x"
 
@@ -139,7 +183,7 @@ jobs:
           }
 
       - name: Upload SCA evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: sca-evidence
           path: artifacts/*.json
@@ -149,7 +193,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -164,7 +208,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run ZAP baseline scan
         run: |
@@ -179,7 +223,7 @@ jobs:
             -m 5
 
       - name: Upload DAST evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dast-zap-evidence
           path: artifacts/zap-report.*

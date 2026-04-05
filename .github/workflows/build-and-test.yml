@@ -30,6 +30,9 @@ on:
       - 'TOTP.Tests/**'
       - 'scripts/**'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-test:
     runs-on: windows-latest
@@ -43,10 +46,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "9.0.x"
           cache: true
@@ -87,10 +90,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "9.0.x"
           cache: true
@@ -215,7 +218,7 @@ jobs:
 
       - name: Cache .NET global tools
         id: cache-dotnet-tools
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.dotnet/tools
           key: ${{ runner.os }}-dotnet-tools-netsparkle-appcastgenerator-v2

@@ -179,11 +179,19 @@ The release pipeline currently produces:
 ### GitHub Actions
 
 Current pipeline includes:
+- `workflow-lint` (`actionlint`)
 - `build-test`
 - `sast-codeql`
 - `sca-dotnet`
 - `secrets-scan`
 - Optional `dast-zap` (manual dispatch with target URL)
+
+For local workflow validation:
+
+```powershell
+go install github.com/rhysd/actionlint/cmd/actionlint@latest
+actionlint
+```
 
 Security docs are under:
 - `docs/security/THREAT_MODEL.md`

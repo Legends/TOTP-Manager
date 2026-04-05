@@ -6,6 +6,9 @@ Provide auditable evidence that security controls are continuously validated.
 ## Automated Evidence (GitHub Actions)
 Workflow: `.github/workflows/security-audit.yml`
 
+- Workflow linting:
+  - Tool: `actionlint`
+  - Evidence: `Workflow Lint (actionlint)` job result
 - SAST:
   - Tool: CodeQL (C#)
   - Evidence: Code scanning alerts in GitHub Security tab
