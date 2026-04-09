@@ -7,8 +7,8 @@ namespace TOTP.Updater;
 
 internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
 {
-    private static readonly TimeSpan ParentCloseGracePeriod = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan ProcessExitGracePeriod = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan ParentCloseGracePeriod = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan ProcessExitGracePeriod = TimeSpan.FromSeconds(20);
     private bool _readySignalWritten;
 
     public async Task RunAsync(IProgress<InstallerProgressState> progress, CancellationToken cancellationToken = default)
@@ -82,7 +82,7 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
             cancellationToken.ThrowIfCancellationRequested();
 
             var runningProcesses = GetRunningApplicationProcesses();
-            if (runningProcesses.Count == 0)
+            if (runningProcesses.Count == 0 && !IsProcessStillRunning(arguments.ParentProcessId))
             {
                 Log("all target application processes exited");
                 return;
@@ -97,7 +97,9 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
             try
             {
                 Log($"force killing lingering process: pid={process.Id} name={process.ProcessName}");
-                process.Kill(entireProcessTree: true);
+                // Do not kill the entire tree here: this updater is launched by the app process,
+                // so killing the parent's tree can include this updater process itself.
+                process.Kill();
                 await process.WaitForExitAsync(cancellationToken);
             }
             catch (Exception ex)
@@ -108,6 +110,18 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
             {
                 process.Dispose();
             }
+        }
+
+        var stillRunning = GetRunningApplicationProcesses();
+        if (stillRunning.Count > 0)
+        {
+            var processSummary = string.Join(", ", stillRunning.Select(p => $"{p.Id}:{p.ProcessName}"));
+            foreach (var process in stillRunning)
+            {
+                process.Dispose();
+            }
+
+            throw new IOException($"Application processes still running after close attempts: {processSummary}");
         }
     }
 
@@ -131,6 +145,17 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
                 cancellationToken.ThrowIfCancellationRequested();
                 await Task.Delay(100, cancellationToken);
             }
+
+            if (process.HasExited)
+            {
+                Log($"parent process exited after close request: {parentProcessId}");
+                return;
+            }
+
+            Log($"parent process still running after close request; force kill requested: {parentProcessId}");
+            process.Kill();
+            await process.WaitForExitAsync(cancellationToken);
+            Log($"parent process exited after force kill: {parentProcessId}");
         }
         catch (ArgumentException)
         {
@@ -165,6 +190,24 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
                 StringComparison.OrdinalIgnoreCase);
         }
         catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsProcessStillRunning(int processId)
+    {
+        if (processId <= 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            using var process = Process.GetProcessById(processId);
+            return !process.HasExited;
+        }
+        catch (ArgumentException)
         {
             return false;
         }
