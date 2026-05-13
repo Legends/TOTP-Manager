@@ -642,7 +642,7 @@ public sealed class MainViewModelTests : IDisposable
                 Mock.Of<IPasswordValidationService>(),
                 NullLogger<PasswordUnlockViewModel>.Instance);
 
-            return new UnlockViewModel(Authorization.Object, hello, pwd, SettingsService.Object);
+            return new UnlockViewModel(Authorization.Object, hello, pwd, SettingsService.Object, Message.Object);
         }
     }
 }

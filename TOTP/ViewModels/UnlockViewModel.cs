@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -5,6 +6,8 @@ using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
+using TOTP.Resources;
+using TOTP.Services.Interfaces;
 using TOTP.Security.Interfaces;
 
 namespace TOTP.ViewModels;
@@ -14,6 +17,8 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
     #region PROPS AND VARS
 
     private readonly IAuthorizationService _auth;
+    private readonly IMessageService _messageService;
+    private bool _isOfferingHelloAfterPasswordSetup;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -54,9 +59,15 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
 
     #endregion
 
-    public UnlockViewModel(IAuthorizationService auth, HelloUnlockViewModel helloVM, PasswordUnlockViewModel pwdVM, ISettingsService settingsService)
+    public UnlockViewModel(
+        IAuthorizationService auth,
+        HelloUnlockViewModel helloVM,
+        PasswordUnlockViewModel pwdVM,
+        ISettingsService settingsService,
+        IMessageService messageService)
     {
         _auth = auth;
+        _messageService = messageService;
 
         HelloUnlockVM = helloVM;
         PasswordUnlockVM = pwdVM;
@@ -65,6 +76,7 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         ChoosePasswordCommand = new RelayCommand(ChoosePassword, CanChoosePassword);
 
         _auth.State.Changed += (_, _) => SyncFromState();
+        PasswordUnlockVM.PasswordConfigured += PasswordUnlockVM_PasswordConfigured;
 
         SyncFromState();
     }
@@ -78,8 +90,9 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
 
         if (!IsConfigured)
         {
-            // first-run: show setup chooser in UnlockView (host view)
-            CurrentGate = null;
+            // First-run always establishes the password-backed DEK wrapper before optional Hello.
+            PasswordUnlockVM.EnterSetupMode();
+            CurrentGate = PasswordUnlockVM;
             return;
         }
 
@@ -138,6 +151,53 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         StatusMessage = null;
         PasswordUnlockVM.EnterSetupMode();
         CurrentGate = PasswordUnlockVM;
+    }
+
+    private async void PasswordUnlockVM_PasswordConfigured(object? sender, EventArgs e)
+    {
+        await OfferHelloAfterPasswordSetupAsync();
+    }
+
+    private async Task OfferHelloAfterPasswordSetupAsync()
+    {
+        if (_isOfferingHelloAfterPasswordSetup || !_auth.State.IsUnlocked)
+        {
+            return;
+        }
+
+        _isOfferingHelloAfterPasswordSetup = true;
+        try
+        {
+            var isHelloAvailable = await _auth.IsHelloAvailableAsync();
+            if (!isHelloAvailable)
+            {
+                _messageService.ShowWarning(UI.ui_EnableHelloAfterPasswordSetup_NotAvailable);
+                return;
+            }
+
+            var enableHello = _messageService.ConfirmInfo(
+                UI.ui_EnableHelloAfterPasswordSetup_Message,
+                UI.ui_EnableHelloAfterPasswordSetup_Enable,
+                UI.ui_EnableHelloAfterPasswordSetup_NotNow);
+
+            if (!enableHello)
+            {
+                return;
+            }
+
+            var result = await _auth.ConfigureHelloAsync();
+            if (result == AuthorizationResult.Success)
+            {
+                _messageService.ShowSuccess(UI.ui_EnableHelloAfterPasswordSetup_Success);
+                return;
+            }
+
+            _messageService.ShowWarning(UI.ui_EnableHelloAfterPasswordSetup_Failed);
+        }
+        finally
+        {
+            _isOfferingHelloAfterPasswordSetup = false;
+        }
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

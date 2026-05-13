@@ -22,6 +22,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     private readonly IPasswordValidationService _passwordValidationService;
 
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event EventHandler? PasswordConfigured;
 
     private bool _isSetup;
     public bool IsSetup
@@ -137,6 +138,7 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
     private async Task SavePassword()
     {
         Message = string.Empty;
+        var wasSetup = IsSetup;
 
         // 1. Defensive validation
         if (!CanSavePassword())
@@ -162,6 +164,10 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
         Password = string.Empty;
         ConfirmPassword = string.Empty;
 
+        if (wasSetup)
+        {
+            PasswordConfigured?.Invoke(this, EventArgs.Empty);
+        }
     }
 
 

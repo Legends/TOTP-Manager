@@ -90,7 +90,10 @@ public sealed partial class SettingsViewModel
         if (!result.IsSuccess)
         {
             AuthError = result.ErrorMessage;
-            RevertAuthorizationGateSelectionFromCurrentSettings();
+            if (result.RevertGateSelection)
+            {
+                RevertAuthorizationGateSelectionFromCurrentSettings();
+            }
         }
     }
 
@@ -108,7 +111,8 @@ public sealed partial class SettingsViewModel
         AuthError = null;
         var result = await _settingsAuthorizationWorkflowService.ChangePasswordAsync(
             NewPassword,
-            ConfirmPassword);
+            ConfirmPassword,
+            IsPasswordSelected);
 
         NewPasswordError = result.NewPasswordError;
         ConfirmPasswordError = result.ConfirmPasswordError;
@@ -125,6 +129,10 @@ public sealed partial class SettingsViewModel
             ConfirmPassword = string.Empty;
         }
 
+        OnPropertyChanged(nameof(IsPasswordSetup));
+        OnPropertyChanged(nameof(PasswordCredentialTitle));
+        OnPropertyChanged(nameof(PasswordCredentialHint));
+        OnPropertyChanged(nameof(HasPasswordCredentialHint));
         _messageService.ShowSuccess(UI.ui_Password_ChangeSuccess, 2);
     }
 }

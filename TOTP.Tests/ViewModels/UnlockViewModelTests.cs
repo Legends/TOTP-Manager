@@ -4,6 +4,8 @@ using Moq;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
+using TOTP.Resources;
+using TOTP.Services.Interfaces;
 using TOTP.Tests.Common;
 using TOTP.ViewModels;
 
@@ -12,7 +14,7 @@ namespace TOTP.Tests.ViewModels;
 public sealed class UnlockViewModelTests : BaseAutoMockTest
 {
     [Fact]
-    public void Constructor_NotConfiguredState_CurrentGateIsNullAndChooserVisible()
+    public void Constructor_NotConfiguredState_EntersPasswordSetup()
     {
         // Arrange
         var authorizationState = new AuthorizationState();
@@ -24,8 +26,9 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
 
         // Assert
         sut.IsConfigured.Should().BeFalse();
-        sut.CurrentGate.Should().BeNull();
-        sut.HasSelectedSetupGate.Should().BeFalse();
+        sut.CurrentGate.Should().BeSameAs(sut.PasswordUnlockVM);
+        sut.PasswordUnlockVM.IsSetup.Should().BeTrue();
+        sut.HasSelectedSetupGate.Should().BeTrue();
     }
 
     [Fact]
@@ -51,7 +54,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
     }
 
     [Fact]
-    public void ChoosePasswordCommand_Execute_InvokesSetupModeAndSelectsPasswordGate()
+    public void FirstRunGateSelectionCommands_AreDisabledBecausePasswordSetupIsMandatory()
     {
         // Arrange
         var authorizationState = new AuthorizationState();
@@ -59,80 +62,106 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
         authMock.SetupGet(x => x.State).Returns(authorizationState);
         var sut = CreateWithFixture<UnlockViewModel>();
 
-        // Act
-        sut.ChoosePasswordCommand.Execute(null);
-
         // Assert
-        sut.CurrentGate.Should().BeSameAs(sut.PasswordUnlockVM);
-        sut.PasswordUnlockVM.IsSetup.Should().BeTrue();
-        sut.StatusMessage.Should().BeNull();
-    }
-
-    [Theory]
-    [InlineData(AuthorizationResult.NotAvailable, "Windows Hello is not available on this device/token. Choose Password.")]
-    [InlineData(AuthorizationResult.Failed, "Failed to configure Windows Hello.")]
-    public async Task ChooseHelloCommand_ConfigurationFailure_ShowsExpectedStatusMessage(
-        AuthorizationResult configurationResult,
-        string expectedMessage)
-    {
-        // Arrange
-        var authorizationState = new AuthorizationState();
-        var authMock = FreezeMock<IAuthorizationService>();
-        authMock.SetupGet(x => x.State).Returns(authorizationState);
-        authMock.Setup(x => x.ConfigureHelloAsync()).ReturnsAsync(configurationResult);
-        var sut = CreateWithFixture<UnlockViewModel>();
-
-        // Act
-        sut.ChooseHelloCommand.Execute(null);
-        await WaitUntilAsync(() => !string.IsNullOrWhiteSpace(sut.StatusMessage));
-
-        // Assert
-        sut.StatusMessage.Should().Be(expectedMessage);
-        authMock.Verify(x => x.ConfigureHelloAsync(), Times.Once);
-        authMock.Verify(x => x.TryUnlockWithHelloAsync(), Times.Never);
+        sut.ChoosePasswordCommand.CanExecute(null).Should().BeFalse();
+        sut.ChooseHelloCommand.CanExecute(null).Should().BeFalse();
     }
 
     [Fact]
-    public async Task ChooseHelloCommand_ConfigurationSucceedsButUnlockFails_ShowsVerificationFailure()
+    public async Task PasswordConfigured_WhenHelloAvailableAndAccepted_ConfiguresHello()
     {
         // Arrange
         var authorizationState = new AuthorizationState();
         var authMock = FreezeMock<IAuthorizationService>();
         authMock.SetupGet(x => x.State).Returns(authorizationState);
+        authMock.Setup(x => x.ConfigurePasswordAsync("StrongPwd1!", "StrongPwd1!"))
+            .ReturnsAsync(() =>
+            {
+                authorizationState.Unlock();
+                return AuthorizationResult.Success;
+            });
+        authMock.Setup(x => x.IsHelloAvailableAsync()).ReturnsAsync(true);
         authMock.Setup(x => x.ConfigureHelloAsync()).ReturnsAsync(AuthorizationResult.Success);
-        authMock.Setup(x => x.TryUnlockWithHelloAsync()).ReturnsAsync(AuthorizationResult.InvalidCredentials);
+        SetupValidPasswordValidation(FreezeMock<IPasswordValidationService>(), "StrongPwd1!", "StrongPwd1!");
+        var messageMock = FreezeMock<IMessageService>();
+        messageMock
+            .Setup(x => x.ConfirmInfo(
+                UI.ui_EnableHelloAfterPasswordSetup_Message,
+                UI.ui_EnableHelloAfterPasswordSetup_Enable,
+                UI.ui_EnableHelloAfterPasswordSetup_NotNow))
+            .Returns(true);
         var sut = CreateWithFixture<UnlockViewModel>();
+        SetupValidPassword(sut.PasswordUnlockVM, "StrongPwd1!", "StrongPwd1!");
 
         // Act
-        sut.ChooseHelloCommand.Execute(null);
-        await WaitUntilAsync(() => !string.IsNullOrWhiteSpace(sut.StatusMessage));
+        sut.PasswordUnlockVM.SavePasswordCommand.Execute(null);
+        await WaitUntilAsync(() => authMock.Invocations.Any(i => i.Method.Name == nameof(IAuthorizationService.ConfigureHelloAsync)));
 
         // Assert
-        sut.StatusMessage.Should().Be("Hello verification failed. Try again or use Password if configured.");
+        authMock.Verify(x => x.IsHelloAvailableAsync(), Times.Once);
         authMock.Verify(x => x.ConfigureHelloAsync(), Times.Once);
-        authMock.Verify(x => x.TryUnlockWithHelloAsync(), Times.Once);
+        messageMock.Verify(x => x.ShowSuccess(UI.ui_EnableHelloAfterPasswordSetup_Success, null), Times.Once);
     }
 
     [Fact]
-    public async Task ChooseHelloCommand_ConfigurationAndUnlockSucceed_ClearsStatusMessageAndCallsServices()
+    public async Task PasswordConfigured_WhenHelloIsDeclined_DoesNotConfigureHello()
     {
         // Arrange
         var authorizationState = new AuthorizationState();
         var authMock = FreezeMock<IAuthorizationService>();
         authMock.SetupGet(x => x.State).Returns(authorizationState);
-        authMock.Setup(x => x.ConfigureHelloAsync()).ReturnsAsync(AuthorizationResult.Success);
-        authMock.Setup(x => x.TryUnlockWithHelloAsync()).ReturnsAsync(AuthorizationResult.Success);
+        authMock.Setup(x => x.ConfigurePasswordAsync("StrongPwd1!", "StrongPwd1!"))
+            .ReturnsAsync(() =>
+            {
+                authorizationState.Unlock();
+                return AuthorizationResult.Success;
+            });
+        authMock.Setup(x => x.IsHelloAvailableAsync()).ReturnsAsync(true);
+        SetupValidPasswordValidation(FreezeMock<IPasswordValidationService>(), "StrongPwd1!", "StrongPwd1!");
+        var messageMock = FreezeMock<IMessageService>();
+        messageMock
+            .Setup(x => x.ConfirmInfo(
+                UI.ui_EnableHelloAfterPasswordSetup_Message,
+                UI.ui_EnableHelloAfterPasswordSetup_Enable,
+                UI.ui_EnableHelloAfterPasswordSetup_NotNow))
+            .Returns(false);
         var sut = CreateWithFixture<UnlockViewModel>();
-        sut.StatusMessage = "old status";
+        SetupValidPassword(sut.PasswordUnlockVM, "StrongPwd1!", "StrongPwd1!");
 
         // Act
-        sut.ChooseHelloCommand.Execute(null);
-        await WaitUntilAsync(() => authMock.Invocations.Count(i => i.Method.Name == nameof(IAuthorizationService.TryUnlockWithHelloAsync)) == 1);
+        sut.PasswordUnlockVM.SavePasswordCommand.Execute(null);
+        await WaitUntilAsync(() => authMock.Invocations.Any(i => i.Method.Name == nameof(IAuthorizationService.IsHelloAvailableAsync)));
 
         // Assert
-        sut.StatusMessage.Should().BeNull();
-        authMock.Verify(x => x.ConfigureHelloAsync(), Times.Once);
-        authMock.Verify(x => x.TryUnlockWithHelloAsync(), Times.Once);
+        authMock.Verify(x => x.ConfigureHelloAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task PasswordConfigured_WhenHelloUnavailable_ShowsWarning()
+    {
+        // Arrange
+        var authorizationState = new AuthorizationState();
+        var authMock = FreezeMock<IAuthorizationService>();
+        authMock.SetupGet(x => x.State).Returns(authorizationState);
+        authMock.Setup(x => x.ConfigurePasswordAsync("StrongPwd1!", "StrongPwd1!"))
+            .ReturnsAsync(() =>
+            {
+                authorizationState.Unlock();
+                return AuthorizationResult.Success;
+            });
+        authMock.Setup(x => x.IsHelloAvailableAsync()).ReturnsAsync(false);
+        SetupValidPasswordValidation(FreezeMock<IPasswordValidationService>(), "StrongPwd1!", "StrongPwd1!");
+        var messageMock = FreezeMock<IMessageService>();
+        var sut = CreateWithFixture<UnlockViewModel>();
+        SetupValidPassword(sut.PasswordUnlockVM, "StrongPwd1!", "StrongPwd1!");
+
+        // Act
+        sut.PasswordUnlockVM.SavePasswordCommand.Execute(null);
+        await WaitUntilAsync(() => authMock.Invocations.Any(i => i.Method.Name == nameof(IAuthorizationService.IsHelloAvailableAsync)));
+
+        // Assert
+        authMock.Verify(x => x.ConfigureHelloAsync(), Times.Never);
+        messageMock.Verify(x => x.ShowWarning(UI.ui_EnableHelloAfterPasswordSetup_NotAvailable), Times.Once);
     }
 
     [Fact]
@@ -167,6 +196,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
         AutoMocker.Use(helloVm);
         AutoMocker.Use(passwordVm);
         AutoMocker.Use(Mock.Of<ISettingsService>());
+        AutoMocker.Use(Mock.Of<IMessageService>());
 
         // Act
         var sut = CreateWithAutoMocker<UnlockViewModel>();
@@ -189,5 +219,26 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
 
             await Task.Delay(20, TestContext.Current.CancellationToken);
         }
+    }
+
+    private static void SetupValidPassword(PasswordUnlockViewModel passwordVm, string password, string confirmPassword)
+    {
+        passwordVm.Password = password;
+        passwordVm.ConfirmPassword = confirmPassword;
+    }
+
+    private static void SetupValidPasswordValidation(
+        Mock<IPasswordValidationService> validator,
+        string password,
+        string confirmPassword)
+    {
+        validator.Setup(x => x.ValidateNewWithConfirmation(
+                password,
+                confirmPassword,
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .Returns(new PasswordValidationResult());
     }
 }

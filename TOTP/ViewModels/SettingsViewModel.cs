@@ -132,6 +132,15 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
 
     public bool HasAuthError => !string.IsNullOrWhiteSpace(AuthError);
 
+    public bool IsPasswordSetup => _appSettings.Authorization.IsPasswordSetup;
+    public string PasswordCredentialTitle => IsPasswordSetup
+        ? UI.ui_Settings_Auth_Password_SetChange
+        : UI.ui_Settings_Auth_Password_SetInitial;
+    public string PasswordCredentialHint => IsPasswordSetup
+        ? string.Empty
+        : UI.ui_Settings_Auth_Password_SetInitialHint;
+    public bool HasPasswordCredentialHint => !string.IsNullOrWhiteSpace(PasswordCredentialHint);
+
     private bool _isHelloAvailable;
     public bool IsHelloAvailable
     {

@@ -10,9 +10,13 @@ namespace TOTP.Services;
 public sealed class SettingsAuthorizationWorkflowService(
     IAuthorizationService authorizationService,
     ISettingsService settingsService,
-    IPasswordValidationService passwordValidationService) : ISettingsAuthorizationWorkflowService
+    IPasswordValidationService passwordValidationService,
+    IPasswordPromptService? passwordPromptService = null) : ISettingsAuthorizationWorkflowService
 {
-    private readonly IAppSettings _appSettings = settingsService.Current;
+    private const string EnablePasswordUnlockTitle = "Enable password unlock";
+    private const string EnablePasswordUnlockMessage = "Enter your current master password to switch back to password unlock.";
+    private const string PasswordSetupRequiredMessage = "Set a master password before switching to password unlock.";
+    private IAppSettings AppSettings => settingsService.Current;
 
     public async Task<SettingsAuthorizationWorkflowResult> ApplyAuthorizationSettingsAsync(
         bool isHelloSelected,
@@ -20,7 +24,7 @@ public sealed class SettingsAuthorizationWorkflowService(
         string newPassword,
         string confirmPassword)
     {
-        var currentGate = _appSettings.Authorization.Gate;
+        var currentGate = AppSettings.Authorization.Gate;
 
         if (isHelloSelected && currentGate != AuthorizationGateKind.Hello)
         {
@@ -29,7 +33,7 @@ public sealed class SettingsAuthorizationWorkflowService(
                 return new SettingsAuthorizationWorkflowResult(false, "Windows Hello is not supported on this device.");
             }
 
-            if (!_appSettings.Authorization.HasHelloSetup)
+            if (!AppSettings.Authorization.HasHelloSetup)
             {
                 var setupResult = await authorizationService.ConfigureHelloAsync();
                 if (setupResult != AuthorizationResult.Success)
@@ -75,7 +79,7 @@ public sealed class SettingsAuthorizationWorkflowService(
         bool isHelloAvailable)
     {
         var selectedGate = isHelloSelected ? AuthorizationGateKind.Hello : AuthorizationGateKind.Password;
-        if (_appSettings.Authorization.Gate == selectedGate)
+        if (AppSettings.Authorization.Gate == selectedGate)
         {
             return new SettingsAuthorizationWorkflowResult(true);
         }
@@ -87,7 +91,7 @@ public sealed class SettingsAuthorizationWorkflowService(
                 return new SettingsAuthorizationWorkflowResult(false, "Windows Hello is not supported on this device.");
             }
 
-            if (!_appSettings.Authorization.HasHelloSetup)
+            if (!AppSettings.Authorization.HasHelloSetup)
             {
                 var configureResult = await authorizationService.ConfigureHelloAsync();
                 if (configureResult != AuthorizationResult.Success)
@@ -96,21 +100,36 @@ public sealed class SettingsAuthorizationWorkflowService(
                 }
             }
         }
-
-        var previousGate = _appSettings.Authorization.Gate;
-        _appSettings.Authorization.Gate = selectedGate;
-
-        var saveResult = await settingsService.SaveAsync();
-        if (saveResult.IsFailed)
+        else
         {
-            _appSettings.Authorization.Gate = previousGate;
-            return new SettingsAuthorizationWorkflowResult(false, string.Join("; ", saveResult.Errors.Select(e => e.Message)));
+            if (!AppSettings.Authorization.IsPasswordSetup)
+            {
+                return new SettingsAuthorizationWorkflowResult(
+                    false,
+                    PasswordSetupRequiredMessage,
+                    RevertGateSelection: false);
+            }
+
+            var verificationResult = await VerifyExistingMasterPasswordAsync();
+            if (verificationResult != null)
+            {
+                return verificationResult;
+            }
         }
 
-        return new SettingsAuthorizationWorkflowResult(true);
+        var gateResult = await authorizationService.SetGateAsync(selectedGate);
+        return gateResult == AuthorizationResult.Success
+            ? new SettingsAuthorizationWorkflowResult(true)
+            : new SettingsAuthorizationWorkflowResult(false, UI.ui_Password_ValidationFailed);
     }
 
-    public async Task<SettingsAuthorizationWorkflowResult> ChangePasswordAsync(string newPassword, string confirmPassword)
+    public Task<SettingsAuthorizationWorkflowResult> ChangePasswordAsync(string newPassword, string confirmPassword)
+        => ChangePasswordAsync(newPassword, confirmPassword, activatePasswordGate: false);
+
+    public async Task<SettingsAuthorizationWorkflowResult> ChangePasswordAsync(
+        string newPassword,
+        string confirmPassword,
+        bool activatePasswordGate)
     {
         var validation = passwordValidationService.ValidateNewWithConfirmation(
             newPassword,
@@ -135,6 +154,38 @@ public sealed class SettingsAuthorizationWorkflowService(
             return new SettingsAuthorizationWorkflowResult(false, UI.ui_Password_ValidationFailed);
         }
 
+        if (activatePasswordGate)
+        {
+            var gateResult = await authorizationService.SetGateAsync(AuthorizationGateKind.Password);
+            if (gateResult != AuthorizationResult.Success)
+                return new SettingsAuthorizationWorkflowResult(false, UI.ui_Password_ValidationFailed);
+        }
+
         return new SettingsAuthorizationWorkflowResult(true, ClearPasswordInputs: true);
+    }
+
+    private async Task<SettingsAuthorizationWorkflowResult?> VerifyExistingMasterPasswordAsync()
+    {
+        if (passwordPromptService == null)
+        {
+            return new SettingsAuthorizationWorkflowResult(false, UI.ui_Password_VerificationFailed);
+        }
+
+        var password = passwordPromptService.Prompt(
+            EnablePasswordUnlockTitle,
+            EnablePasswordUnlockMessage,
+            requiredErrorMessage: UI.ui_Password_Required,
+            validatePasswordAsync: async candidate =>
+            {
+                var result = await authorizationService.TryUnlockWithPasswordAsync(candidate);
+                return result == AuthorizationResult.Success ? null : UI.ui_Password_VerificationFailed;
+            });
+
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return new SettingsAuthorizationWorkflowResult(false, UI.ui_Password_VerificationFailed);
+        }
+
+        return null;
     }
 }

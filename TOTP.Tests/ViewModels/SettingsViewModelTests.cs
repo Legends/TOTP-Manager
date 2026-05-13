@@ -218,7 +218,7 @@ public sealed class SettingsViewModelTests
         var (_, _, authWorkflow, persistence, _, _, message, _, vm) = CreateSutWithDependencies();
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot());
-        authWorkflow.Setup(a => a.ChangePasswordAsync("new-pass", "new-pass"))
+        authWorkflow.Setup(a => a.ChangePasswordAsync("new-pass", "new-pass", true))
             .ReturnsAsync(new SettingsAuthorizationWorkflowResult(true, ClearPasswordInputs: true));
 
         await vm.LoadAsync();
@@ -240,7 +240,7 @@ public sealed class SettingsViewModelTests
         var (_, _, authWorkflow, persistence, _, _, message, _, vm) = CreateSutWithDependencies();
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings()).Returns(CreateSnapshot());
-        authWorkflow.Setup(a => a.ChangePasswordAsync("short", "mismatch"))
+        authWorkflow.Setup(a => a.ChangePasswordAsync("short", "mismatch", true))
             .ReturnsAsync(new SettingsAuthorizationWorkflowResult(
                 false,
                 ErrorMessage: "validation failed",

@@ -16,6 +16,7 @@ public interface ISettingsAuthorizationWorkflowService
         bool isHelloAvailable);
 
     Task<SettingsAuthorizationWorkflowResult> ChangePasswordAsync(string newPassword, string confirmPassword);
+    Task<SettingsAuthorizationWorkflowResult> ChangePasswordAsync(string newPassword, string confirmPassword, bool activatePasswordGate);
 }
 
 public sealed record SettingsAuthorizationWorkflowResult(
@@ -23,4 +24,5 @@ public sealed record SettingsAuthorizationWorkflowResult(
     string? ErrorMessage = null,
     string? NewPasswordError = null,
     string? ConfirmPasswordError = null,
-    bool ClearPasswordInputs = false);
+    bool ClearPasswordInputs = false,
+    bool RevertGateSelection = true);

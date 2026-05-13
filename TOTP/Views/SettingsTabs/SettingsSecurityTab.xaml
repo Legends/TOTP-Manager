@@ -40,10 +40,16 @@
                       BorderThickness="1"
                       Visibility="{Binding IsPasswordSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <GroupBox.Header>
-                    <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_Password_SetChange}"
+                    <TextBlock Text="{Binding PasswordCredentialTitle}"
                                Style="{StaticResource TextStyle.FieldLabel}"/>
                 </GroupBox.Header>
                 <StackPanel Margin="10">
+                    <TextBlock Text="{Binding PasswordCredentialHint}"
+                               TextWrapping="Wrap"
+                               Foreground="#AFC0E8"
+                               Margin="0,0,0,10"
+                               Visibility="{Binding HasPasswordCredentialHint, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
                     <userControls:RevealableSecretBox Margin="0,0,0,10"
                                                       Secret="{Binding NewPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                       ToggleButtonStyle="{StaticResource IconToggleButtonStyle}"
@@ -61,7 +67,7 @@
                                Visibility="{Binding ConfirmPasswordError, Converter={StaticResource StringToVisibilityConverterCollapsed}}"
                                Margin="0,0,0,8" />
 
-                    <Button Content="{xaml:Resx Key=ui_Settings_Auth_Password_SetChange}"
+                    <Button Content="{Binding PasswordCredentialTitle}"
                             Command="{Binding ChangePasswordCommand}"
                             Height="32"
                             Margin="0,10,0,0"/>

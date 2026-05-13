@@ -673,6 +673,60 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable.
+        /// </summary>
+        internal static string ui_EnableHelloAfterPasswordSetup_Enable {
+            get {
+                return ResourceManager.GetString("ui_EnableHelloAfterPasswordSetup_Enable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows Hello could not be enabled. You can try again in Settings..
+        /// </summary>
+        internal static string ui_EnableHelloAfterPasswordSetup_Failed {
+            get {
+                return ResourceManager.GetString("ui_EnableHelloAfterPasswordSetup_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable Windows Hello for faster unlock? Your master password stays available for recovery and portability..
+        /// </summary>
+        internal static string ui_EnableHelloAfterPasswordSetup_Message {
+            get {
+                return ResourceManager.GetString("ui_EnableHelloAfterPasswordSetup_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows Hello is not available right now. You can enable it later in Settings..
+        /// </summary>
+        internal static string ui_EnableHelloAfterPasswordSetup_NotAvailable {
+            get {
+                return ResourceManager.GetString("ui_EnableHelloAfterPasswordSetup_NotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not now.
+        /// </summary>
+        internal static string ui_EnableHelloAfterPasswordSetup_NotNow {
+            get {
+                return ResourceManager.GetString("ui_EnableHelloAfterPasswordSetup_NotNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows Hello enabled. Your master password remains available..
+        /// </summary>
+        internal static string ui_EnableHelloAfterPasswordSetup_Success {
+            get {
+                return ResourceManager.GetString("ui_EnableHelloAfterPasswordSetup_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enter password for encrypted import.
         /// </summary>
         internal static string ui_EnterImportPassword {
@@ -768,6 +822,15 @@ namespace TOTP.Resources {
         internal static string ui_ExportPwd_WrongMasterPassword {
             get {
                 return ResourceManager.GetString("ui_ExportPwd_WrongMasterPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create a master password first. You can enable Windows Hello after that..
+        /// </summary>
+        internal static string ui_FirstRun_MasterPasswordRequired {
+            get {
+                return ResourceManager.GetString("ui_FirstRun_MasterPasswordRequired", resourceCulture);
             }
         }
         
@@ -1056,6 +1119,24 @@ namespace TOTP.Resources {
         internal static string ui_Settings_Auth_Password_SetChange {
             get {
                 return ResourceManager.GetString("ui_Settings_Auth_Password_SetChange", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Set master password.
+        /// </summary>
+        internal static string ui_Settings_Auth_Password_SetInitial {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_Password_SetInitial", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This profile does not have a master password yet. Set one to use password unlock..
+        /// </summary>
+        internal static string ui_Settings_Auth_Password_SetInitialHint {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_Password_SetInitialHint", resourceCulture);
             }
         }
         
@@ -1398,6 +1479,15 @@ namespace TOTP.Resources {
         internal static string ui_Settings_Title {
             get {
                 return ResourceManager.GetString("ui_Settings_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set up authorization.
+        /// </summary>
+        internal static string ui_Setup_Authorization {
+            get {
+                return ResourceManager.GetString("ui_Setup_Authorization", resourceCulture);
             }
         }
         
