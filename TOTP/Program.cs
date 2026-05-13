@@ -167,7 +167,7 @@ internal static class Program
         }
     }
 
-    private static Task StartApplication(string[] args, DateTimeOffset processEntryUtc, long processEntryTick)
+    private static async Task StartApplication(string[] args, DateTimeOffset processEntryUtc, long processEntryTick)
     {
         var startupSteps = new StartupStepRecorder();
         var startupTableLogged = 0;
@@ -202,7 +202,7 @@ internal static class Program
                 startupSteps.Mark("single_instance.redirect_existing");
                 SingleInstanceGuard.ActivateExistingWindow(StringsConstants.AssemblyNameWpf);
                 EmitStartupTable(isError: false, "Startup Steps (redirected)");
-                return Task.CompletedTask;
+                return;
             }
 
             startupSteps.Mark("single_instance.first_instance");
@@ -242,17 +242,35 @@ internal static class Program
             startupSteps.Mark("host.built");
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
             startupSteps.Mark("unhandled_hooks.wired");
-            var hostStarted = false;
+            using var startupCancellation = new CancellationTokenSource();
+            Task? startupTask = null;
+            var hostStartAttempted = false;
+            var hostStopping = 0;
 
-            app.Exit += async (_, __) =>
+            async Task StopHostAsync()
             {
-                if (!hostStarted)
+                if (!hostStartAttempted || Interlocked.Exchange(ref hostStopping, 1) == 1)
                 {
+                    Log.Information(
+                        "shutdown.host_stop.skipped host_start_attempted={HostStartAttempted} host_stopping={HostStopping}",
+                        hostStartAttempted,
+                        hostStopping);
                     return;
                 }
 
-                try { await host.StopAsync(); }
+                try
+                {
+                    Log.Information("shutdown.host_stop.begin");
+                    await host.StopAsync(TimeSpan.FromSeconds(10));
+                    Log.Information("shutdown.host_stop.end");
+                }
                 catch (Exception ex) { Log.Error(ex, UI.ex_UnexpectedError); }
+            }
+
+            app.Exit += (_, args) =>
+            {
+                Log.Information("app.exit code={ExitCode}", args.ApplicationExitCode);
+                startupCancellation.Cancel();
             };
 
             var mainWindow = CreateMainWindowShell(host);
@@ -334,10 +352,12 @@ internal static class Program
                 ShowMainWindowWhenReady();
             }
 
-            _ = app.Dispatcher.BeginInvoke(async () =>
+            startupTask = app.Dispatcher.InvokeAsync(async () =>
             {
                 try
                 {
+                    startupCancellation.Token.ThrowIfCancellationRequested();
+
                     var loadResult = await host.Services.GetRequiredService<ISettingsService>().LoadAsync();
                     startupSteps.Mark("settings.loaded");
                     if (loadResult.IsFailed)
@@ -345,13 +365,19 @@ internal static class Program
                         throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
                     }
 
-                    await vm.InitializeMainViewAsync(mainWindow);
+                    startupCancellation.Token.ThrowIfCancellationRequested();
+
+                    await vm.InitializeMainViewAsync(mainWindow, startupCancellation.Token);
                     startupSteps.Mark("mainvm.initialized");
                     ShowMainWindowWhenReady();
 
-                    await host.StartAsync();
-                    hostStarted = true;
+                    startupCancellation.Token.ThrowIfCancellationRequested();
+
+                    hostStartAttempted = true;
+                    await host.StartAsync(startupCancellation.Token);
                     startupSteps.Mark("host.started");
+
+                    startupCancellation.Token.ThrowIfCancellationRequested();
 
                     CommandExceptionLogger.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
                     host.Services.GetRequiredService<IScannerWarmupService>().StartWarmupInBackground("program.startup");
@@ -360,6 +386,10 @@ internal static class Program
                     startupTablePending = true;
                     EmitReadyStartupTableIfPossible();
                 }
+                catch (OperationCanceledException) when (startupCancellation.IsCancellationRequested)
+                {
+                    startupSteps.Mark("startup.canceled");
+                }
                 catch (Exception ex)
                 {
                     startupSteps.Mark("startup.failed.in_loaded");
@@ -367,10 +397,23 @@ internal static class Program
                     Log.Fatal(ex, UI.ex_FatalError);
                     app.Shutdown(-1);
                 }
-            }, DispatcherPriority.Background);
+            }, DispatcherPriority.Background).Task.Unwrap();
 
             app.Run();
-            return Task.CompletedTask;
+            Log.Information("app.run.returned");
+            startupCancellation.Cancel();
+
+            if (startupTask != null)
+            {
+                Log.Information("shutdown.startup_task.wait.begin");
+                try { await startupTask.WaitAsync(TimeSpan.FromSeconds(5)); }
+                catch (OperationCanceledException) when (startupCancellation.IsCancellationRequested) { }
+                catch (TimeoutException ex) { Log.Warning(ex, "Timed out waiting for startup task to finish during shutdown."); }
+                catch (Exception ex) { Log.Error(ex, UI.ex_UnexpectedError); }
+                Log.Information("shutdown.startup_task.wait.end");
+            }
+
+            await StopHostAsync();
         }
         catch (Exception ex)
         {
@@ -378,7 +421,6 @@ internal static class Program
             EmitStartupTable(isError: true, "Startup Steps (failed)");
             Log.Fatal(ex, UI.ex_FatalError);
             Environment.Exit(-1);
-            return Task.CompletedTask;
         }
     }
 

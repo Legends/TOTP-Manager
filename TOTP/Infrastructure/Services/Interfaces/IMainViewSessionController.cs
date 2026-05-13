@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TOTP.Core.Security.Models;
@@ -18,6 +19,7 @@ public interface IMainViewSessionController
 
     void ConfigureCallbacks(Func<Task> onUnlockedAsync, Action onLocked);
     Task InitializeAsync(IMainWindow? mainWindow);
+    Task InitializeAsync(IMainWindow? mainWindow, CancellationToken ct);
     void AttachWindow(IMainWindow? window);
     void Lock();
 }

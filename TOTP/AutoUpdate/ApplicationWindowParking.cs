@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using Serilog;
 
 namespace TOTP.AutoUpdate;
 
@@ -26,6 +27,10 @@ internal sealed class ApplicationWindowParking
                 continue;
             }
 
+            Log.Information(
+                "autoupdate.window_park.hide window_type={WindowType} title={Title}",
+                window.GetType().Name,
+                window.Title);
             _hiddenWindows.Add(window);
             window.Hide();
         }
@@ -44,6 +49,10 @@ internal sealed class ApplicationWindowParking
 
             if (!window.IsVisible)
             {
+                Log.Information(
+                    "autoupdate.window_park.restore window_type={WindowType} title={Title}",
+                    window.GetType().Name,
+                    window.Title);
                 window.Show();
             }
         }

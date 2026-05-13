@@ -4,6 +4,7 @@ using Serilog;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using TOTP.Infrastructure.Adapters;
@@ -29,6 +30,7 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
     private bool _editFlyoutViewLoaded;
     private bool _allowSettingsWindowClose;
     private bool _handlingSettingsWindowClosing;
+    private int _processExitStarted;
 
     public MainWindow(IMainViewModel vm)
     {
@@ -272,8 +274,30 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         }
     }
 
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        Log.Information("mainwindow.closing begin cancel={Cancel} is_visible={IsVisible}", e.Cancel, IsVisible);
+        base.OnClosing(e);
+
+        if (e.Cancel)
+        {
+            Log.Information("mainwindow.closing canceled");
+            return;
+        }
+
+        Log.Information("mainwindow.closing process_exit_requested");
+        ExitProcessFromMainWindowClose();
+    }
+
     protected override void OnClosed(EventArgs e)
     {
+        Log.Information("mainwindow.closed begin");
+        var detachWindowCommand = _vm.SessionController.DetachWindowCommand;
+        if (detachWindowCommand.CanExecute(null))
+        {
+            detachWindowCommand.Execute(null);
+        }
+
         if (_settingsWindow != null)
         {
             _allowSettingsWindowClose = true;
@@ -283,6 +307,54 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         }
 
         base.OnClosed(e);
+        Log.Information("mainwindow.closed end");
+
+        var application = Application.Current;
+        if (application != null && !application.Dispatcher.HasShutdownStarted && !application.Dispatcher.HasShutdownFinished)
+        {
+            Log.Information("mainwindow.closed requesting_application_shutdown");
+            application.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(application.Shutdown));
+        }
+    }
+
+    private void ExitProcessFromMainWindowClose()
+    {
+        if (Interlocked.Exchange(ref _processExitStarted, 1) == 1)
+        {
+            return;
+        }
+
+        try
+        {
+            var detachWindowCommand = _vm.SessionController.DetachWindowCommand;
+            if (detachWindowCommand.CanExecute(null))
+            {
+                detachWindowCommand.Execute(null);
+            }
+
+            if (_settingsWindow != null)
+            {
+                _allowSettingsWindowClose = true;
+                _settingsWindow.Closing -= SettingsWindow_Closing;
+                _settingsWindow.Close();
+                _settingsWindow = null;
+            }
+
+            if (_vm is IDisposable disposableViewModel)
+            {
+                disposableViewModel.Dispose();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "mainwindow.close.cleanup_failed");
+        }
+        finally
+        {
+            Log.Information("mainwindow.closing environment_exit");
+            Log.CloseAndFlush();
+            Environment.Exit(0);
+        }
     }
 
     public void BringToFront()

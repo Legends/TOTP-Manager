@@ -674,15 +674,21 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     /// authorization state are properly configured.</remarks>
     /// <param name="mainWindow">The main window instance to attach commands and initialize the view. Can be null if no window is available.</param>
     /// <returns>A task that represents the asynchronous initialization operation.</returns>
-    public async Task InitializeMainViewAsync(IMainWindow? mainWindow)
+    public Task InitializeMainViewAsync(IMainWindow? mainWindow) => InitializeMainViewAsync(mainWindow, CancellationToken.None);
+
+    public async Task InitializeMainViewAsync(IMainWindow? mainWindow, CancellationToken ct)
     {
         try
         {
             _ = WarmUpNonCriticalFeaturesAsync();
-            await _mainViewSessionController.InitializeAsync(mainWindow);
+            await _mainViewSessionController.InitializeAsync(mainWindow, ct);
             
             IsBusy = false;
 
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {

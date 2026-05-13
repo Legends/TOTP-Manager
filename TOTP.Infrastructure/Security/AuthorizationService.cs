@@ -64,15 +64,19 @@ public sealed class AuthorizationService : IAuthorizationService
 
     public async Task<bool> IsHelloAvailableAsync() => await _helloGate.IsAvailableAsync();
 
-    public async Task<AuthorizationResult> TryUnlockOnStartupAsync()
+    public Task<AuthorizationResult> TryUnlockOnStartupAsync() => TryUnlockOnStartupAsync(CancellationToken.None);
+
+    public async Task<AuthorizationResult> TryUnlockOnStartupAsync(CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+
         if (_appSettings?.Authorization == null || !_appSettings.Authorization.IsConfigured)
             return AuthorizationResult.NotConfigured;
 
         var auth = _appSettings.Authorization;
 
         if (auth.Gate == AuthorizationGateKind.Hello)
-            return await TryUnlockWithHelloAsync();
+            return await TryUnlockWithHelloAsync(ct);
 
         return AuthorizationResult.PasswordRequired;
     }
@@ -104,16 +108,22 @@ public sealed class AuthorizationService : IAuthorizationService
         }
     }
 
-    public async Task<AuthorizationResult> TryUnlockWithHelloAsync()
+    public Task<AuthorizationResult> TryUnlockWithHelloAsync() => TryUnlockWithHelloAsync(CancellationToken.None);
+
+    public async Task<AuthorizationResult> TryUnlockWithHelloAsync(CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+
         var auth = _appSettings?.Authorization;
         if (auth?.HelloWrappedDek == null) return AuthorizationResult.PasswordRequired;
 
-        var result = await _helloGate.RequestVerificationAsync();
+        var result = await _helloGate.RequestVerificationAsync(ct);
         if (result != AuthorizationResult.Success) return result;
 
+        ct.ThrowIfCancellationRequested();
+
         // TPM Unwrapping
-        var dek = await _helloGate.UnprotectKeyAsync(auth.HelloWrappedDek, auth.HelloKeyId!);
+        var dek = await _helloGate.UnprotectKeyAsync(auth.HelloWrappedDek, auth.HelloKeyId!, ct);
         if (dek == null) return AuthorizationResult.PasswordRequired;
 
         try

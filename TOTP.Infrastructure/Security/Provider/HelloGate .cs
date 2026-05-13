@@ -16,13 +16,17 @@ public sealed class HelloGate : IHelloGate
 
     public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
     {
-        var availability = await UserConsentVerifier.CheckAvailabilityAsync();
+        ct.ThrowIfCancellationRequested();
+        var availability = await UserConsentVerifier.CheckAvailabilityAsync().AsTask(ct);
         return availability == UserConsentVerifierAvailability.Available;
     }
 
     public async Task<AuthorizationResult> RequestVerificationAsync(CancellationToken ct = default)
     {
-        var result = await UserConsentVerifier.RequestVerificationAsync("Unlock TOTP Manager Vault");
+        ct.ThrowIfCancellationRequested();
+        var result = await UserConsentVerifier
+            .RequestVerificationAsync("Unlock TOTP Manager Vault")
+            .AsTask(ct);
         return result == UserConsentVerificationResult.Verified ? AuthorizationResult.Success : AuthorizationResult.Failed;
     }
 
@@ -46,16 +50,24 @@ public sealed class HelloGate : IHelloGate
         });
     }
 
-    public async Task<byte[]?> UnprotectKeyAsync(byte[] wrappedDek, string keyId)
+    public async Task<byte[]?> UnprotectKeyAsync(byte[] wrappedDek, string keyId, CancellationToken ct = default)
     {
         try
         {
-            // This will trigger the Windows Hello popup automatically 
-            // because the key is in the Platform Crypto Provider
-            using var key = CngKey.Open(keyId, CngProvider.MicrosoftPlatformCryptoProvider);
-            using var rsa = new RSACng(key);
+            ct.ThrowIfCancellationRequested();
+            return await Task.Run(() =>
+            {
+                ct.ThrowIfCancellationRequested();
+                // This can trigger the Windows Hello popup because the key is in the Platform Crypto Provider.
+                using var key = CngKey.Open(keyId, CngProvider.MicrosoftPlatformCryptoProvider);
+                using var rsa = new RSACng(key);
 
-            return rsa.Decrypt(wrappedDek, RSAEncryptionPadding.OaepSHA256);
+                return rsa.Decrypt(wrappedDek, RSAEncryptionPadding.OaepSHA256);
+            }, ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (CryptographicException ex)
         {

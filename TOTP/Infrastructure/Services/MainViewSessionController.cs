@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -56,20 +57,29 @@ public sealed class MainViewSessionController : IMainViewSessionController
         _onLocked = onLocked;
     }
 
-    public async Task InitializeAsync(IMainWindow? mainWindow)
+    public Task InitializeAsync(IMainWindow? mainWindow) => InitializeAsync(mainWindow, CancellationToken.None);
+
+    public async Task InitializeAsync(IMainWindow? mainWindow, CancellationToken ct)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
             AttachWindow(mainWindow);
             SetSessionState(AppSessionLockState.Unlocking);
 
             await _authorization.InitializeAsync();
 
-            var startupUnlockResult = await _authorization.TryUnlockOnStartupAsync();
+            ct.ThrowIfCancellationRequested();
+
+            var startupUnlockResult = await _authorization.TryUnlockOnStartupAsync(ct);
             if (!IsUnlocked && startupUnlockResult != AuthorizationResult.Success)
             {
                 SetSessionState(AppSessionLockState.Locked);
             }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {

@@ -82,6 +82,21 @@ public sealed class AutoUpdateServiceTests
         });
     }
 
+    [Fact]
+    public async Task Dispose_AfterInitialization_StopsAndDisposesUpdater()
+    {
+        var client = new FakeAutoUpdateClient();
+        var factory = new FakeAutoUpdateRuntimeFactory(client, new FakeAutoUpdateUiCoordinator());
+        var sut = CreateSut(BuildEnabledConfiguration(), factory);
+
+        await sut.InitializeAsync();
+
+        sut.Dispose();
+
+        Assert.Equal(1, client.StopLoopCount);
+        Assert.Equal(1, client.DisposeCount);
+    }
+
     private static AutoUpdateService CreateSut(IConfiguration configuration, FakeAutoUpdateRuntimeFactory factory)
     {
         return new AutoUpdateService(
@@ -231,6 +246,8 @@ public sealed class AutoUpdateServiceTests
         public UpdateInfo? QuietResult { get; set; }
         public Exception? QuietException { get; set; }
         public List<bool> QuietCheckCalls { get; } = [];
+        public int StopLoopCount { get; private set; }
+        public int DisposeCount { get; private set; }
 
         public Task<UpdateInfo?> CheckForUpdatesQuietly(bool userInitiated)
         {
@@ -246,6 +263,11 @@ public sealed class AutoUpdateServiceTests
         public Task<UpdateInfo?> CheckForUpdatesAtUserRequest(bool userInitiated) => Task.FromResult<UpdateInfo?>(null);
         public void StartLoop(bool checkOnStartup, bool forceStartupCheck, TimeSpan loopInterval)
         {
+        }
+
+        public void StopLoop()
+        {
+            StopLoopCount++;
         }
 
         public void ShowUpdateNeededUI(List<AppCastItem> updates, bool isUpdateAlreadyDownloaded)
@@ -266,6 +288,7 @@ public sealed class AutoUpdateServiceTests
         public void OnDownloadHadError(Action<AppCastItem, string?, Exception> callback) => _downloadHadError = callback;
         public void OnPreparingToExit(Action<CancelEventArgs> callback) => _preparingToExit = callback;
         public void OnCloseApplication(Action callback) => _closeApplication = callback;
+        public void Dispose() => DisposeCount++;
     }
 
     private sealed class FakeAutoUpdateUiCoordinator : IAutoUpdateUiCoordinator

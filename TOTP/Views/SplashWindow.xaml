@@ -8,7 +8,6 @@
         Width="360"
         Height="220"
         ShowInTaskbar="False"
-        Topmost="True"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <ResourceDictionary>

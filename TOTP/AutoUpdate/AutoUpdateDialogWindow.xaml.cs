@@ -136,7 +136,8 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
             UpdateResponseHandler = null;
             ProgressActionHandler = null;
             Hide();
-            ScheduleBackgroundRestore();
+            CancelBackgroundRestore();
+            _windowParking.Restore();
         });
     }
 

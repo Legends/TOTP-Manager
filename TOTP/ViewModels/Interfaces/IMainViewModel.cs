@@ -1,12 +1,14 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Core.Interfaces;
 using TOTP.Infrastructure.Adapters;
+using TOTP.Security.Interfaces;
 using TOTP.ViewModels;
 using TOTP.Views.Interfaces;
 
@@ -15,6 +17,7 @@ namespace TOTP.ViewModels.Interfaces;
 public interface IMainViewModel : INotifyPropertyChanged
 {
     bool IsBusy { get; set; }
+    IMainViewSessionController SessionController { get; }
     bool IsSettingsViewOpen { get; set; }
     SettingsViewModel? SettingsVm { get; }
     ObservableCollection<OtpViewModel> AllOtps { get; }
@@ -31,6 +34,7 @@ public interface IMainViewModel : INotifyPropertyChanged
     OtpViewModel? SelectedAccount { get; set; }
     bool IsContextmenuOpen { get; set; }
     Task InitializeMainViewAsync(IMainWindow? mainWindow);
+    Task InitializeMainViewAsync(IMainWindow? mainWindow, CancellationToken ct);
     Task OnRowSelectionChangedAsync(OtpViewModel? item);
     bool IsGridEditing { get; set; }
     bool IsInlineEditing { get; set; }

@@ -20,7 +20,7 @@ using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;
 
-public sealed class AutoUpdateService : IAutoUpdateService
+public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
 {
     private static readonly bool EnableDiagnostics = true;
     private const int DefaultLoopIntervalHours = 24;
@@ -36,6 +36,7 @@ public sealed class AutoUpdateService : IAutoUpdateService
     private IAutoUpdateClient? _sparkle;
     private IAutoUpdateUiCoordinator? _uiFactory;
     private bool _initialized;
+    private bool _disposed;
 
     public AutoUpdateService(
         IConfiguration configuration,
@@ -174,6 +175,34 @@ public sealed class AutoUpdateService : IAutoUpdateService
         finally
         {
             checkingWindow?.Close();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        try
+        {
+            _sparkle?.StopLoop();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Auto-update loop shutdown failed.");
+        }
+
+        try
+        {
+            _sparkle?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Auto-update disposal failed.");
         }
     }
 

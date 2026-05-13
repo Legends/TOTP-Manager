@@ -28,13 +28,14 @@ internal interface IAutoUpdateRuntime
     IAutoUpdateUiCoordinator Ui { get; }
 }
 
-internal interface IAutoUpdateClient
+internal interface IAutoUpdateClient : IDisposable
 {
     Configuration? Configuration { get; set; }
 
     Task<UpdateInfo?> CheckForUpdatesQuietly(bool userInitiated);
     Task<UpdateInfo?> CheckForUpdatesAtUserRequest(bool userInitiated);
     void StartLoop(bool checkOnStartup, bool forceStartupCheck, TimeSpan loopInterval);
+    void StopLoop();
     void ShowUpdateNeededUI(List<AppCastItem> updates, bool isUpdateAlreadyDownloaded);
     void OnLoopStarted(Action callback);
     void OnLoopFinished(Action<bool> callback);
@@ -112,6 +113,7 @@ internal sealed class NetSparkleAutoUpdateClient : IAutoUpdateClient
     public Task<UpdateInfo?> CheckForUpdatesQuietly(bool userInitiated) => _sparkle.CheckForUpdatesQuietly(userInitiated);
     public Task<UpdateInfo?> CheckForUpdatesAtUserRequest(bool userInitiated) => _sparkle.CheckForUpdatesAtUserRequest(userInitiated);
     public void StartLoop(bool checkOnStartup, bool forceStartupCheck, TimeSpan loopInterval) => _sparkle.StartLoop(checkOnStartup, forceStartupCheck, loopInterval);
+    public void StopLoop() => _sparkle.StopLoop();
     public void ShowUpdateNeededUI(List<AppCastItem> updates, bool isUpdateAlreadyDownloaded) => _sparkle.ShowUpdateNeededUI(updates, isUpdateAlreadyDownloaded);
     public void OnLoopStarted(Action callback) => _sparkle.LoopStarted += _ => callback();
     public void OnLoopFinished(Action<bool> callback) => _sparkle.LoopFinished += (_, updateRequired) => callback(updateRequired);
@@ -128,6 +130,7 @@ internal sealed class NetSparkleAutoUpdateClient : IAutoUpdateClient
     public void OnDownloadHadError(Action<AppCastItem, string?, Exception> callback) => _sparkle.DownloadHadError += (item, path, exception) => callback(item, path, exception);
     public void OnPreparingToExit(Action<CancelEventArgs> callback) => _sparkle.PreparingToExit += (_, args) => callback(args);
     public void OnCloseApplication(Action callback) => _sparkle.CloseApplication += () => callback();
+    public void Dispose() => _sparkle.Dispose();
 }
 
 internal sealed class NetSparkleAutoUpdateUiCoordinator : IAutoUpdateUiCoordinator
