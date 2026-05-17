@@ -8,6 +8,17 @@ namespace TOTP.Tests.ViewModels;
 public sealed class HelloUnlockViewModelTests
 {
     [Fact]
+    public void UnlockCommand_UsesHelloUnlockCommand()
+    {
+        var auth = new Mock<IAuthorizationService>();
+        auth.SetupGet(a => a.State).Returns(new TOTP.Core.Security.AuthorizationState());
+
+        var vm = new HelloUnlockViewModel(auth.Object);
+
+        Assert.Same(vm.UnlockWithHelloCommand, vm.UnlockCommand);
+    }
+
+    [Fact]
     public async Task UnlockWithHelloCommand_WhenNotAvailable_SetsNotAvailableMessage()
     {
         var auth = new Mock<IAuthorizationService>();

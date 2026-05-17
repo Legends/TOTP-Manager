@@ -22,18 +22,19 @@ public sealed class HelloUnlockViewModel : INotifyPropertyChanged
         set { _message = value; OnPropertyChanged(); }
     }
 
-    public ICommand UnlockWithHelloCommand { get; }
+    public ICommand UnlockCommand { get; }
+    public ICommand UnlockWithHelloCommand => UnlockCommand;
 
     #endregion
 
     public HelloUnlockViewModel(IAuthorizationService auth)
     {
         _auth = auth;
-        UnlockWithHelloCommand = new AsyncCommand(UnlockAsync, CanUnlockWithHello);
+        UnlockCommand = new AsyncCommand(UnlockAsync, CanUnlockWithHello);
 
         _auth.State.Changed += (_, _) =>
         {
-            if (UnlockWithHelloCommand is AsyncCommand asyncCommand)
+            if (UnlockCommand is AsyncCommand asyncCommand)
             {
                 asyncCommand.RaiseCanExecuteChanged();
             }
