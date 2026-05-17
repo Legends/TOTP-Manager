@@ -1087,6 +1087,42 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enter your current master password to switch back to password unlock..
+        /// </summary>
+        internal static string ui_Settings_Auth_EnablePasswordUnlockMessage {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_EnablePasswordUnlockMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable password unlock.
+        /// </summary>
+        internal static string ui_Settings_Auth_EnablePasswordUnlockTitle {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_EnablePasswordUnlockTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows Hello setup failed..
+        /// </summary>
+        internal static string ui_Settings_Auth_HelloSetupFailed {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_HelloSetupFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows Hello is not supported on this device..
+        /// </summary>
+        internal static string ui_Settings_Auth_HelloUnsupported {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_HelloUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Lock session when ....
         /// </summary>
         internal static string ui_Settings_Auth_Lock_Session {
@@ -1121,7 +1157,7 @@ namespace TOTP.Resources {
                 return ResourceManager.GetString("ui_Settings_Auth_Password_SetChange", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Set master password.
         /// </summary>
@@ -1130,13 +1166,22 @@ namespace TOTP.Resources {
                 return ResourceManager.GetString("ui_Settings_Auth_Password_SetInitial", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to This profile does not have a master password yet. Set one to use password unlock..
         /// </summary>
         internal static string ui_Settings_Auth_Password_SetInitialHint {
             get {
                 return ResourceManager.GetString("ui_Settings_Auth_Password_SetInitialHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set a master password before switching to password unlock..
+        /// </summary>
+        internal static string ui_Settings_Auth_PasswordSetupRequired {
+            get {
+                return ResourceManager.GetString("ui_Settings_Auth_PasswordSetupRequired", resourceCulture);
             }
         }
         

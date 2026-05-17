@@ -3,6 +3,7 @@ using Moq;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
+using TOTP.Resources;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 
@@ -37,7 +38,7 @@ public sealed class SettingsAuthorizationWorkflowServiceTests
             confirmPassword: string.Empty);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Windows Hello is not supported on this device.", result.ErrorMessage);
+        Assert.Equal(UI.ui_Settings_Auth_HelloUnsupported, result.ErrorMessage);
         auth.Verify(a => a.ConfigureHelloAsync(), Times.Never);
     }
 
@@ -196,7 +197,7 @@ public sealed class SettingsAuthorizationWorkflowServiceTests
             isHelloAvailable: true);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Windows Hello setup failed.", result.ErrorMessage);
+        Assert.Equal(UI.ui_Settings_Auth_HelloSetupFailed, result.ErrorMessage);
         settings.Verify(s => s.SaveAsync(), Times.Never);
     }
 
@@ -323,7 +324,7 @@ public sealed class SettingsAuthorizationWorkflowServiceTests
 
         Assert.False(result.IsSuccess);
         Assert.False(result.RevertGateSelection);
-        Assert.Equal("Set a master password before switching to password unlock.", result.ErrorMessage);
+        Assert.Equal(UI.ui_Settings_Auth_PasswordSetupRequired, result.ErrorMessage);
         Assert.Equal(AuthorizationGateKind.Hello, appSettings.Authorization.Gate);
         settings.Verify(s => s.SaveAsync(), Times.Never);
     }

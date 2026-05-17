@@ -13,9 +13,6 @@ public sealed class SettingsAuthorizationWorkflowService(
     IPasswordValidationService passwordValidationService,
     IPasswordPromptService? passwordPromptService = null) : ISettingsAuthorizationWorkflowService
 {
-    private const string EnablePasswordUnlockTitle = "Enable password unlock";
-    private const string EnablePasswordUnlockMessage = "Enter your current master password to switch back to password unlock.";
-    private const string PasswordSetupRequiredMessage = "Set a master password before switching to password unlock.";
     private IAppSettings AppSettings => settingsService.Current;
 
     public async Task<SettingsAuthorizationWorkflowResult> ApplyAuthorizationSettingsAsync(
@@ -30,7 +27,7 @@ public sealed class SettingsAuthorizationWorkflowService(
         {
             if (!isHelloAvailable)
             {
-                return new SettingsAuthorizationWorkflowResult(false, "Windows Hello is not supported on this device.");
+                return new SettingsAuthorizationWorkflowResult(false, UI.ui_Settings_Auth_HelloUnsupported);
             }
 
             if (!AppSettings.Authorization.HasHelloSetup)
@@ -38,7 +35,7 @@ public sealed class SettingsAuthorizationWorkflowService(
                 var setupResult = await authorizationService.ConfigureHelloAsync();
                 if (setupResult != AuthorizationResult.Success)
                 {
-                    return new SettingsAuthorizationWorkflowResult(false, "Windows Hello setup failed.");
+                    return new SettingsAuthorizationWorkflowResult(false, UI.ui_Settings_Auth_HelloSetupFailed);
                 }
             }
         }
@@ -88,7 +85,7 @@ public sealed class SettingsAuthorizationWorkflowService(
         {
             if (!isHelloAvailable)
             {
-                return new SettingsAuthorizationWorkflowResult(false, "Windows Hello is not supported on this device.");
+                return new SettingsAuthorizationWorkflowResult(false, UI.ui_Settings_Auth_HelloUnsupported);
             }
 
             if (!AppSettings.Authorization.HasHelloSetup)
@@ -96,7 +93,7 @@ public sealed class SettingsAuthorizationWorkflowService(
                 var configureResult = await authorizationService.ConfigureHelloAsync();
                 if (configureResult != AuthorizationResult.Success)
                 {
-                    return new SettingsAuthorizationWorkflowResult(false, "Windows Hello setup failed.");
+                    return new SettingsAuthorizationWorkflowResult(false, UI.ui_Settings_Auth_HelloSetupFailed);
                 }
             }
         }
@@ -106,7 +103,7 @@ public sealed class SettingsAuthorizationWorkflowService(
             {
                 return new SettingsAuthorizationWorkflowResult(
                     false,
-                    PasswordSetupRequiredMessage,
+                    UI.ui_Settings_Auth_PasswordSetupRequired,
                     RevertGateSelection: false);
             }
 
@@ -172,8 +169,8 @@ public sealed class SettingsAuthorizationWorkflowService(
         }
 
         var password = passwordPromptService.Prompt(
-            EnablePasswordUnlockTitle,
-            EnablePasswordUnlockMessage,
+            UI.ui_Settings_Auth_EnablePasswordUnlockTitle,
+            UI.ui_Settings_Auth_EnablePasswordUnlockMessage,
             requiredErrorMessage: UI.ui_Password_Required,
             validatePasswordAsync: async candidate =>
             {

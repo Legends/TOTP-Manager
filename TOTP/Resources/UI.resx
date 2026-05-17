@@ -474,6 +474,27 @@
   <data name="ui_Settings_Auth_WindowsHello" xml:space="preserve">
     <value>Windows Hello</value>
   </data>
+  <data name="ui_Settings_Auth_Password_SetInitial" xml:space="preserve">
+    <value>Set master password</value>
+  </data>
+  <data name="ui_Settings_Auth_Password_SetInitialHint" xml:space="preserve">
+    <value>This profile does not have a master password yet. Set one to use password unlock.</value>
+  </data>
+  <data name="ui_Settings_Auth_EnablePasswordUnlockTitle" xml:space="preserve">
+    <value>Enable password unlock</value>
+  </data>
+  <data name="ui_Settings_Auth_EnablePasswordUnlockMessage" xml:space="preserve">
+    <value>Enter your current master password to switch back to password unlock.</value>
+  </data>
+  <data name="ui_Settings_Auth_PasswordSetupRequired" xml:space="preserve">
+    <value>Set a master password before switching to password unlock.</value>
+  </data>
+  <data name="ui_Settings_Auth_HelloUnsupported" xml:space="preserve">
+    <value>Windows Hello is not supported on this device.</value>
+  </data>
+  <data name="ui_Settings_Auth_HelloSetupFailed" xml:space="preserve">
+    <value>Windows Hello setup failed.</value>
+  </data>
   <data name="ui_Settings_ClearClipboard" xml:space="preserve">
     <value>Clear clipboard</value>
   </data>
