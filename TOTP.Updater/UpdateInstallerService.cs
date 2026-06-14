@@ -18,13 +18,13 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
         Log("updater started");
         SignalReady();
 
-        progress.Report(CreateState("Installing update", "Closing TOTP Manager...", arguments.PackagePath, string.Empty, true, 0, false));
+        progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.ClosingApp, arguments.PackagePath, string.Empty, true, 0, false));
         await CloseParentApplicationAsync(arguments.ParentProcessId, cancellationToken);
 
-        progress.Report(CreateState("Installing update", "Waiting for the app to close...", arguments.PackagePath, string.Empty, true, 0, false));
+        progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.WaitingForAppClose, arguments.PackagePath, string.Empty, true, 0, false));
         await WaitForApplicationProcessesExitAsync(cancellationToken);
 
-        progress.Report(CreateState("Installing update", "Staging update package...", arguments.PackagePath, string.Empty, true, 0, false));
+        progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.StagingPackage, arguments.PackagePath, string.Empty, true, 0, false));
         var stageDirectory = Path.Combine(Path.GetTempPath(), $"totp-update-stage-{Guid.NewGuid():N}");
 
         try
@@ -33,11 +33,11 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
             var files = EnumerateStageFiles(stageDirectory);
             var totalBytes = files.Sum(static file => file.Length);
 
-            progress.Report(CreateState("Installing update", "Installing files...", $"{files.Count} file(s) queued", $"{files.Count} item(s) queued", false, 0, false));
+            progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.InstallingFiles, UpdaterText.FilesQueued(files.Count), UpdaterText.ItemsQueued(files.Count), false, 0, false));
             await CopyFilesAsync(files, stageDirectory, arguments.TargetDirectory, totalBytes, progress, cancellationToken);
 
             var relaunchTarget = Path.Combine(arguments.TargetDirectory, Path.GetFileName(arguments.ExecutablePath));
-            progress.Report(CreateState("Installing update", "Relaunching app...", relaunchTarget, "100% complete", false, 100, false));
+            progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.RelaunchingApp, relaunchTarget, UpdaterText.Complete100, false, 100, false));
             RelaunchApplication();
             Log("application relaunched");
             ScheduleSelfCleanup();
@@ -275,10 +275,10 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
 
             copiedFiles++;
             progress.Report(CreateState(
-                "Installing update",
-                "Installing files...",
+                UpdaterText.InstallingUpdate,
+                UpdaterText.InstallingFiles,
                 $"{copiedFiles}/{files.Count}: {relativePath}",
-                $"{copiedFiles}/{files.Count} file(s)",
+                UpdaterText.FileCountProgress(copiedFiles, files.Count),
                 false,
                 totalBytes == 0 ? 0 : (int)Math.Clamp((copiedBytes * 100L) / totalBytes, 0, 100),
                 false));
@@ -286,7 +286,7 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
             copiedBytes += await CopyFileWithRetriesAsync(sourceFile.FullName, destinationPath, copiedBytes, totalBytes, progress, cancellationToken);
         }
 
-        progress.Report(CreateState("Installing update", "Installing files...", "Finalizing copied files", "100% complete", false, 100, false));
+        progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.InstallingFiles, UpdaterText.FinalizingCopiedFiles, UpdaterText.Complete100, false, 100, false));
         Log($"files copied: {files.Count}");
     }
 
@@ -338,7 +338,7 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
             if (totalBytes > 0)
             {
                 var percentage = (int)Math.Clamp(((copiedBytesBeforeFile + fileBytesCopied) * 100L) / totalBytes, 0, 100);
-                progress.Report(CreateState("Installing update", "Installing files...", $"{percentage}% complete", $"{percentage}% complete", false, percentage, false));
+                progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.InstallingFiles, UpdaterText.PercentComplete(percentage), UpdaterText.PercentComplete(percentage), false, percentage, false));
             }
         }
 

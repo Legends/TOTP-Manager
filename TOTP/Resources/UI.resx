@@ -342,6 +342,15 @@
   <data name="ui_EnterImportPassword" xml:space="preserve">
     <value>Enter password for encrypted import</value>
   </data>
+  <data name="ui_Error_AppDomain" xml:space="preserve">
+    <value>AppDomain Error</value>
+  </data>
+  <data name="ui_Error_UI" xml:space="preserve">
+    <value>UI Error</value>
+  </data>
+  <data name="ui_Error_UnobservedTaskException" xml:space="preserve">
+    <value>Unobserved Task Exception</value>
+  </data>
   <data name="ui_Export" xml:space="preserve">
     <value>Export all tokens to file</value>
   </data>
@@ -381,6 +390,12 @@
   <data name="ui_Header_Account" xml:space="preserve">
     <value>token</value>
   </data>
+  <data name="ui_Header_AccountName" xml:space="preserve">
+    <value>account</value>
+  </data>
+  <data name="ui_Header_Issuer" xml:space="preserve">
+    <value>issuer</value>
+  </data>
   <data name="ui_Header_Platform" xml:space="preserve">
     <value>platform</value>
   </data>
@@ -389,6 +404,15 @@
   </data>
   <data name="ui_Header_Secret" xml:space="preserve">
     <value>secret</value>
+  </data>
+  <data name="ui_HelloUnlock_Description" xml:space="preserve">
+    <value>Verify your identity to unlock the vault.</value>
+  </data>
+  <data name="ui_HelloUnlock_NotAvailable" xml:space="preserve">
+    <value>Windows Hello is not available.</value>
+  </data>
+  <data name="ui_HelloUnlock_VerificationFailed" xml:space="preserve">
+    <value>Hello verification failed.</value>
   </data>
   <data name="ui_ImportPasswordRequired" xml:space="preserve">
     <value>Password is required</value>
@@ -404,6 +428,9 @@
   </data>
   <data name="ui_label_Search_Dots" xml:space="preserve">
     <value>Search...</value>
+  </data>
+  <data name="ui_Loading" xml:space="preserve">
+    <value>LOADING...</value>
   </data>
   <data name="ui_Password_ChangeSuccess" xml:space="preserve">
     <value>Password changed successfully.</value>
@@ -429,6 +456,24 @@
   <data name="ui_Password_VerificationFailed" xml:space="preserve">
     <value>Password verification failed.</value>
   </data>
+  <data name="ui_QrImport_AccountAlreadyExistsNoChanges" xml:space="preserve">
+    <value>Account already exists. No changes applied.</value>
+  </data>
+  <data name="ui_QrImport_AccountUpdatedFromQr" xml:space="preserve">
+    <value>Account updated from scanned QR.</value>
+  </data>
+  <data name="ui_QrImport_KeepBothPrompt" xml:space="preserve">
+    <value>Do you want to keep both entries?</value>
+  </data>
+  <data name="ui_QrImport_MoreOptions" xml:space="preserve">
+    <value>More options</value>
+  </data>
+  <data name="ui_QrImport_UpdateExisting" xml:space="preserve">
+    <value>Update existing</value>
+  </data>
+  <data name="ui_QrImport_UpdateExistingPrompt_Format" xml:space="preserve">
+    <value>Account '{0}' already exists. Update existing account with the scanned values?</value>
+  </data>
   <data name="ui_ScanQR" xml:space="preserve">
     <value>Scan QR Code</value>
   </data>
@@ -450,6 +495,9 @@
   <data name="ui_Settings_About_InstallationPath" xml:space="preserve">
     <value>Installation path</value>
   </data>
+  <data name="ui_Settings_About_Message_Format" xml:space="preserve">
+    <value>TOTP Manager\n\nInstalled version: {0}</value>
+  </data>
   <data name="ui_Settings_About_RunningVersion" xml:space="preserve">
     <value>Running version</value>
   </data>
@@ -458,6 +506,9 @@
   </data>
   <data name="ui_Settings_About_SoftwareUpdatesDescription" xml:space="preserve">
     <value>Checks GitHub for a newer signed release and opens the updater flow if one is available.</value>
+  </data>
+  <data name="ui_Settings_About_Tooltip" xml:space="preserve">
+    <value>About TOTP Manager</value>
   </data>
   <data name="ui_Settings_Auth_EnablePasswordUnlockMessage" xml:space="preserve">
     <value>Enter your current master password to switch back to password unlock.</value>
@@ -612,11 +663,29 @@
   <data name="ui_Setup_Password" xml:space="preserve">
     <value>Setup your password</value>
   </data>
+  <data name="ui_Splash_LoadingCoreServices" xml:space="preserve">
+    <value>Loading core services...</value>
+  </data>
+  <data name="ui_Splash_Starting" xml:space="preserve">
+    <value>Starting TOTP Manager</value>
+  </data>
   <data name="ui_Unlock" xml:space="preserve">
     <value>Unlock</value>
   </data>
+  <data name="ui_UnlockWith_Hello" xml:space="preserve">
+    <value>Unlock with Windows Hello</value>
+  </data>
   <data name="ui_UnlockWith_Pwd" xml:space="preserve">
     <value>Unlock using your password</value>
+  </data>
+  <data name="ui_Unlock_HelloConfigureFailed" xml:space="preserve">
+    <value>Failed to configure Windows Hello.</value>
+  </data>
+  <data name="ui_Unlock_HelloNotAvailableChoosePassword" xml:space="preserve">
+    <value>Windows Hello is not available on this device/token. Choose Password.</value>
+  </data>
+  <data name="ui_Unlock_HelloVerificationFailedUsePassword" xml:space="preserve">
+    <value>Hello verification failed. Try again or use Password if configured.</value>
   </data>
   <data name="ui_Updater_Available_ActionHint_Download" xml:space="preserve">
     <value>TOTP Manager will download the selected signed package, verify it, then switch to the installer.</value>

@@ -119,9 +119,9 @@
                 <StackPanel Grid.Column="1"
                             Margin="4,0,0,0"
                             VerticalAlignment="Center">
-                    <TextBlock Text="Windows Hello"
+                    <TextBlock Text="{xaml:Resx Key=ui_Settings_Auth_WindowsHello}"
                                Style="{StaticResource TextStyle.SectionHeader}" />
-                    <TextBlock Text="Verify your identity to unlock the vault."
+                    <TextBlock Text="{xaml:Resx Key=ui_HelloUnlock_Description}"
                                Style="{StaticResource TextStyle.Subheader}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0" />

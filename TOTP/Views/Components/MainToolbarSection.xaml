@@ -118,9 +118,9 @@
                                          Stretch="Uniform" />
                     </syncfusion:MenuItemAdv.Icon>
                 </syncfusion:MenuItemAdv>
-                <syncfusion:MenuItemAdv Header="About"
+                <syncfusion:MenuItemAdv Header="{xaml:Resx Key=ui_Settings_Tab_About}"
                                         Command="{Binding ShowAboutCommand}"
-                                        ToolTip="About TOTP Manager">
+                                        ToolTip="{xaml:Resx Key=ui_Settings_About_Tooltip}">
                     <syncfusion:MenuItemAdv.Icon>
                         <Image Source="/Assets/Icons/app.ico"
                                Width="15"

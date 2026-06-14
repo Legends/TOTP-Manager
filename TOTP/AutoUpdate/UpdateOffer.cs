@@ -2,6 +2,7 @@ using NetSparkleUpdater;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using TOTP.Resources;
 
 namespace TOTP.AutoUpdate;
 
@@ -48,24 +49,24 @@ internal sealed class UpdateOffer
 
     private static UpdateOffer Create(AppCastItem item, bool isRecommended)
     {
-        var shortVersion = item.ShortVersion ?? item.Version?.ToString() ?? "unknown";
+        var shortVersion = item.ShortVersion ?? item.Version?.ToString() ?? UI.ui_Updater_Common_Unknown;
         var sourceUri = Uri.TryCreate(item.DownloadLink, UriKind.Absolute, out var uri) ? uri : null;
         var fileName = sourceUri == null ? string.Empty : Path.GetFileName(sourceUri.LocalPath);
         var title = !string.IsNullOrWhiteSpace(item.Title)
             ? item.Title
             : !string.IsNullOrWhiteSpace(fileName)
                 ? fileName
-                : "TOTP Manager package";
+                : UI.ui_Updater_Available_DefaultPackageTitle;
 
         var packageSummary = BuildPackageSummary(fileName, item.UpdateSize);
-        var sourceHost = sourceUri?.Host ?? "unknown source";
+        var sourceHost = sourceUri?.Host ?? UI.ui_Updater_Common_UnknownSource;
 
         return new UpdateOffer(item, title, shortVersion, packageSummary, sourceHost, isRecommended);
     }
 
     private static string BuildPackageSummary(string? fileName, long updateSize)
     {
-        var packageName = string.IsNullOrWhiteSpace(fileName) ? "Signed package" : fileName;
+        var packageName = string.IsNullOrWhiteSpace(fileName) ? UI.ui_Updater_Available_SignedPackage : fileName;
         if (updateSize <= 0)
         {
             return packageName;

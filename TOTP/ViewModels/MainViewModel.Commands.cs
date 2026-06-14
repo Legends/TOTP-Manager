@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using TOTP.Commands;
+using TOTP.Resources;
 
 namespace TOTP.ViewModels;
 
@@ -162,8 +163,9 @@ public partial class MainViewModel
                 : assemblyVersion;
 
         MessageBox.Show(
-            $"TOTP Manager{Environment.NewLine}{Environment.NewLine}Installed version: {displayVersion}",
-            "About TOTP Manager",
+            string.Format(UI.ui_Settings_About_Message_Format, displayVersion)
+                .Replace("\\n", Environment.NewLine),
+            UI.ui_Settings_About_Tooltip,
             MessageBoxButton.OK,
             MessageBoxImage.Information);
     }

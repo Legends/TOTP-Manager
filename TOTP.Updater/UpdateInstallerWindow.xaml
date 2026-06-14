@@ -1,10 +1,11 @@
 <syncfusion:ChromelessWindow x:Class="TOTP.Updater.UpdateInstallerWindow"
                              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                             xmlns:local="clr-namespace:TOTP.Updater"
                              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
                              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
                              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
-                             Title="TOTP Manager Updater"
+                             Title="{x:Static local:UpdaterText.WindowTitle}"
                              Width="560"
                              Height="290"
                              ResizeMode="NoResize"
@@ -63,11 +64,11 @@
                     BorderThickness="1">
                 <Grid Margin="14,0">
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="TOTP Manager Updates"
+                        <TextBlock Text="{x:Static local:UpdaterText.HeaderTitle}"
                                    Foreground="White"
                                    FontSize="17"
                                    FontWeight="SemiBold" />
-                        <TextBlock Text="Applying the signed update package and relaunching the app."
+                        <TextBlock Text="{x:Static local:UpdaterText.HeaderDescription}"
                                    Margin="0,4,0,0"
                                    Foreground="#FFD7E6FF"
                                    FontSize="11"
@@ -107,7 +108,7 @@
                     BorderThickness="1">
                 <StackPanel>
                     <StackPanel Margin="0,0,0,10">
-                        <TextBlock Text="Current step"
+                        <TextBlock Text="{x:Static local:UpdaterText.CurrentStep}"
                                    FontSize="10"
                                    Foreground="#7FA7D8"
                                    TextWrapping="Wrap" />
@@ -129,7 +130,7 @@
                                  Value="{Binding ProgressValue, Mode=OneWay}" />
 
                     <StackPanel Margin="0,10,0,0">
-                        <TextBlock Text="Overall progress"
+                        <TextBlock Text="{x:Static local:UpdaterText.OverallProgress}"
                                    FontSize="10"
                                    Foreground="#7FA7D8"
                                    TextWrapping="Wrap" />
@@ -150,7 +151,7 @@
                 <Button
                         Width="100"
                         Height="30"
-                        Content="Close"
+                        Content="{x:Static local:UpdaterText.Close}"
                         Command="{Binding CloseCommand}"
                         IsEnabled="{Binding IsCloseEnabled, Mode=OneWay}"
                         Visibility="{Binding IsCloseEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />

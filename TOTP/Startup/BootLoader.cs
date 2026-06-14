@@ -160,7 +160,7 @@ public static class BootLoader
         app.DispatcherUnhandledException += (_, e) =>
         {
             try { messageService?.ConfirmError(UI.msg_DispatcherException); }
-            catch { MessageBox.Show(e.Exception.Message, "UI Error", MessageBoxButton.OK); }
+            catch { MessageBox.Show(e.Exception.Message, UI.ui_Error_UI, MessageBoxButton.OK); }
             logger?.LogCritical(e.Exception, "Unhandled UI thread exception");
             e.Handled = true;
         };
@@ -168,7 +168,7 @@ public static class BootLoader
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
             try { messageService?.ConfirmError(UI.ex_FatalError); }
-            catch { MessageBox.Show(UI.ex_FatalError, "AppDomain Error", MessageBoxButton.OK); }
+            catch { MessageBox.Show(UI.ex_FatalError, UI.ui_Error_AppDomain, MessageBoxButton.OK); }
             logger?.LogCritical(e.ExceptionObject as Exception, "Unhandled domain exception");
             Environment.Exit(1);
         };
@@ -176,7 +176,7 @@ public static class BootLoader
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
             try { messageService?.ShowWarning(UI.msg_BackroundTaskException); }
-            catch { MessageBox.Show(UI.msg_BackroundTaskException, "Unobserved Task Exception", MessageBoxButton.OK); }
+            catch { MessageBox.Show(UI.msg_BackroundTaskException, UI.ui_Error_UnobservedTaskException, MessageBoxButton.OK); }
             logger?.LogCritical(e.Exception, "Unobserved task exception");
             e.SetObserved();
         };

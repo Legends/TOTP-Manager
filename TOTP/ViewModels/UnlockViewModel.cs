@@ -131,19 +131,19 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         var cfg = await _auth.ConfigureHelloAsync();
         if (cfg == AuthorizationResult.NotAvailable)
         {
-            StatusMessage = "Windows Hello is not available on this device/token. Choose Password.";
+            StatusMessage = UI.ui_Unlock_HelloNotAvailableChoosePassword;
             return;
         }
         if (cfg != AuthorizationResult.Success)
         {
-            StatusMessage = "Failed to configure Windows Hello.";
+            StatusMessage = UI.ui_Unlock_HelloConfigureFailed;
             return;
         }
 
         // after configuring, immediately try unlocking (your requirement: gate triggers)
         var unlock = await _auth.TryUnlockWithHelloAsync();
         if (unlock != AuthorizationResult.Success)
-            StatusMessage = "Hello verification failed. Try again or use Password if configured.";
+            StatusMessage = UI.ui_Unlock_HelloVerificationFailedUsePassword;
     }
 
     private void ChoosePassword()

@@ -28,8 +28,8 @@ public partial class App : Application
             var logPath = UpdaterBootstrapSupport.TryGetArgumentValue(e.Args, "--logPath");
             UpdaterBootstrapSupport.WriteBootstrapLog(logPath, $"updater bootstrap failed: {ex}");
             MessageBox.Show(
-                $"The update installer could not start.{Environment.NewLine}{Environment.NewLine}{ex.Message}",
-                "TOTP Manager Updater",
+                string.Format(UpdaterText.StartupFailedMessageFormat, ex.Message).Replace("\n", Environment.NewLine),
+                UpdaterText.StartupFailedTitle,
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
             Shutdown(-1);

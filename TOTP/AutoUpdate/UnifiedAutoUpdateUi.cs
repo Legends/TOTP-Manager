@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TOTP.Resources;
 
 namespace TOTP.AutoUpdate;
 
@@ -213,13 +214,12 @@ internal sealed class UnifiedDownloadProgress : IDownloadProgress
                     return;
                 }
 
-                const string message = "The update download did not start in time. Check the app log for updater diagnostics and try again.";
                 _logger?.LogWarning(
                     "Auto-update progress dialog: download start timeout. version={Version} timeout_seconds={TimeoutSeconds} path={Path}",
                     _item.ShortVersion ?? _item.Version?.ToString() ?? "unknown",
                     _downloadStartTimeout.TotalSeconds,
                     _downloadedFilePath);
-                _dialog.DisplayErrorMessage(message);
+                _dialog.DisplayErrorMessage(UI.ui_Updater_Download_StartTimeout);
             }
             catch (OperationCanceledException)
             {

@@ -342,6 +342,15 @@
   <data name="ui_EnterImportPassword" xml:space="preserve">
     <value>Passwort für verschlüsselten Import eingeben</value>
   </data>
+  <data name="ui_Error_AppDomain" xml:space="preserve">
+    <value>AppDomain-Fehler</value>
+  </data>
+  <data name="ui_Error_UI" xml:space="preserve">
+    <value>UI-Fehler</value>
+  </data>
+  <data name="ui_Error_UnobservedTaskException" xml:space="preserve">
+    <value>Nicht beobachtete Task-Ausnahme</value>
+  </data>
   <data name="ui_Export" xml:space="preserve">
     <value>Alle Token in eine Datei exportieren</value>
   </data>
@@ -381,6 +390,12 @@
   <data name="ui_Header_Account" xml:space="preserve">
     <value>token</value>
   </data>
+  <data name="ui_Header_AccountName" xml:space="preserve">
+    <value>konto</value>
+  </data>
+  <data name="ui_Header_Issuer" xml:space="preserve">
+    <value>aussteller</value>
+  </data>
   <data name="ui_Header_Platform" xml:space="preserve">
     <value>plattform</value>
   </data>
@@ -389,6 +404,15 @@
   </data>
   <data name="ui_Header_Secret" xml:space="preserve">
     <value>schlüssel</value>
+  </data>
+  <data name="ui_HelloUnlock_Description" xml:space="preserve">
+    <value>Bestätige deine Identität, um den Tresor zu entsperren.</value>
+  </data>
+  <data name="ui_HelloUnlock_NotAvailable" xml:space="preserve">
+    <value>Windows Hello ist nicht verfügbar.</value>
+  </data>
+  <data name="ui_HelloUnlock_VerificationFailed" xml:space="preserve">
+    <value>Windows-Hello-Prüfung fehlgeschlagen.</value>
   </data>
   <data name="ui_ImportPasswordRequired" xml:space="preserve">
     <value>Passwort erforderlich.</value>
@@ -404,6 +428,9 @@
   </data>
   <data name="ui_label_Search_Dots" xml:space="preserve">
     <value>Suche...</value>
+  </data>
+  <data name="ui_Loading" xml:space="preserve">
+    <value>WIRD GELADEN...</value>
   </data>
   <data name="ui_Password_ChangeSuccess" xml:space="preserve">
     <value>Passwort erfolgreich geändert.</value>
@@ -429,6 +456,24 @@
   <data name="ui_Password_VerificationFailed" xml:space="preserve">
     <value>Passwortprüfung fehlgeschlagen.</value>
   </data>
+  <data name="ui_QrImport_AccountAlreadyExistsNoChanges" xml:space="preserve">
+    <value>Konto ist bereits vorhanden. Es wurden keine Änderungen vorgenommen.</value>
+  </data>
+  <data name="ui_QrImport_AccountUpdatedFromQr" xml:space="preserve">
+    <value>Konto aus gescanntem QR-Code aktualisiert.</value>
+  </data>
+  <data name="ui_QrImport_KeepBothPrompt" xml:space="preserve">
+    <value>Möchtest du beide Einträge behalten?</value>
+  </data>
+  <data name="ui_QrImport_MoreOptions" xml:space="preserve">
+    <value>Weitere Optionen</value>
+  </data>
+  <data name="ui_QrImport_UpdateExisting" xml:space="preserve">
+    <value>Vorhandenes aktualisieren</value>
+  </data>
+  <data name="ui_QrImport_UpdateExistingPrompt_Format" xml:space="preserve">
+    <value>Konto '{0}' ist bereits vorhanden. Vorhandenes Konto mit den gescannten Werten aktualisieren?</value>
+  </data>
   <data name="ui_ScanQR" xml:space="preserve">
     <value>QR Kode scannen</value>
   </data>
@@ -450,6 +495,9 @@
   <data name="ui_Settings_About_InstallationPath" xml:space="preserve">
     <value>Installationspfad</value>
   </data>
+  <data name="ui_Settings_About_Message_Format" xml:space="preserve">
+    <value>TOTP Manager\n\nInstallierte Version: {0}</value>
+  </data>
   <data name="ui_Settings_About_RunningVersion" xml:space="preserve">
     <value>Aktive Version</value>
   </data>
@@ -458,6 +506,9 @@
   </data>
   <data name="ui_Settings_About_SoftwareUpdatesDescription" xml:space="preserve">
     <value>Prüft GitHub auf eine neuere signierte Version und startet bei Bedarf den Update-Ablauf.</value>
+  </data>
+  <data name="ui_Settings_About_Tooltip" xml:space="preserve">
+    <value>Über TOTP Manager</value>
   </data>
   <data name="ui_Settings_Auth_EnablePasswordUnlockMessage" xml:space="preserve">
     <value>Gib dein aktuelles Master-Passwort ein, um zur Passwort-Entsperrung zurückzuwechseln.</value>
@@ -612,11 +663,29 @@
   <data name="ui_Setup_Password" xml:space="preserve">
     <value>Passwort einrichten</value>
   </data>
+  <data name="ui_Splash_LoadingCoreServices" xml:space="preserve">
+    <value>Kerndienste werden geladen...</value>
+  </data>
+  <data name="ui_Splash_Starting" xml:space="preserve">
+    <value>TOTP Manager wird gestartet</value>
+  </data>
   <data name="ui_Unlock" xml:space="preserve">
     <value>Entsperren</value>
   </data>
+  <data name="ui_UnlockWith_Hello" xml:space="preserve">
+    <value>Mit Windows Hello entsperren</value>
+  </data>
   <data name="ui_UnlockWith_Pwd" xml:space="preserve">
     <value>Mit Passwort entsperren</value>
+  </data>
+  <data name="ui_Unlock_HelloConfigureFailed" xml:space="preserve">
+    <value>Windows Hello konnte nicht konfiguriert werden.</value>
+  </data>
+  <data name="ui_Unlock_HelloNotAvailableChoosePassword" xml:space="preserve">
+    <value>Windows Hello ist auf diesem Gerät/Token nicht verfügbar. Wähle Passwort.</value>
+  </data>
+  <data name="ui_Unlock_HelloVerificationFailedUsePassword" xml:space="preserve">
+    <value>Windows-Hello-Prüfung fehlgeschlagen. Versuche es erneut oder nutze Passwort, falls konfiguriert.</value>
   </data>
   <data name="ui_Updater_Available_ActionHint_Download" xml:space="preserve">
     <value>Bestätigen Sie, um das ausgewählte Paket herunterzuladen und anschließend das Installationsprogramm auszuführen.</value>
@@ -657,6 +726,15 @@
   <data name="ui_Updater_Available_Published_Format" xml:space="preserve">
     <value>Veröffentlicht: {0}</value>
   </data>
+  <data name="ui_Updater_Available_Recommendation_Alternate" xml:space="preserve">
+    <value>Dies ist ein alternatives signiertes Paket. Verwende es nur, wenn du eine andere Paketform als die empfohlene benötigst.</value>
+  </data>
+  <data name="ui_Updater_Available_Recommendation_Badge" xml:space="preserve">
+    <value>Empfohlen</value>
+  </data>
+  <data name="ui_Updater_Available_Recommendation_Primary" xml:space="preserve">
+    <value>Dies ist die primäre Release-Option für die aktuelle Installation.</value>
+  </data>
   <data name="ui_Updater_Available_Source_Format" xml:space="preserve">
     <value>Quelle: {0}</value>
   </data>
@@ -689,6 +767,9 @@
   </data>
   <data name="ui_Updater_Available_Title" xml:space="preserve">
     <value>TOTP-Manager-Updates</value>
+  </data>
+  <data name="ui_Updater_Available_Trust_Format" xml:space="preserve">
+    <value>Quelle des signierten Pakets: {0}</value>
   </data>
   <data name="ui_Updater_Check_Description" xml:space="preserve">
     <value>Der konfigurierte Appcast-Feed wird kontaktiert und Signaturen werden geprüft.</value>
@@ -728,6 +809,9 @@
   </data>
   <data name="ui_Updater_Download_Progress_Format" xml:space="preserve">
     <value>{0}% heruntergeladen ({1} / {2})</value>
+  </data>
+  <data name="ui_Updater_Download_Ready_Button_Later" xml:space="preserve">
+    <value>Später installieren</value>
   </data>
   <data name="ui_Updater_Download_Ready_Description" xml:space="preserve">
     <value>Der Download wurde abgeschlossen und die Signaturprüfung war erfolgreich.</value>

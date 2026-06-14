@@ -5,6 +5,7 @@ using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
+using TOTP.Resources;
 
 namespace TOTP.ViewModels;
 
@@ -56,9 +57,9 @@ public sealed class HelloUnlockViewModel : INotifyPropertyChanged
 
         var result = await _auth.TryUnlockWithHelloAsync();
         if (result == AuthorizationResult.NotAvailable)
-            Message = "Windows Hello is not available.";
+            Message = UI.ui_HelloUnlock_NotAvailable;
         else if (result != AuthorizationResult.Success)
-            Message = "Hello verification failed.";
+            Message = UI.ui_HelloUnlock_VerificationFailed;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

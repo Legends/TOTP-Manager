@@ -314,14 +314,14 @@ public partial class MainViewModel
                 {
                     if (SecretsEquivalent(existing.Secret, newAccountItem.Secret))
                     {
-                        _messageService.ShowInfo("Account already exists. No changes applied.");
+                        _messageService.ShowInfo(UI.ui_QrImport_AccountAlreadyExistsNoChanges);
                         return;
                     }
 
                     var shouldUpdate = _messageService.ConfirmInfo(
-                        $"Account '{existing.Issuer}' already exists. Update existing account with the scanned values?",
-                        "Update existing",
-                        "More options");
+                        string.Format(UI.ui_QrImport_UpdateExistingPrompt_Format, existing.Issuer),
+                        UI.ui_QrImport_UpdateExisting,
+                        UI.ui_QrImport_MoreOptions);
 
                     if (shouldUpdate)
                     {
@@ -339,7 +339,7 @@ public partial class MainViewModel
                         }
 
                         existing.UpdateSelf(updated);
-                        _messageService.ShowSuccess("Account updated from scanned QR.", 2);
+                        _messageService.ShowSuccess(UI.ui_QrImport_AccountUpdatedFromQr, 2);
 
                         if (SelectedAccount?.ID == existing.ID && !ShowGenerateQrCodeLink)
                             UpdateQRCode();
@@ -348,8 +348,8 @@ public partial class MainViewModel
                     }
 
                     var keepBoth = _messageService.ConfirmInfo(
-                        "Do you want to keep both entries?",
-                        "Keep both",
+                        UI.ui_QrImport_KeepBothPrompt,
+                        UI.ui_Settings_Import_Conflict_KeepBoth,
                         UI.ui_btnCancel);
 
                     if (!keepBoth)

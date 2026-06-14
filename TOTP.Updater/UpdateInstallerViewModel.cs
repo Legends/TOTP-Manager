@@ -9,8 +9,8 @@ internal sealed class UpdateInstallerViewModel : INotifyPropertyChanged
     private readonly UpdateInstallerService _installerService;
     private readonly RelayCommand _closeCommand;
 
-    private string _titleText = "Installing update";
-    private string _statusText = "Preparing updater...";
+    private string _titleText = UpdaterText.InstallingUpdate;
+    private string _statusText = UpdaterText.PreparingUpdater;
     private string _detailText = string.Empty;
     private string _progressText = string.Empty;
     private bool _isIndeterminate = true;
@@ -89,8 +89,8 @@ internal sealed class UpdateInstallerViewModel : INotifyPropertyChanged
             _installerService.LogFailure(ex);
             ApplyState(new InstallerProgressState
             {
-                Title = "Update failed",
-                Status = "The update could not be installed.",
+                Title = UpdaterText.UpdateFailedTitle,
+                Status = UpdaterText.UpdateFailedStatus,
                 Detail = ex.Message,
                 ProgressText = string.Empty,
                 IsIndeterminate = false,

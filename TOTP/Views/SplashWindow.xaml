@@ -1,6 +1,7 @@
 <Window x:Class="TOTP.Views.SplashWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:xaml="clr-namespace:TOTP.Xaml"
         WindowStyle="None"
         ResizeMode="NoResize"
         AllowsTransparency="True"
@@ -58,12 +59,12 @@
                 </Grid>
 
                 <TextBlock Margin="0,14,0,0"
-                           Text="Starting TOTP Manager"
+                           Text="{xaml:Resx Key=ui_Splash_Starting}"
                            Style="{StaticResource TextStyle.PageTitle}"
                            HorizontalAlignment="Center" />
 
                 <TextBlock Margin="0,6,0,0"
-                           Text="Loading core services..."
+                           Text="{xaml:Resx Key=ui_Splash_LoadingCoreServices}"
                            Style="{StaticResource TextStyle.Subheader}"
                            HorizontalAlignment="Center" />
             </StackPanel>

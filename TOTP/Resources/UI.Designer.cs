@@ -736,6 +736,33 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to AppDomain Error.
+        /// </summary>
+        internal static string ui_Error_AppDomain {
+            get {
+                return ResourceManager.GetString("ui_Error_AppDomain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UI Error.
+        /// </summary>
+        internal static string ui_Error_UI {
+            get {
+                return ResourceManager.GetString("ui_Error_UI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unobserved Task Exception.
+        /// </summary>
+        internal static string ui_Error_UnobservedTaskException {
+            get {
+                return ResourceManager.GetString("ui_Error_UnobservedTaskException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Export all tokens to file.
         /// </summary>
         internal static string ui_Export {
@@ -853,6 +880,24 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to account.
+        /// </summary>
+        internal static string ui_Header_AccountName {
+            get {
+                return ResourceManager.GetString("ui_Header_AccountName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to issuer.
+        /// </summary>
+        internal static string ui_Header_Issuer {
+            get {
+                return ResourceManager.GetString("ui_Header_Issuer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to platform.
         /// </summary>
         internal static string ui_Header_Platform {
@@ -876,6 +921,33 @@ namespace TOTP.Resources {
         internal static string ui_Header_Secret {
             get {
                 return ResourceManager.GetString("ui_Header_Secret", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verify your identity to unlock the vault..
+        /// </summary>
+        internal static string ui_HelloUnlock_Description {
+            get {
+                return ResourceManager.GetString("ui_HelloUnlock_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows Hello is not available..
+        /// </summary>
+        internal static string ui_HelloUnlock_NotAvailable {
+            get {
+                return ResourceManager.GetString("ui_HelloUnlock_NotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hello verification failed..
+        /// </summary>
+        internal static string ui_HelloUnlock_VerificationFailed {
+            get {
+                return ResourceManager.GetString("ui_HelloUnlock_VerificationFailed", resourceCulture);
             }
         }
         
@@ -921,6 +993,15 @@ namespace TOTP.Resources {
         internal static string ui_label_Search_Dots {
             get {
                 return ResourceManager.GetString("ui_label_Search_Dots", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LOADING....
+        /// </summary>
+        internal static string ui_Loading {
+            get {
+                return ResourceManager.GetString("ui_Loading", resourceCulture);
             }
         }
         
@@ -997,6 +1078,60 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account already exists. No changes applied..
+        /// </summary>
+        internal static string ui_QrImport_AccountAlreadyExistsNoChanges {
+            get {
+                return ResourceManager.GetString("ui_QrImport_AccountAlreadyExistsNoChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account updated from scanned QR..
+        /// </summary>
+        internal static string ui_QrImport_AccountUpdatedFromQr {
+            get {
+                return ResourceManager.GetString("ui_QrImport_AccountUpdatedFromQr", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do you want to keep both entries?.
+        /// </summary>
+        internal static string ui_QrImport_KeepBothPrompt {
+            get {
+                return ResourceManager.GetString("ui_QrImport_KeepBothPrompt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to More options.
+        /// </summary>
+        internal static string ui_QrImport_MoreOptions {
+            get {
+                return ResourceManager.GetString("ui_QrImport_MoreOptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update existing.
+        /// </summary>
+        internal static string ui_QrImport_UpdateExisting {
+            get {
+                return ResourceManager.GetString("ui_QrImport_UpdateExisting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; already exists. Update existing account with the scanned values?.
+        /// </summary>
+        internal static string ui_QrImport_UpdateExistingPrompt_Format {
+            get {
+                return ResourceManager.GetString("ui_QrImport_UpdateExistingPrompt_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scan QR Code.
         /// </summary>
         internal static string ui_ScanQR {
@@ -1060,6 +1195,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TOTP Manager\n\nInstalled version: {0}.
+        /// </summary>
+        internal static string ui_Settings_About_Message_Format {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_Message_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Running version.
         /// </summary>
         internal static string ui_Settings_About_RunningVersion {
@@ -1083,6 +1227,15 @@ namespace TOTP.Resources {
         internal static string ui_Settings_About_SoftwareUpdatesDescription {
             get {
                 return ResourceManager.GetString("ui_Settings_About_SoftwareUpdatesDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to About TOTP Manager.
+        /// </summary>
+        internal static string ui_Settings_About_Tooltip {
+            get {
+                return ResourceManager.GetString("ui_Settings_About_Tooltip", resourceCulture);
             }
         }
         
@@ -1546,11 +1699,65 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading core services....
+        /// </summary>
+        internal static string ui_Splash_LoadingCoreServices {
+            get {
+                return ResourceManager.GetString("ui_Splash_LoadingCoreServices", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starting TOTP Manager.
+        /// </summary>
+        internal static string ui_Splash_Starting {
+            get {
+                return ResourceManager.GetString("ui_Splash_Starting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unlock.
         /// </summary>
         internal static string ui_Unlock {
             get {
                 return ResourceManager.GetString("ui_Unlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to configure Windows Hello..
+        /// </summary>
+        internal static string ui_Unlock_HelloConfigureFailed {
+            get {
+                return ResourceManager.GetString("ui_Unlock_HelloConfigureFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows Hello is not available on this device/token. Choose Password..
+        /// </summary>
+        internal static string ui_Unlock_HelloNotAvailableChoosePassword {
+            get {
+                return ResourceManager.GetString("ui_Unlock_HelloNotAvailableChoosePassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hello verification failed. Try again or use Password if configured..
+        /// </summary>
+        internal static string ui_Unlock_HelloVerificationFailedUsePassword {
+            get {
+                return ResourceManager.GetString("ui_Unlock_HelloVerificationFailedUsePassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlock with Windows Hello.
+        /// </summary>
+        internal static string ui_UnlockWith_Hello {
+            get {
+                return ResourceManager.GetString("ui_UnlockWith_Hello", resourceCulture);
             }
         }
         
@@ -1623,6 +1830,15 @@ namespace TOTP.Resources {
         internal static string ui_Updater_Available_CurrentVersion_Format {
             get {
                 return ResourceManager.GetString("ui_Updater_Available_CurrentVersion_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TOTP Manager package.
+        /// </summary>
+        internal static string ui_Updater_Available_DefaultPackageTitle {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_DefaultPackageTitle", resourceCulture);
             }
         }
         
@@ -1713,6 +1929,15 @@ namespace TOTP.Resources {
         internal static string ui_Updater_Available_Source_Format {
             get {
                 return ResourceManager.GetString("ui_Updater_Available_Source_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Signed package.
+        /// </summary>
+        internal static string ui_Updater_Available_SignedPackage {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_SignedPackage", resourceCulture);
             }
         }
         
@@ -1848,6 +2073,15 @@ namespace TOTP.Resources {
         internal static string ui_Updater_Common_Unknown {
             get {
                 return ResourceManager.GetString("ui_Updater_Common_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unknown source.
+        /// </summary>
+        internal static string ui_Updater_Common_UnknownSource {
+            get {
+                return ResourceManager.GetString("ui_Updater_Common_UnknownSource", resourceCulture);
             }
         }
         
@@ -1992,6 +2226,15 @@ namespace TOTP.Resources {
         internal static string ui_Updater_Download_State_Installing {
             get {
                 return ResourceManager.GetString("ui_Updater_Download_State_Installing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The update download did not start in time. Check the app log for updater diagnostics and try again..
+        /// </summary>
+        internal static string ui_Updater_Download_StartTimeout {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_StartTimeout", resourceCulture);
             }
         }
         
