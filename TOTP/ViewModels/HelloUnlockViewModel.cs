@@ -19,8 +19,15 @@ public sealed class HelloUnlockViewModel : INotifyPropertyChanged
     public string? Message
     {
         get => _message;
-        set { _message = value; OnPropertyChanged(); }
+        set
+        {
+            _message = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasMessage));
+        }
     }
+
+    public bool HasMessage => !string.IsNullOrWhiteSpace(Message);
 
     public ICommand UnlockCommand { get; }
     public ICommand UnlockWithHelloCommand => UnlockCommand;

@@ -459,6 +459,18 @@
   <data name="ui_Settings_About_SoftwareUpdatesDescription" xml:space="preserve">
     <value>Prüft GitHub auf eine neuere signierte Version und startet bei Bedarf den Update-Ablauf.</value>
   </data>
+  <data name="ui_Settings_Auth_EnablePasswordUnlockMessage" xml:space="preserve">
+    <value>Gib dein aktuelles Master-Passwort ein, um zur Passwort-Entsperrung zurückzuwechseln.</value>
+  </data>
+  <data name="ui_Settings_Auth_EnablePasswordUnlockTitle" xml:space="preserve">
+    <value>Passwort-Entsperrung aktivieren</value>
+  </data>
+  <data name="ui_Settings_Auth_HelloSetupFailed" xml:space="preserve">
+    <value>Windows Hello konnte nicht eingerichtet werden.</value>
+  </data>
+  <data name="ui_Settings_Auth_HelloUnsupported" xml:space="preserve">
+    <value>Windows Hello wird auf diesem Gerät nicht unterstützt.</value>
+  </data>
   <data name="ui_Settings_Auth_Lock_Session" xml:space="preserve">
     <value>Sitzung sperren wenn ...</value>
   </data>
@@ -468,11 +480,11 @@
   <data name="ui_Settings_Auth_Password" xml:space="preserve">
     <value>Passwort</value>
   </data>
+  <data name="ui_Settings_Auth_PasswordSetupRequired" xml:space="preserve">
+    <value>Setze ein Master-Passwort, bevor du zur Passwort-Entsperrung wechselst.</value>
+  </data>
   <data name="ui_Settings_Auth_Password_SetChange" xml:space="preserve">
     <value>Passwort ändern</value>
-  </data>
-  <data name="ui_Settings_Auth_WindowsHello" xml:space="preserve">
-    <value>Windows Hello</value>
   </data>
   <data name="ui_Settings_Auth_Password_SetInitial" xml:space="preserve">
     <value>Master-Passwort setzen</value>
@@ -480,20 +492,8 @@
   <data name="ui_Settings_Auth_Password_SetInitialHint" xml:space="preserve">
     <value>Dieses Profil hat noch kein Master-Passwort. Setze eines, um Passwort-Entsperrung zu verwenden.</value>
   </data>
-  <data name="ui_Settings_Auth_EnablePasswordUnlockTitle" xml:space="preserve">
-    <value>Passwort-Entsperrung aktivieren</value>
-  </data>
-  <data name="ui_Settings_Auth_EnablePasswordUnlockMessage" xml:space="preserve">
-    <value>Gib dein aktuelles Master-Passwort ein, um zur Passwort-Entsperrung zurückzuwechseln.</value>
-  </data>
-  <data name="ui_Settings_Auth_PasswordSetupRequired" xml:space="preserve">
-    <value>Setze ein Master-Passwort, bevor du zur Passwort-Entsperrung wechselst.</value>
-  </data>
-  <data name="ui_Settings_Auth_HelloUnsupported" xml:space="preserve">
-    <value>Windows Hello wird auf diesem Gerät nicht unterstützt.</value>
-  </data>
-  <data name="ui_Settings_Auth_HelloSetupFailed" xml:space="preserve">
-    <value>Windows Hello konnte nicht eingerichtet werden.</value>
+  <data name="ui_Settings_Auth_WindowsHello" xml:space="preserve">
+    <value>Windows Hello</value>
   </data>
   <data name="ui_Settings_ClearClipboard" xml:space="preserve">
     <value>Zwischenablage löschen</value>
