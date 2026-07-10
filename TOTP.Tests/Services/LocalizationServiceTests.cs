@@ -1,6 +1,10 @@
 using TOTP.Core.Common;
 using TOTP.Services;
 using TOTP.Tests.Common;
+using TOTP.Xaml;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Markup;
 
 namespace TOTP.Tests.Services;
 
@@ -53,6 +57,24 @@ public sealed class LocalizationServiceTests : IDisposable
         Assert.Contains("\"Other\"", json);
     }
 
+    [StaFact]
+    public void ResxExtension_HandlesLanguageChangedFromBackgroundThread()
+    {
+        File.WriteAllText(_settingsPath, "{}");
+
+        var textBlock = new TextBlock();
+        var extension = new ResxExtension { Key = "ui_btnAdd" };
+        var provider = new ProvideValueTargetService(textBlock, TextBlock.TextProperty);
+
+        textBlock.Text = (string)extension.ProvideValue(provider);
+
+        Task.Run(() => LocalizationService.ChangeCulture("de-DE")).GetAwaiter().GetResult();
+
+        Assert.False(string.IsNullOrWhiteSpace(textBlock.Text));
+
+        textBlock.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
+    }
+
     public void Dispose()
     {
         try
@@ -72,6 +94,24 @@ public sealed class LocalizationServiceTests : IDisposable
         catch
         {
             // best-effort cleanup
+        }
+    }
+
+    private sealed class ProvideValueTargetService : IServiceProvider, IProvideValueTarget
+    {
+        public ProvideValueTargetService(object targetObject, object targetProperty)
+        {
+            TargetObject = targetObject;
+            TargetProperty = targetProperty;
+        }
+
+        public object TargetObject { get; }
+
+        public object TargetProperty { get; }
+
+        public object? GetService(Type serviceType)
+        {
+            return serviceType == typeof(IProvideValueTarget) ? this : null;
         }
     }
 }

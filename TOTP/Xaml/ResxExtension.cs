@@ -19,7 +19,27 @@ public class ResxExtension : MarkupExtension
             targetService.TargetProperty is DependencyProperty targetProperty)
         {
 
-            void Update() => targetObject.SetValue(targetProperty, TOTP.Resources.UI.ResourceManager.GetString(Key) ?? $"!{Key}!");
+            void Update()
+            {
+                var dispatcher = targetObject.Dispatcher;
+                if (dispatcher.HasShutdownStarted || dispatcher.HasShutdownFinished)
+                {
+                    return;
+                }
+
+                void ApplyValue()
+                {
+                    targetObject.SetValue(targetProperty, TOTP.Resources.UI.ResourceManager.GetString(Key) ?? $"!{Key}!");
+                }
+
+                if (dispatcher.CheckAccess())
+                {
+                    ApplyValue();
+                    return;
+                }
+
+                _ = dispatcher.BeginInvoke(ApplyValue);
+            }
 
             LocalizationService.LanguageChanged += Update;
 
