@@ -49,6 +49,21 @@ public sealed class HelloUnlockViewModelTests
     }
 
     [Fact]
+    public async Task UnlockWithHelloCommand_WhenCancelled_ShowsRecoverableMessage()
+    {
+        var auth = new Mock<IAuthorizationService>();
+        auth.SetupGet(a => a.State).Returns(new TOTP.Core.Security.AuthorizationState());
+        auth.Setup(a => a.TryUnlockWithHelloAsync()).ReturnsAsync(AuthorizationResult.Cancelled);
+        var vm = new HelloUnlockViewModel(auth.Object);
+
+        vm.UnlockWithHelloCommand.Execute(null);
+        await WaitUntilAsync(() => vm.Message is not null);
+
+        Assert.Equal("Windows Hello was canceled. Try again or use your password.", vm.Message);
+        Assert.False(vm.IsVerifying);
+    }
+
+    [Fact]
     public async Task UnlockWithHelloCommand_WhenSuccess_ClearsExistingMessage()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

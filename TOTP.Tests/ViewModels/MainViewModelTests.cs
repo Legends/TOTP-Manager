@@ -41,7 +41,9 @@ public sealed class MainViewModelTests : IDisposable
 
         Assert.False(ctx.Sut.IsBusy);
         Assert.Null(ctx.Sut.SettingsVm);
-        ctx.Session.Verify(s => s.InitializeAsync(mainWindow.Object), Times.Once);
+        ctx.Session.Verify(
+            s => s.InitializeAsync(mainWindow.Object, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]

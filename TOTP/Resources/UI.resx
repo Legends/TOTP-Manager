@@ -408,6 +408,12 @@
   <data name="ui_HelloUnlock_Description" xml:space="preserve">
     <value>Verify your identity to unlock the vault.</value>
   </data>
+  <data name="ui_HelloUnlock_Waiting" xml:space="preserve">
+    <value>Waiting for Windows Hello...</value>
+  </data>
+  <data name="ui_HelloUnlock_Cancelled" xml:space="preserve">
+    <value>Windows Hello was canceled. Try again or use your password.</value>
+  </data>
   <data name="ui_HelloUnlock_NotAvailable" xml:space="preserve">
     <value>Windows Hello is not available.</value>
   </data>
@@ -665,6 +671,9 @@
   </data>
   <data name="ui_Splash_LoadingCoreServices" xml:space="preserve">
     <value>Loading core services...</value>
+  </data>
+  <data name="ui_Splash_PreparingSecureVault" xml:space="preserve">
+    <value>Preparing your secure vault...</value>
   </data>
   <data name="ui_Splash_Starting" xml:space="preserve">
     <value>Starting TOTP Manager</value>

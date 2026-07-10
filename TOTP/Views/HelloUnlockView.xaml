@@ -134,6 +134,20 @@
                        TextWrapping="Wrap"
                        Margin="0,0,0,10" />
 
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,10"
+                        Visibility="{Binding IsVerifying, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ProgressBar Width="36"
+                             Height="4"
+                             Margin="0,0,8,0"
+                             IsIndeterminate="True"
+                             VerticalAlignment="Center" />
+                <TextBlock Text="{xaml:Resx Key=ui_HelloUnlock_Waiting}"
+                           Style="{StaticResource TextStyle.Subheader}"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+
             <Button Command="{Binding UnlockCommand}"
                     Style="{StaticResource HelloUnlockButtonStyle}"
                     IsDefault="True"

@@ -64,7 +64,7 @@
                            HorizontalAlignment="Center" />
 
                 <TextBlock Margin="0,6,0,0"
-                           Text="{xaml:Resx Key=ui_Splash_LoadingCoreServices}"
+                           Text="{xaml:Resx Key=ui_Splash_PreparingSecureVault}"
                            Style="{StaticResource TextStyle.Subheader}"
                            HorizontalAlignment="Center" />
             </StackPanel>

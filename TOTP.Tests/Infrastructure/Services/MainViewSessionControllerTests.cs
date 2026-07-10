@@ -13,6 +13,37 @@ namespace TOTP.Tests.Infrastructure.Services;
 public sealed class MainViewSessionControllerTests
 {
     [Fact]
+    public async Task InitializeAsync_PreparesLockedSessionWithoutPromptingForHello()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var (sut, auth, _, _, _) = CreateSut(lockOnMinimize: true);
+        var window = new Mock<IMainWindow>();
+
+        await sut.InitializeAsync(window.Object, cancellationToken);
+
+        auth.Verify(a => a.InitializeAsync(), Times.Once);
+        auth.Verify(a => a.TryUnlockOnStartupAsync(It.IsAny<CancellationToken>()), Times.Never);
+        Assert.Equal(AppSessionLockState.Locked, sut.SessionState);
+    }
+
+    [Fact]
+    public async Task TryUnlockOnStartupAsync_PromptsAfterPreparationAndRestoresLockedStateOnCancellation()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var (sut, auth, _, _, _) = CreateSut(lockOnMinimize: true);
+        auth.Setup(a => a.TryUnlockOnStartupAsync(cancellationToken))
+            .ReturnsAsync(AuthorizationResult.Cancelled);
+        var observedStates = new List<AppSessionLockState>();
+        sut.SessionStateChanged += (_, state) => observedStates.Add(state);
+
+        var result = await sut.TryUnlockOnStartupAsync(cancellationToken);
+
+        Assert.Equal(AuthorizationResult.Cancelled, result);
+        Assert.Equal([AppSessionLockState.Unlocking, AppSessionLockState.Locked], observedStates);
+        Assert.Equal(AppSessionLockState.Locked, sut.SessionState);
+    }
+
+    [Fact]
     public void AttachAndDetachWindow_UpdateCommandStateAndMonitorBindings()
     {
         var (sut, _, monitor, _, _) = CreateSut(lockOnMinimize: true);
@@ -71,6 +102,7 @@ public sealed class MainViewSessionControllerTests
 
         Assert.Equal(AppSessionLockState.Unlocked, sut.SessionState);
         monitor.Verify(m => m.Attach(window.Object), Times.AtLeast(2));
+        window.Verify(w => w.BringToFront(), Times.Once);
     }
 
     [Fact]
@@ -97,14 +129,14 @@ public sealed class MainViewSessionControllerTests
     }
 
     [Fact]
-    public void BringLockedWindowToFront_WhenAttachedWindowIsNotWpfWindow_CallsBringToFront()
+    public void BringWindowToFront_WhenAttachedWindowIsNotWpfWindow_CallsBringToFront()
     {
         var (sut, _, _, _, _) = CreateSut(lockOnMinimize: true);
         var window = new Mock<IMainWindow>();
         sut.AttachWindow(window.Object);
 
         var bringToFront = typeof(MainViewSessionController).GetMethod(
-            "BringLockedWindowToFront",
+            "BringWindowToFront",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
         Assert.NotNull(bringToFront);
 

@@ -65,17 +65,8 @@ public sealed class MainViewSessionController : IMainViewSessionController
         {
             ct.ThrowIfCancellationRequested();
             AttachWindow(mainWindow);
-            SetSessionState(AppSessionLockState.Unlocking);
-
             await _authorization.InitializeAsync();
-
-            ct.ThrowIfCancellationRequested();
-
-            var startupUnlockResult = await _authorization.TryUnlockOnStartupAsync(ct);
-            if (!IsUnlocked && startupUnlockResult != AuthorizationResult.Success)
-            {
-                SetSessionState(AppSessionLockState.Locked);
-            }
+            SetSessionState(AppSessionLockState.Locked);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -85,6 +76,42 @@ public sealed class MainViewSessionController : IMainViewSessionController
         {
             _logger.LogCritical(ex, "Critical failure during session initialization.");
             SetSessionState(AppSessionLockState.Locked);
+        }
+    }
+
+    public async Task<AuthorizationResult> TryUnlockOnStartupAsync(CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        SetSessionState(AppSessionLockState.Unlocking);
+
+        try
+        {
+            var result = await _authorization.TryUnlockOnStartupAsync(ct);
+            if (!IsUnlocked && result != AuthorizationResult.Success)
+            {
+                SetSessionState(AppSessionLockState.Locked);
+            }
+
+            return result;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            if (!IsUnlocked)
+            {
+                SetSessionState(AppSessionLockState.Locked);
+            }
+
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Windows Hello startup unlock failed.");
+            if (!IsUnlocked)
+            {
+                SetSessionState(AppSessionLockState.Locked);
+            }
+
+            return AuthorizationResult.Failed;
         }
     }
 
@@ -164,12 +191,14 @@ public sealed class MainViewSessionController : IMainViewSessionController
                 {
                     await _onUnlockedAsync();
                 }
+
+                BringWindowToFront();
             }
             else
             {
                 _onLocked?.Invoke();
                 _inputActivityMonitor.Detach();
-                BringLockedWindowToFront();
+                BringWindowToFront();
             }
         }
         catch (Exception ex)
@@ -184,7 +213,7 @@ public sealed class MainViewSessionController : IMainViewSessionController
         }
     }
 
-    private void BringLockedWindowToFront()
+    private void BringWindowToFront()
     {
         if (_attachedWindow is not IMainWindow mainWindow)
         {

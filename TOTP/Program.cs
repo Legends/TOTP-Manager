@@ -309,6 +309,7 @@ internal static class Program
 
             var startupTablePending = false;
             var mainWindowContentRendered = false;
+            var mainWindowRendered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             void EmitReadyStartupTableIfPossible()
             {
                 if (!startupTablePending || !mainWindowContentRendered)
@@ -323,6 +324,7 @@ internal static class Program
             {
                 startupSteps.Mark("mainwindow.content_rendered");
                 mainWindowContentRendered = true;
+                mainWindowRendered.TrySetResult();
                 EmitReadyStartupTableIfPossible();
             };
 
@@ -370,6 +372,12 @@ internal static class Program
                     await vm.InitializeMainViewAsync(mainWindow, startupCancellation.Token);
                     startupSteps.Mark("mainvm.initialized");
                     ShowMainWindowWhenReady();
+
+                    await mainWindowRendered.Task.WaitAsync(startupCancellation.Token);
+                    startupSteps.Mark("mainwindow.ready_for_authorization");
+
+                    await vm.SessionController.TryUnlockOnStartupAsync(startupCancellation.Token);
+                    startupSteps.Mark("startup_unlock.completed");
 
                     startupCancellation.Token.ThrowIfCancellationRequested();
 

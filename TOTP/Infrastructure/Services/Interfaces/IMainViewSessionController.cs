@@ -20,6 +20,7 @@ public interface IMainViewSessionController
     void ConfigureCallbacks(Func<Task> onUnlockedAsync, Action onLocked);
     Task InitializeAsync(IMainWindow? mainWindow);
     Task InitializeAsync(IMainWindow? mainWindow, CancellationToken ct);
+    Task<AuthorizationResult> TryUnlockOnStartupAsync(CancellationToken ct);
     void AttachWindow(IMainWindow? window);
     void Lock();
 }

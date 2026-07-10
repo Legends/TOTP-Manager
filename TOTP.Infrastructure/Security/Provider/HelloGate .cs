@@ -27,7 +27,17 @@ public sealed class HelloGate : IHelloGate
         var result = await UserConsentVerifier
             .RequestVerificationAsync("Unlock TOTP Manager Vault")
             .AsTask(ct);
-        return result == UserConsentVerificationResult.Verified ? AuthorizationResult.Success : AuthorizationResult.Failed;
+        return result switch
+        {
+            UserConsentVerificationResult.Verified => AuthorizationResult.Success,
+            UserConsentVerificationResult.Canceled => AuthorizationResult.Cancelled,
+            UserConsentVerificationResult.RetriesExhausted => AuthorizationResult.TooManyAttempts,
+            UserConsentVerificationResult.DisabledByPolicy => AuthorizationResult.DisabledByPolicy,
+            UserConsentVerificationResult.DeviceBusy or
+            UserConsentVerificationResult.DeviceNotPresent or
+            UserConsentVerificationResult.NotConfiguredForUser => AuthorizationResult.NotAvailable,
+            _ => AuthorizationResult.Failed
+        };
     }
 
     public async Task<byte[]> ProtectKeyAsync(byte[] rawDek, string keyId)
