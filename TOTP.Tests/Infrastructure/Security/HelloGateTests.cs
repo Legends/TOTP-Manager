@@ -1,0 +1,53 @@
+using Microsoft.Extensions.Logging;
+using Moq;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
+using TOTP.Infrastructure.Security.Provider;
+using Windows.Security.Credentials.UI;
+
+namespace TOTP.Tests.Infrastructure.Security;
+
+public sealed class HelloGateTests
+{
+    [Fact]
+    public async Task RequestVerificationAsync_UsesActiveApplicationWindowHandle()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var expectedHandle = new nint(1234);
+        var handleProvider = new Mock<IHelloPromptWindowHandleProvider>();
+        handleProvider.Setup(p => p.GetActiveWindowHandle()).Returns(expectedHandle);
+        var requester = new Mock<IHelloVerificationRequester>();
+        requester
+            .Setup(r => r.RequestAsync(expectedHandle, "Unlock TOTP Manager Vault", cancellationToken))
+            .ReturnsAsync(UserConsentVerificationResult.Verified);
+        var sut = new HelloGate(
+            Mock.Of<ILogger<HelloGate>>(),
+            handleProvider.Object,
+            requester.Object);
+
+        var result = await sut.RequestVerificationAsync(cancellationToken);
+
+        Assert.Equal(AuthorizationResult.Success, result);
+        requester.Verify(
+            r => r.RequestAsync(expectedHandle, "Unlock TOTP Manager Vault", cancellationToken),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task RequestVerificationAsync_WhenSystemPromptIsCancelled_ReturnsCancelled()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var requester = new Mock<IHelloVerificationRequester>();
+        requester
+            .Setup(r => r.RequestAsync(It.IsAny<nint>(), It.IsAny<string>(), cancellationToken))
+            .ReturnsAsync(UserConsentVerificationResult.Canceled);
+        var sut = new HelloGate(
+            Mock.Of<ILogger<HelloGate>>(),
+            Mock.Of<IHelloPromptWindowHandleProvider>(),
+            requester.Object);
+
+        var result = await sut.RequestVerificationAsync(cancellationToken);
+
+        Assert.Equal(AuthorizationResult.Cancelled, result);
+    }
+}

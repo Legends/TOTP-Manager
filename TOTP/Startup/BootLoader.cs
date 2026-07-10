@@ -103,6 +103,8 @@ public static class BootLoader
 
                 // Security Infrastructure
                 services.AddSingleton<IHelloGate, HelloGate>();
+                services.AddSingleton<IHelloPromptWindowHandleProvider, HelloPromptWindowHandleProvider>();
+                services.AddSingleton<IHelloVerificationRequester, WindowsHelloVerificationRequester>();
                 services.AddSingleton<IMainViewSessionController, MainViewSessionController>();
 
                 services.AddSingleton<IAccountManager, AccountManager>();

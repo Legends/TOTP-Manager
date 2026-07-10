@@ -9,10 +9,20 @@ namespace TOTP.Infrastructure.Security.Provider;
 public sealed class HelloGate : IHelloGate
 {
     private readonly ILogger<HelloGate> _logger;
+    private readonly IHelloPromptWindowHandleProvider _windowHandleProvider;
+    private readonly IHelloVerificationRequester _verificationRequester;
     private const string ProviderName = "Microsoft Software Key Storage Provider";
     // Note: In production enterprise, use "Microsoft Platform Crypto Provider" for TPM hardware.
 
-    public HelloGate(ILogger<HelloGate> logger) => _logger = logger;
+    public HelloGate(
+        ILogger<HelloGate> logger,
+        IHelloPromptWindowHandleProvider windowHandleProvider,
+        IHelloVerificationRequester verificationRequester)
+    {
+        _logger = logger;
+        _windowHandleProvider = windowHandleProvider;
+        _verificationRequester = verificationRequester;
+    }
 
     public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
     {
@@ -24,9 +34,9 @@ public sealed class HelloGate : IHelloGate
     public async Task<AuthorizationResult> RequestVerificationAsync(CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();
-        var result = await UserConsentVerifier
-            .RequestVerificationAsync("Unlock TOTP Manager Vault")
-            .AsTask(ct);
+        const string message = "Unlock TOTP Manager Vault";
+        var windowHandle = _windowHandleProvider.GetActiveWindowHandle();
+        var result = await _verificationRequester.RequestAsync(windowHandle, message, ct);
         return result switch
         {
             UserConsentVerificationResult.Verified => AuthorizationResult.Success,
