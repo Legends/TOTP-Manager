@@ -106,6 +106,29 @@ public sealed class MainViewSessionControllerTests
     }
 
     [Fact]
+    public async Task AuthorizationStateChanged_WhenUnlocked_BringsWindowForwardBeforePostUnlockLoadingCompletes()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var (sut, _, _, state, _) = CreateSut(lockOnMinimize: true);
+        var window = new Mock<IMainWindow>();
+        sut.AttachWindow(window.Object);
+        var allowPostUnlockToComplete = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        sut.ConfigureCallbacks(
+            onUnlockedAsync: () => allowPostUnlockToComplete.Task,
+            onLocked: () => { });
+
+        state.Unlock();
+        await WaitUntilAsync(
+            () => window.Invocations.Any(i => i.Method.Name == nameof(IMainWindow.BringToFront)));
+
+        window.Verify(w => w.BringToFront(), Times.Once);
+        Assert.False(allowPostUnlockToComplete.Task.IsCompleted);
+
+        allowPostUnlockToComplete.TrySetResult();
+        await allowPostUnlockToComplete.Task.WaitAsync(cancellationToken);
+    }
+
+    [Fact]
     public async Task AuthorizationStateChanged_WhenLocked_CallsOnLockedAndDetachesMonitor()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

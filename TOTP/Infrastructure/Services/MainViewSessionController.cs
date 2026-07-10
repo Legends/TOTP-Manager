@@ -187,12 +187,12 @@ public sealed class MainViewSessionController : IMainViewSessionController
                     _inputActivityMonitor.Attach(_attachedWindow);
                 }
 
+                BringWindowToFront();
+
                 if (_onUnlockedAsync != null)
                 {
                     await _onUnlockedAsync();
                 }
-
-                BringWindowToFront();
             }
             else
             {
