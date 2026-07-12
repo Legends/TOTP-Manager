@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1046" height="1336" viewBox="0 0 1046 1336">
+<rect width="100%" height="100%" fill="#F8FAFC"/>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#64748B"/></marker></defs>
+<text x="30" y="34" font-family="Segoe UI" font-size="22" font-weight="700" fill="#172033">TOTP Manager — Startup Decision Tree</text>
+<line x1="523.0" y1="88.0" x2="523.0" y2="163.40000000000003" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="523.0" y1="163.40000000000003" x2="824.5999999999999" y2="163.40000000000003" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="678.8" y="158.40000000000003" font-family="Segoe UI" font-size="11" fill="#475569">No</text>
+<line x1="523.0" y1="163.40000000000003" x2="523.0" y2="250.40000000000003" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="528.0" y="201.90000000000003" font-family="Segoe UI" font-size="11" fill="#475569">Yes</text>
+<line x1="523.0" y1="250.40000000000003" x2="523.0" y2="325.80000000000007" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="523.0" y1="325.80000000000007" x2="523.0" y2="412.79999999999995" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="523.0" y1="412.79999999999995" x2="824.5999999999999" y2="412.79999999999995" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="678.8" y="407.79999999999995" font-family="Segoe UI" font-size="11" fill="#475569">No</text>
+<line x1="523.0" y1="412.79999999999995" x2="523.0" y2="499.79999999999995" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="528.0" y="451.29999999999995" font-family="Segoe UI" font-size="11" fill="#475569">Yes</text>
+<line x1="523.0" y1="499.79999999999995" x2="523.0" y2="581.0" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="523.0" y1="581.0" x2="523.0" y2="656.4000000000001" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="523.0" y1="656.4000000000001" x2="523.0" y2="743.4000000000001" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="523.0" y1="743.4000000000001" x2="204.0" y2="842.0" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="368.5" y="787.7" font-family="Segoe UI" font-size="11" fill="#475569">Not configured</text>
+<line x1="523.0" y1="743.4000000000001" x2="523.0" y2="842.0" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="528.0" y="787.7" font-family="Segoe UI" font-size="11" fill="#475569">Password</text>
+<line x1="523.0" y1="743.4000000000001" x2="842.0" y2="842.0" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="687.5" y="787.7" font-family="Segoe UI" font-size="11" fill="#475569">Windows Hello</text>
+<line x1="204.0" y1="842.0" x2="523.0" y2="1033.4" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="368.5" y="932.7" font-family="Segoe UI" font-size="11" fill="#475569">Created</text>
+<line x1="523.0" y1="842.0" x2="523.0" y2="934.8" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="528.0" y="883.4" font-family="Segoe UI" font-size="11" fill="#475569">Submit</text>
+<line x1="523.0" y1="934.8" x2="523.0" y2="1033.4" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="528.0" y="979.1" font-family="Segoe UI" font-size="11" fill="#475569">Yes</text>
+<line x1="523.0" y1="934.8" x2="523.0" y2="842.0" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="528.0" y="883.4" font-family="Segoe UI" font-size="11" fill="#475569">No</text>
+<line x1="842.0" y1="842.0" x2="842.0" y2="934.8" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="842.0" y1="934.8" x2="523.0" y2="1033.4" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="687.5" y="979.1" font-family="Segoe UI" font-size="11" fill="#475569">Yes</text>
+<line x1="842.0" y1="934.8" x2="842.0" y2="1033.4" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="847.0" y="979.1" font-family="Segoe UI" font-size="11" fill="#475569">Cancel / fail</text>
+<line x1="842.0" y1="1033.4" x2="523.0" y2="842.0" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="687.5" y="932.7" font-family="Segoe UI" font-size="11" fill="#475569">Fallback</text>
+<line x1="523.0" y1="1033.4" x2="523.0" y2="1114.6" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="523.0" y1="1114.6" x2="523.0" y2="1195.8000000000002" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="523.0" y1="1195.8000000000002" x2="523.0" y2="1265.4" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="430.2" y="67.7" width="185.60000000000002" height="40.599999999999994" rx="10" fill="#6750A4" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="88.0" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="700" fill="#FFFFFF">Start TOTP Manager</text>
+<polygon points="523.0,134.40000000000003 610.0,163.40000000000003 523.0,192.40000000000003 436.0,163.40000000000003" fill="#FFF1C2" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="163.40000000000003" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#3B2F00">First app instance?</text>
+<rect x="737.5999999999999" y="137.30000000000004" width="174.0" height="52.2" rx="10" fill="#334155" stroke="#60708A" stroke-width="2"/>
+<text x="824.5999999999999" y="155.40000000000003" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="700" fill="#FFFFFF">Activate existing window</text>
+<text x="824.5999999999999" y="172.40000000000003" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="700" fill="#FFFFFF">and exit new process</text>
+<rect x="430.2" y="227.20000000000005" width="185.60000000000002" height="46.400000000000006" rx="10" fill="#E8EEF9" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="250.40000000000003" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#172033">Show splash window</text>
+<rect x="401.2" y="299.70000000000005" width="243.60000000000002" height="52.2" rx="10" fill="#E8EEF9" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="317.80000000000007" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#172033">Create WPF app, load configuration,</text>
+<text x="523.0" y="334.80000000000007" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#172033">and build DI host</text>
+<polygon points="523.0,383.79999999999995 610.0,412.79999999999995 523.0,441.79999999999995 436.0,412.79999999999995" fill="#FFF1C2" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="412.79999999999995" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#3B2F00">Settings loaded?</text>
+<rect x="743.3999999999999" y="386.69999999999993" width="162.39999999999998" height="52.2" rx="10" fill="#FDE2E2" stroke="#60708A" stroke-width="2"/>
+<text x="824.5999999999999" y="404.79999999999995" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#591B1B">Log fatal error and</text>
+<text x="824.5999999999999" y="421.79999999999995" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#591B1B">shut down</text>
+<rect x="401.2" y="473.69999999999993" width="243.60000000000002" height="52.2" rx="10" fill="#DDD6FE" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="491.79999999999995" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#241E4E">Prepare locked authorization session</text>
+<text x="523.0" y="508.79999999999995" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#241E4E">(no interactive prompt)</text>
+<rect x="412.8" y="554.9" width="220.39999999999998" height="52.2" rx="10" fill="#DDD6FE" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="573.0" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#241E4E">Show locked main window</text>
+<text x="523.0" y="590.0" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#241E4E">and close splash</text>
+<rect x="407.0" y="633.2" width="232.0" height="46.400000000000006" rx="10" fill="#E8EEF9" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="656.4000000000001" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#172033">Wait for MainWindow.ContentRendered</text>
+<polygon points="523.0,711.5000000000001 621.6,743.4000000000001 523.0,775.3000000000001 424.4,743.4000000000001" fill="#FFF1C2" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="743.4000000000001" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#3B2F00">Configured authorization?</text>
+<rect x="122.80000000000001" y="818.8" width="162.39999999999998" height="46.400000000000006" rx="10" fill="#E8EEF9" stroke="#60708A" stroke-width="2"/>
+<text x="204.0" y="842.0" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#172033">Password setup</text>
+<rect x="433.1" y="818.8" width="179.8" height="46.400000000000006" rx="10" fill="#DDD6FE" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="842.0" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#241E4E">Password unlock screen</text>
+<rect x="740.5" y="815.9" width="203.0" height="52.2" rx="10" fill="#DDD6FE" stroke="#60708A" stroke-width="2"/>
+<text x="842.0" y="834.0" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#241E4E">Owned Windows Hello prompt</text>
+<text x="842.0" y="851.0" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#241E4E">(main HWND supplied)</text>
+<polygon points="523.0,905.8 604.2,934.8 523.0,963.8 441.8,934.8" fill="#FFF1C2" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="934.8" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#3B2F00">Credentials valid?</text>
+<polygon points="842.0,905.8 923.2,934.8 842.0,963.8 760.8,934.8" fill="#FFF1C2" stroke="#60708A" stroke-width="2"/>
+<text x="842.0" y="934.8" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#3B2F00">Hello verified?</text>
+<rect x="755.0" y="1007.3000000000001" width="174.0" height="52.2" rx="10" fill="#FDE2E2" stroke="#60708A" stroke-width="2"/>
+<text x="842.0" y="1025.4" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#591B1B">Remain locked</text>
+<text x="842.0" y="1042.4" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#591B1B">Retry or use password</text>
+<rect x="412.8" y="1010.2" width="220.39999999999998" height="46.400000000000006" rx="10" fill="#D9FBE5" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="1033.4" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="700" fill="#103D24">Authorization state: Unlocked</text>
+<rect x="404.1" y="1088.5" width="237.79999999999998" height="52.2" rx="10" fill="#D9FBE5" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="1106.6" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="700" fill="#103D24">Immediately restore, activate,</text>
+<text x="523.0" y="1123.6" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="700" fill="#103D24">and bring app to foreground</text>
+<rect x="412.8" y="1172.6000000000001" width="220.39999999999998" height="46.400000000000006" rx="10" fill="#E8EEF9" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="1195.8000000000002" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#172033">Load vault content and accounts</text>
+<rect x="436.0" y="1245.1000000000001" width="174.0" height="40.599999999999994" rx="10" fill="#334155" stroke="#60708A" stroke-width="2"/>
+<text x="523.0" y="1265.4" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="700" fill="#FFFFFF">Application ready</text>
+</svg>
