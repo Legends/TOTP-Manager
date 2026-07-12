@@ -50,10 +50,39 @@ public sealed class QrScannerViewModelTests
 
         await WaitUntilAsync(() => vm.ErrorMessage is not null);
 
-        Assert.Equal("No camera found.", vm.ErrorMessage);
+        Assert.Equal(
+            "The camera is unavailable. Turn it on using your keyboard or privacy switch. The scanner will reconnect automatically.",
+            vm.ErrorMessage);
         Assert.False(vm.IsInitializing);
         Assert.Empty(closeEvents);
         Assert.True(vm.CancelCommand.CanExecute(null));
+        vm.Dispose();
+    }
+
+    [Fact]
+    public async Task Start_WhenCameraBecomesAvailable_RetriesAndResumesScanningAutomatically()
+    {
+        var attempts = 0;
+        var runner = new FakeRunner((token, onPreview, onFirstFrame, onDecoded) =>
+        {
+            if (Interlocked.Increment(ref attempts) == 1)
+            {
+                throw new InvalidOperationException("No camera found.");
+            }
+
+            onPreview(CreateBitmap());
+            onFirstFrame();
+            onDecoded("otpauth://totp/reconnected");
+            return Task.CompletedTask;
+        });
+        var vm = new QrScannerViewModel(runner, NullLogger<QrScannerViewModel>.Instance);
+
+        vm.Start();
+        await WaitUntilAsync(() => vm.DecodedText is not null, timeoutMs: 2000);
+
+        Assert.Equal(2, attempts);
+        Assert.Equal("otpauth://totp/reconnected", vm.DecodedText);
+        Assert.False(vm.HasError);
     }
 
     [Fact]

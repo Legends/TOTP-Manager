@@ -405,20 +405,20 @@
   <data name="ui_Header_Secret" xml:space="preserve">
     <value>schlüssel</value>
   </data>
-  <data name="ui_HelloUnlock_Description" xml:space="preserve">
-    <value>Bestätige deine Identität, um den Tresor zu entsperren.</value>
-  </data>
-  <data name="ui_HelloUnlock_Waiting" xml:space="preserve">
-    <value>Warten auf Windows Hello...</value>
-  </data>
   <data name="ui_HelloUnlock_Cancelled" xml:space="preserve">
     <value>Windows Hello wurde abgebrochen. Versuche es erneut oder verwende dein Passwort.</value>
+  </data>
+  <data name="ui_HelloUnlock_Description" xml:space="preserve">
+    <value>Bestätige deine Identität, um den Tresor zu entsperren.</value>
   </data>
   <data name="ui_HelloUnlock_NotAvailable" xml:space="preserve">
     <value>Windows Hello ist nicht verfügbar.</value>
   </data>
   <data name="ui_HelloUnlock_VerificationFailed" xml:space="preserve">
     <value>Windows-Hello-Prüfung fehlgeschlagen.</value>
+  </data>
+  <data name="ui_HelloUnlock_Waiting" xml:space="preserve">
+    <value>Warten auf Windows Hello...</value>
   </data>
   <data name="ui_ImportPasswordRequired" xml:space="preserve">
     <value>Passwort erforderlich.</value>
@@ -863,5 +863,11 @@
   </data>
   <data name="ui_Window_Title_TOTP_Manager" xml:space="preserve">
     <value>TOTP Manager</value>
+  </data>
+  <data name="ui_QrScanner_CameraUnavailable" xml:space="preserve">
+    <value>Die Kamera ist nicht verfügbar. Aktiviere sie über die Tastatur oder den Datenschutzschalter. Der Scanner verbindet sich automatisch erneut.</value>
+  </data>
+  <data name="ui_QrScanner_UnexpectedError" xml:space="preserve">
+    <value>Beim QR-Scanner ist ein unerwarteter Fehler aufgetreten. Schließe ihn und versuche es erneut.</value>
   </data>
 </root>

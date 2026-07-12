@@ -8,6 +8,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
 using TOTP.Commands;
 using TOTP.Core.Interfaces;
+using TOTP.Resources;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.ViewModels
@@ -116,38 +117,62 @@ namespace TOTP.ViewModels
 
         private async Task RunCameraLoopAsync(CancellationToken token)
         {
-            try
+            while (!token.IsCancellationRequested)
             {
-                await _qrScannerRunner.RunAsync(
-                    token,
-                    onPreview: bmp => RunOnUi(() => PreviewImage = bmp),
-                    onFirstFrame: () => RunOnUi(() => IsInitializing = false),
-                    onDecoded: decoded =>
-                    {
-                        RunOnUi(() =>
+                try
+                {
+                    await _qrScannerRunner.RunAsync(
+                        token,
+                        onPreview: bmp => RunOnUi(() => PreviewImage = bmp),
+                        onFirstFrame: () => RunOnUi(() =>
+                        {
+                            ErrorMessage = null;
+                            IsInitializing = false;
+                        }),
+                        onDecoded: decoded => RunOnUi(() =>
                         {
                             DecodedText = decoded;
                             RequestClose(dialogResult: true);
-                        });
-                    });
-            }
-            catch (OperationCanceledException)
-            {
-                // expected on cancel
-                _logger.LogDebug("QR scanner camera loop cancelled.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "QR scanner camera loop failed.");
-                RunOnUi(() =>
+                        }));
+                    return;
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
                 {
-                    ErrorMessage = ex.Message;
-                    IsInitializing = false;
-                });
-            }
-            finally
-            {
-                RunOnUi(RaiseCommandStates);
+                    _logger.LogDebug("QR scanner camera loop cancelled.");
+                    return;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    _logger.LogWarning(ex, "QR scanner camera is unavailable; retrying.");
+                    RunOnUi(() =>
+                    {
+                        ErrorMessage = UI.ResourceManager.GetString("ui_QrScanner_CameraUnavailable");
+                        IsInitializing = false;
+                    });
+
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromMilliseconds(500), token);
+                    }
+                    catch (OperationCanceledException) when (token.IsCancellationRequested)
+                    {
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "QR scanner camera loop failed.");
+                    RunOnUi(() =>
+                    {
+                        ErrorMessage = UI.ResourceManager.GetString("ui_QrScanner_UnexpectedError");
+                        IsInitializing = false;
+                    });
+                    return;
+                }
+                finally
+                {
+                    RunOnUi(RaiseCommandStates);
+                }
             }
         }
 

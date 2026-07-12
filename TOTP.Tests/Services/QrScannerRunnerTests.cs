@@ -105,6 +105,69 @@ public sealed class QrScannerRunnerTests
         Assert.True(capture.DisposeCalled);
     }
 
+    [Fact]
+    public async Task RunAsync_WhenCameraStopsProvidingFrames_ReportsCameraUnavailableAndReleasesCapture()
+    {
+        var successfulReads = 0;
+        var capture = new FakeCaptureAdapter
+        {
+            IsOpenedResult = true,
+            OpenResult = true,
+            ReadAction = frame =>
+            {
+                if (Interlocked.Increment(ref successfulReads) == 1)
+                {
+                    frame.Create(1, 1, MatType.CV_8UC3);
+                    frame.SetTo(new Scalar(0, 0, 0));
+                    return true;
+                }
+
+                frame.Release();
+                return false;
+            }
+        };
+        var sut = CreateSut(capture, _ => string.Empty);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sut.RunAsync(
+                TestContext.Current.CancellationToken,
+                _ => { },
+                () => { },
+                _ => { }));
+
+        Assert.Equal("Camera became unavailable.", ex.Message);
+        Assert.True(capture.ReleaseCalled);
+        Assert.True(capture.DisposeCalled);
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenCameraRepeatsCachedFrame_ReportsCameraUnavailable()
+    {
+        var capture = new FakeCaptureAdapter
+        {
+            IsOpenedResult = true,
+            OpenResult = true,
+            ReadAction = frame =>
+            {
+                frame.Create(2, 2, MatType.CV_8UC3);
+                frame.SetTo(new Scalar(20, 40, 60));
+                return true;
+            }
+        };
+        var sut = CreateSut(capture, _ => string.Empty);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sut.RunAsync(
+                TestContext.Current.CancellationToken,
+                _ => { },
+                () => { },
+                _ => { }));
+
+        Assert.Equal("Camera stopped providing new frames.", ex.Message);
+        Assert.True(capture.ReleaseCalled);
+        Assert.True(capture.DisposeCalled);
+    }
+
     private static QrScannerRunner CreateSut(FakeCaptureAdapter capture, Func<Mat, string> decode)
     {
         return new QrScannerRunner(

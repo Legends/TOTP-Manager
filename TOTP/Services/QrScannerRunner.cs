@@ -66,14 +66,41 @@ public sealed class QrScannerRunner(
             }
 
             using var frame = new Mat();
+            using var previousFrame = new Mat();
             var firstFrameShown = false;
+            var consecutiveReadFailures = 0;
+            var unchangedFrameStopwatch = Stopwatch.StartNew();
             var decodeStopwatch = Stopwatch.StartNew();
 
             while (!token.IsCancellationRequested)
             {
                 if (!cap.Read(frame) || frame.Empty())
                 {
+                    consecutiveReadFailures++;
+                    if (consecutiveReadFailures >= 10)
+                    {
+                        throw new InvalidOperationException("Camera became unavailable.");
+                    }
+
+                    await Task.Delay(50, token).ConfigureAwait(false);
                     continue;
+                }
+
+                consecutiveReadFailures = 0;
+
+                var frameChanged = previousFrame.Empty()
+                    || previousFrame.Size() != frame.Size()
+                    || previousFrame.Type() != frame.Type()
+                    || Cv2.Norm(frame, previousFrame, NormTypes.L1) > 0;
+
+                if (frameChanged)
+                {
+                    frame.CopyTo(previousFrame);
+                    unchangedFrameStopwatch.Restart();
+                }
+                else if (unchangedFrameStopwatch.Elapsed >= TimeSpan.FromMilliseconds(1500))
+                {
+                    throw new InvalidOperationException("Camera stopped providing new frames.");
                 }
 
                 var bmp = frameBitmapSourceConverter.Convert(frame);

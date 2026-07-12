@@ -405,20 +405,20 @@
   <data name="ui_Header_Secret" xml:space="preserve">
     <value>secret</value>
   </data>
-  <data name="ui_HelloUnlock_Description" xml:space="preserve">
-    <value>Verify your identity to unlock the vault.</value>
-  </data>
-  <data name="ui_HelloUnlock_Waiting" xml:space="preserve">
-    <value>Waiting for Windows Hello...</value>
-  </data>
   <data name="ui_HelloUnlock_Cancelled" xml:space="preserve">
     <value>Windows Hello was canceled. Try again or use your password.</value>
+  </data>
+  <data name="ui_HelloUnlock_Description" xml:space="preserve">
+    <value>Verify your identity to unlock the vault.</value>
   </data>
   <data name="ui_HelloUnlock_NotAvailable" xml:space="preserve">
     <value>Windows Hello is not available.</value>
   </data>
   <data name="ui_HelloUnlock_VerificationFailed" xml:space="preserve">
     <value>Hello verification failed.</value>
+  </data>
+  <data name="ui_HelloUnlock_Waiting" xml:space="preserve">
+    <value>Waiting for Windows Hello...</value>
   </data>
   <data name="ui_ImportPasswordRequired" xml:space="preserve">
     <value>Password is required</value>
@@ -863,5 +863,11 @@
   </data>
   <data name="ui_Window_Title_TOTP_Manager" xml:space="preserve">
     <value>TOTP Manager</value>
+  </data>
+  <data name="ui_QrScanner_CameraUnavailable" xml:space="preserve">
+    <value>The camera is unavailable. Turn it on using your keyboard or privacy switch. The scanner will reconnect automatically.</value>
+  </data>
+  <data name="ui_QrScanner_UnexpectedError" xml:space="preserve">
+    <value>The QR scanner encountered an unexpected error. Close it and try again.</value>
   </data>
 </root>

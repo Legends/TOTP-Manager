@@ -925,6 +925,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Windows Hello was canceled. Try again or use your password..
+        /// </summary>
+        internal static string ui_HelloUnlock_Cancelled {
+            get {
+                return ResourceManager.GetString("ui_HelloUnlock_Cancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Verify your identity to unlock the vault..
         /// </summary>
         internal static string ui_HelloUnlock_Description {
@@ -948,6 +957,15 @@ namespace TOTP.Resources {
         internal static string ui_HelloUnlock_VerificationFailed {
             get {
                 return ResourceManager.GetString("ui_HelloUnlock_VerificationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waiting for Windows Hello....
+        /// </summary>
+        internal static string ui_HelloUnlock_Waiting {
+            get {
+                return ResourceManager.GetString("ui_HelloUnlock_Waiting", resourceCulture);
             }
         }
         
@@ -1128,6 +1146,24 @@ namespace TOTP.Resources {
         internal static string ui_QrImport_UpdateExistingPrompt_Format {
             get {
                 return ResourceManager.GetString("ui_QrImport_UpdateExistingPrompt_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The camera is unavailable. Turn it on using your keyboard or privacy switch. The scanner will reconnect automatically..
+        /// </summary>
+        internal static string ui_QrScanner_CameraUnavailable {
+            get {
+                return ResourceManager.GetString("ui_QrScanner_CameraUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The QR scanner encountered an unexpected error. Close it and try again..
+        /// </summary>
+        internal static string ui_QrScanner_UnexpectedError {
+            get {
+                return ResourceManager.GetString("ui_QrScanner_UnexpectedError", resourceCulture);
             }
         }
         
@@ -1708,6 +1744,15 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Preparing your secure vault....
+        /// </summary>
+        internal static string ui_Splash_PreparingSecureVault {
+            get {
+                return ResourceManager.GetString("ui_Splash_PreparingSecureVault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Starting TOTP Manager.
         /// </summary>
         internal static string ui_Splash_Starting {
@@ -1834,15 +1879,6 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TOTP Manager package.
-        /// </summary>
-        internal static string ui_Updater_Available_DefaultPackageTitle {
-            get {
-                return ResourceManager.GetString("ui_Updater_Available_DefaultPackageTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to TOTP Manager update ready.
         /// </summary>
         internal static string ui_Updater_Available_Header {
@@ -1929,15 +1965,6 @@ namespace TOTP.Resources {
         internal static string ui_Updater_Available_Source_Format {
             get {
                 return ResourceManager.GetString("ui_Updater_Available_Source_Format", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Signed package.
-        /// </summary>
-        internal static string ui_Updater_Available_SignedPackage {
-            get {
-                return ResourceManager.GetString("ui_Updater_Available_SignedPackage", resourceCulture);
             }
         }
         
@@ -2073,15 +2100,6 @@ namespace TOTP.Resources {
         internal static string ui_Updater_Common_Unknown {
             get {
                 return ResourceManager.GetString("ui_Updater_Common_Unknown", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to unknown source.
-        /// </summary>
-        internal static string ui_Updater_Common_UnknownSource {
-            get {
-                return ResourceManager.GetString("ui_Updater_Common_UnknownSource", resourceCulture);
             }
         }
         
@@ -2230,15 +2248,6 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The update download did not start in time. Check the app log for updater diagnostics and try again..
-        /// </summary>
-        internal static string ui_Updater_Download_StartTimeout {
-            get {
-                return ResourceManager.GetString("ui_Updater_Download_StartTimeout", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Update Transfer.
         /// </summary>
         internal static string ui_Updater_Download_Title {
@@ -2304,6 +2313,30 @@ namespace TOTP.Resources {
         /// <summary>
         ///   Looks up a localized string similar to TOTP Manager.
         /// </summary>
+        internal static string ui_Updater_Available_DefaultPackageTitle {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_DefaultPackageTitle", resourceCulture);
+            }
+        }
+
+        internal static string ui_Updater_Available_SignedPackage {
+            get {
+                return ResourceManager.GetString("ui_Updater_Available_SignedPackage", resourceCulture);
+            }
+        }
+
+        internal static string ui_Updater_Common_UnknownSource {
+            get {
+                return ResourceManager.GetString("ui_Updater_Common_UnknownSource", resourceCulture);
+            }
+        }
+
+        internal static string ui_Updater_Download_StartTimeout {
+            get {
+                return ResourceManager.GetString("ui_Updater_Download_StartTimeout", resourceCulture);
+            }
+        }
+
         internal static string ui_Window_Title_TOTP_Manager {
             get {
                 return ResourceManager.GetString("ui_Window_Title_TOTP_Manager", resourceCulture);
