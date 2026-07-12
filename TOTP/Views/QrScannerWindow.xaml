@@ -46,6 +46,23 @@
                     Command="{Binding CancelCommand}" />
         </StackPanel>
 
+        <Border Grid.Row="1"
+                MaxWidth="420"
+                Padding="16"
+                CornerRadius="6"
+                Background="{StaticResource Brush.SurfaceDialog}"
+                BorderBrush="{StaticResource Brush.BorderStrong}"
+                BorderThickness="1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Panel.ZIndex="9000"
+                Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Style="{StaticResource InlineErrorTextStyle}"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap" />
+        </Border>
+
         <!-- Loading overlay -->
         <Border Grid.RowSpan="3"
                 Background="#80000000"

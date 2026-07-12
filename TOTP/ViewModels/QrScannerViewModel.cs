@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
 using TOTP.Commands;
+using TOTP.Core.Interfaces;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.ViewModels
@@ -15,8 +16,11 @@ namespace TOTP.ViewModels
     {
         private readonly IQrScannerRunner _qrScannerRunner;
         private readonly ILogger<QrScannerViewModel> _logger;
+        private readonly IDispatcherService? _dispatcher;
         private CancellationTokenSource? _cts;
         private Task? _cameraTask;
+        private bool _closeRequested;
+        private bool _disposed;
 
         private BitmapSource? _previewImage;
         public BitmapSource? PreviewImage
@@ -43,8 +47,14 @@ namespace TOTP.ViewModels
         public string? ErrorMessage
         {
             get => _errorMessage;
-            private set { _errorMessage = value; OnPropertyChanged(); }
+            private set
+            {
+                _errorMessage = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasError));
+            }
         }
+        public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
 
         // Window will subscribe and close itself (and set DialogResult)
         public event EventHandler<CloseRequestedEventArgs>? CloseRequested;
@@ -52,10 +62,14 @@ namespace TOTP.ViewModels
         public ICommand CancelCommand { get; }
         public ICommand CloseCameraWindowCommand { get; } // for Escape binding
 
-        public QrScannerViewModel(IQrScannerRunner qrScannerRunner, ILogger<QrScannerViewModel> logger)
+        public QrScannerViewModel(
+            IQrScannerRunner qrScannerRunner,
+            ILogger<QrScannerViewModel> logger,
+            IDispatcherService? dispatcher = null)
         {
             _qrScannerRunner = qrScannerRunner;
             _logger = logger;
+            _dispatcher = dispatcher;
             CancelCommand = new RelayCommand(Cancel, CanCancelOrClose);
             CloseCameraWindowCommand = new RelayCommand(Cancel, CanCancelOrClose);
         }
@@ -79,7 +93,7 @@ namespace TOTP.ViewModels
 
         private bool CanCancelOrClose()
         {
-            return _cameraTask == null || !_cameraTask.IsCompleted;
+            return !_closeRequested;
         }
 
         private void Cancel()
@@ -90,6 +104,13 @@ namespace TOTP.ViewModels
 
         private void RequestClose(bool dialogResult)
         {
+            if (_closeRequested)
+            {
+                return;
+            }
+
+            _closeRequested = true;
+            RaiseCommandStates();
             CloseRequested?.Invoke(this, new CloseRequestedEventArgs(dialogResult));
         }
 
@@ -99,12 +120,15 @@ namespace TOTP.ViewModels
             {
                 await _qrScannerRunner.RunAsync(
                     token,
-                    onPreview: bmp => PreviewImage = bmp,
-                    onFirstFrame: () => IsInitializing = false,
+                    onPreview: bmp => RunOnUi(() => PreviewImage = bmp),
+                    onFirstFrame: () => RunOnUi(() => IsInitializing = false),
                     onDecoded: decoded =>
                     {
-                        DecodedText = decoded;
-                        RequestClose(dialogResult: true);
+                        RunOnUi(() =>
+                        {
+                            DecodedText = decoded;
+                            RequestClose(dialogResult: true);
+                        });
                     });
             }
             catch (OperationCanceledException)
@@ -115,17 +139,21 @@ namespace TOTP.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "QR scanner camera loop failed.");
-                ErrorMessage = ex.Message;
-                RequestClose(dialogResult: false);
+                RunOnUi(() =>
+                {
+                    ErrorMessage = ex.Message;
+                    IsInitializing = false;
+                });
             }
             finally
             {
-                RaiseCommandStates();
+                RunOnUi(RaiseCommandStates);
             }
         }
 
         public void Dispose()
         {
+            _disposed = true;
             try
             {
                 var cts = Interlocked.Exchange(ref _cts, null);
@@ -149,6 +177,28 @@ namespace TOTP.ViewModels
             }
 
             RaiseCommandStates();
+        }
+
+        private void RunOnUi(Action action)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (_dispatcher == null || _dispatcher.CheckAccess())
+            {
+                action();
+                return;
+            }
+
+            _dispatcher.InvokeOnUI(() =>
+            {
+                if (!_disposed)
+                {
+                    action();
+                }
+            });
         }
 
         private void RaiseCommandStates()

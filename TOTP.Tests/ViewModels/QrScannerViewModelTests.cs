@@ -1,6 +1,8 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using TOTP.Core.Interfaces;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 
@@ -35,7 +37,7 @@ public sealed class QrScannerViewModelTests
     }
 
     [Fact]
-    public async Task Start_WhenRunnerThrows_SetsErrorAndRequestsFailureClose()
+    public async Task Start_WhenRunnerThrows_ShowsRecoverableErrorWithoutClosing()
     {
         var closeEvents = new List<bool>();
         var runner = new FakeRunner((token, onPreview, onFirstFrame, onDecoded) =>
@@ -46,10 +48,12 @@ public sealed class QrScannerViewModelTests
 
         vm.Start();
 
-        await WaitUntilAsync(() => closeEvents.Count == 1);
+        await WaitUntilAsync(() => vm.ErrorMessage is not null);
 
         Assert.Equal("No camera found.", vm.ErrorMessage);
-        Assert.False(closeEvents[0]);
+        Assert.False(vm.IsInitializing);
+        Assert.Empty(closeEvents);
+        Assert.True(vm.CancelCommand.CanExecute(null));
     }
 
     [Fact]
@@ -102,6 +106,31 @@ public sealed class QrScannerViewModelTests
         await Task.Delay(120, cancellationToken);
 
         Assert.Equal(1, invocations);
+    }
+
+    [Fact]
+    public async Task Start_WhenRunnerCallbacksArriveFromWorkerThread_MarshalsUiStateChanges()
+    {
+        var dispatcher = new Mock<IDispatcherService>();
+        dispatcher.Setup(d => d.CheckAccess()).Returns(false);
+        dispatcher.Setup(d => d.InvokeOnUI(It.IsAny<Action>()))
+            .Callback<Action>(action => action());
+        var runner = new FakeRunner((token, onPreview, onFirstFrame, onDecoded) => Task.Run(() =>
+        {
+            onPreview(CreateBitmap());
+            onFirstFrame();
+            onDecoded("otpauth://totp/worker-thread");
+        }, token));
+        var vm = new QrScannerViewModel(
+            runner,
+            NullLogger<QrScannerViewModel>.Instance,
+            dispatcher.Object);
+
+        vm.Start();
+        await WaitUntilAsync(() => vm.DecodedText is not null);
+
+        Assert.Equal("otpauth://totp/worker-thread", vm.DecodedText);
+        dispatcher.Verify(d => d.InvokeOnUI(It.IsAny<Action>()), Times.AtLeast(3));
     }
 
     private static BitmapSource CreateBitmap()
