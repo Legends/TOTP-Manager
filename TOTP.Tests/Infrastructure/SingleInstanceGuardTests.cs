@@ -5,6 +5,15 @@ namespace TOTP.Tests.Infrastructure;
 public sealed class SingleInstanceGuardTests
 {
     [Fact]
+    public void NativeApi_RestoreEntryPointsResolve()
+    {
+        var api = new SingleInstanceWindowApi();
+
+        Assert.False(api.IsIconic(IntPtr.Zero));
+        Assert.False(api.ShowWindow(IntPtr.Zero, 9));
+    }
+
+    [Fact]
     public void SelectBestWindowHandle_PrefersFirstUnownedWindow()
     {
         var handles = new[]
@@ -43,9 +52,11 @@ public sealed class SingleInstanceGuardTests
 
         Assert.Equal(
             [
-                "ShowWindowAsync:55:9",
+                "ShowWindow:55:9",
                 "AttachThreadInput:10:30:True",
                 "AttachThreadInput:10:20:True",
+                "SetWindowPos:55:-1:67",
+                "SetWindowPos:55:-2:67",
                 "BringWindowToTop:55",
                 "SetForegroundWindow:55",
                 "SetActiveWindow:55",
@@ -73,15 +84,21 @@ public sealed class SingleInstanceGuardTests
             return true;
         }
 
-        public bool ShowWindowAsync(IntPtr hWnd, int nCmdShow)
+        public bool ShowWindow(IntPtr hWnd, int nCmdShow)
         {
-            Calls.Add($"ShowWindowAsync:{hWnd}:{nCmdShow}");
+            Calls.Add($"ShowWindow:{hWnd}:{nCmdShow}");
             return true;
         }
 
         public bool BringWindowToTop(IntPtr hWnd)
         {
             Calls.Add($"BringWindowToTop:{hWnd}");
+            return true;
+        }
+
+        public bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int width, int height, uint flags)
+        {
+            Calls.Add($"SetWindowPos:{hWnd}:{hWndInsertAfter}:{flags}");
             return true;
         }
 

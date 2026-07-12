@@ -11,6 +11,11 @@ public sealed class SingleInstanceGuard : IDisposable
     private const int SW_SHOW = 5;
     private const int SW_RESTORE = 9;
     private const uint GW_OWNER = 4;
+    private const uint SWP_NOSIZE = 0x0001;
+    private const uint SWP_NOMOVE = 0x0002;
+    private const uint SWP_SHOWWINDOW = 0x0040;
+    private static readonly IntPtr HwndTopmost = new(-1);
+    private static readonly IntPtr HwndNotTopmost = new(-2);
     private static readonly ISingleInstanceWindowApi WindowApi = new SingleInstanceWindowApi();
     private Mutex? _mutex;
     private readonly bool _owns;
@@ -112,7 +117,9 @@ public sealed class SingleInstanceGuard : IDisposable
             return;
         }
 
-        windowApi.ShowWindowAsync(hWnd, windowApi.IsIconic(hWnd) ? SW_RESTORE : SW_SHOW);
+        // Restore synchronously before changing Z-order. With ShowWindowAsync the
+        // foreground promotion can run while the target window is still minimized.
+        windowApi.ShowWindow(hWnd, windowApi.IsIconic(hWnd) ? SW_RESTORE : SW_SHOW);
 
         var currentThreadId = windowApi.GetCurrentThreadId();
         var targetThreadId = windowApi.GetWindowThreadProcessId(hWnd, out _);
@@ -133,6 +140,9 @@ public sealed class SingleInstanceGuard : IDisposable
                 windowApi.AttachThreadInput(currentThreadId, targetThreadId, true);
             }
 
+            const uint activationFlags = SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW;
+            windowApi.SetWindowPos(hWnd, HwndTopmost, 0, 0, 0, 0, activationFlags);
+            windowApi.SetWindowPos(hWnd, HwndNotTopmost, 0, 0, 0, 0, activationFlags);
             windowApi.BringWindowToTop(hWnd);
             windowApi.SetForegroundWindow(hWnd);
             windowApi.SetActiveWindow(hWnd);
@@ -159,8 +169,9 @@ internal interface ISingleInstanceWindowApi
 {
     bool EnumWindows(Func<IntPtr, IntPtr, bool> callback, IntPtr lParam);
     bool SetForegroundWindow(IntPtr hWnd);
-    bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+    bool ShowWindow(IntPtr hWnd, int nCmdShow);
     bool BringWindowToTop(IntPtr hWnd);
+    bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int width, int height, uint flags);
     IntPtr SetActiveWindow(IntPtr hWnd);
     IntPtr SetFocus(IntPtr hWnd);
     IntPtr GetForegroundWindow();
@@ -180,8 +191,10 @@ internal sealed class SingleInstanceWindowApi : ISingleInstanceWindowApi
     }
 
     public bool SetForegroundWindow(IntPtr hWnd) => SetForegroundWindowNative(hWnd);
-    public bool ShowWindowAsync(IntPtr hWnd, int nCmdShow) => ShowWindowAsyncNative(hWnd, nCmdShow);
+    public bool ShowWindow(IntPtr hWnd, int nCmdShow) => ShowWindowNative(hWnd, nCmdShow);
     public bool BringWindowToTop(IntPtr hWnd) => BringWindowToTopNative(hWnd);
+    public bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int width, int height, uint flags)
+        => SetWindowPosNative(hWnd, hWndInsertAfter, x, y, width, height, flags);
     public IntPtr SetActiveWindow(IntPtr hWnd) => SetActiveWindowNative(hWnd);
     public IntPtr SetFocus(IntPtr hWnd) => SetFocusNative(hWnd);
     public IntPtr GetForegroundWindow() => GetForegroundWindowNative();
@@ -194,42 +207,52 @@ internal sealed class SingleInstanceWindowApi : ISingleInstanceWindowApi
 
     private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "EnumWindows")]
     private static extern bool EnumWindowsNative(EnumWindowsProc lpEnumFunc, IntPtr lParam);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "SetForegroundWindow")]
     private static extern bool SetForegroundWindowNative(IntPtr hWnd);
 
-    [DllImport("user32.dll")]
-    private static extern bool ShowWindowAsyncNative(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll", EntryPoint = "ShowWindow")]
+    private static extern bool ShowWindowNative(IntPtr hWnd, int nCmdShow);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "BringWindowToTop")]
     private static extern bool BringWindowToTopNative(IntPtr hWnd);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "SetWindowPos", SetLastError = true)]
+    private static extern bool SetWindowPosNative(
+        IntPtr hWnd,
+        IntPtr hWndInsertAfter,
+        int x,
+        int y,
+        int width,
+        int height,
+        uint flags);
+
+    [DllImport("user32.dll", EntryPoint = "SetActiveWindow")]
     private static extern IntPtr SetActiveWindowNative(IntPtr hWnd);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "SetFocus")]
     private static extern IntPtr SetFocusNative(IntPtr hWnd);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "GetForegroundWindow")]
     private static extern IntPtr GetForegroundWindowNative();
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "IsWindowVisible")]
     private static extern bool IsWindowVisibleNative(IntPtr hWnd);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "IsIconic")]
     private static extern bool IsIconicNative(IntPtr hWnd);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "GetWindow")]
     private static extern IntPtr GetWindowNative(IntPtr hWnd, uint uCmd);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "GetWindowThreadProcessId")]
     private static extern uint GetWindowThreadProcessIdNative(IntPtr hWnd, out uint lpdwProcessId);
 
-    [DllImport("kernel32.dll")]
+    [DllImport("kernel32.dll", EntryPoint = "GetCurrentThreadId")]
     private static extern uint GetCurrentThreadIdNative();
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "AttachThreadInput")]
     private static extern bool AttachThreadInputNative(uint idAttach, uint idAttachTo, bool fAttach);
 }
