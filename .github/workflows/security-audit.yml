@@ -13,7 +13,6 @@ on:
         type: string
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   ACTIONLINT_VERSION: 1.7.12
 
 permissions:
@@ -59,7 +58,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
 
   sast-codeql:
     name: SAST (CodeQL C#)
@@ -117,6 +116,7 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: csharp
+          build-mode: manual
 
       - name: Restore
         if: steps.codeql-capability.outputs.enabled == 'true'
@@ -198,7 +198,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

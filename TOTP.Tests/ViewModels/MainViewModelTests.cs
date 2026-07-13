@@ -37,7 +37,7 @@ public sealed class MainViewModelTests : IDisposable
         using var ctx = new MainVmTestContext();
         var mainWindow = new Mock<IMainWindow>();
 
-        await ctx.Sut.InitializeMainViewAsync(mainWindow.Object);
+        await ctx.Sut.InitializeMainViewAsync(mainWindow.Object, TestContext.Current.CancellationToken);
 
         Assert.False(ctx.Sut.IsBusy);
         Assert.Null(ctx.Sut.SettingsVm);
