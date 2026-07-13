@@ -9,10 +9,12 @@ using NetSparkleUpdater.Interfaces;
 using System.ComponentModel;
 using System.Windows;
 using TOTP.AutoUpdate;
+using TOTP.Tests.Common;
 using TOTP.Services;
 
 namespace TOTP.Tests.Services;
 
+[Collection(NonParallelCollectionDefinition.NonParallel)]
 public sealed class AutoUpdateServiceTests
 {
     [Fact]
@@ -140,59 +142,12 @@ public sealed class AutoUpdateServiceTests
 
     private static void RunInSta(Action testBody)
     {
-        Exception? failure = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                testBody();
-            }
-            catch (Exception ex)
-            {
-                failure = ex;
-            }
-        });
-
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-
-        if (failure != null)
-        {
-            throw failure;
-        }
+        WpfTestHost.Run(testBody);
     }
 
     private static void RunInStaAsync(Func<Task> testBody)
     {
-        Exception? failure = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                var task = testBody();
-                while (!task.IsCompleted)
-                {
-                    DispatcherUtil.DoEvents();
-                    Thread.Sleep(10);
-                }
-
-                task.GetAwaiter().GetResult();
-            }
-            catch (Exception ex)
-            {
-                failure = ex;
-            }
-        });
-
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-
-        if (failure != null)
-        {
-            throw failure;
-        }
+        WpfTestHost.RunAsync(testBody);
     }
 
     private sealed class FakeAutoUpdateRuntimeFactory : IAutoUpdateRuntimeFactory

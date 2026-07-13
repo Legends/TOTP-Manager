@@ -13,6 +13,15 @@ public sealed class WpfDispatcherService : IDispatcherService
 
     public void InvokeOnUI(Action action)
     {
-        Application.Current?.Dispatcher?.BeginInvoke(action, DispatcherPriority.DataBind);
+        ArgumentNullException.ThrowIfNull(action);
+
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null)
+        {
+            action();
+            return;
+        }
+
+        dispatcher.BeginInvoke(action, DispatcherPriority.DataBind);
     }
 }

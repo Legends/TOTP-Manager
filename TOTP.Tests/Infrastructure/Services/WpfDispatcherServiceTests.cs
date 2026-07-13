@@ -16,12 +16,21 @@ public sealed class WpfDispatcherServiceTests
     }
 
     [Fact]
-    public void InvokeOnUI_WhenNoApplicationCurrent_DoesNotThrow()
+    public void InvokeOnUI_WhenNoApplicationCurrent_ExecutesActionInline()
+    {
+        var sut = new WpfDispatcherService();
+        var invoked = false;
+
+        sut.InvokeOnUI(() => invoked = true);
+
+        Assert.True(invoked);
+    }
+
+    [Fact]
+    public void InvokeOnUI_WhenActionIsNull_ThrowsArgumentNullException()
     {
         var sut = new WpfDispatcherService();
 
-        var ex = Record.Exception(() => sut.InvokeOnUI(() => { }));
-
-        Assert.Null(ex);
+        Assert.Throws<ArgumentNullException>(() => sut.InvokeOnUI(null!));
     }
 }

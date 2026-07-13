@@ -2,9 +2,11 @@ using NetSparkleUpdater;
 using System.Threading;
 using System.Windows;
 using TOTP.AutoUpdate;
+using TOTP.Tests.Common;
 
 namespace TOTP.Tests.AutoUpdate;
 
+[Collection(NonParallelCollectionDefinition.NonParallel)]
 public sealed class TOTPNetSparkleUiFactoryTests
 {
     [Fact]
@@ -129,27 +131,7 @@ public sealed class TOTPNetSparkleUiFactoryTests
 
     private static void RunInSta(Action testBody)
     {
-        Exception? failure = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                testBody();
-            }
-            catch (Exception ex)
-            {
-                failure = ex;
-            }
-        });
-
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-
-        if (failure != null)
-        {
-            throw failure;
-        }
+        WpfTestHost.Run(testBody);
     }
 
     private sealed class FakeDownloadController : IUpdateDownloadController

@@ -4,11 +4,13 @@ using NetSparkleUpdater.Events;
 using System.Threading;
 using System.Windows;
 using TOTP.AutoUpdate;
+using TOTP.Tests.Common;
 using Xunit;
 using Xunit.Sdk;
 
 namespace TOTP.Tests.AutoUpdate;
 
+[Collection(NonParallelCollectionDefinition.NonParallel)]
 public sealed class AutoUpdateDialogWindowTests
 {
     [Fact]
@@ -330,26 +332,6 @@ public sealed class AutoUpdateDialogWindowTests
 
     private static void RunInSta(Action action)
     {
-        Exception? captured = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                captured = ex;
-            }
-        });
-
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-
-        if (captured != null)
-        {
-            throw new XunitException(captured.ToString());
-        }
+        WpfTestHost.Run(action);
     }
 }

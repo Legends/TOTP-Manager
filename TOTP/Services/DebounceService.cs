@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
+using TOTP.Core.Interfaces;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;
@@ -10,7 +10,13 @@ namespace TOTP.Services;
 public sealed class DebounceService : IDebounceService
 {
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _tokens = new();
+    private readonly IDispatcherService? _dispatcher;
     private int _isDisposed;
+
+    public DebounceService(IDispatcherService? dispatcher = null)
+    {
+        _dispatcher = dispatcher;
+    }
 
     public void Debounce(string key, int milliseconds, Action action)
     {
@@ -78,17 +84,9 @@ public sealed class DebounceService : IDebounceService
 
         try
         {
-            var dispatcher = Application.Current?.Dispatcher;
-            if (dispatcher != null && !dispatcher.HasShutdownStarted && !dispatcher.HasShutdownFinished)
+            if (_dispatcher != null && !_dispatcher.CheckAccess())
             {
-                if (dispatcher.CheckAccess())
-                {
-                    action();
-                }
-                else
-                {
-                    await dispatcher.InvokeAsync(action);
-                }
+                _dispatcher.InvokeOnUI(action);
             }
             else
             {
