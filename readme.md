@@ -1,211 +1,171 @@
 # TOTP Manager
 
 [![Platform](https://img.shields.io/badge/platform-Windows_10%2F11-0078D6)](https://github.com/Legends/TOTP-Manager)
-[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
-[![Language](https://img.shields.io/badge/language-C%23-239120)](https://learn.microsoft.com/dotnet/csharp/)
-[![UI](https://img.shields.io/badge/UI-WPF-0C54C2)](https://learn.microsoft.com/dotnet/desktop/wpf/)
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/download/dotnet/9.0)
 [![Build](https://github.com/Legends/TOTP-Manager/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Legends/TOTP-Manager/actions/workflows/build-and-test.yml)
-[![License](https://img.shields.io/github/license/Legends/TOTP-Manager)](LICENSE.txt)
+[![Security](https://github.com/Legends/TOTP-Manager/actions/workflows/security-audit.yml/badge.svg)](https://github.com/Legends/TOTP-Manager/actions/workflows/security-audit.yml)
 [![Latest Release](https://img.shields.io/github/v/release/Legends/TOTP-Manager?display_name=tag)](https://github.com/Legends/TOTP-Manager/releases/latest)
+[![License](https://img.shields.io/github/license/Legends/TOTP-Manager)](LICENSE.txt)
 
-TOTP Manager is a Windows desktop app (WPF) for managing and generating `Time-based One-Time Passwords (TOTP)`  locally.
+TOTP Manager is a local-first Windows authenticator for managing and generating time-based one-time passwords. It provides an encrypted desktop vault, optional Windows Hello unlock, QR workflows, protected backup and restore, and signed update metadata without requiring a cloud account.
 
-## Table of Contents
+> **Project status:** Active development. Published versions currently use release-candidate (`-rc`) tags. Keep a tested encrypted backup before upgrading.
 
-- [Scope](#scope)
-- [Screenshots](#screenshots)
-- [TOTP Defaults](#totp-defaults)
-- [Account Management (CRUD + QR)](#account-management-crud--qr)
-- [Core Security Design](#core-security-design)
-- [Features](#features)
-- [Requirements](#requirements)
-- [Build](#build)
-- [Test](#test)
-- [Run (Local)](#run-local)
-- [Release Installation](#release-installation)
-- [Backup and Recovery Notes](#backup-and-recovery-notes)
-- [Automatic Updates](#automatic-updates)
-- [Contributing](#contributing)
-- [Licensing](#licensing)
-- [Support](#support)
+## Highlights
 
+- Encrypted local vault protected by a master password
+- Optional Windows Hello unlock, with the master password retained as the recovery method
+- Manual account entry and `otpauth://` QR-code scanning
+- Rotating TOTP display with click-to-copy and configurable clipboard clearing
+- Automatic locking on idle timeout and Windows session lock
+- Encrypted `.totp` import and export with conflict handling
+- Local backup rotation and signed automatic-update metadata
+- English and German user-interface resources
+- Native Windows WPF interface and single-instance behavior
 
-
-## Scope
-
-- Local account storage and code generation
-- Import/export workflows for backup and migration
-- Authorization flows based on master password and optional Windows Hello support
+TOTP Manager currently supports the standard configuration used by most providers: `SHA1`, 6 digits, and a 30-second period. These parameters are fixed rather than configurable per account.
 
 ## Screenshots
 
-<table>
-  <tr>
-    <td align="center" width="33%">
-      <img src="docs/images/readme/screenshot-1.png" alt="Main window with account list" width="200" /><br/>
-      <b>Main List View</b><br/>
-      <sub>Account grid</sub>
-    </td>
-   <td align="center" width="33%">
-      <img src="docs/images/readme/screenshot-2.png" alt="Selected account with active OTP code" width="200" /><br/>
-      <b>Active OTP</b><br/>
-      <sub>Selected account with generated code.</sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="docs/images/readme/screenshot-3.png" alt="Generated QR code for selected account" width="200" /><br/>
-      <b>Inline QR Generation</b><br/>
-      <sub>Gerated QR code can be scanned by mobile devices for quick account transfers.</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="33%">
-      <img src="docs/images/readme/screenshot-4.png" alt="Edit account flyout" width="200" /><br/>
-      <b>Edit Account</b><br/>
-      <sub>Edit form for updating issuer, secret, and account fields.</sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="docs/images/readme/screenshot-6.png" alt="Filtered account list with active OTP" width="200" /><br/>
-      <b>Focused Search Result</b><br/>
-      <sub>Filtered account list.</sub>
-    </td>   
-    <td align="center" width="33%">
-      <img src="docs/images/readme/screenshot-5.png" alt="Enlarged QR preview overlay" width="200" /><br/>
-      <b>QR Preview Overlay</b><br/>
-      <sub>Enlarged QR view for easier scanning on another device.</sub>
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <img src="docs/images/readme/screenshot-2.png" alt="TOTP Manager showing a selected account and its current one-time password" width="820" />
+</p>
 
-## TOTP Defaults
+<details>
+  <summary>More screenshots</summary>
+  <br />
+  <table>
+    <tr>
+      <td align="center" width="33%">
+        <img src="docs/images/readme/screenshot-1.png" alt="Main window with the account list" width="260" /><br />
+        <strong>Account list</strong>
+      </td>
+      <td align="center" width="33%">
+        <img src="docs/images/readme/screenshot-3.png" alt="Generated QR code for a selected account" width="260" /><br />
+        <strong>QR-code generation</strong>
+      </td>
+      <td align="center" width="33%">
+        <img src="docs/images/readme/screenshot-4.png" alt="Account editor flyout" width="260" /><br />
+        <strong>Account editor</strong>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="33%">
+        <img src="docs/images/readme/screenshot-6.png" alt="Account list filtered by issuer" width="260" /><br />
+        <strong>Issuer search</strong>
+      </td>
+      <td align="center" width="33%">
+        <img src="docs/images/readme/screenshot-5.png" alt="Enlarged QR-code preview" width="260" /><br />
+        <strong>QR-code preview</strong>
+      </td>
+      <td align="center" width="33%"></td>
+    </tr>
+  </table>
+</details>
 
-- Algorithm: `SHA1`
-- Digits: `6`
-- Time step (period): `30` seconds
+## Install
 
-These defaults are used for generated `otpauth://` QR data and for standard TOTP code generation in the app.
+TOTP Manager supports 64-bit Windows 10 and Windows 11. Download the latest package from [GitHub Releases](https://github.com/Legends/TOTP-Manager/releases/latest):
 
-See also:
-- [THREAT_MODEL.md](docs/security/THREAT_MODEL.md)
-- [SECURITY_VERIFICATION.md](docs/security/SECURITY_VERIFICATION.md)
-- [PENTEST_PLAN.md](docs/security/PENTEST_PLAN.md)
+| Package | Runtime requirement | Recommended for |
+| --- | --- | --- |
+| `TOTP-Manager-portable.zip` | None; the .NET runtime is included | Most users and portable use |
+| `TOTP-Manager-fast.zip` | [.NET 9 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/9.0) | Smaller installation and faster startup |
 
-## Account Management (CRUD + QR)
+Extract the selected archive to a local folder, start `TOTP.UI.WPF.exe`, and complete the first-run master-password setup. The .NET **SDK** is only required when building the project from source.
 
-These are the primary workflows in the app.
+## Basic usage
 
-### Create account
+- Add an account manually with its issuer, account label, and Base32 secret, or scan a compatible `otpauth://` QR code with the camera workflow.
+- Select an account to display and copy its current code. Clicking the displayed code copies it again.
+- Search filters the account list by issuer.
+- Edit or delete an account from its context menu; `Ctrl+A` opens account creation and `Ctrl+E` edits the selected account.
+- Generate a QR code for an existing account when transferring it to another compatible authenticator.
 
-1. Click the `+` button or press `Ctrl + A`.
-2. Enter issuer, account label, secret, digits, and period.
-3. Save to create the account.
+Treat QR codes, copied OTPs, and exported data as secrets. Anyone who obtains an account seed can generate valid codes.
 
-### Select account
+## Security model
 
-1. Open the main account list.
-2. Click an account entry to view current code and metadata.
-3. The OTP code is copied to the clipboard immediately when you click an account entry.
-4. The OTP code is also copied immediately when you click the generated OTP code itself.
-5. Use search to quickly filter by issuer/account.
+TOTP Manager is designed to keep authentication data local and encrypted at rest:
 
-### Update account
+- Vault data is protected with authenticated AES-256-GCM encryption.
+- Master-password key derivation uses Argon2id.
+- Decrypted key material is kept in memory only while the vault is unlocked and is cleared where practical.
+- Windows Hello can provide a device-bound fast unlock path; it does not replace the master password for recovery and portability.
+- Clipboard auto-clear, idle locking, session-lock handling, and secret hiding are enabled by default and configurable in Settings.
+- Automatic-update metadata is authenticated with Ed25519 appcast signatures.
 
-1. Select an account.
-2. Press `Ctrl + E` to open the full edit flyout for the selected row.
-3. If no row is selected, `Ctrl + E` does nothing.
-4. Right-click the row and choose `Edit` for full edit.
-5. For quick inline edit, double-click the row to edit only the issuer name.
-6. Save changes.
+Appcast signing protects the update feed and is separate from Windows Authenticode signing of release executables. For design assumptions, limitations, and verification evidence, see:
 
-### Delete account
+- [Threat model](docs/security/THREAT_MODEL.md)
+- [Security verification](docs/security/SECURITY_VERIFICATION.md)
+- [Penetration-test plan](docs/security/PENTEST_PLAN.md)
+- [Automatic-update design](docs/security/AUTO_UPDATE.md)
 
-1. Select an account.
-2. Right-click the row and choose `Delete`.
-3. Confirm removal.
+To report a suspected vulnerability, follow the private reporting instructions in [SECURITY.md](SECURITY.md). Do not include secrets or exploit details in a public issue.
 
-### Generate QR code from account
+## Data, backup, and recovery
 
-1. Select an existing account.
-2. Click "Show QR code".
-3. The app generates a QR code from the account's OTP configuration.
-4. Click the QR code in order to enlarge it.
+Application data is stored under `%APPDATA%\TOTP-Manager` by default, including the encrypted account vault (`master.totp`) and protected settings (`settings.totp`).
 
-### Scan QR code to add TOTP
+- Create an encrypted `.totp` export for migration and disaster recovery.
+- Store backup files separately from the computer and test the restore procedure periodically.
+- Preserve the export password; an encrypted export cannot be recovered without it.
+- Keep the master password available even when Windows Hello is enabled.
+- Automatic local backup rotation protects against some local file failures, but it is not a substitute for an external encrypted backup.
+- Plaintext interoperability exports require additional care and should be deleted securely when no longer needed.
 
-1. Click the camera symbol.
-2. The camera activates and is ready to scan.
-3. Scan the `otpauth://` QR code from the provider.
-4. Review parsed account details and save.
+## Automatic updates
 
-## Core Security Design
+Update checks are enabled by default and run at startup. TOTP Manager validates signed appcast metadata before accepting update information. Update behavior can be changed in the application settings.
 
-- Secrets are encrypted before they are written to disk
-- Password-derived key material uses Argon2id
-- Additional local protection uses Windows DPAPI
-- Sensitive actions require explicit authorization
+Release and update-feed maintainers should follow the [auto-update setup guide](docs/security/AUTO_UPDATE.md) and must never commit private signing material.
 
-## Features
+## Build from source
 
-- Secure local vault for accounts
-- Create, edit, and delete TOTP accounts
-- Generate rotating 6-digit TOTP codes
-- Search and manage accounts in the main grid
-- Encrypted export/import for backups (`.totp`)
-- Backup rotation support
-- Localization resources (English/German)
-
-## Requirements
-
-- Supported systems: Windows only (Windows 10/11)
-- .NET 9 SDK (for local build/test)
-
-## Build
+Development requires Windows, Git, and the [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0).
 
 ```powershell
-dotnet restore TOTP.sln
+git clone https://github.com/Legends/TOTP-Manager.git
+cd TOTP-Manager
+dotnet restore TOTP.sln --configfile NuGet.config
 dotnet build TOTP.sln -c Debug
+dotnet run --project .\TOTP\TOTP.UI.WPF.csproj
 ```
 
-## Test
+Run the complete test suite with:
 
 ```powershell
 dotnet test TOTP.sln -c Debug
 ```
 
-## Run (Local)
+For the faster PR-style subset after a Release build:
 
 ```powershell
-dotnet run --project .\TOTP\TOTP.UI.WPF.csproj
+dotnet test TOTP.sln -c Release --no-build --filter "FullyQualifiedName!~Integration&FullyQualifiedName!~IdleMonitoringBackgroundServiceTests&FullyQualifiedName!~UserActivityServiceTests"
 ```
 
-## Release Installation
+## Repository layout
 
-1. Download the latest release archive from GitHub.
-2. Extract it to a local folder.
-3. Start `TOTP.UI.WPF.exe`.
-4. Complete first-run security setup.
+| Project | Responsibility |
+| --- | --- |
+| `TOTP.Core` | Domain models, contracts, validation, and security abstractions |
+| `TOTP.Infrastructure` | Security, account, export, settings, logging, and OS-facing implementations |
+| `TOTP.DAL` | Encrypted persistence and filesystem data access |
+| `TOTP` | WPF views, view models, workflows, startup, and dependency composition |
+| `TOTP.Tests` | Unit, regression, integration, and security-adjacent tests |
+| `TOTP.Updater` | Update and installation support UI |
+| `scripts` | Release, security, and local update-testing automation |
+| `docs/security` | Threat model, verification evidence, and release-security guidance |
 
-## Backup and Recovery Notes
+The application follows MVVM, dependency injection, and explicit layer boundaries. See [CONTRIBUTING.md](CONTRIBUTING.md) before making changes.
 
-- Keep encrypted backups in a protected location
-- Validate restore procedure regularly
-- Keep master password and Windows account recovery options available
+## Contributing and support
 
-## Automatic Updates
+Contributions that preserve the project's local-first and security-first direction are welcome. Use [GitHub Issues](https://github.com/Legends/TOTP-Manager/issues) for reproducible bugs and focused feature requests, and review the [contribution guide](CONTRIBUTING.md) for build, testing, and pull-request expectations.
 
-- NetSparkle-based update checks are integrated and disabled by default.
-- Update integrity uses Ed25519 appcast signatures (no code-signing certificate required for this mechanism).
-- Setup guide: [AUTO_UPDATE.md](docs/security/AUTO_UPDATE.md)
+Security vulnerabilities must be reported privately according to [SECURITY.md](SECURITY.md).
 
-## Contributing
+## License
 
-See `CONTRIBUTING.md` for contribution and workflow details.
-
-## Licensing
-
-- Project license: [LICENSE.txt](LICENSE.txt)
-- Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
-
-## Support
-
-- Bugs and feature requests: GitHub Issues
-- Security topics: follow the repository security process/documentation
+TOTP Manager is distributed under the terms in [LICENSE.txt](LICENSE.txt). Third-party components and attributions are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
