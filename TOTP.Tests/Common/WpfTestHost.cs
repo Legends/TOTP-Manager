@@ -5,12 +5,13 @@ namespace TOTP.Tests.Common;
 
 internal static class WpfTestHost
 {
-    private static readonly TaskCompletionSource<Dispatcher> Ready =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private static readonly TaskCompletionSource<Dispatcher> Ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private static readonly Thread HostThread;
+    private static int _shutdownRequested;
 
     static WpfTestHost()
     {
-        var thread = new Thread(() =>
+        HostThread = new Thread(() =>
         {
             try
             {
@@ -33,8 +34,8 @@ internal static class WpfTestHost
             IsBackground = true,
             Name = "TOTP Tests WPF Host"
         };
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
+        HostThread.SetApartmentState(ApartmentState.STA);
+        HostThread.Start();
     }
 
     public static void Run(Action action)
@@ -49,6 +50,33 @@ internal static class WpfTestHost
         ArgumentNullException.ThrowIfNull(action);
         var dispatcher = Ready.Task.WaitAsync(TimeSpan.FromSeconds(15)).GetAwaiter().GetResult();
         dispatcher.InvokeAsync(action).Task.Unwrap().WaitAsync(TimeSpan.FromSeconds(30)).GetAwaiter().GetResult();
+    }
+
+    public static void Shutdown()
+    {
+        if (Interlocked.Exchange(ref _shutdownRequested, 1) != 0)
+        {
+            return;
+        }
+
+        var dispatcher = Ready.Task.WaitAsync(TimeSpan.FromSeconds(15)).GetAwaiter().GetResult();
+        if (!dispatcher.HasShutdownStarted)
+        {
+            dispatcher.BeginInvoke(DispatcherPriority.Send, new Action(() =>
+            {
+                if (ReferenceEquals(Application.Current?.Dispatcher, dispatcher))
+                {
+                    Application.Current.Shutdown();
+                }
+
+                dispatcher.BeginInvokeShutdown(DispatcherPriority.Send);
+            }));
+        }
+
+        if (!HostThread.Join(TimeSpan.FromSeconds(15)))
+        {
+            throw new TimeoutException("The WPF test dispatcher did not shut down within 15 seconds.");
+        }
     }
 
     private static void AddResource(Application application, string uri)

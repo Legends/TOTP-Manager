@@ -74,7 +74,18 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         run: |
           dotnet test --configuration Release --no-build --nologo --verbosity minimal `
-            --logger "console;verbosity=minimal"
+            --logger "console;verbosity=minimal" `
+            --results-directory TestResults `
+            --blame-hang-timeout 5m `
+            --blame-hang-dump-type none
+
+      - name: Upload test diagnostics
+        if: ${{ failure() && github.event_name != 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-diagnostics-${{ github.run_id }}
+          path: TestResults
+          if-no-files-found: ignore
 
   publish:
     needs: build-test
