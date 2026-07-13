@@ -42,7 +42,7 @@ jobs:
       SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
       NETSPARKLE_PUBLIC_KEY: ${{ secrets.NETSPARKLE_PUBLIC_KEY }}
       NETSPARKLE_PRIVATE_KEY: ${{ secrets.NETSPARKLE_PRIVATE_KEY }}
-      SYNCFUSION_LICENSE: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
+      SYNCFUSION_LICENSE: ${{ secrets.SYNCFUSION_LICENSE }}
 
     steps:
       - name: Checkout repository
@@ -97,7 +97,7 @@ jobs:
       SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
       NETSPARKLE_PUBLIC_KEY: ${{ secrets.NETSPARKLE_PUBLIC_KEY }}
       NETSPARKLE_PRIVATE_KEY: ${{ secrets.NETSPARKLE_PRIVATE_KEY }}
-      SYNCFUSION_LICENSE: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
+      SYNCFUSION_LICENSE: ${{ secrets.SYNCFUSION_LICENSE }}
 
     steps:
       - name: Checkout repository

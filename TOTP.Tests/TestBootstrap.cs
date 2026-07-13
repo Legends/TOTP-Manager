@@ -24,9 +24,17 @@ internal static class TestBootstrap
             key = configuration["syncfusion"];
         }
 
-        if (!string.IsNullOrWhiteSpace(key))
+        if (string.IsNullOrWhiteSpace(key))
         {
-            SyncfusionLicenseProvider.RegisterLicense(key);
+            if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "SYNCFUSION_LICENSE must be configured before running WPF tests in CI.");
+            }
+
+            return;
         }
+
+        SyncfusionLicenseProvider.RegisterLicense(key);
     }
 }
