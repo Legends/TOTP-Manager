@@ -22,7 +22,4 @@ public sealed partial class SettingsViewModel
             RaiseCommandStates();
         }
     }
-
-    private void OnOpenLogFolder()
-        => _logFileService?.OpenLogFolder();
 }

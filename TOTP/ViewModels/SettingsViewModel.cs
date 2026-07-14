@@ -499,6 +499,9 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
     private bool CanOpenLogFolder()
         => _logFileService?.CanOpenLogFolder() == true;
 
+    private void OnOpenLogFolder()
+        => _logFileService?.OpenLogFolder();
+
     private bool CanCheckForUpdates() => !_isLoadingSettings && !IsCheckingForUpdates;
     #endregion
 
