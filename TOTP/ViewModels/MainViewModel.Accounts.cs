@@ -5,11 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TOTP.Core.Enums;
-using TOTP.Infrastructure.Extensions;
-using TOTP.Infrastructure.Parser;
+using TOTP.Presentation.Extensions;
 using TOTP.Resources;
+using TOTP.Services.Interfaces;
 using TOTP.Validation;
-using Application = System.Windows.Application;
 using ValidationError = TOTP.Core.Enums.ValidationError;
 
 namespace TOTP.ViewModels;
@@ -282,117 +281,32 @@ public partial class MainViewModel
     {
         try
         {
-            if (Application.Current.MainWindow == null)
-                return;
-
             var scannerSw = Stopwatch.StartNew();
             var openAttempt = Interlocked.Increment(ref _scannerOpenCount);
             _logger.LogInformation("scanner.open.begin attempt={Attempt} first_open={FirstOpen}", openAttempt, openAttempt == 1);
-            var decodedQrCode = _qrScannerDialogFactory().ScanQrCode(Application.Current.MainWindow);
+            var decodedQrCode = _qrScannerDialogService.ScanQrCode();
             _logger.LogInformation("scanner.open.end attempt={Attempt} first_open={FirstOpen} elapsed_ms={ElapsedMs} decoded={Decoded}",
                 openAttempt, openAttempt == 1, scannerSw.ElapsedMilliseconds, !string.IsNullOrWhiteSpace(decodedQrCode));
 
-            if (!string.IsNullOrWhiteSpace(decodedQrCode))
+            if (string.IsNullOrWhiteSpace(decodedQrCode))
             {
-                OtpauthParser.TOTPData? otp = null;
+                return;
+            }
 
-                try
+            try
+            {
+                var result = await _qrAccountImportWorkflow.ImportAsync(decodedQrCode, AllOtps);
+                if (result.ChangeKind == QrAccountImportChangeKind.Updated &&
+                    result.AccountId == SelectedAccount?.ID &&
+                    !ShowGenerateQrCodeLink)
                 {
-                    otp = OtpauthParser.Parse(decodedQrCode);
+                    UpdateQRCode();
                 }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, UI.msg_ErrorParsingOtpUrl);
-                    _messageService.ShowError(UI.msg_ErrorParsingOtpUrl);
-                    return;
-                }
-
-                var newAccountItem = new OtpViewModel(Guid.NewGuid(), otp.Issuer ?? string.Empty, otp.SecretBase32, otp.Label);
-                var existing = FindMatchingEntry(newAccountItem, AllOtps);
-
-                if (existing != null)
-                {
-                    if (SecretsEquivalent(existing.Secret, newAccountItem.Secret))
-                    {
-                        _messageService.ShowInfo(UI.ui_QrImport_AccountAlreadyExistsNoChanges);
-                        return;
-                    }
-
-                    var shouldUpdate = _messageService.ConfirmInfo(
-                        string.Format(UI.ui_QrImport_UpdateExistingPrompt_Format, existing.Issuer),
-                        UI.ui_QrImport_UpdateExisting,
-                        UI.ui_QrImport_MoreOptions);
-
-                    if (shouldUpdate)
-                    {
-                        var updated = newAccountItem.Copy();
-                        if (updated == null)
-                            return;
-
-                        updated.ID = existing.ID;
-
-                        var updateResult = await _accountsWorkflow.UpdateAsync(existing, updated);
-                        if (updateResult.IsFailed)
-                        {
-                            _messageService.ShowResultError(updateResult, existing.Issuer);
-                            return;
-                        }
-
-                        existing.UpdateSelf(updated);
-                        _messageService.ShowSuccess(UI.ui_QrImport_AccountUpdatedFromQr, 2);
-
-                        if (SelectedAccount?.ID == existing.ID && !ShowGenerateQrCodeLink)
-                            UpdateQRCode();
-
-                        return;
-                    }
-
-                    var keepBoth = _messageService.ConfirmInfo(
-                        UI.ui_QrImport_KeepBothPrompt,
-                        UI.ui_Settings_Import_Conflict_KeepBoth,
-                        UI.ui_btnCancel);
-
-                    if (!keepBoth)
-                        return;
-
-                    newAccountItem.ID = Guid.NewGuid();
-                    newAccountItem.Issuer = CreateKeepBothIssuer(newAccountItem.Issuer, AllOtps);
-                }
-
-                var validationErrors = _accountsWorkflow.ValidateForCreate(newAccountItem, AllOtps);
-                if (validationErrors.Count > 0)
-                {
-
-                    foreach (var error in validationErrors)
-                    {
-                        if (error == ValidationError.PlatformAlreadyExists)
-                        {
-                            _messageService.ShowError(ValidationMessageMapper.ToMessage(error, newAccountItem.Issuer ?? string.Empty));
-                        }
-                        else
-                            _messageService.ShowError(ValidationMessageMapper.ToMessage(error));
-                    }
-
-                    return;
-                }
-
-                try
-                {
-                    var result = await _accountsWorkflow.AddAsync(newAccountItem);
-                    if (result.IsFailed)
-                    {
-                        _messageService.ShowResultError(result, newAccountItem.Issuer);
-                        return;
-                    }
-
-                    AllOtps.Add(newAccountItem);
-
-                }
-                finally
-                {
-                    IsAddMode = false;
-                    IsEditAddFlyoutOpen = false;
-                }
+            }
+            finally
+            {
+                IsAddMode = false;
+                IsEditAddFlyoutOpen = false;
             }
         }
         catch (Exception ex)
@@ -400,43 +314,6 @@ public partial class MainViewModel
             _logger.LogError(ex, UI.ex_Adding_New_TOTP);
             _messageService.ShowError(UI.ex_Adding_New_TOTP);
         }
-    }
-
-    private static OtpViewModel? FindMatchingEntry(OtpViewModel incoming, System.Collections.Generic.IEnumerable<OtpViewModel> allOtps)
-    {
-        var byIssuerAndAccount = allOtps.FirstOrDefault(existing =>
-            string.Equals(existing.Issuer ?? string.Empty, incoming.Issuer ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(existing.AccountName ?? string.Empty, incoming.AccountName ?? string.Empty, StringComparison.OrdinalIgnoreCase));
-        if (byIssuerAndAccount != null)
-            return byIssuerAndAccount;
-
-        return allOtps.FirstOrDefault(existing =>
-            string.Equals(existing.Issuer ?? string.Empty, incoming.Issuer ?? string.Empty, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static string CreateKeepBothIssuer(string? baseIssuer, System.Collections.Generic.IEnumerable<OtpViewModel> allOtps)
-    {
-        var source = string.IsNullOrWhiteSpace(baseIssuer) ? "Imported" : baseIssuer.Trim();
-        var candidate = $"{source} (imported)";
-        var suffix = 2;
-
-        while (allOtps.Any(item => string.Equals(item.Issuer ?? string.Empty, candidate, StringComparison.OrdinalIgnoreCase)))
-        {
-            candidate = $"{source} (imported {suffix})";
-            suffix++;
-        }
-
-        return candidate;
-    }
-
-    private static bool SecretsEquivalent(string? left, string? right)
-    {
-        static string Normalize(string? value) =>
-            new string((value ?? string.Empty).Where(ch => !char.IsWhiteSpace(ch) && ch != '-').ToArray())
-                .TrimEnd('=')
-                .ToUpperInvariant();
-
-        return string.Equals(Normalize(left), Normalize(right), StringComparison.Ordinal);
     }
 
     #endregion

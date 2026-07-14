@@ -9,7 +9,7 @@ using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Infrastructure.Extensions;
+using TOTP.Presentation.Extensions;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 using TOTP.Validation;
@@ -42,7 +42,10 @@ public sealed class AccountsWorkflowService(
     {
         try
         {
-            return await otpManager.GetAllOtpEntriesSortedAsync();
+            var result = await otpManager.GetAllOtpEntriesSortedAsync();
+            return result.IsSuccess
+                ? Result.Ok(new ObservableCollection<Account>(result.Value))
+                : Result.Fail(result.Errors);
         }
         catch (Exception ex)
         {

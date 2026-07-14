@@ -60,6 +60,8 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
     private readonly ISettingsTransferWorkflowService _settingsTransferWorkflowService;
     private readonly IAutoUpdateService _autoUpdateService;
     private readonly IMessageService _messageService;
+    private readonly ILogFileService? _logFileService;
+    private readonly ILocalizationService? _localizationService;
     private readonly SettingsExportOptionsController _exportOptions = new();
     private readonly Action _saveAction;
     private CancellationTokenSource? _saveDebounceCts;
@@ -495,10 +497,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
         SelectedImportConflictOption != null;
 
     private bool CanOpenLogFolder()
-    {
-        var path = System.IO.Path.GetDirectoryName(StringsConstants.AppLogPath);
-        return !string.IsNullOrWhiteSpace(path) && System.IO.Directory.Exists(path);
-    }
+        => _logFileService?.CanOpenLogFolder() == true;
 
     private bool CanCheckForUpdates() => !_isLoadingSettings && !IsCheckingForUpdates;
     #endregion
@@ -514,7 +513,9 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
                              IMessageService messageService,
                              ILogSwitchService logSwitchService,
                              ICommand closeCommand,
-                            Action saveAction)
+                             Action saveAction,
+                             ILogFileService? logFileService = null,
+                             ILocalizationService? localizationService = null)
     {
         _logSwitchService = logSwitchService;
         _settingsSvc = settingsSvc;
@@ -524,8 +525,11 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
         _settingsTransferWorkflowService = settingsTransferWorkflowService;
         _autoUpdateService = autoUpdateService;
         _messageService = messageService;
+        _logFileService = logFileService;
+        _localizationService = localizationService;
         _saveAction = saveAction;
-        LocalizationService.LanguageChanged += OnLanguageChanged;
+        if (_localizationService != null)
+            _localizationService.LanguageChanged += OnLanguageChanged;
         
         CloseCommand = closeCommand;
         SaveCommand = new AsyncCommand(SaveAndCloseAsync, CanSaveSettings);
@@ -599,7 +603,8 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
 
     public void Dispose()
     {
-        LocalizationService.LanguageChanged -= OnLanguageChanged;
+        if (_localizationService != null)
+            _localizationService.LanguageChanged -= OnLanguageChanged;
         _saveDebounceCts?.Cancel();
         _saveDebounceCts?.Dispose();
         _saveDebounceCts = null;

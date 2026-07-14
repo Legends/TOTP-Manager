@@ -16,7 +16,9 @@ public sealed class SettingsDialogOrchestrationService(
     ISettingsPersistenceService settingsPersistenceService,
     IAutoUpdateService autoUpdateService,
     IMessageService messageService,
-    ILogSwitchService logSwitchService) : ISettingsDialogOrchestrationService
+    ILogSwitchService logSwitchService,
+    ILogFileService? logFileService = null,
+    ILocalizationService? localizationService = null) : ISettingsDialogOrchestrationService
 {
     public async Task<SettingsViewModel> CreateAndLoadAsync(
         System.Windows.Input.ICommand closeCommand,
@@ -43,7 +45,9 @@ public sealed class SettingsDialogOrchestrationService(
             messageService,
             logSwitchService,
             closeCommand,
-            saveAction);
+            saveAction,
+            logFileService,
+            localizationService);
 
         await vm.LoadAsync();
         return vm;

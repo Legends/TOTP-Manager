@@ -10,6 +10,8 @@ public sealed class AppSettings : IAppSettings
     public const int DefaultClearClipboardSeconds = 15;
     public const double DefaultQrPreviewScaleFactor = 1.5;
 
+    public string CultureName { get; set; } = "en";
+
     public AppLogLevel MinimumLogLevel { get; set; } = AppLogLevel.Information;
 
     public AuthorizationProfile Authorization { get; set; } = new();

@@ -12,19 +12,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using TOTP.Core.Enums;
-using TOTP.Core.Interfaces;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
-using TOTP.DAL.Services;
 using TOTP.Core.Common;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Logging;
 using TOTP.Infrastructure.Security.Provider;
 using TOTP.Infrastructure.Services;
+using TOTP.Presentation.Services;
 using TOTP.Resources;
-using TOTP.Security;
-using TOTP.Security.Interfaces;
+using TOTP.Presentation.Services.Interfaces;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
@@ -80,7 +78,6 @@ public static class BootLoader
                 AppLogLevel initialLevel = cliLevel ?? AppLogLevel.Information;
 
                 services.AddSingleton<ILogSwitchService>(sp => new LogSwitchService(initialLevel, hasOverride));
-                //services.AddHostedService<LogSwitchInitializationBackgroundService>();
                 services.AddHostedService<BackupBackgroundService>();
 
                 #region  ### IdleMonitoringService ###
@@ -98,6 +95,8 @@ public static class BootLoader
 
                 // 1. Register the platform-specific infrastructure
                 services.AddSingleton<IDispatcherService, WpfDispatcherService>();
+                services.AddSingleton<TOTP.Presentation.Services.Interfaces.IApplicationLifetime, WpfApplicationLifetime>();
+                services.AddSingleton<ISettingsWindowCoordinator, SettingsWindowCoordinator>();
 
                 #region ### SECURITY & CORE SERVICES ###
 
@@ -122,8 +121,10 @@ public static class BootLoader
                 services.AddSingleton<IPasswordPromptService, PasswordPromptService>();
                 services.AddSingleton<INotificationUiClient, NotificationUiClient>();
                 services.AddSingleton<IMessageService, MessageService>();
+                services.AddSingleton<ILocalizationService, LocalizationService>();
                 services.AddSingleton<IAccountsWorkflowService, AccountsWorkflowService>();
                 services.AddSingleton<IAccountTransferWorkflowService, AccountTransferWorkflowService>();
+                services.AddSingleton<IQrAccountImportWorkflow, QrAccountImportWorkflow>();
                 services.AddSingleton<ISettingsDialogOrchestrationService, SettingsDialogOrchestrationService>();
                 services.AddSingleton<ISettingsAuthorizationWorkflowService, SettingsAuthorizationWorkflowService>();
                 services.AddSingleton<ISettingsPersistenceService, SettingsPersistenceService>();
@@ -139,8 +140,8 @@ public static class BootLoader
                 // VMs & Windows
                 services.AddTransient<QrScannerViewModel>();
                 services.AddTransient<QrScannerWindow>();
-                services.AddSingleton<IQrScannerDialogService, QrScannerDialogService>();
-                services.AddSingleton<Func<IQrScannerDialogService>>(sp => () => sp.GetRequiredService<IQrScannerDialogService>());
+                services.AddSingleton<IQrScannerDialogService>(sp =>
+                    new QrScannerDialogService(() => sp.GetRequiredService<QrScannerWindow>()));
 
                 services.AddSingleton<IInputActivityMonitor, WpfInputActivityMonitor>();
                 services.AddTransient<SettingsViewModel>();

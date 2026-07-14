@@ -1,11 +1,9 @@
 using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Services.Interfaces;
+using TOTP.Views;
 
 namespace TOTP.Services;
 
@@ -53,48 +51,15 @@ public sealed class QrPreviewService : IQrPreviewService
         var maxHeight = SystemParameters.PrimaryScreenHeight * 0.9;
         var fitScale = Math.Min(1d, Math.Min(maxWidth / requestedWidth, maxHeight / requestedHeight));
 
-        var previewImage = new Image
-        {
-            Source = source,
-            Width = requestedWidth * fitScale,
-            Height = requestedHeight * fitScale,
-            Stretch = Stretch.Uniform,
-            SnapsToDevicePixels = true,
-            UseLayoutRounding = true,
-            Cursor = Cursors.Hand
-        };
-
-        previewImage.MouseLeftButtonUp += (_, _) => Close();
-
-        var container = new Border
-        {
-            Background = new SolidColorBrush(Color.FromArgb(230, 20, 20, 20)),
-            BorderBrush = Brushes.White,
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(10),
-            Padding = new Thickness(5),
-            Child = previewImage
-        };
-
         var owner = Application.Current?.MainWindow;
         var overlayLeft = owner?.Left ?? 0d;
         var overlayTop = owner?.Top ?? 0d;
         var overlayWidth = owner?.ActualWidth > 0 ? owner.ActualWidth : SystemParameters.PrimaryScreenWidth;
         var overlayHeight = owner?.ActualHeight > 0 ? owner.ActualHeight : SystemParameters.PrimaryScreenHeight;
 
-        _overlayWindow = new Window
+        _overlayWindow = new QrPreviewOverlayWindow
         {
             Owner = owner,
-            ShowInTaskbar = false,
-            Topmost = false,
-            ShowActivated = false,
-            Focusable = false,
-            WindowStyle = WindowStyle.None,
-            ResizeMode = ResizeMode.NoResize,
-            AllowsTransparency = true,
-            IsHitTestVisible = true,
-            Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0)),
-            WindowStartupLocation = WindowStartupLocation.Manual,
             Left = overlayLeft,
             Top = overlayTop,
             Width = overlayWidth,
@@ -115,20 +80,15 @@ public sealed class QrPreviewService : IQrPreviewService
             }
         };
 
-        _previewWindow = new Window
+        var previewWindow = new QrPreviewWindow
         {
-            Owner = owner,
-            ShowInTaskbar = false,
-            Topmost = true,
-            ShowActivated = false,
-            WindowStyle = WindowStyle.None,
-            ResizeMode = ResizeMode.NoResize,
-            AllowsTransparency = true,
-            Background = Brushes.Transparent,
-            SizeToContent = SizeToContent.WidthAndHeight,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Content = container
+            Owner = owner
         };
+        previewWindow.PreviewImage.Source = source;
+        previewWindow.PreviewImage.Width = requestedWidth * fitScale;
+        previewWindow.PreviewImage.Height = requestedHeight * fitScale;
+        previewWindow.PreviewImage.MouseLeftButtonUp += (_, _) => Close();
+        _previewWindow = previewWindow;
 
         _previewWindow.Closed += (_, _) =>
         {

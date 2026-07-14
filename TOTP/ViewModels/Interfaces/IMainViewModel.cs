@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using TOTP.Commands;
-using TOTP.Core.Interfaces;
-using TOTP.Infrastructure.Adapters;
-using TOTP.Security.Interfaces;
+using TOTP.Presentation.Adapters;
+using TOTP.Presentation.Services.Interfaces;
 using TOTP.ViewModels;
 using TOTP.Views.Interfaces;
 
@@ -17,6 +16,7 @@ namespace TOTP.ViewModels.Interfaces;
 public interface IMainViewModel : INotifyPropertyChanged
 {
     bool IsBusy { get; set; }
+    MainLocalizationViewModel Localization { get; }
     IMainViewSessionController SessionController { get; }
     bool IsSettingsViewOpen { get; set; }
     SettingsViewModel? SettingsVm { get; }

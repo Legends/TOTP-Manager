@@ -8,6 +8,22 @@ namespace TOTP.Services;
 
 public sealed class LogFileService : ILogFileService
 {
+    public bool CanOpenLogFolder() => Directory.Exists(StringsConstants.AppLogDirectoryPath);
+
+    public void OpenLogFolder()
+    {
+        if (!CanOpenLogFolder())
+        {
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = StringsConstants.AppLogDirectoryPath,
+            UseShellExecute = true
+        });
+    }
+
     public void OpenCurrentLogFile()
     {
         try

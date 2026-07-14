@@ -1,13 +1,10 @@
-using OtpNet;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using System.Windows;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using TOTP.Infrastructure.Parser;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
@@ -40,7 +37,7 @@ public partial class MainViewModel
         if (SelectedAccount?.ID == selectedSecretItem.ID)
             return Task.CompletedTask;
 
-        SelectedAccount = ComputeTotpCode(selectedSecretItem, out _activeTotp);
+        SelectedAccount = ComputeTotpCode(selectedSecretItem);
         CopyTotpCodeToClipboard();
 
         var currentKey = SelectedAccount.Issuer;
@@ -75,16 +72,14 @@ public partial class MainViewModel
     #region ### TOTP Code Generation ###
 
     // Secret: JBSWY3DPEHPK3PXP
-    public OtpViewModel ComputeTotpCode(OtpViewModel item, out Totp totpInstance)
+    public OtpViewModel ComputeTotpCode(OtpViewModel item)
     {
         if (item == null || string.IsNullOrWhiteSpace(item.Secret) || !UiValidation.IsValidBase32Format(item.Secret))
             throw new FormatException($"Secret is invalid Base32 format, supplied to {nameof(ComputeTotpCode)}");
 
-        var encodedSecret = Base32Encoding.ToBytes(item.Secret);
-        totpInstance = new Totp(encodedSecret);
-
-        TotpCode = totpInstance.ComputeTotp();
-        RemainingSeconds = totpInstance.RemainingSeconds();
+        var generated = _totpGenerator.Generate(item.Secret);
+        TotpCode = generated.Code;
+        RemainingSeconds = generated.RemainingSeconds;
 
         return item;
     }
@@ -138,14 +133,12 @@ public partial class MainViewModel
         TotpUiTimer?.Dispose();
         TotpUiTimer = new System.Threading.Timer(_ =>
         {
-            if (_activeTotp is null || SelectedAccount is null)
+            if (SelectedAccount is null || string.IsNullOrWhiteSpace(SelectedAccount.Secret))
             {
                 return;
             }
 
             Debug.WriteLine("#######  Timer is running  #####");
-
-            if (_activeTotp is null || SelectedAccount is null) throw new NullReferenceException(nameof(_activeTotp));
 
             const int period = 30;
             long unix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -154,13 +147,18 @@ public partial class MainViewModel
             _activeStep = step;
             var now = DateTime.UtcNow;
 
-            Application.Current?.Dispatcher.BeginInvoke(
-               DispatcherPriority.Render,
-               new Action(() =>
+            _dispatcherService.InvokeOnUI(
+               () =>
                {
-                   TotpCode = _activeTotp.ComputeTotp();
-                   RemainingSeconds = _activeTotp.RemainingSeconds();
-               }));
+                   if (SelectedAccount is null || string.IsNullOrWhiteSpace(SelectedAccount.Secret))
+                   {
+                       return;
+                   }
+
+                   var generated = _totpGenerator.Generate(SelectedAccount.Secret);
+                   TotpCode = generated.Code;
+                   RemainingSeconds = generated.RemainingSeconds;
+               });
 
         }, null, dueTime: 0, period: 800);
     }
@@ -186,12 +184,6 @@ public partial class MainViewModel
         }
 
         return bmp;
-    }
-
-    private static int _counter;
-    public static int Increment()
-    {
-        return Interlocked.Increment(ref _counter);
     }
 
     #endregion

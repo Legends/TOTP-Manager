@@ -6,7 +6,7 @@ using TOTP.Commands;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Resources;
-using TOTP.Security.Interfaces;
+using TOTP.Presentation.Services.Interfaces;
 
 namespace TOTP.ViewModels;
 

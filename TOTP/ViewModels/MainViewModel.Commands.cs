@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows;
 using TOTP.Commands;
 using TOTP.Resources;
 
@@ -162,12 +161,9 @@ public partial class MainViewModel
                 ? informationalVersion
                 : assemblyVersion;
 
-        MessageBox.Show(
+        _messageService.ShowInfo(
             string.Format(UI.ui_Settings_About_Message_Format, displayVersion)
-                .Replace("\\n", Environment.NewLine),
-            UI.ui_Settings_About_Tooltip,
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
+                .Replace("\\n", Environment.NewLine));
     }
 
     #endregion COMMANDS SETUP

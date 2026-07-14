@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
 using TOTP.Commands;
-using TOTP.Core.Interfaces;
+using TOTP.Presentation.Services.Interfaces;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
 

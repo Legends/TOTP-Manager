@@ -18,11 +18,12 @@ using TOTP.Core.Common;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
 using TOTP.Helper;
-using TOTP.Infrastructure;
+using TOTP.Presentation.Platform;
+using TOTP.Presentation;
 using TOTP.Infrastructure.Logging;
 using TOTP.Resources;
-using TOTP.Security;
-using TOTP.Security.Interfaces;
+using TOTP.Presentation.Services;
+using TOTP.Presentation.Services.Interfaces;
 using TOTP.Services.Interfaces;
 using TOTP.Startup;
 using TOTP.ViewModels.Interfaces;
@@ -196,11 +197,11 @@ internal static class Program
             Log.Information("startup.begin");
             startupSteps.Mark("startup.begin");
 
-            using var instance = new SingleInstanceGuard(StringsConstants.AssemblyNameWpf);
+            using var instance = new SingleInstanceGuard(PresentationConstants.AssemblyName);
             if (!instance.IsFirstInstance)
             {
                 startupSteps.Mark("single_instance.redirect_existing");
-                SingleInstanceGuard.ActivateExistingWindow(StringsConstants.AssemblyNameWpf);
+                SingleInstanceGuard.ActivateExistingWindow(PresentationConstants.AssemblyName);
                 EmitStartupTable(isError: false, "Startup Steps (redirected)");
                 return;
             }
@@ -366,6 +367,8 @@ internal static class Program
                     {
                         throw new InvalidOperationException(string.Join("; ", loadResult.Errors.Select(e => e.Message)));
                     }
+
+                    host.Services.GetRequiredService<ILocalizationService>().ApplyCurrentCulture();
 
                     startupCancellation.Token.ThrowIfCancellationRequested();
 

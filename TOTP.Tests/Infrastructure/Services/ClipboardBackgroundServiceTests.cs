@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Infrastructure.Services;
+using TOTP.Presentation.Services;
 
 namespace TOTP.Tests.Infrastructure.Services;
 

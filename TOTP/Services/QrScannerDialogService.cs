@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+using System.Windows;
 using TOTP.Services.Interfaces;
 using TOTP.Views;
 
@@ -7,15 +7,15 @@ namespace TOTP.Services
 {
     public sealed class QrScannerDialogService : IQrScannerDialogService
     {
-        private readonly IServiceProvider _sp;
+        private readonly Func<QrScannerWindow> _windowFactory;
 
-        public QrScannerDialogService(IServiceProvider sp) => _sp = sp;
+        public QrScannerDialogService(Func<QrScannerWindow> windowFactory)
+            => _windowFactory = windowFactory;
 
-        public string? ScanQrCode(System.Windows.Window owner)
+        public string? ScanQrCode()
         {
-            // Resolve a fresh window (and therefore a fresh VM) from DI
-            var win = _sp.GetRequiredService<QrScannerWindow>();
-            win.Owner = owner;
+            var win = _windowFactory();
+            win.Owner = Application.Current?.MainWindow;
 
             var ok = win.ShowDialog() == true;
             return ok ? win.DecodedText : null;

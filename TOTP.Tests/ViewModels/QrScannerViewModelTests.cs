@@ -2,7 +2,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using TOTP.Core.Interfaces;
+using TOTP.Presentation.Services.Interfaces;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 

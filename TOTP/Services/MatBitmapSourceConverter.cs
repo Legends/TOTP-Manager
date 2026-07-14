@@ -1,6 +1,6 @@
 using OpenCvSharp;
 using System.Windows.Media.Imaging;
-using TOTP.Infrastructure.Extensions;
+using TOTP.Presentation.Extensions;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;

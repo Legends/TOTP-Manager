@@ -1,6 +1,5 @@
 #region ### USINGS ###
 using Microsoft.Extensions.Logging;
-using OtpNet;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -10,23 +9,22 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using TOTP.Commands;
-using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Common;
-using TOTP.Infrastructure.Services;
+using TOTP.Presentation.Services;
+using TOTP.Presentation.Adapters;
 using TOTP.Resources;
-using TOTP.Security.Interfaces;
+using TOTP.Presentation.Services.Interfaces;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels.Interfaces;
+using TOTP.ViewModels.Models;
 using TOTP.Views.Interfaces;
 
 #endregion
@@ -44,7 +42,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         public void ApplySearchFilter(Predicate<object> filter) { }
     }
 
-    private readonly Func<IQrScannerDialogService> _qrScannerDialogFactory;
+    private readonly IQrScannerDialogService _qrScannerDialogService;
+    private readonly IQrAccountImportWorkflow _qrAccountImportWorkflow;
     private readonly ISettingsDialogOrchestrationService _settingsDialogOrchestrationService;
     private ISettingsService _settingsService;
     public IGridFilterRefresher GridFilterRefresher { get; set; } = NullGridFilterRefresher.Instance;
@@ -139,7 +138,6 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     #endregion
 
 
-    private CultureDisplay _selectedCulture = null!;
     private readonly ILogger<MainViewModel> _logger;
 
     // Totp generation timer
@@ -152,7 +150,6 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
             _totpUiTimer = value;
         }
     }
-    private Totp? _activeTotp;
     private long _activeStep = -1;
 
 
@@ -277,20 +274,6 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         {
             _isProgressPieChartVisible = value;
             OnPropertyChanged();
-        }
-    }
-
-    public CultureDisplay SelectedCulture
-    {
-        get => _selectedCulture;
-        set
-        {
-            if (_selectedCulture != value)
-            {
-                _selectedCulture = value;
-                LocalizationService.ChangeCulture(value.Culture.Name);
-                OnPropertyChanged();
-            }
         }
     }
 
@@ -486,7 +469,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     public Action? RequestGridFilterRefresh { get; set; }
 
 
-    public ObservableCollection<CultureDisplay> SupportedCultures { get; set; } = [];
+    public MainLocalizationViewModel Localization { get; }
 
     #endregion ObservableCollections
 
@@ -498,6 +481,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     private readonly IAccountTransferWorkflowService _accountTransferWorkflowService;
     private readonly IDebounceService _debounceService;
     private readonly IQrCodeService _qrService;
+    private readonly ITotpGenerator _totpGenerator;
     private readonly IExportService _exportService;
     private readonly IFileDialogService _fileDialogService;
     private readonly IPasswordPromptService _passwordPromptService;
@@ -505,6 +489,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     private readonly IQrPreviewService _qrPreviewService;
     private readonly IScannerWarmupService _scannerWarmupService;
     private readonly IAutoUpdateService _autoUpdateService;
+    private readonly IDispatcherService _dispatcherService;
+    private readonly IApplicationLifetime _applicationLifetime;
 
     private bool _otpLoadedFromStore;
     private bool _collectionHooked;
@@ -519,6 +505,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
         ILogger<MainViewModel> logger,
         IQrCodeService svcQr,
+        ITotpGenerator totpGenerator,
         IExportService exportService,
         IMessageService messageService,
         IClipboardService clipboardService,
@@ -530,25 +517,35 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         IQrPreviewService qrPreviewService,
         IScannerWarmupService scannerWarmupService,
         IAutoUpdateService autoUpdateService,
+        IDispatcherService dispatcherService,
+        IApplicationLifetime applicationLifetime,
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,
-        Func<IQrScannerDialogService> qrScannerDialogFactory,
+        IQrScannerDialogService qrScannerDialogService,
+        IQrAccountImportWorkflow qrAccountImportWorkflow,
         ISettingsDialogOrchestrationService settingsDialogOrchestrationService,
+        ILocalizationService localizationService,
         ISettingsService settingsService)
     {
         IsBusy = true;
 
         _settingsService = settingsService;
         _settingsDialogOrchestrationService = settingsDialogOrchestrationService;
-        _qrScannerDialogFactory = qrScannerDialogFactory;
+        Localization = new MainLocalizationViewModel(localizationService);
+        Localization.LanguageChanged += Localization_LanguageChanged;
+        _qrScannerDialogService = qrScannerDialogService;
+        _qrAccountImportWorkflow = qrAccountImportWorkflow;
         _fileDialogService = fileDialogService;
         _exportService = exportService;
         _passwordPromptService = passwordPromptService;
         _qrPreviewService = qrPreviewService;
         _scannerWarmupService = scannerWarmupService;
         _autoUpdateService = autoUpdateService;
+        _dispatcherService = dispatcherService;
+        _applicationLifetime = applicationLifetime;
         _logger = logger;
         _qrService = svcQr;
+        _totpGenerator = totpGenerator;
         _messageService = messageService;
         _debounceService = debounceService;
         _clipboardService = clipboardService;
@@ -564,8 +561,6 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         _mainViewSessionController.ConfigureCallbacks(OnUnlockedAsync, OnLocked);
 
         SetupCommandEventhandler();
-
-        SetupLocalization();
 
         //Setup TOTP Code generation timer
         TotpUiTimer = new System.Threading.Timer(_ => StartTotpTick(), null, Timeout.Infinite, 500);
@@ -643,13 +638,8 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
             _logger.LogInformation("warmup.noncritical.begin");
             await Task.Delay(100).ConfigureAwait(false);
 
-            if (Application.Current != null)
-            {
-                await Application.Current.Dispatcher
-                    .InvokeAsync(() => EnsureSettingsViewModelLoadedAsync(showErrorOnFailure: false), DispatcherPriority.Background)
-                    .Task
-                    .Unwrap();
-            }
+            await _dispatcherService.InvokeAsync(
+                () => EnsureSettingsViewModelLoadedAsync(showErrorOnFailure: false));
 
             _scannerWarmupService.StartWarmupInBackground("mainvm.postunlock");
             _logger.LogInformation("warmup.noncritical.end");
@@ -694,7 +684,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         {
             _logger.LogCritical(ex, "MainViewModel initialization failed.");
             _messageService.ShowError(UI.ex_FatalError);
-            Environment.Exit(1);
+            _applicationLifetime.Shutdown(1);
         }
     }
 

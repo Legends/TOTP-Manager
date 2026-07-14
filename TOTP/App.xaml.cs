@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
@@ -8,7 +8,7 @@ using System.Windows;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Resources;
-using TOTP.Security.Interfaces;
+using TOTP.Presentation.Services.Interfaces;
 using TOTP.Services.Interfaces;
 using TOTP.Startup;
 using TOTP.Views;

@@ -8,41 +8,22 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TOTP.Core.Enums;
 using TOTP.Core.Security.Models;
-using TOTP.Infrastructure.Extensions;
+using TOTP.Presentation.Extensions;
 using TOTP.Core.Common;
 using TOTP.Services;
 using TOTP.Validation;
 using TOTP.ViewModels.Interfaces;
+using TOTP.ViewModels.Models;
+using TOTP.Presentation;
 
 namespace TOTP.ViewModels;
 
 public partial class MainViewModel
 {
-    #region ### LOCALIZATION SETUP ###
-
-    private void SetupLocalization()
-    {
-        SupportedCultures =
-        [
-            new(new CultureInfo("en"), StringsConstants.ImgUrl.EnFlag),
-            new(new CultureInfo("de-DE"), StringsConstants.ImgUrl.DeFlag),
-        ];
-
-        var currentCulture = CultureInfo.CurrentUICulture;
-
-        var selCulture = SupportedCultures.FirstOrDefault(c => c.Culture.Name == currentCulture.Name)
-                         ?? SupportedCultures.First();
-        SelectedCulture = selCulture;
-
-        LocalizationService.LanguageChanged += LocalizationService_LanguageChanged;
-    }
-
-    private void LocalizationService_LanguageChanged()
+    private void Localization_LanguageChanged()
     {
         OnPropertyChanged(nameof(ExportToolTip));
     }
-
-    #endregion
 
     private async Task EnsureTokensLoadedAsync()
     {
@@ -132,7 +113,8 @@ public partial class MainViewModel
             // best-effort cleanup
         }
 
-        LocalizationService.LanguageChanged -= LocalizationService_LanguageChanged;
+        Localization.LanguageChanged -= Localization_LanguageChanged;
+        Localization.Dispose();
         _mainViewSessionController.SessionStateChanged -= SessionController_SessionStateChanged;
 
         if (_collectionHooked)
@@ -171,7 +153,7 @@ public partial class MainViewModel
         catch (Exception e)
         {
             _logger.LogCritical(e, nameof(ReadAllOtpsAsync));
-            System.Windows.Application.Current.Shutdown(1);
+            _applicationLifetime.Shutdown(1);
         }
 
     }

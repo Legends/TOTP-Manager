@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TOTP.Core.Common;
-using TOTP.Core.Interfaces;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
@@ -26,6 +25,7 @@ public static class DependencyInjection
         });
        
         services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<ITotpGenerator, OtpNetTotpGenerator>();
 
         // 1. Master Password & Security Context
         services.AddSingleton<ISecurityContext, SecurityContext>();

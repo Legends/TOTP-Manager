@@ -4,7 +4,7 @@ using TOTP.Core.Models;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
-using TOTP.Security;
+using TOTP.Presentation.Services;
 using TOTP.Services.Interfaces;
 using TOTP.Views.Interfaces;
 

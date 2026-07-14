@@ -41,15 +41,15 @@ public class ResxExtension : MarkupExtension
                 _ = dispatcher.BeginInvoke(ApplyValue);
             }
 
-            LocalizationService.LanguageChanged += Update;
+            LocalizationEventHub.LanguageChanged += Update;
 
             switch (targetObject)
             {
                 case FrameworkElement fe:
-                    fe.Unloaded += (_, _) => LocalizationService.LanguageChanged -= Update;
+                    fe.Unloaded += (_, _) => LocalizationEventHub.LanguageChanged -= Update;
                     break;
                 case FrameworkContentElement fce:
-                    fce.Unloaded += (_, _) => LocalizationService.LanguageChanged -= Update;
+                    fce.Unloaded += (_, _) => LocalizationEventHub.LanguageChanged -= Update;
                     break;
             }
         }

@@ -12,7 +12,7 @@ using TOTP.Core.Enums;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Infrastructure.Extensions;
+using TOTP.Presentation.Extensions;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;

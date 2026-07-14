@@ -6,14 +6,15 @@ using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Core.Common;
 using TOTP.Core.Enums;
-using TOTP.Core.Interfaces;
 using TOTP.Core.Models;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Infrastructure.Services;
-using TOTP.Security.Interfaces;
+using TOTP.Presentation.Services;
+using TOTP.Presentation.Services.Interfaces;
+using TOTP.Presentation.Adapters;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 using TOTP.Views.Interfaces;
@@ -544,6 +545,8 @@ public sealed class MainViewModelTests : IDisposable
             };
 
             SettingsService.SetupGet(s => s.Current).Returns(appSettings);
+            TotpGenerator.Setup(x => x.Generate(It.IsAny<string>()))
+                .Returns(new TotpGenerationResult("123456", 20, 30));
             LogSwitch.SetupGet(l => l.MinimumLevel).Returns(AppLogLevel.Information);
             LogSwitch.Setup(l => l.GetLevel()).Returns(AppLogLevel.Information);
 
@@ -563,6 +566,7 @@ public sealed class MainViewModelTests : IDisposable
             Sut = new MainViewModel(
                 NullLogger<MainViewModel>.Instance,
                 QrCode.Object,
+                TotpGenerator.Object,
                 ExportService.Object,
                 Message.Object,
                 Clipboard.Object,
@@ -574,10 +578,14 @@ public sealed class MainViewModelTests : IDisposable
                 QrPreview.Object,
                 ScannerWarmup.Object,
                 AutoUpdate.Object,
+                Dispatcher.Object,
+                ApplicationLifetime.Object,
                 Session.Object,
                 unlockVm,
-                () => QrScannerDialog.Object,
+                QrScannerDialog.Object,
+                QrAccountImportWorkflow.Object,
                 SettingsDialog.Object,
+                Localization.Object,
                 SettingsService.Object);
         }
 
@@ -589,16 +597,21 @@ public sealed class MainViewModelTests : IDisposable
         public Mock<IQrPreviewService> QrPreview { get; } = new();
         public Mock<IScannerWarmupService> ScannerWarmup { get; } = new();
         public Mock<IAutoUpdateService> AutoUpdate { get; } = new();
+        public Mock<IDispatcherService> Dispatcher { get; } = new();
+        public Mock<IApplicationLifetime> ApplicationLifetime { get; } = new();
         public Mock<ISettingsDialogOrchestrationService> SettingsDialog { get; } = new();
+        public Mock<ILocalizationService> Localization { get; } = new();
         public Mock<IMainViewSessionController> Session { get; } = new();
         public Mock<ISettingsService> SettingsService { get; } = new();
 
         private Mock<IQrCodeService> QrCode { get; } = new();
+        private Mock<ITotpGenerator> TotpGenerator { get; } = new();
         private Mock<IExportService> ExportService { get; } = new();
         private Mock<IAccountTransferWorkflowService> TransferWorkflow { get; } = new();
         private Mock<IFileDialogService> FileDialogs { get; } = new();
         private Mock<IPasswordPromptService> PasswordPrompt { get; } = new();
         private Mock<IQrScannerDialogService> QrScannerDialog { get; } = new();
+        private Mock<IQrAccountImportWorkflow> QrAccountImportWorkflow { get; } = new();
         private Mock<ILogSwitchService> LogSwitch { get; } = new();
 
         private Mock<IAuthorizationService> Authorization { get; } = new();

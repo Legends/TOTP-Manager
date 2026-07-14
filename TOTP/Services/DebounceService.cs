@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using TOTP.Core.Interfaces;
+using TOTP.Presentation.Services.Interfaces;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;

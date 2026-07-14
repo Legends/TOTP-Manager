@@ -4,7 +4,7 @@
              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
              xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
-             xmlns:props="clr-namespace:TOTP.Infrastructure.AttachedProperties"
+             xmlns:props="clr-namespace:TOTP.Presentation.AttachedProperties"
              xmlns:xaml="clr-namespace:TOTP.Xaml"
              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"
              syncfusionskin:SkinManagerHelper.ScrollBarMode="Default">
@@ -80,8 +80,8 @@
                     Grid.Column="1">
             <syncfusion:ComboBoxAdv Grid.Column="1"
                                     IsEnabled="{Binding IsGridEditing, Converter={StaticResource InverseBooleanConverter}}"
-                                    ItemsSource="{Binding SupportedCultures}"
-                                    SelectedItem="{Binding SelectedCulture, Mode=TwoWay}"
+                                    ItemsSource="{Binding Localization.SupportedCultures}"
+                                    SelectedItem="{Binding Localization.SelectedCulture, Mode=TwoWay}"
                                     Width="50"
                                     VerticalAlignment="Center"
                                     Margin="2"

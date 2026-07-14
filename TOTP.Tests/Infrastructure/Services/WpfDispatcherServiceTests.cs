@@ -1,4 +1,4 @@
-using TOTP.Infrastructure.Services;
+using TOTP.Presentation.Services;
 
 namespace TOTP.Tests.Infrastructure.Services;
 

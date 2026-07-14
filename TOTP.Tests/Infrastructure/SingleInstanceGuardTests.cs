@@ -1,4 +1,4 @@
-using TOTP.Infrastructure;
+using TOTP.Presentation.Platform;
 
 namespace TOTP.Tests.Infrastructure;
 

@@ -5,6 +5,7 @@ namespace TOTP.Core.Security.Interfaces;
 
 public interface IAppSettings
 {
+    string CultureName { get; set; }
     AppLogLevel MinimumLogLevel { get; set; }
     AuthorizationProfile Authorization { get; set; }
     TimeSpan IdleTimeout { get; set; }

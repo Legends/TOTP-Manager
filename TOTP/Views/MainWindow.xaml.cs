@@ -7,7 +7,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
-using TOTP.Infrastructure.Adapters;
+using TOTP.Presentation.Adapters;
+using TOTP.Presentation.Services.Interfaces;
 using TOTP.UserControls;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views.Components;
@@ -22,24 +23,26 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
 
     private readonly Stopwatch _lifecycleStopwatch = Stopwatch.StartNew();
     private readonly IMainViewModel _vm;
-    private SettingsWindow? _settingsWindow;
-    private bool _settingsWindowPreloadQueued;
-    private bool _settingsWindowPreloaded;
+    private readonly IApplicationLifetime _applicationLifetime;
+    private readonly ISettingsWindowCoordinator _settingsWindowCoordinator;
     private bool _dataGridResourcesLoaded;
     private bool _accountsSectionLoaded;
     private bool _editFlyoutViewLoaded;
-    private bool _allowSettingsWindowClose;
-    private bool _handlingSettingsWindowClosing;
     private int _processExitStarted;
 
-    public MainWindow(IMainViewModel vm)
+    public MainWindow(
+        IMainViewModel vm,
+        IApplicationLifetime applicationLifetime,
+        ISettingsWindowCoordinator settingsWindowCoordinator)
     {
         _vm = vm;
+        _applicationLifetime = applicationLifetime;
+        _settingsWindowCoordinator = settingsWindowCoordinator;
         LogLifecycle("ctor.begin");
         InitializeComponent();
         LogLifecycle("ctor.after_initialize_component");
 
-        _vm.PropertyChanged += MainViewModel_PropertyChanged;
+        _settingsWindowCoordinator.Attach(this, _vm, BringToFront);
         HookFlyoutLazyLoading();
         LogLifecycle("ctor.after_hook_flyout_lazy_loading");
         EnsureAccountsSectionLoaded();
@@ -155,125 +158,6 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         LogLifecycle("window_position.set");
     }
 
-    private void MainViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName != nameof(IMainViewModel.IsSettingsViewOpen) &&
-            e.PropertyName != nameof(IMainViewModel.SettingsVm))
-        {
-            return;
-        }
-
-        Dispatcher.Invoke(SyncSettingsWindow);
-
-        if (e.PropertyName == nameof(IMainViewModel.SettingsVm))
-        {
-            QueueSettingsWindowPreload();
-        }
-    }
-
-    private void SyncSettingsWindow()
-    {
-        if (_vm.IsSettingsViewOpen && _vm.SettingsVm != null)
-        {
-            EnsureSettingsWindowCreated();
-            if (_settingsWindow == null)
-            {
-                return;
-            }
-
-            if (!_settingsWindow.IsVisible)
-            {
-                _settingsWindow.Show();
-            }
-            _settingsWindow.Activate();
-            _settingsWindow.Focus();
-            return;
-        }
-
-        if (_settingsWindow != null && _settingsWindow.IsVisible)
-        {
-            _settingsWindow.Hide();
-        }
-    }
-
-    private void QueueSettingsWindowPreload()
-    {
-        if (_settingsWindowPreloaded || _settingsWindowPreloadQueued || _vm.SettingsVm == null)
-        {
-            return;
-        }
-
-        _settingsWindowPreloadQueued = true;
-        Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
-        {
-            _settingsWindowPreloadQueued = false;
-            if (_settingsWindowPreloaded || _vm.SettingsVm == null)
-            {
-                return;
-            }
-
-            EnsureSettingsWindowCreated();
-            _settingsWindow?.ApplyTemplate();
-            _settingsWindow?.UpdateLayout();
-            _settingsWindowPreloaded = true;
-            LogLifecycle("settings_window.preloaded");
-        }));
-    }
-
-    private void EnsureSettingsWindowCreated()
-    {
-        if (_vm.SettingsVm == null)
-        {
-            return;
-        }
-
-        if (_settingsWindow == null)
-        {
-            _settingsWindow = new SettingsWindow
-            {
-                Owner = this,
-                DataContext = _vm.SettingsVm
-            };
-            _settingsWindow.Closing += SettingsWindow_Closing;
-            return;
-        }
-
-        if (!ReferenceEquals(_settingsWindow.DataContext, _vm.SettingsVm))
-        {
-            _settingsWindow.DataContext = _vm.SettingsVm;
-        }
-    }
-
-    private void SettingsWindow_Closing(object? sender, CancelEventArgs e)
-    {
-        if (_allowSettingsWindowClose)
-        {
-            return;
-        }
-
-        e.Cancel = true;
-        if (_handlingSettingsWindowClosing)
-        {
-            return;
-        }
-
-        try
-        {
-            _handlingSettingsWindowClosing = true;
-            _settingsWindow?.Hide();
-            if (_vm.IsSettingsViewOpen)
-            {
-                _vm.IsSettingsViewOpen = false;
-            }
-
-            BringToFront();
-        }
-        finally
-        {
-            _handlingSettingsWindowClosing = false;
-        }
-    }
-
     protected override void OnClosing(CancelEventArgs e)
     {
         Log.Information("mainwindow.closing begin cancel={Cancel} is_visible={IsVisible}", e.Cancel, IsVisible);
@@ -298,13 +182,7 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
             detachWindowCommand.Execute(null);
         }
 
-        if (_settingsWindow != null)
-        {
-            _allowSettingsWindowClose = true;
-            _settingsWindow.Closing -= SettingsWindow_Closing;
-            _settingsWindow.Close();
-            _settingsWindow = null;
-        }
+        _settingsWindowCoordinator.Dispose();
 
         base.OnClosed(e);
         Log.Information("mainwindow.closed end");
@@ -332,13 +210,7 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
                 detachWindowCommand.Execute(null);
             }
 
-            if (_settingsWindow != null)
-            {
-                _allowSettingsWindowClose = true;
-                _settingsWindow.Closing -= SettingsWindow_Closing;
-                _settingsWindow.Close();
-                _settingsWindow = null;
-            }
+            _settingsWindowCoordinator.Dispose();
 
             if (_vm is IDisposable disposableViewModel)
             {
@@ -352,8 +224,7 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         finally
         {
             Log.Information("mainwindow.closing environment_exit");
-            Log.CloseAndFlush();
-            Environment.Exit(0);
+            _applicationLifetime.ExitProcess(0);
         }
     }
 

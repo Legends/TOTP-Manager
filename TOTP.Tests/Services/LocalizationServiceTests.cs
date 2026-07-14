@@ -1,117 +1,102 @@
-using TOTP.Core.Common;
-using TOTP.Services;
-using TOTP.Tests.Common;
-using TOTP.Xaml;
+using FluentResults;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
+using TOTP.Core.Models;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Services;
+using TOTP.Tests.Common;
+using TOTP.Xaml;
 
 namespace TOTP.Tests.Services;
 
 [Collection(NonParallelCollectionDefinition.NonParallel)]
 public sealed class LocalizationServiceTests : IDisposable
 {
-    private readonly string _settingsPath = StringsConstants.AppSettingsJsonFilePath;
-    private readonly string? _originalContent;
-
-    public LocalizationServiceTests()
-    {
-        _originalContent = File.Exists(_settingsPath) ? File.ReadAllText(_settingsPath) : null;
-    }
+    private readonly CultureInfo _originalCulture = CultureInfo.CurrentCulture;
+    private readonly CultureInfo _originalUiCulture = CultureInfo.CurrentUICulture;
 
     [Fact]
-    public void ChangeCulture_UpdatesThreadCulture_AndWritesLocalizationSetting_AndRaisesEvent()
+    public void ChangeCulture_UpdatesCultureAndSetting_AndRaisesEvent()
     {
-        File.WriteAllText(_settingsPath, "{}");
+        var settings = new AppSettings();
+        var settingsService = CreateSettingsService(settings);
+        var sut = new LocalizationService(
+            settingsService.Object,
+            NullLogger<LocalizationService>.Instance);
         var raised = false;
-        void Handler() => raised = true;
-        LocalizationService.LanguageChanged += Handler;
+        sut.LanguageChanged += () => raised = true;
 
-        try
-        {
-            LocalizationService.ChangeCulture("de-DE");
-        }
-        finally
-        {
-            LocalizationService.LanguageChanged -= Handler;
-        }
+        sut.ChangeCulture("de-DE");
 
         Assert.True(raised);
         Assert.Equal("de-DE", Thread.CurrentThread.CurrentCulture.Name);
         Assert.Equal("de-DE", Thread.CurrentThread.CurrentUICulture.Name);
-
-        var json = File.ReadAllText(_settingsPath);
-        Assert.Contains("\"Localization\"", json);
-        Assert.Contains("\"Culture\": \"de-DE\"", json);
+        Assert.Equal("de-DE", settings.CultureName);
+        settingsService.Verify(x => x.SaveAsync(), Times.Once);
     }
 
     [Fact]
-    public void ChangeCulture_WhenLocalizationExists_UpdatesOnlyCultureValue()
+    public void ApplyCurrentCulture_UsesPersistedSettingWithoutSavingAgain()
     {
-        File.WriteAllText(_settingsPath, """{"Localization":{"Culture":"en-US"},"Other":{"A":1}}""");
+        var settings = new AppSettings { CultureName = "fr-FR" };
+        var settingsService = CreateSettingsService(settings);
+        var sut = new LocalizationService(
+            settingsService.Object,
+            NullLogger<LocalizationService>.Instance);
 
-        LocalizationService.ChangeCulture("fr-FR");
+        sut.ApplyCurrentCulture();
 
-        var json = File.ReadAllText(_settingsPath);
-        Assert.Contains("\"Culture\": \"fr-FR\"", json);
-        Assert.Contains("\"Other\"", json);
+        Assert.Equal("fr-FR", CultureInfo.CurrentUICulture.Name);
+        settingsService.Verify(x => x.SaveAsync(), Times.Never);
     }
 
     [StaFact]
     public void ResxExtension_HandlesLanguageChangedFromBackgroundThread()
     {
-        File.WriteAllText(_settingsPath, "{}");
-
+        var settings = new AppSettings();
+        var settingsService = CreateSettingsService(settings);
+        var sut = new LocalizationService(
+            settingsService.Object,
+            NullLogger<LocalizationService>.Instance);
         var textBlock = new TextBlock();
         var extension = new ResxExtension { Key = "ui_btnAdd" };
         var provider = new ProvideValueTargetService(textBlock, TextBlock.TextProperty);
 
         textBlock.Text = (string)extension.ProvideValue(provider);
-
-        Task.Run(() => LocalizationService.ChangeCulture("de-DE")).GetAwaiter().GetResult();
+        Task.Run(() => sut.ChangeCulture("de-DE")).GetAwaiter().GetResult();
 
         Assert.False(string.IsNullOrWhiteSpace(textBlock.Text));
-
         textBlock.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
     }
 
     public void Dispose()
     {
-        try
-        {
-            if (_originalContent is null)
-            {
-                if (File.Exists(_settingsPath))
-                {
-                    File.Delete(_settingsPath);
-                }
-            }
-            else
-            {
-                File.WriteAllText(_settingsPath, _originalContent);
-            }
-        }
-        catch
-        {
-            // best-effort cleanup
-        }
+        CultureInfo.CurrentCulture = _originalCulture;
+        CultureInfo.CurrentUICulture = _originalUiCulture;
+        CultureInfo.DefaultThreadCurrentCulture = _originalCulture;
+        CultureInfo.DefaultThreadCurrentUICulture = _originalUiCulture;
     }
 
-    private sealed class ProvideValueTargetService : IServiceProvider, IProvideValueTarget
+    private static Mock<ISettingsService> CreateSettingsService(IAppSettings settings)
     {
-        public ProvideValueTargetService(object targetObject, object targetProperty)
-        {
-            TargetObject = targetObject;
-            TargetProperty = targetProperty;
-        }
+        var mock = new Mock<ISettingsService>();
+        mock.SetupGet(x => x.Current).Returns(settings);
+        mock.Setup(x => x.SaveAsync()).ReturnsAsync(Result.Ok());
+        return mock;
+    }
 
-        public object TargetObject { get; }
-
-        public object TargetProperty { get; }
+    private sealed class ProvideValueTargetService(
+        object targetObject,
+        object targetProperty) : IServiceProvider, IProvideValueTarget
+    {
+        public object TargetObject { get; } = targetObject;
+        public object TargetProperty { get; } = targetProperty;
 
         public object? GetService(Type serviceType)
-        {
-            return serviceType == typeof(IProvideValueTarget) ? this : null;
-        }
+            => serviceType == typeof(IProvideValueTarget) ? this : null;
     }
 }

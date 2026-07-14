@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using FluentResults;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
@@ -23,7 +22,7 @@ public class AccountManager(
         return await otpDal.UpdateAsync(updated);
     }
 
-    public async Task<Result<ObservableCollection<Account>>> GetAllOtpEntriesSortedAsync()
+    public async Task<Result<IReadOnlyList<Account>>> GetAllOtpEntriesSortedAsync()
     {
         var result = await otpDal.GetAllAsync();
 
@@ -33,7 +32,7 @@ public class AccountManager(
         result.Value.Sort(new Comparison<Account>((a, b) => string.Compare(a.Issuer, b.Issuer, StringComparison.OrdinalIgnoreCase)));
 
         var allOtps = result.Value ?? [];
-        return Result.Ok(new ObservableCollection<Account>((allOtps)));
+        return Result.Ok<IReadOnlyList<Account>>(allOtps);
     }
 
     public async Task<Result> DeleteAsync(Account item)

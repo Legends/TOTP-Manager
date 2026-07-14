@@ -18,7 +18,7 @@ public sealed class AccountsWorkflowServiceTests
     {
         var manager = new Mock<IAccountManager>();
         manager.Setup(m => m.GetAllOtpEntriesSortedAsync())
-            .ReturnsAsync(Result.Ok(new ObservableCollection<Account>
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(new List<Account>
             {
                 new(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "john")
             }));
@@ -38,7 +38,7 @@ public sealed class AccountsWorkflowServiceTests
     {
         var manager = new Mock<IAccountManager>();
         manager.Setup(m => m.GetAllOtpEntriesSortedAsync())
-            .ReturnsAsync(Result.Fail<ObservableCollection<Account>>("load failed"));
+            .ReturnsAsync(Result.Fail<IReadOnlyList<Account>>("load failed"));
 
         var sut = CreateSut(manager);
 

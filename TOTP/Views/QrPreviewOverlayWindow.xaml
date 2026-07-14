@@ -1,0 +1,12 @@
+<Window x:Class="TOTP.Views.QrPreviewOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Focusable="False"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        IsHitTestVisible="True"
+        Background="#01000000"
+        WindowStartupLocation="Manual" />

@@ -5,7 +5,7 @@
              xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
              xmlns:sfGrid="clr-namespace:Syncfusion.UI.Xaml.Grid;assembly=Syncfusion.SfGrid.WPF"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             xmlns:behaviors="clr-namespace:TOTP.Infrastructure.Behaviors"
+             xmlns:behaviors="clr-namespace:TOTP.Presentation.Behaviors"
              xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
              xmlns:xaml="clr-namespace:TOTP.Xaml"
              syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=MaterialDarkBlue}"

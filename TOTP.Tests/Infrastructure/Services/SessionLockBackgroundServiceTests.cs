@@ -4,7 +4,7 @@ using Moq;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Infrastructure.Services;
-using TOTP.Security.Interfaces;
+using TOTP.Presentation.Services.Interfaces;
 
 namespace TOTP.Tests.Infrastructure.Services;
 

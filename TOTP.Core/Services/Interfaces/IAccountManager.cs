@@ -1,9 +1,8 @@
 using FluentResults;
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TOTP.Core.Enums;
-using TOTP.Core.Events;
 using TOTP.Core.Models;
 
 namespace TOTP.Core.Services.Interfaces;
@@ -19,7 +18,7 @@ public interface IAccountManager
 {
     Task<Result> BackupOtpEntriesStorageFileAsync();
     Task<Result> AddNewAsync(Account newItem);
-    Task<Result<ObservableCollection<Account>>> GetAllOtpEntriesSortedAsync();
+    Task<Result<IReadOnlyList<Account>>> GetAllOtpEntriesSortedAsync();
 
     ///// <summary>
     ///// Adds a new secret item by prompting the user for key and value.

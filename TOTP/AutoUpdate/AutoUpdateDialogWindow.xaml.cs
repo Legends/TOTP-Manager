@@ -14,22 +14,19 @@ namespace TOTP.AutoUpdate;
 
 public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
 {
-    private static readonly TimeSpan MinimumReadyDelay = TimeSpan.FromMilliseconds(900);
     private static readonly TimeSpan BackgroundRestoreDelay = TimeSpan.FromMilliseconds(450);
     private readonly AutoUpdateDialogState _state = new();
     private readonly ApplicationWindowParking _windowParking = new();
-    private AppCastItem? _currentProgressItem;
-    private DateTimeOffset _progressStartedAtUtc;
-    private bool _downloadFinished;
-    private bool _downloadedFileValid;
-    private bool _readyStateApplied;
-    private bool _terminalErrorDisplayed;
-    private int _lastProgressPercentage;
+    private readonly AutoUpdateDownloadController _downloadController;
     private DispatcherTimer? _restoreTimer;
 
     public AutoUpdateDialogWindow()
     {
         InitializeComponent();
+        _downloadController = new AutoUpdateDownloadController(
+            _state,
+            InvokeOnUi,
+            () => EnsurePresented(parkApplicationWindows: true));
         DataContext = _state;
         Closing += AutoUpdateDialogWindow_Closing;
         SizeChanged += (_, _) =>
@@ -98,14 +95,7 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
 
         InvokeOnUi(() =>
         {
-            _currentProgressItem = item;
-            _progressStartedAtUtc = DateTimeOffset.UtcNow;
-            _downloadFinished = false;
-            _downloadedFileValid = false;
-            _readyStateApplied = false;
-            _terminalErrorDisplayed = false;
-            _lastProgressPercentage = 0;
-            _state.ShowProgress(item);
+            _downloadController.ShowProgress(item);
             EnsurePresented(parkApplicationWindows: true);
         });
     }
@@ -165,12 +155,7 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
 
     public void SetDownloadAndInstallButtonEnabled(bool shouldBeEnabled)
     {
-        if ((_readyStateApplied || _terminalErrorDisplayed) && !shouldBeEnabled)
-        {
-            return;
-        }
-
-        InvokeOnUi(() => _state.SetProgressActionEnabled(shouldBeEnabled));
+        _downloadController.SetActionEnabled(shouldBeEnabled);
     }
 
     public void ShowInstallingState()
@@ -185,95 +170,22 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
 
     public void SetDownloadedFilePath(string? downloadedFilePath)
     {
+        _downloadController.DownloadedFilePath = downloadedFilePath;
     }
 
     public void OnDownloadProgressChanged(ItemDownloadProgressEventArgs args)
     {
-        if (_terminalErrorDisplayed)
-        {
-            return;
-        }
-
-        _lastProgressPercentage = Math.Clamp(args.ProgressPercentage, 0, 100);
-        InvokeOnUi(() =>
-        {
-            _state.SetProgress(
-                _lastProgressPercentage,
-                string.Format(
-                    UI.ui_Updater_Download_Progress_Format,
-                    args.ProgressPercentage,
-                    FormatBytes(args.BytesReceived),
-                    FormatBytes(args.TotalBytesToReceive)));
-        });
-
-        if (_downloadFinished)
-        {
-            _ = TryApplyFinishedStateAsync();
-        }
+        _downloadController.ProgressChanged(args);
     }
 
     public void FinishedDownloadingFile(bool isDownloadedFileValid)
     {
-        if (_terminalErrorDisplayed)
-        {
-            return;
-        }
-
-        _downloadFinished = true;
-        _downloadedFileValid = isDownloadedFileValid;
-        if (isDownloadedFileValid)
-        {
-            _lastProgressPercentage = 100;
-        }
-
-        _ = TryApplyFinishedStateAsync();
+        _downloadController.Finished(isDownloadedFileValid);
     }
 
     public bool DisplayErrorMessage(string errorMessage)
     {
-        _terminalErrorDisplayed = true;
-        _downloadFinished = false;
-        _downloadedFileValid = false;
-        _readyStateApplied = true;
-
-        InvokeOnUi(() =>
-        {
-            _state.SetProgressError(errorMessage, Math.Clamp(_lastProgressPercentage, 0, 100));
-            EnsurePresented(parkApplicationWindows: true);
-        });
-
-        return true;
-    }
-
-    private async Task TryApplyFinishedStateAsync()
-    {
-        if (_readyStateApplied || !_downloadFinished)
-        {
-            return;
-        }
-
-        var remainingDelay = MinimumReadyDelay - (DateTimeOffset.UtcNow - _progressStartedAtUtc);
-        if (remainingDelay > TimeSpan.Zero)
-        {
-            await Task.Delay(remainingDelay);
-        }
-
-        InvokeOnUi(() =>
-        {
-            if (_readyStateApplied)
-            {
-                return;
-            }
-
-            _readyStateApplied = true;
-            if (_downloadedFileValid)
-            {
-                _state.SetProgressReady();
-                return;
-            }
-
-            _state.SetProgressBlocked();
-        });
+        return _downloadController.DisplayError(errorMessage);
     }
 
     private void EnsurePresented(bool parkApplicationWindows)
@@ -310,12 +222,7 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
 
         if (result == UpdateAvailableResult.InstallUpdate)
         {
-            if (_currentProgressItem == null)
-            {
-                _currentProgressItem = item;
-            }
-
-            _state.ShowProgress(item);
+            _downloadController.ShowProgress(_downloadController.CurrentItem ?? item);
             return;
         }
 
@@ -337,25 +244,6 @@ public sealed partial class AutoUpdateDialogWindow : AutoUpdateWindowBase
     private void OnProgressSecondaryActionRequested()
     {
         CloseDialog();
-    }
-
-    private static string FormatBytes(long bytes)
-    {
-        if (bytes <= 0)
-        {
-            return "0 B";
-        }
-
-        string[] sizes = ["B", "KB", "MB", "GB"];
-        var value = (double)bytes;
-        var order = 0;
-        while (value >= 1024 && order < sizes.Length - 1)
-        {
-            order++;
-            value /= 1024;
-        }
-
-        return $"{value:0.#} {sizes[order]}";
     }
 
     private void ScheduleBackgroundRestore()
