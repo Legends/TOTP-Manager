@@ -12,11 +12,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Tests", "TOTP.Tests\TO
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Core", "TOTP.Core\TOTP.Core.csproj", "{25A137BF-0219-49F8-AC95-304DC0A62C89}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".git-utils", ".git-utils", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
-	ProjectSection(SolutionItems) = preProject
-		dev-helper.md = dev-helper.md
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Infrastructure", "TOTP.Infrastructure\TOTP.Infrastructure.csproj", "{136BF815-A5EB-4641-8644-5D241261B97D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.DAL", "TOTP.DAL\TOTP.DAL.csproj", "{C45E29BB-0ADD-489C-8B10-7469FF5129C1}"

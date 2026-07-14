@@ -59,8 +59,6 @@ These are normally non-redistributed (dev/test scope), but still require interna
 
 Asset folders requiring provenance verification:
 - `TOTP/Assets/Icons`
-- `TOTP/Assets/Icons - Copy`
-- `TOTP/Assets/Icons/Github2F`
 - `TOTP/Assets/backgrounds`
 
 Action required:
