@@ -299,6 +299,7 @@ Observed workflow expectations:
 The workflow expects:
 
 ```text
+v<major>.<minor>.<patch>
 v<major>.<minor>.<patch>-rc<nr>
 ```
 

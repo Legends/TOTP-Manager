@@ -120,13 +120,13 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}"
-          if ($tag -notmatch '^v(?<version>\d+\.\d+\.\d+)-rc(?<rc>\d+)$') {
-            throw "Release tag '$tag' does not match expected format v<major>.<minor>.<patch>-rc<nr>."
+          if ($tag -notmatch '^v(?<version>\d+\.\d+\.\d+)(?:-rc(?<rc>\d+))?$') {
+            throw "Release tag '$tag' does not match expected format v<major>.<minor>.<patch>[-rc<nr>]."
           }
 
           $baseVersion = $Matches.version
-          $releaseVersion = "$baseVersion-rc$($Matches.rc)"
-          $fileVersion = "$baseVersion.$($Matches.rc)"
+          $releaseVersion = if ($Matches.rc) { "$baseVersion-rc$($Matches.rc)" } else { $baseVersion }
+          $fileVersion = if ($Matches.rc) { "$baseVersion.$($Matches.rc)" } else { "$baseVersion.0" }
 
           "base_version=$baseVersion" >> $env:GITHUB_OUTPUT
           "release_version=$releaseVersion" >> $env:GITHUB_OUTPUT
@@ -140,8 +140,8 @@ jobs:
         shell: pwsh
         run: |
           $currentTag = "${{ github.ref_name }}"
-          if ($currentTag -notmatch '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-rc(?<rc>\d+)$') {
-            throw "Release tag '$currentTag' does not match expected format v<major>.<minor>.<patch>-rc<nr>."
+          if ($currentTag -notmatch '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-rc(?<rc>\d+))?$') {
+            throw "Release tag '$currentTag' does not match expected format v<major>.<minor>.<patch>[-rc<nr>]."
           }
 
           $tagLines = git ls-remote --tags --refs origin "v*"
@@ -156,12 +156,12 @@ jobs:
             }
 
             $ref = $parts[1]
-            if ($ref -notmatch '^refs/tags/(?<tag>v\d+\.\d+\.\d+-rc\d+)$') {
+            if ($ref -notmatch '^refs/tags/(?<tag>v\d+\.\d+\.\d+(?:-rc\d+)?)$') {
               continue
             }
 
             $tag = $Matches.tag
-            if ($tag -notmatch '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-rc(?<rc>\d+)$') {
+            if ($tag -notmatch '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-rc(?<rc>\d+))?$') {
               continue
             }
 
@@ -170,12 +170,13 @@ jobs:
               Major = [int]$Matches.major
               Minor = [int]$Matches.minor
               Patch = [int]$Matches.patch
-              Rc = [int]$Matches.rc
+              Stable = if ($Matches.rc) { 0 } else { 1 }
+              Rc = if ($Matches.rc) { [int]$Matches.rc } else { 0 }
             }
           }
 
           $highestTag = $releaseTags |
-            Sort-Object Major, Minor, Patch, Rc |
+            Sort-Object Major, Minor, Patch, Stable, Rc |
             Select-Object -Last 1 -ExpandProperty Tag
 
           if ([string]::IsNullOrWhiteSpace($highestTag)) {
