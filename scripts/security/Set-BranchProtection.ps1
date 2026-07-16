@@ -101,9 +101,11 @@ function New-BranchProtectionPayload {
             strict   = $true
             contexts = @(
                 "build-test",
-                "sast-codeql",
-                "sca-dotnet",
-                "secrets-scan"
+                "Workflow Lint (actionlint)",
+                "Dependency Review (PR)",
+                "SAST (CodeQL C#)",
+                "Dependency Vulnerability Scan (.NET)",
+                "Secret Scan (Gitleaks)"
             )
         }
         enforce_admins                   = $true

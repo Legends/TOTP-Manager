@@ -2,9 +2,9 @@ name: Security Audit and Verification
 
 on:
   push:
-    branches: [master]
+    branches: [master, 'release/1.x']
   pull_request:
-    branches: [master]
+    branches: [master, 'release/1.x']
   workflow_dispatch:
     inputs:
       dast_target_url:

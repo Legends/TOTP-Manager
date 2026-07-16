@@ -1,7 +1,7 @@
 # Branch Protection Setup
 
 ## Goal
-Require security and quality checks before merge to `master`.
+Require security and quality checks before merge to `master` and maintained release branches.
 
 ## Branching and Merge Policy
 - Trunk-based development: `master` is the single integration branch.
@@ -12,9 +12,11 @@ Require security and quality checks before merge to `master`.
 
 ## Required Checks
 - `build-test`
-- `sast-codeql`
-- `sca-dotnet`
-- `secrets-scan`
+- `Workflow Lint (actionlint)`
+- `Dependency Review (PR)`
+- `SAST (CodeQL C#)`
+- `Dependency Vulnerability Scan (.NET)`
+- `Secret Scan (Gitleaks)`
 
 These checks map to:
 - `.github/workflows/build-and-test.yml`
@@ -26,6 +28,7 @@ From repository root:
 ```powershell
 .\scripts\security\Set-GitHubTokenForCurrentUser.ps1
 .\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "master" -RequireLastPushApproval:$false
+.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "release/1.x" -RequireLastPushApproval:$false
 ```
 
 ## Solo vs Team Mode
@@ -79,6 +82,8 @@ Register-SecretVault -Name SecretStore -ModuleName Microsoft.PowerShell.SecretSt
 - Enforce protections for admins
 - Prevent force-push and branch deletion
 - Require linear history
+
+The build/test workflow runs for every pull request targeting a protected branch. Do not add path filters that prevent the required `build-test` check from being created for documentation-only changes.
 
 Note:
 - The script auto-detects repository owner type (`Organization` vs personal user).

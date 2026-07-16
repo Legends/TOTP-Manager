@@ -2,33 +2,11 @@
 
 on:
   push:
-    branches: [master]
+    branches: [master, 'release/1.x']
     tags:
       - 'v*'  # This triggers release publishing only when a tag is pushed
-    paths:
-      - '.github/workflows/**'
-      - 'NuGet.config'
-      - '*.sln'
-      - '**/*.csproj'
-      - 'TOTP/**'
-      - 'TOTP.Core/**'
-      - 'TOTP.DAL/**'
-      - 'TOTP.Infrastructure/**'
-      - 'TOTP.Tests/**'
-      - 'scripts/**'
   pull_request:
-    branches: [master]
-    paths:
-      - '.github/workflows/**'
-      - 'NuGet.config'
-      - '*.sln'
-      - '**/*.csproj'
-      - 'TOTP/**'
-      - 'TOTP.Core/**'
-      - 'TOTP.DAL/**'
-      - 'TOTP.Infrastructure/**'
-      - 'TOTP.Tests/**'
-      - 'scripts/**'
+    branches: [master, 'release/1.x']
 
 jobs:
   build-test:
