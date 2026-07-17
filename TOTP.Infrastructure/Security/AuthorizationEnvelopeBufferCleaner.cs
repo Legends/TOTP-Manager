@@ -10,7 +10,13 @@ internal static class AuthorizationEnvelopeBufferCleaner
         CryptographicOperations.ZeroMemory(envelope.PasswordWrapper.Kdf.Salt);
         CryptographicOperations.ZeroMemory(envelope.PasswordWrapper.WrappedKey.Nonce);
         CryptographicOperations.ZeroMemory(envelope.PasswordWrapper.WrappedKey.Ciphertext);
-        var platformWrapper = envelope.QuickUnlockWrapper?.WrappedKey;
+        if (envelope.QuickUnlockWrapper is not null)
+            Clear(envelope.QuickUnlockWrapper);
+    }
+
+    public static void Clear(PlatformQuickUnlockWrapperV2 wrapper)
+    {
+        var platformWrapper = wrapper.WrappedKey;
         if (platformWrapper?.Nonce is not null)
             CryptographicOperations.ZeroMemory(platformWrapper.Nonce);
         if (platformWrapper is not null)

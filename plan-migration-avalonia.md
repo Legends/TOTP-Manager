@@ -397,7 +397,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [x] Add the v2 envelope session and verified password-unlock path.
 - [ ] Replace the development-era DPAPI settings store before the first public release.
 - [x] Preserve Windows Hello/TPM quick unlock through the new contract.
-- [ ] Require recovery-password readiness before platform quick unlock can be enabled.
+- [x] Require recovery-password readiness before platform quick unlock can be enabled.
 - [x] Implement atomic write and rollback.
 - [x] Add side-effect-free candidate vault-key verification.
 - [x] Add bounded read-only verification of the existing vault.

@@ -19,6 +19,7 @@ using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Logging;
+using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Security.Provider;
 using TOTP.Infrastructure.Services;
 using TOTP.Presentation.Services;
@@ -118,6 +119,7 @@ public static class BootLoader
                 // Security Infrastructure
                 services.AddSingleton<IHelloGate, HelloGate>();
                 services.AddSingleton<IPlatformQuickUnlock, WindowsPlatformQuickUnlock>();
+                services.AddSingleton<IPlatformQuickUnlockEnrollment, PlatformQuickUnlockEnrollment>();
                 services.AddSingleton<IHelloPromptWindowHandleProvider, HelloPromptWindowHandleProvider>();
                 services.AddSingleton<IHelloVerificationRequester, WindowsHelloVerificationRequester>();
                 services.AddSingleton<IMainViewSessionController, MainViewSessionController>();
