@@ -98,6 +98,8 @@ This storage hardening reduces partial-write, replacement, and unbounded-secret-
 
 `AppPreferencesMapper` is the sole allowlisted bridge between mutable in-memory `IAppSettings` and `AppPreferencesV1`. It copies only reviewed preference fields, normalizes legacy/out-of-range values to codec-valid values, and never reads or replaces the `AuthorizationProfile`. This makes authorization exclusion behavioral rather than relying only on JSON naming. Coordinated service activation remains pending.
 
+`AuthorizationState.SetConfiguration` now derives configured state from envelope presence and the portable preferred-unlock preference rather than requiring an `AuthorizationProfile`. The current WPF UI still consumes `AuthorizationGateKind`, so the state temporarily projects `PlatformQuickUnlock` to the legacy `Hello` gate name. Missing configuration and invalid preference values fail closed to password setup/password unlock. `SetProfile` remains only as an adapter for the unpublished development-era WPF authorization service and can be removed at coordinated cutover.
+
 ## Platform quick-unlock metadata
 
 `quickUnlockWrapper` is optional and device-local. Its absence never makes the envelope invalid, while its presence never relaxes the requirement for a valid `passwordWrapper`. The preferred unlock UI choice remains a preference rather than cryptographic metadata.
