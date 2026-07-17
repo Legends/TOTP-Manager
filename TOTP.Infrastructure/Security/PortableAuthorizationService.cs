@@ -272,6 +272,13 @@ public sealed class PortableAuthorizationService : IAuthorizationService
         FluentResults.Result<SensitiveBuffer> result)
     {
         var error = result.Errors.OfType<AuthorizationEnvelopePasswordLifecycleError>().FirstOrDefault();
+        if (error?.Code == AuthorizationEnvelopePasswordLifecycleErrorCode.ActivationFailed
+            && result.Errors.OfType<AuthorizationEnvelopeActivationError>()
+                .Any(value => value.Code == AuthorizationEnvelopeActivationErrorCode.VaultVerificationFailed))
+        {
+            return AuthorizationResult.ExistingVaultConflict;
+        }
+
         return error?.Code switch
         {
             AuthorizationEnvelopePasswordLifecycleErrorCode.InvalidNewPassword or

@@ -220,7 +220,12 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
             var cfg = await _auth.ConfigurePasswordAsync(password, confirmPassword);
             if (cfg != AuthorizationResult.Success)
             {
-                Message = UI.ui_Password_SetupFailed;
+                Message = cfg switch
+                {
+                    AuthorizationResult.InvalidCredentials => UI.ui_Password_SetupFailed,
+                    AuthorizationResult.ExistingVaultConflict => UI.ui_Password_ExistingVaultConflict,
+                    _ => UI.ui_Password_SetupUnexpectedFailure
+                };
             }
 
             return cfg;

@@ -104,6 +104,33 @@ public sealed class PasswordUnlockViewModelTests
     }
 
     [Fact]
+    public async Task SavePasswordCommand_WhenExistingVaultConflicts_ShowsDataSafetyMessage()
+    {
+        var vm = CreateSut(out var auth, out var validator);
+        vm.EnterSetupMode();
+        vm.Password = "StrongPwd1!";
+        vm.ConfirmPassword = "StrongPwd1!";
+        validator.Setup(v => v.ValidateNewWithConfirmation(
+                "StrongPwd1!",
+                "StrongPwd1!",
+                UI.ui_Password_Required,
+                UI.ui_Password_MinLength_Format,
+                UI.ui_Password_ConfirmRequired,
+                UI.ui_Password_Mismatch))
+            .Returns(new PasswordValidationResult());
+        auth.Setup(a => a.ConfigurePasswordAsync("StrongPwd1!", "StrongPwd1!"))
+            .ReturnsAsync(AuthorizationResult.ExistingVaultConflict);
+
+        vm.SavePasswordCommand.Execute(null);
+        await WaitUntilAsync(() => vm.Message == UI.ui_Password_ExistingVaultConflict);
+
+        Assert.True(vm.IsSetup);
+        Assert.Equal(UI.ui_Password_ExistingVaultConflict, vm.Message);
+        Assert.Equal(string.Empty, vm.Password);
+        Assert.Equal(string.Empty, vm.ConfirmPassword);
+    }
+
+    [Fact]
     public async Task UnlockCommand_WhenUnlockFails_SetsVerificationMessage()
     {
         var vm = CreateSut(out var auth, out _);

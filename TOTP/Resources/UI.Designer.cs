@@ -1058,6 +1058,15 @@ namespace TOTP.Resources {
                 return ResourceManager.GetString("ui_Password_ConfirmRequired", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to An existing encrypted vault could not be verified with the new setup. It was not changed. Restore its matching authorization data, or move it aside before starting fresh..
+        /// </summary>
+        internal static string ui_Password_ExistingVaultConflict {
+            get {
+                return ResourceManager.GetString("ui_Password_ExistingVaultConflict", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Password must be at least {0} characters..
@@ -1092,6 +1101,15 @@ namespace TOTP.Resources {
         internal static string ui_Password_SetupFailed {
             get {
                 return ResourceManager.GetString("ui_Password_SetupFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Password setup could not be completed. Existing encrypted data was not changed..
+        /// </summary>
+        internal static string ui_Password_SetupUnexpectedFailure {
+            get {
+                return ResourceManager.GetString("ui_Password_SetupUnexpectedFailure", resourceCulture);
             }
         }
         

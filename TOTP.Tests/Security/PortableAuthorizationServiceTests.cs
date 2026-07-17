@@ -150,6 +150,31 @@ public sealed class PortableAuthorizationServiceTests
     }
 
     [Fact]
+    public async Task ConfigurePasswordAsync_WhenExistingVaultRejectsCandidateKey_ReturnsConflict()
+    {
+        var dependencies = new Dependencies();
+        var failure = Result.Fail<SensitiveBuffer>(new AuthorizationEnvelopePasswordLifecycleError(
+            AuthorizationEnvelopePasswordLifecycleErrorCode.ActivationFailed,
+            "synthetic activation failure"));
+        failure.WithError(new AuthorizationEnvelopeActivationError(
+            AuthorizationEnvelopeActivationErrorCode.VaultVerificationFailed,
+            "synthetic vault verification failure"));
+        dependencies.PasswordLifecycle.Setup(value => value.ConfigureAsync(
+                "recovery-password",
+                CancellationToken.None))
+            .ReturnsAsync(failure);
+        var sut = dependencies.CreateSut();
+
+        var result = await sut.ConfigurePasswordAsync(
+            "recovery-password",
+            "recovery-password");
+
+        Assert.Equal(AuthorizationResult.ExistingVaultConflict, result);
+        dependencies.SettingsService.Verify(value => value.SaveAsync(), Times.Never);
+        dependencies.Security.Verify(value => value.SetDek(It.IsAny<byte[]>()), Times.Never);
+    }
+
+    [Fact]
     public async Task ConfigurePasswordAsync_AfterActivation_PersistsPreferenceAndClearsContextInput()
     {
         var expectedKey = Enumerable.Range(1, 32).Select(value => (byte)value).ToArray();

@@ -11,5 +11,6 @@ public enum AuthorizationResult
     Cancelled = 6,
     TooManyAttempts = 7,
     DisabledByPolicy = 8,
-    PasswordRequired = 9
+    PasswordRequired = 9,
+    ExistingVaultConflict = 10
 }

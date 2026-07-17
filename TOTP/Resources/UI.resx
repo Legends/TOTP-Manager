@@ -450,6 +450,9 @@
   <data name="ui_Password_ConfirmRequired" xml:space="preserve">
     <value>Please confirm the password.</value>
   </data>
+  <data name="ui_Password_ExistingVaultConflict" xml:space="preserve">
+    <value>An existing encrypted vault could not be verified with the new setup. It was not changed. Restore its matching authorization data, or move it aside before starting fresh.</value>
+  </data>
   <data name="ui_Password_MinLength_Format" xml:space="preserve">
     <value>Password must be at least {0} characters.</value>
   </data>
@@ -461,6 +464,9 @@
   </data>
   <data name="ui_Password_SetupFailed" xml:space="preserve">
     <value>Password setup failed. Check the password requirements.</value>
+  </data>
+  <data name="ui_Password_SetupUnexpectedFailure" xml:space="preserve">
+    <value>Password setup could not be completed. Existing encrypted data was not changed.</value>
   </data>
   <data name="ui_Password_ValidationFailed" xml:space="preserve">
     <value>Password validation failed.</value>
