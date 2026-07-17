@@ -1,28 +1,30 @@
-using System.Reflection;
-using TOTP.Core.Common;
 using TOTP.Services;
 using TOTP.Tests.Common;
+using TOTP.Infrastructure.Platform;
 
 namespace TOTP.Tests.Services;
 
 [Collection(NonParallelCollectionDefinition.NonParallel)]
 public sealed class LogFileServiceTests : IDisposable
 {
-    private readonly string _logsDir = StringsConstants.AppLogDirectoryPath;
-    private readonly string _rollingPath = StringsConstants.CurrentRollingAppLogFilePath;
-    private readonly string _fallbackPath = StringsConstants.AppLogFilePath;
+    private readonly string _root = Path.Combine(Path.GetTempPath(), $"totp-log-tests-{Guid.NewGuid():N}");
+    private readonly WindowsApplicationPaths _paths;
+    private readonly LogFileService _sut;
+    private readonly string _rollingPath;
 
     public LogFileServiceTests()
     {
-        Directory.CreateDirectory(_logsDir);
-        CleanupLogs();
+        _paths = new WindowsApplicationPaths(_root, _root);
+        _sut = new LogFileService(_paths);
+        _rollingPath = Path.Combine(_paths.LogDirectory, $"app{DateTime.Now:yyyyMMdd}.log");
+        Directory.CreateDirectory(_paths.LogDirectory);
     }
 
     [Fact]
     public void ResolveLogFilePath_WhenCurrentRollingExists_PrefersCurrentRolling()
     {
         File.WriteAllText(_rollingPath, "current");
-        File.WriteAllText(Path.Combine(_logsDir, "app20000101.log"), "older");
+        File.WriteAllText(Path.Combine(_paths.LogDirectory, "app20000101.log"), "older");
 
         var resolved = ResolveLogFilePathViaReflection();
 
@@ -32,8 +34,8 @@ public sealed class LogFileServiceTests : IDisposable
     [Fact]
     public void ResolveLogFilePath_WhenCurrentMissing_UsesLatestRolling()
     {
-        var oldPath = Path.Combine(_logsDir, "app20000101.log");
-        var newPath = Path.Combine(_logsDir, "app20000102.log");
+        var oldPath = Path.Combine(_paths.LogDirectory, "app20000101.log");
+        var newPath = Path.Combine(_paths.LogDirectory, "app20000102.log");
         File.WriteAllText(oldPath, "old");
         File.WriteAllText(newPath, "new");
         File.SetLastWriteTimeUtc(oldPath, DateTime.UtcNow.AddMinutes(-10));
@@ -49,48 +51,31 @@ public sealed class LogFileServiceTests : IDisposable
     {
         var resolved = ResolveLogFilePathViaReflection();
 
-        Assert.Equal(_fallbackPath, resolved);
+        Assert.Equal(_paths.LogFilePath, resolved);
     }
 
     [Fact]
     public void OpenCurrentLogFile_WhenNoResolvedFileExists_DoesNotThrow()
     {
-        var sut = new LogFileService();
-
-        var ex = Record.Exception(() => sut.OpenCurrentLogFile());
+        var ex = Record.Exception(() => _sut.OpenCurrentLogFile());
 
         Assert.Null(ex);
     }
 
-    private static string ResolveLogFilePathViaReflection()
+    private string ResolveLogFilePathViaReflection()
     {
-        var method = typeof(LogFileService).GetMethod("ResolveLogFilePath", BindingFlags.NonPublic | BindingFlags.Static);
+        var method = typeof(LogFileService).GetMethod("ResolveLogFilePath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(method);
-        return Assert.IsType<string>(method!.Invoke(null, null));
+        return Assert.IsType<string>(method!.Invoke(_sut, null));
     }
 
-    private void CleanupLogs()
-    {
-        if (!Directory.Exists(_logsDir))
-        {
-            return;
-        }
-
-        foreach (var file in Directory.GetFiles(_logsDir, "app*.log"))
-        {
-            TryDelete(file);
-        }
-
-        TryDelete(_fallbackPath);
-    }
-
-    private static void TryDelete(string path)
+    public void Dispose()
     {
         try
         {
-            if (File.Exists(path))
+            if (Directory.Exists(_root))
             {
-                File.Delete(path);
+                Directory.Delete(_root, recursive: true);
             }
         }
         catch
@@ -98,6 +83,4 @@ public sealed class LogFileServiceTests : IDisposable
             // best-effort cleanup
         }
     }
-
-    public void Dispose() => CleanupLogs();
 }

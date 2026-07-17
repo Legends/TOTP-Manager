@@ -28,6 +28,8 @@ using TOTP.Services.Interfaces;
 using TOTP.Startup;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
+using TOTP.Core.Services.Interfaces;
+using TOTP.Infrastructure.Platform;
 
 namespace TOTP;
 
@@ -149,12 +151,13 @@ internal static class Program
     {
         var processEntryUtc = DateTimeOffset.UtcNow;
         var processEntryTick = Stopwatch.GetTimestamp();
+        IPlatformApplicationPaths applicationPaths = new WindowsApplicationPaths();
 
         try
         {
-            LoggingConfigurator.SetupEarlyLogger(args);
+            LoggingConfigurator.SetupEarlyLogger(args, applicationPaths);
             Log.Information("process.entry utc={Utc} pid={Pid}", processEntryUtc, Environment.ProcessId);
-            StartApplication(args, processEntryUtc, processEntryTick).GetAwaiter().GetResult();
+            StartApplication(args, processEntryUtc, processEntryTick, applicationPaths).GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {
@@ -168,7 +171,11 @@ internal static class Program
         }
     }
 
-    private static async Task StartApplication(string[] args, DateTimeOffset processEntryUtc, long processEntryTick)
+    private static async Task StartApplication(
+        string[] args,
+        DateTimeOffset processEntryUtc,
+        long processEntryTick,
+        IPlatformApplicationPaths applicationPaths)
     {
         var startupSteps = new StartupStepRecorder();
         var startupTableLogged = 0;
@@ -232,14 +239,14 @@ internal static class Program
             app.InitializeComponent();
             startupSteps.Mark("app.initialized");
 
-            var configuration = BootLoader.BuildConfiguration();
+            var configuration = BootLoader.BuildConfiguration(applicationPaths);
             startupSteps.Mark("configuration.built");
             BootLoader.SetCulture(configuration);
             startupSteps.Mark("culture.set");
             BootLoader.RegisterSyncfusionLicenseKey(configuration);
             startupSteps.Mark("syncfusion.license.registered");
 
-            using var host = BootLoader.BuildHostAndConfigureServices(configuration, args);
+            using var host = BootLoader.BuildHostAndConfigureServices(configuration, args, applicationPaths);
             startupSteps.Mark("host.built");
             BootLoader.SetupUnhandledExceptionsHooks(app, host);
             startupSteps.Mark("unhandled_hooks.wired");

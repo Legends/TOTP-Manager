@@ -11,12 +11,17 @@ using System.Windows;
 using TOTP.AutoUpdate;
 using TOTP.Tests.Common;
 using TOTP.Services;
+using TOTP.Infrastructure.Platform;
 
 namespace TOTP.Tests.Services;
 
 [Collection(NonParallelCollectionDefinition.NonParallel)]
 public sealed class AutoUpdateServiceTests
 {
+    private readonly WindowsApplicationPaths _applicationPaths = new(
+        AppContext.BaseDirectory,
+        Path.Combine(Path.GetTempPath(), $"totp-update-tests-{Guid.NewGuid():N}"));
+
     [Fact]
     public async Task InitializeAsync_WhenAutoUpdateDisabled_DoesNotCreateRuntime()
     {
@@ -99,12 +104,13 @@ public sealed class AutoUpdateServiceTests
         Assert.Equal(1, client.DisposeCount);
     }
 
-    private static AutoUpdateService CreateSut(IConfiguration configuration, FakeAutoUpdateRuntimeFactory factory)
+    private AutoUpdateService CreateSut(IConfiguration configuration, FakeAutoUpdateRuntimeFactory factory)
     {
         return new AutoUpdateService(
             configuration,
             NullLogger<AutoUpdateService>.Instance,
             NullLoggerFactory.Instance,
+            _applicationPaths,
             factory,
             _ => Task.CompletedTask,
             () => AppContext.BaseDirectory);

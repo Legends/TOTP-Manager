@@ -4,7 +4,6 @@ using Moq;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using TOTP.Commands;
-using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
 using TOTP.Core.Security;
@@ -18,12 +17,13 @@ using TOTP.Presentation.Adapters;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 using TOTP.Views.Interfaces;
+using TOTP.Infrastructure.Platform;
 
 namespace TOTP.Tests.ViewModels;
 
 public sealed class MainViewModelTests : IDisposable
 {
-    private readonly string _settingsPath = StringsConstants.AppSettingsJsonFilePath;
+    private readonly string _settingsPath = new WindowsApplicationPaths().ConfigurationFilePath;
     private readonly string? _settingsBackup;
 
     public MainViewModelTests()

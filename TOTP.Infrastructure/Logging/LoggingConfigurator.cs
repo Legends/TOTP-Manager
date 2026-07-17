@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using TOTP.Core.Enums;
-using TOTP.Core.Common;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Infrastructure.Logging;
 
@@ -50,7 +50,7 @@ public static class LoggingConfigurator
     /// <summary>
     /// Initializes a bootstrap logger to catch early startup errors before the DI container is ready.
     /// </summary>
-    public static void SetupEarlyLogger(string[] args)
+    public static void SetupEarlyLogger(string[] args, IPlatformApplicationPaths applicationPaths)
     {
         var levelFromArgs = GetLevelFromArgs(args);
         if (levelFromArgs.HasValue)
@@ -60,7 +60,7 @@ public static class LoggingConfigurator
             LogSwitchService.SharedSwitch.MinimumLevel = levelFromArgs.Value.ToSerilogLevel();
         }
 
-        Directory.CreateDirectory(StringsConstants.AppLogDirectoryPath);
+        Directory.CreateDirectory(applicationPaths.LogDirectory);
         
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(LogSwitchService.SharedSwitch)
@@ -71,7 +71,7 @@ public static class LoggingConfigurator
             .WriteTo.Debug(RedactingTextFormatter) // Essential for seeing logs in Visual Studio Output window
             .WriteTo.Async(a => a.File(
                 RedactingTextFormatter,
-                StringsConstants.AppLogFilePath,
+                applicationPaths.LogFilePath,
                 rollingInterval: RollingInterval.Day,
                 shared: true))
             .CreateBootstrapLogger();
@@ -87,7 +87,8 @@ public static class LoggingConfigurator
     /// </summary>
     public static void ConfigureWithHostContext(HostBuilderContext context, IServiceProvider services, LoggerConfiguration config)
     {
-        Directory.CreateDirectory(StringsConstants.AppLogDirectoryPath);
+        var applicationPaths = services.GetRequiredService<IPlatformApplicationPaths>();
+        Directory.CreateDirectory(applicationPaths.LogDirectory);
 
         config
             .ReadFrom.Configuration(context.Configuration) // 1. Load basic settings from appsettings.json
@@ -101,7 +102,7 @@ public static class LoggingConfigurator
             .WriteTo.Debug(RedactingTextFormatter)
             .WriteTo.Async(a => a.File(
                 RedactingTextFormatter,
-                StringsConstants.AppLogFilePath,
+                applicationPaths.LogFilePath,
                 rollingInterval: RollingInterval.Day,
                 shared: true));
 

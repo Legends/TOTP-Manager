@@ -11,6 +11,7 @@ using TOTP.DAL.Common;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Models;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.DAL.Services;
 
@@ -18,28 +19,21 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
 {
     private readonly string _path;
     private readonly ILogger<AppSettingsDAL> _logger;
+    private readonly IPlatformFileSecurity _fileSecurity;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
-    public AppSettingsDAL(string storageFilePath, ILogger<AppSettingsDAL> logger)
+    public AppSettingsDAL(
+        string storageFilePath,
+        ILogger<AppSettingsDAL> logger,
+        IPlatformFileSecurity fileSecurity)
     {
         if (string.IsNullOrWhiteSpace(storageFilePath))
             throw new ArgumentException("Path required.", nameof(storageFilePath));
 
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _path = storageFilePath;
-        _path = Environment.ExpandEnvironmentVariables(_path);
-
-        var directory = Path.GetDirectoryName(_path);
-        if (directory != null && !Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        if (directory != null)
-        {
-            TryHardenDirectory(directory);
-        }
+        _fileSecurity = fileSecurity ?? throw new ArgumentNullException(nameof(fileSecurity));
+        _path = Path.GetFullPath(Environment.ExpandEnvironmentVariables(storageFilePath));
     }
 
     public async Task<Result<IAppSettings?>> LoadAsync()
@@ -48,6 +42,9 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
         try
         {
             if (!File.Exists(_path)) return Result.Ok<IAppSettings?>(null);
+
+            SecureStorageDirectory();
+            _fileSecurity.RestrictFileToCurrentUser(_path);
 
             // 1. Read and Decrypt
             var encryptedBytes = await File.ReadAllBytesAsync(_path);
@@ -84,15 +81,40 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
         await _lock.WaitAsync();
         try
         {
+            if (Directory.Exists(_path))
+            {
+                throw new UnauthorizedAccessException("The app settings path refers to a directory.");
+            }
+
             // 1. Serialize to JSON bytes
             var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(profile, _jsonOptions);
 
             // 2. Encrypt
             var encryptedBytes = ProtectedData.Protect(jsonBytes, null, DataProtectionScope.CurrentUser);
 
-            // 3. Atomic Write
-            await File.WriteAllBytesAsync(_path, encryptedBytes);
-            TryHardenFile(_path);
+            SecureStorageDirectory();
+            var tempPath = $"{_path}.{Guid.NewGuid():N}.tmp";
+            try
+            {
+                await using (var stream = new FileStream(
+                    tempPath,
+                    FileMode.CreateNew,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 4096,
+                    useAsync: true))
+                {
+                    await stream.WriteAsync(encryptedBytes);
+                }
+
+                _fileSecurity.RestrictFileToCurrentUser(tempPath);
+                File.Move(tempPath, _path, overwrite: true);
+            }
+            finally
+            {
+                TryDeleteTemporaryFile(tempPath);
+            }
+
             return Result.Ok();
         }
         catch (Exception ex)
@@ -108,27 +130,30 @@ public sealed class AppSettingsDAL : IAppSettingsDAL
         _lock.Dispose();
     }
 
-    private void TryHardenDirectory(string directoryPath)
+    private void SecureStorageDirectory()
     {
-        try
+        var directory = Path.GetDirectoryName(_path);
+        if (string.IsNullOrWhiteSpace(directory))
         {
-            WindowsFileSecurityHardener.RestrictDirectoryToCurrentUser(directoryPath);
+            throw new DirectoryNotFoundException("The app settings directory is unavailable.");
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Unable to harden directory ACLs for app settings path.");
-        }
+
+        Directory.CreateDirectory(directory);
+        _fileSecurity.RestrictDirectoryToCurrentUser(directory);
     }
 
-    private void TryHardenFile(string filePath)
+    private static void TryDeleteTemporaryFile(string tempPath)
     {
         try
         {
-            WindowsFileSecurityHardener.RestrictFileToCurrentUser(filePath);
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
         }
-        catch (Exception ex)
+        catch
         {
-            _logger.LogWarning(ex, "Unable to harden file ACLs for settings file.");
+            // Best effort after the primary failure has already been captured.
         }
     }
 }

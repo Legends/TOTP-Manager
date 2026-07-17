@@ -169,8 +169,148 @@ public sealed class AccountDalIntegrationTests
         Assert.Equal(AppErrorCode.OtpStorageDecryptFailed, result.GetErrorCode());
     }
 
+    [Fact]
+    public async Task AddNewAsync_WhenDirectoryCannotBeHardened_ReturnsAccessDeniedWithoutCreatingVault()
+    {
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var fileSecurity = new DelegatingPlatformFileSecurity
+        {
+            RestrictDirectory = _ => throw new UnauthorizedAccessException("denied")
+        };
+        var sut = new AccountDAL(
+            NullLogger<AccountDAL>.Instance,
+            new EchoVaultService(),
+            storagePath,
+            fileSecurity);
+
+        var result = await sut.AddNewAsync(new Account(Guid.NewGuid(), "GitHub", "AAAA"));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.OtpStorageAccessDenied, result.GetErrorCode());
+        Assert.False(File.Exists(storagePath));
+        Assert.Empty(Directory.GetFiles(temp.Path, "master.totp.*.tmp"));
+    }
+
+    [Fact]
+    public async Task AddNewAsync_WhenStagedFileCannotBeHardened_PreservesExistingVault()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var originalBytes = Encoding.UTF8.GetBytes("[]");
+        await File.WriteAllBytesAsync(storagePath, originalBytes, cancellationToken);
+        var fileSecurity = new DelegatingPlatformFileSecurity
+        {
+            RestrictFile = path =>
+            {
+                if (path.EndsWith(".tmp", StringComparison.Ordinal))
+                {
+                    throw new UnauthorizedAccessException("denied");
+                }
+            }
+        };
+        var sut = new AccountDAL(
+            NullLogger<AccountDAL>.Instance,
+            new EchoVaultService(),
+            storagePath,
+            fileSecurity);
+
+        var result = await sut.AddNewAsync(new Account(Guid.NewGuid(), "GitHub", "AAAA"));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.OtpStorageAccessDenied, result.GetErrorCode());
+        Assert.Equal(originalBytes, await File.ReadAllBytesAsync(storagePath, cancellationToken));
+        Assert.Empty(Directory.GetFiles(temp.Path, "master.totp.*.tmp"));
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WhenVaultCannotBeHardened_ReturnsAccessDenied()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        await File.WriteAllTextAsync(storagePath, "[]", cancellationToken);
+        var sut = new AccountDAL(
+            NullLogger<AccountDAL>.Instance,
+            new EchoVaultService(),
+            storagePath,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = _ => throw new UnauthorizedAccessException("denied")
+            });
+
+        var result = await sut.GetAllAsync();
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.OtpStorageAccessDenied, result.GetErrorCode());
+    }
+
+    [Fact]
+    public async Task ExportEncryptedAsync_WhenStagedExportCannotBeHardened_PreservesExistingTarget()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        await File.WriteAllTextAsync(storagePath, "[]", cancellationToken);
+        var targetPath = Path.Combine(temp.Path, "export.totp");
+        var originalTarget = Encoding.UTF8.GetBytes("existing");
+        await File.WriteAllBytesAsync(targetPath, originalTarget, cancellationToken);
+        var sut = new AccountDAL(
+            NullLogger<AccountDAL>.Instance,
+            new EchoVaultService(),
+            storagePath,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = path =>
+                {
+                    if (path.EndsWith(".tmp", StringComparison.Ordinal))
+                    {
+                        throw new UnauthorizedAccessException("denied");
+                    }
+                }
+            });
+
+        var result = await sut.ExportEncryptedAsync(targetPath);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.ExportFileAccessDenied, result.GetErrorCode());
+        Assert.Equal(originalTarget, await File.ReadAllBytesAsync(targetPath, cancellationToken));
+        Assert.Empty(Directory.GetFiles(temp.Path, "export.totp.*.tmp"));
+    }
+
+    [Fact]
+    public async Task BackupAsync_WhenStagedBackupCannotBeHardened_DoesNotRotateBackups()
+    {
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var setupSut = CreateSut(storagePath, new EchoVaultService());
+        Assert.True((await setupSut.AddNewAsync(new Account(Guid.NewGuid(), "GitHub", "AAAA"))).IsSuccess);
+        var sut = new AccountDAL(
+            NullLogger<AccountDAL>.Instance,
+            new EchoVaultService(),
+            storagePath,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = path =>
+                {
+                    if (Path.GetFileName(path).Contains(".bak.", StringComparison.Ordinal)
+                        && path.EndsWith(".tmp", StringComparison.Ordinal))
+                    {
+                        throw new UnauthorizedAccessException("denied");
+                    }
+                }
+            });
+
+        var result = await sut.BackupOtpEntriesStorageFileAsync();
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.OtpStorageBackupFailed, result.GetErrorCode());
+        Assert.Empty(Directory.GetFiles(temp.Path, "*.bak*"));
+    }
+
     private static AccountDAL CreateSut(string storagePath, IVaultService vault) =>
-        new(NullLogger<AccountDAL>.Instance, vault, storagePath);
+        new(NullLogger<AccountDAL>.Instance, vault, storagePath, NoOpPlatformFileSecurity.Instance);
 
     private sealed class EchoVaultService : IVaultService
     {

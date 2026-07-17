@@ -7,6 +7,7 @@ using Serilog;
 using Syncfusion.Licensing;
 using System;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,6 @@ using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
-using TOTP.Core.Common;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Logging;
 using TOTP.Infrastructure.Security.Provider;
@@ -35,12 +35,17 @@ namespace TOTP.Startup;
 
 public static class BootLoader
 {
-    public static IConfigurationRoot BuildConfiguration()
-        => new ConfigurationBuilder()
-            .SetBasePath(StringsConstants.AppRootDirectory)
-            .AddJsonFile(StringsConstants.AppSettingsFileName, optional: false, reloadOnChange: true)
+    public static IConfigurationRoot BuildConfiguration(IPlatformApplicationPaths applicationPaths)
+    {
+        var configurationDirectory = Path.GetDirectoryName(applicationPaths.ConfigurationFilePath)
+            ?? throw new InvalidOperationException("The application configuration directory is unavailable.");
+
+        return new ConfigurationBuilder()
+            .SetBasePath(configurationDirectory)
+            .AddJsonFile(Path.GetFileName(applicationPaths.ConfigurationFilePath), optional: false, reloadOnChange: true)
             .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
             .Build();
+    }
 
     public static void SetCulture(IConfiguration configuration)
     {
@@ -60,15 +65,19 @@ public static class BootLoader
             SyncfusionLicenseProvider.RegisterLicense(key);
     }
 
-    public static IHost BuildHostAndConfigureServices(IConfiguration configuration, string[] args)
+    public static IHost BuildHostAndConfigureServices(
+        IConfiguration configuration,
+        string[] args,
+        IPlatformApplicationPaths applicationPaths)
         => Host.CreateDefaultBuilder()
             .UseSerilog(LoggingConfigurator.ConfigureWithHostContext, true)
             .ConfigureServices((_, services) =>
             {
                 // config
                 services.AddSingleton(configuration);
+                services.AddSingleton(applicationPaths);
 
-                services.AddInfrastructure(configuration);
+                services.AddInfrastructure(configuration, applicationPaths);
 
                 #region ### BACKGROUND SERVICES  ###
                 services.AddHostedService<SessionLockBackgroundService>();

@@ -8,20 +8,28 @@ using TOTP.Core.Services.Interfaces;
 using TOTP.DAL.Services;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
+using TOTP.Infrastructure.Platform;
 
 namespace TOTP.Infrastructure.Extensions;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IPlatformApplicationPaths applicationPaths)
     {
+        services.AddSingleton<IPlatformFileSecurity, WindowsFileSecurity>();
 
         var rawProfilePath = configuration.GetSection(StringsConstants.AppSettingsStorageFilePathConfigKey).Value;
-        var resolvedProfilePath = Environment.ExpandEnvironmentVariables(rawProfilePath ?? "");
+        var resolvedProfilePath = string.IsNullOrWhiteSpace(rawProfilePath)
+            ? applicationPaths.SettingsFilePath
+            : Environment.ExpandEnvironmentVariables(rawProfilePath);
         services.AddSingleton<IAppSettingsDAL>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<AppSettingsDAL>>();
-            return new AppSettingsDAL(resolvedProfilePath, logger);
+            var fileSecurity = sp.GetRequiredService<IPlatformFileSecurity>();
+            return new AppSettingsDAL(resolvedProfilePath, logger, fileSecurity);
         });
        
         services.AddSingleton<ISettingsService, SettingsService>();
@@ -40,10 +48,11 @@ public static class DependencyInjection
         {
             var logger = sp.GetRequiredService<ILogger<AccountDAL>>();
             var vault = sp.GetRequiredService<IVaultService>();
+            var fileSecurity = sp.GetRequiredService<IPlatformFileSecurity>();
             var path = configuration[StringsConstants.TokensStorageFilePathConfigKey]
-                       ?? StringsConstants.TokensStorageFileName;
+                       ?? applicationPaths.VaultFilePath;
 
-            return new AccountDAL(logger, vault, path);
+            return new AccountDAL(logger, vault, path, fileSecurity);
         });
 
         // 3. Authorization Logic (The bridge)

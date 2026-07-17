@@ -14,26 +14,23 @@ public sealed class AccountDAL : IAccountDAL
     private readonly string _secretsPath;
     private readonly IVaultService _vaultService;
     private readonly ILogger<AccountDAL> _logger;
+    private readonly IPlatformFileSecurity _fileSecurity;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public AccountDAL(ILogger<AccountDAL> logger, IVaultService vaultService, string? storageFilePath = null)
+    public AccountDAL(
+        ILogger<AccountDAL> logger,
+        IVaultService vaultService,
+        string storageFilePath,
+        IPlatformFileSecurity fileSecurity)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _vaultService = vaultService ?? throw new ArgumentNullException(nameof(vaultService));
+        _fileSecurity = fileSecurity ?? throw new ArgumentNullException(nameof(fileSecurity));
 
-        _secretsPath = storageFilePath ?? StringsConstants.DefaultTokensStorageFilePath;
-        _secretsPath = Environment.ExpandEnvironmentVariables(_secretsPath);
+        if (string.IsNullOrWhiteSpace(storageFilePath))
+            throw new ArgumentException("Path required.", nameof(storageFilePath));
 
-        var directory = Path.GetDirectoryName(_secretsPath);
-        if (directory != null && !Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        if (directory != null)
-        {
-            TryHardenDirectory(directory);
-        }
+        _secretsPath = Path.GetFullPath(Environment.ExpandEnvironmentVariables(storageFilePath));
     }
 
     public async Task<Result<List<Account>>> GetAllAsync()
@@ -46,6 +43,8 @@ public sealed class AccountDAL : IAccountDAL
                 return Result.Ok<List<Account>>(new());
             }
 
+            SecureStorageDirectory();
+            _fileSecurity.RestrictFileToCurrentUser(_secretsPath);
             byte[] blob = await File.ReadAllBytesAsync(_secretsPath);
             return Result.Ok(_vaultService.DecryptVault(blob));
         }
@@ -62,10 +61,27 @@ public sealed class AccountDAL : IAccountDAL
         await _semaphore.WaitAsync();
         try
         {
+            targetPath = Path.GetFullPath(targetPath);
             var data = await GetAllInternalAsync();
             byte[] blob = _vaultService.EncryptVault(data);
-            await File.WriteAllBytesAsync(targetPath, blob);
-            TryHardenFile(targetPath);
+            var targetDirectory = Path.GetDirectoryName(targetPath);
+            if (string.IsNullOrWhiteSpace(targetDirectory) || !Directory.Exists(targetDirectory))
+            {
+                throw new DirectoryNotFoundException("The export directory was not found.");
+            }
+
+            var tempPath = CreateStagingPath(targetPath);
+            try
+            {
+                await WriteStagingFileAsync(tempPath, blob);
+                _fileSecurity.RestrictFileToCurrentUser(tempPath);
+                File.Move(tempPath, targetPath, overwrite: true);
+            }
+            finally
+            {
+                TryDeleteTemporaryFile(tempPath);
+            }
+
             return Result.Ok();
         }
         catch (Exception ex)
@@ -83,6 +99,8 @@ public sealed class AccountDAL : IAccountDAL
             return [];
         }
 
+        SecureStorageDirectory();
+        _fileSecurity.RestrictFileToCurrentUser(_secretsPath);
         byte[] blob = await File.ReadAllBytesAsync(_secretsPath);
         return _vaultService.DecryptVault(blob);
     }
@@ -112,10 +130,18 @@ public sealed class AccountDAL : IAccountDAL
             action(list);
             byte[] blob = _vaultService.EncryptVault(list);
 
-            string tempPath = _secretsPath + ".tmp";
-            await File.WriteAllBytesAsync(tempPath, blob);
-            File.Move(tempPath, _secretsPath, overwrite: true);
-            TryHardenFile(_secretsPath);
+            SecureStorageDirectory();
+            string tempPath = CreateStagingPath(_secretsPath);
+            try
+            {
+                await WriteStagingFileAsync(tempPath, blob);
+                _fileSecurity.RestrictFileToCurrentUser(tempPath);
+                File.Move(tempPath, _secretsPath, overwrite: true);
+            }
+            finally
+            {
+                TryDeleteTemporaryFile(tempPath);
+            }
 
             return Result.Ok();
         }
@@ -144,34 +170,51 @@ public sealed class AccountDAL : IAccountDAL
                 var fileName = Path.GetFileName(_secretsPath);
                 string latestBackupPath = Path.Combine(dir, $"{fileName}.bak1");
 
-                if (File.Exists(latestBackupPath) && AreFilesIdentical(_secretsPath, latestBackupPath))
+                SecureStorageDirectory();
+                _fileSecurity.RestrictFileToCurrentUser(_secretsPath);
+
+                if (File.Exists(latestBackupPath))
                 {
-                    _logger.LogInformation("Backup skipped: No changes detected in storage file.");
-                    return Result.Ok();
-                }
-
-                for (var i = 5; i >= 1; i--)
-                {
-                    var oldBackup = Path.Combine(dir, $"{fileName}.bak{i}");
-                    var nextBackup = Path.Combine(dir, $"{fileName}.bak{i + 1}");
-
-                    if (!File.Exists(oldBackup))
+                    _fileSecurity.RestrictFileToCurrentUser(latestBackupPath);
+                    if (AreFilesIdentical(_secretsPath, latestBackupPath))
                     {
-                        continue;
-                    }
-
-                    if (i == 5)
-                    {
-                        File.Delete(oldBackup);
-                    }
-                    else
-                    {
-                        File.Move(oldBackup, nextBackup, true);
+                        _logger.LogInformation("Backup skipped: No changes detected in storage file.");
+                        return Result.Ok();
                     }
                 }
 
-                File.Copy(_secretsPath, Path.Combine(dir, $"{fileName}.bak1"), true);
-                TryHardenFile(Path.Combine(dir, $"{fileName}.bak1"));
+                var stagedBackupPath = CreateStagingPath(Path.Combine(dir, $"{fileName}.bak"));
+                try
+                {
+                    File.Copy(_secretsPath, stagedBackupPath, true);
+                    _fileSecurity.RestrictFileToCurrentUser(stagedBackupPath);
+
+                    for (var i = 5; i >= 1; i--)
+                    {
+                        var oldBackup = Path.Combine(dir, $"{fileName}.bak{i}");
+                        var nextBackup = Path.Combine(dir, $"{fileName}.bak{i + 1}");
+
+                        if (!File.Exists(oldBackup))
+                        {
+                            continue;
+                        }
+
+                        if (i == 5)
+                        {
+                            File.Delete(oldBackup);
+                        }
+                        else
+                        {
+                            File.Move(oldBackup, nextBackup, true);
+                        }
+                    }
+
+                    File.Move(stagedBackupPath, latestBackupPath, true);
+                }
+                finally
+                {
+                    TryDeleteTemporaryFile(stagedBackupPath);
+                }
                 return Result.Ok();
             }
             catch (Exception ex)
@@ -200,27 +243,45 @@ public sealed class AccountDAL : IAccountDAL
         _semaphore.Dispose();
     }
 
-    private void TryHardenDirectory(string directoryPath)
+    private void SecureStorageDirectory()
+    {
+        var directory = Path.GetDirectoryName(_secretsPath);
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            throw new DirectoryNotFoundException("The OTP storage directory is unavailable.");
+        }
+
+        Directory.CreateDirectory(directory);
+        _fileSecurity.RestrictDirectoryToCurrentUser(directory);
+    }
+
+    private static void TryDeleteTemporaryFile(string tempPath)
     {
         try
         {
-            WindowsFileSecurityHardener.RestrictDirectoryToCurrentUser(directoryPath);
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
         }
-        catch (Exception ex)
+        catch
         {
-            _logger.LogWarning(ex, "Unable to harden directory ACLs for OTP storage path.");
+            // Best effort after the primary failure has already been captured.
         }
     }
 
-    private void TryHardenFile(string filePath)
+    private static string CreateStagingPath(string destinationPath) =>
+        $"{destinationPath}.{Guid.NewGuid():N}.tmp";
+
+    private static async Task WriteStagingFileAsync(string path, byte[] data)
     {
-        try
-        {
-            WindowsFileSecurityHardener.RestrictFileToCurrentUser(filePath);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Unable to harden file ACLs for sensitive file {Path}.", filePath);
-        }
+        await using var stream = new FileStream(
+            path,
+            FileMode.CreateNew,
+            FileAccess.Write,
+            FileShare.None,
+            bufferSize: 4096,
+            useAsync: true);
+        await stream.WriteAsync(data);
     }
 }

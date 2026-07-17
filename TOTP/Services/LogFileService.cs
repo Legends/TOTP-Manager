@@ -1,14 +1,22 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using TOTP.Core.Common;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;
 
 public sealed class LogFileService : ILogFileService
 {
-    public bool CanOpenLogFolder() => Directory.Exists(StringsConstants.AppLogDirectoryPath);
+    private readonly IPlatformApplicationPaths _applicationPaths;
+
+    public LogFileService(IPlatformApplicationPaths applicationPaths)
+    {
+        _applicationPaths = applicationPaths ?? throw new ArgumentNullException(nameof(applicationPaths));
+    }
+
+    public bool CanOpenLogFolder() => Directory.Exists(_applicationPaths.LogDirectory);
 
     public void OpenLogFolder()
     {
@@ -19,7 +27,7 @@ public sealed class LogFileService : ILogFileService
 
         Process.Start(new ProcessStartInfo
         {
-            FileName = StringsConstants.AppLogDirectoryPath,
+            FileName = _applicationPaths.LogDirectory,
             UseShellExecute = true
         });
     }
@@ -45,17 +53,17 @@ public sealed class LogFileService : ILogFileService
         }
     }
 
-    private static string ResolveLogFilePath()
+    private string ResolveLogFilePath()
     {
-        var currentRolling = StringsConstants.CurrentRollingAppLogFilePath;
+        var currentRolling = Path.Combine(_applicationPaths.LogDirectory, $"app{DateTime.Now:yyyyMMdd}.log");
         if (File.Exists(currentRolling))
         {
             return currentRolling;
         }
 
-        if (Directory.Exists(StringsConstants.AppLogDirectoryPath))
+        if (Directory.Exists(_applicationPaths.LogDirectory))
         {
-            var latestRolling = Directory.GetFiles(StringsConstants.AppLogDirectoryPath, "app*.log")
+            var latestRolling = Directory.GetFiles(_applicationPaths.LogDirectory, "app*.log")
                 .OrderByDescending(File.GetLastWriteTimeUtc)
                 .FirstOrDefault();
 
@@ -65,6 +73,6 @@ public sealed class LogFileService : ILogFileService
             }
         }
 
-        return StringsConstants.AppLogFilePath;
+        return _applicationPaths.LogFilePath;
     }
 }

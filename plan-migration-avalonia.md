@@ -298,21 +298,21 @@ Total expected production effort remains approximately **37-62 person-weeks**, w
 
 #### M1.1 Application paths
 
-- [ ] Introduce `IPlatformApplicationPaths`.
-- [ ] Move executable, settings, vault, backup, log, and update-state paths out of Core constants.
-- [ ] Implement Windows paths matching current behavior.
-- [ ] Define macOS Application Support and Logs locations.
-- [ ] Define Linux XDG config, data, cache, and state locations.
-- [ ] Add path migration and discovery tests.
+- [x] Introduce `IPlatformApplicationPaths`.
+- [x] Move executable, settings, vault, backup, log, and update-state paths out of Core constants.
+- [x] Implement Windows paths matching current behavior.
+- [x] Define macOS Application Support and Logs locations.
+- [x] Define Linux XDG config, data, cache, and state locations.
+- [x] Add path migration and discovery tests.
 
 #### M1.2 File security
 
-- [ ] Introduce `IPlatformFileSecurity`.
-- [ ] Move Windows ACL hardening out of portable DAL.
-- [ ] Implement Windows ACL behavior.
-- [ ] Define Unix permission behavior for macOS/Linux.
-- [ ] Fail safely when permissions cannot be hardened.
-- [ ] Add tests for error reporting and recovery.
+- [x] Introduce `IPlatformFileSecurity`.
+- [x] Move Windows ACL hardening out of portable DAL.
+- [x] Implement Windows ACL behavior.
+- [x] Define Unix permission behavior for macOS/Linux.
+- [x] Fail safely when permissions cannot be hardened.
+- [x] Add tests for error reporting and recovery.
 
 #### M1.3 Clipboard
 

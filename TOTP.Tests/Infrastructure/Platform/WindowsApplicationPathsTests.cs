@@ -1,0 +1,48 @@
+using TOTP.Core.Common;
+using TOTP.Infrastructure.Platform;
+
+namespace TOTP.Tests.Infrastructure.Platform;
+
+public sealed class WindowsApplicationPathsTests
+{
+    [Fact]
+    public void Constructor_PreservesLegacyWindowsLocations()
+    {
+        var executableDirectory = Path.GetFullPath(Path.Combine("test", "application"));
+        var roamingDirectory = Path.GetFullPath(Path.Combine("test", "roaming"));
+
+        var sut = new WindowsApplicationPaths(executableDirectory, roamingDirectory);
+
+        var appDataDirectory = Path.Combine(roamingDirectory, StringsConstants.AppDataDirectoryName);
+        Assert.Equal(executableDirectory, sut.ExecutableDirectory);
+        Assert.Equal(Path.Combine(executableDirectory, "appsettings.json"), sut.ConfigurationFilePath);
+        Assert.Equal(appDataDirectory, sut.ApplicationDataDirectory);
+        Assert.Equal(Path.Combine(appDataDirectory, "master.totp"), sut.VaultFilePath);
+        Assert.Equal(Path.Combine(appDataDirectory, "settings.totp"), sut.SettingsFilePath);
+        Assert.Equal(appDataDirectory, sut.BackupDirectory);
+        Assert.Equal(Path.Combine(executableDirectory, "Logs"), sut.LogDirectory);
+        Assert.Equal(Path.Combine(executableDirectory, "Logs", "app.log"), sut.LogFilePath);
+        Assert.Equal(Path.Combine(appDataDirectory, "autoupdate-state.json"), sut.UpdateStateFilePath);
+    }
+
+    [Fact]
+    public void Constructor_WhenRoamingApplicationDataIsUnavailable_FailsClosed()
+    {
+        var act = () => new WindowsApplicationPaths(AppContext.BaseDirectory, string.Empty);
+
+        var exception = Assert.Throws<InvalidOperationException>(act);
+        Assert.Contains("application-data directory is unavailable", exception.Message);
+    }
+
+    [Fact]
+    public void DefaultConstructor_MatchesTheExistingWindowsDataDirectory()
+    {
+        var sut = new WindowsApplicationPaths();
+
+        var expected = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "TOTP-Manager");
+
+        Assert.Equal(expected, sut.ApplicationDataDirectory);
+    }
+}

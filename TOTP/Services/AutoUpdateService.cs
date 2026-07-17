@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
 using TOTP.AutoUpdate;
-using TOTP.Core.Common;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;
@@ -33,6 +33,7 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
     private readonly IAutoUpdateRuntimeFactory _runtimeFactory;
     private readonly Func<string, Task> _logRemoteAppcastAsync;
     private readonly Func<string> _resolveAssemblyLocation;
+    private readonly IPlatformApplicationPaths _applicationPaths;
     private IAutoUpdateClient? _sparkle;
     private IAutoUpdateUiCoordinator? _uiFactory;
     private bool _initialized;
@@ -41,8 +42,9 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
     public AutoUpdateService(
         IConfiguration configuration,
         ILogger<AutoUpdateService> logger,
-        ILoggerFactory loggerFactory)
-        : this(configuration, logger, loggerFactory, new NetSparkleAutoUpdateRuntimeFactory())
+        ILoggerFactory loggerFactory,
+        IPlatformApplicationPaths applicationPaths)
+        : this(configuration, logger, loggerFactory, applicationPaths, new NetSparkleAutoUpdateRuntimeFactory())
     {
     }
 
@@ -50,6 +52,7 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
         IConfiguration configuration,
         ILogger<AutoUpdateService> logger,
         ILoggerFactory loggerFactory,
+        IPlatformApplicationPaths applicationPaths,
         IAutoUpdateRuntimeFactory runtimeFactory,
         Func<string, Task>? logRemoteAppcastAsync = null,
         Func<string>? resolveAssemblyLocation = null)
@@ -57,6 +60,7 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+        _applicationPaths = applicationPaths ?? throw new ArgumentNullException(nameof(applicationPaths));
         _runtimeFactory = runtimeFactory ?? throw new ArgumentNullException(nameof(runtimeFactory));
         _logRemoteAppcastAsync = logRemoteAppcastAsync ?? LogRemoteAppcastAsync;
         _resolveAssemblyLocation = resolveAssemblyLocation ?? ResolveAssemblyLocation;
@@ -300,10 +304,9 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
 
     private Configuration CreateConfiguration(string assemblyLocation)
     {
-        var stateDirectory = StringsConstants.RoamingAppDataDirectoryPath;
-        Directory.CreateDirectory(stateDirectory);
+        Directory.CreateDirectory(_applicationPaths.ApplicationDataDirectory);
 
-        var statePath = StringsConstants.AutoUpdateStateFilePath;
+        var statePath = _applicationPaths.UpdateStateFilePath;
         _logger.LogInformation("Auto-update configuration storage path={StatePath}", statePath);
 
         return new JSONConfiguration(new AssemblyDiagnosticsAccessor(assemblyLocation), statePath);

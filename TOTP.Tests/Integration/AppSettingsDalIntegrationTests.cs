@@ -19,7 +19,7 @@ public sealed class AppSettingsDalIntegrationTests
     {
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "settings.totp");
-        var sut = new AppSettingsDAL(path, NullLogger<AppSettingsDAL>.Instance);
+        var sut = CreateSut(path);
 
         var result = await sut.LoadAsync();
 
@@ -32,7 +32,7 @@ public sealed class AppSettingsDalIntegrationTests
     {
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "settings.totp");
-        var sut = new AppSettingsDAL(path, NullLogger<AppSettingsDAL>.Instance);
+        var sut = CreateSut(path);
         var input = new AppSettings
         {
             MinimumLogLevel = AppLogLevel.Warning,
@@ -85,7 +85,7 @@ public sealed class AppSettingsDalIntegrationTests
         var cancellationToken = TestContext.Current.CancellationToken;
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "settings.totp");
-        var sut = new AppSettingsDAL(path, NullLogger<AppSettingsDAL>.Instance);
+        var sut = CreateSut(path);
 
         // "Authorization" as number breaks AppSettings deserialization (expects object),
         // while AuthorizationProfile can still deserialize Gate/PasswordSalt from same payload.
@@ -107,7 +107,7 @@ public sealed class AppSettingsDalIntegrationTests
         var cancellationToken = TestContext.Current.CancellationToken;
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "settings.totp");
-        var sut = new AppSettingsDAL(path, NullLogger<AppSettingsDAL>.Instance);
+        var sut = CreateSut(path);
 
         await File.WriteAllBytesAsync(path, Encoding.UTF8.GetBytes("not-dpapi"), cancellationToken);
 
@@ -123,7 +123,7 @@ public sealed class AppSettingsDalIntegrationTests
         var cancellationToken = TestContext.Current.CancellationToken;
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "settings.totp");
-        var sut = new AppSettingsDAL(path, NullLogger<AppSettingsDAL>.Instance);
+        var sut = CreateSut(path);
 
         var encrypted = ProtectedData.Protect(Encoding.UTF8.GetBytes("{not-valid-json"), null, DataProtectionScope.CurrentUser);
         await File.WriteAllBytesAsync(path, encrypted, cancellationToken);
@@ -140,13 +140,67 @@ public sealed class AppSettingsDalIntegrationTests
         using var temp = new TempDir();
         var directoryPath = Path.Combine(temp.Path, "as-directory");
         Directory.CreateDirectory(directoryPath);
-        var sut = new AppSettingsDAL(directoryPath, NullLogger<AppSettingsDAL>.Instance);
+        var sut = CreateSut(directoryPath);
 
         var result = await sut.SaveAsync(new AppSettings());
 
         Assert.False(result.IsSuccess);
         Assert.Equal(AppErrorCode.AppSettingsSaveAccessDenied, result.GetErrorCode());
     }
+
+    [Fact]
+    public async Task SaveAsync_WhenStagedFileCannotBeHardened_PreservesExistingSettings()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "settings.totp");
+        var originalBytes = new byte[] { 1, 2, 3, 4 };
+        await File.WriteAllBytesAsync(path, originalBytes, cancellationToken);
+        var sut = new AppSettingsDAL(
+            path,
+            NullLogger<AppSettingsDAL>.Instance,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = filePath =>
+                {
+                    if (filePath.EndsWith(".tmp", StringComparison.Ordinal))
+                    {
+                        throw new UnauthorizedAccessException("denied");
+                    }
+                }
+            });
+
+        var result = await sut.SaveAsync(new AppSettings());
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.AppSettingsSaveAccessDenied, result.GetErrorCode());
+        Assert.Equal(originalBytes, await File.ReadAllBytesAsync(path, cancellationToken));
+        Assert.Empty(Directory.GetFiles(temp.Path, "settings.totp.*.tmp"));
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenSettingsCannotBeHardened_ReturnsLoadAccessDenied()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "settings.totp");
+        await File.WriteAllBytesAsync(path, [1], cancellationToken);
+        var sut = new AppSettingsDAL(
+            path,
+            NullLogger<AppSettingsDAL>.Instance,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = _ => throw new UnauthorizedAccessException("denied")
+            });
+
+        var result = await sut.LoadAsync();
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.AppSettingsLoadAccessDenied, result.GetErrorCode());
+    }
+
+    private static AppSettingsDAL CreateSut(string path) =>
+        new(path, NullLogger<AppSettingsDAL>.Instance, NoOpPlatformFileSecurity.Instance);
 
     private sealed class TempDir : IDisposable
     {
