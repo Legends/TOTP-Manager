@@ -205,6 +205,17 @@ public sealed class AuthorizationService : IAuthorizationService
         return AuthorizationResult.Success;
     }
 
+    public async Task<AuthorizationResult> ConfigureHelloAsync(string recoveryPassword)
+    {
+        if (string.IsNullOrWhiteSpace(recoveryPassword))
+            return AuthorizationResult.InvalidCredentials;
+
+        var verified = await TryUnlockWithPasswordAsync(recoveryPassword);
+        return verified == AuthorizationResult.Success
+            ? await ConfigureHelloAsync()
+            : verified;
+    }
+
     public async Task<AuthorizationResult> SetGateAsync(AuthorizationGateKind gate)
     {
         if (_appSettings?.Authorization == null) return AuthorizationResult.NotConfigured;

@@ -17,6 +17,7 @@ public interface IAuthorizationService
 
     Task<AuthorizationResult> ConfigurePasswordAsync(string password, string confirmPassword);
     Task<AuthorizationResult> ConfigureHelloAsync();
+    Task<AuthorizationResult> ConfigureHelloAsync(string recoveryPassword);
     Task<AuthorizationResult> SetGateAsync(AuthorizationGateKind gate);
     Task<AuthorizationResult> ChangePasswordAsync(string currentPassword, string newPassword);
 
