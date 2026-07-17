@@ -388,7 +388,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [x] Implement the v2 password wrapper and persist every Argon2 parameter.
 - [x] Define platform quick-unlock wrapper metadata.
 - [x] Introduce `IPlatformSecretStore`.
-- [ ] Introduce `IPlatformQuickUnlock`.
+- [x] Introduce `IPlatformQuickUnlock`.
 - [ ] Replace the development-era DPAPI settings store before the first public release.
 - [ ] Preserve Windows Hello/TPM quick unlock through the new contract.
 - [ ] Require recovery-password readiness before platform quick unlock can be enabled.

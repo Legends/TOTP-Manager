@@ -117,6 +117,24 @@ Contract semantics:
 
 The secret store is intended to hold a random device-local quick-unlock wrapping secret, never the master password, OTP seeds, or the sole copy of the vault DEK. An unavailable, missing, denied, or corrupt store routes to master-password recovery; there is no plaintext filesystem fallback. Concrete Windows, macOS, and Linux providers and their platform access-control policies remain later implementation steps.
 
+## Platform quick-unlock contract
+
+`IPlatformQuickUnlock` is the portable user-verification and key-wrapper boundary. It exposes provider identity, availability, registration, unlock attempts, and idempotent removal without exposing WPF windows, Windows Hello types, CNG handles, Keychain APIs, or Secret Service APIs.
+
+Contract semantics:
+
+- `RegisterAsync` accepts a 32-byte vault key only after the orchestration layer has verified that master-password recovery is ready. It performs required platform verification and returns complete `PlatformQuickUnlockWrapperV2` metadata.
+- The returned wrapper provider must equal the adapter `ProviderId` and pass the reviewed provider validation before it can become active.
+- `TryUnlockAsync` validates metadata before platform access and returns `PlatformQuickUnlockAttempt` for expected outcomes.
+- A successful attempt always owns a non-null `SensitiveBuffer` containing the recovered vault key. The caller must dispose the attempt promptly after copying the key into the active security context.
+- Cancelled, unavailable, not-configured, policy-disabled, retries-exhausted, verification-failed, and key-not-found attempts never contain key material and route to password recovery as appropriate.
+- Unexpected adapter failures use `PlatformQuickUnlockError`; registration-specific cancellation or policy outcomes use its typed error codes because no wrapper exists to return with an attempt.
+- `RemoveAsync` is idempotent for missing/reset platform keys. The orchestration layer must authorize removal before calling it.
+- Application cancellation propagates as cancellation. Platform prompt cancellation remains an explicit expected outcome rather than being confused with application cancellation.
+- `PlatformQuickUnlockAvailability.Unknown` is fail-closed and never enables registration or automatic quick unlock.
+
+An implementation may depend on `IPlatformSecretStore`, a non-exportable platform key, or both. It must never silently substitute software-only storage for metadata that claims hardware/user-verification guarantees. The legacy `IHelloGate` remains temporarily for the unpublished WPF flow and will be adapted or retired in the later Windows contract-preservation step.
+
 ## Reader rules
 
 A v2 reader must reject the payload before key derivation when:
