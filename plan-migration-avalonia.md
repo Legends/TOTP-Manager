@@ -398,7 +398,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [x] Implement atomic write and rollback.
 - [x] Add side-effect-free candidate vault-key verification.
 - [x] Add bounded read-only verification of the existing vault.
-- [ ] Verify the v2 envelope can open the vault before it becomes active.
+- [x] Verify the v2 envelope can open the vault before it becomes active.
 - [x] Preserve a bounded previous-envelope backup.
 - [ ] Add interrupted-write tests at every persistence boundary.
 - [ ] Add wrong-password, corrupt-envelope, missing-secret-store, and reset-key tests.

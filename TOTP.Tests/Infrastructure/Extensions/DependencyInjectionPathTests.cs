@@ -6,6 +6,7 @@ using TOTP.Core.Services.Interfaces;
 using TOTP.DAL.Services;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Platform;
+using TOTP.Infrastructure.Security;
 
 namespace TOTP.Tests.Infrastructure.Extensions;
 
@@ -29,6 +30,8 @@ public sealed class DependencyInjectionPathTests : IDisposable
         var vaultKeyVerifier = provider.GetRequiredService<IVaultKeyVerifier>();
         var storedVaultVerifier = Assert.IsType<StoredVaultKeyVerifier>(
             provider.GetRequiredService<IStoredVaultKeyVerifier>());
+        Assert.IsType<AuthorizationEnvelopeActivator>(
+            provider.GetRequiredService<IAuthorizationEnvelopeActivator>());
 
         Assert.IsType<WindowsFileSecurity>(provider.GetRequiredService<IPlatformFileSecurity>());
         Assert.Same(vaultService, vaultKeyVerifier);
