@@ -155,7 +155,9 @@ Contract semantics:
 - Application cancellation propagates as cancellation. Platform prompt cancellation remains an explicit expected outcome rather than being confused with application cancellation.
 - `PlatformQuickUnlockAvailability.Unknown` is fail-closed and never enables registration or automatic quick unlock.
 
-An implementation may depend on `IPlatformSecretStore`, a non-exportable platform key, or both. It must never silently substitute software-only storage for metadata that claims hardware/user-verification guarantees. The legacy `IHelloGate` remains temporarily for the unpublished WPF flow and will be adapted or retired in the later Windows contract-preservation step.
+An implementation may depend on `IPlatformSecretStore`, a non-exportable platform key, or both. It must never silently substitute software-only storage for metadata that claims hardware/user-verification guarantees. The legacy `IHelloGate` remains temporarily as the Windows API seam shared by the unpublished WPF flow and the portable adapter; it can be retired after coordinated cutover.
+
+`WindowsPlatformQuickUnlock` now adapts the existing Hello/TPM implementation to this contract. Registration and unlock require an explicit `UserConsentVerifier` success before TPM key use. Registration creates a non-exportable RSA-2048 key with the Microsoft Platform Crypto Provider, emits only the reviewed `windows-hello-tpm`/RSA-OAEP-SHA256 metadata, and removes incomplete registrations on failure. Unlock validates all metadata before prompting, copies a recovered 32-byte DEK into `SensitiveBuffer`, and clears the provider-returned array. Removal is idempotent for missing keys. The adapter never selects the Microsoft Software Key Storage Provider and has no silent-decrypt fallback. It is registered for the WPF host but is not yet used by the coordinated v2 authorization flow.
 
 ## Reader rules
 
@@ -184,6 +186,12 @@ master password (memory only)
   + AES-256-GCM wrappedKey
   -> vault DEK (memory only)
   -> existing encrypted vault verification
+
+Windows Hello verification
+  + persisted platform key reference and RSA-OAEP-SHA256 ciphertext
+  -> non-exportable RSA-2048 private-key operation in the TPM provider
+  -> vault DEK (short-lived provider array, then owned SensitiveBuffer)
+  -> existing encrypted vault verification
 ```
 
 Temporary password bytes, KEK material, and DEK copies must be cleared or disposed as soon as practical. The envelope may be committed only after the recovered DEK successfully opens the existing vault.
@@ -195,7 +203,16 @@ Temporary password bytes, KEK material, and DEK copies must be cleared or dispos
 - The current Argon2id/AES-GCM construction remains the baseline, but v2 persists every KDF parameter and adds fixed associated data. Development data may be reset or reconfigured rather than migrated byte-for-byte.
 - Shipping startup reads v2 only and does not probe historical JSON shapes. The development-era DPAPI fixtures are retained solely to document why the ambiguous format must not return.
 - Platform quick-unlock metadata is optional, explicitly typed, and validated against a reviewed provider registry.
+- The app is not publicly released and has no released-user quick-unlock registrations. This step therefore adds no legacy platform-key migration or compatibility fallback.
 
 ## Threat review
 
-The clean version discriminator removes the legacy type-confusion risk. Explicit algorithm identifiers and KDF units reduce cross-platform interpretation errors. Persisting parallelism prevents a hidden implementation default from changing derived keys. Fixed associated data domain-separates the password wrapper without a legacy fallback. Remaining risks are denial of service from hostile KDF values, file replacement/rollback, and metadata tampering; bounded validation, current-user file protection, authenticated unwrap, vault verification, and later atomic-write/backup work address those risks.
+The clean version discriminator removes the legacy type-confusion risk. Explicit algorithm identifiers and KDF units reduce cross-platform interpretation errors. Persisting parallelism prevents a hidden implementation default from changing derived keys. Fixed associated data domain-separates the password wrapper without a legacy fallback. The Windows adapter refuses unreviewed metadata before prompting, requires explicit Hello verification, creates non-exportable TPM-provider keys, clears transient DEK arrays, and removes incomplete registrations. Password recovery remains required because loss or reset of the platform key makes its wrapper unrecoverable. Remaining risks are denial of service from hostile KDF values, file replacement/rollback, metadata tampering, and loss of TPM/Hello state; bounded validation, current-user file protection, authenticated unwrap, vault verification, password recovery, and atomic-write/backup work address those risks.
+
+## Test evidence
+
+- `WindowsPlatformQuickUnlockTests` covers detailed availability, reviewed metadata emission, verification outcomes, invalid inputs, provider failures, incomplete-key cleanup, recovered-key ownership and clearing, missing platform keys, and fail-closed removal.
+- The focused quick-unlock/security-contract test selection passes 39 tests.
+- The full Debug solution test run passes 638 tests.
+- The Release solution build succeeds with zero warnings and errors, and the filtered PR-like Release test run passes 593 tests.
+- A real Windows Hello/TPM registration and unlock smoke test remains required on supported hardware before release; automated tests use the existing `IHelloGate` OS boundary.

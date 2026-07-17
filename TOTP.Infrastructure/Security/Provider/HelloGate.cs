@@ -8,11 +8,11 @@ namespace TOTP.Infrastructure.Security.Provider;
 
 public sealed class HelloGate : IHelloGate
 {
+    private const int RsaKeySizeBits = 2048;
+
     private readonly ILogger<HelloGate> _logger;
     private readonly IHelloPromptWindowHandleProvider _windowHandleProvider;
     private readonly IHelloVerificationRequester _verificationRequester;
-    private const string ProviderName = "Microsoft Software Key Storage Provider";
-    // Note: In production enterprise, use "Microsoft Platform Crypto Provider" for TPM hardware.
 
     public HelloGate(
         ILogger<HelloGate> logger,
@@ -24,12 +24,23 @@ public sealed class HelloGate : IHelloGate
         _verificationRequester = verificationRequester;
     }
 
-    public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
+    public async Task<PlatformQuickUnlockAvailability> GetAvailabilityAsync(CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();
         var availability = await UserConsentVerifier.CheckAvailabilityAsync().AsTask(ct);
-        return availability == UserConsentVerifierAvailability.Available;
+        return availability switch
+        {
+            UserConsentVerifierAvailability.Available => PlatformQuickUnlockAvailability.Available,
+            UserConsentVerifierAvailability.DeviceNotPresent => PlatformQuickUnlockAvailability.NotSupported,
+            UserConsentVerifierAvailability.NotConfiguredForUser => PlatformQuickUnlockAvailability.NotConfigured,
+            UserConsentVerifierAvailability.DisabledByPolicy => PlatformQuickUnlockAvailability.DisabledByPolicy,
+            UserConsentVerifierAvailability.DeviceBusy => PlatformQuickUnlockAvailability.TemporarilyUnavailable,
+            _ => PlatformQuickUnlockAvailability.Unknown
+        };
     }
+
+    public async Task<bool> IsAvailableAsync(CancellationToken ct = default) =>
+        await GetAvailabilityAsync(ct) == PlatformQuickUnlockAvailability.Available;
 
     public async Task<AuthorizationResult> RequestVerificationAsync(CancellationToken ct = default)
     {
@@ -50,24 +61,29 @@ public sealed class HelloGate : IHelloGate
         };
     }
 
-    public async Task<byte[]> ProtectKeyAsync(byte[] rawDek, string keyId)
+    public async Task<byte[]> ProtectKeyAsync(
+        byte[] rawDek,
+        string keyId,
+        CancellationToken ct = default)
     {
         return await Task.Run(() =>
         {
+            ct.ThrowIfCancellationRequested();
             CngKeyCreationParameters keyParams = new CngKeyCreationParameters
             {
-                // This is the magic: The key is created IN the TPM and cannot be exported
                 ExportPolicy = CngExportPolicies.None,
-                Provider = CngProvider.MicrosoftPlatformCryptoProvider // This forces TPM usage
+                Provider = CngProvider.MicrosoftPlatformCryptoProvider
             };
+            keyParams.Parameters.Add(new CngProperty(
+                "Length",
+                BitConverter.GetBytes(RsaKeySizeBits),
+                CngPropertyOptions.None));
 
-            // 1. Create a 2048-bit RSA key in the TPM
             using var key = CngKey.Create(CngAlgorithm.Rsa, keyId, keyParams);
 
-            // 2. Encrypt the DEK using the RSA Public Key
             using var rsa = new RSACng(key);
             return rsa.Encrypt(rawDek, RSAEncryptionPadding.OaepSHA256);
-        });
+        }, ct);
     }
 
     public async Task<byte[]?> UnprotectKeyAsync(byte[] wrappedDek, string keyId, CancellationToken ct = default)
@@ -94,5 +110,16 @@ public sealed class HelloGate : IHelloGate
             _logger.LogWarning(ex, "TPM/Hello unwrap failed. User might have cancelled or hardware changed.");
             return null;
         }
+    }
+
+    public async Task RemoveKeyAsync(string keyId, CancellationToken ct = default)
+    {
+        await Task.Run(() =>
+        {
+            ct.ThrowIfCancellationRequested();
+            if (!CngKey.Exists(keyId, CngProvider.MicrosoftPlatformCryptoProvider)) return;
+            using var key = CngKey.Open(keyId, CngProvider.MicrosoftPlatformCryptoProvider);
+            key.Delete();
+        }, ct);
     }
 }
