@@ -1,36 +1,20 @@
-using FluentResults;
 using Moq;
-using TOTP.Core.Models;
+using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Resources;
 using TOTP.Services;
-using TOTP.Services.Interfaces;
 
 namespace TOTP.Tests.Services;
 
 public sealed class SettingsAuthorizationWorkflowServiceTests
 {
     [Fact]
-    public async Task ApplyAuthorizationSettingsAsync_WhenHelloNotAvailable_ReturnsError()
+    public async Task ApplyAuthorizationSettingsAsync_WhenHelloIsUnavailable_ReturnsErrorWithoutPrompting()
     {
-        var appSettings = new AppSettings
-        {
-            Authorization = new AuthorizationProfile
-            {
-                Gate = AuthorizationGateKind.Password,
-                HelloWrappedDek = null,
-                HelloKeyId = null
-            }
-        };
-
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        settings.SetupGet(s => s.Current).Returns(appSettings);
-
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object);
+        var dependencies = new Dependencies();
+        var sut = dependencies.CreateSut();
 
         var result = await sut.ApplyAuthorizationSettingsAsync(
             isHelloSelected: true,
@@ -40,364 +24,230 @@ public sealed class SettingsAuthorizationWorkflowServiceTests
 
         Assert.False(result.IsSuccess);
         Assert.Equal(UI.ui_Settings_Auth_HelloUnsupported, result.ErrorMessage);
-        auth.Verify(a => a.ConfigureHelloAsync(), Times.Never);
+        dependencies.Prompt.VerifyNoOtherCalls();
+        dependencies.Authorization.Verify(value => value.ConfigureHelloAsync(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task ApplyAuthorizationGateSelectionAsync_WhenSetGateFails_KeepsGate()
+    public async Task ApplyAuthorizationGateSelectionAsync_WhenGateIsUnchanged_DoesNothing()
     {
-        var appSettings = new AppSettings
-        {
-            Authorization = new AuthorizationProfile
-            {
-                Gate = AuthorizationGateKind.Password,
-                HelloWrappedDek = [1, 2, 3],
-                HelloKeyId = "key-id"
-            }
-        };
+        var dependencies = new Dependencies();
+        dependencies.State.SetConfiguration(true, TOTP.Core.Enums.PreferredUnlockMethod.Password);
+        var sut = dependencies.CreateSut();
 
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        settings.SetupGet(s => s.Current).Returns(appSettings);
-        auth.Setup(a => a.SetGateAsync(AuthorizationGateKind.Hello))
-            .ReturnsAsync(AuthorizationResult.Failed);
+        var result = await sut.ApplyAuthorizationGateSelectionAsync(
+            isHelloSelected: false,
+            isHelloAvailable: true);
 
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object);
+        Assert.True(result.IsSuccess);
+        dependencies.Authorization.Verify(value => value.SetGateAsync(
+            It.IsAny<AuthorizationGateKind>()), Times.Never);
+        dependencies.Prompt.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ApplyAuthorizationGateSelectionAsync_WhenQuickUnlockExists_SelectsItWithoutPasswordPrompt()
+    {
+        var dependencies = new Dependencies();
+        dependencies.State.SetConfiguration(true, TOTP.Core.Enums.PreferredUnlockMethod.Password);
+        dependencies.Authorization.Setup(value => value.SetGateAsync(AuthorizationGateKind.Hello))
+            .ReturnsAsync(AuthorizationResult.Success);
+        var sut = dependencies.CreateSut();
+
+        var result = await sut.ApplyAuthorizationGateSelectionAsync(
+            isHelloSelected: true,
+            isHelloAvailable: true);
+
+        Assert.True(result.IsSuccess);
+        dependencies.Prompt.VerifyNoOtherCalls();
+        dependencies.Authorization.Verify(value => value.ConfigureHelloAsync(
+            It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ApplyAuthorizationGateSelectionAsync_WhenEnrollmentIsNeeded_PromptsAndPassesRecoveryPassword()
+    {
+        var dependencies = new Dependencies();
+        dependencies.State.SetConfiguration(true, TOTP.Core.Enums.PreferredUnlockMethod.Password);
+        dependencies.Authorization.Setup(value => value.SetGateAsync(AuthorizationGateKind.Hello))
+            .ReturnsAsync(AuthorizationResult.PasswordRequired);
+        dependencies.SetupPrompt("recovery-password");
+        dependencies.Authorization.Setup(value => value.ConfigureHelloAsync("recovery-password"))
+            .ReturnsAsync(AuthorizationResult.Success);
+        var sut = dependencies.CreateSut();
+
+        var result = await sut.ApplyAuthorizationGateSelectionAsync(
+            isHelloSelected: true,
+            isHelloAvailable: true);
+
+        Assert.True(result.IsSuccess);
+        dependencies.Authorization.Verify(value => value.ConfigureHelloAsync("recovery-password"), Times.Once);
+    }
+
+    [Fact]
+    public async Task ApplyAuthorizationGateSelectionAsync_WhenEnrollmentPromptIsCancelled_FailsClosed()
+    {
+        var dependencies = new Dependencies();
+        dependencies.State.SetConfiguration(true, TOTP.Core.Enums.PreferredUnlockMethod.Password);
+        dependencies.Authorization.Setup(value => value.SetGateAsync(AuthorizationGateKind.Hello))
+            .ReturnsAsync(AuthorizationResult.PasswordRequired);
+        dependencies.SetupPrompt(null);
+        var sut = dependencies.CreateSut();
 
         var result = await sut.ApplyAuthorizationGateSelectionAsync(
             isHelloSelected: true,
             isHelloAvailable: true);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(AuthorizationGateKind.Password, appSettings.Authorization.Gate);
-        settings.Verify(s => s.SaveAsync(), Times.Never);
+        Assert.Equal(UI.ui_Password_VerificationFailed, result.ErrorMessage);
+        dependencies.Authorization.Verify(value => value.ConfigureHelloAsync(
+            It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task ChangePasswordAsync_WhenValidationFails_ReturnsFieldErrors()
+    public async Task ApplyAuthorizationGateSelectionAsync_SwitchingToPassword_VerifiesCurrentPassword()
     {
-        var appSettings = new AppSettings();
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        settings.SetupGet(s => s.Current).Returns(appSettings);
-        pwd.Setup(p => p.ValidateNewWithConfirmation(
+        var dependencies = new Dependencies();
+        dependencies.State.SetConfiguration(true, TOTP.Core.Enums.PreferredUnlockMethod.PlatformQuickUnlock);
+        dependencies.Authorization.Setup(value => value.TryUnlockWithPasswordAsync("recovery-password"))
+            .ReturnsAsync(AuthorizationResult.Success);
+        dependencies.Authorization.Setup(value => value.SetGateAsync(AuthorizationGateKind.Password))
+            .ReturnsAsync(AuthorizationResult.Success);
+        dependencies.Prompt.Setup(value => value.Prompt(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>()))
-            .Returns(new PasswordValidationResult
-            {
-                PasswordError = "pwd error",
-                ConfirmPasswordError = "confirm error"
-            });
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Func<string, Task<string?>>?>()))
+            .Returns<string, string, string?, string?, Func<string, Task<string?>>?>(
+                (_, _, _, _, validate) =>
+                    validate!("recovery-password").GetAwaiter().GetResult() is null
+                        ? "recovery-password"
+                        : null);
+        var sut = dependencies.CreateSut();
 
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object);
+        var result = await sut.ApplyAuthorizationGateSelectionAsync(
+            isHelloSelected: false,
+            isHelloAvailable: true);
 
-        var result = await sut.ChangePasswordAsync("abc", "def");
+        Assert.True(result.IsSuccess);
+        dependencies.Authorization.Verify(value => value.TryUnlockWithPasswordAsync("recovery-password"), Times.Once);
+        dependencies.Authorization.Verify(value => value.SetGateAsync(AuthorizationGateKind.Password), Times.Once);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_WhenValidationFails_ReturnsFieldErrorsWithoutPrompting()
+    {
+        var dependencies = new Dependencies(validNewPassword: false);
+        var sut = dependencies.CreateSut();
+
+        var result = await sut.ChangePasswordAsync("new", "different");
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("pwd error", result.NewPasswordError);
-        Assert.Equal("confirm error", result.ConfirmPasswordError);
-        auth.Verify(a => a.ChangePasswordAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        Assert.Equal("password error", result.NewPasswordError);
+        Assert.Equal("confirmation error", result.ConfirmPasswordError);
+        dependencies.Prompt.VerifyNoOtherCalls();
+        dependencies.Authorization.Verify(value => value.ChangePasswordAsync(
+            It.IsAny<string>(),
+            It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task ApplyAuthorizationSettingsAsync_WithValidPassword_ChangesPassword()
+    public async Task ChangePasswordAsync_PromptsAndPassesCurrentRecoveryPassword()
     {
-        var appSettings = new AppSettings
-        {
-            Authorization = new AuthorizationProfile
-            {
-                Gate = AuthorizationGateKind.Password,
-                HelloWrappedDek = [1, 2, 3],
-                HelloKeyId = "key-id"
-            }
-        };
-
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        settings.SetupGet(s => s.Current).Returns(appSettings);
-        pwd.Setup(p => p.ValidateNewWithConfirmation(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>()))
-            .Returns(new PasswordValidationResult());
-        auth.Setup(a => a.ChangePasswordAsync(string.Empty, "new-pass"))
+        var dependencies = new Dependencies();
+        dependencies.SetupPrompt("current-password");
+        dependencies.Authorization.Setup(value => value.ChangePasswordAsync(
+                "current-password",
+                "new-password"))
             .ReturnsAsync(AuthorizationResult.Success);
+        var sut = dependencies.CreateSut();
 
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object);
-
-        var result = await sut.ApplyAuthorizationSettingsAsync(
-            isHelloSelected: false,
-            isHelloAvailable: true,
-            newPassword: "new-pass",
-            confirmPassword: "new-pass");
+        var result = await sut.ChangePasswordAsync("new-password", "new-password");
 
         Assert.True(result.IsSuccess);
         Assert.True(result.ClearPasswordInputs);
-        auth.Verify(a => a.ChangePasswordAsync(string.Empty, "new-pass"), Times.Once);
+        dependencies.Authorization.Verify(value => value.ChangePasswordAsync(
+            "current-password",
+            "new-password"), Times.Once);
     }
 
     [Fact]
-    public async Task ApplyAuthorizationGateSelectionAsync_WhenGateUnchanged_DoesNotSave()
+    public async Task ChangePasswordAsync_WhenCurrentPasswordPromptIsCancelled_DoesNotChangePassword()
     {
-        var appSettings = new AppSettings
-        {
-            Authorization = new AuthorizationProfile
-            {
-                Gate = AuthorizationGateKind.Password
-            }
-        };
+        var dependencies = new Dependencies();
+        dependencies.SetupPrompt(null);
+        var sut = dependencies.CreateSut();
 
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        settings.SetupGet(s => s.Current).Returns(appSettings);
-
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object);
-
-        var result = await sut.ApplyAuthorizationGateSelectionAsync(
-            isHelloSelected: false,
-            isHelloAvailable: true);
-
-        Assert.True(result.IsSuccess);
-        settings.Verify(s => s.SaveAsync(), Times.Never);
-    }
-
-    [Fact]
-    public async Task ApplyAuthorizationGateSelectionAsync_WhenHelloSetupFails_ReturnsError()
-    {
-        var appSettings = new AppSettings
-        {
-            Authorization = new AuthorizationProfile
-            {
-                Gate = AuthorizationGateKind.Password,
-                HelloWrappedDek = null,
-                HelloKeyId = null
-            }
-        };
-
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        settings.SetupGet(s => s.Current).Returns(appSettings);
-        auth.Setup(a => a.ConfigureHelloAsync()).ReturnsAsync(AuthorizationResult.Failed);
-
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object);
-
-        var result = await sut.ApplyAuthorizationGateSelectionAsync(
-            isHelloSelected: true,
-            isHelloAvailable: true);
+        var result = await sut.ChangePasswordAsync("new-password", "new-password");
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(UI.ui_Settings_Auth_HelloSetupFailed, result.ErrorMessage);
-        settings.Verify(s => s.SaveAsync(), Times.Never);
-    }
-
-    [Fact]
-    public async Task ApplyAuthorizationGateSelectionAsync_SwitchingFromHelloToPassword_WithExistingPassword_VerifiesAndSavesGate()
-    {
-        var appSettings = new AppSettings
-        {
-            Authorization = new AuthorizationProfile
-            {
-                Gate = AuthorizationGateKind.Hello,
-                PasswordWrappedDek = [1, 2, 3],
-                PasswordSalt = [4, 5, 6]
-            }
-        };
-
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        var prompt = new Mock<IPasswordPromptService>();
-        settings.SetupGet(s => s.Current).Returns(appSettings);
-        auth.Setup(a => a.SetGateAsync(AuthorizationGateKind.Password))
-            .ReturnsAsync(() =>
-            {
-                appSettings.Authorization.Gate = AuthorizationGateKind.Password;
-                return AuthorizationResult.Success;
-            });
-        prompt.Setup(p => p.Prompt(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<Func<string, Task<string?>>>()))
-            .Returns("old-master-password");
-
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object, prompt.Object);
-
-        var result = await sut.ApplyAuthorizationGateSelectionAsync(
-            isHelloSelected: false,
-            isHelloAvailable: true);
-
-        Assert.True(result.IsSuccess);
-        Assert.Equal(AuthorizationGateKind.Password, appSettings.Authorization.Gate);
-        auth.Verify(a => a.SetGateAsync(AuthorizationGateKind.Password), Times.Once);
-        settings.Verify(s => s.SaveAsync(), Times.Never);
-    }
-
-    [Fact]
-    public async Task ApplyAuthorizationGateSelectionAsync_UsesLatestSettingsServiceCurrent()
-    {
-        var initialSettings = new AppSettings();
-        var loadedSettings = new AppSettings
-        {
-            Authorization = new AuthorizationProfile
-            {
-                Gate = AuthorizationGateKind.Hello,
-                PasswordWrappedDek = [1, 2, 3],
-                PasswordSalt = [4, 5, 6],
-                DekNonce = [7, 8, 9]
-            }
-        };
-
-        var currentSettings = initialSettings;
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        var prompt = new Mock<IPasswordPromptService>();
-        settings.SetupGet(s => s.Current).Returns(() => currentSettings);
-        prompt.Setup(p => p.Prompt(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<Func<string, Task<string?>>>()))
-            .Returns("old-master-password");
-        auth.Setup(a => a.SetGateAsync(AuthorizationGateKind.Password))
-            .ReturnsAsync(() =>
-            {
-                loadedSettings.Authorization.Gate = AuthorizationGateKind.Password;
-                return AuthorizationResult.Success;
-            });
-
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object, prompt.Object);
-        currentSettings = loadedSettings;
-
-        var result = await sut.ApplyAuthorizationGateSelectionAsync(
-            isHelloSelected: false,
-            isHelloAvailable: true);
-
-        Assert.True(result.IsSuccess);
-        Assert.Equal(AuthorizationGateKind.Password, loadedSettings.Authorization.Gate);
-        prompt.Verify(p => p.Prompt(
+        Assert.Equal(UI.ui_Password_VerificationFailed, result.ErrorMessage);
+        dependencies.Authorization.Verify(value => value.ChangePasswordAsync(
             It.IsAny<string>(),
-            It.IsAny<string>(),
-            It.IsAny<string?>(),
-            It.IsAny<string?>(),
-            It.IsAny<Func<string, Task<string?>>>()), Times.Once);
-        auth.Verify(a => a.SetGateAsync(AuthorizationGateKind.Password), Times.Once);
+            It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task ApplyAuthorizationGateSelectionAsync_SwitchingFromHelloToPassword_WithoutPasswordSetup_KeepsSelectionForSetupAndDoesNotSave()
+    public async Task ChangePasswordAsync_WhenPasswordGateRequested_ActivatesItAfterReplacement()
     {
-        var appSettings = new AppSettings
-        {
-            Authorization = new AuthorizationProfile
-            {
-                Gate = AuthorizationGateKind.Hello,
-                PasswordWrappedDek = null,
-                PasswordSalt = null
-            }
-        };
-
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        settings.SetupGet(s => s.Current).Returns(appSettings);
-
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object);
-
-        var result = await sut.ApplyAuthorizationGateSelectionAsync(
-            isHelloSelected: false,
-            isHelloAvailable: true);
-
-        Assert.False(result.IsSuccess);
-        Assert.False(result.RevertGateSelection);
-        Assert.Equal(UI.ui_Settings_Auth_PasswordSetupRequired, result.ErrorMessage);
-        Assert.Equal(AuthorizationGateKind.Hello, appSettings.Authorization.Gate);
-        settings.Verify(s => s.SaveAsync(), Times.Never);
-    }
-
-    [Fact]
-    public async Task ChangePasswordAsync_WhenActivatePasswordGate_SetsPasswordGateAfterPasswordChange()
-    {
-        var appSettings = new AppSettings
-        {
-            Authorization = new AuthorizationProfile
-            {
-                Gate = AuthorizationGateKind.Hello,
-                HelloWrappedDek = [1, 2, 3],
-                HelloKeyId = "key-id"
-            }
-        };
-
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        settings.SetupGet(s => s.Current).Returns(appSettings);
-        pwd.Setup(p => p.ValidateNewWithConfirmation(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>()))
-            .Returns(new PasswordValidationResult());
-        auth.Setup(a => a.ChangePasswordAsync(string.Empty, "new-pass"))
+        var dependencies = new Dependencies();
+        dependencies.SetupPrompt("current-password");
+        dependencies.Authorization.Setup(value => value.ChangePasswordAsync(
+                "current-password",
+                "new-password"))
             .ReturnsAsync(AuthorizationResult.Success);
-        auth.Setup(a => a.SetGateAsync(AuthorizationGateKind.Password))
-            .ReturnsAsync(() =>
-            {
-                appSettings.Authorization.Gate = AuthorizationGateKind.Password;
-                return AuthorizationResult.Success;
-            });
+        dependencies.Authorization.Setup(value => value.SetGateAsync(AuthorizationGateKind.Password))
+            .ReturnsAsync(AuthorizationResult.Success);
+        var sut = dependencies.CreateSut();
 
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object);
-
-        var result = await sut.ChangePasswordAsync("new-pass", "new-pass", activatePasswordGate: true);
+        var result = await sut.ChangePasswordAsync(
+            "new-password",
+            "new-password",
+            activatePasswordGate: true);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(AuthorizationGateKind.Password, appSettings.Authorization.Gate);
-        auth.Verify(a => a.SetGateAsync(AuthorizationGateKind.Password), Times.Once);
-        settings.Verify(s => s.SaveAsync(), Times.Never);
+        dependencies.Authorization.Verify(value => value.SetGateAsync(AuthorizationGateKind.Password), Times.Once);
     }
 
-    [Fact]
-    public async Task ChangePasswordAsync_WhenAuthorizationFails_ReturnsValidationFailed()
+    private sealed class Dependencies
     {
-        var appSettings = new AppSettings();
-        var auth = new Mock<IAuthorizationService>();
-        var settings = new Mock<ISettingsService>();
-        var pwd = new Mock<IPasswordValidationService>();
-        settings.SetupGet(s => s.Current).Returns(appSettings);
-        pwd.Setup(p => p.ValidateNewWithConfirmation(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>()))
-            .Returns(new PasswordValidationResult());
-        auth.Setup(a => a.ChangePasswordAsync(string.Empty, "new-pass"))
-            .ReturnsAsync(AuthorizationResult.Failed);
+        public AuthorizationState State { get; } = new();
+        public Mock<IAuthorizationService> Authorization { get; } = new();
+        public Mock<IPasswordValidationService> Validation { get; } = new();
+        public Mock<IPasswordPromptService> Prompt { get; } = new();
 
-        var sut = new SettingsAuthorizationWorkflowService(auth.Object, settings.Object, pwd.Object);
+        public Dependencies(bool validNewPassword = true)
+        {
+            Authorization.SetupGet(value => value.State).Returns(State);
+            Validation.Setup(value => value.ValidateNewWithConfirmation(
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+                .Returns(validNewPassword
+                    ? new PasswordValidationResult()
+                    : new PasswordValidationResult
+                    {
+                        PasswordError = "password error",
+                        ConfirmPasswordError = "confirmation error"
+                    });
+        }
 
-        var result = await sut.ChangePasswordAsync("new-pass", "new-pass");
+        public SettingsAuthorizationWorkflowService CreateSut() =>
+            new(Authorization.Object, Validation.Object, Prompt.Object);
 
-        Assert.False(result.IsSuccess);
-        Assert.Equal(TOTP.Resources.UI.ui_Password_ValidationFailed, result.ErrorMessage);
+        public void SetupPrompt(string? result)
+        {
+            Prompt.Setup(value => value.Prompt(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Func<string, Task<string?>>?>()))
+                .Returns(result);
+        }
     }
 }

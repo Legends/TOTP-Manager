@@ -664,6 +664,24 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enter your current master password to authorize this change..
+        /// </summary>
+        internal static string ui_AuthorizeChange_CurrentPasswordMessage {
+            get {
+                return ResourceManager.GetString("ui_AuthorizeChange_CurrentPasswordMessage", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm master password.
+        /// </summary>
+        internal static string ui_AuthorizeChange_CurrentPasswordTitle {
+            get {
+                return ResourceManager.GetString("ui_AuthorizeChange_CurrentPasswordTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Change entry.
         /// </summary>
         internal static string ui_Edit_Entry {

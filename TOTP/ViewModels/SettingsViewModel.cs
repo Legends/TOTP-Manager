@@ -134,7 +134,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
 
     public bool HasAuthError => !string.IsNullOrWhiteSpace(AuthError);
 
-    public bool IsPasswordSetup => _appSettings.Authorization.IsPasswordSetup;
+    public bool IsPasswordSetup => _authorizationService.State.IsConfigured;
     public string PasswordCredentialTitle => IsPasswordSetup
         ? UI.ui_Settings_Auth_Password_SetChange
         : UI.ui_Settings_Auth_Password_SetInitial;
@@ -582,9 +582,9 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged, IDisposa
             IsHelloAvailable = await _authorizationService.IsHelloAvailableAsync();
 
 
-            // Match UI Radio Buttons to Profile Gate
-            IsHelloSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Hello;
-            IsPasswordSelected = _appSettings.Authorization.Gate == AuthorizationGateKind.Password;
+            // Match UI radio buttons to the authorization facade state.
+            IsHelloSelected = _authorizationService.State.ConfiguredGate == AuthorizationGateKind.Hello;
+            IsPasswordSelected = _authorizationService.State.ConfiguredGate == AuthorizationGateKind.Password;
 
             // Fallback if Hello was saved but is no longer available on this hardware
             if (!IsHelloAvailable && IsHelloSelected)

@@ -19,6 +19,7 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
 
     private readonly IAuthorizationService _auth;
     private readonly IMessageService _messageService;
+    private readonly IPasswordPromptService _passwordPromptService;
     private bool _isOfferingHelloAfterPasswordSetup;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -64,10 +65,11 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
         IAuthorizationService auth,
         HelloUnlockViewModel helloVM,
         PasswordUnlockViewModel pwdVM,
-        ISettingsService settingsService,
+        IPasswordPromptService passwordPromptService,
         IMessageService messageService)
     {
         _auth = auth;
+        _passwordPromptService = passwordPromptService;
         _messageService = messageService;
 
         HelloUnlockVM = helloVM;
@@ -129,7 +131,10 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
     {
         StatusMessage = null;
 
-        var cfg = await _auth.ConfigureHelloAsync();
+        var recoveryPassword = PromptForRecoveryPassword();
+        if (recoveryPassword is null) return;
+
+        var cfg = await _auth.ConfigureHelloAsync(recoveryPassword);
         if (cfg == AuthorizationResult.NotAvailable)
         {
             StatusMessage = UI.ui_Unlock_HelloNotAvailableChoosePassword;
@@ -186,7 +191,10 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
                 return;
             }
 
-            var result = await _auth.ConfigureHelloAsync();
+            var recoveryPassword = PromptForRecoveryPassword();
+            if (recoveryPassword is null) return;
+
+            var result = await _auth.ConfigureHelloAsync(recoveryPassword);
             if (result == AuthorizationResult.Success)
             {
                 _messageService.ShowSuccess(UI.ui_EnableHelloAfterPasswordSetup_Success);
@@ -200,6 +208,12 @@ public sealed class UnlockViewModel : INotifyPropertyChanged
             _isOfferingHelloAfterPasswordSetup = false;
         }
     }
+
+    private string? PromptForRecoveryPassword() =>
+        _passwordPromptService.Prompt(
+            UI.ui_AuthorizeChange_CurrentPasswordTitle,
+            UI.ui_AuthorizeChange_CurrentPasswordMessage,
+            requiredErrorMessage: UI.ui_Password_Required);
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

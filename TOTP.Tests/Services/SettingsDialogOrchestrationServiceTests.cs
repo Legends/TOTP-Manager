@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using TOTP.Commands;
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
+using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
@@ -58,6 +59,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         settings.SetupGet(s => s.Current).Returns(appSettings);
         settings.Setup(s => s.LoadAsync()).ReturnsAsync(Result.Ok<IAppSettings>(appSettings));
 
+        auth.SetupGet(a => a.State).Returns(CreateAuthorizationState(appSettings.Authorization));
         auth.Setup(a => a.IsHelloAvailableAsync()).ReturnsAsync(false);
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings())
@@ -124,6 +126,7 @@ public sealed class SettingsDialogOrchestrationServiceTests
         settings.SetupGet(s => s.Current).Returns(appSettings);
         settings.Setup(s => s.LoadAsync()).ReturnsAsync(Result.Ok<IAppSettings>(appSettings));
 
+        auth.SetupGet(a => a.State).Returns(CreateAuthorizationState(appSettings.Authorization));
         auth.Setup(a => a.IsHelloAvailableAsync()).ReturnsAsync(true);
 
         persistence.Setup(p => p.ReadCurrentGeneralSettings())
@@ -177,6 +180,13 @@ public sealed class SettingsDialogOrchestrationServiceTests
         var context = new Mock<IAccountsCollectionContext>();
         context.SetupGet(c => c.AllOtps).Returns(new ObservableCollection<OtpViewModel>());
         return context.Object;
+    }
+
+    private static AuthorizationState CreateAuthorizationState(AuthorizationProfile profile)
+    {
+        var state = new AuthorizationState();
+        state.SetProfile(profile);
+        return state;
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 1500)

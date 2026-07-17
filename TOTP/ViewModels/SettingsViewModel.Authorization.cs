@@ -99,7 +99,8 @@ public sealed partial class SettingsViewModel
 
     private void RevertAuthorizationGateSelectionFromCurrentSettings()
     {
-        var gate = _settingsSvc.Current?.Authorization?.Gate ?? AuthorizationGateKind.Password;
+        var gate = _authorizationService.State.ConfiguredGate;
+        if (gate == AuthorizationGateKind.None) gate = AuthorizationGateKind.Password;
         _suppressAuthAutoSave = true;
         IsHelloSelected = gate == AuthorizationGateKind.Hello;
         IsPasswordSelected = gate == AuthorizationGateKind.Password;

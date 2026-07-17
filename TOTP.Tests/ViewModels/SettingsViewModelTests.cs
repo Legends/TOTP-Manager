@@ -2,6 +2,7 @@ using Moq;
 using TOTP.Commands;
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
+using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
@@ -557,6 +558,10 @@ public sealed class SettingsViewModelTests
         Mock<IMessageService> message,
         Mock<ILogSwitchService> logSwitch)
     {
+        var authorizationState = new AuthorizationState();
+        authorizationState.SetProfile(settings.Object.Current.Authorization);
+        auth.SetupGet(a => a.State).Returns(authorizationState);
+
         return new SettingsViewModel(
             settings.Object,
             auth.Object,

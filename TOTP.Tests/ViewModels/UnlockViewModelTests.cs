@@ -82,7 +82,15 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
                 return AuthorizationResult.Success;
             });
         authMock.Setup(x => x.IsHelloAvailableAsync()).ReturnsAsync(true);
-        authMock.Setup(x => x.ConfigureHelloAsync()).ReturnsAsync(AuthorizationResult.Success);
+        authMock.Setup(x => x.ConfigureHelloAsync("StrongPwd1!")).ReturnsAsync(AuthorizationResult.Success);
+        FreezeMock<IPasswordPromptService>()
+            .Setup(x => x.Prompt(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Func<string, Task<string?>>?>()))
+            .Returns("StrongPwd1!");
         SetupValidPasswordValidation(FreezeMock<IPasswordValidationService>(), "StrongPwd1!", "StrongPwd1!");
         var messageMock = FreezeMock<IMessageService>();
         messageMock
@@ -100,7 +108,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
 
         // Assert
         authMock.Verify(x => x.IsHelloAvailableAsync(), Times.Once);
-        authMock.Verify(x => x.ConfigureHelloAsync(), Times.Once);
+        authMock.Verify(x => x.ConfigureHelloAsync("StrongPwd1!"), Times.Once);
         messageMock.Verify(x => x.ShowSuccess(UI.ui_EnableHelloAfterPasswordSetup_Success, null), Times.Once);
     }
 
@@ -134,7 +142,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
         await WaitUntilAsync(() => authMock.Invocations.Any(i => i.Method.Name == nameof(IAuthorizationService.IsHelloAvailableAsync)));
 
         // Assert
-        authMock.Verify(x => x.ConfigureHelloAsync(), Times.Never);
+        authMock.Verify(x => x.ConfigureHelloAsync(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -161,7 +169,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
         await WaitUntilAsync(() => authMock.Invocations.Any(i => i.Method.Name == nameof(IAuthorizationService.IsHelloAvailableAsync)));
 
         // Assert
-        authMock.Verify(x => x.ConfigureHelloAsync(), Times.Never);
+        authMock.Verify(x => x.ConfigureHelloAsync(It.IsAny<string>()), Times.Never);
         messageMock.Verify(x => x.ShowWarning(UI.ui_EnableHelloAfterPasswordSetup_NotAvailable), Times.Once);
     }
 
@@ -197,6 +205,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
         AutoMocker.Use(helloVm);
         AutoMocker.Use(passwordVm);
         AutoMocker.Use(Mock.Of<ISettingsService>());
+        AutoMocker.Use(Mock.Of<IPasswordPromptService>());
         AutoMocker.Use(Mock.Of<IMessageService>());
 
         // Act

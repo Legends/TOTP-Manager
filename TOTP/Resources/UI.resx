@@ -318,6 +318,12 @@
   <data name="ui_Caption_Warning" xml:space="preserve">
     <value>Attention</value>
   </data>
+  <data name="ui_AuthorizeChange_CurrentPasswordMessage" xml:space="preserve">
+    <value>Enter your current master password to authorize this change.</value>
+  </data>
+  <data name="ui_AuthorizeChange_CurrentPasswordTitle" xml:space="preserve">
+    <value>Confirm master password</value>
+  </data>
   <data name="ui_Edit_Entry" xml:space="preserve">
     <value>Change entry</value>
   </data>

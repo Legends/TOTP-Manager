@@ -10,19 +10,16 @@ namespace TOTP.Services;
 
 public sealed class SettingsAuthorizationWorkflowService(
     IAuthorizationService authorizationService,
-    ISettingsService settingsService,
     IPasswordValidationService passwordValidationService,
     IPasswordPromptService? passwordPromptService = null) : ISettingsAuthorizationWorkflowService
 {
-    private IAppSettings AppSettings => settingsService.Current;
-
     public async Task<SettingsAuthorizationWorkflowResult> ApplyAuthorizationSettingsAsync(
         bool isHelloSelected,
         bool isHelloAvailable,
         string newPassword,
         string confirmPassword)
     {
-        var currentGate = AppSettings.Authorization.Gate;
+        var currentGate = authorizationService.State.ConfiguredGate;
 
         if (isHelloSelected && currentGate != AuthorizationGateKind.Hello)
         {
@@ -31,13 +28,10 @@ public sealed class SettingsAuthorizationWorkflowService(
                 return new SettingsAuthorizationWorkflowResult(false, UI.ui_Settings_Auth_HelloUnsupported);
             }
 
-            if (!AppSettings.Authorization.HasHelloSetup)
+            var helloResult = await EnsureHelloSelectedAsync();
+            if (helloResult != null)
             {
-                var setupResult = await authorizationService.ConfigureHelloAsync();
-                if (setupResult != AuthorizationResult.Success)
-                {
-                    return new SettingsAuthorizationWorkflowResult(false, UI.ui_Settings_Auth_HelloSetupFailed);
-                }
+                return helloResult;
             }
         }
 
@@ -63,7 +57,11 @@ public sealed class SettingsAuthorizationWorkflowService(
                 validation.ConfirmPasswordError);
         }
 
-        var result = await authorizationService.ChangePasswordAsync(string.Empty, newPassword);
+        var currentPassword = PromptForCurrentPassword();
+        if (currentPassword is null)
+            return new SettingsAuthorizationWorkflowResult(false, UI.ui_Password_VerificationFailed);
+
+        var result = await authorizationService.ChangePasswordAsync(currentPassword, newPassword);
         if (result != AuthorizationResult.Success)
         {
             return new SettingsAuthorizationWorkflowResult(false, UI.ui_Password_ValidationFailed);
@@ -77,7 +75,7 @@ public sealed class SettingsAuthorizationWorkflowService(
         bool isHelloAvailable)
     {
         var selectedGate = isHelloSelected ? AuthorizationGateKind.Hello : AuthorizationGateKind.Password;
-        if (AppSettings.Authorization.Gate == selectedGate)
+        if (authorizationService.State.ConfiguredGate == selectedGate)
         {
             return new SettingsAuthorizationWorkflowResult(true);
         }
@@ -89,18 +87,17 @@ public sealed class SettingsAuthorizationWorkflowService(
                 return new SettingsAuthorizationWorkflowResult(false, UI.ui_Settings_Auth_HelloUnsupported);
             }
 
-            if (!AppSettings.Authorization.HasHelloSetup)
+            var helloResult = await EnsureHelloSelectedAsync();
+            if (helloResult != null)
             {
-                var configureResult = await authorizationService.ConfigureHelloAsync();
-                if (configureResult != AuthorizationResult.Success)
-                {
-                    return new SettingsAuthorizationWorkflowResult(false, UI.ui_Settings_Auth_HelloSetupFailed);
-                }
+                return helloResult;
             }
+
+            return new SettingsAuthorizationWorkflowResult(true);
         }
         else
         {
-            if (!AppSettings.Authorization.IsPasswordSetup)
+            if (!authorizationService.State.IsConfigured)
             {
                 return new SettingsAuthorizationWorkflowResult(
                     false,
@@ -146,7 +143,11 @@ public sealed class SettingsAuthorizationWorkflowService(
                 validation.ConfirmPasswordError);
         }
 
-        var result = await authorizationService.ChangePasswordAsync(string.Empty, newPassword);
+        var currentPassword = PromptForCurrentPassword();
+        if (currentPassword is null)
+            return new SettingsAuthorizationWorkflowResult(false, UI.ui_Password_VerificationFailed);
+
+        var result = await authorizationService.ChangePasswordAsync(currentPassword, newPassword);
         if (result != AuthorizationResult.Success)
         {
             return new SettingsAuthorizationWorkflowResult(false, UI.ui_Password_ValidationFailed);
@@ -186,4 +187,27 @@ public sealed class SettingsAuthorizationWorkflowService(
 
         return null;
     }
+
+    private async Task<SettingsAuthorizationWorkflowResult?> EnsureHelloSelectedAsync()
+    {
+        var gateResult = await authorizationService.SetGateAsync(AuthorizationGateKind.Hello);
+        if (gateResult == AuthorizationResult.Success) return null;
+        if (gateResult != AuthorizationResult.PasswordRequired)
+            return new SettingsAuthorizationWorkflowResult(false, UI.ui_Settings_Auth_HelloSetupFailed);
+
+        var recoveryPassword = PromptForCurrentPassword();
+        if (recoveryPassword is null)
+            return new SettingsAuthorizationWorkflowResult(false, UI.ui_Password_VerificationFailed);
+
+        var configured = await authorizationService.ConfigureHelloAsync(recoveryPassword);
+        return configured == AuthorizationResult.Success
+            ? null
+            : new SettingsAuthorizationWorkflowResult(false, UI.ui_Settings_Auth_HelloSetupFailed);
+    }
+
+    private string? PromptForCurrentPassword() =>
+        passwordPromptService?.Prompt(
+            UI.ui_AuthorizeChange_CurrentPasswordTitle,
+            UI.ui_AuthorizeChange_CurrentPasswordMessage,
+            requiredErrorMessage: UI.ui_Password_Required);
 }
