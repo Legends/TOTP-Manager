@@ -59,28 +59,19 @@ public sealed class AccountDAL : IAccountDAL
     public async Task<Result> ExportEncryptedAsync(string targetPath)
     {
         await _semaphore.WaitAsync();
+        byte[]? blob = null;
         try
         {
             targetPath = Path.GetFullPath(targetPath);
             var data = await GetAllInternalAsync();
-            byte[] blob = _vaultService.EncryptVault(data);
+            blob = _vaultService.EncryptVault(data);
             var targetDirectory = Path.GetDirectoryName(targetPath);
             if (string.IsNullOrWhiteSpace(targetDirectory) || !Directory.Exists(targetDirectory))
             {
                 throw new DirectoryNotFoundException("The export directory was not found.");
             }
 
-            var tempPath = CreateStagingPath(targetPath);
-            try
-            {
-                await WriteStagingFileAsync(tempPath, blob);
-                _fileSecurity.RestrictFileToCurrentUser(tempPath);
-                File.Move(tempPath, targetPath, overwrite: true);
-            }
-            finally
-            {
-                TryDeleteTemporaryFile(tempPath);
-            }
+            await CommitEncryptedBlobAsync(targetPath, blob);
 
             return Result.Ok();
         }
@@ -89,7 +80,11 @@ public sealed class AccountDAL : IAccountDAL
             _logger.LogError(ex, "Export failed to {Path}", targetPath);
             return Result.Fail(AccountDalErrorMapper.MapExportError(ex));
         }
-        finally { _semaphore.Release(); }
+        finally
+        {
+            if (blob is not null) CryptographicOperations.ZeroMemory(blob);
+            _semaphore.Release();
+        }
     }
 
     private async Task<List<Account>> GetAllInternalAsync()
@@ -124,24 +119,15 @@ public sealed class AccountDAL : IAccountDAL
     private async Task<Result> ExecuteWriteAsync(Action<List<Account>> action, AppErrorCode operationCode, string operationMessage)
     {
         await _semaphore.WaitAsync();
+        byte[]? blob = null;
         try
         {
             var list = await GetAllInternalAsync();
             action(list);
-            byte[] blob = _vaultService.EncryptVault(list);
+            blob = _vaultService.EncryptVault(list);
 
             SecureStorageDirectory();
-            string tempPath = CreateStagingPath(_secretsPath);
-            try
-            {
-                await WriteStagingFileAsync(tempPath, blob);
-                _fileSecurity.RestrictFileToCurrentUser(tempPath);
-                File.Move(tempPath, _secretsPath, overwrite: true);
-            }
-            finally
-            {
-                TryDeleteTemporaryFile(tempPath);
-            }
+            await CommitEncryptedBlobAsync(_secretsPath, blob);
 
             return Result.Ok();
         }
@@ -150,7 +136,11 @@ public sealed class AccountDAL : IAccountDAL
             _logger.LogError(ex, "Storage operation failed.");
             return Result.Fail(AccountDalErrorMapper.MapWriteError(ex, operationCode, operationMessage));
         }
-        finally { _semaphore.Release(); }
+        finally
+        {
+            if (blob is not null) CryptographicOperations.ZeroMemory(blob);
+            _semaphore.Release();
+        }
     }
 
     public async Task<Result> ReEncryptStorageAsync() => await ExportEncryptedAsync(_secretsPath);
@@ -273,6 +263,91 @@ public sealed class AccountDAL : IAccountDAL
     private static string CreateStagingPath(string destinationPath) =>
         $"{destinationPath}.{Guid.NewGuid():N}.tmp";
 
+    private async Task CommitEncryptedBlobAsync(string destinationPath, byte[] encryptedBlob)
+    {
+        var tempPath = CreateStagingPath(destinationPath);
+        var rollbackPath = $"{destinationPath}.{Guid.NewGuid():N}.rollback";
+        var hadExistingFile = false;
+        var commitCompleted = false;
+        byte[]? previousHash = null;
+        try
+        {
+            await WriteStagingFileAsync(tempPath, encryptedBlob);
+            _fileSecurity.RestrictFileToCurrentUser(tempPath);
+            await VerifyFileBytesAsync(tempPath, encryptedBlob);
+
+            hadExistingFile = File.Exists(destinationPath);
+            if (hadExistingFile)
+            {
+                previousHash = await ComputeFileHashAsync(destinationPath);
+                File.Replace(tempPath, destinationPath, rollbackPath, ignoreMetadataErrors: false);
+            }
+            else
+            {
+                File.Move(tempPath, destinationPath);
+            }
+
+            commitCompleted = true;
+            _fileSecurity.RestrictFileToCurrentUser(destinationPath);
+            await VerifyFileBytesAsync(destinationPath, encryptedBlob);
+            TryDeleteTemporaryFile(rollbackPath);
+        }
+        catch (Exception ex)
+        {
+            if (commitCompleted)
+            {
+                try
+                {
+                    await RollBackCommitAsync(destinationPath, rollbackPath, hadExistingFile, previousHash);
+                }
+                catch (Exception rollbackException)
+                {
+                    _logger.LogCritical(rollbackException, "Failed to roll back an encrypted-vault commit.");
+                    throw new AggregateException(ex, rollbackException);
+                }
+            }
+
+            throw;
+        }
+        finally
+        {
+            TryDeleteTemporaryFile(tempPath);
+            TryDeleteTemporaryFile(rollbackPath);
+            if (previousHash is not null) CryptographicOperations.ZeroMemory(previousHash);
+        }
+    }
+
+    private async Task RollBackCommitAsync(
+        string destinationPath,
+        string rollbackPath,
+        bool hadExistingFile,
+        byte[]? previousHash)
+    {
+        if (!hadExistingFile)
+        {
+            if (File.Exists(destinationPath)) File.Delete(destinationPath);
+            if (File.Exists(destinationPath))
+                throw new IOException("The failed encrypted-vault commit could not be removed.");
+            return;
+        }
+
+        if (previousHash is null || !File.Exists(rollbackPath))
+            throw new FileNotFoundException("The previous encrypted file is unavailable for rollback.");
+
+        _fileSecurity.RestrictFileToCurrentUser(rollbackPath);
+        File.Replace(rollbackPath, destinationPath, destinationBackupFileName: null, ignoreMetadataErrors: false);
+        var restoredHash = await ComputeFileHashAsync(destinationPath);
+        try
+        {
+            if (!CryptographicOperations.FixedTimeEquals(previousHash, restoredHash))
+                throw new InvalidDataException("Encrypted-vault rollback verification failed.");
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(restoredHash);
+        }
+    }
+
     private static async Task WriteStagingFileAsync(string path, byte[] data)
     {
         await using var stream = new FileStream(
@@ -281,7 +356,47 @@ public sealed class AccountDAL : IAccountDAL
             FileAccess.Write,
             FileShare.None,
             bufferSize: 4096,
-            useAsync: true);
+            FileOptions.Asynchronous | FileOptions.WriteThrough);
         await stream.WriteAsync(data);
+        stream.Flush(flushToDisk: true);
+    }
+
+    private static async Task VerifyFileBytesAsync(string path, ReadOnlyMemory<byte> expected)
+    {
+        var info = new FileInfo(path);
+        if (info.Length != expected.Length)
+            throw new InvalidDataException("Encrypted-vault write verification failed.");
+
+        var actual = new byte[expected.Length];
+        try
+        {
+            await using var stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferSize: 4096,
+                useAsync: true);
+            await stream.ReadExactlyAsync(actual);
+            if (!CryptographicOperations.FixedTimeEquals(expected.Span, actual))
+                throw new InvalidDataException("Encrypted-vault write verification failed.");
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(actual);
+        }
+    }
+
+    private static async Task<byte[]> ComputeFileHashAsync(string path)
+    {
+        using var hash = SHA256.Create();
+        await using var stream = new FileStream(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            bufferSize: 4096,
+            useAsync: true);
+        return await hash.ComputeHashAsync(stream);
     }
 }

@@ -225,6 +225,115 @@ public sealed class AccountDalIntegrationTests
     }
 
     [Fact]
+    public async Task AddNewAsync_WhenStagedVaultIsTruncated_PreservesExistingVault()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var originalBytes = Encoding.UTF8.GetBytes("[]");
+        await File.WriteAllBytesAsync(storagePath, originalBytes, cancellationToken);
+        var sut = new AccountDAL(
+            NullLogger<AccountDAL>.Instance,
+            new EchoVaultService(),
+            storagePath,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = path =>
+                {
+                    if (path.EndsWith(".tmp", StringComparison.Ordinal))
+                        File.WriteAllText(path, "[");
+                }
+            });
+
+        var result = await sut.AddNewAsync(new Account(Guid.NewGuid(), "GitHub", "AAAA"));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.OtpCreateFailed, result.GetErrorCode());
+        Assert.Equal(originalBytes, await File.ReadAllBytesAsync(storagePath, cancellationToken));
+        Assert.Empty(Directory.GetFiles(temp.Path, "master.totp.*.tmp"));
+    }
+
+    [Fact]
+    public async Task AddNewAsync_WhenPostCommitHardeningFails_RollsBackExistingVault()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var originalBytes = Encoding.UTF8.GetBytes("[]");
+        await File.WriteAllBytesAsync(storagePath, originalBytes, cancellationToken);
+        var stagedFileWasHardened = false;
+        var sut = new AccountDAL(
+            NullLogger<AccountDAL>.Instance,
+            new EchoVaultService(),
+            storagePath,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = path =>
+                {
+                    if (path.EndsWith(".tmp", StringComparison.Ordinal))
+                    {
+                        stagedFileWasHardened = true;
+                    }
+                    else if (stagedFileWasHardened
+                             && string.Equals(path, storagePath, StringComparison.Ordinal))
+                    {
+                        throw new UnauthorizedAccessException("denied after commit");
+                    }
+                }
+            });
+
+        var result = await sut.AddNewAsync(new Account(Guid.NewGuid(), "GitHub", "AAAA"));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.OtpStorageAccessDenied, result.GetErrorCode());
+        Assert.Equal(originalBytes, await File.ReadAllBytesAsync(storagePath, cancellationToken));
+        Assert.Empty(Directory.GetFiles(temp.Path, "master.totp.*.tmp"));
+        Assert.Empty(Directory.GetFiles(temp.Path, "master.totp.*.rollback"));
+    }
+
+    [Fact]
+    public async Task AddNewAsync_WhenFirstCommitHardeningFails_RemovesFailedVault()
+    {
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var sut = new AccountDAL(
+            NullLogger<AccountDAL>.Instance,
+            new EchoVaultService(),
+            storagePath,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = path =>
+                {
+                    if (string.Equals(path, storagePath, StringComparison.Ordinal))
+                        throw new UnauthorizedAccessException("denied after commit");
+                }
+            });
+
+        var result = await sut.AddNewAsync(new Account(Guid.NewGuid(), "GitHub", "AAAA"));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.OtpStorageAccessDenied, result.GetErrorCode());
+        Assert.False(File.Exists(storagePath));
+        Assert.Empty(Directory.GetFiles(temp.Path, "master.totp.*.tmp"));
+        Assert.Empty(Directory.GetFiles(temp.Path, "master.totp.*.rollback"));
+    }
+
+    [Fact]
+    public async Task AddNewAsync_AfterCommit_ClearsTemporaryEncryptedBlob()
+    {
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var vault = new TrackingVaultService();
+        var sut = CreateSut(storagePath, vault);
+
+        var result = await sut.AddNewAsync(new Account(Guid.NewGuid(), "GitHub", "AAAA"));
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(vault.LastEncryptedBlob);
+        Assert.All(vault.LastEncryptedBlob, value => Assert.Equal(0, value));
+    }
+
+    [Fact]
     public async Task GetAllAsync_WhenVaultCannotBeHardened_ReturnsAccessDenied()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -325,6 +434,19 @@ public sealed class AccountDalIntegrationTests
     {
         public List<Account> DecryptVault(byte[] encryptedBlob) => throw exception;
         public byte[] EncryptVault(List<Account> entries) => throw exception;
+    }
+
+    private sealed class TrackingVaultService : IVaultService
+    {
+        public byte[]? LastEncryptedBlob { get; private set; }
+
+        public List<Account> DecryptVault(byte[] encryptedBlob) => [];
+
+        public byte[] EncryptVault(List<Account> entries)
+        {
+            LastEncryptedBlob = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(entries);
+            return LastEncryptedBlob;
+        }
     }
 
     private sealed class TempDir : IDisposable
