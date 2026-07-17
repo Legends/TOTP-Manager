@@ -25,6 +25,10 @@ public static class DependencyInjection
         var resolvedProfilePath = string.IsNullOrWhiteSpace(rawProfilePath)
             ? applicationPaths.SettingsFilePath
             : Environment.ExpandEnvironmentVariables(rawProfilePath);
+        var rawVaultPath = configuration[StringsConstants.TokensStorageFilePathConfigKey];
+        var resolvedVaultPath = string.IsNullOrWhiteSpace(rawVaultPath)
+            ? applicationPaths.VaultFilePath
+            : Environment.ExpandEnvironmentVariables(rawVaultPath);
         services.AddSingleton<IAppSettingsDAL>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<AppSettingsDAL>>();
@@ -59,6 +63,11 @@ public static class DependencyInjection
         services.AddSingleton<VaultService>();
         services.AddSingleton<IVaultService>(sp => sp.GetRequiredService<VaultService>());
         services.AddSingleton<IVaultKeyVerifier>(sp => sp.GetRequiredService<VaultService>());
+        services.AddSingleton<IStoredVaultKeyVerifier>(sp => new StoredVaultKeyVerifier(
+            resolvedVaultPath,
+            sp.GetRequiredService<IVaultKeyVerifier>(),
+            sp.GetRequiredService<ILogger<StoredVaultKeyVerifier>>(),
+            sp.GetRequiredService<IPlatformFileSecurity>()));
         services.AddSingleton<IExportService, ExportService>();
 
         services.AddSingleton<IAccountDAL>(sp =>
@@ -66,10 +75,7 @@ public static class DependencyInjection
             var logger = sp.GetRequiredService<ILogger<AccountDAL>>();
             var vault = sp.GetRequiredService<IVaultService>();
             var fileSecurity = sp.GetRequiredService<IPlatformFileSecurity>();
-            var path = configuration[StringsConstants.TokensStorageFilePathConfigKey]
-                       ?? applicationPaths.VaultFilePath;
-
-            return new AccountDAL(logger, vault, path, fileSecurity);
+            return new AccountDAL(logger, vault, resolvedVaultPath, fileSecurity);
         });
 
         // 3. Authorization Logic (The bridge)

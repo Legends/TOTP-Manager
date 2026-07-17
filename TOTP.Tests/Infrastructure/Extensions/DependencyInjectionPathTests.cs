@@ -27,11 +27,14 @@ public sealed class DependencyInjectionPathTests : IDisposable
             provider.GetRequiredService<IAppPreferencesStore>());
         var vaultService = provider.GetRequiredService<IVaultService>();
         var vaultKeyVerifier = provider.GetRequiredService<IVaultKeyVerifier>();
+        var storedVaultVerifier = Assert.IsType<StoredVaultKeyVerifier>(
+            provider.GetRequiredService<IStoredVaultKeyVerifier>());
 
         Assert.IsType<WindowsFileSecurity>(provider.GetRequiredService<IPlatformFileSecurity>());
         Assert.Same(vaultService, vaultKeyVerifier);
         Assert.Equal(paths.SettingsFilePath, ReadPath(settingsDal, "_path"));
         Assert.Equal(paths.VaultFilePath, ReadPath(accountDal, "_secretsPath"));
+        Assert.Equal(paths.VaultFilePath, ReadPath(storedVaultVerifier, "_path"));
         Assert.Equal(paths.AuthorizationEnvelopeFilePath, ReadPath(envelopeStore, "_path"));
         Assert.Equal(paths.PreferencesFilePath, ReadPath(preferencesStore, "_path"));
     }
@@ -58,6 +61,10 @@ public sealed class DependencyInjectionPathTests : IDisposable
         Assert.Equal(
             configuredVaultPath,
             ReadPath(Assert.IsType<AccountDAL>(provider.GetRequiredService<IAccountDAL>()), "_secretsPath"));
+        Assert.Equal(
+            configuredVaultPath,
+            ReadPath(Assert.IsType<StoredVaultKeyVerifier>(
+                provider.GetRequiredService<IStoredVaultKeyVerifier>()), "_path"));
     }
 
     private static ServiceProvider BuildProvider(
