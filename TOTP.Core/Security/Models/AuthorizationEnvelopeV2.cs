@@ -22,4 +22,8 @@ public sealed record AuthorizationEnvelopeV2
 
     [JsonPropertyName("passwordWrapper")]
     public required PasswordKeyWrapperV2 PasswordWrapper { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("quickUnlockWrapper")]
+    public PlatformQuickUnlockWrapperV2? QuickUnlockWrapper { get; init; }
 }

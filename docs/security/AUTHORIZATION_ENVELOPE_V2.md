@@ -39,6 +39,16 @@ The proposed file name remains `authorization-envelope.bin` to discourage casual
       "nonce": "<Base64>",
       "ciphertext": "<Base64 ciphertext with appended tag>"
     }
+  },
+  "quickUnlockWrapper": {
+    "provider": "windows-hello-tpm",
+    "providerVersion": 1,
+    "authenticationPolicy": "user-verification-required",
+    "keyReference": "<opaque platform key reference>",
+    "wrappedKey": {
+      "algorithm": "rsa-oaep-sha256",
+      "ciphertext": "<Base64 RSA-2048 ciphertext>"
+    }
   }
 }
 ```
@@ -70,6 +80,26 @@ The implemented v2 reader accepts 3-10 passes, 65,536-262,144 KiB of memory, and
 
 The existing tuple-based methods remain temporarily for the running WPF authorization flow and synthetic historical-fixture tests. They use the development-era empty-AAD construction and are not a fallback for v2. Envelope file persistence and activation are later M2 steps.
 
+## Platform quick-unlock metadata
+
+`quickUnlockWrapper` is optional and device-local. Its absence never makes the envelope invalid, while its presence never relaxes the requirement for a valid `passwordWrapper`. The preferred unlock UI choice remains a preference rather than cryptographic metadata.
+
+| Field | Contract |
+| --- | --- |
+| `provider` | Reviewed platform adapter identifier; currently `windows-hello-tpm` |
+| `providerVersion` | Provider contract version; currently `1` for Windows |
+| `authenticationPolicy` | Must be `user-verification-required`; silent access is not a supported policy |
+| `keyReference` | Opaque, non-secret reference to platform-managed key material; never the key itself |
+| `wrappedKey.algorithm` | Provider-approved key-wrap algorithm |
+| `wrappedKey.nonce` | Optional algorithm-specific nonce; omitted for the Windows RSA wrapper |
+| `wrappedKey.ciphertext` | Platform-wrapped 32-byte vault DEK |
+
+The Windows provider maps the current CNG key name to `keyReference` and the RSA-OAEP-SHA256 result to `wrappedKey.ciphertext`. Version 1 requires the Microsoft Platform Crypto Provider behavior, RSA-2048 ciphertext of exactly 256 bytes, no nonce, and an explicit Windows Hello verification before private-key use. A software-key or silent-decrypt fallback does not satisfy this provider identifier.
+
+`PlatformQuickUnlockContract.IsSupported` is the fail-closed registry for metadata understood today. Unknown provider identifiers, provider versions, authentication policies, algorithms, unexpected nonces, malformed key references, and invalid ciphertext lengths must be treated as unavailable quick unlock. The application then requires the master password; it must not reinterpret the metadata or try a weaker provider.
+
+When a platform key is missing, reset, or belongs to another device, the password wrapper remains authoritative. After password unlock, the stale quick-unlock wrapper may be removed and a new device-local wrapper registered. Key references and wrapped ciphertext are excluded from logs even though the reference is not secret and the DEK remains encrypted.
+
 ## Reader rules
 
 A v2 reader must reject the payload before key derivation when:
@@ -81,6 +111,8 @@ A v2 reader must reject the payload before key derivation when:
 - Base64 is invalid or decoded lengths are invalid;
 - trailing non-whitespace content exists;
 - the AES-GCM authentication check fails.
+
+Unsupported or malformed optional quick-unlock metadata does not invalidate a sound password wrapper. It disables quick unlock and routes the user to master-password recovery. A parser error in the envelope itself still rejects the entire file.
 
 Unknown non-critical properties may be retained for forward-compatible metadata only after a deliberate reader policy is implemented. They must not override known fields or weaken validation.
 
@@ -103,7 +135,7 @@ Temporary password bytes, KEK material, and DEK copies must be cleared or dispos
 - Preferences and the preferred unlock UI choice do not belong in the password wrapper.
 - The current Argon2id/AES-GCM construction remains the baseline, but v2 persists every KDF parameter and adds fixed associated data. Development data may be reset or reconfigured rather than migrated byte-for-byte.
 - Shipping startup reads v2 only and does not probe historical JSON shapes. The development-era DPAPI fixtures are retained solely to document why the ambiguous format must not return.
-- Platform quick-unlock metadata will be added as an optional, explicitly typed section in the next M2 design step.
+- Platform quick-unlock metadata is optional, explicitly typed, and validated against a reviewed provider registry.
 
 ## Threat review
 
