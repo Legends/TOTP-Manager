@@ -100,6 +100,23 @@ The Windows provider maps the current CNG key name to `keyReference` and the RSA
 
 When a platform key is missing, reset, or belongs to another device, the password wrapper remains authoritative. After password unlock, the stale quick-unlock wrapper may be removed and a new device-local wrapper registered. Key references and wrapped ciphertext are excluded from logs even though the reference is not secret and the DEK remains encrypted.
 
+## Platform secret-store contract
+
+`IPlatformSecretStore` defines the portable boundary for device-local secret storage used by future quick-unlock adapters. It exposes a stable provider identifier, an explicit availability state, and asynchronous store, retrieve, and delete operations with cancellation. This contract does not itself enable quick unlock and has no WPF or operating-system dependency.
+
+Contract semantics:
+
+- `StoreAsync` creates or replaces one application-owned reference and succeeds only after the platform store has accepted its own copy.
+- `RetrieveAsync` returns a caller-owned `SensitiveBuffer`; a successful null value means the reference is absent or was reset.
+- `DeleteAsync` is idempotent, including when the reference is already absent.
+- Expected failures use `PlatformSecretStoreError` and `PlatformSecretStoreErrorCode`; cancellation propagates as cancellation rather than being converted to a failure result.
+- `PlatformSecretStoreAvailability.Unknown` is the zero/default state. Callers enable store-dependent behavior only for explicit `Available`.
+- Providers reject empty/invalid references, empty secrets, unsupported sizes, and access-control failures without logging the reference together with secret data.
+
+`SensitiveBuffer` copies retrieved bytes, exposes them as read-only memory, and zeroes its owned array on disposal. The caller owns and must dispose it promptly. Providers must likewise clear temporary copies where practical and must not retain caller memory after `StoreAsync` completes.
+
+The secret store is intended to hold a random device-local quick-unlock wrapping secret, never the master password, OTP seeds, or the sole copy of the vault DEK. An unavailable, missing, denied, or corrupt store routes to master-password recovery; there is no plaintext filesystem fallback. Concrete Windows, macOS, and Linux providers and their platform access-control policies remain later implementation steps.
+
 ## Reader rules
 
 A v2 reader must reject the payload before key derivation when:

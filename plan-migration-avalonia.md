@@ -387,7 +387,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [x] Define authorization envelope version 2.
 - [x] Implement the v2 password wrapper and persist every Argon2 parameter.
 - [x] Define platform quick-unlock wrapper metadata.
-- [ ] Introduce `IPlatformSecretStore`.
+- [x] Introduce `IPlatformSecretStore`.
 - [ ] Introduce `IPlatformQuickUnlock`.
 - [ ] Replace the development-era DPAPI settings store before the first public release.
 - [ ] Preserve Windows Hello/TPM quick unlock through the new contract.
