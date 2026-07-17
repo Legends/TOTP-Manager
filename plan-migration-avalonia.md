@@ -150,7 +150,7 @@ Before applying this convention, reconcile it with the repository's existing tag
 - Preserve user data and rollback capability before optimizing visual polish.
 - Do not weaken update signature verification.
 - Do not allow incomplete platform security providers to fall back to plaintext storage.
-- Build migration fixtures from real historical formats using synthetic secrets.
+- Keep synthetic historical-format fixtures as design and regression evidence.
 
 ## Target solution structure
 
@@ -175,7 +175,7 @@ TOTP.Platform.Abstractions
   OS service contracts
 
 TOTP.Platform.Windows
-  DPAPI migration, Hello/TPM, Windows ACLs, session events
+  Hello/TPM, Windows ACLs, session events
 
 TOTP.Platform.MacOS
   Keychain, LocalAuthentication, file permissions, lifecycle
@@ -360,7 +360,7 @@ Total expected production effort remains approximately **37-62 person-weeks**, w
 ### Objectives
 
 - Make authorization and preferences portable without weakening recovery.
-- Ensure existing Windows users can migrate safely.
+- Establish the clean portable format before the first public release; development-era formats have no compatibility commitment.
 
 ### Target data separation
 
@@ -384,42 +384,41 @@ The exact division must be reviewed. Authorization data must not be moved into p
 
 - [x] Document the current DPAPI settings format.
 - [x] Create synthetic fixtures for every supported historical format.
-- [ ] Define authorization envelope version 2.
-- [ ] Preserve the password-wrapped DEK and Argon2 parameters.
+- [x] Define authorization envelope version 2.
+- [ ] Implement the v2 password wrapper and persist every Argon2 parameter.
 - [ ] Define platform quick-unlock wrapper metadata.
 - [ ] Introduce `IPlatformSecretStore`.
 - [ ] Introduce `IPlatformQuickUnlock`.
-- [ ] Implement Windows DPAPI migration reader.
+- [ ] Replace the development-era DPAPI settings store before the first public release.
 - [ ] Preserve Windows Hello/TPM quick unlock through the new contract.
-- [ ] Require recovery-password readiness before portable migration.
+- [ ] Require recovery-password readiness before platform quick unlock can be enabled.
 - [ ] Implement atomic write and rollback.
-- [ ] Verify the migrated vault before deleting or retiring old metadata.
-- [ ] Preserve a bounded migration backup.
-- [ ] Add interrupted-migration tests at every write boundary.
+- [ ] Verify the v2 envelope can open the vault before it becomes active.
+- [ ] Preserve a bounded previous-envelope backup.
+- [ ] Add interrupted-write tests at every persistence boundary.
 - [ ] Add wrong-password, corrupt-envelope, missing-secret-store, and reset-key tests.
 - [ ] Zero temporary key buffers where practical.
 - [ ] Update the threat model and security verification documentation.
 
-### Migration state machine
+### Activation state machine
 
 ```text
 NotStarted
-  -> LegacyRead
-  -> PasswordVerified
+  -> PasswordConfigured
   -> PortableEnvelopeWritten
   -> PortableEnvelopeVerified
   -> PlatformQuickUnlockRegistered
-  -> MigrationCommitted
+  -> Active
 
-Any failure before MigrationCommitted
+Any replacement failure before Active
   -> RollbackAvailable
 ```
 
 ### Exit criteria
 
-- A Windows legacy fixture migrates without account reimport.
-- Master-password recovery works after migration.
-- Interrupted migration is recoverable.
+- A fresh configuration writes and reopens a portable v2 envelope.
+- Master-password recovery works independently of platform quick unlock.
+- Interrupted writes preserve the previous verified envelope.
 - No plaintext DEK or seed is persisted.
 - The new envelope can be opened by platform-neutral test code.
 - Security review approves the format and state machine.
@@ -644,8 +643,8 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 
 ## Windows
 
-- [ ] Existing data discovery.
-- [ ] DPAPI migration reader.
+- [ ] Portable v2 envelope storage.
+- [ ] First-run/reset handling for development-era local data.
 - [ ] Hello/TPM quick unlock.
 - [ ] Windows ACL hardening.
 - [ ] Session-lock event handling.
@@ -816,7 +815,7 @@ Select a narrow initial set, for example:
 
 - [ ] Publish `v2.0.0-rc1` for all supported desktop OSs.
 - [ ] Use separate test update feeds if required.
-- [ ] Recruit existing Windows users for migration testing.
+- [ ] Recruit first-release testers on every supported platform.
 - [ ] Collect only redacted diagnostics.
 - [ ] Run at least one extended soak period.
 - [ ] Fix blockers and publish subsequent RCs.
@@ -824,7 +823,7 @@ Select a narrow initial set, for example:
 ### Cutover conditions
 
 - [ ] Feature parity is approved.
-- [ ] Existing Windows vault migration succeeds.
+- [ ] Fresh and reset vault setup succeeds on every supported platform.
 - [ ] Rollback succeeds.
 - [ ] Master-password recovery works on all platforms.
 - [ ] Quick-unlock failure cannot strand the vault.
@@ -837,11 +836,9 @@ Select a narrow initial set, for example:
 
 After Avalonia reaches production:
 
-- Keep `release/1.x` for a defined security-support window.
-- Stop adding features to WPF.
-- Publish the WPF end-of-support date.
-- Preserve WPF migration fixtures indefinitely.
-- Do not remove legacy readers until supported migration windows are closed and recovery policy permits it.
+- Retire the unpublished WPF implementation after feature parity is approved.
+- Preserve historical fixtures as regression and design evidence.
+- Do not ship development-era legacy readers in the first public release.
 
 ## Testing strategy
 
@@ -907,7 +904,7 @@ The WPF client cannot be retired until all required items are complete or explic
 | First-run password setup | [ ] | [ ] | [ ] |
 | Master-password unlock | [ ] | [ ] | [ ] |
 | Platform quick unlock | [ ] | [ ] | [ ]/N/A |
-| Legacy Windows migration | [ ] | N/A | N/A |
+| Portable envelope storage | [ ] | [ ] | [ ] |
 | Account CRUD | [ ] | [ ] | [ ] |
 | Search/filter/sort | [ ] | [ ] | [ ] |
 | TOTP display/copy | [ ] | [ ] | [ ] |
@@ -953,7 +950,7 @@ Security-sensitive PRs must additionally document:
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| DPAPI settings cannot be opened outside Windows | User lockout | Perform verified migration on Windows and preserve rollback |
+| Development-only DPAPI storage reaches first release | Non-portable authorization and future lock-in | Replace it with v2 before public release; do not add a shipping legacy reader |
 | Quick unlock becomes sole recovery path | Permanent vault loss | Require master-password recovery on every OS |
 | Syncfusion grid has no equivalent behavior | UX/performance regression | Validate replacement in M3 before full port |
 | Linux secret store unavailable | Unsafe key fallback | Require master password; never persist plaintext key |
@@ -977,7 +974,7 @@ Create these as separate, reviewable issues or pull requests:
 5. **Retarget portable tests away from Windows where possible**
 6. **Document current DPAPI and authorization-envelope formats**
 7. **Design and review portable authorization envelope v2**
-8. **Implement Windows legacy settings migration with rollback tests**
+8. **Implement portable v2 envelope storage with atomic-write and rollback tests**
 9. **Create Avalonia Shared/Desktop project skeletons**
 10. **Implement Avalonia password-unlock vertical slice**
 11. **Evaluate and benchmark Avalonia account-list/grid options**
