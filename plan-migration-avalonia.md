@@ -395,9 +395,9 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [ ] Replace the development-era DPAPI settings store before the first public release.
 - [ ] Preserve Windows Hello/TPM quick unlock through the new contract.
 - [ ] Require recovery-password readiness before platform quick unlock can be enabled.
-- [ ] Implement atomic write and rollback.
+- [x] Implement atomic write and rollback.
 - [ ] Verify the v2 envelope can open the vault before it becomes active.
-- [ ] Preserve a bounded previous-envelope backup.
+- [x] Preserve a bounded previous-envelope backup.
 - [ ] Add interrupted-write tests at every persistence boundary.
 - [ ] Add wrong-password, corrupt-envelope, missing-secret-store, and reset-key tests.
 - [ ] Zero temporary key buffers where practical.

@@ -101,6 +101,123 @@ public sealed class AuthorizationEnvelopeStoreTests
         Assert.Empty(Directory.GetFiles(temp.Path, "authorization-envelope.bin.*.tmp"));
     }
 
+    [Fact]
+    public async Task SaveAsync_WhenReplacingEnvelope_PreservesExactlyOnePreviousEnvelope()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "authorization-envelope.bin");
+        var backupPath = $"{path}.previous";
+        using var store = CreateStore(path);
+        var first = CreateEnvelope(1);
+        var second = CreateEnvelope(2);
+        var third = CreateEnvelope(3);
+
+        Assert.True((await store.SaveAsync(first, cancellationToken)).IsSuccess);
+        Assert.False(File.Exists(backupPath));
+
+        Assert.True((await store.SaveAsync(second, cancellationToken)).IsSuccess);
+        await AssertEnvelopeCiphertextAsync(path, 2, cancellationToken);
+        await AssertEnvelopeCiphertextAsync(backupPath, 1, cancellationToken);
+
+        Assert.True((await store.SaveAsync(third, cancellationToken)).IsSuccess);
+        await AssertEnvelopeCiphertextAsync(path, 3, cancellationToken);
+        await AssertEnvelopeCiphertextAsync(backupPath, 2, cancellationToken);
+        Assert.Single(Directory.GetFiles(temp.Path, "authorization-envelope.bin.previous"));
+    }
+
+    [Fact]
+    public async Task SaveAsync_WhenPostCommitHardeningFails_RollsBackExistingEnvelope()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "authorization-envelope.bin");
+        var first = CreateEnvelope(1);
+        using (var initialStore = CreateStore(path))
+        {
+            Assert.True((await initialStore.SaveAsync(first, cancellationToken)).IsSuccess);
+        }
+
+        using var failingStore = new AuthorizationEnvelopeStore(
+            path,
+            NullLogger<AuthorizationEnvelopeStore>.Instance,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = filePath =>
+                {
+                    if (string.Equals(filePath, path, StringComparison.Ordinal))
+                        throw new UnauthorizedAccessException("denied after commit");
+                }
+            });
+
+        var result = await failingStore.SaveAsync(CreateEnvelope(2), cancellationToken);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            AuthorizationEnvelopeErrorCode.WriteAccessDenied,
+            AuthorizationEnvelopeV2CodecTests.ErrorCode(result.Errors));
+        await AssertEnvelopeCiphertextAsync(path, 1, cancellationToken);
+        await AssertEnvelopeCiphertextAsync($"{path}.previous", 1, cancellationToken);
+        Assert.Empty(Directory.GetFiles(temp.Path, "authorization-envelope.bin.*.tmp"));
+        Assert.Empty(Directory.GetFiles(temp.Path, "authorization-envelope.bin.*.rollback"));
+    }
+
+    [Fact]
+    public async Task SaveAsync_WhenFirstCommitHardeningFails_RemovesFailedEnvelope()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "authorization-envelope.bin");
+        using var store = new AuthorizationEnvelopeStore(
+            path,
+            NullLogger<AuthorizationEnvelopeStore>.Instance,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = filePath =>
+                {
+                    if (string.Equals(filePath, path, StringComparison.Ordinal))
+                        throw new UnauthorizedAccessException("denied after commit");
+                }
+            });
+
+        var result = await store.SaveAsync(CreateEnvelope(1), cancellationToken);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            AuthorizationEnvelopeErrorCode.WriteAccessDenied,
+            AuthorizationEnvelopeV2CodecTests.ErrorCode(result.Errors));
+        Assert.False(File.Exists(path));
+        Assert.False(File.Exists($"{path}.previous"));
+        Assert.Empty(Directory.GetFiles(temp.Path, "authorization-envelope.bin.*.tmp"));
+    }
+
+    private static AuthorizationEnvelopeV2 CreateEnvelope(byte marker)
+    {
+        var envelope = AuthorizationEnvelopeV2CodecTests.CreateEnvelope();
+        return envelope with
+        {
+            PasswordWrapper = envelope.PasswordWrapper with
+            {
+                WrappedKey = envelope.PasswordWrapper.WrappedKey with
+                {
+                    Ciphertext = Enumerable.Repeat(marker, 48).ToArray()
+                }
+            }
+        };
+    }
+
+    private static async Task AssertEnvelopeCiphertextAsync(
+        string path,
+        byte marker,
+        CancellationToken cancellationToken)
+    {
+        using var store = CreateStore(path);
+        var loaded = await store.LoadAsync(cancellationToken);
+
+        Assert.True(loaded.IsSuccess);
+        Assert.Equal(Enumerable.Repeat(marker, 48), loaded.Value?.PasswordWrapper.WrappedKey.Ciphertext);
+    }
+
     private static AuthorizationEnvelopeStore CreateStore(string path) =>
         new(path, NullLogger<AuthorizationEnvelopeStore>.Instance, NoOpPlatformFileSecurity.Instance);
 

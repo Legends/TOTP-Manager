@@ -87,6 +87,10 @@ public sealed class AuthorizationEnvelopeStore : IAuthorizationEnvelopeStore
         if (encoded.IsFailed) return Result.Fail(encoded.Errors);
 
         var lockTaken = false;
+        var commitCompleted = false;
+        var hadExistingEnvelope = false;
+        var backupPath = $"{_path}.previous";
+        string? tempPath = null;
         try
         {
             await _lock.WaitAsync(cancellationToken);
@@ -95,27 +99,40 @@ public sealed class AuthorizationEnvelopeStore : IAuthorizationEnvelopeStore
                 throw new UnauthorizedAccessException("The authorization-envelope path refers to a directory.");
 
             SecureStorageDirectory();
-            var tempPath = $"{_path}.{Guid.NewGuid():N}.tmp";
-            try
+            tempPath = $"{_path}.{Guid.NewGuid():N}.tmp";
+            await using (var stream = new FileStream(
+                tempPath,
+                FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 4096,
+                FileOptions.Asynchronous | FileOptions.WriteThrough))
             {
-                await using (var stream = new FileStream(
-                    tempPath,
-                    FileMode.CreateNew,
-                    FileAccess.Write,
-                    FileShare.None,
-                    bufferSize: 4096,
-                    useAsync: true))
-                {
-                    await stream.WriteAsync(encoded.Value, cancellationToken);
-                }
+                await stream.WriteAsync(encoded.Value, cancellationToken);
+                stream.Flush(flushToDisk: true);
+            }
 
-                _fileSecurity.RestrictFileToCurrentUser(tempPath);
-                File.Move(tempPath, _path, overwrite: true);
-            }
-            finally
+            _fileSecurity.RestrictFileToCurrentUser(tempPath);
+            await VerifyFileAsync(tempPath, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            hadExistingEnvelope = File.Exists(_path);
+            if (hadExistingEnvelope)
             {
-                TryDeleteTemporaryFile(tempPath);
+                File.Replace(tempPath, _path, backupPath, ignoreMetadataErrors: false);
             }
+            else
+            {
+                File.Move(tempPath, _path);
+            }
+
+            commitCompleted = true;
+            _fileSecurity.RestrictFileToCurrentUser(_path);
+            if (hadExistingEnvelope)
+                _fileSecurity.RestrictFileToCurrentUser(backupPath);
+
+            await VerifyFileAsync(_path, CancellationToken.None);
+            if (!hadExistingEnvelope) TryDeleteTemporaryFile(backupPath);
 
             return Result.Ok();
         }
@@ -125,14 +142,32 @@ public sealed class AuthorizationEnvelopeStore : IAuthorizationEnvelopeStore
         }
         catch (Exception ex)
         {
+            Exception failure = ex;
+            if (commitCompleted)
+            {
+                try
+                {
+                    await RollBackCommitAsync(hadExistingEnvelope, backupPath);
+                }
+                catch (Exception rollbackException)
+                {
+                    _logger.LogCritical(rollbackException, "Failed to roll back the authorization-envelope commit.");
+                    failure = new AggregateException(ex, rollbackException);
+                }
+            }
+
             _logger.LogError(ex, "Failed to save the authorization envelope.");
             var code = ex is UnauthorizedAccessException
                 ? AuthorizationEnvelopeErrorCode.WriteAccessDenied
                 : AuthorizationEnvelopeErrorCode.WriteFailed;
-            return Result.Fail(new AuthorizationEnvelopeError(code, "Failed to save the authorization envelope.", ex));
+            return Result.Fail(new AuthorizationEnvelopeError(
+                code,
+                "Failed to save the authorization envelope.",
+                failure));
         }
         finally
         {
+            if (tempPath is not null) TryDeleteTemporaryFile(tempPath);
             CryptographicOperations.ZeroMemory(encoded.Value);
             if (lockTaken) _lock.Release();
         }
@@ -140,10 +175,16 @@ public sealed class AuthorizationEnvelopeStore : IAuthorizationEnvelopeStore
 
     public void Dispose() => _lock.Dispose();
 
-    private async Task<int> ReadBoundedAsync(byte[] buffer, CancellationToken cancellationToken)
+    private Task<int> ReadBoundedAsync(byte[] buffer, CancellationToken cancellationToken) =>
+        ReadBoundedAsync(_path, buffer, cancellationToken);
+
+    private static async Task<int> ReadBoundedAsync(
+        string path,
+        byte[] buffer,
+        CancellationToken cancellationToken)
     {
         await using var stream = new FileStream(
-            _path,
+            path,
             FileMode.Open,
             FileAccess.Read,
             FileShare.Read,
@@ -158,6 +199,62 @@ public sealed class AuthorizationEnvelopeStore : IAuthorizationEnvelopeStore
         }
 
         return total;
+    }
+
+    private static async Task VerifyFileAsync(string path, CancellationToken cancellationToken)
+    {
+        var payload = new byte[AuthorizationEnvelopeV2Codec.MaximumPayloadSize + 1];
+        try
+        {
+            var length = await ReadBoundedAsync(path, payload, cancellationToken);
+            if (length > AuthorizationEnvelopeV2Codec.MaximumPayloadSize
+                || AuthorizationEnvelopeV2Codec.Deserialize(payload.AsMemory(0, length)).IsFailed)
+            {
+                throw new InvalidDataException("Authorization-envelope verification failed.");
+            }
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(payload);
+        }
+    }
+
+    private async Task RollBackCommitAsync(bool hadExistingEnvelope, string backupPath)
+    {
+        if (!hadExistingEnvelope)
+        {
+            if (File.Exists(_path)) File.Delete(_path);
+            if (File.Exists(_path))
+                throw new IOException("The failed authorization-envelope commit could not be removed.");
+            return;
+        }
+
+        if (!File.Exists(backupPath))
+            throw new FileNotFoundException("The previous authorization envelope is unavailable for rollback.");
+
+        var rollbackPath = $"{_path}.{Guid.NewGuid():N}.rollback";
+        try
+        {
+            File.Copy(backupPath, rollbackPath, overwrite: false);
+            using (var rollbackStream = new FileStream(
+                rollbackPath,
+                FileMode.Open,
+                FileAccess.ReadWrite,
+                FileShare.Read,
+                bufferSize: 1,
+                FileOptions.WriteThrough))
+            {
+                rollbackStream.Flush(flushToDisk: true);
+            }
+
+            _fileSecurity.RestrictFileToCurrentUser(rollbackPath);
+            File.Replace(rollbackPath, _path, destinationBackupFileName: null, ignoreMetadataErrors: false);
+            await VerifyFileAsync(_path, CancellationToken.None);
+        }
+        finally
+        {
+            TryDeleteTemporaryFile(rollbackPath);
+        }
     }
 
     private void SecureStorageDirectory()
