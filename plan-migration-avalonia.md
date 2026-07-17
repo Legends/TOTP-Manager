@@ -383,7 +383,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 ### Tasks
 
 - [x] Document the current DPAPI settings format.
-- [ ] Create synthetic fixtures for every supported historical format.
+- [x] Create synthetic fixtures for every supported historical format.
 - [ ] Define authorization envelope version 2.
 - [ ] Preserve the password-wrapped DEK and Argon2 parameters.
 - [ ] Define platform quick-unlock wrapper metadata.

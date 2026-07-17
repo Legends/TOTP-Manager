@@ -1,0 +1,22 @@
+{
+  "MinimumLogLevel": 2,
+  "Authorization": {
+    "Gate": 2,
+    "PasswordSalt": "AQIDBAUGBwgJCgsMDQ4PEA==",
+    "ArgonIterations": 3,
+    "ArgonMemorySize": 65536,
+    "PasswordWrappedDek": "c+Ia0l5JRmkE+iHj3rdw40FpVIaKlhePbjENBJDrwBuHsl2TMIvYbeFiyKBfRVbN",
+    "DekNonce": "ISIjJCUmJygpKiss",
+    "HelloWrappedDek": null,
+    "HelloKeyId": null,
+    "IsConfigured": true,
+    "IsPasswordSetup": true,
+    "HasHelloSetup": false
+  },
+  "IdleTimeout": "00:08:00",
+  "LockOnSessionLock": true,
+  "ClearClipboardEnabled": true,
+  "ClearClipboardSeconds": 12,
+  "ExportEncrypt": true,
+  "HideSecretsByDefault": true
+}

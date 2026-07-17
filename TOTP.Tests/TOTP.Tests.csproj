@@ -47,6 +47,10 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Fixtures\LegacySettings\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <!-- In TOTP.Tests.csproj -->
   <Target Name="RunTestsAfterBuild" AfterTargets="Build" Condition="'$(CI)' != 'true' AND '$(RunTestsOnBuild)' == 'true'">
     <Exec Command="dotnet test &quot;$(MSBuildProjectFullPath)&quot; --configuration $(Configuration) --no-build" />

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "v0-authorization-profile-pbkdf2",
+    "file": "v0-authorization-profile-pbkdf2.json",
+    "sourceCommit": "29a1af4",
+    "rootKind": "AuthorizationProfile",
+    "authorizationKind": "Pbkdf2PasswordHash",
+    "expectedCurrentReader": "LosesTopLevelAuthorization"
+  },
+  {
+    "id": "v1-global-profile-minimal-pbkdf2",
+    "file": "v1-global-profile-minimal-pbkdf2.json",
+    "sourceCommit": "ad26f22",
+    "rootKind": "GlobalProfile",
+    "authorizationKind": "Pbkdf2PasswordHash",
+    "expectedCurrentReader": "PasswordHashUnsupported"
+  },
+  {
+    "id": "v2-global-profile-expanded-pbkdf2",
+    "file": "v2-global-profile-expanded-pbkdf2.json",
+    "sourceCommit": "47aef6d",
+    "rootKind": "GlobalProfile",
+    "authorizationKind": "Pbkdf2PasswordHash",
+    "expectedCurrentReader": "PasswordHashUnsupported"
+  },
+  {
+    "id": "v3-global-profile-dek-envelope",
+    "file": "v3-global-profile-dek-envelope.json",
+    "sourceCommit": "d7133ef",
+    "rootKind": "GlobalProfile",
+    "authorizationKind": "Argon2idWrappedDek",
+    "expectedCurrentReader": "PasswordEnvelopeSupported"
+  },
+  {
+    "id": "v4-app-settings-dek-envelope",
+    "file": "v4-app-settings-dek-envelope.json",
+    "sourceCommit": "e816612",
+    "rootKind": "AppSettings",
+    "authorizationKind": "Argon2idWrappedDek",
+    "expectedCurrentReader": "PasswordEnvelopeSupported"
+  },
+  {
+    "id": "v5-current-app-settings",
+    "file": "v5-current-app-settings.json",
+    "sourceCommit": "570e5ed",
+    "rootKind": "AppSettings",
+    "authorizationKind": "Argon2idWrappedDekAndHello",
+    "expectedCurrentReader": "PasswordEnvelopeSupported"
+  }
+]

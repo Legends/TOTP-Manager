@@ -1,0 +1,16 @@
+{
+  "MinimumLogLevel": 2,
+  "Authorization": {
+    "Gate": 2,
+    "PasswordSalt": "AQIDBAUGBwgJCgsMDQ4PEA==",
+    "PasswordHash": "5GwHmXNaSpPGuOG6OJ1zWCn/12HEkfRTqIZ89ylz1P8=",
+    "IsConfigured": true
+  },
+  "IdleTimeout": "00:07:00",
+  "LockOnSessionLock": true,
+  "ClearClipboardEnabled": true,
+  "ClearClipboardSeconds": 15,
+  "ExportIncludeQr": false,
+  "ExportEncrypt": true,
+  "HideSecretsByDefault": true
+}

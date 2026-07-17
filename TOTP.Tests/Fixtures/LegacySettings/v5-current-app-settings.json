@@ -1,0 +1,26 @@
+{
+  "CultureName": "de-DE",
+  "MinimumLogLevel": 2,
+  "Authorization": {
+    "Gate": 1,
+    "PasswordSalt": "AQIDBAUGBwgJCgsMDQ4PEA==",
+    "ArgonIterations": 3,
+    "ArgonMemorySize": 65536,
+    "PasswordWrappedDek": "c+Ia0l5JRmkE+iHj3rdw40FpVIaKlhePbjENBJDrwBuHsl2TMIvYbeFiyKBfRVbN",
+    "DekNonce": "ISIjJCUmJygpKiss",
+    "HelloWrappedDek": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/w==",
+    "HelloKeyId": "TOTP_TPM_SYNTHETIC_FIXTURE",
+    "IsConfigured": true,
+    "IsPasswordSetup": true,
+    "HasHelloSetup": true
+  },
+  "IdleTimeout": "00:10:00",
+  "LockOnSessionLock": true,
+  "LockOnMinimize": true,
+  "ClearClipboardEnabled": true,
+  "ClearClipboardSeconds": 15,
+  "QrPreviewScaleFactor": 1.5,
+  "ExportEncrypt": true,
+  "OpenExportFileAfterExport": true,
+  "HideSecretsByDefault": true
+}
