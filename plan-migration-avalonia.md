@@ -385,7 +385,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [x] Document the current DPAPI settings format.
 - [x] Create synthetic fixtures for every supported historical format.
 - [x] Define authorization envelope version 2.
-- [ ] Implement the v2 password wrapper and persist every Argon2 parameter.
+- [x] Implement the v2 password wrapper and persist every Argon2 parameter.
 - [ ] Define platform quick-unlock wrapper metadata.
 - [ ] Introduce `IPlatformSecretStore`.
 - [ ] Introduce `IPlatformQuickUnlock`.

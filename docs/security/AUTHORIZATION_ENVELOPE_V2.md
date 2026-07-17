@@ -62,6 +62,14 @@ The proposed file name remains `authorization-envelope.bin` to discourage casual
 
 The legacy implementation uses empty associated data. Because no released data must remain compatible, the v2 password wrapper instead uses the exact UTF-8 bytes of `totp-manager/authorization-envelope/v2/password-wrapper` as AES-GCM associated data. This domain-separates the wrapped key from other AES-GCM uses. A reader must not retry with empty associated data after v2 authentication fails.
 
+The implemented v2 reader accepts 3-10 passes, 65,536-262,144 KiB of memory, and parallelism exactly 1. Salt, nonce, and ciphertext lengths must be exactly 16, 12, and 48 bytes respectively. These v2 minimums intentionally reject the weaker implementation-minimum values retained only by the development-era legacy API. Parallelism remains explicit in the wire format so another implementation cannot silently choose a different value; the current NSec backend supports one for this construction.
+
+## Implementation status
+
+`IMasterPasswordService.WrapKeyV2Async` creates a complete `PasswordKeyWrapperV2`, including the algorithm/version identifiers, salt, passes, memory cost in KiB, parallelism, nonce, and authenticated ciphertext. `UnwrapKeyV2Async` consumes those persisted values and validates the complete wrapper before starting Argon2id.
+
+The existing tuple-based methods remain temporarily for the running WPF authorization flow and synthetic historical-fixture tests. They use the development-era empty-AAD construction and are not a fallback for v2. Envelope file persistence and activation are later M2 steps.
+
 ## Reader rules
 
 A v2 reader must reject the payload before key derivation when:

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NSec.Cryptography;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 
 namespace TOTP.Infrastructure.Security;
 
@@ -32,6 +33,15 @@ public sealed class MasterPasswordService : IMasterPasswordService
     private const int MaxPasses = 10;
     private const int MinMemorySizeKiB = 8;
     private const int MaxMemorySizeKiB = 256 * 1024;
+    private const int V2MinPasses = DefaultPasses;
+    private const int V2MinMemorySizeKiB = DefaultMemorySizeKiB;
+    private const int MinParallelism = 1;
+    private const int MaxParallelism = 1;
+    private const int DekSize = 32;
+    private const int AesGcmTagSize = 16;
+
+    private static readonly byte[] V2AssociatedData =
+        Encoding.UTF8.GetBytes(AesGcmWrappedKeyV2.AssociatedDataContext);
 
     public MasterPasswordService(ILogger<MasterPasswordService> logger)
     {
@@ -146,6 +156,116 @@ public sealed class MasterPasswordService : IMasterPasswordService
         });
     }
 
+    public Task<PasswordKeyWrapperV2> WrapKeyV2Async(
+        byte[] rawDek,
+        string password,
+        CancellationToken cancellationToken = default)
+    {
+        if (rawDek is null || rawDek.Length != DekSize)
+        {
+            throw new ArgumentException($"DEK must be exactly {DekSize} bytes.", nameof(rawDek));
+        }
+
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            throw new ArgumentException("Password cannot be empty.", nameof(password));
+        }
+
+        return Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var salt = RandomNumberGenerator.GetBytes(SaltSize);
+            var nonce = RandomNumberGenerator.GetBytes(NonceSize);
+            var argonParams = new Argon2Parameters
+            {
+                NumberOfPasses = DefaultPasses,
+                MemorySize = DefaultMemorySizeKiB,
+                DegreeOfParallelism = DefaultParallelism
+            };
+            var argon2 = PasswordBasedKeyDerivationAlgorithm.Argon2id(argonParams);
+            var passwordBytes = Encoding.UTF8.GetBytes(password);
+
+            try
+            {
+                using var kek = argon2.DeriveKey(passwordBytes, salt, AeadAlgorithm.Aes256Gcm);
+                cancellationToken.ThrowIfCancellationRequested();
+                var ciphertext = AeadAlgorithm.Aes256Gcm.Encrypt(kek, nonce, V2AssociatedData, rawDek);
+
+                return new PasswordKeyWrapperV2
+                {
+                    Kdf = new Argon2idParametersV2
+                    {
+                        Salt = salt,
+                        Passes = DefaultPasses,
+                        MemoryKiB = DefaultMemorySizeKiB,
+                        Parallelism = DefaultParallelism
+                    },
+                    WrappedKey = new AesGcmWrappedKeyV2
+                    {
+                        Nonce = nonce,
+                        Ciphertext = ciphertext
+                    }
+                };
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(passwordBytes);
+            }
+        }, cancellationToken);
+    }
+
+    public Task<byte[]?> UnwrapKeyV2Async(
+        PasswordKeyWrapperV2 wrapper,
+        string password,
+        CancellationToken cancellationToken = default)
+    {
+        if (!IsValidV2Wrapper(wrapper) || string.IsNullOrWhiteSpace(password))
+        {
+            return Task.FromResult<byte[]?>(null);
+        }
+
+        return Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var argonParams = new Argon2Parameters
+            {
+                NumberOfPasses = wrapper.Kdf.Passes,
+                MemorySize = wrapper.Kdf.MemoryKiB,
+                DegreeOfParallelism = wrapper.Kdf.Parallelism
+            };
+            var passwordBytes = Encoding.UTF8.GetBytes(password);
+
+            try
+            {
+                var argon2 = PasswordBasedKeyDerivationAlgorithm.Argon2id(argonParams);
+                using var kek = argon2.DeriveKey(
+                    passwordBytes,
+                    wrapper.Kdf.Salt,
+                    AeadAlgorithm.Aes256Gcm);
+                cancellationToken.ThrowIfCancellationRequested();
+                return AeadAlgorithm.Aes256Gcm.Decrypt(
+                    kek,
+                    wrapper.WrappedKey.Nonce,
+                    V2AssociatedData,
+                    wrapper.WrappedKey.Ciphertext);
+            }
+            catch (CryptographicException)
+            {
+                _logger.LogWarning("V2 password-wrapper authentication failed.");
+                return null;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "Unexpected failure while opening the v2 password wrapper.");
+                return null;
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(passwordBytes);
+            }
+        }, cancellationToken);
+    }
+
     private static void ValidateInputs(byte[] rawDek, string password)
     {
         if (rawDek == null || rawDek.Length == 0)
@@ -177,5 +297,25 @@ public sealed class MasterPasswordService : IMasterPasswordService
         }
 
         return wrappedDek.Length >= AeadAlgorithm.Aes256Gcm.TagSize;
+    }
+
+    private static bool IsValidV2Wrapper(PasswordKeyWrapperV2? wrapper)
+    {
+        if (wrapper?.Kdf is null || wrapper.WrappedKey is null)
+        {
+            return false;
+        }
+
+        var kdf = wrapper.Kdf;
+        var wrappedKey = wrapper.WrappedKey;
+        return string.Equals(kdf.Algorithm, Argon2idParametersV2.AlgorithmIdentifier, StringComparison.Ordinal)
+            && kdf.Version == Argon2idParametersV2.CurrentAlgorithmVersion
+            && kdf.Salt is { Length: SaltSize }
+            && kdf.Passes is >= V2MinPasses and <= MaxPasses
+            && kdf.MemoryKiB is >= V2MinMemorySizeKiB and <= MaxMemorySizeKiB
+            && kdf.Parallelism is >= MinParallelism and <= MaxParallelism
+            && string.Equals(wrappedKey.Algorithm, AesGcmWrappedKeyV2.AlgorithmIdentifier, StringComparison.Ordinal)
+            && wrappedKey.Nonce is { Length: NonceSize }
+            && wrappedKey.Ciphertext is { Length: DekSize + AesGcmTagSize };
     }
 }
