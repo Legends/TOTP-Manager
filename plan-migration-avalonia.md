@@ -391,6 +391,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [x] Introduce `IPlatformQuickUnlock`.
 - [x] Add the strict portable v2 codec and inactive envelope store.
 - [x] Add the strict portable preferences codec and inactive store.
+- [x] Add explicit preference mapping that excludes authorization data.
 - [ ] Replace the development-era DPAPI settings store before the first public release.
 - [ ] Preserve Windows Hello/TPM quick unlock through the new contract.
 - [ ] Require recovery-password readiness before platform quick unlock can be enabled.

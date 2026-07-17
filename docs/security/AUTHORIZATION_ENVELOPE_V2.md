@@ -88,6 +88,8 @@ The existing tuple-based methods remain temporarily for the running WPF authoriz
 
 `AppPreferencesStore` is registered separately but also remains inactive until coordinated activation. Plaintext JSON is acceptable for these reviewed preference fields, while current-user file protection still limits casual cross-user access. Reads are bounded to 32 KiB and their buffers are cleared defensively. This is not permission to add authorization metadata or other sensitive values to the preferences model; any new field requires a data-classification review.
 
+`AppPreferencesMapper` is the sole allowlisted bridge between mutable in-memory `IAppSettings` and `AppPreferencesV1`. It copies only reviewed preference fields, normalizes legacy/out-of-range values to codec-valid values, and never reads or replaces the `AuthorizationProfile`. This makes authorization exclusion behavioral rather than relying only on JSON naming. Coordinated service activation remains pending.
+
 ## Platform quick-unlock metadata
 
 `quickUnlockWrapper` is optional and device-local. Its absence never makes the envelope invalid, while its presence never relaxes the requirement for a valid `passwordWrapper`. The preferred unlock UI choice remains a preference rather than cryptographic metadata.
