@@ -84,6 +84,10 @@ The existing tuple-based methods remain temporarily for the running WPF authoriz
 
 `AuthorizationEnvelopeStore` is registered separately at `authorization-envelope.bin` but is not yet consumed by the WPF authorization flow. It performs bounded streaming reads, clears plaintext payload buffers, applies platform file protection, and writes through a same-directory hardened staging file. The existing DPAPI `settings.totp` remains active until preferences and authorization orchestration are separated. Stable-storage flush, verified reread, bounded backup, and activation rollback remain later checklist items; this store must not be treated as fully activated before those steps are complete.
 
+`AppPreferencesV1` defines the non-secret half of that separation. Its `preferences.json` wire format contains only UI/runtime preferences, uses explicit format/version fields and string log-level names, and persists idle timeout in whole minutes. The codec rejects duplicate or unknown fields, numeric enum values, invalid cultures, and values outside the UI-supported ranges. Because the model has no authorization member and unknown fields are disallowed, password salts, wrapped keys, platform references, and OTP material cannot be serialized through this contract.
+
+`AppPreferencesStore` is registered separately but also remains inactive until coordinated activation. Plaintext JSON is acceptable for these reviewed preference fields, while current-user file protection still limits casual cross-user access. Reads are bounded to 32 KiB and their buffers are cleared defensively. This is not permission to add authorization metadata or other sensitive values to the preferences model; any new field requires a data-classification review.
+
 ## Platform quick-unlock metadata
 
 `quickUnlockWrapper` is optional and device-local. Its absence never makes the envelope invalid, while its presence never relaxes the requirement for a valid `passwordWrapper`. The preferred unlock UI choice remains a preference rather than cryptographic metadata.

@@ -23,11 +23,14 @@ public sealed class DependencyInjectionPathTests : IDisposable
         var accountDal = Assert.IsType<AccountDAL>(provider.GetRequiredService<IAccountDAL>());
         var envelopeStore = Assert.IsType<AuthorizationEnvelopeStore>(
             provider.GetRequiredService<IAuthorizationEnvelopeStore>());
+        var preferencesStore = Assert.IsType<AppPreferencesStore>(
+            provider.GetRequiredService<IAppPreferencesStore>());
 
         Assert.IsType<WindowsFileSecurity>(provider.GetRequiredService<IPlatformFileSecurity>());
         Assert.Equal(paths.SettingsFilePath, ReadPath(settingsDal, "_path"));
         Assert.Equal(paths.VaultFilePath, ReadPath(accountDal, "_secretsPath"));
         Assert.Equal(paths.AuthorizationEnvelopeFilePath, ReadPath(envelopeStore, "_path"));
+        Assert.Equal(paths.PreferencesFilePath, ReadPath(preferencesStore, "_path"));
     }
 
     [Fact]

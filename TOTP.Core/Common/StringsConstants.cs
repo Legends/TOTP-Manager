@@ -10,5 +10,6 @@ public static class StringsConstants
     public const string TokensStorageFileName = "master.totp";
     public const string AppSettingsStorageFileName = "settings.totp";
     public const string AuthorizationEnvelopeFileName = "authorization-envelope.bin";
+    public const string PreferencesFileName = "preferences.json";
     public const string AutoUpdateStateFileName = "autoupdate-state.json";
 }

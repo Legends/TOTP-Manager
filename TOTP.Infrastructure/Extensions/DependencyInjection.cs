@@ -40,6 +40,12 @@ public static class DependencyInjection
                 logger,
                 fileSecurity);
         });
+        services.AddSingleton<IAppPreferencesStore>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<AppPreferencesStore>>();
+            var fileSecurity = sp.GetRequiredService<IPlatformFileSecurity>();
+            return new AppPreferencesStore(applicationPaths.PreferencesFilePath, logger, fileSecurity);
+        });
        
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<ITotpGenerator, OtpNetTotpGenerator>();
