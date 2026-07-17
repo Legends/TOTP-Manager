@@ -23,6 +23,9 @@ public sealed record AppPreferencesV1
     [JsonPropertyName("minimumLogLevel")]
     public AppLogLevel MinimumLogLevel { get; init; } = AppLogLevel.Information;
 
+    [JsonPropertyName("preferredUnlockMethod")]
+    public PreferredUnlockMethod PreferredUnlockMethod { get; init; } = PreferredUnlockMethod.Password;
+
     [JsonPropertyName("idleTimeoutMinutes")]
     public int IdleTimeoutMinutes { get; init; } = 10;
 

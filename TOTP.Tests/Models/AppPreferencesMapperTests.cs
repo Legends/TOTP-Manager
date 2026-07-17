@@ -21,6 +21,7 @@ public sealed class AppPreferencesMapperTests
 
         Assert.Equal("de-DE", preferences.CultureName);
         Assert.Equal(AppLogLevel.Warning, preferences.MinimumLogLevel);
+        Assert.Equal(PreferredUnlockMethod.PlatformQuickUnlock, preferences.PreferredUnlockMethod);
         Assert.Equal(7, preferences.IdleTimeoutMinutes);
         Assert.False(preferences.LockOnSessionLock);
         Assert.False(preferences.LockOnMinimize);
@@ -53,6 +54,7 @@ public sealed class AppPreferencesMapperTests
         Assert.Equal("synthetic-key", settings.Authorization.HelloKeyId);
         Assert.Equal("de-DE", settings.CultureName);
         Assert.Equal(AppLogLevel.Warning, settings.MinimumLogLevel);
+        Assert.Equal(PreferredUnlockMethod.PlatformQuickUnlock, settings.PreferredUnlockMethod);
         Assert.Equal(TimeSpan.FromMinutes(7), settings.IdleTimeout);
         Assert.False(settings.LockOnSessionLock);
         Assert.False(settings.LockOnMinimize);
@@ -71,6 +73,7 @@ public sealed class AppPreferencesMapperTests
         {
             CultureName = "not a culture!",
             MinimumLogLevel = (AppLogLevel)999,
+            PreferredUnlockMethod = (PreferredUnlockMethod)999,
             IdleTimeout = TimeSpan.FromSeconds(30),
             ClearClipboardSeconds = 0,
             QrPreviewScaleFactor = double.NaN
@@ -81,6 +84,7 @@ public sealed class AppPreferencesMapperTests
 
         Assert.Equal("en", preferences.CultureName);
         Assert.Equal(AppLogLevel.Information, preferences.MinimumLogLevel);
+        Assert.Equal(PreferredUnlockMethod.Password, preferences.PreferredUnlockMethod);
         Assert.Equal(1, preferences.IdleTimeoutMinutes);
         Assert.Equal(AppSettings.DefaultClearClipboardSeconds, preferences.ClearClipboardSeconds);
         Assert.Equal(AppSettings.DefaultQrPreviewScaleFactor, preferences.QrPreviewScaleFactor);
@@ -105,6 +109,7 @@ public sealed class AppPreferencesMapperTests
         Authorization = authorization,
         CultureName = "de-DE",
         MinimumLogLevel = AppLogLevel.Warning,
+        PreferredUnlockMethod = PreferredUnlockMethod.PlatformQuickUnlock,
         IdleTimeout = TimeSpan.FromMinutes(7),
         LockOnSessionLock = false,
         LockOnMinimize = false,

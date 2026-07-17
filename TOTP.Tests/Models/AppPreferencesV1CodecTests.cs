@@ -30,6 +30,8 @@ public sealed class AppPreferencesV1CodecTests
         Assert.DoesNotContain("helloWrappedDek", json, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("passwordSalt", json, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("otpSeed", json, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("\"preferredUnlockMethod\": \"PlatformQuickUnlock\"", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("Hello", json, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -37,6 +39,8 @@ public sealed class AppPreferencesV1CodecTests
     [InlineData("{\"format\":\"totp-preferences\",\"format\":\"other\",\"version\":1}")]
     [InlineData("{\"format\":\"totp-preferences\",\"version\":1,\"authorization\":{}}")]
     [InlineData("{\"format\":\"totp-preferences\",\"version\":1,\"minimumLogLevel\":2}")]
+    [InlineData("{\"format\":\"totp-preferences\",\"version\":1,\"preferredUnlockMethod\":1}")]
+    [InlineData("{\"format\":\"totp-preferences\",\"version\":1,\"preferredUnlockMethod\":\"Unknown\"}")]
     public void Deserialize_MalformedDuplicateOrAuthorizationField_FailsClosed(string json)
     {
         var result = AppPreferencesV1Codec.Deserialize(Encoding.UTF8.GetBytes(json));
@@ -67,10 +71,36 @@ public sealed class AppPreferencesV1CodecTests
         Assert.Equal(AppPreferencesErrorCode.InvalidValue, ErrorCode(result.Errors));
     }
 
+    [Fact]
+    public void Serialize_InvalidPreferredUnlockMethod_ReturnsTypedFailure()
+    {
+        var preferences = CreatePreferences() with
+        {
+            PreferredUnlockMethod = (PreferredUnlockMethod)999
+        };
+
+        var result = AppPreferencesV1Codec.Serialize(preferences);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppPreferencesErrorCode.InvalidValue, ErrorCode(result.Errors));
+    }
+
+    [Fact]
+    public void Deserialize_WhenPreferredUnlockMethodIsMissing_DefaultsToPassword()
+    {
+        const string json = "{\"format\":\"totp-preferences\",\"version\":1}";
+
+        var result = AppPreferencesV1Codec.Deserialize(Encoding.UTF8.GetBytes(json));
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(PreferredUnlockMethod.Password, result.Value.PreferredUnlockMethod);
+    }
+
     internal static AppPreferencesV1 CreatePreferences() => new()
     {
         CultureName = "de-DE",
         MinimumLogLevel = AppLogLevel.Warning,
+        PreferredUnlockMethod = PreferredUnlockMethod.PlatformQuickUnlock,
         IdleTimeoutMinutes = 7,
         LockOnSessionLock = false,
         LockOnMinimize = false,

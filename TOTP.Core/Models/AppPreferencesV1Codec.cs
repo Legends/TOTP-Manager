@@ -52,6 +52,7 @@ public static class AppPreferencesV1Codec
         if (preferences.Version != AppPreferencesV1.CurrentVersion)
             return Fail(AppPreferencesErrorCode.UnsupportedVersion, "Preferences version is unsupported.");
         if (!Enum.IsDefined(preferences.MinimumLogLevel)
+            || !Enum.IsDefined(preferences.PreferredUnlockMethod)
             || preferences.IdleTimeoutMinutes is < 0 or > 1440
             || preferences.ClearClipboardSeconds is < 1 or > 300
             || !double.IsFinite(preferences.QrPreviewScaleFactor)
@@ -96,6 +97,7 @@ public static class AppPreferencesV1Codec
     {
         var options = new JsonSerializerOptions { MaxDepth = 8, WriteIndented = true };
         options.Converters.Add(new JsonStringEnumConverter<AppLogLevel>(namingPolicy: null, allowIntegerValues: false));
+        options.Converters.Add(new JsonStringEnumConverter<PreferredUnlockMethod>(namingPolicy: null, allowIntegerValues: false));
         return options;
     }
 }
