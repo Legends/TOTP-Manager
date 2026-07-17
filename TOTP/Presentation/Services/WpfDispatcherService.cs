@@ -3,15 +3,15 @@ using System;
 using System.Windows;
 using System.Windows.Threading;
 using System.Threading.Tasks;
-using TOTP.Presentation.Services.Interfaces;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Presentation.Services;
 
-public sealed class WpfDispatcherService : IDispatcherService
+public sealed class WpfDispatcherService : IUiScheduler
 {
     public bool CheckAccess() => Application.Current?.Dispatcher?.CheckAccess() ?? true;
 
-    public void InvokeOnUI(Action action)
+    public void Post(Action action)
     {
         ArgumentNullException.ThrowIfNull(action);
 
@@ -23,6 +23,20 @@ public sealed class WpfDispatcherService : IDispatcherService
         }
 
         dispatcher.BeginInvoke(action, DispatcherPriority.DataBind);
+    }
+
+    public async Task InvokeAsync(Action action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+        {
+            action();
+            return;
+        }
+
+        await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
     }
 
     public async Task InvokeAsync(Func<Task> action)

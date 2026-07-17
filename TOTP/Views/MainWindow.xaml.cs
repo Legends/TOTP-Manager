@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Threading;
 using TOTP.Presentation.Adapters;
 using TOTP.Presentation.Services.Interfaces;
+using TOTP.Core.Services.Interfaces;
 using TOTP.UserControls;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views.Components;
@@ -187,12 +188,8 @@ public partial class MainWindow : ChromelessWindow, IMainWindow
         base.OnClosed(e);
         Log.Information("mainwindow.closed end");
 
-        var application = Application.Current;
-        if (application != null && !application.Dispatcher.HasShutdownStarted && !application.Dispatcher.HasShutdownFinished)
-        {
-            Log.Information("mainwindow.closed requesting_application_shutdown");
-            application.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(application.Shutdown));
-        }
+        Log.Information("mainwindow.closed requesting_application_shutdown");
+        _applicationLifetime.Shutdown();
     }
 
     private void ExitProcessFromMainWindowClose()

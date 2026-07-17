@@ -12,7 +12,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Xml.Linq;
 using TOTP.AutoUpdate;
 using TOTP.Core.Services.Interfaces;
@@ -34,6 +33,8 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
     private readonly Func<string, Task> _logRemoteAppcastAsync;
     private readonly Func<string> _resolveAssemblyLocation;
     private readonly IPlatformApplicationPaths _applicationPaths;
+    private readonly IUiScheduler _uiScheduler;
+    private readonly IApplicationLifetime _applicationLifetime;
     private IAutoUpdateClient? _sparkle;
     private IAutoUpdateUiCoordinator? _uiFactory;
     private bool _initialized;
@@ -43,8 +44,17 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
         IConfiguration configuration,
         ILogger<AutoUpdateService> logger,
         ILoggerFactory loggerFactory,
-        IPlatformApplicationPaths applicationPaths)
-        : this(configuration, logger, loggerFactory, applicationPaths, new NetSparkleAutoUpdateRuntimeFactory())
+        IPlatformApplicationPaths applicationPaths,
+        IUiScheduler uiScheduler,
+        IApplicationLifetime applicationLifetime)
+        : this(
+            configuration,
+            logger,
+            loggerFactory,
+            applicationPaths,
+            uiScheduler,
+            applicationLifetime,
+            new NetSparkleAutoUpdateRuntimeFactory())
     {
     }
 
@@ -53,6 +63,8 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
         ILogger<AutoUpdateService> logger,
         ILoggerFactory loggerFactory,
         IPlatformApplicationPaths applicationPaths,
+        IUiScheduler uiScheduler,
+        IApplicationLifetime applicationLifetime,
         IAutoUpdateRuntimeFactory runtimeFactory,
         Func<string, Task>? logRemoteAppcastAsync = null,
         Func<string>? resolveAssemblyLocation = null)
@@ -61,6 +73,8 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         _applicationPaths = applicationPaths ?? throw new ArgumentNullException(nameof(applicationPaths));
+        _uiScheduler = uiScheduler ?? throw new ArgumentNullException(nameof(uiScheduler));
+        _applicationLifetime = applicationLifetime ?? throw new ArgumentNullException(nameof(applicationLifetime));
         _runtimeFactory = runtimeFactory ?? throw new ArgumentNullException(nameof(runtimeFactory));
         _logRemoteAppcastAsync = logRemoteAppcastAsync ?? LogRemoteAppcastAsync;
         _resolveAssemblyLocation = resolveAssemblyLocation ?? ResolveAssemblyLocation;
@@ -261,20 +275,7 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
         sparkle.OnCloseApplication(() =>
         {
             _logger.LogInformation("Auto-update event: close application requested.");
-            var application = Application.Current;
-            if (application == null)
-            {
-                _logger.LogWarning("Auto-update close request ignored because there is no current WPF application.");
-                return;
-            }
-
-            if (application.Dispatcher.CheckAccess())
-            {
-                application.Shutdown();
-                return;
-            }
-
-            application.Dispatcher.Invoke(application.Shutdown);
+            _applicationLifetime.Shutdown();
         });
     }
 
@@ -344,15 +345,9 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
             return;
         }
 
-        if (Application.Current?.Dispatcher == null)
-        {
-            _logger.LogWarning("Auto-update UI fallback skipped because there is no active WPF dispatcher. source={SourceLabel}", sourceLabel);
-            return;
-        }
+        _logger.LogWarning("Auto-update UI fallback is forcing ShowUpdateNeededUI on the UI scheduler. source={SourceLabel}", sourceLabel);
 
-        _logger.LogWarning("Auto-update UI fallback is forcing ShowUpdateNeededUI on the WPF dispatcher. source={SourceLabel}", sourceLabel);
-
-        await Application.Current.Dispatcher.InvokeAsync(() =>
+        await _uiScheduler.InvokeAsync(() =>
         {
             _sparkle.ShowUpdateNeededUI(updates, false);
         });
@@ -365,13 +360,7 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
             return;
         }
 
-        if (Application.Current?.Dispatcher == null)
-        {
-            _logger.LogWarning("Auto-update manual result UI skipped because there is no active WPF dispatcher.");
-            return;
-        }
-
-        await Application.Current.Dispatcher.InvokeAsync(() =>
+        await _uiScheduler.InvokeAsync(() =>
         {
             if (updateInfo?.Status == UpdateStatus.UpdateAvailable)
             {
@@ -464,22 +453,7 @@ public sealed class AutoUpdateService : IAutoUpdateService, IDisposable
             return false;
         }
 
-        var application = Application.Current;
-        if (application == null)
-        {
-            _logger.LogWarning("Auto-update install helper started, but the current WPF application was null during shutdown handoff.");
-            return true;
-        }
-
-        if (application.Dispatcher.CheckAccess())
-        {
-            application.Shutdown();
-        }
-        else
-        {
-            await application.Dispatcher.InvokeAsync(application.Shutdown);
-        }
-
+        _applicationLifetime.Shutdown();
         return true;
     }
 

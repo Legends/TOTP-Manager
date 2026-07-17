@@ -489,7 +489,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
     private readonly IQrPreviewService _qrPreviewService;
     private readonly IScannerWarmupService _scannerWarmupService;
     private readonly IAutoUpdateService _autoUpdateService;
-    private readonly IDispatcherService _dispatcherService;
+    private readonly IUiScheduler _dispatcherService;
     private readonly IApplicationLifetime _applicationLifetime;
 
     private bool _otpLoadedFromStore;
@@ -517,7 +517,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
         IQrPreviewService qrPreviewService,
         IScannerWarmupService scannerWarmupService,
         IAutoUpdateService autoUpdateService,
-        IDispatcherService dispatcherService,
+        IUiScheduler dispatcherService,
         IApplicationLifetime applicationLifetime,
         IMainViewSessionController sessionController,
         UnlockViewModel unlockVm,

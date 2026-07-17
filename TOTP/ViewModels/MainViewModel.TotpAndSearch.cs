@@ -147,7 +147,7 @@ public partial class MainViewModel
             _activeStep = step;
             var now = DateTime.UtcNow;
 
-            _dispatcherService.InvokeOnUI(
+            _dispatcherService.Post(
                () =>
                {
                    if (SelectedAccount is null || string.IsNullOrWhiteSpace(SelectedAccount.Secret))

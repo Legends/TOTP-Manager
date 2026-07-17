@@ -2,7 +2,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using TOTP.Presentation.Services.Interfaces;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 
@@ -140,9 +140,9 @@ public sealed class QrScannerViewModelTests
     [Fact]
     public async Task Start_WhenRunnerCallbacksArriveFromWorkerThread_MarshalsUiStateChanges()
     {
-        var dispatcher = new Mock<IDispatcherService>();
+        var dispatcher = new Mock<IUiScheduler>();
         dispatcher.Setup(d => d.CheckAccess()).Returns(false);
-        dispatcher.Setup(d => d.InvokeOnUI(It.IsAny<Action>()))
+        dispatcher.Setup(d => d.Post(It.IsAny<Action>()))
             .Callback<Action>(action => action());
         var runner = new FakeRunner((token, onPreview, onFirstFrame, onDecoded) => Task.Run(() =>
         {
@@ -159,7 +159,7 @@ public sealed class QrScannerViewModelTests
         await WaitUntilAsync(() => vm.DecodedText is not null);
 
         Assert.Equal("otpauth://totp/worker-thread", vm.DecodedText);
-        dispatcher.Verify(d => d.InvokeOnUI(It.IsAny<Action>()), Times.AtLeast(3));
+        dispatcher.Verify(d => d.Post(It.IsAny<Action>()), Times.AtLeast(3));
     }
 
     private static BitmapSource CreateBitmap()

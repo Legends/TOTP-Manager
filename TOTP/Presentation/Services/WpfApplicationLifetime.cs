@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 using Serilog;
-using TOTP.Presentation.Services.Interfaces;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Presentation.Services;
 
@@ -13,6 +13,11 @@ public sealed class WpfApplicationLifetime : IApplicationLifetime
         if (application == null)
         {
             ExitProcess(exitCode);
+            return;
+        }
+
+        if (application.Dispatcher.HasShutdownStarted || application.Dispatcher.HasShutdownFinished)
+        {
             return;
         }
 

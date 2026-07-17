@@ -6,12 +6,14 @@ using NetSparkleUpdater.Configurations;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.Events;
 using NetSparkleUpdater.Interfaces;
+using Moq;
 using System.ComponentModel;
 using System.Windows;
 using TOTP.AutoUpdate;
 using TOTP.Tests.Common;
 using TOTP.Services;
 using TOTP.Infrastructure.Platform;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Tests.Services;
 
@@ -21,6 +23,20 @@ public sealed class AutoUpdateServiceTests
     private readonly WindowsApplicationPaths _applicationPaths = new(
         AppContext.BaseDirectory,
         Path.Combine(Path.GetTempPath(), $"totp-update-tests-{Guid.NewGuid():N}"));
+    private readonly Mock<IUiScheduler> _uiScheduler = new();
+    private readonly Mock<IApplicationLifetime> _applicationLifetime = new();
+
+    public AutoUpdateServiceTests()
+    {
+        _uiScheduler.Setup(s => s.InvokeAsync(It.IsAny<Action>()))
+            .Returns<Action>(action =>
+            {
+                action();
+                return Task.CompletedTask;
+            });
+        _uiScheduler.Setup(s => s.InvokeAsync(It.IsAny<Func<Task>>()))
+            .Returns<Func<Task>>(action => action());
+    }
 
     [Fact]
     public async Task InitializeAsync_WhenAutoUpdateDisabled_DoesNotCreateRuntime()
@@ -104,6 +120,21 @@ public sealed class AutoUpdateServiceTests
         Assert.Equal(1, client.DisposeCount);
     }
 
+    [Fact]
+    public async Task CloseApplicationEvent_UsesApplicationLifetimeBoundary()
+    {
+        var client = new FakeAutoUpdateClient();
+        var factory = new FakeAutoUpdateRuntimeFactory(client, new FakeAutoUpdateUiCoordinator());
+        var sut = CreateSut(BuildEnabledConfiguration(), factory);
+        await sut.InitializeAsync();
+
+        Assert.Equal(1, factory.CreateCount);
+        Assert.True(client.HasCloseApplicationHandler);
+        client.RaiseCloseApplication();
+
+        _applicationLifetime.Verify(l => l.Shutdown(0), Times.Once);
+    }
+
     private AutoUpdateService CreateSut(IConfiguration configuration, FakeAutoUpdateRuntimeFactory factory)
     {
         return new AutoUpdateService(
@@ -111,9 +142,11 @@ public sealed class AutoUpdateServiceTests
             NullLogger<AutoUpdateService>.Instance,
             NullLoggerFactory.Instance,
             _applicationPaths,
+            _uiScheduler.Object,
+            _applicationLifetime.Object,
             factory,
             _ => Task.CompletedTask,
-            () => AppContext.BaseDirectory);
+            () => typeof(AutoUpdateService).Assembly.Location);
     }
 
     private static IConfiguration BuildEnabledConfiguration()
@@ -209,6 +242,7 @@ public sealed class AutoUpdateServiceTests
         public List<bool> QuietCheckCalls { get; } = [];
         public int StopLoopCount { get; private set; }
         public int DisposeCount { get; private set; }
+        public bool HasCloseApplicationHandler => _closeApplication != null;
 
         public Task<UpdateInfo?> CheckForUpdatesQuietly(bool userInitiated)
         {
@@ -249,6 +283,7 @@ public sealed class AutoUpdateServiceTests
         public void OnDownloadHadError(Action<AppCastItem, string?, Exception> callback) => _downloadHadError = callback;
         public void OnPreparingToExit(Action<CancelEventArgs> callback) => _preparingToExit = callback;
         public void OnCloseApplication(Action callback) => _closeApplication = callback;
+        public void RaiseCloseApplication() => _closeApplication?.Invoke();
         public void Dispose() => DisposeCount++;
     }
 

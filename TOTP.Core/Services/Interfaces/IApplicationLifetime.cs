@@ -1,4 +1,4 @@
-namespace TOTP.Presentation.Services.Interfaces;
+namespace TOTP.Core.Services.Interfaces;
 
 public interface IApplicationLifetime
 {

@@ -323,10 +323,10 @@ Total expected production effort remains approximately **37-62 person-weeks**, w
 
 #### M1.4 Dispatcher and application lifetime
 
-- [ ] Replace WPF-specific dispatcher assumptions with a UI scheduler abstraction.
-- [ ] Keep `WpfDispatcherService` as the Windows implementation.
-- [ ] Remove direct `Application.Current` use from reusable workflows.
-- [ ] Keep process exit and shutdown behind application lifetime services.
+- [x] Replace WPF-specific dispatcher assumptions with a UI scheduler abstraction.
+- [x] Keep `WpfDispatcherService` as the Windows implementation.
+- [x] Remove direct `Application.Current` use from reusable workflows.
+- [x] Keep process exit and shutdown behind application lifetime services.
 
 #### M1.5 Window-independent user interaction
 

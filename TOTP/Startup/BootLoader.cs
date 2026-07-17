@@ -105,8 +105,8 @@ public static class BootLoader
                 #endregion
 
                 // 1. Register the platform-specific infrastructure
-                services.AddSingleton<IDispatcherService, WpfDispatcherService>();
-                services.AddSingleton<TOTP.Presentation.Services.Interfaces.IApplicationLifetime, WpfApplicationLifetime>();
+                services.AddSingleton<IUiScheduler, WpfDispatcherService>();
+                services.AddSingleton<TOTP.Core.Services.Interfaces.IApplicationLifetime, WpfApplicationLifetime>();
                 services.AddSingleton<ISettingsWindowCoordinator, SettingsWindowCoordinator>();
 
                 #region ### SECURITY & CORE SERVICES ###

@@ -614,7 +614,7 @@ public sealed class MainViewModelTests : IDisposable
         public Mock<IQrPreviewService> QrPreview { get; } = new();
         public Mock<IScannerWarmupService> ScannerWarmup { get; } = new();
         public Mock<IAutoUpdateService> AutoUpdate { get; } = new();
-        public Mock<IDispatcherService> Dispatcher { get; } = new();
+        public Mock<IUiScheduler> Dispatcher { get; } = new();
         public Mock<IApplicationLifetime> ApplicationLifetime { get; } = new();
         public Mock<ISettingsDialogOrchestrationService> SettingsDialog { get; } = new();
         public Mock<ILocalizationService> Localization { get; } = new();

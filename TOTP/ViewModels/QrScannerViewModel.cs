@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
 using TOTP.Commands;
-using TOTP.Presentation.Services.Interfaces;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
 
@@ -17,7 +17,7 @@ namespace TOTP.ViewModels
     {
         private readonly IQrScannerRunner _qrScannerRunner;
         private readonly ILogger<QrScannerViewModel> _logger;
-        private readonly IDispatcherService? _dispatcher;
+        private readonly IUiScheduler? _dispatcher;
         private CancellationTokenSource? _cts;
         private Task? _cameraTask;
         private bool _closeRequested;
@@ -66,7 +66,7 @@ namespace TOTP.ViewModels
         public QrScannerViewModel(
             IQrScannerRunner qrScannerRunner,
             ILogger<QrScannerViewModel> logger,
-            IDispatcherService? dispatcher = null)
+            IUiScheduler? dispatcher = null)
         {
             _qrScannerRunner = qrScannerRunner;
             _logger = logger;
@@ -217,7 +217,7 @@ namespace TOTP.ViewModels
                 return;
             }
 
-            _dispatcher.InvokeOnUI(() =>
+            _dispatcher.Post(() =>
             {
                 if (!_disposed)
                 {
