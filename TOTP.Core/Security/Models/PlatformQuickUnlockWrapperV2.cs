@@ -6,6 +6,7 @@ namespace TOTP.Core.Security.Models;
 /// Optional device-local quick-unlock metadata. This wrapper is never a
 /// replacement for <see cref="PasswordKeyWrapperV2"/>.
 /// </summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PlatformQuickUnlockWrapperV2
 {
     [JsonPropertyName("provider")]

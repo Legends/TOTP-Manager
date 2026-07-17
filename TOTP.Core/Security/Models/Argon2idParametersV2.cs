@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace TOTP.Core.Security.Models;
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record Argon2idParametersV2
 {
     public const string AlgorithmIdentifier = "argon2id";

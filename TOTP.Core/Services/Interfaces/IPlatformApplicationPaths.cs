@@ -10,6 +10,7 @@ public interface IPlatformApplicationPaths
     string ApplicationDataDirectory { get; }
     string VaultFilePath { get; }
     string SettingsFilePath { get; }
+    string AuthorizationEnvelopeFilePath { get; }
     string BackupDirectory { get; }
     string LogDirectory { get; }
     string LogFilePath { get; }

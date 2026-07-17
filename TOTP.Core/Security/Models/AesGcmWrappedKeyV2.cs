@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace TOTP.Core.Security.Models;
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AesGcmWrappedKeyV2
 {
     public const string AlgorithmIdentifier = "aes-256-gcm";

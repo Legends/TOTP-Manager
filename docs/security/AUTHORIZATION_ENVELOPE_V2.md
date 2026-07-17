@@ -78,7 +78,11 @@ The implemented v2 reader accepts 3-10 passes, 65,536-262,144 KiB of memory, and
 
 `IMasterPasswordService.WrapKeyV2Async` creates a complete `PasswordKeyWrapperV2`, including the algorithm/version identifiers, salt, passes, memory cost in KiB, parallelism, nonce, and authenticated ciphertext. `UnwrapKeyV2Async` consumes those persisted values and validates the complete wrapper before starting Argon2id.
 
-The existing tuple-based methods remain temporarily for the running WPF authorization flow and synthetic historical-fixture tests. They use the development-era empty-AAD construction and are not a fallback for v2. Envelope file persistence and activation are later M2 steps.
+The existing tuple-based methods remain temporarily for the running WPF authorization flow and synthetic historical-fixture tests. They use the development-era empty-AAD construction and are not a fallback for v2. Envelope activation is a later M2 step.
+
+`AuthorizationEnvelopeV2Codec` is the strict portable codec. It caps payloads at 64 KiB, limits JSON depth, rejects duplicate and unknown properties, validates the complete password wrapper, and rejects unsupported headers before any KDF work. Unsupported optional quick-unlock metadata may be read so password recovery remains possible, but the writer will not create unsupported metadata.
+
+`AuthorizationEnvelopeStore` is registered separately at `authorization-envelope.bin` but is not yet consumed by the WPF authorization flow. It performs bounded streaming reads, clears plaintext payload buffers, applies platform file protection, and writes through a same-directory hardened staging file. The existing DPAPI `settings.totp` remains active until preferences and authorization orchestration are separated. Stable-storage flush, verified reread, bounded backup, and activation rollback remain later checklist items; this store must not be treated as fully activated before those steps are complete.
 
 ## Platform quick-unlock metadata
 
@@ -146,6 +150,8 @@ A v2 reader must reject the payload before key derivation when:
 - Base64 is invalid or decoded lengths are invalid;
 - trailing non-whitespace content exists;
 - the AES-GCM authentication check fails.
+
+The implemented codec performs structural and parameter validation. AES-GCM authentication occurs only when `IMasterPasswordService.UnwrapKeyV2Async` is called with the user-supplied password.
 
 Unsupported or malformed optional quick-unlock metadata does not invalidate a sound password wrapper. It disables quick unlock and routes the user to master-password recovery. A parser error in the envelope itself still rejects the entire file.
 

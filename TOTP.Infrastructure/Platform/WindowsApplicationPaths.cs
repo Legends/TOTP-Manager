@@ -26,6 +26,7 @@ public sealed class WindowsApplicationPaths : IPlatformApplicationPaths
         ConfigurationFilePath = Path.Combine(ExecutableDirectory, StringsConstants.AppSettingsFileName);
         VaultFilePath = Path.Combine(ApplicationDataDirectory, StringsConstants.TokensStorageFileName);
         SettingsFilePath = Path.Combine(ApplicationDataDirectory, StringsConstants.AppSettingsStorageFileName);
+        AuthorizationEnvelopeFilePath = Path.Combine(ApplicationDataDirectory, StringsConstants.AuthorizationEnvelopeFileName);
         BackupDirectory = ApplicationDataDirectory;
         LogDirectory = Path.Combine(ExecutableDirectory, "Logs");
         LogFilePath = Path.Combine(LogDirectory, "app.log");
@@ -37,6 +38,7 @@ public sealed class WindowsApplicationPaths : IPlatformApplicationPaths
     public string ApplicationDataDirectory { get; }
     public string VaultFilePath { get; }
     public string SettingsFilePath { get; }
+    public string AuthorizationEnvelopeFilePath { get; }
     public string BackupDirectory { get; }
     public string LogDirectory { get; }
     public string LogFilePath { get; }

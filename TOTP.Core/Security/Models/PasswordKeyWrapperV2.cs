@@ -6,6 +6,7 @@ namespace TOTP.Core.Security.Models;
 /// Parameters and ciphertext required to recover the vault DEK with the
 /// master password. All byte arrays are encoded as Base64 in JSON.
 /// </summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PasswordKeyWrapperV2
 {
     [JsonPropertyName("kdf")]

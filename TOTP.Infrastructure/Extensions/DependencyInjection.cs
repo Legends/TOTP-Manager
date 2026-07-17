@@ -31,6 +31,15 @@ public static class DependencyInjection
             var fileSecurity = sp.GetRequiredService<IPlatformFileSecurity>();
             return new AppSettingsDAL(resolvedProfilePath, logger, fileSecurity);
         });
+        services.AddSingleton<IAuthorizationEnvelopeStore>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<AuthorizationEnvelopeStore>>();
+            var fileSecurity = sp.GetRequiredService<IPlatformFileSecurity>();
+            return new AuthorizationEnvelopeStore(
+                applicationPaths.AuthorizationEnvelopeFilePath,
+                logger,
+                fileSecurity);
+        });
        
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<ITotpGenerator, OtpNetTotpGenerator>();

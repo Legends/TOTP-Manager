@@ -7,6 +7,7 @@ namespace TOTP.Core.Security.Models;
 /// Platform quick-unlock wrappers are added separately and must never replace
 /// the password wrapper as the recovery path.
 /// </summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AuthorizationEnvelopeV2
 {
     public const string FormatIdentifier = "totp-authorization-envelope";

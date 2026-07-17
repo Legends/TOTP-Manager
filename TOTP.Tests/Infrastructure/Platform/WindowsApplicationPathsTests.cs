@@ -19,6 +19,7 @@ public sealed class WindowsApplicationPathsTests
         Assert.Equal(appDataDirectory, sut.ApplicationDataDirectory);
         Assert.Equal(Path.Combine(appDataDirectory, "master.totp"), sut.VaultFilePath);
         Assert.Equal(Path.Combine(appDataDirectory, "settings.totp"), sut.SettingsFilePath);
+        Assert.Equal(Path.Combine(appDataDirectory, "authorization-envelope.bin"), sut.AuthorizationEnvelopeFilePath);
         Assert.Equal(appDataDirectory, sut.BackupDirectory);
         Assert.Equal(Path.Combine(executableDirectory, "Logs"), sut.LogDirectory);
         Assert.Equal(Path.Combine(executableDirectory, "Logs", "app.log"), sut.LogFilePath);
