@@ -56,7 +56,9 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordValidationService, PasswordValidationService>();
 
         // 2. The Vault & DAL logic
-        services.AddSingleton<IVaultService, VaultService>();
+        services.AddSingleton<VaultService>();
+        services.AddSingleton<IVaultService>(sp => sp.GetRequiredService<VaultService>());
+        services.AddSingleton<IVaultKeyVerifier>(sp => sp.GetRequiredService<VaultService>());
         services.AddSingleton<IExportService, ExportService>();
 
         services.AddSingleton<IAccountDAL>(sp =>

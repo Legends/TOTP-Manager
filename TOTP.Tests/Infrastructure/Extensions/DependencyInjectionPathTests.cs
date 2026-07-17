@@ -25,8 +25,11 @@ public sealed class DependencyInjectionPathTests : IDisposable
             provider.GetRequiredService<IAuthorizationEnvelopeStore>());
         var preferencesStore = Assert.IsType<AppPreferencesStore>(
             provider.GetRequiredService<IAppPreferencesStore>());
+        var vaultService = provider.GetRequiredService<IVaultService>();
+        var vaultKeyVerifier = provider.GetRequiredService<IVaultKeyVerifier>();
 
         Assert.IsType<WindowsFileSecurity>(provider.GetRequiredService<IPlatformFileSecurity>());
+        Assert.Same(vaultService, vaultKeyVerifier);
         Assert.Equal(paths.SettingsFilePath, ReadPath(settingsDal, "_path"));
         Assert.Equal(paths.VaultFilePath, ReadPath(accountDal, "_secretsPath"));
         Assert.Equal(paths.AuthorizationEnvelopeFilePath, ReadPath(envelopeStore, "_path"));

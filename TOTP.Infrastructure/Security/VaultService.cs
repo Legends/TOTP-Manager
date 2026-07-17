@@ -7,14 +7,16 @@ using System.Text;
 using System.Text.Json;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 
 namespace TOTP.Infrastructure.Security;
 
-public sealed class VaultService : IVaultService
+public sealed class VaultService : IVaultService, IVaultKeyVerifier
 {
     private readonly ISecurityContext _securityContext;
     private static readonly AeadAlgorithm Algorithm = AeadAlgorithm.Aes256Gcm;
     private static readonly byte[] FileHeader = "TVLT"u8.ToArray();
+    private const int VaultKeySize = 32;
 
     public VaultService(ISecurityContext securityContext)
     {
@@ -82,5 +84,50 @@ public sealed class VaultService : IVaultService
             return JsonSerializer.Deserialize<List<Account>>(json) ?? [];
         }
         finally { Array.Clear(decrypted, 0, decrypted.Length); }
+    }
+
+    public VaultKeyVerificationStatus Verify(
+        ReadOnlySpan<byte> encryptedVault,
+        ReadOnlySpan<byte> candidateKey)
+    {
+        if (candidateKey.Length != VaultKeySize)
+            return VaultKeyVerificationStatus.InvalidCandidateKey;
+
+        var minimumSize = FileHeader.Length + Algorithm.NonceSize + Algorithm.TagSize;
+        if (encryptedVault.Length < minimumSize
+            || !encryptedVault[..FileHeader.Length].SequenceEqual(FileHeader))
+        {
+            return VaultKeyVerificationStatus.InvalidVaultFormat;
+        }
+
+        var nonce = encryptedVault.Slice(FileHeader.Length, Algorithm.NonceSize);
+        var ciphertext = encryptedVault[(FileHeader.Length + Algorithm.NonceSize)..];
+        byte[]? plaintext = null;
+        try
+        {
+            using var key = Key.Import(Algorithm, candidateKey, KeyBlobFormat.RawSymmetricKey);
+            plaintext = Algorithm.Decrypt(key, nonce, ReadOnlySpan<byte>.Empty, ciphertext);
+            if (plaintext is null)
+                return VaultKeyVerificationStatus.AuthenticationFailed;
+
+            try
+            {
+                return JsonSerializer.Deserialize<List<Account>>(plaintext) is not null
+                    ? VaultKeyVerificationStatus.Verified
+                    : VaultKeyVerificationStatus.InvalidVaultFormat;
+            }
+            catch (JsonException)
+            {
+                return VaultKeyVerificationStatus.InvalidVaultFormat;
+            }
+        }
+        catch (CryptographicException)
+        {
+            return VaultKeyVerificationStatus.AuthenticationFailed;
+        }
+        finally
+        {
+            if (plaintext is not null) CryptographicOperations.ZeroMemory(plaintext);
+        }
     }
 }

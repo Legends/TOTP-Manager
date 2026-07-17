@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Infrastructure.Security;
 
 namespace TOTP.Tests.Services;
@@ -93,5 +94,81 @@ public sealed class VaultServiceTests
         blob[^1] ^= 0xFF;
 
         Assert.Throws<CryptographicException>(() => { sut.DecryptVault(blob); });
+    }
+
+    [Fact]
+    public void Verify_WithMatchingCandidateKey_AuthenticatesVaultWithoutUnlockingContext()
+    {
+        var key = RandomNumberGenerator.GetBytes(32);
+        using var security = new SecurityContext();
+        security.SetDek(key);
+        var sut = new VaultService(security);
+        var blob = sut.EncryptVault([new Account(Guid.NewGuid(), "Synthetic", "TESTSECRET")]);
+        var keySnapshot = (byte[])key.Clone();
+        var blobSnapshot = (byte[])blob.Clone();
+        security.Lock();
+
+        var result = sut.Verify(blob, key);
+
+        Assert.Equal(VaultKeyVerificationStatus.Verified, result);
+        Assert.False(security.IsUnlocked);
+        Assert.Equal(keySnapshot, key);
+        Assert.Equal(blobSnapshot, blob);
+    }
+
+    [Fact]
+    public void Verify_WithWrongCandidateKey_ReturnsAuthenticationFailed()
+    {
+        var encryptionKey = RandomNumberGenerator.GetBytes(32);
+        using var security = new SecurityContext();
+        security.SetDek(encryptionKey);
+        var sut = new VaultService(security);
+        var blob = sut.EncryptVault([]);
+        security.Lock();
+
+        var result = sut.Verify(blob, RandomNumberGenerator.GetBytes(32));
+
+        Assert.Equal(VaultKeyVerificationStatus.AuthenticationFailed, result);
+        Assert.False(security.IsUnlocked);
+    }
+
+    [Fact]
+    public void Verify_WithTamperedCiphertext_ReturnsAuthenticationFailed()
+    {
+        var key = RandomNumberGenerator.GetBytes(32);
+        using var security = new SecurityContext();
+        security.SetDek(key);
+        var sut = new VaultService(security);
+        var blob = sut.EncryptVault([]);
+        security.Lock();
+        blob[^1] ^= 0xFF;
+
+        var result = sut.Verify(blob, key);
+
+        Assert.Equal(VaultKeyVerificationStatus.AuthenticationFailed, result);
+        Assert.False(security.IsUnlocked);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(31)]
+    [InlineData(33)]
+    public void Verify_WithInvalidCandidateKeyLength_FailsClosed(int keyLength)
+    {
+        var sut = new VaultService(Mock.Of<ISecurityContext>());
+
+        var result = sut.Verify(new byte[64], new byte[keyLength]);
+
+        Assert.Equal(VaultKeyVerificationStatus.InvalidCandidateKey, result);
+    }
+
+    [Fact]
+    public void Verify_WithInvalidVaultFraming_ReturnsInvalidVaultFormat()
+    {
+        var sut = new VaultService(Mock.Of<ISecurityContext>());
+
+        var result = sut.Verify(new byte[64], new byte[32]);
+
+        Assert.Equal(VaultKeyVerificationStatus.InvalidVaultFormat, result);
     }
 }
