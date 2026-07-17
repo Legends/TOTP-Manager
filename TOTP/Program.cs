@@ -21,6 +21,7 @@ using TOTP.Helper;
 using TOTP.Presentation.Platform;
 using TOTP.Presentation;
 using TOTP.Infrastructure.Logging;
+using TOTP.Infrastructure.Services;
 using TOTP.Resources;
 using TOTP.Presentation.Services;
 using TOTP.Presentation.Services.Interfaces;
@@ -29,6 +30,7 @@ using TOTP.Startup;
 using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Platform;
 using TOTP.Infrastructure.Platform;
 
 namespace TOTP;
@@ -204,16 +206,25 @@ internal static class Program
             Log.Information("startup.begin");
             startupSteps.Mark("startup.begin");
 
-            using var instance = new SingleInstanceGuard(PresentationConstants.AssemblyName);
-            if (!instance.IsFirstInstance)
+            using var instance = new SingleInstanceCoordinator(
+                new WindowsNamedMutexInstanceLock(PresentationConstants.AssemblyName),
+                new WindowsExistingInstanceActivator(PresentationConstants.AssemblyName));
+            var singleInstanceOutcome = instance.Start(ApplicationActivationRequest.ActivateMainWindow());
+            if (singleInstanceOutcome is SingleInstanceOutcome.ActivationRedirected or SingleInstanceOutcome.ActivationFailed)
             {
                 startupSteps.Mark("single_instance.redirect_existing");
-                SingleInstanceGuard.ActivateExistingWindow(PresentationConstants.AssemblyName);
+                if (singleInstanceOutcome == SingleInstanceOutcome.ActivationFailed)
+                {
+                    Log.Warning("single_instance.activation_failed");
+                }
+
                 EmitStartupTable(isError: false, "Startup Steps (redirected)");
                 return;
             }
 
-            startupSteps.Mark("single_instance.first_instance");
+            startupSteps.Mark(singleInstanceOutcome == SingleInstanceOutcome.RecoveredPrimary
+                ? "single_instance.recovered_primary"
+                : "single_instance.first_instance");
 
             SplashThreadHost? splash = null;
             try

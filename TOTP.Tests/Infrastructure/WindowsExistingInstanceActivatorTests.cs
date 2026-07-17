@@ -1,13 +1,28 @@
+using TOTP.Core.Platform;
 using TOTP.Presentation.Platform;
 
 namespace TOTP.Tests.Infrastructure;
 
-public sealed class SingleInstanceGuardTests
+public sealed class WindowsExistingInstanceActivatorTests
 {
+    [Fact]
+    public void TryDispatch_WhenPayloadVersionIsUnsupported_DoesNotUseWindowApi()
+    {
+        var api = new FakeSingleInstanceWindowApi();
+        var sut = new WindowsExistingInstanceActivator("TOTP.UI.WPF", api);
+
+        var result = sut.TryDispatch(new ApplicationActivationRequest(
+            99,
+            ApplicationActivationKind.ActivateMainWindow));
+
+        Assert.False(result);
+        Assert.Empty(api.Calls);
+    }
+
     [Fact]
     public void NativeApi_RestoreEntryPointsResolve()
     {
-        var api = new SingleInstanceWindowApi();
+        var api = new WindowsInstanceWindowApi();
 
         Assert.False(api.IsIconic(IntPtr.Zero));
         Assert.False(api.ShowWindow(IntPtr.Zero, 9));
@@ -18,12 +33,12 @@ public sealed class SingleInstanceGuardTests
     {
         var handles = new[]
         {
-            new SingleInstanceGuard.WindowHandleCandidate(new IntPtr(11), new IntPtr(99)),
-            new SingleInstanceGuard.WindowHandleCandidate(new IntPtr(22), IntPtr.Zero),
-            new SingleInstanceGuard.WindowHandleCandidate(new IntPtr(33), IntPtr.Zero)
+            new WindowsExistingInstanceActivator.WindowHandleCandidate(new IntPtr(11), new IntPtr(99)),
+            new WindowsExistingInstanceActivator.WindowHandleCandidate(new IntPtr(22), IntPtr.Zero),
+            new WindowsExistingInstanceActivator.WindowHandleCandidate(new IntPtr(33), IntPtr.Zero)
         };
 
-        var selected = SingleInstanceGuard.SelectBestWindowHandle(handles, new IntPtr(44));
+        var selected = WindowsExistingInstanceActivator.SelectBestWindowHandle(handles, new IntPtr(44));
 
         Assert.Equal(new IntPtr(22), selected);
     }
@@ -31,7 +46,7 @@ public sealed class SingleInstanceGuardTests
     [Fact]
     public void SelectBestWindowHandle_UsesMainWindowHandleWhenNoVisibleCandidatesExist()
     {
-        var selected = SingleInstanceGuard.SelectBestWindowHandle([], new IntPtr(44));
+        var selected = WindowsExistingInstanceActivator.SelectBestWindowHandle([], new IntPtr(44));
 
         Assert.Equal(new IntPtr(44), selected);
     }
@@ -48,7 +63,7 @@ public sealed class SingleInstanceGuardTests
             ForegroundThreadId = 30
         };
 
-        SingleInstanceGuard.ActivateWindow(new IntPtr(55), api);
+        WindowsExistingInstanceActivator.ActivateWindow(new IntPtr(55), api);
 
         Assert.Equal(
             [
@@ -67,7 +82,7 @@ public sealed class SingleInstanceGuardTests
             api.Calls);
     }
 
-    private sealed class FakeSingleInstanceWindowApi : ISingleInstanceWindowApi
+    private sealed class FakeSingleInstanceWindowApi : IWindowsInstanceWindowApi
     {
         public List<string> Calls { get; } = [];
         public bool IsIconicResult { get; set; }

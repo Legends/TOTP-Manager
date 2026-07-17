@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
+using TOTP.Core.Platform;
 
 namespace TOTP.Presentation.Platform;
 
-public sealed class SingleInstanceGuard : IDisposable
+public sealed class WindowsExistingInstanceActivator : IActivationDispatcher
 {
     private const int SW_SHOW = 5;
     private const int SW_RESTORE = 9;
@@ -16,66 +16,53 @@ public sealed class SingleInstanceGuard : IDisposable
     private const uint SWP_SHOWWINDOW = 0x0040;
     private static readonly IntPtr HwndTopmost = new(-1);
     private static readonly IntPtr HwndNotTopmost = new(-2);
-    private static readonly ISingleInstanceWindowApi WindowApi = new SingleInstanceWindowApi();
-    private Mutex? _mutex;
-    private readonly bool _owns;
-    private bool _disposed;
+    private static readonly IWindowsInstanceWindowApi WindowApi = new WindowsInstanceWindowApi();
+    private readonly string _processName;
+    private readonly IWindowsInstanceWindowApi _windowApi;
 
-    public SingleInstanceGuard(string name)
+    public WindowsExistingInstanceActivator(string processName)
+        : this(processName, WindowApi)
     {
-        _mutex = new Mutex(initiallyOwned: true, name: $@"Global\{name}", out bool createdNew);
-        _owns = createdNew;
     }
 
-    public bool IsFirstInstance => _owns;
-
-    public void Dispose()
+    internal WindowsExistingInstanceActivator(string processName, IWindowsInstanceWindowApi windowApi)
     {
-        if (_disposed)
-        {
-            return;
-        }
-
-        _disposed = true;
-
-        var mutex = Interlocked.Exchange(ref _mutex, null);
-        if (mutex is null)
-        {
-            return;
-        }
-
-        try
-        {
-            if (_owns)
-            {
-                mutex.ReleaseMutex();
-            }
-        }
-        catch (ApplicationException ex)
-        {
-            Trace.TraceWarning($"SingleInstanceGuard.ReleaseMutex skipped because current thread does not own mutex: {ex.Message}");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(processName);
+        _processName = processName;
+        _windowApi = windowApi;
     }
 
-    public static void ActivateExistingWindow(string processName)
+    public bool TryDispatch(ApplicationActivationRequest request)
     {
-        var current = Process.GetCurrentProcess();
-        foreach (var process in Process.GetProcessesByName(processName))
+        if (!request.IsSupported || request.Kind != ApplicationActivationKind.ActivateMainWindow)
         {
-            if (process.Id == current.Id)
-            {
-                continue;
-            }
+            return false;
+        }
 
-            var windowHandle = FindBestWindowHandle(process, WindowApi);
-            if (windowHandle != IntPtr.Zero)
+        var activated = false;
+        using var current = Process.GetCurrentProcess();
+        foreach (var process in Process.GetProcessesByName(_processName))
+        {
+            using (process)
             {
-                ActivateWindow(windowHandle, WindowApi);
+                if (process.Id == current.Id)
+                {
+                    continue;
+                }
+
+                var windowHandle = FindBestWindowHandle(process, _windowApi);
+                if (windowHandle != IntPtr.Zero)
+                {
+                    ActivateWindow(windowHandle, _windowApi);
+                    activated = true;
+                }
             }
         }
+
+        return activated;
     }
 
-    internal static IntPtr FindBestWindowHandle(Process process, ISingleInstanceWindowApi windowApi)
+    internal static IntPtr FindBestWindowHandle(Process process, IWindowsInstanceWindowApi windowApi)
     {
         var handles = new List<WindowHandleCandidate>();
         windowApi.EnumWindows((hWnd, _) =>
@@ -110,7 +97,7 @@ public sealed class SingleInstanceGuard : IDisposable
         return handles[0].Handle;
     }
 
-    internal static void ActivateWindow(IntPtr hWnd, ISingleInstanceWindowApi windowApi)
+    internal static void ActivateWindow(IntPtr hWnd, IWindowsInstanceWindowApi windowApi)
     {
         if (hWnd == IntPtr.Zero)
         {
@@ -165,7 +152,7 @@ public sealed class SingleInstanceGuard : IDisposable
     internal readonly record struct WindowHandleCandidate(IntPtr Handle, IntPtr Owner);
 }
 
-internal interface ISingleInstanceWindowApi
+internal interface IWindowsInstanceWindowApi
 {
     bool EnumWindows(Func<IntPtr, IntPtr, bool> callback, IntPtr lParam);
     bool SetForegroundWindow(IntPtr hWnd);
@@ -183,7 +170,7 @@ internal interface ISingleInstanceWindowApi
     bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
 }
 
-internal sealed class SingleInstanceWindowApi : ISingleInstanceWindowApi
+internal sealed class WindowsInstanceWindowApi : IWindowsInstanceWindowApi
 {
     public bool EnumWindows(Func<IntPtr, IntPtr, bool> callback, IntPtr lParam)
     {

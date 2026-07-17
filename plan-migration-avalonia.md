@@ -343,10 +343,10 @@ Total expected production effort remains approximately **37-62 person-weeks**, w
 
 #### M1.7 Single instance
 
-- [ ] Separate single-instance policy and activation messages from the current WPF implementation.
-- [ ] Preserve Windows behavior.
-- [ ] Define portable activation payloads.
-- [ ] Add stale-lock and crashed-instance recovery tests.
+- [x] Separate single-instance policy and activation messages from the current WPF implementation.
+- [x] Preserve Windows behavior.
+- [x] Define portable activation payloads.
+- [x] Add stale-lock and crashed-instance recovery tests.
 
 ### Exit criteria
 
