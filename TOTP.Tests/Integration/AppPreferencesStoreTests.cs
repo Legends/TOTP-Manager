@@ -53,6 +53,131 @@ public sealed class AppPreferencesStoreTests
         Assert.Equal(AppPreferencesErrorCode.TooLarge, AppPreferencesV1CodecTests.ErrorCode(result.Errors));
     }
 
+    [Fact]
+    public async Task SaveAsync_WhenStagedFileCannotBeHardened_PreservesExistingPreferences()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "preferences.json");
+        var original = AppPreferencesV1Codec.Serialize(AppPreferencesV1CodecTests.CreatePreferences()).Value;
+        await File.WriteAllBytesAsync(path, original, cancellationToken);
+        using var store = new AppPreferencesStore(
+            path,
+            NullLogger<AppPreferencesStore>.Instance,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = filePath =>
+                {
+                    if (filePath.EndsWith(".tmp", StringComparison.Ordinal))
+                        throw new UnauthorizedAccessException("denied");
+                }
+            });
+
+        var result = await store.SaveAsync(
+            AppPreferencesV1CodecTests.CreatePreferences() with { CultureName = "en-US" },
+            cancellationToken);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppPreferencesErrorCode.WriteAccessDenied, AppPreferencesV1CodecTests.ErrorCode(result.Errors));
+        Assert.Equal(original, await File.ReadAllBytesAsync(path, cancellationToken));
+        Assert.Empty(Directory.GetFiles(temp.Path, "preferences.json.*.tmp"));
+    }
+
+    [Fact]
+    public async Task SaveAsync_WhenStagedPayloadIsTruncated_PreservesExistingPreferences()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "preferences.json");
+        var original = AppPreferencesV1Codec.Serialize(AppPreferencesV1CodecTests.CreatePreferences()).Value;
+        await File.WriteAllBytesAsync(path, original, cancellationToken);
+        using var store = new AppPreferencesStore(
+            path,
+            NullLogger<AppPreferencesStore>.Instance,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = filePath =>
+                {
+                    if (filePath.EndsWith(".tmp", StringComparison.Ordinal))
+                        File.WriteAllText(filePath, "{");
+                }
+            });
+
+        var result = await store.SaveAsync(
+            AppPreferencesV1CodecTests.CreatePreferences() with { CultureName = "en-US" },
+            cancellationToken);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppPreferencesErrorCode.WriteFailed, AppPreferencesV1CodecTests.ErrorCode(result.Errors));
+        Assert.Equal(original, await File.ReadAllBytesAsync(path, cancellationToken));
+        Assert.Empty(Directory.GetFiles(temp.Path, "preferences.json.*.tmp"));
+    }
+
+    [Fact]
+    public async Task SaveAsync_WhenPostCommitHardeningFails_RollsBackExistingPreferences()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "preferences.json");
+        using (var initialStore = CreateStore(path))
+        {
+            Assert.True((await initialStore.SaveAsync(
+                AppPreferencesV1CodecTests.CreatePreferences(),
+                cancellationToken)).IsSuccess);
+        }
+        var original = await File.ReadAllBytesAsync(path, cancellationToken);
+        using var store = new AppPreferencesStore(
+            path,
+            NullLogger<AppPreferencesStore>.Instance,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = filePath =>
+                {
+                    if (string.Equals(filePath, path, StringComparison.Ordinal))
+                        throw new UnauthorizedAccessException("denied after commit");
+                }
+            });
+
+        var result = await store.SaveAsync(
+            AppPreferencesV1CodecTests.CreatePreferences() with { CultureName = "en-US" },
+            cancellationToken);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppPreferencesErrorCode.WriteAccessDenied, AppPreferencesV1CodecTests.ErrorCode(result.Errors));
+        Assert.Equal(original, await File.ReadAllBytesAsync(path, cancellationToken));
+        Assert.Empty(Directory.GetFiles(temp.Path, "preferences.json.*.tmp"));
+        Assert.Empty(Directory.GetFiles(temp.Path, "preferences.json.*.rollback"));
+    }
+
+    [Fact]
+    public async Task SaveAsync_WhenFirstCommitHardeningFails_RemovesFailedPreferences()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "preferences.json");
+        using var store = new AppPreferencesStore(
+            path,
+            NullLogger<AppPreferencesStore>.Instance,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = filePath =>
+                {
+                    if (string.Equals(filePath, path, StringComparison.Ordinal))
+                        throw new UnauthorizedAccessException("denied after commit");
+                }
+            });
+
+        var result = await store.SaveAsync(
+            AppPreferencesV1CodecTests.CreatePreferences(),
+            cancellationToken);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppPreferencesErrorCode.WriteAccessDenied, AppPreferencesV1CodecTests.ErrorCode(result.Errors));
+        Assert.False(File.Exists(path));
+        Assert.Empty(Directory.GetFiles(temp.Path, "preferences.json.*.tmp"));
+        Assert.Empty(Directory.GetFiles(temp.Path, "preferences.json.*.rollback"));
+    }
+
     private static AppPreferencesStore CreateStore(string path) =>
         new(path, NullLogger<AppPreferencesStore>.Instance, NoOpPlatformFileSecurity.Instance);
 

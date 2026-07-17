@@ -96,7 +96,7 @@ This storage hardening reduces partial-write, replacement, and unbounded-secret-
 
 `AppPreferencesV1` defines the non-secret half of that separation. Its `preferences.json` wire format contains only UI/runtime preferences, uses explicit format/version fields and string enum names, and persists idle timeout in whole minutes. The preferred unlock method is either `Password` or the platform-neutral `PlatformQuickUnlock`; it is a UX choice only and never proves that a quick-unlock wrapper exists or is usable. Password is the default and fail-closed fallback. The codec rejects duplicate or unknown fields, numeric enum values, invalid cultures, and values outside the UI-supported ranges. Because the model has no authorization member and unknown fields are disallowed, password salts, wrapped keys, platform references, and OTP material cannot be serialized through this contract.
 
-`AppPreferencesStore` is the active non-secret preference store. Plaintext JSON is acceptable for these reviewed preference fields, while current-user file protection still limits casual cross-user access. Reads are bounded to 32 KiB and their buffers are cleared defensively. This is not permission to add authorization metadata or other sensitive values to the preferences model; any new field requires a data-classification review.
+`AppPreferencesStore` is the active non-secret preference store. Plaintext JSON is acceptable for these reviewed preference fields, while current-user file protection still limits casual cross-user access. Reads are bounded to 32 KiB and their buffers are cleared defensively. Writes use a same-directory write-through staging file, decode the staged bytes before commit, and revalidate the committed file. Replacement retains a temporary rollback copy until validation succeeds; a failed first commit is removed, and a failed replacement restores the previous preferences. Deterministic tests cover truncated staging data plus pre-commit and post-commit hardening failures. This is not permission to add authorization metadata or other sensitive values to the preferences model; any new field requires a data-classification review.
 
 `AppPreferencesMapper` is the sole allowlisted bridge between mutable in-memory `IAppSettings` and `AppPreferencesV1`. It copies only reviewed preference fields, normalizes legacy/out-of-range values to codec-valid values, and never reads or replaces the `AuthorizationProfile`. This makes authorization exclusion behavioral rather than relying only on JSON naming. Coordinated service activation remains pending.
 
@@ -242,12 +242,13 @@ The clean version discriminator removes the legacy type-confusion risk. Explicit
 - The focused quick-unlock/security-contract test selection passes 39 tests.
 - The focused enrollment test selection passes 14 tests.
 - The focused portable-settings test selection passes 6 tests.
+- The focused portable-preferences store selection passes 7 tests.
 - The focused authorization-envelope session test selection passes 33 tests.
 - The focused authorization-envelope password-lifecycle selection passes 12 tests.
 - The focused portable-authorization facade selection passes 18 tests.
 - The focused WPF authorization and settings-orchestration selection passes 54 tests.
 - The focused portable-authorization and password-setup presentation selection passes 28 tests.
 - The focused infrastructure and WPF composition selection passes 3 tests and verifies that the legacy DPAPI settings DAL is absent.
-- The full Debug solution test run passes 705 tests.
+- The full Debug solution test run passes 709 tests.
 - The Release solution build succeeds with zero warnings and errors, and the filtered PR-like Release test run passes 660 tests.
 - A real Windows Hello/TPM registration and unlock smoke test remains required on supported hardware before release; automated tests use the existing `IHelloGate` OS boundary.

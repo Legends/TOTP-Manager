@@ -83,6 +83,10 @@ public sealed class AppPreferencesStore : IAppPreferencesStore
         if (encoded.IsFailed) return Result.Fail(encoded.Errors);
 
         var lockTaken = false;
+        var commitCompleted = false;
+        var hadExistingPreferences = false;
+        string? tempPath = null;
+        string? rollbackPath = null;
         try
         {
             await _lock.WaitAsync(cancellationToken);
@@ -91,17 +95,38 @@ public sealed class AppPreferencesStore : IAppPreferencesStore
                 throw new UnauthorizedAccessException("The preferences path refers to a directory.");
 
             SecureStorageDirectory();
-            var tempPath = $"{_path}.{Guid.NewGuid():N}.tmp";
-            try
+            tempPath = $"{_path}.{Guid.NewGuid():N}.tmp";
+            await using (var stream = new FileStream(
+                tempPath,
+                FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 4096,
+                FileOptions.Asynchronous | FileOptions.WriteThrough))
             {
-                await File.WriteAllBytesAsync(tempPath, encoded.Value, cancellationToken);
-                _fileSecurity.RestrictFileToCurrentUser(tempPath);
-                File.Move(tempPath, _path, overwrite: true);
+                await stream.WriteAsync(encoded.Value, cancellationToken);
+                stream.Flush(flushToDisk: true);
             }
-            finally
+
+            _fileSecurity.RestrictFileToCurrentUser(tempPath);
+            await VerifyFileAsync(tempPath, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            hadExistingPreferences = File.Exists(_path);
+            if (hadExistingPreferences)
             {
-                TryDeleteTemporaryFile(tempPath);
+                rollbackPath = $"{_path}.{Guid.NewGuid():N}.rollback";
+                File.Replace(tempPath, _path, rollbackPath, ignoreMetadataErrors: false);
             }
+            else
+            {
+                File.Move(tempPath, _path);
+            }
+
+            commitCompleted = true;
+            _fileSecurity.RestrictFileToCurrentUser(_path);
+            await VerifyFileAsync(_path, CancellationToken.None);
+            if (rollbackPath is not null) TryDeleteTemporaryFile(rollbackPath);
 
             return Result.Ok();
         }
@@ -111,24 +136,47 @@ public sealed class AppPreferencesStore : IAppPreferencesStore
         }
         catch (Exception ex)
         {
+            Exception failure = ex;
+            if (commitCompleted)
+            {
+                try
+                {
+                    await RollBackCommitAsync(hadExistingPreferences, rollbackPath);
+                }
+                catch (Exception rollbackException)
+                {
+                    _logger.LogCritical(rollbackException, "Failed to roll back the preferences commit.");
+                    failure = new AggregateException(ex, rollbackException);
+                }
+            }
+
             _logger.LogError(ex, "Failed to save preferences.");
             var code = ex is UnauthorizedAccessException
                 ? AppPreferencesErrorCode.WriteAccessDenied
                 : AppPreferencesErrorCode.WriteFailed;
-            return Result.Fail(new AppPreferencesError(code, "Failed to save preferences.", ex));
+            return Result.Fail(new AppPreferencesError(code, "Failed to save preferences.", failure));
         }
         finally
         {
+            if (tempPath is not null) TryDeleteTemporaryFile(tempPath);
+            if (rollbackPath is not null) TryDeleteTemporaryFile(rollbackPath);
+            CryptographicOperations.ZeroMemory(encoded.Value);
             if (lockTaken) _lock.Release();
         }
     }
 
     public void Dispose() => _lock.Dispose();
 
-    private async Task<int> ReadBoundedAsync(byte[] buffer, CancellationToken cancellationToken)
+    private Task<int> ReadBoundedAsync(byte[] buffer, CancellationToken cancellationToken)
+        => ReadBoundedAsync(_path, buffer, cancellationToken);
+
+    private static async Task<int> ReadBoundedAsync(
+        string path,
+        byte[] buffer,
+        CancellationToken cancellationToken)
     {
         await using var stream = new FileStream(
-            _path,
+            path,
             FileMode.Open,
             FileAccess.Read,
             FileShare.Read,
@@ -143,6 +191,42 @@ public sealed class AppPreferencesStore : IAppPreferencesStore
         }
 
         return total;
+    }
+
+    private static async Task VerifyFileAsync(string path, CancellationToken cancellationToken)
+    {
+        var payload = new byte[AppPreferencesV1Codec.MaximumPayloadSize + 1];
+        try
+        {
+            var length = await ReadBoundedAsync(path, payload, cancellationToken);
+            if (length > AppPreferencesV1Codec.MaximumPayloadSize
+                || AppPreferencesV1Codec.Deserialize(payload.AsMemory(0, length)).IsFailed)
+            {
+                throw new InvalidDataException("Preferences verification failed.");
+            }
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(payload);
+        }
+    }
+
+    private async Task RollBackCommitAsync(bool hadExistingPreferences, string? rollbackPath)
+    {
+        if (!hadExistingPreferences)
+        {
+            if (File.Exists(_path)) File.Delete(_path);
+            if (File.Exists(_path))
+                throw new IOException("The failed preferences commit could not be removed.");
+            return;
+        }
+
+        if (rollbackPath is null || !File.Exists(rollbackPath))
+            throw new FileNotFoundException("The previous preferences file is unavailable for rollback.");
+
+        _fileSecurity.RestrictFileToCurrentUser(rollbackPath);
+        File.Replace(rollbackPath, _path, destinationBackupFileName: null, ignoreMetadataErrors: false);
+        await VerifyFileAsync(_path, CancellationToken.None);
     }
 
     private void SecureStorageDirectory()
