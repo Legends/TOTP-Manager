@@ -23,6 +23,7 @@ using TOTP.Infrastructure.Services;
 using TOTP.Presentation.Services;
 using TOTP.Resources;
 using TOTP.Presentation.Services.Interfaces;
+using TOTP.Presentation.Platform;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
@@ -96,6 +97,7 @@ public static class BootLoader
                 #endregion
 
                 #region  ### ClipboardService ###
+                services.AddSingleton<IPlatformClipboard, WpfClipboard>();
                 services.AddSingleton<ClipboardBackgroundService>();
                 services.AddSingleton<IClipboardService>(sp => sp.GetRequiredService<ClipboardBackgroundService>());
                 services.AddHostedService(sp => sp.GetRequiredService<ClipboardBackgroundService>());

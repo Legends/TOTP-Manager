@@ -16,17 +16,17 @@ Modules:
 | ID | OWASP-aligned control | UI | Core | Infra | DAL | DevSecOps | Evidence |
 |---|---|---|---|---|---|---|---|
 | DS-01 | Sensitive local data encrypted at rest | Partial | Implemented | Implemented | Implemented | Partial | `VaultService`, `AppSettingsDAL` (DPAPI), encrypted `.totp` export |
-| DS-02 | Sensitive keys isolated in memory and cleared | Implemented | Partial | Implemented | Partial | Missing | `SecurityContext`, `MasterPasswordService`, `SeedStorageService`, password consume-and-clear, flyout secret cache clearing, and `RevealableSecretBox` unload wipe |
+| DS-02 | Sensitive keys isolated in memory and cleared | Implemented | Partial | Implemented | Partial | Missing | `SecurityContext`, `MasterPasswordService`, password consume-and-clear, flyout secret cache clearing, `RevealableSecretBox` unload wipe, and token-only clipboard clear scheduling |
 | DS-03 | Modern crypto + authenticated encryption (AEAD) | Partial | Implemented | Implemented | Implemented | Partial | AES-256-GCM + Argon2id in security services |
 | DS-04 | KDF parameters validated against abuse bounds | Missing | Missing | Implemented | Partial | Missing | `MasterPasswordService` now bounds-checks iterations/memory/salt/nonce |
 | DS-05 | Import parsers resistant to malformed/oversized files | Partial | Partial | Implemented | Partial | Partial | `ExportService` enforces max import size (5 MiB) and fuzz-style tests cover malformed `.json/.csv/.txt/.totp` import paths |
-| DS-06 | Least-privilege filesystem ACL for secret/settings files | Missing | Missing | Missing | Implemented | Partial | `WindowsFileSecurity` applies fail-closed current-user ACLs behind `IPlatformFileSecurity` |
+| DS-06 | Least-privilege filesystem ACL for secret/settings files | Missing | Partial | Implemented | Implemented | Partial | `WindowsFileSecurity` applies fail-closed current-user ACLs behind `IPlatformFileSecurity` |
 | DS-07 | Secure write pattern (atomic writes, temp file) | Partial | Implemented | Partial | Implemented | Partial | `AccountDAL` temp-write + replace |
 | DS-08 | Authorization required for sensitive operations | Partial | Implemented | Implemented | Partial | Partial | `AuthorizationService`, password/hello gate, session lock services |
 | DS-09 | Security logging without secret leakage | Partial | Partial | Implemented | Partial | Partial | Central redaction covers structured properties and rendered sink text (message/exception key-value, bearer, query secrets) |
 | DS-10 | Build/release security gates (SAST/SCA/secrets) | Missing | Missing | Missing | Missing | Implemented | `.github/workflows/security-audit.yml`, `SECURITY_VERIFICATION.md` |
 | DS-11 | Signed release artifacts and key custody | Missing | Missing | Missing | Missing | Implemented | CI publish signs from secrets (`SIGNING_CERT_BASE64` + `SIGNING_CERT_PASSWORD`), repo-local `.pfx` removed, rotation runbook added |
-| DS-12 | Security tests for critical controls | Partial | Partial | Partial | Partial | Partial | Added tests for import limits + KDF parameter validation |
+| DS-12 | Security tests for critical controls | Partial | Partial | Partial | Partial | Partial | Import/KDF, ACL recovery, and clipboard replacement/failure regression tests |
 
 ## Highest-Risk Gaps Prioritized First
 1. `DS-06` file ACL hardening for secrets/settings (implemented now).

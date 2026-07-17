@@ -316,10 +316,10 @@ Total expected production effort remains approximately **37-62 person-weeks**, w
 
 #### M1.3 Clipboard
 
-- [ ] Keep the existing portable `IClipboardService` contract or refine it.
-- [ ] Separate clipboard policy from WPF clipboard access.
-- [ ] Preserve timed clearing and replacement detection.
-- [ ] Add platform capability/error semantics.
+- [x] Keep the existing portable `IClipboardService` contract or refine it.
+- [x] Separate clipboard policy from WPF clipboard access.
+- [x] Preserve timed clearing and replacement detection.
+- [x] Add platform capability/error semantics.
 
 #### M1.4 Dispatcher and application lifetime
 

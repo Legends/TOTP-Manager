@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentResults;
 using Microsoft.Extensions.Logging;
 using System.Windows.Media.Imaging;
 using TOTP.Infrastructure.Parser;
@@ -123,7 +124,6 @@ public partial class MainViewModel
 
         IsProgressPieChartVisible = true;
         CopyTotpCodeToClipboard();
-        ShowCopySymbol = true;
 
         ShowCodeGenerationOutput();
     }
@@ -257,18 +257,27 @@ public partial class MainViewModel
     public void CopyTotpCodeToClipboard()
     {
         var clearEnabled = _settingsService.Current.ClearClipboardEnabled;
+        Result result;
         if (!clearEnabled)
         {
-            _clipboardService.SetText(TotpCode);
-            ShowCopySymbol = true;
+            result = _clipboardService.SetText(TotpCode);
+        }
+        else
+        {
+            var seconds = _settingsService.Current.ClearClipboardSeconds > 0
+                ? _settingsService.Current.ClearClipboardSeconds
+                : 15;
+
+            result = _clipboardService.CopyAndScheduleClear(TotpCode, TimeSpan.FromSeconds(seconds));
+        }
+
+        if (result.IsFailed)
+        {
+            ShowCopySymbol = false;
+            _messageService.ShowResultError(result);
             return;
         }
 
-        var seconds = _settingsService.Current.ClearClipboardSeconds > 0
-            ? _settingsService.Current.ClearClipboardSeconds
-            : 15;
-
-        _clipboardService.CopyAndScheduleClear(TotpCode, TimeSpan.FromSeconds(seconds));
         ShowCopySymbol = true;
     }
 

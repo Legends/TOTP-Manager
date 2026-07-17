@@ -41,5 +41,10 @@ public enum AppErrorCode
     AccountsUpdateFailed,
     AccountsDeleteFailed,
     SettingsServiceLoadFailed,
-    SettingsServiceSaveFailed
+    SettingsServiceSaveFailed,
+
+    // Platform clipboard
+    ClipboardUnavailable,
+    ClipboardWriteFailed,
+    ClipboardClearFailed
 }

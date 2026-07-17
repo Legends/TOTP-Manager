@@ -35,7 +35,10 @@ public sealed class ResultErrorLocalizerTests
         [AppErrorCode.AccountsUpdateFailed, UI.err_TokensUpdateFailed],
         [AppErrorCode.AccountsDeleteFailed, UI.err_TokensDeleteFailed],
         [AppErrorCode.SettingsServiceLoadFailed, UI.err_SettingsServiceLoadFailed],
-        [AppErrorCode.SettingsServiceSaveFailed, UI.err_SettingsServiceSaveFailed]
+        [AppErrorCode.SettingsServiceSaveFailed, UI.err_SettingsServiceSaveFailed],
+        [AppErrorCode.ClipboardUnavailable, UI.err_ClipboardUnavailable],
+        [AppErrorCode.ClipboardWriteFailed, UI.err_ClipboardWriteFailed],
+        [AppErrorCode.ClipboardClearFailed, UI.err_ClipboardClearFailed]
     ];
 
     [Theory]

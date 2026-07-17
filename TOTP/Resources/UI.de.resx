@@ -870,4 +870,13 @@
   <data name="ui_QrScanner_UnexpectedError" xml:space="preserve">
     <value>Beim QR-Scanner ist ein unerwarteter Fehler aufgetreten. Schließe ihn und versuche es erneut.</value>
   </data>
+  <data name="err_ClipboardUnavailable" xml:space="preserve">
+    <value>Der Zugriff auf die Zwischenablage ist auf diesem System nicht verfügbar.</value>
+  </data>
+  <data name="err_ClipboardWriteFailed" xml:space="preserve">
+    <value>Der Authentifizierungscode konnte nicht in die Zwischenablage kopiert werden.</value>
+  </data>
+  <data name="err_ClipboardClearFailed" xml:space="preserve">
+    <value>Die Zwischenablage konnte nicht automatisch geleert werden.</value>
+  </data>
 </root>

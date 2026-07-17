@@ -870,4 +870,13 @@
   <data name="ui_QrScanner_UnexpectedError" xml:space="preserve">
     <value>The QR scanner encountered an unexpected error. Close it and try again.</value>
   </data>
+  <data name="err_ClipboardUnavailable" xml:space="preserve">
+    <value>Clipboard access is unavailable on this system.</value>
+  </data>
+  <data name="err_ClipboardWriteFailed" xml:space="preserve">
+    <value>The authentication code could not be copied to the clipboard.</value>
+  </data>
+  <data name="err_ClipboardClearFailed" xml:space="preserve">
+    <value>The clipboard could not be cleared automatically.</value>
+  </data>
 </root>

@@ -4,6 +4,7 @@ using Moq;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using TOTP.Commands;
+using TOTP.Core.Common;
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
 using TOTP.Core.Security;
@@ -188,6 +189,20 @@ public sealed class MainViewModelTests : IDisposable
         ctx.Sut.CopyTotpCodeToClipboard();
 
         ctx.Clipboard.Verify(c => c.CopyAndScheduleClear("123456", TimeSpan.FromSeconds(42)), Times.Once);
+    }
+
+    [Fact]
+    public void CopyTotpCodeToClipboard_WhenClipboardFails_ShowsErrorWithoutSuccessIndicator()
+    {
+        using var ctx = new MainVmTestContext(clearClipboardEnabled: true, clearSeconds: 42);
+        ctx.Sut.TotpCode = "123456";
+        var failure = Result.Fail(new AppError(AppErrorCode.ClipboardUnavailable, "unavailable"));
+        ctx.Clipboard.Setup(c => c.CopyAndScheduleClear("123456", TimeSpan.FromSeconds(42))).Returns(failure);
+
+        ctx.Sut.CopyTotpCodeToClipboard();
+
+        Assert.False(ctx.Sut.ShowCopySymbol);
+        ctx.Message.Verify(m => m.ShowResultError(failure, null), Times.Once);
     }
 
     [Fact]
@@ -549,6 +564,8 @@ public sealed class MainViewModelTests : IDisposable
                 .Returns(new TotpGenerationResult("123456", 20, 30));
             LogSwitch.SetupGet(l => l.MinimumLevel).Returns(AppLogLevel.Information);
             LogSwitch.Setup(l => l.GetLevel()).Returns(AppLogLevel.Information);
+            Clipboard.Setup(c => c.SetText(It.IsAny<string>())).Returns(Result.Ok());
+            Clipboard.Setup(c => c.CopyAndScheduleClear(It.IsAny<string>(), It.IsAny<TimeSpan?>())).Returns(Result.Ok());
 
             Session.Setup(s => s.IsUnlocked).Returns(true);
             Session.Setup(s => s.ConfigureCallbacks(It.IsAny<Func<Task>>(), It.IsAny<Action>()))

@@ -2342,5 +2342,23 @@ namespace TOTP.Resources {
                 return ResourceManager.GetString("ui_Window_Title_TOTP_Manager", resourceCulture);
             }
         }
+
+        internal static string err_ClipboardUnavailable {
+            get {
+                return ResourceManager.GetString("err_ClipboardUnavailable", resourceCulture);
+            }
+        }
+
+        internal static string err_ClipboardWriteFailed {
+            get {
+                return ResourceManager.GetString("err_ClipboardWriteFailed", resourceCulture);
+            }
+        }
+
+        internal static string err_ClipboardClearFailed {
+            get {
+                return ResourceManager.GetString("err_ClipboardClearFailed", resourceCulture);
+            }
+        }
     }
 }
