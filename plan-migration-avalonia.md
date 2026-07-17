@@ -336,10 +336,10 @@ Total expected production effort remains approximately **37-62 person-weeks**, w
 
 #### M1.6 Platform events
 
-- [ ] Introduce platform session/lifecycle contracts.
-- [ ] Preserve Windows session-lock monitoring.
-- [ ] Separate product lock policy from OS event delivery.
-- [ ] Define equivalent macOS/Linux lifecycle semantics.
+- [x] Introduce platform session/lifecycle contracts.
+- [x] Preserve Windows session-lock monitoring.
+- [x] Separate product lock policy from OS event delivery.
+- [x] Define equivalent macOS/Linux lifecycle semantics.
 
 #### M1.7 Single instance
 

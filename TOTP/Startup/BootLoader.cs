@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using TOTP.Core.Enums;
+using TOTP.Core.Platform;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
@@ -81,7 +82,7 @@ public static class BootLoader
                 services.AddInfrastructure(configuration, applicationPaths);
 
                 #region ### BACKGROUND SERVICES  ###
-                services.AddHostedService<SessionLockBackgroundService>();
+                services.AddHostedService<SessionLockPolicyBackgroundService>();
 
                 var cliLevel = LoggingConfigurator.GetLevelFromArgs(args);
                 bool hasOverride = cliLevel.HasValue;
@@ -108,6 +109,9 @@ public static class BootLoader
                 services.AddSingleton<IUiScheduler, WpfDispatcherService>();
                 services.AddSingleton<TOTP.Core.Services.Interfaces.IApplicationLifetime, WpfApplicationLifetime>();
                 services.AddSingleton<ISettingsWindowCoordinator, SettingsWindowCoordinator>();
+                services.AddSingleton<WindowsPlatformEventSource>();
+                services.AddSingleton<IPlatformSessionEventSource>(sp => sp.GetRequiredService<WindowsPlatformEventSource>());
+                services.AddSingleton<IPlatformLifecycleEventSource>(sp => sp.GetRequiredService<WindowsPlatformEventSource>());
 
                 #region ### SECURITY & CORE SERVICES ###
 
