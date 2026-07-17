@@ -37,6 +37,13 @@ Workflow: `.github/workflows/security-audit.yml`
 - No known High/Critical vulnerable dependencies without approved exception
 - When `SIGNING_CERT_BASE64` and `SIGNING_CERT_PASSWORD` are configured, release binary is Authenticode-signed in CI (ephemeral cert file only)
 
+## Portable Authorization Cutover Evidence
+
+- Runtime composition resolves `PortableSettingsService`, `PortableAuthorizationService`, the v2 password lifecycle, and the Windows quick-unlock adapter as one graph.
+- The development-era DPAPI settings DAL is absent from the runtime service graph; it remains only in historical-format tests and documentation.
+- Strict codec, store, activation, password lifecycle, session, quick-unlock enrollment, facade, and WPF prompt regressions cover malformed inputs, wrong credentials, missing platform state, atomic replacement, rollback, vault verification, cancellation, and temporary-key clearing.
+- A supported-hardware Windows Hello/TPM registration and unlock smoke test remains a manual pre-release gate.
+
 ## Exception Handling
 When a finding cannot be fixed immediately:
 1. Create a tracked issue with:

@@ -395,7 +395,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [x] Persist the preferred unlock method as a portable non-secret preference.
 - [x] Decouple authorization state from the development-era profile shape.
 - [x] Add the v2 envelope session and verified password-unlock path.
-- [ ] Replace the development-era DPAPI settings store before the first public release.
+- [x] Replace the development-era DPAPI settings store before the first public release.
 - [x] Preserve Windows Hello/TPM quick unlock through the new contract.
 - [x] Require recovery-password readiness before platform quick unlock can be enabled.
 - [x] Implement atomic write and rollback.
@@ -406,7 +406,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [ ] Add interrupted-write tests at every persistence boundary.
 - [ ] Add wrong-password, corrupt-envelope, missing-secret-store, and reset-key tests.
 - [ ] Zero temporary key buffers where practical.
-- [ ] Update the threat model and security verification documentation.
+- [x] Update the threat model and security verification documentation.
 
 ### Activation state machine
 

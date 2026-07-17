@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using System.Reflection;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
@@ -7,6 +8,7 @@ using TOTP.DAL.Services;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Platform;
 using TOTP.Infrastructure.Security;
+using TOTP.Infrastructure.Services;
 
 namespace TOTP.Tests.Infrastructure.Extensions;
 
@@ -20,7 +22,6 @@ public sealed class DependencyInjectionPathTests : IDisposable
         var paths = new WindowsApplicationPaths(_root, _root);
         using var provider = BuildProvider(new ConfigurationBuilder().Build(), paths);
 
-        var settingsDal = Assert.IsType<AppSettingsDAL>(provider.GetRequiredService<IAppSettingsDAL>());
         var accountDal = Assert.IsType<AccountDAL>(provider.GetRequiredService<IAccountDAL>());
         var envelopeStore = Assert.IsType<AuthorizationEnvelopeStore>(
             provider.GetRequiredService<IAuthorizationEnvelopeStore>());
@@ -32,12 +33,16 @@ public sealed class DependencyInjectionPathTests : IDisposable
             provider.GetRequiredService<IStoredVaultKeyVerifier>());
         Assert.IsType<AuthorizationEnvelopeActivator>(
             provider.GetRequiredService<IAuthorizationEnvelopeActivator>());
+        Assert.IsType<AuthorizationEnvelopePasswordLifecycle>(
+            provider.GetRequiredService<IAuthorizationEnvelopePasswordLifecycle>());
         Assert.IsType<AuthorizationEnvelopeSession>(
             provider.GetRequiredService<IAuthorizationEnvelopeSession>());
+        Assert.IsType<PortableSettingsService>(provider.GetRequiredService<ISettingsService>());
+        Assert.IsType<PortableAuthorizationService>(provider.GetRequiredService<IAuthorizationService>());
+        Assert.Null(provider.GetService<IAppSettingsDAL>());
 
         Assert.IsType<WindowsFileSecurity>(provider.GetRequiredService<IPlatformFileSecurity>());
         Assert.Same(vaultService, vaultKeyVerifier);
-        Assert.Equal(paths.SettingsFilePath, ReadPath(settingsDal, "_path"));
         Assert.Equal(paths.VaultFilePath, ReadPath(accountDal, "_secretsPath"));
         Assert.Equal(paths.VaultFilePath, ReadPath(storedVaultVerifier, "_path"));
         Assert.Equal(paths.AuthorizationEnvelopeFilePath, ReadPath(envelopeStore, "_path"));
@@ -45,7 +50,7 @@ public sealed class DependencyInjectionPathTests : IDisposable
     }
 
     [Fact]
-    public void AddInfrastructure_WhenStorageOverridesExist_PreservesConfiguredLocations()
+    public void AddInfrastructure_WhenStorageOverridesExist_IgnoresLegacySettingsPathAndPreservesVaultPath()
     {
         var paths = new WindowsApplicationPaths(_root, _root);
         var configuredSettingsPath = Path.Combine(_root, "custom", "profile.totp");
@@ -61,8 +66,10 @@ public sealed class DependencyInjectionPathTests : IDisposable
         using var provider = BuildProvider(configuration, paths);
 
         Assert.Equal(
-            configuredSettingsPath,
-            ReadPath(Assert.IsType<AppSettingsDAL>(provider.GetRequiredService<IAppSettingsDAL>()), "_path"));
+            paths.PreferencesFilePath,
+            ReadPath(Assert.IsType<AppPreferencesStore>(
+                provider.GetRequiredService<IAppPreferencesStore>()), "_path"));
+        Assert.Null(provider.GetService<IAppSettingsDAL>());
         Assert.Equal(
             configuredVaultPath,
             ReadPath(Assert.IsType<AccountDAL>(provider.GetRequiredService<IAccountDAL>()), "_secretsPath"));
@@ -78,6 +85,8 @@ public sealed class DependencyInjectionPathTests : IDisposable
     {
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddSingleton(Mock.Of<IPlatformQuickUnlock>());
+        services.AddSingleton(Mock.Of<IPlatformQuickUnlockEnrollment>());
         services.AddInfrastructure(configuration, paths);
         return services.BuildServiceProvider();
     }

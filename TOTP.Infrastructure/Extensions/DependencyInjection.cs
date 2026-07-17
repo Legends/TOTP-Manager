@@ -21,20 +21,10 @@ public static class DependencyInjection
     {
         services.AddSingleton<IPlatformFileSecurity, WindowsFileSecurity>();
 
-        var rawProfilePath = configuration.GetSection(StringsConstants.AppSettingsStorageFilePathConfigKey).Value;
-        var resolvedProfilePath = string.IsNullOrWhiteSpace(rawProfilePath)
-            ? applicationPaths.SettingsFilePath
-            : Environment.ExpandEnvironmentVariables(rawProfilePath);
         var rawVaultPath = configuration[StringsConstants.TokensStorageFilePathConfigKey];
         var resolvedVaultPath = string.IsNullOrWhiteSpace(rawVaultPath)
             ? applicationPaths.VaultFilePath
             : Environment.ExpandEnvironmentVariables(rawVaultPath);
-        services.AddSingleton<IAppSettingsDAL>(sp =>
-        {
-            var logger = sp.GetRequiredService<ILogger<AppSettingsDAL>>();
-            var fileSecurity = sp.GetRequiredService<IPlatformFileSecurity>();
-            return new AppSettingsDAL(resolvedProfilePath, logger, fileSecurity);
-        });
         services.AddSingleton<IAuthorizationEnvelopeStore>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<AuthorizationEnvelopeStore>>();
@@ -51,7 +41,7 @@ public static class DependencyInjection
             return new AppPreferencesStore(applicationPaths.PreferencesFilePath, logger, fileSecurity);
         });
        
-        services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<ISettingsService, PortableSettingsService>();
         services.AddSingleton<ITotpGenerator, OtpNetTotpGenerator>();
 
         // 1. Master Password & Security Context
@@ -59,6 +49,7 @@ public static class DependencyInjection
         services.AddTransient<IMasterPasswordService, MasterPasswordService>();
         services.AddSingleton<IPasswordValidationService, PasswordValidationService>();
         services.AddSingleton<IAuthorizationEnvelopeActivator, AuthorizationEnvelopeActivator>();
+        services.AddSingleton<IAuthorizationEnvelopePasswordLifecycle, AuthorizationEnvelopePasswordLifecycle>();
         services.AddSingleton<IAuthorizationEnvelopeSession, AuthorizationEnvelopeSession>();
 
         // 2. The Vault & DAL logic
@@ -81,7 +72,7 @@ public static class DependencyInjection
         });
 
         // 3. Authorization Logic (The bridge)
-        services.AddSingleton<IAuthorizationService, AuthorizationService>();
+        services.AddSingleton<IAuthorizationService, PortableAuthorizationService>();
         services.AddSingleton<AuthorizationState>();
 
         return services;
