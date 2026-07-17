@@ -1,36 +1,41 @@
-﻿namespace TOTP.Services
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Win32;
+using TOTP.Core.Services.Interfaces;
+using TOTP.Services.Interfaces;
+
+namespace TOTP.Services;
+
+public sealed class FileDialogService : IFileDialogService
 {
-    using Microsoft.Win32;
-    using TOTP.Services.Interfaces;
-
-    public sealed class FileDialogService : IFileDialogService
+    public string? ShowSaveFileDialog(SaveFileDialogRequest request)
     {
-        public string? ShowSaveFileDialog(string filter, string defaultExt, string? suggestedFileName = null)
+        var dialog = new SaveFileDialog
         {
-            var dlg = new SaveFileDialog
-            {
-                Filter = filter,
-                DefaultExt = defaultExt,
-                FileName = suggestedFileName ?? string.Empty,
-                AddExtension = true,
-                OverwritePrompt = true
-            };
+            Filter = ToWpfFilter(request.Filters),
+            DefaultExt = request.DefaultExtension,
+            FileName = request.SuggestedFileName ?? string.Empty,
+            AddExtension = true,
+            OverwritePrompt = true
+        };
 
-            return dlg.ShowDialog() == true ? dlg.FileName : null;
-        }
-
-        public string? ShowOpenFileDialog(string filter, string defaultExt)
-        {
-            var dlg = new OpenFileDialog
-            {
-                Filter = filter,
-                DefaultExt = defaultExt,
-                CheckFileExists = true,
-                Multiselect = false
-            };
-
-            return dlg.ShowDialog() == true ? dlg.FileName : null;
-        }
+        return dialog.ShowDialog() == true ? dialog.FileName : null;
     }
 
+    public string? ShowOpenFileDialog(OpenFileDialogRequest request)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = ToWpfFilter(request.Filters),
+            DefaultExt = request.DefaultExtension,
+            CheckFileExists = true,
+            Multiselect = false
+        };
+
+        return dialog.ShowDialog() == true ? dialog.FileName : null;
+    }
+
+    private static string ToWpfFilter(IEnumerable<FileDialogFilter> filters) =>
+        string.Join('|', filters.Select(filter =>
+            $"{filter.DisplayName}|{string.Join(';', filter.Patterns)}"));
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TOTP.Core.Enums;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Infrastructure.Parser;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;

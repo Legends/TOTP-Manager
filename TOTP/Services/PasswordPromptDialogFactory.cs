@@ -7,10 +7,16 @@ namespace TOTP.Services;
 public sealed class PasswordPromptDialogFactory : IPasswordPromptDialogFactory
 {
     public IPasswordPromptDialog CreateExportPasswordPromptDialog()
-        => new WindowDialogAdapter(new ExportPasswordPromptWindow());
+        => Create(new ExportPasswordPromptWindow());
 
     public IPasswordPromptDialog CreatePasswordPromptDialog()
-        => new WindowDialogAdapter(new PasswordPromptWindow());
+        => Create(new PasswordPromptWindow());
+
+    private static IPasswordPromptDialog Create(Window window)
+    {
+        window.Owner = Application.Current?.MainWindow;
+        return new WindowDialogAdapter(window);
+    }
 
     private sealed class WindowDialogAdapter(Window window) : IPasswordPromptDialog
     {
@@ -18,12 +24,6 @@ public sealed class PasswordPromptDialogFactory : IPasswordPromptDialogFactory
         {
             get => window.DataContext;
             set => window.DataContext = value;
-        }
-
-        public Window? Owner
-        {
-            get => window.Owner;
-            set => window.Owner = value;
         }
 
         public bool? ShowDialog() => window.ShowDialog();

@@ -3,6 +3,7 @@ using Moq;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Resources;
 using TOTP.Services;
 using TOTP.Services.Interfaces;

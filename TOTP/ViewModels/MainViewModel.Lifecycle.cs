@@ -81,6 +81,7 @@ public partial class MainViewModel
         AllOtps.Clear();
 
         StopTotpTimer();
+        ClearQrCodePngBytes();
         ClearCodeGenerationOutput();
         ClearSearchTextbox();
         CancelFlyout();

@@ -1,7 +1,4 @@
-using System;
-using System.Threading.Tasks;
-
-namespace TOTP.Services.Interfaces;
+namespace TOTP.Core.Services.Interfaces;
 
 public interface IPasswordPromptService
 {

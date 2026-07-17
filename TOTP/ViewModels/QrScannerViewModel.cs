@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.IO;
+using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using TOTP.Commands;
 using TOTP.Core.Services.Interfaces;
@@ -123,7 +125,7 @@ namespace TOTP.ViewModels
                 {
                     await _qrScannerRunner.RunAsync(
                         token,
-                        onPreview: bmp => RunOnUi(() => PreviewImage = bmp),
+                        onPreview: UpdatePreview,
                         onFirstFrame: () => RunOnUi(() =>
                         {
                             ErrorMessage = null;
@@ -174,6 +176,57 @@ namespace TOTP.ViewModels
                     RunOnUi(RaiseCommandStates);
                 }
             }
+        }
+
+        private void UpdatePreview(byte[] encodedFrame)
+        {
+            void DecodeAndClear()
+            {
+                try
+                {
+                    if (!_disposed)
+                    {
+                        PreviewImage = DecodePreview(encodedFrame);
+                    }
+                }
+                finally
+                {
+                    CryptographicOperations.ZeroMemory(encodedFrame);
+                }
+            }
+
+            if (_disposed)
+            {
+                CryptographicOperations.ZeroMemory(encodedFrame);
+            }
+            else if (_dispatcher == null || _dispatcher.CheckAccess())
+            {
+                DecodeAndClear();
+            }
+            else
+            {
+                try
+                {
+                    _dispatcher.Post(DecodeAndClear);
+                }
+                catch
+                {
+                    CryptographicOperations.ZeroMemory(encodedFrame);
+                    throw;
+                }
+            }
+        }
+
+        private static BitmapSource DecodePreview(byte[] encodedFrame)
+        {
+            using var stream = new MemoryStream(encodedFrame, writable: false);
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.StreamSource = stream;
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.EndInit();
+            image.Freeze();
+            return image;
         }
 
         public void Dispose()

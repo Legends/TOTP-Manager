@@ -25,7 +25,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<SaveFileDialogRequest>()))
             .Returns((string?)null);
 
         var sut = new AccountTransferWorkflowService(
@@ -39,6 +39,11 @@ public sealed class AccountTransferWorkflowServiceTests
 
         await sut.ExportOtpsAsync(toBeEncrypted: false, ExportFileFormat.Json);
 
+        fileDialog.Verify(f => f.ShowSaveFileDialog(It.Is<SaveFileDialogRequest>(request =>
+            request.DefaultExtension == ".json" &&
+            request.SuggestedFileName == "otp-backup" &&
+            request.Filters.Count == 1 &&
+            request.Filters[0].Patterns.SequenceEqual(new[] { "*.json" }))), Times.Once);
         accounts.Verify(a => a.GetAllEntriesSortedAsync(), Times.Never);
         export.Verify(e => e.ExportToFileAsync(It.IsAny<IEnumerable<Account>>(), It.IsAny<string>(), It.IsAny<ExportFileFormat>()), Times.Never);
     }
@@ -54,7 +59,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<SaveFileDialogRequest>()))
             .Returns("backup.totp");
         accounts.Setup(a => a.GetAllEntriesSortedAsync())
             .ReturnsAsync(Result.Ok(new ObservableCollection<Account>()));
@@ -87,7 +92,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns((string?)null);
 
         var sut = new AccountTransferWorkflowService(
@@ -115,7 +120,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
             .ReturnsAsync(Result.Fail<List<Account>>("import failed"));
@@ -147,7 +152,7 @@ public sealed class AccountTransferWorkflowServiceTests
 
         var appSettings = new AppSettings { OpenExportFileAfterExport = false };
         settings.SetupGet(s => s.Current).Returns(appSettings);
-        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<SaveFileDialogRequest>()))
             .Returns("backup.json");
         accounts.Setup(a => a.GetAllEntriesSortedAsync())
             .ReturnsAsync(Result.Ok(new ObservableCollection<Account>
@@ -184,7 +189,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         settings.SetupGet(s => s.Current).Returns(new AppSettings());
-        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<SaveFileDialogRequest>()))
             .Returns("backup.totp");
         accounts.Setup(a => a.GetAllEntriesSortedAsync())
             .ReturnsAsync(Result.Ok(new ObservableCollection<Account>
@@ -222,7 +227,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
             .ReturnsAsync(Result.Ok(new List<Account>()));
@@ -258,7 +263,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
             .ReturnsAsync(Result.Ok(new List<Account>
@@ -296,7 +301,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
             .ReturnsAsync(Result.Ok(new List<Account> { new(Guid.NewGuid(), "GitHub", "AAAA", "john") }));
@@ -329,7 +334,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
             .ReturnsAsync(Result.Ok(new List<Account>
@@ -365,7 +370,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
             .ReturnsAsync(Result.Ok(new List<Account>
@@ -397,7 +402,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns("import.totp");
         prompt.Setup(p => p.Prompt(
             It.IsAny<string>(),
@@ -428,7 +433,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         settings.SetupGet(s => s.Current).Returns(new AppSettings());
-        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<SaveFileDialogRequest>()))
             .Returns("backup.json");
         accounts.Setup(a => a.GetAllEntriesSortedAsync())
             .ReturnsAsync(Result.Fail<ObservableCollection<Account>>("load failed"));
@@ -454,7 +459,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
         settings.SetupGet(s => s.Current).Returns(new AppSettings());
-        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<SaveFileDialogRequest>()))
             .Returns("backup.json");
         accounts.Setup(a => a.GetAllEntriesSortedAsync())
             .ReturnsAsync(Result.Ok(new ObservableCollection<Account> { new(Guid.NewGuid(), "GitHub", "AAAA", "john") }));
@@ -481,7 +486,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns("import.totp");
         prompt.Setup(p => p.Prompt(
                 It.IsAny<string>(),
@@ -518,7 +523,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
             .ReturnsAsync(Result.Ok(new List<Account> { new(Guid.NewGuid(), "GitHub", "NEWSECRET", "john") }));
@@ -551,7 +556,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Returns("import.json");
         export.Setup(e => e.ImportFromFileAsync("import.json", null))
             .ReturnsAsync(Result.Ok(new List<Account> { new(Guid.NewGuid(), "GitHub", "NEWSECRET", "john") }));
@@ -577,7 +582,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowSaveFileDialog(It.IsAny<SaveFileDialogRequest>()))
             .Throws(new InvalidOperationException("dialog failure"));
 
         var sut = new AccountTransferWorkflowService(
@@ -601,7 +606,7 @@ public sealed class AccountTransferWorkflowServiceTests
         var settings = new Mock<ISettingsService>();
         var logger = new Mock<ILogger<AccountTransferWorkflowService>>();
 
-        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<string>(), It.IsAny<string>()))
+        fileDialog.Setup(f => f.ShowOpenFileDialog(It.IsAny<OpenFileDialogRequest>()))
             .Throws(new InvalidOperationException("dialog failure"));
 
         var sut = new AccountTransferWorkflowService(

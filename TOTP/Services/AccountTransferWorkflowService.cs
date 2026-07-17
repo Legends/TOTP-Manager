@@ -32,7 +32,10 @@ public sealed class AccountTransferWorkflowService(
     {
         try
         {
-            var path = fileDialogService.ShowSaveFileDialog(".txt|.json", ".json", "Totp-Accounts");
+            var path = fileDialogService.ShowSaveFileDialog(new SaveFileDialogRequest(
+                [new("Account files", "*.txt", "*.json")],
+                ".json",
+                "Totp-Accounts"));
 
             if (path == null)
             {
@@ -65,8 +68,8 @@ public sealed class AccountTransferWorkflowService(
         {
             var effectiveFormat = toBeEncrypted ? ExportFileFormat.Json : format;
             var defaultExt = GetDefaultExtension(effectiveFormat, toBeEncrypted);
-            var filter = GetSaveDialogFilter(effectiveFormat, toBeEncrypted);
-            var path = fileDialogService.ShowSaveFileDialog(filter, defaultExt, "otp-backup");
+            var filters = GetSaveDialogFilters(effectiveFormat, toBeEncrypted);
+            var path = fileDialogService.ShowSaveFileDialog(new SaveFileDialogRequest(filters, defaultExt, "otp-backup"));
 
             if (path == null)
             {
@@ -125,8 +128,15 @@ public sealed class AccountTransferWorkflowService(
     {
         try
         {
-            const string filter = "TOTP Backups|*.totp;*.json;*.txt;*.csv|Encrypted TOTP Backup|*.totp|JSON Files|*.json|Text Files|*.txt|CSV Files|*.csv";
-            var path = fileDialogService.ShowOpenFileDialog(filter, ".totp");
+            var path = fileDialogService.ShowOpenFileDialog(new OpenFileDialogRequest(
+                [
+                    new("TOTP Backups", "*.totp", "*.json", "*.txt", "*.csv"),
+                    new("Encrypted TOTP Backup", "*.totp"),
+                    new("JSON Files", "*.json"),
+                    new("Text Files", "*.txt"),
+                    new("CSV Files", "*.csv")
+                ],
+                ".totp"));
             if (string.IsNullOrWhiteSpace(path))
             {
                 return;
@@ -254,19 +264,19 @@ public sealed class AccountTransferWorkflowService(
         };
     }
 
-    private static string GetSaveDialogFilter(ExportFileFormat format, bool isEncrypted)
+    private static IReadOnlyList<FileDialogFilter> GetSaveDialogFilters(ExportFileFormat format, bool isEncrypted)
     {
         if (isEncrypted)
         {
-            return "TOTP Encrypted Backup|*.totp";
+            return [new("TOTP Encrypted Backup", "*.totp")];
         }
 
         return format switch
         {
-            ExportFileFormat.Json => "JSON Files|*.json",
-            ExportFileFormat.Txt => "Text Files|*.txt",
-            ExportFileFormat.Csv => "CSV Files|*.csv",
-            _ => "JSON Files|*.json"
+            ExportFileFormat.Json => [new("JSON Files", "*.json")],
+            ExportFileFormat.Txt => [new("Text Files", "*.txt")],
+            ExportFileFormat.Csv => [new("CSV Files", "*.csv")],
+            _ => [new("JSON Files", "*.json")]
         };
     }
 

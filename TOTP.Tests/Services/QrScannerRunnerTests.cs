@@ -1,6 +1,4 @@
 using OpenCvSharp;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 
@@ -203,14 +201,8 @@ public sealed class QrScannerRunnerTests
         public string Decode(Mat frame) => decode(frame);
     }
 
-    private sealed class FakeConverter : IFrameBitmapSourceConverter
+    private sealed class FakeConverter : IFramePreviewEncoder
     {
-        public BitmapSource Convert(Mat frame)
-        {
-            var pixels = new byte[] { 0, 0, 0, 255 };
-            var bmp = BitmapSource.Create(1, 1, 96, 96, PixelFormats.Bgra32, null, pixels, 4);
-            bmp.Freeze();
-            return bmp;
-        }
+        public byte[] Encode(Mat frame) => [1];
     }
 }

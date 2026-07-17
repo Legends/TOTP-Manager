@@ -29,9 +29,9 @@ public partial class MainViewModel
             _ => GenerateQrCodeImage(),
             _ => CanGenerateQr());
 
-        ToggleQrPreviewCommand = new RelayCommand<System.Windows.Media.Imaging.BitmapSource?>(
-            source => _qrPreviewService.Toggle(source),
-            source => source != null);
+        ToggleQrPreviewCommand = new RelayCommand(
+            () => _qrPreviewService.Toggle(_qrCodePngBytes),
+            () => _qrCodePngBytes.Length > 0);
 
         ExportSecretsCommand = new AsyncCommand(_accountTransferWorkflowService.ExportSecretsToFileAsync, CanExportSecrets);
         ScanQrAndAddCommand = new AsyncCommand(ScanQrAndAddAccountAsync, () => !_isGridInEditMode);

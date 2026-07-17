@@ -14,9 +14,10 @@ public sealed class QrScannerViewModelTests
     public async Task Start_WhenRunnerProvidesFrameAndDecode_UpdatesStateAndRequestsSuccessClose()
     {
         var closeEvents = new List<bool>();
+        var encodedFrame = CreatePreviewBytes();
         var runner = new FakeRunner(async (token, onPreview, onFirstFrame, onDecoded) =>
         {
-            onPreview(CreateBitmap());
+            onPreview(encodedFrame);
             onFirstFrame();
             onDecoded("otpauth://totp/test");
             await Task.CompletedTask;
@@ -34,6 +35,7 @@ public sealed class QrScannerViewModelTests
         Assert.Equal("otpauth://totp/test", vm.DecodedText);
         Assert.Single(closeEvents);
         Assert.True(closeEvents[0]);
+        Assert.All(encodedFrame, value => Assert.Equal(0, value));
     }
 
     [Fact]
@@ -70,7 +72,7 @@ public sealed class QrScannerViewModelTests
                 throw new InvalidOperationException("No camera found.");
             }
 
-            onPreview(CreateBitmap());
+            onPreview(CreatePreviewBytes());
             onFirstFrame();
             onDecoded("otpauth://totp/reconnected");
             return Task.CompletedTask;
@@ -146,7 +148,7 @@ public sealed class QrScannerViewModelTests
             .Callback<Action>(action => action());
         var runner = new FakeRunner((token, onPreview, onFirstFrame, onDecoded) => Task.Run(() =>
         {
-            onPreview(CreateBitmap());
+            onPreview(CreatePreviewBytes());
             onFirstFrame();
             onDecoded("otpauth://totp/worker-thread");
         }, token));
@@ -162,12 +164,16 @@ public sealed class QrScannerViewModelTests
         dispatcher.Verify(d => d.Post(It.IsAny<Action>()), Times.AtLeast(3));
     }
 
-    private static BitmapSource CreateBitmap()
+    private static byte[] CreatePreviewBytes()
     {
         var pixels = new byte[] { 0, 0, 0, 255 };
         var bmp = BitmapSource.Create(1, 1, 96, 96, PixelFormats.Bgra32, null, pixels, 4);
         bmp.Freeze();
-        return bmp;
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bmp));
+        using var stream = new MemoryStream();
+        encoder.Save(stream);
+        return stream.ToArray();
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 1200)
@@ -187,14 +193,14 @@ public sealed class QrScannerViewModelTests
 
     private sealed class FakeRunner : IQrScannerRunner
     {
-        private readonly Func<CancellationToken, Action<BitmapSource>, Action, Action<string>, Task> _run;
+        private readonly Func<CancellationToken, Action<byte[]>, Action, Action<string>, Task> _run;
 
-        public FakeRunner(Func<CancellationToken, Action<BitmapSource>, Action, Action<string>, Task> run)
+        public FakeRunner(Func<CancellationToken, Action<byte[]>, Action, Action<string>, Task> run)
         {
             _run = run;
         }
 
-        public Task RunAsync(CancellationToken token, Action<BitmapSource> onPreview, Action onFirstFrame, Action<string> onDecoded)
+        public Task RunAsync(CancellationToken token, Action<byte[]> onPreview, Action onFirstFrame, Action<string> onDecoded)
             => _run(token, onPreview, onFirstFrame, onDecoded);
     }
 }

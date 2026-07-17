@@ -1,7 +1,7 @@
 using FluentResults;
 using Moq;
-using Notification.Wpf;
 using TOTP.Core.Common;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Resources;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
@@ -35,7 +35,7 @@ public sealed class MessageServiceTests
         var req = Assert.Single(client.ShowRequests);
         Assert.Equal(UI.ui_Caption_Error, req.Title);
         Assert.Equal(UI.err_TokensDeleteFailed, req.Message);
-        Assert.Equal(NotificationType.Error, req.Type);
+        Assert.Equal(NotificationSeverity.Error, req.Severity);
         Assert.Equal(UI.ui_btnDetails, req.LeftButtonText);
         Assert.False(req.CloseOnClick);
         Assert.NotNull(req.LeftButton);
@@ -53,7 +53,7 @@ public sealed class MessageServiceTests
         sut.ShowInfo("hello", durationSeconds: 3);
 
         var req = Assert.Single(client.ShowRequests);
-        Assert.Equal(NotificationType.Information, req.Type);
+        Assert.Equal(NotificationSeverity.Information, req.Severity);
         Assert.Equal(TimeSpan.FromSeconds(3), req.ExpirationTime);
         Assert.True(req.CloseOnClick);
     }
@@ -68,7 +68,7 @@ public sealed class MessageServiceTests
         sut.ShowError("fatal");
 
         var req = Assert.Single(client.ShowRequests);
-        Assert.Equal(NotificationType.Error, req.Type);
+        Assert.Equal(NotificationSeverity.Error, req.Severity);
         Assert.Equal(UI.ui_btnDetails, req.LeftButtonText);
         Assert.False(req.CloseOnClick);
         Assert.NotNull(req.LeftButton);
@@ -83,7 +83,7 @@ public sealed class MessageServiceTests
         sut.ShowWarning("warn");
 
         var req = Assert.Single(client.ShowRequests);
-        Assert.Equal(NotificationType.Warning, req.Type);
+        Assert.Equal(NotificationSeverity.Warning, req.Severity);
     }
 
     [StaFact]
@@ -96,7 +96,7 @@ public sealed class MessageServiceTests
 
         Assert.True(result);
         var req = Assert.Single(client.ConfirmRequests);
-        Assert.Equal(NotificationType.Information, req.Type);
+        Assert.Equal(NotificationSeverity.Information, req.Severity);
         Assert.Equal(UI.ui_btnOK, req.OkText);
         Assert.Equal(UI.ui_btnCancel, req.CancelText);
     }

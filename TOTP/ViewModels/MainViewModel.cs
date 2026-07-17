@@ -291,6 +291,7 @@ public partial class MainViewModel : IMainViewModel, IAccountsCollectionContext,
 
 
     private BitmapImage? _qrCodeImage;
+    private byte[] _qrCodePngBytes = [];
 
     public BitmapImage? QrCodeImage
     {

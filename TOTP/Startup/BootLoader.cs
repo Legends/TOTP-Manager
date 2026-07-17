@@ -144,7 +144,7 @@ public static class BootLoader
                 services.AddTransient<IQrScannerRunner, QrScannerRunner>();
                 services.AddTransient<IVideoCaptureFactory, OpenCvVideoCaptureFactory>();
                 services.AddTransient<IQrCodeDecoder, OpenCvQrCodeDecoder>();
-                services.AddTransient<IFrameBitmapSourceConverter, MatBitmapSourceConverter>();
+                services.AddTransient<IFramePreviewEncoder, MatFramePreviewEncoder>();
 
 
 

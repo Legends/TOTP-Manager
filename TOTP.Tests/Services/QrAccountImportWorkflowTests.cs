@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Collections.ObjectModel;
 using TOTP.Core.Enums;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Services;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;

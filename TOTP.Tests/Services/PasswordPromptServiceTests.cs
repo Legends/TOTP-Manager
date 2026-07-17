@@ -1,7 +1,5 @@
 using Moq;
-using Microsoft.Extensions.Logging.Abstractions;
 using System.Diagnostics;
-using System.Windows;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Services;
@@ -35,7 +33,7 @@ public sealed class PasswordPromptServiceTests
             return closed;
         };
 
-        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object, NullLogger<PasswordPromptService>.Instance);
+        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object);
 
         var result = sut.PromptForEncryptedExportPassword("Export");
 
@@ -66,7 +64,7 @@ public sealed class PasswordPromptServiceTests
             return closed;
         };
 
-        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object, NullLogger<PasswordPromptService>.Instance);
+        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object);
 
         var result = sut.PromptForEncryptedExportPassword("Export");
 
@@ -80,8 +78,7 @@ public sealed class PasswordPromptServiceTests
         var sut = new PasswordPromptService(
             Mock.Of<IAuthorizationService>(),
             Mock.Of<IPasswordValidationService>(),
-            CreateFactoryFor(new FakeDialog { OnShowDialog = () => false }, null),
-            NullLogger<PasswordPromptService>.Instance);
+            CreateFactoryFor(new FakeDialog { OnShowDialog = () => false }, null));
 
         var result = sut.PromptForEncryptedExportPassword("Export");
 
@@ -114,7 +111,7 @@ public sealed class PasswordPromptServiceTests
             return true;
         };
 
-        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object, NullLogger<PasswordPromptService>.Instance);
+        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object);
 
         var result = sut.PromptForEncryptedExportPassword("Export");
 
@@ -145,7 +142,7 @@ public sealed class PasswordPromptServiceTests
             return closed;
         };
 
-        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object, NullLogger<PasswordPromptService>.Instance);
+        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object);
 
         var result = sut.Prompt("Title", "Message");
 
@@ -176,7 +173,7 @@ public sealed class PasswordPromptServiceTests
             return closed;
         };
 
-        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object, NullLogger<PasswordPromptService>.Instance);
+        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object);
 
         var result = sut.Prompt("Title", "Message");
 
@@ -189,8 +186,7 @@ public sealed class PasswordPromptServiceTests
         var sut = new PasswordPromptService(
             Mock.Of<IAuthorizationService>(),
             Mock.Of<IPasswordValidationService>(),
-            CreateFactoryFor(null, new FakeDialog { OnShowDialog = () => false }),
-            NullLogger<PasswordPromptService>.Instance);
+            CreateFactoryFor(null, new FakeDialog { OnShowDialog = () => false }));
 
         var result = sut.Prompt("Title", "Message");
 
@@ -224,7 +220,7 @@ public sealed class PasswordPromptServiceTests
             return true;
         };
 
-        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object, NullLogger<PasswordPromptService>.Instance);
+        var sut = new PasswordPromptService(auth.Object, validation.Object, dialogFactory.Object);
 
         var result = sut.Prompt("Title", "Message");
 
@@ -242,7 +238,6 @@ public sealed class PasswordPromptServiceTests
     private sealed class FakeDialog : IPasswordPromptDialog
     {
         public object? DataContext { get; set; }
-        public Window? Owner { get; set; }
         public Func<bool?>? OnShowDialog { get; set; }
 
         public bool? ShowDialog() => OnShowDialog?.Invoke();

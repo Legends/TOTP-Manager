@@ -1,7 +1,10 @@
 using System;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using System.IO;
+using System.Security.Cryptography;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Services.Interfaces;
 using TOTP.Views;
 
@@ -24,7 +27,7 @@ public sealed class QrPreviewService : IQrPreviewService
             : 2.0;
     }
 
-    public void Toggle(BitmapSource? source)
+    public void Toggle(ReadOnlyMemory<byte> pngImage)
     {
         if (_previewWindow != null || _overlayWindow != null)
         {
@@ -32,10 +35,12 @@ public sealed class QrPreviewService : IQrPreviewService
             return;
         }
 
-        if (source == null || source.PixelWidth <= 0 || source.PixelHeight <= 0)
+        if (pngImage.IsEmpty)
         {
             return;
         }
+
+        var source = DecodePng(pngImage);
 
         // Scale from the inline QR size shown in the main view (not raw bitmap pixels),
         // so "2x" really means twice the normal on-screen QR.
@@ -101,6 +106,26 @@ public sealed class QrPreviewService : IQrPreviewService
 
         _overlayWindow.Show();
         _previewWindow.Show();
+    }
+
+    private static BitmapSource DecodePng(ReadOnlyMemory<byte> pngImage)
+    {
+        var temporaryBytes = pngImage.ToArray();
+        try
+        {
+            using var stream = new MemoryStream(temporaryBytes, writable: false);
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.StreamSource = stream;
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.EndInit();
+            image.Freeze();
+            return image;
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(temporaryBytes);
+        }
     }
 
     public void Close()

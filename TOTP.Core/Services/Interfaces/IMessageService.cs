@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace TOTP.Services.Interfaces;
+namespace TOTP.Core.Services.Interfaces;
 
 public interface IMessageService
 {

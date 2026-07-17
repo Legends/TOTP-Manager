@@ -330,9 +330,9 @@ Total expected production effort remains approximately **37-62 person-weeks**, w
 
 #### M1.5 Window-independent user interaction
 
-- [ ] Keep confirmation, error, notification, and file-dialog contracts UI-neutral.
-- [ ] Remove `Window`, `MessageBox`, and WPF image types from contracts.
-- [ ] Convert window ownership into UI-layer concerns.
+- [x] Keep confirmation, error, notification, and file-dialog contracts UI-neutral.
+- [x] Remove `Window`, `MessageBox`, and WPF image types from contracts.
+- [x] Convert window ownership into UI-layer concerns.
 
 #### M1.6 Platform events
 

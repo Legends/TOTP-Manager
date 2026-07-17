@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 using FluentResults;
 using Microsoft.Extensions.Logging;
 using System.Windows.Media.Imaging;
@@ -172,6 +173,8 @@ public partial class MainViewModel
         var issuer = item.Issuer ?? string.Empty;
         var uri = _qrService.BuildOtpAuthUri(issuer, normalizedSecret, item.AccountName);
         byte[] pngBytes = _qrService.GenerateQr(uri);
+        ClearQrCodePngBytes();
+        _qrCodePngBytes = pngBytes;
 
         var bmp = new BitmapImage();
         using (var ms = new MemoryStream(pngBytes))
@@ -298,8 +301,15 @@ public partial class MainViewModel
         IsProgressPieChartVisible = false;
         IsCodeLabelVisible = false;
         QrCodeImage = null;
+        ClearQrCodePngBytes();
         CurrentCodeLabel = string.Empty;
         ShowGenerateQrCodeLink = false;
+    }
+
+    private void ClearQrCodePngBytes()
+    {
+        CryptographicOperations.ZeroMemory(_qrCodePngBytes);
+        _qrCodePngBytes = [];
     }
 
     void StopTotpTimer()

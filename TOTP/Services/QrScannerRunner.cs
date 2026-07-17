@@ -3,7 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;
@@ -11,11 +11,11 @@ namespace TOTP.Services;
 public sealed class QrScannerRunner(
     IVideoCaptureFactory videoCaptureFactory,
     IQrCodeDecoder qrCodeDecoder,
-    IFrameBitmapSourceConverter frameBitmapSourceConverter) : IQrScannerRunner
+    IFramePreviewEncoder framePreviewEncoder) : IQrScannerRunner
 {
     public async Task RunAsync(
         CancellationToken token,
-        Action<BitmapSource> onPreview,
+        Action<byte[]> onPreview,
         Action onFirstFrame,
         Action<string> onDecoded)
     {
@@ -103,8 +103,7 @@ public sealed class QrScannerRunner(
                     throw new InvalidOperationException("Camera stopped providing new frames.");
                 }
 
-                var bmp = frameBitmapSourceConverter.Convert(frame);
-                onPreview(bmp);
+                onPreview(framePreviewEncoder.Encode(frame));
 
                 if (!firstFrameShown)
                 {

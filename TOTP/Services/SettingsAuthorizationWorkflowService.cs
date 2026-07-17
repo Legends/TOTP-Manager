@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
 

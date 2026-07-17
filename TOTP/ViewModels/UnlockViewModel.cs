@@ -6,6 +6,7 @@ using System.Windows.Input;
 using TOTP.Commands;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Resources;
 using TOTP.Services.Interfaces;
 using TOTP.Presentation.Services.Interfaces;
