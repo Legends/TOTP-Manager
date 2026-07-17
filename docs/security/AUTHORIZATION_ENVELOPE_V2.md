@@ -100,6 +100,8 @@ This storage hardening reduces partial-write, replacement, and unbounded-secret-
 
 `AuthorizationState.SetConfiguration` now derives configured state from envelope presence and the portable preferred-unlock preference rather than requiring an `AuthorizationProfile`. The current WPF UI still consumes `AuthorizationGateKind`, so the state temporarily projects `PlatformQuickUnlock` to the legacy `Hello` gate name. Missing configuration and invalid preference values fail closed to password setup/password unlock. `SetProfile` remains only as an adapter for the unpublished development-era WPF authorization service and can be removed at coordinated cutover.
 
+`IAuthorizationEnvelopeSession` is the inactive v2 load and password-unlock path. Initialization loads one strictly decoded envelope and reports configured and supported-quick-unlock capability without exposing the cached wrapper. Password unlock uses only `UnwrapKeyV2Async`, verifies the recovered DEK against the existing vault (or the explicit first-run no-vault state), and sets `ISecurityContext` only after verification. Wrong passwords are expected credential failures; corrupt vaults and storage failures remain typed failures. Recovered DEKs are cleared immediately, and cached envelope arrays are cleared on reload and disposal. The session is registered separately and will replace the legacy profile reads during coordinated WPF cutover.
+
 ## Platform quick-unlock metadata
 
 `quickUnlockWrapper` is optional and device-local. Its absence never makes the envelope invalid, while its presence never relaxes the requirement for a valid `passwordWrapper`. The preferred unlock UI choice remains a preference rather than cryptographic metadata.

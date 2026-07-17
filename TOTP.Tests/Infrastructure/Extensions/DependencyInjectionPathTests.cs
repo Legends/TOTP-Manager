@@ -32,6 +32,8 @@ public sealed class DependencyInjectionPathTests : IDisposable
             provider.GetRequiredService<IStoredVaultKeyVerifier>());
         Assert.IsType<AuthorizationEnvelopeActivator>(
             provider.GetRequiredService<IAuthorizationEnvelopeActivator>());
+        Assert.IsType<AuthorizationEnvelopeSession>(
+            provider.GetRequiredService<IAuthorizationEnvelopeSession>());
 
         Assert.IsType<WindowsFileSecurity>(provider.GetRequiredService<IPlatformFileSecurity>());
         Assert.Same(vaultService, vaultKeyVerifier);

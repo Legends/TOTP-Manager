@@ -139,25 +139,13 @@ public sealed class AuthorizationEnvelopeActivator : IAuthorizationEnvelopeActiv
         finally
         {
             if (encodedEnvelope is not null) CryptographicOperations.ZeroMemory(encodedEnvelope);
-            if (verifiedEnvelope is not null) ClearEnvelopeBuffers(verifiedEnvelope);
+            if (verifiedEnvelope is not null) AuthorizationEnvelopeBufferCleaner.Clear(verifiedEnvelope);
             CryptographicOperations.ZeroMemory(ownedCandidateKey);
             if (lockTaken) _lock.Release();
         }
     }
 
     public void Dispose() => _lock.Dispose();
-
-    private static void ClearEnvelopeBuffers(AuthorizationEnvelopeV2 envelope)
-    {
-        CryptographicOperations.ZeroMemory(envelope.PasswordWrapper.Kdf.Salt);
-        CryptographicOperations.ZeroMemory(envelope.PasswordWrapper.WrappedKey.Nonce);
-        CryptographicOperations.ZeroMemory(envelope.PasswordWrapper.WrappedKey.Ciphertext);
-        var platformWrapper = envelope.QuickUnlockWrapper?.WrappedKey;
-        if (platformWrapper?.Nonce is not null)
-            CryptographicOperations.ZeroMemory(platformWrapper.Nonce);
-        if (platformWrapper is not null)
-            CryptographicOperations.ZeroMemory(platformWrapper.Ciphertext);
-    }
 
     private static Result Fail(
         AuthorizationEnvelopeActivationErrorCode code,
