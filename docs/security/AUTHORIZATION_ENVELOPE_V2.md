@@ -102,7 +102,7 @@ This storage hardening reduces partial-write, replacement, and unbounded-secret-
 
 `AuthorizationState.SetConfiguration` now derives configured state from envelope presence and the portable preferred-unlock preference rather than requiring an `AuthorizationProfile`. The current WPF UI still consumes `AuthorizationGateKind`, so the state temporarily projects `PlatformQuickUnlock` to the legacy `Hello` gate name. Missing configuration and invalid preference values fail closed to password setup/password unlock. `SetProfile` remains only as an adapter for the unpublished development-era WPF authorization service and can be removed at coordinated cutover.
 
-`IAuthorizationEnvelopeSession` is the inactive v2 load and password-unlock path. Initialization loads one strictly decoded envelope and reports configured and supported-quick-unlock capability without exposing the cached wrapper. Password unlock uses only `UnwrapKeyV2Async`, verifies the recovered DEK against the existing vault (or the explicit first-run no-vault state), and sets `ISecurityContext` only after verification. Wrong passwords are expected credential failures; corrupt vaults and storage failures remain typed failures. Recovered DEKs are cleared immediately, and cached envelope arrays are cleared on reload and disposal. The session is registered separately and will replace the legacy profile reads during coordinated WPF cutover.
+`IAuthorizationEnvelopeSession` is the inactive v2 load and unlock path. Initialization loads one strictly decoded envelope and reports configured and supported-quick-unlock capability without exposing the cached wrapper. Password unlock uses only `UnwrapKeyV2Async`. Platform unlock selects a registered adapter by the wrapper's exact reviewed provider identifier; absent adapters, unsupported wrappers, unavailable platform state, missing platform keys, and unconfigured platform state all require the password recovery path. Both unlock methods verify the recovered DEK against the existing vault (or the explicit first-run no-vault state) and set `ISecurityContext` only after verification. Adapter failures and vault failures remain separately typed, while user cancellation and application cancellation remain distinct. Recovered keys, the temporary array passed to the synchronously copying security context, and cached envelope arrays are cleared or disposed at their ownership boundaries. The session is registered separately and will replace the legacy profile reads during coordinated WPF cutover.
 
 ## Platform quick-unlock metadata
 
@@ -227,9 +227,11 @@ The clean version discriminator removes the legacy type-confusion risk. Explicit
 - `WindowsPlatformQuickUnlockTests` covers detailed availability, reviewed metadata emission, verification outcomes, invalid inputs, provider failures, incomplete-key cleanup, recovered-key ownership and clearing, missing platform keys, and fail-closed removal.
 - `PlatformQuickUnlockEnrollmentTests` covers mandatory recovery-password proof, vault verification, availability gating, metadata validation, atomic persistence, compensating cleanup, cancellation, and buffer clearing.
 - `PortableSettingsServiceTests` covers defaults, portable preference mapping, stable in-memory identity, retry after typed load failure, typed save failure, and exclusion of synthetic authorization material.
+- `AuthorizationEnvelopeSessionTests` covers initialization plus password and platform unlock, including provider selection, password fallback, expected platform outcomes, vault verification, typed adapter failures, cancellation, and temporary-key disposal.
 - The focused quick-unlock/security-contract test selection passes 39 tests.
 - The focused enrollment test selection passes 14 tests.
 - The focused portable-settings test selection passes 6 tests.
-- The full Debug solution test run passes 658 tests.
-- The Release solution build succeeds with zero warnings and errors, and the filtered PR-like Release test run passes 613 tests.
+- The focused authorization-envelope session test selection passes 33 tests.
+- The full Debug solution test run passes 674 tests.
+- The Release solution build succeeds with zero warnings and errors, and the filtered PR-like Release test run passes 629 tests.
 - A real Windows Hello/TPM registration and unlock smoke test remains required on supported hardware before release; automated tests use the existing `IHelloGate` OS boundary.

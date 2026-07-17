@@ -229,6 +229,230 @@ public sealed class AuthorizationEnvelopeSessionTests
     }
 
     [Fact]
+    public async Task TryUnlockWithPlatformAsync_BeforeInitialization_ReturnsTypedFailure()
+    {
+        var platform = new Mock<IPlatformQuickUnlock>();
+        using var sut = CreateSession(
+            new Mock<IAuthorizationEnvelopeStore>(),
+            platformAdapters: [platform.Object]);
+
+        var result = await sut.TryUnlockWithPlatformAsync(TestContext.Current.CancellationToken);
+
+        AssertSessionError(result, AuthorizationEnvelopeSessionErrorCode.NotInitialized);
+        platform.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task TryUnlockWithPlatformAsync_WhenEnvelopeIsMissing_ReturnsNotConfigured()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var platform = new Mock<IPlatformQuickUnlock>();
+        var store = StoreReturning(null, cancellationToken);
+        using var sut = CreateSession(store, platformAdapters: [platform.Object]);
+        Assert.True((await sut.InitializeAsync(cancellationToken)).IsSuccess);
+
+        var result = await sut.TryUnlockWithPlatformAsync(cancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(AuthorizationResult.NotConfigured, result.Value);
+        platform.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task TryUnlockWithPlatformAsync_WithoutSupportedWrapper_RequiresPasswordWithoutPlatformAccess()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var platform = new Mock<IPlatformQuickUnlock>();
+        var store = StoreReturning(AuthorizationEnvelopeV2CodecTests.CreateEnvelope(), cancellationToken);
+        using var sut = CreateSession(store, platformAdapters: [platform.Object]);
+        Assert.True((await sut.InitializeAsync(cancellationToken)).IsSuccess);
+
+        var result = await sut.TryUnlockWithPlatformAsync(cancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(AuthorizationResult.PasswordRequired, result.Value);
+        platform.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task TryUnlockWithPlatformAsync_WithoutMatchingAdapter_RequiresPassword()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var envelope = CreateEnvelopeWithQuickUnlock();
+        var otherPlatform = new Mock<IPlatformQuickUnlock>();
+        otherPlatform.SetupGet(value => value.ProviderId).Returns("other-provider");
+        var store = StoreReturning(envelope, cancellationToken);
+        using var sut = CreateSession(store, platformAdapters: [otherPlatform.Object]);
+        Assert.True((await sut.InitializeAsync(cancellationToken)).IsSuccess);
+
+        var result = await sut.TryUnlockWithPlatformAsync(cancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(AuthorizationResult.PasswordRequired, result.Value);
+        otherPlatform.VerifyGet(value => value.ProviderId, Times.Once);
+        otherPlatform.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(PlatformQuickUnlockStatus.Cancelled, AuthorizationResult.Cancelled)]
+    [InlineData(PlatformQuickUnlockStatus.DisabledByPolicy, AuthorizationResult.DisabledByPolicy)]
+    [InlineData(PlatformQuickUnlockStatus.RetriesExhausted, AuthorizationResult.TooManyAttempts)]
+    [InlineData(PlatformQuickUnlockStatus.VerificationFailed, AuthorizationResult.Failed)]
+    [InlineData(PlatformQuickUnlockStatus.NotAvailable, AuthorizationResult.PasswordRequired)]
+    [InlineData(PlatformQuickUnlockStatus.NotConfigured, AuthorizationResult.PasswordRequired)]
+    [InlineData(PlatformQuickUnlockStatus.KeyNotFound, AuthorizationResult.PasswordRequired)]
+    public async Task TryUnlockWithPlatformAsync_MapsExpectedPlatformOutcome(
+        PlatformQuickUnlockStatus status,
+        AuthorizationResult expectedResult)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var envelope = CreateEnvelopeWithQuickUnlock();
+        var platform = PlatformFor(envelope.QuickUnlockWrapper!);
+        platform.Setup(value => value.TryUnlockAsync(envelope.QuickUnlockWrapper!, cancellationToken))
+            .ReturnsAsync(Result.Ok(PlatformQuickUnlockAttempt.WithoutKey(status)));
+        var vault = new Mock<IStoredVaultKeyVerifier>();
+        var security = new Mock<ISecurityContext>();
+        var store = StoreReturning(envelope, cancellationToken);
+        using var sut = CreateSession(
+            store,
+            vault: vault,
+            security: security,
+            platformAdapters: [platform.Object]);
+        Assert.True((await sut.InitializeAsync(cancellationToken)).IsSuccess);
+
+        var result = await sut.TryUnlockWithPlatformAsync(cancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expectedResult, result.Value);
+        vault.VerifyNoOtherCalls();
+        security.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(VaultKeyVerificationStatus.Verified)]
+    [InlineData(VaultKeyVerificationStatus.VaultNotFound)]
+    public async Task TryUnlockWithPlatformAsync_AfterVaultVerification_UnlocksAndDisposesPlatformKey(
+        VaultKeyVerificationStatus vaultStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var envelope = CreateEnvelopeWithQuickUnlock();
+        var expectedKey = Enumerable.Range(1, 32).Select(value => (byte)value).ToArray();
+        var platformKey = SensitiveBuffer.CopyFrom(expectedKey);
+        var platform = PlatformFor(envelope.QuickUnlockWrapper!);
+        platform.Setup(value => value.TryUnlockAsync(envelope.QuickUnlockWrapper!, cancellationToken))
+            .ReturnsAsync(Result.Ok(PlatformQuickUnlockAttempt.Successful(platformKey)));
+        var vault = new Mock<IStoredVaultKeyVerifier>();
+        vault.Setup(value => value.VerifyAsync(It.IsAny<ReadOnlyMemory<byte>>(), cancellationToken))
+            .Callback<ReadOnlyMemory<byte>, CancellationToken>((key, _) => Assert.Equal(expectedKey, key.ToArray()))
+            .ReturnsAsync(Result.Ok(vaultStatus));
+        byte[]? contextKey = null;
+        byte[]? contextInput = null;
+        var security = new Mock<ISecurityContext>();
+        security.Setup(value => value.SetDek(It.IsAny<byte[]>()))
+            .Callback<byte[]>(key =>
+            {
+                contextInput = key;
+                contextKey = (byte[])key.Clone();
+            });
+        var store = StoreReturning(envelope, cancellationToken);
+        using var sut = CreateSession(
+            store,
+            vault: vault,
+            security: security,
+            platformAdapters: [platform.Object]);
+        Assert.True((await sut.InitializeAsync(cancellationToken)).IsSuccess);
+
+        var result = await sut.TryUnlockWithPlatformAsync(cancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(AuthorizationResult.Success, result.Value);
+        Assert.Equal(expectedKey, contextKey);
+        Assert.NotNull(contextInput);
+        Assert.All(contextInput, value => Assert.Equal(0, value));
+        Assert.Throws<ObjectDisposedException>(() => _ = platformKey.Memory);
+        security.Verify(value => value.SetDek(It.IsAny<byte[]>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task TryUnlockWithPlatformAsync_WhenRecoveredKeyDoesNotVerify_DoesNotUnlockAndDisposesKey()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var envelope = CreateEnvelopeWithQuickUnlock();
+        var platformKey = SensitiveBuffer.CopyFrom(new byte[32]);
+        var platform = PlatformFor(envelope.QuickUnlockWrapper!);
+        platform.Setup(value => value.TryUnlockAsync(envelope.QuickUnlockWrapper!, cancellationToken))
+            .ReturnsAsync(Result.Ok(PlatformQuickUnlockAttempt.Successful(platformKey)));
+        var vault = new Mock<IStoredVaultKeyVerifier>();
+        vault.Setup(value => value.VerifyAsync(It.IsAny<ReadOnlyMemory<byte>>(), cancellationToken))
+            .ReturnsAsync(Result.Ok(VaultKeyVerificationStatus.AuthenticationFailed));
+        var security = new Mock<ISecurityContext>();
+        var store = StoreReturning(envelope, cancellationToken);
+        using var sut = CreateSession(
+            store,
+            vault: vault,
+            security: security,
+            platformAdapters: [platform.Object]);
+        Assert.True((await sut.InitializeAsync(cancellationToken)).IsSuccess);
+
+        var result = await sut.TryUnlockWithPlatformAsync(cancellationToken);
+
+        AssertSessionError(result, AuthorizationEnvelopeSessionErrorCode.VaultVerificationFailed);
+        Assert.Throws<ObjectDisposedException>(() => _ = platformKey.Memory);
+        security.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task TryUnlockWithPlatformAsync_WhenAdapterFails_PreservesTypedFailure()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var envelope = CreateEnvelopeWithQuickUnlock();
+        var platform = PlatformFor(envelope.QuickUnlockWrapper!);
+        platform.Setup(value => value.TryUnlockAsync(envelope.QuickUnlockWrapper!, cancellationToken))
+            .ReturnsAsync(Result.Fail<PlatformQuickUnlockAttempt>(new PlatformQuickUnlockError(
+                PlatformQuickUnlockErrorCode.UnlockFailed,
+                "synthetic platform failure")));
+        var store = StoreReturning(envelope, cancellationToken);
+        using var sut = CreateSession(store, platformAdapters: [platform.Object]);
+        Assert.True((await sut.InitializeAsync(cancellationToken)).IsSuccess);
+
+        var result = await sut.TryUnlockWithPlatformAsync(cancellationToken);
+
+        AssertSessionError(result, AuthorizationEnvelopeSessionErrorCode.PlatformUnlockFailed);
+        Assert.Equal(
+            PlatformQuickUnlockErrorCode.UnlockFailed,
+            Assert.Single(result.Errors.OfType<PlatformQuickUnlockError>()).Code);
+    }
+
+    [Fact]
+    public async Task TryUnlockWithPlatformAsync_WhenApplicationIsCancelled_PropagatesCancellation()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var envelope = CreateEnvelopeWithQuickUnlock();
+        var platform = PlatformFor(envelope.QuickUnlockWrapper!);
+        platform.Setup(value => value.TryUnlockAsync(envelope.QuickUnlockWrapper!, cancellation.Token))
+            .Returns(async () =>
+            {
+                await cancellation.CancelAsync();
+                throw new OperationCanceledException(cancellation.Token);
+            });
+        var vault = new Mock<IStoredVaultKeyVerifier>();
+        var security = new Mock<ISecurityContext>();
+        var store = StoreReturning(envelope, cancellation.Token);
+        using var sut = CreateSession(
+            store,
+            vault: vault,
+            security: security,
+            platformAdapters: [platform.Object]);
+        Assert.True((await sut.InitializeAsync(cancellation.Token)).IsSuccess);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => sut.TryUnlockWithPlatformAsync(cancellation.Token));
+
+        vault.VerifyNoOtherCalls();
+        security.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task InitializeAsync_WhenReloaded_ClearsPreviouslyCachedEnvelopeBuffers()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -307,13 +531,28 @@ public sealed class AuthorizationEnvelopeSessionTests
         Mock<IAuthorizationEnvelopeStore> store,
         Mock<IMasterPasswordService>? password = null,
         Mock<IStoredVaultKeyVerifier>? vault = null,
-        Mock<ISecurityContext>? security = null) =>
+        Mock<ISecurityContext>? security = null,
+        IEnumerable<IPlatformQuickUnlock>? platformAdapters = null) =>
         new(
             store.Object,
             (password ?? new Mock<IMasterPasswordService>()).Object,
             (vault ?? new Mock<IStoredVaultKeyVerifier>()).Object,
             (security ?? new Mock<ISecurityContext>()).Object,
+            platformAdapters ?? [],
             NullLogger<AuthorizationEnvelopeSession>.Instance);
+
+    private static AuthorizationEnvelopeV2 CreateEnvelopeWithQuickUnlock() =>
+        AuthorizationEnvelopeV2CodecTests.CreateEnvelope() with
+        {
+            QuickUnlockWrapper = CreateSupportedQuickUnlockWrapper()
+        };
+
+    private static Mock<IPlatformQuickUnlock> PlatformFor(PlatformQuickUnlockWrapperV2 wrapper)
+    {
+        var platform = new Mock<IPlatformQuickUnlock>();
+        platform.SetupGet(value => value.ProviderId).Returns(wrapper.Provider);
+        return platform;
+    }
 
     private static PlatformQuickUnlockWrapperV2 CreateSupportedQuickUnlockWrapper() => new()
     {

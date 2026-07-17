@@ -13,4 +13,7 @@ public interface IAuthorizationEnvelopeSession : IDisposable
     Task<Result<AuthorizationResult>> TryUnlockWithPasswordAsync(
         string password,
         CancellationToken cancellationToken = default);
+
+    Task<Result<AuthorizationResult>> TryUnlockWithPlatformAsync(
+        CancellationToken cancellationToken = default);
 }
