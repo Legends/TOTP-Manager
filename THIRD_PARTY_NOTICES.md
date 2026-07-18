@@ -14,8 +14,10 @@ From the current project files:
 - `TOTP.Core/TOTP.Core.csproj`
 - `TOTP.Infrastructure/TOTP.Infrastructure.csproj`
 - `TOTP.DAL/TOTP.DAL.csproj`
+- `TOTP.UI.Avalonia.Shared/TOTP.UI.Avalonia.Shared.csproj`
 
 Components include (non-exhaustive):
+- `Avalonia`
 - `FluentResults`
 - `Microsoft.Extensions.*`
 - `Microsoft.Xaml.Behaviors.Wpf`

@@ -439,7 +439,7 @@ Any replacement failure before Active
 
 ### Project creation
 
-- [ ] Create `TOTP.UI.Avalonia.Shared`.
+- [x] Create `TOTP.UI.Avalonia.Shared`.
 - [ ] Create `TOTP.UI.Avalonia.Desktop`.
 - [ ] Add projects to `TOTP.sln`.
 - [ ] Register the same application services through an Avalonia composition root.
