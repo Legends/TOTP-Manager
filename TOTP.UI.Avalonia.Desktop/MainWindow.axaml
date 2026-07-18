@@ -173,6 +173,26 @@
                 </DataTemplate>
             </ContentControl.ContentTemplate>
         </ContentControl>
+                <ContentControl Content="{Binding Diagnostics}">
+                    <ContentControl.ContentTemplate>
+                        <DataTemplate x:DataType="presentation:DiagnosticsViewModel">
+                            <StackPanel Spacing="8">
+                                <TextBlock Classes="heading" Text="{DynamicResource SupportDiagnostics}" />
+                                <Button Command="{Binding RefreshCommand}" Content="{DynamicResource RefreshSupportInformation}" />
+                                <shared:NotificationBanner
+                                    IsVisible="{Binding HasMessage}"
+                                    Severity="{Binding MessageSeverity}"
+                                    Text="{Binding Message}" />
+                                <TextBox
+                                    AcceptsReturn="True"
+                                    IsReadOnly="True"
+                                    MinHeight="120"
+                                    Text="{Binding SupportInformation}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ContentControl.ContentTemplate>
+                </ContentControl>
                 <ContentControl Content="{Binding CameraScanner}">
             <ContentControl.ContentTemplate>
                 <DataTemplate x:DataType="presentation:CameraScannerViewModel">

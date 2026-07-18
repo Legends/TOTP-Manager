@@ -12,6 +12,8 @@ public sealed class SensitiveTextRedactorTests
     [InlineData("token = xyz", "token=[REDACTED]")]
     [InlineData("Bearer abc.def.ghi", "Bearer [REDACTED]")]
     [InlineData("https://x?a=1&secret=AAA&b=2", "https://x?a=1&secret=[REDACTED]&b=2")]
+    [InlineData("{\"issuer\":\"Example\",\"secret\":\"JBSWY3DPEHPK3PXP\"}", "{\"issuer\":\"Example\",\"secret\":\"[REDACTED]\"}")]
+    [InlineData("scan otpauth://totp/Issuer:user?secret=JBSWY3DPEHPK3PXP", "scan otpauth://[REDACTED]")]
     public void Sanitize_RedactsSensitiveFragments(string input, string expected)
     {
         var result = SensitiveTextRedactor.Sanitize(input);

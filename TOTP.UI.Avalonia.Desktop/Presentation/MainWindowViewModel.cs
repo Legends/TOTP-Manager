@@ -43,6 +43,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         NativeFilePickerViewModel nativeFilePicker,
         CameraScannerViewModel cameraScanner,
         UpdateCheckViewModel updateCheck,
+        DiagnosticsViewModel diagnostics,
         IAvaloniaLocalizationService localization)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
@@ -55,6 +56,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         NativeFilePicker = nativeFilePicker ?? throw new ArgumentNullException(nameof(nativeFilePicker));
         CameraScanner = cameraScanner ?? throw new ArgumentNullException(nameof(cameraScanner));
         UpdateCheck = updateCheck ?? throw new ArgumentNullException(nameof(updateCheck));
+        Diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         PasswordUnlock.Unlocked += OnUnlocked;
         PasswordSetup.Configured += OnConfigured;
@@ -129,6 +131,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public CameraScannerViewModel CameraScanner { get; }
 
     public UpdateCheckViewModel UpdateCheck { get; }
+
+    public DiagnosticsViewModel Diagnostics { get; }
 
     public bool IsPasswordUnlockVisible
     {

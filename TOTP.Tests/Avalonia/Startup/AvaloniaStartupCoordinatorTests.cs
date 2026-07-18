@@ -6,6 +6,8 @@ using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Avalonia.Desktop.Localization;
+using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Services.Models;
 
 namespace TOTP.Tests.Avalonia.Startup;
 
@@ -126,6 +128,33 @@ public sealed class AvaloniaStartupCoordinatorTests
         var outcome = await sut.InitializeAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(AvaloniaStartupOutcome.UnexpectedFailure, outcome);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_RecordsAllowlistedStartupStagesWithoutPayloadData()
+    {
+        var state = new AuthorizationState();
+        state.SetConfiguration(true, TOTP.Core.Enums.PreferredUnlockMethod.Password);
+        var diagnostics = new Mock<IStartupDiagnostics>();
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(value => value.LoadAsync()).ReturnsAsync(Result.Ok(Mock.Of<IAppSettings>()));
+        var authorization = new Mock<IAuthorizationService>();
+        authorization.SetupGet(value => value.State).Returns(state);
+        var sut = new AvaloniaStartupCoordinator(
+            settings.Object,
+            authorization.Object,
+            Mock.Of<IAvaloniaLocalizationService>(),
+            Mock.Of<ILogger<AvaloniaStartupCoordinator>>(),
+            diagnostics.Object);
+
+        await sut.InitializeAsync(TestContext.Current.CancellationToken);
+
+        diagnostics.Verify(value => value.Record(
+            StartupDiagnosticStage.Preferences, It.IsAny<TimeSpan>(), true), Times.Once);
+        diagnostics.Verify(value => value.Record(
+            StartupDiagnosticStage.Authorization, It.IsAny<TimeSpan>(), true), Times.Once);
+        diagnostics.Verify(value => value.Record(
+            StartupDiagnosticStage.Completed, It.IsAny<TimeSpan>(), true), Times.Once);
     }
 
     private static (

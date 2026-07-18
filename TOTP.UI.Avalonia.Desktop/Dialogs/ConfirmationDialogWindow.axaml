@@ -17,11 +17,12 @@
             Text="{Binding Message}" />
         <StackPanel
             Classes="dialog-actions">
-            <Button
-                Classes="secondary"
-                Command="{Binding CancelCommand}"
-                Content="{Binding CancelText}"
-                IsCancel="True" />
+                <Button
+                    Classes="secondary"
+                    Command="{Binding CancelCommand}"
+                    Content="{Binding CancelText}"
+                    IsCancel="True"
+                    IsVisible="{Binding ShowCancel}" />
             <Button
                 Classes="primary"
                 Command="{Binding ConfirmCommand}"

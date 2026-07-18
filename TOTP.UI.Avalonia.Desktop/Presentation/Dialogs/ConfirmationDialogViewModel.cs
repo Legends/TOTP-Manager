@@ -22,6 +22,7 @@ public sealed class ConfirmationDialogViewModel
         Severity = request.Severity;
         ConfirmText = request.ConfirmText;
         CancelText = request.CancelText;
+        ShowCancel = request.ShowCancel;
         ConfirmCommand = new AsyncCommand(ConfirmAsync, static () => true);
         CancelCommand = new AsyncCommand(CancelAsync, static () => true);
     }
@@ -33,6 +34,7 @@ public sealed class ConfirmationDialogViewModel
     public NotificationSeverity Severity { get; }
     public string ConfirmText { get; }
     public string CancelText { get; }
+    public bool ShowCancel { get; }
     public ICommand ConfirmCommand { get; }
     public ICommand CancelCommand { get; }
 

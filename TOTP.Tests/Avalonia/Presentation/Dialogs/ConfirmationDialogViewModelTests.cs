@@ -36,4 +36,18 @@ public sealed class ConfirmationDialogViewModelTests
 
         Assert.Throws<ArgumentException>(action);
     }
+
+    [Fact]
+    public void Constructor_WhenUsedAsRecoverableMessage_HidesCancelAction()
+    {
+        var sut = new ConfirmationDialogViewModel(new ConfirmationDialogRequest(
+            "Operation failed safely",
+            "Review the settings and try again.",
+            NotificationSeverity.Error,
+            "Close",
+            "Close",
+            ShowCancel: false));
+
+        Assert.False(sut.ShowCancel);
+    }
 }

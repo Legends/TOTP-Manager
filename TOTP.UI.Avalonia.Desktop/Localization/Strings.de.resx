@@ -95,6 +95,8 @@
   <data name="ChooseImportFile" xml:space="preserve"><value>Importdatei auswählen…</value></data>
   <data name="ExportEncryptedBackup" xml:space="preserve"><value>Verschlüsselte Sicherung exportieren…</value></data>
   <data name="ImportConflictHandling" xml:space="preserve"><value>Behandlung von Importkonflikten</value></data>
+  <data name="SupportDiagnostics" xml:space="preserve"><value>Support-Diagnose</value></data>
+  <data name="RefreshSupportInformation" xml:space="preserve"><value>Support-Informationen aktualisieren</value></data>
   <data name="VerifyAppcast" xml:space="preserve"><value>Signierten Test-Appcast prüfen</value></data>
   <data name="ScanQrCamera" xml:space="preserve"><value>QR-Code mit Kamera scannen</value></data>
   <data name="CancelScan" xml:space="preserve"><value>Scan abbrechen</value></data>

@@ -127,4 +127,18 @@ public sealed class AvaloniaDialogService(AvaloniaWindowCoordinator windows) : I
             _dialogGate.Release();
         }
     }
+
+    public async Task ShowMessageAsync(
+        MessageDialogRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        await ConfirmAsync(new ConfirmationDialogRequest(
+            request.Title,
+            request.Message,
+            request.Severity,
+            request.CloseText,
+            request.CloseText,
+            ShowCancel: false), cancellationToken);
+    }
 }

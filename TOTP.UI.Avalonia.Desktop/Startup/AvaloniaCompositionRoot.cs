@@ -86,6 +86,7 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<NativeFilePickerViewModel>();
         services.AddSingleton<CameraScannerViewModel>();
         services.AddSingleton<UpdateCheckViewModel>();
+        services.AddSingleton<DiagnosticsViewModel>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient(provider => new MainWindow
         {

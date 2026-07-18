@@ -95,6 +95,7 @@ public sealed class MainWindowViewModelTests
             CreateFilePicker(),
             CreateCameraScanner(),
             CreateUpdateCheck(),
+            CreateDiagnostics(),
             CreateLocalization());
         await sut.InitializeAsync();
 
@@ -131,6 +132,7 @@ public sealed class MainWindowViewModelTests
             CreateFilePicker(),
             CreateCameraScanner(),
             CreateUpdateCheck(),
+            CreateDiagnostics(),
             CreateLocalization());
 
         sut.PrepareForShutdown();
@@ -175,6 +177,7 @@ public sealed class MainWindowViewModelTests
             CreateFilePicker(),
             CreateCameraScanner(),
             CreateUpdateCheck(),
+            CreateDiagnostics(),
             CreateLocalization());
         await sut.InitializeAsync();
         password.Password = "test-password";
@@ -216,6 +219,7 @@ public sealed class MainWindowViewModelTests
             CreateFilePicker(),
             CreateCameraScanner(),
             CreateUpdateCheck(),
+            CreateDiagnostics(),
             CreateLocalization());
 
     private static SettingsPageViewModel CreateSettingsPage()
@@ -268,6 +272,9 @@ public sealed class MainWindowViewModelTests
 
     private static UpdateCheckViewModel CreateUpdateCheck() =>
         new(Mock.Of<ISignedAppcastVerifier>());
+
+    private static DiagnosticsViewModel CreateDiagnostics() =>
+        new(Mock.Of<ISupportDiagnosticsService>());
 
     private static PasswordSetupViewModel CreatePasswordSetup(IAuthorizationService authorization)
     {

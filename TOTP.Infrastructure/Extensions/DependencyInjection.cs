@@ -50,6 +50,8 @@ public static class DependencyInjection
         services.AddSingleton<IQrPayloadValidator, QrPayloadValidator>();
         services.AddSingleton<IQrAccountImportService, QrAccountImportService>();
         services.AddSingleton<IAccountImportService, AccountImportService>();
+        services.AddSingleton<IStartupDiagnostics, StartupDiagnostics>();
+        services.AddSingleton<ISupportDiagnosticsService, SupportDiagnosticsService>();
         services.AddSingleton<ISignedAppcastVerifier, SignedAppcastVerifier>();
 
         // 1. Master Password & Security Context

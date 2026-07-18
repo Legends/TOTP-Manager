@@ -634,12 +634,12 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 
 ## M5.7 Notifications and diagnostics
 
-- [ ] Success/error/warning notifications.
-- [ ] Recoverable error dialogs.
-- [ ] Cross-platform log paths.
-- [ ] Log redaction verification.
-- [ ] Startup diagnostics.
-- [ ] Platform information in support output without exposing secrets.
+- [x] Success/error/warning notifications.
+- [x] Recoverable error dialogs.
+- [x] Cross-platform log paths.
+- [x] Log redaction verification.
+- [x] Startup diagnostics.
+- [x] Platform information in support output without exposing secrets.
 
 ## M5.8 Auto-update UI
 

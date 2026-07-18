@@ -15,4 +15,8 @@ public interface IAvaloniaDialogService
     Task<ChoiceDialogResult> ChooseAsync(
         ChoiceDialogRequest request,
         CancellationToken cancellationToken = default);
+
+    Task ShowMessageAsync(
+        MessageDialogRequest request,
+        CancellationToken cancellationToken = default);
 }
