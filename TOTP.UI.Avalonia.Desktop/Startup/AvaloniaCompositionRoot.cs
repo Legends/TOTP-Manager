@@ -12,6 +12,7 @@ using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
 using TOTP.Camera.OpenCv;
+using Serilog;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
 
 namespace TOTP.Avalonia.Desktop.Startup;
@@ -29,7 +30,7 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton(desktopLifetime);
         services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<IPlatformApplicationPaths>(platformServices.ApplicationPaths);
-        services.AddLogging();
+        services.AddLogging(builder => builder.AddSerilog(Log.Logger, dispose: false));
         services.AddSingleton<IPlatformQuickUnlock, UnavailablePlatformQuickUnlock>();
         services.AddInfrastructure(
             configuration,
@@ -54,6 +55,7 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IAsyncClipboardService>(provider =>
             provider.GetRequiredService<AsyncClipboardService>());
         services.AddSingleton<IAvaloniaStartupCoordinator, AvaloniaStartupCoordinator>();
+        services.AddSingleton<AvaloniaExceptionBoundary>();
         services.AddSingleton<ICameraSessionFactory, OpenCvCameraSessionFactory>();
         services.AddSingleton<IQrScannerRunner, OpenCvQrScannerRunner>();
         services.AddSingleton<PasswordUnlockViewModel>();

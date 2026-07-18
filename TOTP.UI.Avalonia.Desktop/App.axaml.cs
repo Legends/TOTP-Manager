@@ -10,6 +10,7 @@ namespace TOTP.Avalonia.Desktop;
 public partial class App : Application
 {
     private ServiceProvider? _services;
+    private AvaloniaExceptionHooks? _exceptionHooks;
 
     public override void Initialize()
     {
@@ -21,7 +22,14 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             _services = AvaloniaCompositionRoot.Build(desktop);
-            desktop.Exit += (_, _) => _services.Dispose();
+            _exceptionHooks = new AvaloniaExceptionHooks(
+                global::Avalonia.Threading.Dispatcher.UIThread,
+                _services.GetRequiredService<AvaloniaExceptionBoundary>());
+            desktop.Exit += (_, _) =>
+            {
+                _exceptionHooks.Dispose();
+                _services.Dispose();
+            };
             var mainWindow = _services.GetRequiredService<MainWindow>();
             desktop.MainWindow = mainWindow;
             _services.GetRequiredService<IActivationListener>().Start(request =>

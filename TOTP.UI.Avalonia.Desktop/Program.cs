@@ -3,6 +3,8 @@ using TOTP.Core.Platform;
 using TOTP.Infrastructure.Services;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Camera.OpenCv;
+using TOTP.Infrastructure.Logging;
+using Serilog;
 using System.Text.Json;
 
 namespace TOTP.Avalonia.Desktop;
@@ -29,18 +31,34 @@ internal static class Program
             return;
         }
 
-        using var instance = new SingleInstanceCoordinator(
-            new NamedMutexInstanceLock(DesktopInstanceIdentity.MutexName),
-            new NamedPipeActivationDispatcher(DesktopInstanceIdentity.PipeName));
-        var outcome = instance.Start(ApplicationActivationRequest.ActivateMainWindow());
-        if (outcome == SingleInstanceOutcome.ActivationRedirected) return;
-        if (outcome == SingleInstanceOutcome.ActivationFailed)
+        try
         {
-            Environment.ExitCode = 1;
-            return;
-        }
+            var platformServices = DesktopPlatformServiceFactory.Create();
+            LoggingConfigurator.SetupEarlyLogger(args, platformServices.ApplicationPaths);
+            using var instance = new SingleInstanceCoordinator(
+                new NamedMutexInstanceLock(DesktopInstanceIdentity.MutexName),
+                new NamedPipeActivationDispatcher(DesktopInstanceIdentity.PipeName));
+            var outcome = instance.Start(ApplicationActivationRequest.ActivateMainWindow());
+            if (outcome == SingleInstanceOutcome.ActivationRedirected) return;
+            if (outcome == SingleInstanceOutcome.ActivationFailed)
+            {
+                Environment.ExitCode = 1;
+                return;
+            }
 
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
+        catch (Exception exception)
+        {
+            Log.Fatal(
+                "Avalonia process boundary failed with exception type {ExceptionType}.",
+                exception.GetType().FullName);
+            Environment.ExitCode = 1;
+        }
+        finally
+        {
+            LoggingConfigurator.Shutdown();
+        }
     }
 
     public static AppBuilder BuildAvaloniaApp()

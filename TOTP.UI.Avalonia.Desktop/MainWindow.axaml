@@ -14,17 +14,18 @@
         HorizontalScrollBarVisibility="Disabled"
         VerticalScrollBarVisibility="Auto">
         <StackPanel
-            Width="560"
-            Margin="24"
+            MaxWidth="720"
+            Margin="{DynamicResource PagePadding}"
             HorizontalAlignment="Center"
             Spacing="20">
         <TextBlock
             automation:AutomationProperties.HeadingLevel="1"
+            Classes="title"
             HorizontalAlignment="Center"
-            FontSize="24"
             Text="TOTP Manager" />
         <TextBlock
             automation:AutomationProperties.LiveSetting="Polite"
+            Classes="secondary"
             HorizontalAlignment="Center"
             Text="{Binding StatusText}"
             TextAlignment="Center"
@@ -34,7 +35,7 @@
             Command="{Binding InitializeCommand}"
             Content="Retry"
             IsVisible="{Binding CanRetry}" />
-        <Border IsVisible="{Binding IsPasswordUnlockVisible}">
+        <Border Classes="card" IsVisible="{Binding IsPasswordUnlockVisible}">
             <ContentControl Content="{Binding PasswordUnlock}">
                 <ContentControl.ContentTemplate>
                     <DataTemplate x:DataType="presentation:PasswordUnlockViewModel">
@@ -48,12 +49,13 @@
                                 Text="{Binding Password, Mode=TwoWay}" />
                             <TextBlock
                                 automation:AutomationProperties.LiveSetting="Assertive"
-                                Foreground="Crimson"
+                                Classes="validation-error"
                                 IsVisible="{Binding HasMessage}"
                                 Text="{Binding Message}"
                                 TextAlignment="Center"
                                 TextWrapping="Wrap" />
                             <Button
+                                Classes="primary"
                                 HorizontalAlignment="Center"
                                 Command="{Binding UnlockCommand}"
                                 Content="Unlock" />
@@ -63,6 +65,7 @@
             </ContentControl>
         </Border>
         <Button
+            Classes="danger"
             HorizontalAlignment="Right"
             Command="{Binding LockCommand}"
             Content="Lock"
@@ -124,12 +127,12 @@
             Command="{Binding ToggleSettingsCommand}"
             Content="Settings"
             IsVisible="{Binding IsAccountListVisible}" />
-        <Border IsVisible="{Binding IsSettingsVisible}">
+        <Border Classes="card" IsVisible="{Binding IsSettingsVisible}">
             <ContentControl Content="{Binding SettingsPage}">
                 <ContentControl.ContentTemplate>
                     <DataTemplate x:DataType="presentation:SettingsPageViewModel">
                         <StackPanel Spacing="10">
-                            <TextBlock FontSize="20" Text="Security settings" />
+                            <TextBlock Classes="heading" Text="Security settings" />
                             <TextBlock Text="Idle timeout in minutes (0 disables idle lock)" />
                             <NumericUpDown
                                 automation:AutomationProperties.HelpText="Enter zero to disable idle locking."
@@ -147,7 +150,7 @@
                 </ContentControl.ContentTemplate>
             </ContentControl>
         </Border>
-        <Border IsVisible="{Binding IsAccountListVisible}">
+        <Border Classes="card" IsVisible="{Binding IsAccountListVisible}">
             <ContentControl Content="{Binding AccountList}">
                 <ContentControl.ContentTemplate>
                     <DataTemplate x:DataType="presentation:AccountListViewModel">
@@ -181,6 +184,7 @@
                                 </ListBox.ItemTemplate>
                             </ListBox>
                             <Button
+                                Classes="primary"
                                 HorizontalAlignment="Center"
                                 Command="{Binding GenerateCommand}"
                                 Content="Generate code" />

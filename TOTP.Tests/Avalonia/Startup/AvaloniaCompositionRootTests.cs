@@ -46,6 +46,8 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IAccountManager>());
         Assert.IsType<AvaloniaStartupCoordinator>(
             services.GetRequiredService<IAvaloniaStartupCoordinator>());
+        Assert.IsType<AvaloniaExceptionBoundary>(
+            services.GetRequiredService<AvaloniaExceptionBoundary>());
         Assert.IsType<MainWindowViewModel>(
             services.GetRequiredService<MainWindowViewModel>());
         Assert.IsType<PasswordUnlockViewModel>(

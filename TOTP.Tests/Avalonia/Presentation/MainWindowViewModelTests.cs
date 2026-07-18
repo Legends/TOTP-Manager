@@ -81,6 +81,37 @@ public sealed class MainWindowViewModelTests
         Assert.Contains("locked", sut.StatusText, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void PrepareForShutdown_LocksOnceAndHidesAuthorizedSurfaces()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        var authorization = new Mock<IAuthorizationService>();
+        using var accounts = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            Mock.Of<IAccountTotpService>(),
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>());
+        using var sut = new MainWindowViewModel(
+            coordinator.Object,
+            authorization.Object,
+            new PasswordUnlockViewModel(authorization.Object),
+            accounts,
+            CreateSettingsPage(),
+            CreateFilePicker(),
+            CreateCameraScanner(),
+            CreateUpdateCheck());
+
+        sut.PrepareForShutdown();
+        sut.PrepareForShutdown();
+
+        authorization.Verify(value => value.Lock(), Times.Once);
+        Assert.False(sut.IsPasswordUnlockVisible);
+        Assert.False(sut.IsAccountListVisible);
+        Assert.False(sut.IsSettingsVisible);
+        Assert.Contains("closing", sut.StatusText, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static MainWindowViewModel CreateSut(IAvaloniaStartupCoordinator coordinator) =>
         new(
             coordinator,

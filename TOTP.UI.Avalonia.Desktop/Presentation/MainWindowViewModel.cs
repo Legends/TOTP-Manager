@@ -20,6 +20,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private bool _isPasswordUnlockVisible;
     private bool _isAccountListVisible;
     private bool _isSettingsVisible;
+    private bool _shutdownPrepared;
+    private bool _disposed;
 
     public MainWindowViewModel(
         IAvaloniaStartupCoordinator startupCoordinator,
@@ -154,10 +156,28 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
+        PrepareForShutdown();
         PasswordUnlock.Unlocked -= OnUnlocked;
         _lifetime.Cancel();
         _lifetime.Dispose();
         CameraScanner.Dispose();
+    }
+
+    public void PrepareForShutdown()
+    {
+        if (_shutdownPrepared) return;
+        _shutdownPrepared = true;
+
+        _authorizationService.Lock();
+        AccountList.Clear();
+        CameraScanner.Clear();
+        IsSettingsVisible = false;
+        IsAccountListVisible = false;
+        IsPasswordUnlockVisible = false;
+        StatusText = "TOTP Manager is closing safely.";
     }
 
     private void OnUnlocked(object? sender, EventArgs e)

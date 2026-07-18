@@ -507,11 +507,11 @@ Do not proceed to full UI migration until:
 
 ### Application shell
 
-- [ ] Avalonia application lifetime and startup orchestration.
-- [ ] Host and DI initialization.
-- [ ] Global exception handling.
-- [ ] Main window lifecycle.
-- [ ] Splash/startup experience if still justified.
+- [x] Avalonia application lifetime and startup orchestration.
+- [x] DI composition root and redacted logging initialization. A generic host remains optional rather than a feature-level dependency.
+- [x] Global exception handling.
+- [x] Main window lifecycle.
+- [x] Splash/startup decision: not currently justified; use measured shell status and revisit only if interactive startup regresses.
 - [ ] Lock overlay/navigation.
 - [ ] Settings window or settings navigation.
 - [ ] Dialog ownership and activation.
@@ -519,13 +519,13 @@ Do not proceed to full UI migration until:
 
 ### Design system
 
-- [ ] Define colors, typography, spacing, radii, elevation, and motion tokens.
+- [x] Define colors, typography, spacing, radii, elevation, and motion tokens.
 - [ ] Port icons and image assets.
 - [ ] Port reusable button, input, validation, and dialog styles.
-- [ ] Implement light/dark policy if in scope.
-- [ ] Create desktop keyboard/focus standards.
+- [x] Implement system-following light/dark policy.
+- [x] Create initial desktop keyboard/focus standards.
 - [ ] Define high-contrast behavior.
-- [ ] Define scale and DPI test cases.
+- [x] Define scale and DPI test cases; execution remains a target-validation gate.
 
 ### Shared Avalonia controls
 
