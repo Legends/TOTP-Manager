@@ -12,7 +12,7 @@ using System.Windows;
 using TOTP.AutoUpdate;
 using TOTP.Tests.Common;
 using TOTP.Services;
-using TOTP.Infrastructure.Platform;
+using TOTP.Platform.Windows;
 using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Tests.Services;

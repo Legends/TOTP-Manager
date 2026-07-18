@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.UI.Avalonia.Shared", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.UI.Avalonia.Desktop", "TOTP.UI.Avalonia.Desktop\TOTP.UI.Avalonia.Desktop.csproj", "{D2246F6C-C520-4D65-819B-1B08C3D9B9B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Platform.Windows", "TOTP.Platform.Windows\TOTP.Platform.Windows.csproj", "{47288D31-2E44-427A-87E6-ACD86096D6D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +62,10 @@ Global
 		{D2246F6C-C520-4D65-819B-1B08C3D9B9B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2246F6C-C520-4D65-819B-1B08C3D9B9B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2246F6C-C520-4D65-819B-1B08C3D9B9B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47288D31-2E44-427A-87E6-ACD86096D6D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47288D31-2E44-427A-87E6-ACD86096D6D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47288D31-2E44-427A-87E6-ACD86096D6D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47288D31-2E44-427A-87E6-ACD86096D6D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

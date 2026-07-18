@@ -8,7 +8,6 @@ using TOTP.Core.Services.Interfaces;
 using TOTP.DAL.Services;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
-using TOTP.Infrastructure.Platform;
 
 namespace TOTP.Infrastructure.Extensions;
 
@@ -17,9 +16,11 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
-        IPlatformApplicationPaths applicationPaths)
+        IPlatformApplicationPaths applicationPaths,
+        IPlatformFileSecurity fileSecurity)
     {
-        services.AddSingleton<IPlatformFileSecurity, WindowsFileSecurity>();
+        ArgumentNullException.ThrowIfNull(fileSecurity);
+        services.AddSingleton(fileSecurity);
 
         var rawVaultPath = configuration[StringsConstants.TokensStorageFilePathConfigKey];
         var resolvedVaultPath = string.IsNullOrWhiteSpace(rawVaultPath)

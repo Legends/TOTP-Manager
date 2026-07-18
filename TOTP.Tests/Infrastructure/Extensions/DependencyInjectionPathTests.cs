@@ -6,9 +6,9 @@ using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.DAL.Services;
 using TOTP.Infrastructure.Extensions;
-using TOTP.Infrastructure.Platform;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
+using TOTP.Platform.Windows;
 
 namespace TOTP.Tests.Infrastructure.Extensions;
 
@@ -79,6 +79,18 @@ public sealed class DependencyInjectionPathTests : IDisposable
                 provider.GetRequiredService<IStoredVaultKeyVerifier>()), "_path"));
     }
 
+    [Fact]
+    public void AddInfrastructure_WhenFileSecurityIsMissing_RejectsRegistration()
+    {
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder().Build();
+        var paths = new WindowsApplicationPaths(_root, _root);
+
+        var act = () => services.AddInfrastructure(configuration, paths, null!);
+
+        Assert.Throws<ArgumentNullException>(act);
+    }
+
     private static ServiceProvider BuildProvider(
         IConfiguration configuration,
         IPlatformApplicationPaths paths)
@@ -87,7 +99,7 @@ public sealed class DependencyInjectionPathTests : IDisposable
         services.AddLogging();
         services.AddSingleton(Mock.Of<IPlatformQuickUnlock>());
         services.AddSingleton(Mock.Of<IPlatformQuickUnlockEnrollment>());
-        services.AddInfrastructure(configuration, paths);
+        services.AddInfrastructure(configuration, paths, new WindowsFileSecurity());
         return services.BuildServiceProvider();
     }
 

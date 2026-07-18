@@ -1,6 +1,6 @@
 using System.Security.AccessControl;
 using System.Security.Principal;
-using TOTP.Infrastructure.Platform;
+using TOTP.Platform.Windows;
 
 namespace TOTP.Tests.Infrastructure.Platform;
 

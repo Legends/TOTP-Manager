@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TOTP.Core.Security.Interfaces;
-using TOTP.Infrastructure.Platform;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Security.Provider;
 using TOTP.Infrastructure.Services;
+using TOTP.Platform.Windows;
 using TOTP.Startup;
 
 namespace TOTP.Tests.Startup;

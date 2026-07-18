@@ -31,7 +31,7 @@ using TOTP.ViewModels.Interfaces;
 using TOTP.Views;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Platform;
-using TOTP.Infrastructure.Platform;
+using TOTP.Platform.Windows;
 
 namespace TOTP;
 

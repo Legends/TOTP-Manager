@@ -1,5 +1,5 @@
 using TOTP.Core.Common;
-using TOTP.Infrastructure.Platform;
+using TOTP.Platform.Windows;
 
 namespace TOTP.Tests.Infrastructure.Platform;
 

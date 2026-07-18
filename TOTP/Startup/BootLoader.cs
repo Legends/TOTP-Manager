@@ -22,6 +22,7 @@ using TOTP.Infrastructure.Logging;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Security.Provider;
 using TOTP.Infrastructure.Services;
+using TOTP.Platform.Windows;
 using TOTP.Presentation.Services;
 using TOTP.Resources;
 using TOTP.Presentation.Services.Interfaces;
@@ -80,7 +81,7 @@ public static class BootLoader
                 services.AddSingleton(configuration);
                 services.AddSingleton(applicationPaths);
 
-                services.AddInfrastructure(configuration, applicationPaths);
+                services.AddInfrastructure(configuration, applicationPaths, new WindowsFileSecurity());
 
                 #region ### BACKGROUND SERVICES  ###
                 services.AddHostedService<SessionLockPolicyBackgroundService>();

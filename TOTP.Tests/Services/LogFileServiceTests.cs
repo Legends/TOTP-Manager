@@ -1,6 +1,6 @@
 using TOTP.Services;
 using TOTP.Tests.Common;
-using TOTP.Infrastructure.Platform;
+using TOTP.Platform.Windows;
 
 namespace TOTP.Tests.Services;
 

@@ -2,7 +2,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using TOTP.Core.Services.Interfaces;
 
-namespace TOTP.Infrastructure.Platform;
+namespace TOTP.Platform.Windows;
 
 public sealed class WindowsFileSecurity : IPlatformFileSecurity
 {

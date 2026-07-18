@@ -1,7 +1,7 @@
 using TOTP.Core.Common;
 using TOTP.Core.Services.Interfaces;
 
-namespace TOTP.Infrastructure.Platform;
+namespace TOTP.Platform.Windows;
 
 public sealed class WindowsApplicationPaths : IPlatformApplicationPaths
 {

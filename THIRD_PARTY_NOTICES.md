@@ -16,6 +16,7 @@ From the current project files:
 - `TOTP.DAL/TOTP.DAL.csproj`
 - `TOTP.UI.Avalonia.Shared/TOTP.UI.Avalonia.Shared.csproj`
 - `TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj`
+- `TOTP.Platform.Windows/TOTP.Platform.Windows.csproj`
 
 Components include (non-exhaustive):
 - `Avalonia`
