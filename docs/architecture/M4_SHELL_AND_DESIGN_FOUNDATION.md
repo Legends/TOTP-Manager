@@ -45,7 +45,9 @@ Malformed or unsupported culture names never select an arbitrary resource or thr
 - primary, danger, card, heading, secondary-text, and semantic validation styles;
 - keyboard-visible focus borders for buttons, text input, numeric input, and account lists.
 
-Theme policy is `RequestedThemeVariant="Default"`, so Avalonia follows the operating-system light/dark preference. Theme-dependent resources are always consumed through `DynamicResource`, allowing live variant changes. A high-contrast dictionary is defined, but automatic platform detection/activation and real-target contrast testing remain open; its presence alone is not acceptance evidence.
+Theme policy defaults to `RequestedThemeVariant="Default"`, so Avalonia follows the operating-system light/dark preference. Theme-dependent resources are always consumed through `DynamicResource`, allowing live variant changes. A dedicated inherited high-contrast variant supplies its own semantic resources; automated activation is implemented, while real-target contrast testing remains open.
+
+`AvaloniaThemeService` now observes the platform color-values contract for the application lifetime. `NoPreference` keeps Avalonia's system-following default; `High` selects the custom `HighContrast` variant, whose palette uses black surfaces, white text/borders, yellow accents, cyan focus, explicit warning/error/success colors, and no card shadow. Color changes are applied on the UI dispatcher and the subscription is removed on exit. This completes behavior definition and automated policy coverage, but real-target contrast, focus visibility, forced-colors integration, and assistive-technology acceptance remain postponed target evidence.
 
 The initial shell consumes the tokens and uses a responsive maximum width rather than a fixed width. The existing M3 target record defines 100%, 150%, and 200% scaling tests.
 
@@ -75,5 +77,6 @@ The initial shell consumes the tokens and uses a responsive maximum width rather
 - Data-flow impact: no vault, envelope, seed, import/export, or backup format changes.
 - Compatibility impact: WPF startup and release behavior are untouched. Avalonia remains framework-dependent and non-release during migration.
 - Compatibility impact: localization adds satellite resources only; it does not change persisted settings yet, and unsupported cultures fall back to neutral English.
+- Compatibility impact: high contrast follows the platform preference dynamically and otherwise leaves the existing system light/dark policy unchanged.
 - Test evidence: boundary tests cover safe logging, authorization lock, fatal shutdown, shutdown failure, domain lock failure, and unobserved-task policy. Main-shell tests cover idempotent shutdown preparation.
 - Navigation evidence: tests cover authorization-gated single-page navigation and preservation of account rows while sensitive generated output is cleared.

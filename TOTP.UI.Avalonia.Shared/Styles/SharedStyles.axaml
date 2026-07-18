@@ -21,6 +21,7 @@
                     <SolidColorBrush x:Key="BrushSuccess" Color="#137333" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#005FCC" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
+                    <BoxShadows x:Key="ElevationCard">0 2 8 0 #1A000000</BoxShadows>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Light">
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#F5F7FA" />
@@ -37,6 +38,7 @@
                     <SolidColorBrush x:Key="BrushSuccess" Color="#137333" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#005FCC" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
+                    <BoxShadows x:Key="ElevationCard">0 2 8 0 #1A000000</BoxShadows>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#111827" />
@@ -53,6 +55,7 @@
                     <SolidColorBrush x:Key="BrushSuccess" Color="#6DD58C" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#9CC2FF" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
+                    <BoxShadows x:Key="ElevationCard">0 2 8 0 #33000000</BoxShadows>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="HighContrast">
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#000000" />
@@ -69,6 +72,7 @@
                     <SolidColorBrush x:Key="BrushSuccess" Color="#00FF00" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#00FFFF" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
+                    <BoxShadows x:Key="ElevationCard">0 0 0 0 #00000000</BoxShadows>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
@@ -87,7 +91,6 @@
             <CornerRadius x:Key="RadiusSmall">4</CornerRadius>
             <CornerRadius x:Key="RadiusMedium">8</CornerRadius>
             <CornerRadius x:Key="RadiusLarge">12</CornerRadius>
-            <BoxShadows x:Key="ElevationCard">0 2 8 0 #1A000000</BoxShadows>
             <Thickness x:Key="PagePadding">24</Thickness>
             <Thickness x:Key="ControlPadding">16,8</Thickness>
             <Thickness x:Key="CardPadding">16</Thickness>

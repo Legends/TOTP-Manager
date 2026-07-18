@@ -12,6 +12,7 @@ public partial class App : Application
 {
     private ServiceProvider? _services;
     private AvaloniaExceptionHooks? _exceptionHooks;
+    private AvaloniaThemeService? _themeService;
 
     public override void Initialize()
     {
@@ -22,6 +23,8 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            _themeService = new AvaloniaThemeService(PlatformSettings, ApplyTheme);
+            _themeService.Start();
             _services = AvaloniaCompositionRoot.Build(desktop);
             _exceptionHooks = new AvaloniaExceptionHooks(
                 global::Avalonia.Threading.Dispatcher.UIThread,
@@ -29,6 +32,7 @@ public partial class App : Application
             desktop.Exit += (_, _) =>
             {
                 _exceptionHooks.Dispose();
+                _themeService.Dispose();
                 _services.Dispose();
             };
             var mainWindow = _services.GetRequiredService<MainWindow>();
@@ -45,5 +49,16 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void ApplyTheme(global::Avalonia.Styling.ThemeVariant variant)
+    {
+        if (global::Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            RequestedThemeVariant = variant;
+            return;
+        }
+
+        global::Avalonia.Threading.Dispatcher.UIThread.Post(() => RequestedThemeVariant = variant);
     }
 }

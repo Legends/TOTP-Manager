@@ -524,7 +524,7 @@ Do not proceed to full UI migration until:
 - [ ] Port reusable button, input, validation, and dialog styles.
 - [x] Implement system-following light/dark policy.
 - [x] Create initial desktop keyboard/focus standards.
-- [ ] Define high-contrast behavior.
+- [x] Define and automatically activate high-contrast behavior; physical acceptance remains a target-validation gate.
 - [x] Define scale and DPI test cases; execution remains a target-validation gate.
 
 ### Shared Avalonia controls
