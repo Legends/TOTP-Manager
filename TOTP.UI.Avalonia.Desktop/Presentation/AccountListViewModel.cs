@@ -9,8 +9,10 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly IAccountManager _accountManager;
     private readonly IAccountTotpService _accountTotpService;
+    private readonly IAsyncClipboardService _clipboardService;
     private readonly AsyncCommand _loadCommand;
     private readonly AsyncCommand _generateCommand;
+    private readonly AsyncCommand _copyCommand;
     private CancellationTokenSource? _codeLifetime;
     private IReadOnlyList<AccountListItemViewModel> _allAccounts = [];
     private IReadOnlyList<AccountListItemViewModel> _accounts = [];
@@ -21,17 +23,21 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private string _codeMessage = string.Empty;
     private bool _isBusy;
     private bool _isGenerating;
+    private int _remainingSeconds;
 
     public AccountListViewModel(
         IAccountManager accountManager,
-        IAccountTotpService accountTotpService)
+        IAccountTotpService accountTotpService,
+        IAsyncClipboardService clipboardService)
     {
         _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
         _accountTotpService = accountTotpService ?? throw new ArgumentNullException(nameof(accountTotpService));
+        _clipboardService = clipboardService ?? throw new ArgumentNullException(nameof(clipboardService));
         _loadCommand = new AsyncCommand(LoadAsync, () => !_isBusy);
         _generateCommand = new AsyncCommand(
             GenerateCodeAsync,
             () => !_isGenerating && _selectedAccount is not null);
+        _copyCommand = new AsyncCommand(CopyCodeAsync, () => HasGeneratedCode);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -72,6 +78,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         {
             if (!SetField(ref _generatedCode, value)) return;
             OnPropertyChanged(nameof(HasGeneratedCode));
+            _copyCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -112,6 +119,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public ICommand LoadCommand => _loadCommand;
 
     public ICommand GenerateCommand => _generateCommand;
+
+    public ICommand CopyCommand => _copyCommand;
 
     public async Task LoadAsync()
     {
@@ -167,6 +176,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             }
 
             GeneratedCode = result.Value.Code;
+            _remainingSeconds = Math.Max(1, result.Value.RemainingSeconds);
             CodeMessage = $"Valid for {result.Value.RemainingSeconds} seconds.";
             _codeLifetime = new CancellationTokenSource();
             _ = ClearGeneratedCodeAfterAsync(
@@ -182,6 +192,18 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             _isGenerating = false;
             _generateCommand.NotifyCanExecuteChanged();
         }
+    }
+
+    public async Task CopyCodeAsync()
+    {
+        if (!HasGeneratedCode) return;
+
+        var result = await _clipboardService.CopyAndScheduleClearAsync(
+            GeneratedCode,
+            TimeSpan.FromSeconds(_remainingSeconds));
+        CodeMessage = result.IsSuccess
+            ? $"Copied. Clipboard clear is scheduled in {_remainingSeconds} seconds."
+            : "This platform cannot safely copy and automatically clear the code.";
     }
 
     private void ApplyFilter()
@@ -215,6 +237,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _codeLifetime?.Dispose();
         _codeLifetime = null;
         GeneratedCode = string.Empty;
+        _remainingSeconds = 0;
         CodeMessage = string.Empty;
     }
 

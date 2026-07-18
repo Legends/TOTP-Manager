@@ -56,7 +56,8 @@ public sealed class MainWindowViewModelTests
         var password = new PasswordUnlockViewModel(authorization.Object);
         using var accounts = new AccountListViewModel(
             Mock.Of<IAccountManager>(),
-            Mock.Of<IAccountTotpService>());
+            Mock.Of<IAccountTotpService>(),
+            Mock.Of<IAsyncClipboardService>());
         using var sut = new MainWindowViewModel(
             coordinator.Object,
             authorization.Object,
@@ -80,7 +81,8 @@ public sealed class MainWindowViewModelTests
             new PasswordUnlockViewModel(Mock.Of<IAuthorizationService>()),
             new AccountListViewModel(
                 Mock.Of<IAccountManager>(),
-                Mock.Of<IAccountTotpService>()),
+                Mock.Of<IAccountTotpService>(),
+                Mock.Of<IAsyncClipboardService>()),
             CreateSettingsPage());
 
     private static SettingsPageViewModel CreateSettingsPage()

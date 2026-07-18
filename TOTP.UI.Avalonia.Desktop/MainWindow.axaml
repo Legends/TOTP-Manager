@@ -123,6 +123,11 @@
                                 FontSize="28"
                                 IsVisible="{Binding HasGeneratedCode}"
                                 Text="{Binding GeneratedCode}" />
+                            <Button
+                                HorizontalAlignment="Center"
+                                Command="{Binding CopyCommand}"
+                                Content="Copy with timed clear"
+                                IsVisible="{Binding HasGeneratedCode}" />
                             <TextBlock
                                 HorizontalAlignment="Center"
                                 IsVisible="{Binding HasCodeMessage}"

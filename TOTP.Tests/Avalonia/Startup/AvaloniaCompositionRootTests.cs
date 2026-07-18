@@ -52,5 +52,7 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<AccountListViewModel>());
         Assert.IsType<SettingsPageViewModel>(
             services.GetRequiredService<SettingsPageViewModel>());
+        Assert.IsType<AsyncClipboardService>(
+            services.GetRequiredService<IAsyncClipboardService>());
     }
 }

@@ -98,7 +98,10 @@ public sealed class AccountListViewModelTests
         var totp = new Mock<IAccountTotpService>();
         totp.Setup(value => value.GenerateAsync(accountId))
             .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 30, 30)));
-        using var sut = new AccountListViewModel(Mock.Of<IAccountManager>(), totp.Object)
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            totp.Object,
+            Mock.Of<IAsyncClipboardService>())
         {
             SelectedAccount = new AccountListItemViewModel(accountId, "Issuer", "account")
         };
@@ -116,7 +119,10 @@ public sealed class AccountListViewModelTests
         var totp = new Mock<IAccountTotpService>();
         totp.Setup(value => value.GenerateAsync(It.IsAny<Guid>()))
             .ReturnsAsync(Result.Fail<TotpGenerationResult>("SYNTHETIC-SECRET-DETAIL"));
-        using var sut = new AccountListViewModel(Mock.Of<IAccountManager>(), totp.Object)
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            totp.Object,
+            Mock.Of<IAsyncClipboardService>())
         {
             SelectedAccount = new AccountListItemViewModel(Guid.NewGuid(), "Issuer", "account")
         };
@@ -138,7 +144,10 @@ public sealed class AccountListViewModelTests
         var totp = new Mock<IAccountTotpService>();
         totp.Setup(value => value.GenerateAsync(id))
             .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 30, 30)));
-        using var sut = new AccountListViewModel(manager.Object, totp.Object);
+        using var sut = new AccountListViewModel(
+            manager.Object,
+            totp.Object,
+            Mock.Of<IAsyncClipboardService>());
         await sut.LoadAsync();
         sut.SelectedAccount = sut.Accounts[0];
         sut.SearchText = "Issuer";
@@ -153,6 +162,40 @@ public sealed class AccountListViewModelTests
         Assert.Empty(sut.CodeMessage);
     }
 
+    [Fact]
+    public async Task CopyCodeAsync_UsesRemainingLifetimeForConditionalClear()
+    {
+        var id = Guid.NewGuid();
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(id))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 18, 30)));
+        var clipboard = new Mock<IAsyncClipboardService>();
+        clipboard.Setup(value => value.CopyAndScheduleClearAsync(
+                "123456",
+                TimeSpan.FromSeconds(18),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            totp.Object,
+            clipboard.Object)
+        {
+            SelectedAccount = new AccountListItemViewModel(id, "Issuer", "account")
+        };
+        await sut.GenerateCodeAsync();
+
+        await sut.CopyCodeAsync();
+
+        clipboard.Verify(value => value.CopyAndScheduleClearAsync(
+            "123456",
+            TimeSpan.FromSeconds(18),
+            It.IsAny<CancellationToken>()), Times.Once);
+        Assert.Contains("scheduled", sut.CodeMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static AccountListViewModel CreateSut(IAccountManager manager) =>
-        new(manager, Mock.Of<IAccountTotpService>());
+        new(
+            manager,
+            Mock.Of<IAccountTotpService>(),
+            Mock.Of<IAsyncClipboardService>());
 }

@@ -456,7 +456,7 @@ Any replacement failure before Active
 - [x] Account list with at least 500 generated entries.
 - [x] Search and filtering.
 - [x] TOTP generation.
-- [ ] Copy with timed clipboard clearing.
+- [x] Copy with timed clipboard clearing.
 - [x] Manual lock.
 - [x] One settings page.
 - [ ] QR generation.
