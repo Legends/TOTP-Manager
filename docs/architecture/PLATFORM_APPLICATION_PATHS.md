@@ -2,15 +2,16 @@
 
 ## Status
 
-M1.1 establishes `IPlatformApplicationPaths` as the source of application filesystem locations. The Windows adapter is implemented first so the WPF client retains its existing layout. macOS and Linux locations below are the required policy for their future platform adapters.
+M1.1 establishes `IPlatformApplicationPaths` as the source of application filesystem locations. Windows, macOS, and Linux adapters implement the policy below without creating directories or weakening filesystem permissions.
 
 ## Path policy
 
-| Asset | Windows (current implementation) | macOS policy | Linux policy |
+| Asset | Windows | macOS | Linux |
 |---|---|---|---|
 | Packaged configuration | Executable directory, `appsettings.json` | Application bundle/resource directory | Executable/resource directory |
 | Vault | `%AppData%\TOTP-Manager\master.totp` | `~/Library/Application Support/TOTP-Manager/master.totp` | `$XDG_DATA_HOME/totp-manager/master.totp` |
-| Encrypted settings | `%AppData%\TOTP-Manager\settings.totp` | `~/Library/Application Support/TOTP-Manager/settings.totp` | `$XDG_CONFIG_HOME/totp-manager/settings.totp` |
+| Authorization envelope | `%AppData%\TOTP-Manager\authorization-envelope.bin` | `~/Library/Application Support/TOTP-Manager/authorization-envelope.bin` | `$XDG_DATA_HOME/totp-manager/authorization-envelope.bin` |
+| Preferences | `%AppData%\TOTP-Manager\preferences.json` | `~/Library/Application Support/TOTP-Manager/preferences.json` | `$XDG_CONFIG_HOME/totp-manager/preferences.json` |
 | Backups | Beside the vault for compatibility | `~/Library/Application Support/TOTP-Manager/Backups` | `$XDG_DATA_HOME/totp-manager/backups` |
 | Logs | Executable directory, `Logs` | `~/Library/Logs/TOTP-Manager` | `$XDG_STATE_HOME/totp-manager/logs` |
 | Update state | `%AppData%\TOTP-Manager\autoupdate-state.json` | `~/Library/Application Support/TOTP-Manager/autoupdate-state.json` | `$XDG_STATE_HOME/totp-manager/autoupdate-state.json` |
@@ -26,7 +27,7 @@ Relative XDG locations are invalid and must not be accepted as application stora
 ## Compatibility and migration
 
 - The Windows adapter deliberately preserves every existing production location. M1.1 does not move or rewrite user data.
-- Existing configuration overrides for vault and settings paths remain supported and take precedence over adapter defaults.
+- Existing configuration overrides for the vault path remain supported and take precedence over adapter defaults.
 - Windows backups remain adjacent to the configured vault. A later backup-policy extraction must retain discovery of those files.
 - A future Windows-to-portable migration must discover the existing roaming-data files before creating a new layout. It must use atomic copy/verification and leave rollback data intact.
 - Path comparisons and migration fixtures must not contain real secrets.

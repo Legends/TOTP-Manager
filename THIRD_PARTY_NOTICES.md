@@ -17,6 +17,8 @@ From the current project files:
 - `TOTP.UI.Avalonia.Shared/TOTP.UI.Avalonia.Shared.csproj`
 - `TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj`
 - `TOTP.Platform.Windows/TOTP.Platform.Windows.csproj`
+- `TOTP.Platform.MacOS/TOTP.Platform.MacOS.csproj`
+- `TOTP.Platform.Linux/TOTP.Platform.Linux.csproj`
 
 Components include (non-exhaustive):
 - `Avalonia`
