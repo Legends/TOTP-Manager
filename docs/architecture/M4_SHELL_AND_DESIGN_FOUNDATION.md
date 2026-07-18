@@ -80,6 +80,17 @@ Shared styles now own normal, primary, secondary, danger, disabled, and focus-vi
 - Compatibility/migration impact: the existing v2 envelope and settings formats are unchanged. `ExistingVaultConflict` explicitly prevents destructive first-run replacement.
 - Test evidence: setup tests cover success, pre-validation without storage access, existing-vault recovery messaging, exception redaction, and input clearing; shell tests cover first-run surface projection.
 
+## M5.1 startup quick unlock and password recovery
+
+The Avalonia Windows composition root now selects the existing Windows Hello/TPM adapter and supplies the currently active owned Avalonia window handle to the OS verification prompt. Non-Windows builds continue to register the explicit unavailable adapter; no placeholder provider or plaintext fallback is introduced.
+
+Startup attempts quick unlock only when the verified authorization state records it as the preferred method. The authorized shell is exposed only when the service reports success and its shared state is actually unlocked. Cancellation, unavailable hardware, policy restrictions, retry exhaustion, missing platform keys, inconsistent success state, and other failures all remain on the password gate with explicit recovery messaging. This preserves the master password as the universal recovery path.
+
+- Threat impact: the UI cannot infer authorization from an OS prompt result alone; it requires the authorization service to activate the security context and project unlocked state.
+- Data-flow impact: no password, vault key, TPM key reference, or wrapper data is added to presentation state. The native window handle is used only to own the Windows verification prompt.
+- Compatibility impact: authorization envelope and preference formats are unchanged. WPF keeps its existing provider. macOS and Linux remain password-only pending reviewed M6 adapters.
+- Test evidence: startup tests cover password-only bypass, verified quick-unlock success, every recoverable failure class, and a fail-closed inconsistent-success result. Shell tests verify automatic authorized entry and password-fallback projection. Interactive Windows Hello acceptance remains target evidence and is not claimed by these automated tests.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.

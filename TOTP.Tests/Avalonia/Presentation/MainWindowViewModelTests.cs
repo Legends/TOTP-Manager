@@ -17,6 +17,8 @@ public sealed class MainWindowViewModelTests
     [Theory]
     [InlineData(AvaloniaStartupOutcome.ReadyForPasswordSetup, false, "Create a master password")]
     [InlineData(AvaloniaStartupOutcome.ReadyForUnlock, false, "Enter your master password")]
+    [InlineData(AvaloniaStartupOutcome.ReadyForPasswordFallback, false, "QuickUnlockFallback")]
+    [InlineData(AvaloniaStartupOutcome.ReadyUnlocked, false, "VaultUnlocked")]
     [InlineData(AvaloniaStartupOutcome.PreferencesUnavailable, true, "preferences could not be loaded")]
     [InlineData(AvaloniaStartupOutcome.UnexpectedFailure, true, "could not start safely")]
     public async Task InitializeAsync_ProjectsSafeRecoverableState(
@@ -34,13 +36,18 @@ public sealed class MainWindowViewModelTests
         Assert.False(sut.IsBusy);
         Assert.Equal(canRetry, sut.CanRetry);
         Assert.Contains(expectedText, sut.StatusText, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(outcome == AvaloniaStartupOutcome.ReadyForUnlock, sut.IsPasswordUnlockVisible);
+        Assert.Equal(
+            outcome is AvaloniaStartupOutcome.ReadyForUnlock or AvaloniaStartupOutcome.ReadyForPasswordFallback,
+            sut.IsPasswordUnlockVisible);
         Assert.Equal(outcome == AvaloniaStartupOutcome.ReadyForPasswordSetup, sut.IsPasswordSetupVisible);
+        Assert.Equal(outcome == AvaloniaStartupOutcome.ReadyUnlocked, sut.IsShellVisible);
         Assert.Equal(
             outcome switch
             {
                 AvaloniaStartupOutcome.PreferencesUnavailable => NotificationSeverity.Warning,
                 AvaloniaStartupOutcome.UnexpectedFailure => NotificationSeverity.Error,
+                AvaloniaStartupOutcome.ReadyForPasswordFallback => NotificationSeverity.Warning,
+                AvaloniaStartupOutcome.ReadyUnlocked => NotificationSeverity.Success,
                 _ => NotificationSeverity.Information
             },
             sut.StatusSeverity);

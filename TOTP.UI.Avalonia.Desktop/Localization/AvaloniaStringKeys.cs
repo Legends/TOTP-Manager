@@ -49,6 +49,8 @@ public static class AvaloniaStringKeys
     public const string PasswordSetupFailed = nameof(PasswordSetupFailed);
     public const string ExistingVaultConflict = nameof(ExistingVaultConflict);
     public const string VaultConfigured = nameof(VaultConfigured);
+    public const string VaultUnlocked = nameof(VaultUnlocked);
+    public const string QuickUnlockFallback = nameof(QuickUnlockFallback);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -61,6 +63,6 @@ public static class AvaloniaStringKeys
         GeneratedCode, GeneratedQr, QrPrivacyNotice, CameraPreview, CreatePasswordHeading,
         PasswordSetupHelp, NewPassword, ConfirmPassword, CreateVault, PasswordRequired,
         PasswordMinimumLength, PasswordMismatch, PasswordSetupFailed, ExistingVaultConflict,
-        VaultConfigured
+        VaultConfigured, VaultUnlocked, QuickUnlockFallback
     ];
 }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Avalonia.Desktop.Startup;
 
 namespace TOTP.Tests.Avalonia.Startup;
@@ -21,6 +22,60 @@ public sealed class AvaloniaStartupCoordinatorTests
         Assert.Equal(AvaloniaStartupOutcome.ReadyForUnlock, outcome);
         settings.Verify(service => service.LoadAsync(), Times.Once);
         authorization.Verify(service => service.InitializeAsync(), Times.Once);
+        authorization.Verify(service => service.TryUnlockOnStartupAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WhenPreferredQuickUnlockSucceeds_IsReadyUnlocked()
+    {
+        var state = new AuthorizationState();
+        state.SetConfiguration(true, TOTP.Core.Enums.PreferredUnlockMethod.PlatformQuickUnlock);
+        var (sut, _, authorization) = CreateSut(state);
+        authorization.Setup(service => service.TryUnlockOnStartupAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                state.Unlock();
+                return AuthorizationResult.Success;
+            });
+
+        var outcome = await sut.InitializeAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(AvaloniaStartupOutcome.ReadyUnlocked, outcome);
+    }
+
+    [Theory]
+    [InlineData(AuthorizationResult.PasswordRequired)]
+    [InlineData(AuthorizationResult.Cancelled)]
+    [InlineData(AuthorizationResult.TooManyAttempts)]
+    [InlineData(AuthorizationResult.DisabledByPolicy)]
+    [InlineData(AuthorizationResult.Failed)]
+    public async Task InitializeAsync_WhenQuickUnlockDoesNotSucceed_RequiresPasswordRecovery(
+        AuthorizationResult quickUnlockResult)
+    {
+        var state = new AuthorizationState();
+        state.SetConfiguration(true, TOTP.Core.Enums.PreferredUnlockMethod.PlatformQuickUnlock);
+        var (sut, _, authorization) = CreateSut(state);
+        authorization.Setup(service => service.TryUnlockOnStartupAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(quickUnlockResult);
+
+        var outcome = await sut.InitializeAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(AvaloniaStartupOutcome.ReadyForPasswordFallback, outcome);
+        Assert.False(state.IsUnlocked);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WhenQuickUnlockReportsSuccessWithoutUnlocking_FailsClosedToPassword()
+    {
+        var state = new AuthorizationState();
+        state.SetConfiguration(true, TOTP.Core.Enums.PreferredUnlockMethod.PlatformQuickUnlock);
+        var (sut, _, authorization) = CreateSut(state);
+        authorization.Setup(service => service.TryUnlockOnStartupAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AuthorizationResult.Success);
+
+        var outcome = await sut.InitializeAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(AvaloniaStartupOutcome.ReadyForPasswordFallback, outcome);
     }
 
     [Fact]

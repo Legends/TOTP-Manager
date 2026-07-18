@@ -11,6 +11,8 @@
   <data name="MasterPassword" xml:space="preserve"><value>Master-Passwort</value></data>
   <data name="MasterPasswordHelp" xml:space="preserve"><value>Zum Entsperren des lokalen Tresors erforderlich.</value></data>
   <data name="Unlock" xml:space="preserve"><value>Entsperren</value></data>
+  <data name="VaultUnlocked" xml:space="preserve"><value>Tresor entsperrt.</value></data>
+  <data name="QuickUnlockFallback" xml:space="preserve"><value>Die Schnellentsperrung wurde nicht abgeschlossen. Gib dein Master-Passwort ein, um den Zugriff wiederherzustellen.</value></data>
   <data name="Lock" xml:space="preserve"><value>Sperren</value></data>
   <data name="Accounts" xml:space="preserve"><value>Konten</value></data>
   <data name="Tools" xml:space="preserve"><value>Werkzeuge</value></data>

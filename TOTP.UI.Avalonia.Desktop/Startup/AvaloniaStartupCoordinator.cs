@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
+using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 
 namespace TOTP.Avalonia.Desktop.Startup;
 
@@ -26,9 +28,19 @@ public sealed class AvaloniaStartupCoordinator(
             await authorizationService.InitializeAsync();
             cancellationToken.ThrowIfCancellationRequested();
 
-            return authorizationService.State.IsConfigured
-                ? AvaloniaStartupOutcome.ReadyForUnlock
-                : AvaloniaStartupOutcome.ReadyForPasswordSetup;
+            if (!authorizationService.State.IsConfigured)
+                return AvaloniaStartupOutcome.ReadyForPasswordSetup;
+
+            if (authorizationService.State.PreferredUnlockMethod != PreferredUnlockMethod.PlatformQuickUnlock)
+                return AvaloniaStartupOutcome.ReadyForUnlock;
+
+            var quickUnlock = await authorizationService.TryUnlockOnStartupAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return quickUnlock == AuthorizationResult.Success
+                && authorizationService.State.IsUnlocked
+                    ? AvaloniaStartupOutcome.ReadyUnlocked
+                    : AvaloniaStartupOutcome.ReadyForPasswordFallback;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

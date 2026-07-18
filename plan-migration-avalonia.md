@@ -554,7 +554,7 @@ Migrate feature-by-feature. Each feature should include UI, view-model cleanup, 
 - [x] Password unlock.
 - [ ] Platform quick-unlock availability.
 - [ ] Quick-unlock enrollment.
-- [ ] Quick-unlock failure fallback.
+- [x] Quick-unlock failure fallback.
 - [ ] Password change.
 - [ ] Lock and reauthorization.
 - [ ] Recovery messaging.

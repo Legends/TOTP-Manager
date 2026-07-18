@@ -11,6 +11,8 @@
   <data name="MasterPassword" xml:space="preserve"><value>Master password</value></data>
   <data name="MasterPasswordHelp" xml:space="preserve"><value>Required to unlock the local vault.</value></data>
   <data name="Unlock" xml:space="preserve"><value>Unlock</value></data>
+  <data name="VaultUnlocked" xml:space="preserve"><value>Vault unlocked.</value></data>
+  <data name="QuickUnlockFallback" xml:space="preserve"><value>Quick unlock was not completed. Enter your master password to recover access.</value></data>
   <data name="Lock" xml:space="preserve"><value>Lock</value></data>
   <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
   <data name="Tools" xml:space="preserve"><value>Tools</value></data>

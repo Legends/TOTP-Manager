@@ -199,13 +199,20 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
                     ("Create a master password to protect your authenticator.", false, NotificationSeverity.Information),
                 AvaloniaStartupOutcome.ReadyForUnlock =>
                     ("Enter your master password to unlock your authenticator.", false, NotificationSeverity.Information),
+                AvaloniaStartupOutcome.ReadyForPasswordFallback =>
+                    (_localization.GetString(AvaloniaStringKeys.QuickUnlockFallback), false, NotificationSeverity.Warning),
+                AvaloniaStartupOutcome.ReadyUnlocked =>
+                    (_localization.GetString(AvaloniaStringKeys.VaultUnlocked), false, NotificationSeverity.Success),
                 AvaloniaStartupOutcome.PreferencesUnavailable =>
                     ("Your preferences could not be loaded. Your encrypted data was not changed.", true, NotificationSeverity.Warning),
                 _ =>
                     ("TOTP Manager could not start safely. Your encrypted data was not changed.", true, NotificationSeverity.Error)
             };
-            IsPasswordUnlockVisible = outcome == AvaloniaStartupOutcome.ReadyForUnlock;
+            IsPasswordUnlockVisible = outcome is AvaloniaStartupOutcome.ReadyForUnlock
+                or AvaloniaStartupOutcome.ReadyForPasswordFallback;
             IsPasswordSetupVisible = outcome == AvaloniaStartupOutcome.ReadyForPasswordSetup;
+            if (outcome == AvaloniaStartupOutcome.ReadyUnlocked)
+                EnterAuthorizedShell();
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
         {
@@ -259,22 +266,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private void OnUnlocked(object? sender, EventArgs e)
     {
         IsPasswordUnlockVisible = false;
-        IsShellVisible = true;
-        SetActivePage(ShellPage.Accounts);
-        StatusText = "Vault unlocked.";
+        EnterAuthorizedShell();
+        StatusText = _localization.GetString(AvaloniaStringKeys.VaultUnlocked);
         StatusSeverity = NotificationSeverity.Success;
-        AccountList.LoadCommand.Execute(null);
     }
 
     private void OnConfigured(object? sender, EventArgs e)
     {
         IsPasswordSetupVisible = false;
         IsPasswordUnlockVisible = false;
-        IsShellVisible = true;
-        SetActivePage(ShellPage.Accounts);
+        EnterAuthorizedShell();
         StatusText = _localization.GetString(AvaloniaStringKeys.VaultConfigured);
         StatusSeverity = NotificationSeverity.Success;
-        AccountList.LoadCommand.Execute(null);
     }
 
     public Task LockAsync()
@@ -322,6 +325,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsToolsVisible = page == ShellPage.Tools;
         IsSettingsVisible = page == ShellPage.Settings;
         if (IsSettingsVisible) SettingsPage.Reload();
+    }
+
+    private void EnterAuthorizedShell()
+    {
+        IsShellVisible = true;
+        SetActivePage(ShellPage.Accounts);
+        AccountList.LoadCommand.Execute(null);
     }
 
     private void NotifyShellCommands()

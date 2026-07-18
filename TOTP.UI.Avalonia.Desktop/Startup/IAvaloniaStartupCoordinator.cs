@@ -9,6 +9,8 @@ public enum AvaloniaStartupOutcome
 {
     ReadyForPasswordSetup,
     ReadyForUnlock,
+    ReadyForPasswordFallback,
+    ReadyUnlocked,
     PreferencesUnavailable,
     UnexpectedFailure
 }
