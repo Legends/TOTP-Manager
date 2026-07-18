@@ -44,28 +44,13 @@ public sealed class ExportService : IExportService
                 return Result.Fail(sizeValidation.Errors);
             }
 
-            var extension = Path.GetExtension(filePath);
-            if (extension.Equals(".totp", StringComparison.OrdinalIgnoreCase))
-            {
-                if (string.IsNullOrWhiteSpace(password))
-                {
-                    return Result.Fail(new AppError(AppErrorCode.ImportWrongPasswordOrTampered, "Password is required for encrypted import."));
-                }
-
-                return await ImportFromEncryptedFileAsync(password, filePath);
-            }
-
-            if (!TryGetUnencryptedFormat(extension, out var format))
-            {
-                return Result.Fail(new AppError(AppErrorCode.ImportInvalidFile, "Unsupported import file extension."));
-            }
-
-            var content = await File.ReadAllTextAsync(filePath, Encoding.UTF8);
-            return Result.Ok(DeserializeTokens(content, format));
+            await using var stream = new FileStream(
+                filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+            return await ImportFromStreamAsync(stream, Path.GetFileName(filePath), password);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Import from file failed for path {Path}.", filePath);
+            LogBoundaryFailure("path import", ex);
             return Result.Fail(ExportServiceErrorMapper.MapImportError(ex));
         }
     }
@@ -74,61 +59,34 @@ public sealed class ExportService : IExportService
     {
         try
         {
-            var payload = SerializeTokens(accounts, format);
-            await File.WriteAllTextAsync(filePath, payload, Encoding.UTF8);
-            return Result.Ok();
+            await using var stream = new FileStream(
+                filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
+            return await ExportToStreamAsync(accounts, stream, format);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Export to file failed for path {Path} with format {Format}.", filePath, format);
+            LogBoundaryFailure("path export", ex);
             return Result.Fail(ExportServiceErrorMapper.MapExportError(ex));
         }
     }
 
     public async Task<Result> ExportToEncryptedFileAsync(IEnumerable<Account> accounts, string password, string filePath, ExportFileFormat format)
     {
-        byte[]? plaintext = null;
-        byte[]? passwordBytes = null;
-
         try
         {
-            var payload = SerializeTokens(accounts, format);
-            plaintext = Encoding.UTF8.GetBytes(payload);
-            passwordBytes = Encoding.UTF8.GetBytes(password);
-
-            var salt = RandomNumberGenerator.GetBytes(SaltSize);
-            var nonce = RandomNumberGenerator.GetBytes(_algoAead.NonceSize);
-
-            using var key = _kdf.DeriveKey(passwordBytes, salt, _algoAead);
-            var ciphertextWithTag = _algoAead.Encrypt(key, nonce, default, plaintext);
-
-            await using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
-            await fs.WriteAsync(MagicBytes.AsMemory());
-            await fs.WriteAsync(new[] { (byte)format });
-            await fs.WriteAsync(salt.AsMemory());
-            await fs.WriteAsync(nonce.AsMemory());
-            await fs.WriteAsync(ciphertextWithTag.AsMemory());
-            await fs.FlushAsync();
-
-            return Result.Ok();
+            await using var stream = new FileStream(
+                filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
+            return await ExportToEncryptedStreamAsync(accounts, password, stream, format);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Encrypted export failed for path {Path} with format {Format}.", filePath, format);
+            LogBoundaryFailure("encrypted path export", ex);
             return Result.Fail(ExportServiceErrorMapper.MapExportError(ex));
-        }
-        finally
-        {
-            if (plaintext != null) Array.Clear(plaintext, 0, plaintext.Length);
-            if (passwordBytes != null) Array.Clear(passwordBytes, 0, passwordBytes.Length);
         }
     }
 
     public async Task<Result<List<Account>>> ImportFromEncryptedFileAsync(string password, string filePath)
     {
-        byte[]? passwordBytes = null;
-        byte[]? decryptedBytes = null;
-
         try
         {
             var sizeValidation = ValidateImportFileSize(filePath);
@@ -137,12 +95,174 @@ public sealed class ExportService : IExportService
                 return Result.Fail(sizeValidation.Errors);
             }
 
-            var fileBytes = await File.ReadAllBytesAsync(filePath);
+            await using var stream = new FileStream(
+                filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+            return await ImportFromEncryptedStreamAsync(password, stream);
+        }
+        catch (Exception ex)
+        {
+            LogBoundaryFailure("encrypted path import", ex);
+            return Result.Fail(ExportServiceErrorMapper.MapImportError(ex));
+        }
+    }
+
+    public async Task<Result> ExportToStreamAsync(
+        IEnumerable<Account> accounts,
+        Stream destination,
+        ExportFileFormat format,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(accounts);
+        ArgumentNullException.ThrowIfNull(destination);
+        byte[]? payloadBytes = null;
+
+        try
+        {
+            payloadBytes = Encoding.UTF8.GetBytes(SerializeTokens(accounts, format));
+            await destination.WriteAsync(payloadBytes, cancellationToken);
+            await destination.FlushAsync(cancellationToken);
+            return Result.Ok();
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            LogBoundaryFailure("stream export", ex);
+            return Result.Fail(ExportServiceErrorMapper.MapExportError(ex));
+        }
+        finally
+        {
+            Clear(payloadBytes);
+        }
+    }
+
+    public async Task<Result> ExportToEncryptedStreamAsync(
+        IEnumerable<Account> accounts,
+        string password,
+        Stream destination,
+        ExportFileFormat format,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(accounts);
+        ArgumentNullException.ThrowIfNull(password);
+        ArgumentNullException.ThrowIfNull(destination);
+        byte[]? plaintext = null;
+        byte[]? passwordBytes = null;
+        byte[]? salt = null;
+        byte[]? nonce = null;
+        byte[]? ciphertextWithTag = null;
+
+        try
+        {
+            plaintext = Encoding.UTF8.GetBytes(SerializeTokens(accounts, format));
+            passwordBytes = Encoding.UTF8.GetBytes(password);
+            salt = RandomNumberGenerator.GetBytes(SaltSize);
+            nonce = RandomNumberGenerator.GetBytes(_algoAead.NonceSize);
+
+            using var key = _kdf.DeriveKey(passwordBytes, salt, _algoAead);
+            ciphertextWithTag = _algoAead.Encrypt(key, nonce, default, plaintext);
+
+            await destination.WriteAsync(MagicBytes, cancellationToken);
+            await destination.WriteAsync(new byte[] { (byte)format }, cancellationToken);
+            await destination.WriteAsync(salt, cancellationToken);
+            await destination.WriteAsync(nonce, cancellationToken);
+            await destination.WriteAsync(ciphertextWithTag, cancellationToken);
+            await destination.FlushAsync(cancellationToken);
+            return Result.Ok();
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            LogBoundaryFailure("encrypted stream export", ex);
+            return Result.Fail(ExportServiceErrorMapper.MapExportError(ex));
+        }
+        finally
+        {
+            Clear(plaintext);
+            Clear(passwordBytes);
+            Clear(salt);
+            Clear(nonce);
+            Clear(ciphertextWithTag);
+        }
+    }
+
+    public async Task<Result<List<Account>>> ImportFromStreamAsync(
+        Stream source,
+        string fileName,
+        string? password = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        var extension = Path.GetExtension(Path.GetFileName(fileName));
+
+        if (extension.Equals(".totp", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                return Result.Fail(new AppError(
+                    AppErrorCode.ImportWrongPasswordOrTampered,
+                    "Password is required for encrypted import."));
+            }
+
+            return await ImportFromEncryptedStreamAsync(password, source, cancellationToken);
+        }
+
+        if (!TryGetUnencryptedFormat(extension, out var format))
+        {
+            return Result.Fail(new AppError(AppErrorCode.ImportInvalidFile, "Unsupported import file extension."));
+        }
+
+        byte[]? fileBytes = null;
+        try
+        {
+            (fileBytes, var length) = await ReadBoundedAsync(source, cancellationToken);
+            var content = Encoding.UTF8.GetString(fileBytes, 0, length);
+            return Result.Ok(DeserializeTokens(content, format));
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (ImportSizeLimitExceededException)
+        {
+            return ImportSizeFailure<List<Account>>();
+        }
+        catch (Exception ex)
+        {
+            LogBoundaryFailure("stream import", ex);
+            return Result.Fail(ExportServiceErrorMapper.MapImportError(ex));
+        }
+        finally
+        {
+            Clear(fileBytes);
+        }
+    }
+
+    public async Task<Result<List<Account>>> ImportFromEncryptedStreamAsync(
+        string password,
+        Stream source,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(password);
+        ArgumentNullException.ThrowIfNull(source);
+        byte[]? passwordBytes = null;
+        byte[]? decryptedBytes = null;
+        byte[]? fileBytes = null;
+
+        try
+        {
+            (fileBytes, var fileLength) = await ReadBoundedAsync(source, cancellationToken);
             int nonceSize = _algoAead.NonceSize;
             int legacyHeaderSize = MagicBytes.Length + SaltSize + nonceSize;
             int versionedHeaderSize = MagicBytes.Length + 1 + SaltSize + nonceSize;
 
-            if (fileBytes.Length < legacyHeaderSize + _algoAead.TagSize)
+            if (fileLength < legacyHeaderSize + _algoAead.TagSize)
             {
                 return Result.Fail(new AppError(AppErrorCode.ImportInvalidFile, "Encrypted import file is invalid."));
             }
@@ -155,7 +275,7 @@ public sealed class ExportService : IExportService
             ExportFileFormat format = ExportFileFormat.Json;
             int offset = MagicBytes.Length;
 
-            if (fileBytes.Length >= versionedHeaderSize + _algoAead.TagSize)
+            if (fileLength >= versionedHeaderSize + _algoAead.TagSize)
             {
                 var marker = fileBytes[offset];
                 if (marker is (byte)ExportFileFormat.Json or (byte)ExportFileFormat.Txt or (byte)ExportFileFormat.Csv)
@@ -167,7 +287,7 @@ public sealed class ExportService : IExportService
 
             var salt = fileBytes.AsSpan(offset, SaltSize);
             var nonce = fileBytes.AsSpan(offset + SaltSize, nonceSize);
-            var encryptedData = fileBytes.AsSpan(offset + SaltSize + nonceSize);
+            var encryptedData = fileBytes.AsSpan(offset + SaltSize + nonceSize, fileLength - offset - SaltSize - nonceSize);
 
             passwordBytes = Encoding.UTF8.GetBytes(password);
             using var key = _kdf.DeriveKey(passwordBytes, salt, _algoAead);
@@ -181,17 +301,74 @@ public sealed class ExportService : IExportService
             var content = Encoding.UTF8.GetString(decryptedBytes);
             return Result.Ok(DeserializeTokens(content, format));
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (ImportSizeLimitExceededException)
+        {
+            return ImportSizeFailure<List<Account>>();
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Encrypted import failed for path {Path}.", filePath);
+            LogBoundaryFailure("encrypted stream import", ex);
             return Result.Fail(ExportServiceErrorMapper.MapImportError(ex));
         }
         finally
         {
-            if (passwordBytes != null) Array.Clear(passwordBytes, 0, passwordBytes.Length);
-            if (decryptedBytes != null) Array.Clear(decryptedBytes, 0, decryptedBytes.Length);
+            Clear(passwordBytes);
+            Clear(decryptedBytes);
+            Clear(fileBytes);
         }
     }
+
+    private async Task<(byte[] Buffer, int Length)> ReadBoundedAsync(
+        Stream source,
+        CancellationToken cancellationToken)
+    {
+        var buffer = new byte[MaxImportFileBytes + 1];
+        var totalRead = 0;
+        try
+        {
+            while (totalRead < buffer.Length)
+            {
+                var read = await source.ReadAsync(buffer.AsMemory(totalRead), cancellationToken);
+                if (read == 0)
+                {
+                    return (buffer, totalRead);
+                }
+
+                totalRead += read;
+            }
+
+            throw new ImportSizeLimitExceededException();
+        }
+        catch
+        {
+            Clear(buffer);
+            throw;
+        }
+    }
+
+    private static Result<T> ImportSizeFailure<T>() => Result.Fail<T>(new AppError(
+        AppErrorCode.ImportInvalidFile,
+        $"Import file exceeds maximum allowed size ({MaxImportFileBytes / (1024 * 1024)} MiB)."));
+
+    private void LogBoundaryFailure(string operation, Exception exception) =>
+        _logger.LogError(
+            "Export service {Operation} failed with exception type {ExceptionType}.",
+            operation,
+            exception.GetType().Name);
+
+    private static void Clear(byte[]? buffer)
+    {
+        if (buffer is not null)
+        {
+            CryptographicOperations.ZeroMemory(buffer);
+        }
+    }
+
+    private sealed class ImportSizeLimitExceededException : Exception;
 
     private static string SerializeTokens(IEnumerable<Account> accounts, ExportFileFormat format)
     {

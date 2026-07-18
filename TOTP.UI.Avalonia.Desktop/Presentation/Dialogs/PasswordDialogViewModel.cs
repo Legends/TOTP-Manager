@@ -10,6 +10,7 @@ public sealed class PasswordDialogViewModel : INotifyPropertyChanged, IDisposabl
     private readonly CancellationToken _cancellationToken;
     private readonly AsyncCommand _confirmCommand;
     private string _password = string.Empty;
+    private string _confirmation = string.Empty;
     private string _errorMessage = string.Empty;
     private bool _isBusy;
     private bool _closeRequested;
@@ -27,6 +28,9 @@ public sealed class PasswordDialogViewModel : INotifyPropertyChanged, IDisposabl
         CancelText = request.CancelText;
         RequiredMessage = request.RequiredMessage;
         ValidationFailureMessage = request.ValidationFailureMessage;
+        RequireConfirmation = request.RequireConfirmation;
+        ConfirmationRequiredMessage = request.ConfirmationRequiredMessage;
+        MismatchMessage = request.MismatchMessage;
         _validateAsync = request.ValidateAsync;
         _cancellationToken = cancellationToken;
         _confirmCommand = new AsyncCommand(ConfirmAsync, () => !_isBusy && !_closeRequested);
@@ -42,6 +46,9 @@ public sealed class PasswordDialogViewModel : INotifyPropertyChanged, IDisposabl
     public string CancelText { get; }
     public string RequiredMessage { get; }
     public string ValidationFailureMessage { get; }
+    public bool RequireConfirmation { get; }
+    public string ConfirmationRequiredMessage { get; }
+    public string MismatchMessage { get; }
 
     public string Password
     {
@@ -57,6 +64,16 @@ public sealed class PasswordDialogViewModel : INotifyPropertyChanged, IDisposabl
     {
         get => _errorMessage;
         private set => SetField(ref _errorMessage, value);
+    }
+
+    public string Confirmation
+    {
+        get => _confirmation;
+        set
+        {
+            if (!SetField(ref _confirmation, value ?? string.Empty)) return;
+            ErrorMessage = string.Empty;
+        }
     }
 
     public bool IsBusy
@@ -79,10 +96,29 @@ public sealed class PasswordDialogViewModel : INotifyPropertyChanged, IDisposabl
         if (IsBusy || _closeRequested || _disposed) return;
 
         var candidate = Password;
+        var confirmation = Confirmation;
         Password = string.Empty;
+        Confirmation = string.Empty;
         if (string.IsNullOrWhiteSpace(candidate))
         {
+            confirmation = string.Empty;
             ErrorMessage = RequiredMessage;
+            return;
+        }
+
+        if (RequireConfirmation && string.IsNullOrWhiteSpace(confirmation))
+        {
+            candidate = string.Empty;
+            confirmation = string.Empty;
+            ErrorMessage = ConfirmationRequiredMessage;
+            return;
+        }
+
+        if (RequireConfirmation && !string.Equals(candidate, confirmation, StringComparison.Ordinal))
+        {
+            candidate = string.Empty;
+            confirmation = string.Empty;
+            ErrorMessage = MismatchMessage;
             return;
         }
 
@@ -112,6 +148,7 @@ public sealed class PasswordDialogViewModel : INotifyPropertyChanged, IDisposabl
         finally
         {
             candidate = string.Empty;
+            confirmation = string.Empty;
             IsBusy = false;
         }
     }
@@ -120,12 +157,14 @@ public sealed class PasswordDialogViewModel : INotifyPropertyChanged, IDisposabl
     {
         if (IsBusy || _closeRequested || _disposed) return;
         Password = string.Empty;
+        Confirmation = string.Empty;
         RequestClose(null);
     }
 
     public void ClearSensitiveData()
     {
         _password = string.Empty;
+        _confirmation = string.Empty;
         _errorMessage = string.Empty;
         _validateAsync = null;
     }
@@ -163,6 +202,14 @@ public sealed class PasswordDialogViewModel : INotifyPropertyChanged, IDisposabl
             || string.IsNullOrWhiteSpace(request.ValidationFailureMessage))
         {
             throw new ArgumentException("Password dialog text must be explicit and non-empty.", nameof(request));
+        }
+
+
+        if (request.RequireConfirmation
+            && (string.IsNullOrWhiteSpace(request.ConfirmationRequiredMessage)
+                || string.IsNullOrWhiteSpace(request.MismatchMessage)))
+        {
+            throw new ArgumentException("Password confirmation text must be explicit and non-empty.", nameof(request));
         }
     }
 

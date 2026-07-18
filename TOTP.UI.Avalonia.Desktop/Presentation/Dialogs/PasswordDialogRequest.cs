@@ -7,4 +7,7 @@ public sealed record PasswordDialogRequest(
     string CancelText,
     string RequiredMessage,
     string ValidationFailureMessage,
-    Func<string, CancellationToken, Task<string?>>? ValidateAsync = null);
+    Func<string, CancellationToken, Task<string?>>? ValidateAsync = null,
+    bool RequireConfirmation = false,
+    string ConfirmationRequiredMessage = "",
+    string MismatchMessage = "");

@@ -91,6 +91,43 @@ public sealed class PasswordDialogViewModelTests
         Assert.Empty(sentinel);
     }
 
+    [Fact]
+    public async Task ConfirmAsync_WhenConfirmationDoesNotMatch_ClearsBothAndDoesNotClose()
+    {
+        var sut = new PasswordDialogViewModel(CreateConfirmationRequest())
+        {
+            Password = "synthetic password",
+            Confirmation = "different password"
+        };
+        var closed = false;
+        sut.CloseRequested += _ => closed = true;
+
+        await sut.ConfirmAsync();
+
+        Assert.False(closed);
+        Assert.Empty(sut.Password);
+        Assert.Empty(sut.Confirmation);
+        Assert.Equal("Passwords do not match.", sut.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_WhenConfirmationMatches_ReturnsCandidateAndClearsBoth()
+    {
+        var sut = new PasswordDialogViewModel(CreateConfirmationRequest())
+        {
+            Password = "synthetic password",
+            Confirmation = "synthetic password"
+        };
+        string? returned = null;
+        sut.CloseRequested += value => returned = value;
+
+        await sut.ConfirmAsync();
+
+        Assert.Equal("synthetic password", returned);
+        Assert.Empty(sut.Password);
+        Assert.Empty(sut.Confirmation);
+    }
+
     private static PasswordDialogRequest CreateRequest(
         Func<string, CancellationToken, Task<string?>>? validate = null) =>
         new(
@@ -101,4 +138,15 @@ public sealed class PasswordDialogViewModelTests
             "Password is required.",
             "Password could not be validated safely.",
             validate);
+
+    private static PasswordDialogRequest CreateConfirmationRequest() => new(
+        "Create export password",
+        "Create and confirm a password.",
+        "Continue",
+        "Cancel",
+        "Password is required.",
+        "Password could not be validated safely.",
+        RequireConfirmation: true,
+        ConfirmationRequiredMessage: "Confirmation is required.",
+        MismatchMessage: "Passwords do not match.");
 }

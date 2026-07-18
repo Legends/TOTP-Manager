@@ -1,35 +1,231 @@
+using FluentResults;
 using Moq;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation;
+using TOTP.Avalonia.Desktop.Presentation.Dialogs;
+using TOTP.Core.Models;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Services.Interfaces;
+using TOTP.Infrastructure.Services;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
 public sealed class NativeFilePickerViewModelTests
 {
     [Fact]
-    public async Task PickAsync_WhenFileSelected_ShowsNameWithoutReadingFile()
+    public async Task ImportAsync_WhenValidatedAndConfirmed_CreatesBackupBeforeAddingAccount()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var picker = new Mock<IAvaloniaFilePicker>();
-        picker.Setup(value => value.PickImportFileNameAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync("backup.totp");
-        var sut = new NativeFilePickerViewModel(picker.Object);
+        picker.Setup(value => value.PickImportFileAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TestStorageFile("backup.json"));
+        var export = new Mock<IExportService>();
+        var imported = new Account(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "user");
+        export.Setup(value => value.ImportFromStreamAsync(
+                It.IsAny<Stream>(), "backup.json", null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(new List<Account> { imported }));
+        var accounts = new Mock<IAccountManager>(MockBehavior.Strict);
+        var sequence = new MockSequence();
+        accounts.InSequence(sequence).Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]));
+        accounts.InSequence(sequence).Setup(value => value.BackupOtpEntriesStorageFileAsync())
+            .ReturnsAsync(Result.Ok());
+        accounts.InSequence(sequence).Setup(value => value.AddNewAsync(It.IsAny<Account>()))
+            .ReturnsAsync(Result.Ok());
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        dialogs.Setup(value => value.ConfirmAsync(
+                It.IsAny<ConfirmationDialogRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        var sut = Create(picker.Object, export.Object, accounts.Object, dialogs.Object);
+        var changed = 0;
+        sut.AccountsChanged += (_, _) => changed++;
 
-        await sut.PickAsync();
+        await sut.ImportAsync();
 
-        Assert.Contains("backup.totp", sut.Message, StringComparison.Ordinal);
-        Assert.Contains("not enabled", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("1 added", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(1, changed);
+        accounts.Verify(value => value.AddNewAsync(It.Is<Account>(account =>
+            account.Secret == "JBSWY3DPEHPK3PXP")), Times.Once);
     }
 
     [Fact]
-    public async Task PickAsync_WhenBoundaryThrows_DoesNotExposeExceptionText()
+    public async Task ImportAsync_WhenBackupFails_DoesNotMutateAccounts()
     {
         var picker = new Mock<IAvaloniaFilePicker>();
-        picker.Setup(value => value.PickImportFileNameAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("sensitive local path"));
-        var sut = new NativeFilePickerViewModel(picker.Object);
+        picker.Setup(value => value.PickImportFileAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TestStorageFile("backup.json"));
+        var export = new Mock<IExportService>();
+        export.Setup(value => value.ImportFromStreamAsync(
+                It.IsAny<Stream>(), "backup.json", null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(new List<Account>
+            {
+                new(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "user")
+            }));
+        var accounts = new Mock<IAccountManager>();
+        accounts.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]));
+        accounts.Setup(value => value.BackupOtpEntriesStorageFileAsync())
+            .ReturnsAsync(Result.Fail("backup unavailable"));
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        dialogs.Setup(value => value.ConfirmAsync(
+                It.IsAny<ConfirmationDialogRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        var sut = Create(picker.Object, export.Object, accounts.Object, dialogs.Object);
 
-        await sut.PickAsync();
+        await sut.ImportAsync();
+
+        Assert.Contains("stopped", sut.Message, StringComparison.OrdinalIgnoreCase);
+        accounts.Verify(value => value.AddNewAsync(It.IsAny<Account>()), Times.Never);
+        accounts.Verify(value => value.UpdateAsync(It.IsAny<Account>(), It.IsAny<Account>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ImportAsync_WithReplaceStrategy_PreservesExistingIdentifier()
+    {
+        var id = Guid.NewGuid();
+        var existing = new Account(id, "GitHub", "JBSWY3DPEHPK3PXP", "user");
+        var incoming = new Account(Guid.NewGuid(), "GitHub", "KRSXG5DSNFXGOIDB", "user");
+        var picker = new Mock<IAvaloniaFilePicker>();
+        picker.Setup(value => value.PickImportFileAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TestStorageFile("backup.json"));
+        var export = new Mock<IExportService>();
+        export.Setup(value => value.ImportFromStreamAsync(
+                It.IsAny<Stream>(), "backup.json", null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(new List<Account> { incoming }));
+        var accounts = new Mock<IAccountManager>();
+        accounts.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([existing]));
+        accounts.Setup(value => value.BackupOtpEntriesStorageFileAsync()).ReturnsAsync(Result.Ok());
+        accounts.Setup(value => value.UpdateAsync(existing, It.IsAny<Account>())).ReturnsAsync(Result.Ok());
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        dialogs.Setup(value => value.ConfirmAsync(
+                It.IsAny<ConfirmationDialogRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        var sut = Create(picker.Object, export.Object, accounts.Object, dialogs.Object);
+        sut.ConflictStrategy = ImportConflictStrategy.ReplaceExisting;
+
+        await sut.ImportAsync();
+
+        accounts.Verify(value => value.UpdateAsync(existing, It.Is<Account>(replacement =>
+            replacement.ID == id && replacement.Secret == incoming.Secret)), Times.Once);
+        Assert.Contains("1 replaced", sut.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ExportEncryptedAsync_RequiresConfirmedPasswordAndHardensLocalFile()
+    {
+        var file = new TestStorageFile("backup.totp", "C:\\safe\\backup.totp");
+        var picker = new Mock<IAvaloniaFilePicker>();
+        picker.Setup(value => value.PickEncryptedExportFileAsync(
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(file);
+        var export = new Mock<IExportService>();
+        export.Setup(value => value.ExportToEncryptedStreamAsync(
+                It.IsAny<IEnumerable<Account>>(), "strong-password", It.IsAny<Stream>(),
+                ExportFileFormat.Json, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        var accounts = new Mock<IAccountManager>();
+        accounts.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
+                [new Account(Guid.NewGuid(), "GitHub", "JBSWY3DPEHPK3PXP", "user")]));
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        dialogs.Setup(value => value.PromptForPasswordAsync(
+                It.Is<PasswordDialogRequest>(request => request.RequireConfirmation),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync("strong-password");
+        var security = new Mock<IPlatformFileSecurity>();
+        var settings = new Mock<ISettingsService>();
+        settings.SetupGet(value => value.Current).Returns(new AppSettings
+        {
+            OpenExportFileAfterExport = true
+        });
+        var folderLauncher = new Mock<IPlatformFolderLauncher>();
+        folderLauncher.Setup(value => value.OpenFolderAsync(
+                "C:\\safe", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        var sut = Create(
+            picker.Object,
+            export.Object,
+            accounts.Object,
+            dialogs.Object,
+            security.Object,
+            settings.Object,
+            folderLauncher.Object);
+
+        await sut.ExportEncryptedAsync();
+
+        Assert.Contains("successfully", sut.Message, StringComparison.OrdinalIgnoreCase);
+        security.Verify(value => value.RestrictFileToCurrentUser("C:\\safe\\backup.totp"), Times.Once);
+        folderLauncher.Verify(value => value.OpenFolderAsync(
+            "C:\\safe", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ImportAsync_WhenBoundaryThrows_DoesNotExposeExceptionText()
+    {
+        var picker = new Mock<IAvaloniaFilePicker>();
+        picker.Setup(value => value.PickImportFileAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("sensitive local path"));
+        var sut = Create(
+            picker.Object,
+            Mock.Of<IExportService>(),
+            Mock.Of<IAccountManager>(),
+            Mock.Of<IAvaloniaDialogService>());
+
+        await sut.ImportAsync();
 
         Assert.DoesNotContain("sensitive", sut.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static NativeFilePickerViewModel Create(
+        IAvaloniaFilePicker picker,
+        IExportService export,
+        IAccountManager accounts,
+        IAvaloniaDialogService dialogs,
+        IPlatformFileSecurity? security = null,
+        ISettingsService? settings = null,
+        IPlatformFolderLauncher? folderLauncher = null)
+    {
+        var passwordValidation = new Mock<IPasswordValidationService>();
+        passwordValidation.SetupGet(value => value.MinimumLength).Returns(8);
+        passwordValidation.Setup(value => value.IsValidNew(It.IsAny<string>())).Returns(true);
+        if (settings is null)
+        {
+            var settingsMock = new Mock<ISettingsService>();
+            settingsMock.SetupGet(value => value.Current).Returns(new AppSettings
+            {
+                OpenExportFileAfterExport = false
+            });
+            settings = settingsMock.Object;
+        }
+        return new NativeFilePickerViewModel(
+            picker,
+            export,
+            accounts,
+            new AccountImportService(accounts),
+            dialogs,
+            passwordValidation.Object,
+            security ?? Mock.Of<IPlatformFileSecurity>(),
+            settings,
+            folderLauncher ?? Mock.Of<IPlatformFolderLauncher>());
+    }
+
+    private sealed class TestStorageFile(
+        string name,
+        string? localPath = null,
+        byte[]? content = null) : INativeStorageFile
+    {
+        private readonly byte[] _content = content ?? [];
+        public string Name { get; } = name;
+        public string? LocalPath { get; } = localPath;
+
+        public Task<Stream> OpenReadAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<Stream>(new MemoryStream(_content, writable: false));
+
+        public Task<Stream> OpenWriteAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<Stream>(new MemoryStream());
+
+        public Task DeleteAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 }

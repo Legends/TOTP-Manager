@@ -2,5 +2,9 @@ namespace TOTP.Avalonia.Desktop.Platform;
 
 public interface IAvaloniaFilePicker
 {
-    Task<string?> PickImportFileNameAsync(CancellationToken cancellationToken = default);
+    Task<INativeStorageFile?> PickImportFileAsync(CancellationToken cancellationToken = default);
+
+    Task<INativeStorageFile?> PickEncryptedExportFileAsync(
+        string suggestedFileName,
+        CancellationToken cancellationToken = default);
 }

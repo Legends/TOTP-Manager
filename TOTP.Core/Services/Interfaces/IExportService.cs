@@ -1,5 +1,7 @@
 using FluentResults;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using TOTP.Core.Models;
 
@@ -7,6 +9,30 @@ namespace TOTP.Core.Services.Interfaces;
 
 public interface IExportService
 {
+    Task<Result> ExportToEncryptedStreamAsync(
+        IEnumerable<Account> accounts,
+        string password,
+        Stream destination,
+        ExportFileFormat format,
+        CancellationToken cancellationToken = default);
+
+    Task<Result> ExportToStreamAsync(
+        IEnumerable<Account> accounts,
+        Stream destination,
+        ExportFileFormat format,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<List<Account>>> ImportFromEncryptedStreamAsync(
+        string password,
+        Stream source,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<List<Account>>> ImportFromStreamAsync(
+        Stream source,
+        string fileName,
+        string? password = null,
+        CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Verschlüsselt die OtpEntries und speichert sie sicher in einer Datei.
     /// </summary>

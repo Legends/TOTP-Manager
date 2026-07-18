@@ -59,6 +59,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordUnlock.Unlocked += OnUnlocked;
         PasswordSetup.Configured += OnConfigured;
         CameraScanner.AccountImported += OnAccountImported;
+        NativeFilePicker.AccountsChanged += OnAccountImported;
         SettingsPage.SettingsSaved += OnSettingsSaved;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
         _lockCommand = new AsyncCommand(LockAsync, () => _isShellVisible);
@@ -246,6 +247,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordUnlock.Unlocked -= OnUnlocked;
         PasswordSetup.Configured -= OnConfigured;
         CameraScanner.AccountImported -= OnAccountImported;
+        NativeFilePicker.AccountsChanged -= OnAccountImported;
         SettingsPage.SettingsSaved -= OnSettingsSaved;
         _lifetime.Cancel();
         _lifetime.Dispose();

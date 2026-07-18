@@ -117,6 +117,88 @@ public sealed class ExportServiceTests
     }
 
     [Fact]
+    public async Task ExportToEncryptedStreamAsync_ThenPathImporter_RoundTripsCompatibilityFormat()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "stream-generated.totp");
+        var input = new Account(Guid.NewGuid(), "GitHub", "ABCD1234", "stream-user");
+
+        await using (var destination = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, true))
+        {
+            var export = await _sut.ExportToEncryptedStreamAsync(
+                [input], "pw-123", destination, ExportFileFormat.Json, cancellationToken);
+            Assert.True(export.IsSuccess);
+            Assert.True(destination.CanWrite);
+        }
+
+        var import = await _sut.ImportFromEncryptedFileAsync("pw-123", path);
+
+        Assert.True(import.IsSuccess);
+        var account = Assert.Single(import.Value);
+        Assert.Equal(input.ID, account.ID);
+        Assert.Equal(input.Secret, account.Secret);
+    }
+
+    [Fact]
+    public async Task PathExporter_ThenNonSeekableStreamImporter_RoundTripsCompatibilityFormat()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var path = Path.Combine(temp.Path, "path-generated.totp");
+        var input = new Account(Guid.NewGuid(), "GitLab", "EFGH5678", "path-user");
+        Assert.True((await _sut.ExportToEncryptedFileAsync(
+            [input], "pw-456", path, ExportFileFormat.Json)).IsSuccess);
+
+        await using var file = File.OpenRead(path);
+        await using var source = new NonSeekableReadStream(file);
+        var import = await _sut.ImportFromStreamAsync(source, "portable.totp", "pw-456", cancellationToken);
+
+        Assert.True(import.IsSuccess);
+        var account = Assert.Single(import.Value);
+        Assert.Equal(input.ID, account.ID);
+        Assert.Equal(input.Secret, account.Secret);
+        Assert.False(source.CanSeek);
+    }
+
+    [Fact]
+    public async Task ImportFromStreamAsync_WhenNonSeekableStreamExceedsLimit_ReturnsInvalidFile()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var source = new NonSeekableReadStream(
+            new MemoryStream(new byte[(5 * 1024 * 1024) + 1], writable: false));
+
+        var result = await _sut.ImportFromStreamAsync(source, "oversized.json", cancellationToken: cancellationToken);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.ImportInvalidFile, result.GetErrorCode());
+    }
+
+    [Theory]
+    [InlineData("accounts.JSON")]
+    [InlineData("accounts.txt")]
+    [InlineData("accounts.CsV")]
+    public async Task ImportFromStreamAsync_UsesPortableFileNameExtension(string fileName)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var format = Path.GetExtension(fileName).ToLowerInvariant() switch
+        {
+            ".json" => ExportFileFormat.Json,
+            ".txt" => ExportFileFormat.Txt,
+            _ => ExportFileFormat.Csv
+        };
+        await using var stream = new MemoryStream();
+        Assert.True((await _sut.ExportToStreamAsync(
+            [new Account(Guid.NewGuid(), "Issuer", "SECRET", "user")], stream, format, cancellationToken)).IsSuccess);
+        stream.Position = 0;
+
+        var result = await _sut.ImportFromStreamAsync(stream, fileName, cancellationToken: cancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value);
+    }
+
+    [Fact]
     public async Task ImportFromEncryptedFileAsync_WhenPasswordWrong_ReturnsWrongPasswordOrTampered()
     {
         using var temp = new TempDir();
@@ -200,6 +282,39 @@ public sealed class ExportServiceTests
             {
                 // best-effort test cleanup
             }
+        }
+    }
+
+    private sealed class NonSeekableReadStream(Stream inner) : Stream
+    {
+        public override bool CanRead => inner.CanRead;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush() => inner.Flush();
+        public override int Read(byte[] buffer, int offset, int count) => inner.Read(buffer, offset, count);
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
+            inner.ReadAsync(buffer, cancellationToken);
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) inner.Dispose();
+            base.Dispose(disposing);
+        }
+
+        public override async ValueTask DisposeAsync()
+        {
+            await inner.DisposeAsync();
+            GC.SuppressFinalize(this);
         }
     }
 }

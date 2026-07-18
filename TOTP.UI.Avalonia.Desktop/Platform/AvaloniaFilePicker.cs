@@ -4,7 +4,12 @@ namespace TOTP.Avalonia.Desktop.Platform;
 
 public sealed class AvaloniaFilePicker(AvaloniaStorageProviderAccessor accessor) : IAvaloniaFilePicker
 {
-    public async Task<string?> PickImportFileNameAsync(
+    private static readonly FilePickerFileType TotpFiles = new("TOTP files")
+    {
+        Patterns = ["*.totp", "*.json", "*.txt", "*.csv"]
+    };
+
+    public async Task<INativeStorageFile?> PickImportFileAsync(
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -19,12 +24,39 @@ public sealed class AvaloniaFilePicker(AvaloniaStorageProviderAccessor accessor)
             [
                 new FilePickerFileType("TOTP files")
                 {
-                    Patterns = ["*.totp", "*.json"]
+                    Patterns = TotpFiles.Patterns
                 }
             ]
         });
         cancellationToken.ThrowIfCancellationRequested();
 
-        return files.Count == 1 ? files[0].Name : null;
+        return files.Count == 1 ? new AvaloniaStorageFile(files[0]) : null;
+    }
+
+    public async Task<INativeStorageFile?> PickEncryptedExportFileAsync(
+        string suggestedFileName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(suggestedFileName);
+        cancellationToken.ThrowIfCancellationRequested();
+        var provider = accessor.Current;
+        if (provider is null || !provider.CanSave) return null;
+
+        var file = await provider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Export encrypted TOTP backup",
+            SuggestedFileName = Path.GetFileNameWithoutExtension(suggestedFileName),
+            DefaultExtension = "totp",
+            ShowOverwritePrompt = true,
+            FileTypeChoices =
+            [
+                new FilePickerFileType("Encrypted TOTP backup")
+                {
+                    Patterns = ["*.totp"]
+                }
+            ]
+        });
+        cancellationToken.ThrowIfCancellationRequested();
+        return file is null ? null : new AvaloniaStorageFile(file);
     }
 }

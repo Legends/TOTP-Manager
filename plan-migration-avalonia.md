@@ -621,16 +621,16 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 
 ## M5.6 Import, export, and backup
 
-- [ ] Native open/save dialogs.
-- [ ] Encrypted export.
-- [ ] Export password prompt.
-- [ ] Import conflict handling.
-- [ ] Backup creation.
-- [ ] Backup discovery and recovery.
-- [ ] Open-export-location behavior.
-- [ ] File permission handling.
-- [ ] Cross-platform path and filename tests.
-- [ ] Compatibility tests using WPF-generated exports.
+- [x] Native open/save dialogs.
+- [x] Encrypted export.
+- [x] Export password prompt.
+- [x] Import conflict handling.
+- [x] Backup creation.
+- [x] Backup discovery and recovery.
+- [x] Open-export-location behavior.
+- [x] File permission handling.
+- [x] Cross-platform path and filename tests.
+- [x] Compatibility tests using WPF-generated exports.
 
 ## M5.7 Notifications and diagnostics
 

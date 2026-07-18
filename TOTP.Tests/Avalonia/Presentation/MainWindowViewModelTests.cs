@@ -237,8 +237,23 @@ public sealed class MainWindowViewModelTests
             validation.Object);
     }
 
-    private static NativeFilePickerViewModel CreateFilePicker() =>
-        new(Mock.Of<IAvaloniaFilePicker>());
+    private static NativeFilePickerViewModel CreateFilePicker()
+    {
+        var validation = new Mock<IPasswordValidationService>();
+        validation.SetupGet(value => value.MinimumLength).Returns(8);
+        var settings = new Mock<ISettingsService>();
+        settings.SetupGet(value => value.Current).Returns(new AppSettings());
+        return new NativeFilePickerViewModel(
+            Mock.Of<IAvaloniaFilePicker>(),
+            Mock.Of<IExportService>(),
+            Mock.Of<IAccountManager>(),
+            Mock.Of<IAccountImportService>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            validation.Object,
+            Mock.Of<IPlatformFileSecurity>(),
+            settings.Object,
+            Mock.Of<IPlatformFolderLauncher>());
+    }
 
     private static CameraScannerViewModel CreateCameraScanner() =>
         new(
