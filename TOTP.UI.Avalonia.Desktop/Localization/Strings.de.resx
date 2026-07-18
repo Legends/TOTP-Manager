@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>TOTP Manager (Avalonia-Vorschau)</value></data>
+  <data name="AppHeading" xml:space="preserve"><value>TOTP Manager</value></data>
+  <data name="StartingSafely" xml:space="preserve"><value>TOTP Manager wird sicher gestartet…</value></data>
+  <data name="Retry" xml:space="preserve"><value>Erneut versuchen</value></data>
+  <data name="MasterPassword" xml:space="preserve"><value>Master-Passwort</value></data>
+  <data name="MasterPasswordHelp" xml:space="preserve"><value>Zum Entsperren des lokalen Tresors erforderlich.</value></data>
+  <data name="Unlock" xml:space="preserve"><value>Entsperren</value></data>
+  <data name="Lock" xml:space="preserve"><value>Sperren</value></data>
+  <data name="Accounts" xml:space="preserve"><value>Konten</value></data>
+  <data name="Tools" xml:space="preserve"><value>Werkzeuge</value></data>
+  <data name="Settings" xml:space="preserve"><value>Einstellungen</value></data>
+  <data name="ChooseImportFile" xml:space="preserve"><value>Importdatei auswählen…</value></data>
+  <data name="VerifyAppcast" xml:space="preserve"><value>Signierten Test-Appcast prüfen</value></data>
+  <data name="ScanQrCamera" xml:space="preserve"><value>QR-Code mit Kamera scannen</value></data>
+  <data name="CancelScan" xml:space="preserve"><value>Scan abbrechen</value></data>
+  <data name="SecuritySettings" xml:space="preserve"><value>Sicherheitseinstellungen</value></data>
+  <data name="Language" xml:space="preserve"><value>Sprache</value></data>
+  <data name="IdleTimeout" xml:space="preserve"><value>Leerlaufzeit in Minuten (0 deaktiviert die Sperre)</value></data>
+  <data name="IdleTimeoutHelp" xml:space="preserve"><value>Null eingeben, um die Leerlaufsperre zu deaktivieren.</value></data>
+  <data name="LockWhenMinimized" xml:space="preserve"><value>Beim Minimieren sperren</value></data>
+  <data name="SaveSettings" xml:space="preserve"><value>Einstellungen speichern</value></data>
+  <data name="SearchAccounts" xml:space="preserve"><value>Aussteller oder Konto suchen</value></data>
+  <data name="GenerateCode" xml:space="preserve"><value>Code erzeugen</value></data>
+  <data name="ShowQrCode" xml:space="preserve"><value>QR-Code anzeigen</value></data>
+  <data name="CopyTimedClear" xml:space="preserve"><value>Kopieren und zeitgesteuert löschen</value></data>
+  <data name="Password" xml:space="preserve"><value>Passwort</value></data>
+  <data name="PasswordAuthorizationHelp" xml:space="preserve"><value>Zur Autorisierung dieser Aktion erforderlich.</value></data>
+  <data name="ValidatingSecurely" xml:space="preserve"><value>Wird sicher geprüft…</value></data>
+  <data name="NavAccounts" xml:space="preserve"><value>Kontoseite öffnen</value></data>
+  <data name="NavTools" xml:space="preserve"><value>Werkzeugseite öffnen</value></data>
+  <data name="NavSettings" xml:space="preserve"><value>Einstellungsseite öffnen</value></data>
+  <data name="AccountsList" xml:space="preserve"><value>Konten</value></data>
+  <data name="GeneratedCode" xml:space="preserve"><value>Erzeugter Einmalcode</value></data>
+  <data name="GeneratedQr" xml:space="preserve"><value>Erzeugter Konto-QR-Code</value></data>
+  <data name="QrPrivacyNotice" xml:space="preserve"><value>Dieser QR-Code enthält das Kontogeheimnis. Halten Sie ihn privat.</value></data>
+  <data name="CameraPreview" xml:space="preserve"><value>Live-Kameravorschau</value></data>
+</root>

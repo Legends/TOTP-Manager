@@ -3,6 +3,7 @@ using Moq;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Avalonia.Desktop.Presentation;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
@@ -49,6 +50,28 @@ public sealed class SettingsPageViewModelTests
         Assert.Equal(TimeSpan.FromMinutes(10), current.IdleTimeout);
         Assert.True(current.LockOnMinimize);
         Assert.DoesNotContain("synthetic", sut.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SelectedLanguage_AppliesImmediatelyWithoutChangingSecuritySettings()
+    {
+        var current = new AppSettings
+        {
+            IdleTimeout = TimeSpan.FromMinutes(12),
+            LockOnMinimize = true
+        };
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        var english = new LanguageOption("en", "English");
+        var german = new LanguageOption("de", "Deutsch");
+        localization.SetupGet(value => value.SupportedLanguages).Returns([english, german]);
+        localization.SetupGet(value => value.CurrentLanguage).Returns(english);
+        var sut = new SettingsPageViewModel(CreateSettings(current).Object, localization.Object);
+
+        sut.SelectedLanguage = german;
+
+        localization.Verify(value => value.ApplyCulture("de"), Times.Once);
+        Assert.Equal(TimeSpan.FromMinutes(12), current.IdleTimeout);
+        Assert.True(current.LockOnMinimize);
     }
 
     private static Mock<ISettingsService> CreateSettings(AppSettings current)

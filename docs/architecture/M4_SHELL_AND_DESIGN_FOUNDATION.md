@@ -24,6 +24,12 @@ After authorization, the shell exposes exactly one of three explicit pages: Acco
 
 No splash window is currently justified. The existing shell reports startup state and recoverable failure without adding another lifetime or focus owner. Revisit only if measured interactive startup makes the password gate materially late.
 
+## Localization
+
+Avalonia static shell, dialog, control-label, and automation text is backed by embedded neutral-English and German `.resx` catalogs. At startup, `AvaloniaLocalizationService` maps the operating-system UI culture to the supported language set with deterministic English fallback, then populates the application's existing resource dictionary. Views consume those values through `DynamicResource`, so the Settings language selector updates visible labels and accessibility names in place without recreating windows. The session selection is intentionally not persisted until the cross-client settings schema is reviewed in M5; startup therefore follows the OS again on the next launch. Dynamic workflow messages remain feature-owned and will move into the same catalog as each M5 workflow is migrated.
+
+Malformed or unsupported culture names never select an arbitrary resource or throw during startup. The catalog test requires every declared key to resolve in both initial languages. Translation values contain presentation text only and never receive passwords, seeds, account metadata, or formatted exception details.
+
 ## Design tokens
 
 `TOTP.UI.Avalonia.Shared/Styles/SharedStyles.axaml` is the single application-level foundation for:
@@ -68,5 +74,6 @@ The initial shell consumes the tokens and uses a responsive maximum width rather
 - Diagnostic impact: early and DI logging use the existing redaction pipeline; exception messages are deliberately omitted at the boundary.
 - Data-flow impact: no vault, envelope, seed, import/export, or backup format changes.
 - Compatibility impact: WPF startup and release behavior are untouched. Avalonia remains framework-dependent and non-release during migration.
+- Compatibility impact: localization adds satellite resources only; it does not change persisted settings yet, and unsupported cultures fall back to neutral English.
 - Test evidence: boundary tests cover safe logging, authorization lock, fatal shutdown, shutdown failure, domain lock failure, and unobserved-task policy. Main-shell tests cover idempotent shutdown preparation.
 - Navigation evidence: tests cover authorization-gated single-page navigation and preservation of account rows while sensitive generated output is cleared.

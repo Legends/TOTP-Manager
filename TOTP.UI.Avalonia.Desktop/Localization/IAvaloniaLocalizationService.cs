@@ -1,0 +1,10 @@
+namespace TOTP.Avalonia.Desktop.Localization;
+
+public interface IAvaloniaLocalizationService
+{
+    IReadOnlyList<LanguageOption> SupportedLanguages { get; }
+    LanguageOption CurrentLanguage { get; }
+    void ApplyCulture(string cultureName);
+}
+
+public sealed record LanguageOption(string CultureName, string DisplayName);

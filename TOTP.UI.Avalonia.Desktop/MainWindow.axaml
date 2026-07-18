@@ -4,15 +4,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:automation="using:Avalonia.Automation"
     xmlns:presentation="using:TOTP.Avalonia.Desktop.Presentation"
+    xmlns:localization="using:TOTP.Avalonia.Desktop.Localization"
     xmlns:shared="using:TOTP.Avalonia.Shared.Controls"
     x:DataType="presentation:MainWindowViewModel"
-    Title="TOTP Manager (Avalonia Preview)"
+    Title="{DynamicResource AppTitle}"
     Width="960"
     Height="640"
     MinWidth="640"
     MinHeight="480">
     <shared:BusyOverlay
-        BusyMessage="Starting TOTP Manager safely…"
+        BusyMessage="{DynamicResource StartingSafely}"
         IsBusy="{Binding IsBusy}">
         <ScrollViewer
             HorizontalScrollBarVisibility="Disabled"
@@ -26,7 +27,7 @@
             automation:AutomationProperties.HeadingLevel="1"
             Classes="title"
             HorizontalAlignment="Center"
-            Text="TOTP Manager" />
+            Text="{DynamicResource AppHeading}" />
         <shared:NotificationBanner
             HorizontalAlignment="Center"
             MaxWidth="640"
@@ -35,7 +36,7 @@
         <Button
             HorizontalAlignment="Center"
             Command="{Binding InitializeCommand}"
-            Content="Retry"
+            Content="{DynamicResource Retry}"
             IsVisible="{Binding CanRetry}" />
         <Border Classes="card" IsVisible="{Binding IsPasswordUnlockVisible}">
             <ContentControl Content="{Binding PasswordUnlock}">
@@ -43,10 +44,10 @@
                     <DataTemplate x:DataType="presentation:PasswordUnlockViewModel">
                         <StackPanel Spacing="12">
                             <shared:RevealableSecretInput
-                                AccessibleName="Master password"
-                                HelpText="Required to unlock the local synthetic vault."
+                                AccessibleName="{DynamicResource MasterPassword}"
+                                HelpText="{DynamicResource MasterPasswordHelp}"
                                 IsRequired="True"
-                                PlaceholderText="Master password"
+                                PlaceholderText="{DynamicResource MasterPassword}"
                                 Text="{Binding Password, Mode=TwoWay}" />
                             <shared:ValidationMessage
                                 HorizontalAlignment="Center"
@@ -56,7 +57,7 @@
                                 Classes="primary"
                                 HorizontalAlignment="Center"
                                 Command="{Binding UnlockCommand}"
-                                Content="Unlock" />
+                                Content="{DynamicResource Unlock}" />
                         </StackPanel>
                     </DataTemplate>
                 </ContentControl.ContentTemplate>
@@ -66,32 +67,32 @@
             Classes="danger"
             HorizontalAlignment="Right"
             Command="{Binding LockCommand}"
-            Content="Lock"
+            Content="{DynamicResource Lock}"
             IsVisible="{Binding IsShellVisible}" />
         <Border Classes="card" IsVisible="{Binding IsShellVisible}">
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button
-                    automation:AutomationProperties.Name="Open accounts page"
+                    automation:AutomationProperties.Name="{DynamicResource NavAccounts}"
                     Command="{Binding ShowAccountsCommand}"
-                    Content="Accounts" />
+                    Content="{DynamicResource Accounts}" />
                 <Button
-                    automation:AutomationProperties.Name="Open tools page"
+                    automation:AutomationProperties.Name="{DynamicResource NavTools}"
                     Command="{Binding ShowToolsCommand}"
-                    Content="Tools" />
+                    Content="{DynamicResource Tools}" />
                 <Button
-                    automation:AutomationProperties.Name="Open settings page"
+                    automation:AutomationProperties.Name="{DynamicResource NavSettings}"
                     Command="{Binding ShowSettingsCommand}"
-                    Content="Settings" />
+                    Content="{DynamicResource Settings}" />
             </StackPanel>
         </Border>
         <Border Classes="card" IsVisible="{Binding IsToolsVisible}">
             <StackPanel Spacing="16">
-                <TextBlock Classes="heading" Text="Tools" />
+                <TextBlock Classes="heading" Text="{DynamicResource Tools}" />
                 <ContentControl Content="{Binding NativeFilePicker}">
             <ContentControl.ContentTemplate>
                 <DataTemplate x:DataType="presentation:NativeFilePickerViewModel">
                     <StackPanel Spacing="6">
-                        <Button Command="{Binding PickCommand}" Content="Choose import file…" />
+                        <Button Command="{Binding PickCommand}" Content="{DynamicResource ChooseImportFile}" />
                         <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
                     </StackPanel>
                 </DataTemplate>
@@ -101,7 +102,7 @@
             <ContentControl.ContentTemplate>
                 <DataTemplate x:DataType="presentation:UpdateCheckViewModel">
                     <StackPanel Spacing="6">
-                        <Button Command="{Binding CheckCommand}" Content="Verify signed test appcast" />
+                        <Button Command="{Binding CheckCommand}" Content="{DynamicResource VerifyAppcast}" />
                         <TextBlock
                             automation:AutomationProperties.LiveSetting="Polite"
                             Text="{Binding Message}"
@@ -115,15 +116,15 @@
                 <DataTemplate x:DataType="presentation:CameraScannerViewModel">
                     <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Command="{Binding StartCommand}" Content="Scan QR with camera" />
-                            <Button Command="{Binding CancelCommand}" Content="Cancel scan" />
+                            <Button Command="{Binding StartCommand}" Content="{DynamicResource ScanQrCamera}" />
+                            <Button Command="{Binding CancelCommand}" Content="{DynamicResource CancelScan}" />
                         </StackPanel>
                         <TextBlock
                             automation:AutomationProperties.LiveSetting="Polite"
                             Text="{Binding Message}"
                             TextWrapping="Wrap" />
                         <Image
-                            automation:AutomationProperties.Name="Live camera preview"
+                            automation:AutomationProperties.Name="{DynamicResource CameraPreview}"
                             Width="320"
                             Height="240"
                             IsVisible="{Binding HasPreview}"
@@ -140,18 +141,28 @@
                 <ContentControl.ContentTemplate>
                     <DataTemplate x:DataType="presentation:SettingsPageViewModel">
                         <StackPanel Spacing="10">
-                            <TextBlock Classes="heading" Text="Security settings" />
-                            <TextBlock Text="Idle timeout in minutes (0 disables idle lock)" />
+                            <TextBlock Classes="heading" Text="{DynamicResource SecuritySettings}" />
+                            <TextBlock Text="{DynamicResource Language}" />
+                            <ComboBox
+                                ItemsSource="{Binding Languages}"
+                                SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="localization:LanguageOption">
+                                        <TextBlock Text="{Binding DisplayName}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Text="{DynamicResource IdleTimeout}" />
                             <NumericUpDown
-                                automation:AutomationProperties.HelpText="Enter zero to disable idle locking."
+                                automation:AutomationProperties.HelpText="{DynamicResource IdleTimeoutHelp}"
                                 automation:AutomationProperties.Name="Idle timeout in minutes"
                                 Maximum="1440"
                                 Minimum="0"
                                 Value="{Binding IdleTimeoutMinutes, Mode=TwoWay}" />
                             <CheckBox
-                                Content="Lock when minimized"
+                                Content="{DynamicResource LockWhenMinimized}"
                                 IsChecked="{Binding LockOnMinimize, Mode=TwoWay}" />
-                            <Button Command="{Binding SaveCommand}" Content="Save settings" />
+                            <Button Command="{Binding SaveCommand}" Content="{DynamicResource SaveSettings}" />
                             <TextBlock Text="{Binding Message}" />
                         </StackPanel>
                     </DataTemplate>
@@ -164,8 +175,8 @@
                     <DataTemplate x:DataType="presentation:AccountListViewModel">
                         <StackPanel Spacing="12">
                             <TextBox
-                                automation:AutomationProperties.Name="Search accounts"
-                                PlaceholderText="Search issuer or account"
+                                automation:AutomationProperties.Name="{DynamicResource SearchAccounts}"
+                                PlaceholderText="{DynamicResource SearchAccounts}"
                                 Text="{Binding SearchText, Mode=TwoWay}" />
                             <TextBlock
                                 automation:AutomationProperties.LiveSetting="Polite"
@@ -174,7 +185,7 @@
                                 Text="{Binding Message}"
                                 TextWrapping="Wrap" />
                             <ListBox
-                                automation:AutomationProperties.Name="Accounts"
+                                automation:AutomationProperties.Name="{DynamicResource AccountsList}"
                                 MaxHeight="420"
                                 ItemsSource="{Binding Accounts}"
                                 SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
@@ -190,13 +201,13 @@
                                 Classes="primary"
                                 HorizontalAlignment="Center"
                                 Command="{Binding GenerateCommand}"
-                                Content="Generate code" />
+                                Content="{DynamicResource GenerateCode}" />
                             <Button
                                 HorizontalAlignment="Center"
                                 Command="{Binding GenerateQrCommand}"
-                                Content="Show QR code" />
+                                Content="{DynamicResource ShowQrCode}" />
                             <TextBlock
-                                automation:AutomationProperties.Name="Generated one-time code"
+                                automation:AutomationProperties.Name="{DynamicResource GeneratedCode}"
                                 HorizontalAlignment="Center"
                                 FontFamily="Consolas"
                                 FontSize="28"
@@ -205,7 +216,7 @@
                             <Button
                                 HorizontalAlignment="Center"
                                 Command="{Binding CopyCommand}"
-                                Content="Copy with timed clear"
+                                Content="{DynamicResource CopyTimedClear}"
                                 IsVisible="{Binding HasGeneratedCode}" />
                             <TextBlock
                                 automation:AutomationProperties.LiveSetting="Polite"
@@ -213,7 +224,8 @@
                                 IsVisible="{Binding HasCodeMessage}"
                                 Text="{Binding CodeMessage}" />
                             <shared:QrPreview
-                                Description="Generated account QR code"
+                                Description="{DynamicResource GeneratedQr}"
+                                PrivacyNotice="{DynamicResource QrPrivacyNotice}"
                                 Source="{Binding QrImage}" />
                         </StackPanel>
                     </DataTemplate>

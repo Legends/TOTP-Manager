@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
 
@@ -9,19 +10,38 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
 {
     private readonly ISettingsService _settingsService;
     private readonly AsyncCommand _saveCommand;
+    private readonly IAvaloniaLocalizationService? _localization;
     private int _idleTimeoutMinutes;
     private bool _lockOnMinimize;
     private bool _isBusy;
     private string _message = string.Empty;
+    private LanguageOption? _selectedLanguage;
 
-    public SettingsPageViewModel(ISettingsService settingsService)
+    public SettingsPageViewModel(
+        ISettingsService settingsService,
+        IAvaloniaLocalizationService? localization = null)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _localization = localization;
+        Languages = localization?.SupportedLanguages ?? [];
+        _selectedLanguage = localization?.CurrentLanguage;
         _saveCommand = new AsyncCommand(SaveAsync, () => !_isBusy && _idleTimeoutMinutes is >= 0 and <= 1440);
         Reload();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public IReadOnlyList<LanguageOption> Languages { get; }
+
+    public LanguageOption? SelectedLanguage
+    {
+        get => _selectedLanguage;
+        set
+        {
+            if (!SetField(ref _selectedLanguage, value) || value is null) return;
+            _localization?.ApplyCulture(value.CultureName);
+        }
+    }
 
     public int IdleTimeoutMinutes
     {

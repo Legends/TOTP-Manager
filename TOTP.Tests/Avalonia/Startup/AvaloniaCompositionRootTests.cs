@@ -12,6 +12,7 @@ using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
 using TOTP.Platform.Windows;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Tests.Avalonia.Startup;
 
@@ -62,6 +63,8 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IAvaloniaFilePicker>());
         Assert.IsType<AvaloniaDialogService>(
             services.GetRequiredService<IAvaloniaDialogService>());
+        Assert.IsType<AvaloniaLocalizationService>(
+            services.GetRequiredService<IAvaloniaLocalizationService>());
         Assert.IsType<NativeFilePickerViewModel>(
             services.GetRequiredService<NativeFilePickerViewModel>());
         Assert.IsType<NamedPipeActivationListener>(

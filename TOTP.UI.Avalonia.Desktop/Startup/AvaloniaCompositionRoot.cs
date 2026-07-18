@@ -1,4 +1,7 @@
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls;
+using System.Globalization;
 using Avalonia.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +15,7 @@ using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
 using TOTP.Camera.OpenCv;
+using TOTP.Avalonia.Desktop.Localization;
 using Serilog;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
 
@@ -28,6 +32,9 @@ public static class AvaloniaCompositionRoot
         var configuration = new ConfigurationBuilder().Build();
 
         services.AddSingleton(desktopLifetime);
+        services.AddSingleton(Application.Current?.Resources ?? new ResourceDictionary());
+        services.AddSingleton<AvaloniaStringCatalog>();
+        services.AddSingleton<IAvaloniaLocalizationService, AvaloniaLocalizationService>();
         services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<IPlatformApplicationPaths>(platformServices.ApplicationPaths);
         services.AddLogging(builder => builder.AddSerilog(Log.Logger, dispose: false));
@@ -75,11 +82,14 @@ public static class AvaloniaCompositionRoot
             WindowCoordinator = provider.GetRequiredService<AvaloniaWindowCoordinator>()
         });
 
-        return services.BuildServiceProvider(new ServiceProviderOptions
+        var provider = services.BuildServiceProvider(new ServiceProviderOptions
         {
             ValidateOnBuild = true,
             ValidateScopes = true
         });
+        provider.GetRequiredService<IAvaloniaLocalizationService>()
+            .ApplyCulture(CultureInfo.CurrentUICulture.Name);
+        return provider;
     }
 
     private static bool SupportsClipboardOwnership() =>

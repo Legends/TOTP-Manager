@@ -515,7 +515,7 @@ Do not proceed to full UI migration until:
 - [x] Authorization-gated shell navigation and lock gate.
 - [x] Settings navigation.
 - [x] Dialog ownership and activation.
-- [ ] Localization startup and live language switching.
+- [x] Localization startup and live language switching; session-only until the M5 settings schema review.
 
 ### Design system
 

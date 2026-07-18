@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>TOTP Manager (Avalonia Preview)</value></data>
+  <data name="AppHeading" xml:space="preserve"><value>TOTP Manager</value></data>
+  <data name="StartingSafely" xml:space="preserve"><value>Starting TOTP Manager safely…</value></data>
+  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="MasterPassword" xml:space="preserve"><value>Master password</value></data>
+  <data name="MasterPasswordHelp" xml:space="preserve"><value>Required to unlock the local vault.</value></data>
+  <data name="Unlock" xml:space="preserve"><value>Unlock</value></data>
+  <data name="Lock" xml:space="preserve"><value>Lock</value></data>
+  <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
+  <data name="Tools" xml:space="preserve"><value>Tools</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="ChooseImportFile" xml:space="preserve"><value>Choose import file…</value></data>
+  <data name="VerifyAppcast" xml:space="preserve"><value>Verify signed test appcast</value></data>
+  <data name="ScanQrCamera" xml:space="preserve"><value>Scan QR with camera</value></data>
+  <data name="CancelScan" xml:space="preserve"><value>Cancel scan</value></data>
+  <data name="SecuritySettings" xml:space="preserve"><value>Security settings</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="IdleTimeout" xml:space="preserve"><value>Idle timeout in minutes (0 disables idle lock)</value></data>
+  <data name="IdleTimeoutHelp" xml:space="preserve"><value>Enter zero to disable idle locking.</value></data>
+  <data name="LockWhenMinimized" xml:space="preserve"><value>Lock when minimized</value></data>
+  <data name="SaveSettings" xml:space="preserve"><value>Save settings</value></data>
+  <data name="SearchAccounts" xml:space="preserve"><value>Search issuer or account</value></data>
+  <data name="GenerateCode" xml:space="preserve"><value>Generate code</value></data>
+  <data name="ShowQrCode" xml:space="preserve"><value>Show QR code</value></data>
+  <data name="CopyTimedClear" xml:space="preserve"><value>Copy with timed clear</value></data>
+  <data name="Password" xml:space="preserve"><value>Password</value></data>
+  <data name="PasswordAuthorizationHelp" xml:space="preserve"><value>Required to authorize this action.</value></data>
+  <data name="ValidatingSecurely" xml:space="preserve"><value>Validating securely…</value></data>
+  <data name="NavAccounts" xml:space="preserve"><value>Open accounts page</value></data>
+  <data name="NavTools" xml:space="preserve"><value>Open tools page</value></data>
+  <data name="NavSettings" xml:space="preserve"><value>Open settings page</value></data>
+  <data name="AccountsList" xml:space="preserve"><value>Accounts</value></data>
+  <data name="GeneratedCode" xml:space="preserve"><value>Generated one-time code</value></data>
+  <data name="GeneratedQr" xml:space="preserve"><value>Generated account QR code</value></data>
+  <data name="QrPrivacyNotice" xml:space="preserve"><value>This QR code contains the account secret. Keep it private.</value></data>
+  <data name="CameraPreview" xml:space="preserve"><value>Live camera preview</value></data>
+</root>
