@@ -117,6 +117,10 @@
                                 HorizontalAlignment="Center"
                                 Command="{Binding GenerateCommand}"
                                 Content="Generate code" />
+                            <Button
+                                HorizontalAlignment="Center"
+                                Command="{Binding GenerateQrCommand}"
+                                Content="Show QR code" />
                             <TextBlock
                                 HorizontalAlignment="Center"
                                 FontFamily="Consolas"
@@ -132,6 +136,12 @@
                                 HorizontalAlignment="Center"
                                 IsVisible="{Binding HasCodeMessage}"
                                 Text="{Binding CodeMessage}" />
+                            <Image
+                                Width="240"
+                                Height="240"
+                                IsVisible="{Binding HasQrImage}"
+                                Source="{Binding QrImage}"
+                                Stretch="Uniform" />
                         </StackPanel>
                     </DataTemplate>
                 </ContentControl.ContentTemplate>

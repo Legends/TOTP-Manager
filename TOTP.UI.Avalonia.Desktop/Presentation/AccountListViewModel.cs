@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using Avalonia.Media;
+using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
@@ -10,9 +12,12 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly IAccountManager _accountManager;
     private readonly IAccountTotpService _accountTotpService;
     private readonly IAsyncClipboardService _clipboardService;
+    private readonly IAccountQrCodeService _accountQrCodeService;
+    private readonly IAvaloniaQrImageFactory _qrImageFactory;
     private readonly AsyncCommand _loadCommand;
     private readonly AsyncCommand _generateCommand;
     private readonly AsyncCommand _copyCommand;
+    private readonly AsyncCommand _generateQrCommand;
     private CancellationTokenSource? _codeLifetime;
     private IReadOnlyList<AccountListItemViewModel> _allAccounts = [];
     private IReadOnlyList<AccountListItemViewModel> _accounts = [];
@@ -24,20 +29,26 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private bool _isBusy;
     private bool _isGenerating;
     private int _remainingSeconds;
+    private AvaloniaQrImageHandle? _qrImage;
 
     public AccountListViewModel(
         IAccountManager accountManager,
         IAccountTotpService accountTotpService,
-        IAsyncClipboardService clipboardService)
+        IAsyncClipboardService clipboardService,
+        IAccountQrCodeService accountQrCodeService,
+        IAvaloniaQrImageFactory qrImageFactory)
     {
         _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
         _accountTotpService = accountTotpService ?? throw new ArgumentNullException(nameof(accountTotpService));
         _clipboardService = clipboardService ?? throw new ArgumentNullException(nameof(clipboardService));
+        _accountQrCodeService = accountQrCodeService ?? throw new ArgumentNullException(nameof(accountQrCodeService));
+        _qrImageFactory = qrImageFactory ?? throw new ArgumentNullException(nameof(qrImageFactory));
         _loadCommand = new AsyncCommand(LoadAsync, () => !_isBusy);
         _generateCommand = new AsyncCommand(
             GenerateCodeAsync,
             () => !_isGenerating && _selectedAccount is not null);
         _copyCommand = new AsyncCommand(CopyCodeAsync, () => HasGeneratedCode);
+        _generateQrCommand = new AsyncCommand(GenerateQrAsync, () => _selectedAccount is not null);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -67,7 +78,9 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         {
             if (!SetField(ref _selectedAccount, value)) return;
             ClearGeneratedCode();
+            ClearQrImage();
             _generateCommand.NotifyCanExecuteChanged();
+            _generateQrCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -96,6 +109,10 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     public bool HasCodeMessage => CodeMessage.Length > 0;
 
+    public IImage? QrImage => _qrImage?.Image;
+
+    public bool HasQrImage => QrImage is not null;
+
     public string SearchText
     {
         get => _searchText;
@@ -121,6 +138,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public ICommand GenerateCommand => _generateCommand;
 
     public ICommand CopyCommand => _copyCommand;
+
+    public ICommand GenerateQrCommand => _generateQrCommand;
 
     public async Task LoadAsync()
     {
@@ -206,6 +225,32 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             : "This platform cannot safely copy and automatically clear the code.";
     }
 
+    public async Task GenerateQrAsync()
+    {
+        if (_selectedAccount is null) return;
+
+        ClearQrImage();
+        var result = await _accountQrCodeService.GenerateAsync(_selectedAccount.Id);
+        if (result.IsFailed)
+        {
+            CodeMessage = "A QR code could not be generated for this account.";
+            return;
+        }
+
+        using var sensitivePng = result.Value;
+        try
+        {
+            _qrImage = _qrImageFactory.Create(sensitivePng.Memory);
+            OnPropertyChanged(nameof(QrImage));
+            OnPropertyChanged(nameof(HasQrImage));
+        }
+        catch (Exception)
+        {
+            ClearQrImage();
+            CodeMessage = "A QR code could not be displayed safely.";
+        }
+    }
+
     private void ApplyFilter()
     {
         var query = SearchText.Trim();
@@ -241,7 +286,11 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         CodeMessage = string.Empty;
     }
 
-    public void Dispose() => ClearGeneratedCode();
+    public void Dispose()
+    {
+        ClearGeneratedCode();
+        ClearQrImage();
+    }
 
     public void Clear()
     {
@@ -251,6 +300,16 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         Accounts = [];
         Message = string.Empty;
         ClearGeneratedCode();
+        ClearQrImage();
+    }
+
+    private void ClearQrImage()
+    {
+        var image = _qrImage;
+        _qrImage = null;
+        OnPropertyChanged(nameof(QrImage));
+        OnPropertyChanged(nameof(HasQrImage));
+        image?.Dispose();
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

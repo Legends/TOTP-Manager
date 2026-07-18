@@ -145,7 +145,6 @@ public static class BootLoader
                 services.AddSingleton<ISettingsAuthorizationWorkflowService, SettingsAuthorizationWorkflowService>();
                 services.AddSingleton<ISettingsPersistenceService, SettingsPersistenceService>();
                 services.AddTransient<IFileDialogService, FileDialogService>();
-                services.AddSingleton<IQrCodeService, QrCodeService>();
                 services.AddTransient<IQrScannerRunner, QrScannerRunner>();
                 services.AddTransient<IVideoCaptureFactory, OpenCvVideoCaptureFactory>();
                 services.AddTransient<IQrCodeDecoder, OpenCvQrCodeDecoder>();

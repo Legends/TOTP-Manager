@@ -3,6 +3,7 @@ using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Models;
 using TOTP.Avalonia.Desktop.Presentation;
+using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Startup;
 
 namespace TOTP.Tests.Avalonia.Presentation;
@@ -57,7 +58,9 @@ public sealed class MainWindowViewModelTests
         using var accounts = new AccountListViewModel(
             Mock.Of<IAccountManager>(),
             Mock.Of<IAccountTotpService>(),
-            Mock.Of<IAsyncClipboardService>());
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>());
         using var sut = new MainWindowViewModel(
             coordinator.Object,
             authorization.Object,
@@ -82,7 +85,9 @@ public sealed class MainWindowViewModelTests
             new AccountListViewModel(
                 Mock.Of<IAccountManager>(),
                 Mock.Of<IAccountTotpService>(),
-                Mock.Of<IAsyncClipboardService>()),
+                Mock.Of<IAsyncClipboardService>(),
+                Mock.Of<IAccountQrCodeService>(),
+                Mock.Of<IAvaloniaQrImageFactory>()),
             CreateSettingsPage());
 
     private static SettingsPageViewModel CreateSettingsPage()

@@ -459,7 +459,7 @@ Any replacement failure before Active
 - [x] Copy with timed clipboard clearing.
 - [x] Manual lock.
 - [x] One settings page.
-- [ ] QR generation.
+- [x] QR generation.
 - [ ] Camera QR scan.
 - [ ] Native file picker.
 - [ ] Single-instance activation.

@@ -1,7 +1,10 @@
 using FluentResults;
 using Moq;
+using Avalonia.Media;
 using TOTP.Core.Models;
+using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation;
 
 namespace TOTP.Tests.Avalonia.Presentation;
@@ -101,7 +104,9 @@ public sealed class AccountListViewModelTests
         using var sut = new AccountListViewModel(
             Mock.Of<IAccountManager>(),
             totp.Object,
-            Mock.Of<IAsyncClipboardService>())
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>())
         {
             SelectedAccount = new AccountListItemViewModel(accountId, "Issuer", "account")
         };
@@ -122,7 +127,9 @@ public sealed class AccountListViewModelTests
         using var sut = new AccountListViewModel(
             Mock.Of<IAccountManager>(),
             totp.Object,
-            Mock.Of<IAsyncClipboardService>())
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>())
         {
             SelectedAccount = new AccountListItemViewModel(Guid.NewGuid(), "Issuer", "account")
         };
@@ -147,7 +154,9 @@ public sealed class AccountListViewModelTests
         using var sut = new AccountListViewModel(
             manager.Object,
             totp.Object,
-            Mock.Of<IAsyncClipboardService>());
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>());
         await sut.LoadAsync();
         sut.SelectedAccount = sut.Accounts[0];
         sut.SearchText = "Issuer";
@@ -178,7 +187,9 @@ public sealed class AccountListViewModelTests
         using var sut = new AccountListViewModel(
             Mock.Of<IAccountManager>(),
             totp.Object,
-            clipboard.Object)
+            clipboard.Object,
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>())
         {
             SelectedAccount = new AccountListItemViewModel(id, "Issuer", "account")
         };
@@ -193,9 +204,42 @@ public sealed class AccountListViewModelTests
         Assert.Contains("scheduled", sut.CodeMessage, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task GenerateQrAsync_ProjectsAndClearsSecretBearingBitmap()
+    {
+        var id = Guid.NewGuid();
+        var png = new byte[] { 137, 80, 78, 71 };
+        var image = new Mock<IImage>();
+        var lifetime = new Mock<IDisposable>();
+        var imageFactory = new Mock<IAvaloniaQrImageFactory>();
+        imageFactory.Setup(value => value.Create(It.IsAny<ReadOnlyMemory<byte>>()))
+            .Returns(new AvaloniaQrImageHandle(image.Object, lifetime.Object));
+        var qr = new Mock<IAccountQrCodeService>();
+        qr.Setup(value => value.GenerateAsync(id))
+            .ReturnsAsync(() => Result.Ok(SensitiveBuffer.CopyFrom(png)));
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            Mock.Of<IAccountTotpService>(),
+            Mock.Of<IAsyncClipboardService>(),
+            qr.Object,
+            imageFactory.Object)
+        {
+            SelectedAccount = new AccountListItemViewModel(id, "Issuer", "account")
+        };
+
+        await sut.GenerateQrAsync();
+
+        Assert.True(sut.HasQrImage);
+        sut.Clear();
+        Assert.False(sut.HasQrImage);
+        lifetime.Verify(value => value.Dispose(), Times.Once);
+    }
+
     private static AccountListViewModel CreateSut(IAccountManager manager) =>
         new(
             manager,
             Mock.Of<IAccountTotpService>(),
-            Mock.Of<IAsyncClipboardService>());
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>());
 }

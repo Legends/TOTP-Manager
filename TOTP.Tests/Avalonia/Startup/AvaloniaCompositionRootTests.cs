@@ -6,6 +6,7 @@ using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Avalonia.Desktop.Presentation;
+using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
 using TOTP.Platform.Windows;
@@ -50,6 +51,10 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<PasswordUnlockViewModel>());
         Assert.IsType<AccountListViewModel>(
             services.GetRequiredService<AccountListViewModel>());
+        Assert.IsType<AccountQrCodeService>(
+            services.GetRequiredService<IAccountQrCodeService>());
+        Assert.IsType<AvaloniaQrImageFactory>(
+            services.GetRequiredService<IAvaloniaQrImageFactory>());
         Assert.IsType<SettingsPageViewModel>(
             services.GetRequiredService<SettingsPageViewModel>());
         Assert.IsType<AsyncClipboardService>(

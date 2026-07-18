@@ -43,6 +43,7 @@ public sealed class DependencyInjectionPathTests : IDisposable
             provider.GetRequiredService<IPlatformQuickUnlockEnrollment>());
         Assert.IsType<AccountManager>(provider.GetRequiredService<IAccountManager>());
         Assert.IsType<AccountTotpService>(provider.GetRequiredService<IAccountTotpService>());
+        Assert.IsType<AccountQrCodeService>(provider.GetRequiredService<IAccountQrCodeService>());
 
         Assert.IsType<WindowsFileSecurity>(provider.GetRequiredService<IPlatformFileSecurity>());
         Assert.Same(vaultService, vaultKeyVerifier);
