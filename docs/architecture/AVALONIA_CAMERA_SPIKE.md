@@ -18,14 +18,14 @@ The UI-neutral camera module and Avalonia scanner surface are implemented. `TOTP
 
 ## Runtime packaging decision
 
-Keep the managed `OpenCvSharp4` package and every native runtime on exactly the same version. The managed package and runtime families were upgraded together from 4.11 to 4.13.0.20260627 because the maintained macOS x64/ARM64 runtime families are available in the aligned current release. Windows WPF and Avalonia regression suites must remain green for this coordinated native dependency change.
+Keep the managed `OpenCvSharp4` package and every selected native runtime on exactly the same version. The managed package plus Windows, Linux x64, and macOS ARM64 runtimes were upgraded together from 4.11 to 4.13.0.20260627. Windows WPF and Avalonia regression suites must remain green for this coordinated native dependency change. The separately evaluated x64 macOS runtime did not pass the packaged native-load gate and is not selected by the host.
 
 The supported package families are:
 
 - Windows x64: `OpenCvSharp4.runtime.win`
 - Linux x64: `OpenCvSharp4.official.runtime.linux-x64` (portable manylinux build; do not adopt the deprecated Ubuntu-version-specific packages)
 - macOS ARM64: `OpenCvSharp4.runtime.osx.arm64`
-- macOS x64, if retained by product policy: `OpenCvSharp4.runtime.osx.x64`
+- macOS x64: evaluated during M3 and excluded from the initial product policy after its aligned 4.13 package failed the packaged native-load probe on the current GitHub Intel runner
 
 References: [OpenCvSharp NuGet installation/runtime matrix](https://www.nuget.org/packages/OpenCvSharp4), [Windows runtime package and runtime-family notes](https://www.nuget.org/packages/OpenCvSharp4.runtime.win/).
 

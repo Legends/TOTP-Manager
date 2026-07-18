@@ -46,8 +46,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-    <PackageReference Include="OpenCvSharp4.runtime.osx.arm64" Version="4.13.0.20260627" Condition="'$(RuntimeIdentifier)' != 'osx-x64'" />
-    <PackageReference Include="OpenCvSharp4.runtime.osx.x64" Version="4.13.0.20260627" Condition="'$(RuntimeIdentifier)' == 'osx-x64'" />
+    <PackageReference Include="OpenCvSharp4.runtime.osx.arm64" Version="4.13.0.20260627" />
     <ProjectReference Include="..\TOTP.Platform.MacOS\TOTP.Platform.MacOS.csproj" />
     <ProjectReference Include="..\TOTP.Platform.Unix\TOTP.Platform.Unix.csproj" />
   </ItemGroup>

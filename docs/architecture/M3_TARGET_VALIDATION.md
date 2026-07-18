@@ -9,7 +9,8 @@ Targets:
 - Windows x64 (`win-x64`)
 - Ubuntu 24.04 x64 (`linux-x64`)
 - macOS 14+ ARM64 (`osx-arm64`)
-- macOS x64 (`osx-x64`) while Intel support remains under evaluation
+
+macOS x64 was evaluated and excluded from the initial product policy. Its aligned OpenCvSharp 4.13 package restored and published successfully but failed at the first native runtime call on GitHub's `macos-15-intel` runner; the ARM64 package passed. The failed probe is retained in workflow run `29645841617`. This is a support-scope decision, not a claim that Intel camera behavior works.
 
 Every matrix run records package byte size in the GitHub job summary. A manual `workflow_dispatch` additionally retains each framework-dependent validation package for seven days. These are unsigned technical artifacts, not releases.
 

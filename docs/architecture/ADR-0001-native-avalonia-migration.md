@@ -29,7 +29,7 @@ The immutable WPF baseline for this migration is tag `v1.0.0` at commit `23395c4
 The first desktop validation matrix is:
 
 - Windows 10 22H2 and Windows 11, x64.
-- macOS 14 or later, ARM64. macOS x64 remains a validation target until M3 establishes supportability.
+- macOS 14 or later, ARM64. M3 excluded macOS x64 from the initial support policy after the version-aligned OpenCvSharp 4.13 x64 package restored and published but failed its first native call on GitHub's current macOS Intel runner; ARM64 passed the identical packaged probe. Intel support may be reconsidered after upstream provides a validated runtime/CI path or the project accepts ownership of a separately maintained native build.
 - Ubuntu 24.04 LTS, x64, as the Linux reference platform. Other distributions remain best-effort until native dependency and packaging tests establish a wider support contract.
 
 These are migration validation targets, not a public support commitment before the M3 technical gate and M8 release-readiness review pass.
