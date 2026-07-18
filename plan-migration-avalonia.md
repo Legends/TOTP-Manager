@@ -558,7 +558,7 @@ Migrate feature-by-feature. Each feature should include UI, view-model cleanup, 
 - [x] Password change.
 - [x] Lock and reauthorization.
 - [x] Recovery messaging.
-- [ ] Migration messaging and rollback UI.
+- [x] Migration messaging and rollback UI (automatic rollback status; no unsafe manual file restore).
 
 Definition of done:
 

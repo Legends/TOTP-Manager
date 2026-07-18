@@ -267,6 +267,18 @@
                                 HorizontalAlignment="Left"
                                 Command="{Binding ChangePasswordCommand}"
                                 Content="{DynamicResource ChangeMasterPassword}" />
+                            <TextBlock Classes="heading" Text="{DynamicResource RecoveryAndCompatibility}" />
+                            <TextBlock
+                                Text="{DynamicResource PortableEnvelopeStatus}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Classes="secondary"
+                                Text="{DynamicResource AutomaticRollbackStatus}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Classes="secondary"
+                                Text="{DynamicResource LegacyMigrationStatus}"
+                                TextWrapping="Wrap" />
                         </StackPanel>
                     </DataTemplate>
                 </ContentControl.ContentTemplate>

@@ -37,6 +37,10 @@
   <data name="PasswordChangeCancelled" xml:space="preserve"><value>Das Master-Passwort wurde nicht geändert.</value></data>
   <data name="PasswordChangeFailed" xml:space="preserve"><value>Das Master-Passwort konnte nicht sicher geändert werden. Der vorhandene Wiederherstellungszugriff bleibt aktiv.</value></data>
   <data name="PasswordChanged" xml:space="preserve"><value>Das Master-Passwort wurde geändert. Die vorhandene Schnellentsperrung bleibt verfügbar.</value></data>
+  <data name="RecoveryAndCompatibility" xml:space="preserve"><value>Wiederherstellung und Kompatibilität</value></data>
+  <data name="PortableEnvelopeStatus" xml:space="preserve"><value>Dein Master-Passwort schützt den portablen Autorisierungsumschlag der Version 2 und bleibt die Wiederherstellungsmethode auf jedem unterstützten System.</value></data>
+  <data name="AutomaticRollbackStatus" xml:space="preserve"><value>Autorisierungsänderungen werden vor der Aktivierung geprüft. Schlägt ein atomarer Austausch fehl, wird der vorherige geprüfte Umschlag automatisch wiederhergestellt.</value></data>
+  <data name="LegacyMigrationStatus" xml:space="preserve"><value>Autorisierungsformate aus der Entwicklungsphase werden nicht automatisch importiert. Vorhandene verschlüsselte Tresordaten werden nie ersetzt; verwende das zugehörige Wiederherstellungsmaterial oder einen ausdrücklich geprüften Migrationspfad.</value></data>
   <data name="Lock" xml:space="preserve"><value>Sperren</value></data>
   <data name="Accounts" xml:space="preserve"><value>Konten</value></data>
   <data name="Tools" xml:space="preserve"><value>Werkzeuge</value></data>

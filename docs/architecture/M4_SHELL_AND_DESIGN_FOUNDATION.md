@@ -113,6 +113,17 @@ Successful rotation preserves the existing quick-unlock wrapper through the revi
 - Compatibility/migration impact: the v2 password wrapper is atomically replaced by the existing lifecycle; quick-unlock metadata and rollback behavior are preserved. No schema changes are introduced.
 - Test evidence: tests cover input clearing before authorization, successful delegation, mismatch rejection without dialog/storage calls, lock-state shell hiding, and password reauthorization for startup-gate changes.
 
+## M5.1 migration and rollback presentation
+
+Settings now states the active compatibility contract directly: the portable v2 envelope is protected by the master password on every supported target, authorization replacements are verified before activation, failed atomic replacements restore the previous verified envelope automatically, and development-era authorization formats are not silently imported. The existing-vault setup conflict uses the same policy and refuses replacement.
+
+There is intentionally no presentation-level “restore `.previous`” action. The bounded backup is a persistence transaction artifact, not a user-selected backup format, and the current Core contract exposes no operation that can authenticate a previous wrapper, verify it against the active vault, atomically reactivate it, refresh the session, and update preferences together. File manipulation from the UI would bypass those mandatory checks. A future manual recovery feature must begin with a reviewed Core workflow and typed recovery state, not direct path access.
+
+- Threat impact: the UI cannot activate an unverified or attacker-substituted previous envelope and cannot overwrite conflicting encrypted data under a migration label.
+- Data-flow impact: this surface is static status text and receives no paths, wrapper metadata, passwords, keys, or account data.
+- Compatibility impact: no new legacy reader, downgrade path, schema, or backup format is introduced. Existing automatic rollback semantics are unchanged.
+- Test evidence: the localization catalog requires all recovery/rollback status keys in English and German; envelope-store and password-lifecycle suites remain the behavioral evidence for automatic restoration and activation verification.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.

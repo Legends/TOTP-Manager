@@ -75,6 +75,10 @@ public static class AvaloniaStringKeys
     public const string PasswordChangeCancelled = nameof(PasswordChangeCancelled);
     public const string PasswordChangeFailed = nameof(PasswordChangeFailed);
     public const string PasswordChanged = nameof(PasswordChanged);
+    public const string RecoveryAndCompatibility = nameof(RecoveryAndCompatibility);
+    public const string PortableEnvelopeStatus = nameof(PortableEnvelopeStatus);
+    public const string AutomaticRollbackStatus = nameof(AutomaticRollbackStatus);
+    public const string LegacyMigrationStatus = nameof(LegacyMigrationStatus);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -94,6 +98,7 @@ public static class AvaloniaStringKeys
         PasswordPreferencePrompt, PasswordPreferenceUnchanged, PasswordPreferenceFailed,
         PasswordPreferred, PasswordVerificationFailed, Enable, Confirm, Cancel, Refresh,
         ChangeMasterPassword, CurrentPasswordPrompt, PasswordChangeCancelled,
-        PasswordChangeFailed, PasswordChanged
+        PasswordChangeFailed, PasswordChanged, RecoveryAndCompatibility,
+        PortableEnvelopeStatus, AutomaticRollbackStatus, LegacyMigrationStatus
     ];
 }

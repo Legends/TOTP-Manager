@@ -37,6 +37,10 @@
   <data name="PasswordChangeCancelled" xml:space="preserve"><value>The master password was not changed.</value></data>
   <data name="PasswordChangeFailed" xml:space="preserve"><value>The master password could not be changed safely. Existing recovery access remains active.</value></data>
   <data name="PasswordChanged" xml:space="preserve"><value>Master password changed. Existing quick-unlock recovery remains available.</value></data>
+  <data name="RecoveryAndCompatibility" xml:space="preserve"><value>Recovery and compatibility</value></data>
+  <data name="PortableEnvelopeStatus" xml:space="preserve"><value>Your master password protects the portable version 2 authorization envelope and remains the recovery method on every supported system.</value></data>
+  <data name="AutomaticRollbackStatus" xml:space="preserve"><value>Authorization changes are verified before activation. If an atomic replacement fails, the previous verified envelope is restored automatically.</value></data>
+  <data name="LegacyMigrationStatus" xml:space="preserve"><value>Development-era authorization formats are not imported automatically. Existing encrypted vault data is never replaced; use its matching recovery material or an explicit reviewed migration path.</value></data>
   <data name="Lock" xml:space="preserve"><value>Lock</value></data>
   <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
   <data name="Tools" xml:space="preserve"><value>Tools</value></data>
