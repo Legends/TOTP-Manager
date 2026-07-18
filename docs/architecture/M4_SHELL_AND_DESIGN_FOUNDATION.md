@@ -47,10 +47,13 @@ The initial shell consumes the tokens and uses a responsive maximum width rather
 
 `RevealableSecretInput` keeps masking as the fail-closed default and reveals only while its dedicated control is held by pointer or keyboard. Release, capture loss, focus loss, template removal, and clearing the bound value all restore masking. Feature markup cannot bind a persistent revealed state through the control API. The control does not retain a second secret value; it decorates the existing two-way text binding and owns only transient disclosure state.
 
+`QrPreview` is reserved for generated account QR images. It stays out of the visual and accessibility trees when no image is bound, supplies a meaningful image description, and presents an assertive privacy warning by default because the rendered QR contains the OTP seed. The view model continues to own and dispose the bitmap lifetime; the control holds only the displayed image reference and does not copy or encode secret material. Live camera frames intentionally remain a separate presentation because they have different privacy and lifecycle semantics.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.
 - Threat impact: password disclosure is transient and automatically cancelled at interaction and visual-tree boundaries; it does not change the existing unavoidable managed-string lifetime in the preview unlock view model.
+- Threat impact: generated account QR codes now carry an unavoidable on-screen privacy warning and disappear automatically when their disposed image reference is cleared.
 - Diagnostic impact: early and DI logging use the existing redaction pipeline; exception messages are deliberately omitted at the boundary.
 - Data-flow impact: no vault, envelope, seed, import/export, or backup format changes.
 - Compatibility impact: WPF startup and release behavior are untouched. Avalonia remains framework-dependent and non-release during migration.

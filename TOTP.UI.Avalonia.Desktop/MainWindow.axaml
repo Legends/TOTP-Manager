@@ -219,13 +219,9 @@
                                 HorizontalAlignment="Center"
                                 IsVisible="{Binding HasCodeMessage}"
                                 Text="{Binding CodeMessage}" />
-                            <Image
-                                automation:AutomationProperties.Name="Generated account QR code"
-                                Width="240"
-                                Height="240"
-                                IsVisible="{Binding HasQrImage}"
-                                Source="{Binding QrImage}"
-                                Stretch="Uniform" />
+                            <shared:QrPreview
+                                Description="Generated account QR code"
+                                Source="{Binding QrImage}" />
                         </StackPanel>
                     </DataTemplate>
                 </ContentControl.ContentTemplate>

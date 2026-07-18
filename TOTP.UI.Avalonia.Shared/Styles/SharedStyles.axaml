@@ -19,6 +19,7 @@
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushWarning" Color="#8A4B00" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#005FCC" />
+                    <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Light">
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#F5F7FA" />
@@ -33,6 +34,7 @@
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushWarning" Color="#8A4B00" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#005FCC" />
+                    <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#111827" />
@@ -47,6 +49,7 @@
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#2A0805" />
                     <SolidColorBrush x:Key="BrushWarning" Color="#FFD166" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#9CC2FF" />
+                    <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="HighContrast">
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#000000" />
@@ -61,6 +64,7 @@
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#000000" />
                     <SolidColorBrush x:Key="BrushWarning" Color="#FFFF00" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#00FFFF" />
+                    <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
@@ -192,6 +196,7 @@
                     Name="PART_Message"
                     automation:AutomationProperties.LiveSetting="Assertive"
                     Text="{TemplateBinding Text}"
+                    TextAlignment="{TemplateBinding TextAlignment}"
                     TextWrapping="Wrap" />
             </ControlTemplate>
         </Setter>
@@ -228,6 +233,33 @@
                         Content="Show"
                         ToolTip.Tip="Hold to reveal" />
                 </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|QrPreview">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel Spacing="8">
+                    <Border
+                        Background="{DynamicResource BrushQrBackground}"
+                        BorderBrush="{DynamicResource BrushBorder}"
+                        BorderThickness="1"
+                        CornerRadius="{DynamicResource RadiusSmall}"
+                        Padding="8">
+                        <Image
+                            automation:AutomationProperties.Name="{TemplateBinding Description}"
+                            Width="240"
+                            Height="240"
+                            Source="{TemplateBinding Source}"
+                            Stretch="Uniform" />
+                    </Border>
+                    <controls:ValidationMessage
+                        MaxWidth="320"
+                        Severity="Warning"
+                        Text="{TemplateBinding PrivacyNotice}"
+                        TextAlignment="Center" />
+                </StackPanel>
             </ControlTemplate>
         </Setter>
     </Style>

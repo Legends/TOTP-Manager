@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Media;
 
 namespace TOTP.Avalonia.Shared.Controls;
 
@@ -13,6 +14,11 @@ public sealed class ValidationMessage : TemplatedControl
         AvaloniaProperty.Register<ValidationMessage, ValidationSeverity>(
             nameof(Severity),
             ValidationSeverity.Information);
+
+    public static readonly StyledProperty<TextAlignment> TextAlignmentProperty =
+        AvaloniaProperty.Register<ValidationMessage, TextAlignment>(
+            nameof(TextAlignment),
+            TextAlignment.Left);
 
     static ValidationMessage()
     {
@@ -37,6 +43,12 @@ public sealed class ValidationMessage : TemplatedControl
     {
         get => GetValue(SeverityProperty);
         set => SetValue(SeverityProperty, value);
+    }
+
+    public TextAlignment TextAlignment
+    {
+        get => GetValue(TextAlignmentProperty);
+        set => SetValue(TextAlignmentProperty, value);
     }
 
     private void UpdateVisualState()

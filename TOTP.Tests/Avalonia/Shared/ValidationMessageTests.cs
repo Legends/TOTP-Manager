@@ -1,4 +1,5 @@
 using TOTP.Avalonia.Shared.Controls;
+using Avalonia.Media;
 
 namespace TOTP.Tests.Avalonia.Shared;
 
@@ -27,5 +28,13 @@ public sealed class ValidationMessageTests
         var sut = new ValidationMessage { Severity = severity };
 
         Assert.Equal(severity, sut.Severity);
+    }
+
+    [Fact]
+    public void TextAlignment_CanBeSetByReusableConsumers()
+    {
+        var sut = new ValidationMessage { TextAlignment = TextAlignment.Center };
+
+        Assert.Equal(TextAlignment.Center, sut.TextAlignment);
     }
 }
