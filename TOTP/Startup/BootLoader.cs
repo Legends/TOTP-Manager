@@ -17,6 +17,7 @@ using TOTP.Core.Platform;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Camera.OpenCv;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Logging;
 using TOTP.Infrastructure.Security;
@@ -145,10 +146,9 @@ public static class BootLoader
                 services.AddSingleton<ISettingsAuthorizationWorkflowService, SettingsAuthorizationWorkflowService>();
                 services.AddSingleton<ISettingsPersistenceService, SettingsPersistenceService>();
                 services.AddTransient<IFileDialogService, FileDialogService>();
-                services.AddTransient<IQrScannerRunner, QrScannerRunner>();
-                services.AddTransient<IVideoCaptureFactory, OpenCvVideoCaptureFactory>();
-                services.AddTransient<IQrCodeDecoder, OpenCvQrCodeDecoder>();
-                services.AddTransient<IFramePreviewEncoder, MatFramePreviewEncoder>();
+                services.AddTransient<ICameraSessionFactory, OpenCvCameraSessionFactory>();
+                services.AddTransient<IQrScannerRunner, OpenCvQrScannerRunner>();
+                services.AddSingleton<ICameraBackendWarmup, OpenCvCameraBackendWarmup>();
 
 
 

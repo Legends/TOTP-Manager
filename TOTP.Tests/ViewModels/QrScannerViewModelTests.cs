@@ -15,12 +15,11 @@ public sealed class QrScannerViewModelTests
     {
         var closeEvents = new List<bool>();
         var encodedFrame = CreatePreviewBytes();
-        var runner = new FakeRunner(async (token, onPreview, onFirstFrame, onDecoded) =>
+        var runner = new FakeRunner((token, onPreview, onFirstFrame) =>
         {
             onPreview(encodedFrame);
             onFirstFrame();
-            onDecoded("otpauth://totp/test");
-            await Task.CompletedTask;
+            return Task.FromResult(QrScannerRunResult.Decoded("otpauth://totp/test"));
         });
 
         var vm = new QrScannerViewModel(runner, NullLogger<QrScannerViewModel>.Instance);
@@ -42,8 +41,8 @@ public sealed class QrScannerViewModelTests
     public async Task Start_WhenRunnerThrows_ShowsRecoverableErrorWithoutClosing()
     {
         var closeEvents = new List<bool>();
-        var runner = new FakeRunner((token, onPreview, onFirstFrame, onDecoded) =>
-            Task.FromException(new InvalidOperationException("No camera found.")));
+        var runner = new FakeRunner((token, onPreview, onFirstFrame) =>
+            Task.FromResult(QrScannerRunResult.Failed(QrScannerFailureKind.NoCamera)));
 
         var vm = new QrScannerViewModel(runner, NullLogger<QrScannerViewModel>.Instance);
         vm.CloseRequested += (_, e) => closeEvents.Add(e.DialogResult);
@@ -65,17 +64,16 @@ public sealed class QrScannerViewModelTests
     public async Task Start_WhenCameraBecomesAvailable_RetriesAndResumesScanningAutomatically()
     {
         var attempts = 0;
-        var runner = new FakeRunner((token, onPreview, onFirstFrame, onDecoded) =>
+        var runner = new FakeRunner((token, onPreview, onFirstFrame) =>
         {
             if (Interlocked.Increment(ref attempts) == 1)
             {
-                throw new InvalidOperationException("No camera found.");
+                return Task.FromResult(QrScannerRunResult.Failed(QrScannerFailureKind.NoCamera));
             }
 
             onPreview(CreatePreviewBytes());
             onFirstFrame();
-            onDecoded("otpauth://totp/reconnected");
-            return Task.CompletedTask;
+            return Task.FromResult(QrScannerRunResult.Decoded("otpauth://totp/reconnected"));
         });
         var vm = new QrScannerViewModel(runner, NullLogger<QrScannerViewModel>.Instance);
 
@@ -93,7 +91,7 @@ public sealed class QrScannerViewModelTests
         var closeEvents = new List<bool>();
         var wasCanceled = false;
 
-        var runner = new FakeRunner(async (token, onPreview, onFirstFrame, onDecoded) =>
+        var runner = new FakeRunner(async (token, onPreview, onFirstFrame) =>
         {
             try
             {
@@ -104,6 +102,10 @@ public sealed class QrScannerViewModelTests
                 wasCanceled = true;
                 throw;
             }
+
+#pragma warning disable CS0162
+            return QrScannerRunResult.Failed(QrScannerFailureKind.Unexpected);
+#pragma warning restore CS0162
         });
 
         var vm = new QrScannerViewModel(runner, NullLogger<QrScannerViewModel>.Instance);
@@ -123,10 +125,11 @@ public sealed class QrScannerViewModelTests
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var invocations = 0;
-        var runner = new FakeRunner(async (token, onPreview, onFirstFrame, onDecoded) =>
+        var runner = new FakeRunner(async (token, onPreview, onFirstFrame) =>
         {
             Interlocked.Increment(ref invocations);
             await Task.Delay(80, token);
+            return QrScannerRunResult.Failed(QrScannerFailureKind.NoCamera);
         });
 
         var vm = new QrScannerViewModel(runner, NullLogger<QrScannerViewModel>.Instance);
@@ -146,11 +149,11 @@ public sealed class QrScannerViewModelTests
         dispatcher.Setup(d => d.CheckAccess()).Returns(false);
         dispatcher.Setup(d => d.Post(It.IsAny<Action>()))
             .Callback<Action>(action => action());
-        var runner = new FakeRunner((token, onPreview, onFirstFrame, onDecoded) => Task.Run(() =>
+        var runner = new FakeRunner((token, onPreview, onFirstFrame) => Task.Run(() =>
         {
             onPreview(CreatePreviewBytes());
             onFirstFrame();
-            onDecoded("otpauth://totp/worker-thread");
+            return QrScannerRunResult.Decoded("otpauth://totp/worker-thread");
         }, token));
         var vm = new QrScannerViewModel(
             runner,
@@ -193,14 +196,14 @@ public sealed class QrScannerViewModelTests
 
     private sealed class FakeRunner : IQrScannerRunner
     {
-        private readonly Func<CancellationToken, Action<byte[]>, Action, Action<string>, Task> _run;
+        private readonly Func<CancellationToken, Action<byte[]>, Action, Task<QrScannerRunResult>> _run;
 
-        public FakeRunner(Func<CancellationToken, Action<byte[]>, Action, Action<string>, Task> run)
+        public FakeRunner(Func<CancellationToken, Action<byte[]>, Action, Task<QrScannerRunResult>> run)
         {
             _run = run;
         }
 
-        public Task RunAsync(CancellationToken token, Action<byte[]> onPreview, Action onFirstFrame, Action<string> onDecoded)
-            => _run(token, onPreview, onFirstFrame, onDecoded);
+        public Task<QrScannerRunResult> RunAsync(CancellationToken token, Action<byte[]> onPreview, Action onFirstFrame)
+            => _run(token, onPreview, onFirstFrame);
     }
 }

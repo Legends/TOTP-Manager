@@ -460,7 +460,7 @@ Any replacement failure before Active
 - [x] Manual lock.
 - [x] One settings page.
 - [x] QR generation.
-- [ ] Camera QR scan.
+- [ ] Camera QR scan. Portable implementation and Avalonia integration are complete; packaged runtime probes and real-device target evidence remain required.
 - [x] Native file picker.
 - [x] Single-instance activation.
 - [ ] Test update check using a signed test appcast.

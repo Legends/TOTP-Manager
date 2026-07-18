@@ -1,208 +1,164 @@
-using OpenCvSharp;
-using TOTP.Services;
-using TOTP.Services.Interfaces;
+using System.Security.Cryptography;
+using TOTP.Camera.OpenCv;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Tests.Services;
 
 public sealed class QrScannerRunnerTests
 {
-    [Fact]
-    public async Task RunAsync_WhenCameraCannotOpen_ThrowsNoCameraFound()
+    [Theory]
+    [InlineData(CameraOpenFailure.PermissionDenied, QrScannerFailureKind.PermissionDenied)]
+    [InlineData(CameraOpenFailure.NoCamera, QrScannerFailureKind.NoCamera)]
+    [InlineData(CameraOpenFailure.NativeRuntimeUnavailable, QrScannerFailureKind.NativeRuntimeUnavailable)]
+    [InlineData(CameraOpenFailure.Unexpected, QrScannerFailureKind.Unexpected)]
+    public async Task RunAsync_WhenCameraCannotOpen_ReturnsTypedFailure(
+        CameraOpenFailure openFailure,
+        QrScannerFailureKind expected)
     {
-        var capture = new FakeCaptureAdapter
-        {
-            IsOpenedResult = false,
-            OpenResult = false
-        };
-        var sut = CreateSut(capture, _ => string.Empty);
+        var sut = CreateSut(CameraSessionOpenResult.Failed(openFailure));
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.RunAsync(CancellationToken.None, _ => { }, () => { }, _ => { }));
+        var result = await sut.RunAsync(
+            TestContext.Current.CancellationToken,
+            _ => { },
+            () => { });
 
-        Assert.Equal("No camera found.", ex.Message);
+        Assert.Equal(expected, result.Failure);
+        Assert.False(result.IsDecoded);
     }
 
     [Fact]
-    public async Task RunAsync_WhenDecodeSucceeds_EmitsDecodedAndStopsAfterPreview()
+    public async Task RunAsync_WhenDecodeSucceeds_EmitsPreviewAndReturnsDecodedText()
     {
-        var capture = new FakeCaptureAdapter
-        {
-            IsOpenedResult = true,
-            OpenResult = true,
-            ReadAction = frame =>
-            {
-                frame.Create(1, 1, MatType.CV_8UC3);
-                frame.SetTo(new Scalar(0, 0, 0));
-                return true;
-            }
-        };
-        var sut = CreateSut(capture, _ => "otpauth://totp/demo");
-
-        string? decoded = null;
-        var previewCalls = 0;
-
-        await sut.RunAsync(
-            CancellationToken.None,
-            _ => previewCalls++,
-            () => { },
-            text => decoded = text);
-
-        Assert.Equal("otpauth://totp/demo", decoded);
-        Assert.True(previewCalls >= 1);
-    }
-
-    [Fact]
-    public async Task RunAsync_WhenNotDecoded_EmitsPreviewAndFirstFrame_ThenCancels()
-    {
-        var cts = new CancellationTokenSource();
-        var capture = new FakeCaptureAdapter
-        {
-            IsOpenedResult = true,
-            OpenResult = true,
-            ReadAction = frame =>
-            {
-                frame.Create(1, 1, MatType.CV_8UC3);
-                frame.SetTo(new Scalar(0, 0, 0));
-                return true;
-            }
-        };
-        var sut = CreateSut(capture, _ => string.Empty);
-
+        var session = new FakeCameraSession([
+            new CameraFrame([1, 2, 3], 1, "otpauth://totp/demo?secret=synthetic")
+        ]);
+        var sut = CreateSut(CameraSessionOpenResult.Success(session));
+        byte[]? preview = null;
         var firstFrameCalls = 0;
-        var previewCalls = 0;
 
-        await Assert.ThrowsAsync<TaskCanceledException>(() =>
+        var result = await sut.RunAsync(
+            TestContext.Current.CancellationToken,
+            bytes => preview = bytes,
+            () => firstFrameCalls++);
+
+        Assert.True(result.IsDecoded);
+        Assert.Equal("otpauth://totp/demo?secret=synthetic", result.DecodedText);
+        Assert.Equal([1, 2, 3], preview);
+        Assert.Equal(1, firstFrameCalls);
+        Assert.True(session.DisposeCalled);
+        CryptographicOperations.ZeroMemory(preview!);
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenCancelled_DisposesSession()
+    {
+        using var cts = new CancellationTokenSource();
+        var session = new FakeCameraSession([
+            new CameraFrame([1], 1, null)
+        ], repeatLast: true);
+        var sut = CreateSut(CameraSessionOpenResult.Success(session));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             sut.RunAsync(
                 cts.Token,
-                _ =>
+                bytes =>
                 {
-                    previewCalls++;
+                    CryptographicOperations.ZeroMemory(bytes);
                     cts.Cancel();
                 },
-                () => firstFrameCalls++,
-                _ => { }));
+                () => { }));
 
-        Assert.True(previewCalls >= 1);
-        Assert.Equal(1, firstFrameCalls);
+        Assert.True(session.DisposeCalled);
     }
 
     [Fact]
-    public async Task RunAsync_AlwaysReleasesAndDisposesCapture()
+    public async Task RunAsync_WhenReadsFail_ReturnsDeviceLostAndDisposesSession()
     {
-        var capture = new FakeCaptureAdapter
-        {
-            IsOpenedResult = false,
-            OpenResult = false
-        };
-        var sut = CreateSut(capture, _ => string.Empty);
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.RunAsync(CancellationToken.None, _ => { }, () => { }, _ => { }));
-
-        Assert.False(capture.ReleaseCalled);
-        Assert.True(capture.DisposeCalled);
-    }
-
-    [Fact]
-    public async Task RunAsync_WhenCameraStopsProvidingFrames_ReportsCameraUnavailableAndReleasesCapture()
-    {
-        var successfulReads = 0;
-        var capture = new FakeCaptureAdapter
-        {
-            IsOpenedResult = true,
-            OpenResult = true,
-            ReadAction = frame =>
+        var session = new FakeCameraSession([]);
+        var sut = CreateSut(
+            CameraSessionOpenResult.Success(session),
+            QrScannerOptions.Default with
             {
-                if (Interlocked.Increment(ref successfulReads) == 1)
-                {
-                    frame.Create(1, 1, MatType.CV_8UC3);
-                    frame.SetTo(new Scalar(0, 0, 0));
-                    return true;
-                }
+                MaximumConsecutiveReadFailures = 2,
+                ReadFailureDelay = TimeSpan.Zero
+            });
 
-                frame.Release();
-                return false;
-            }
-        };
-        var sut = CreateSut(capture, _ => string.Empty);
+        var result = await sut.RunAsync(
+            TestContext.Current.CancellationToken,
+            _ => { },
+            () => { });
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.RunAsync(
-                TestContext.Current.CancellationToken,
-                _ => { },
-                () => { },
-                _ => { }));
-
-        Assert.Equal("Camera became unavailable.", ex.Message);
-        Assert.True(capture.ReleaseCalled);
-        Assert.True(capture.DisposeCalled);
+        Assert.Equal(QrScannerFailureKind.DeviceLost, result.Failure);
+        Assert.True(session.DisposeCalled);
     }
 
     [Fact]
-    public async Task RunAsync_WhenCameraRepeatsCachedFrame_ReportsCameraUnavailable()
+    public async Task RunAsync_WhenFrameNeverChanges_ReturnsStalledAndDisposesSession()
     {
-        var capture = new FakeCaptureAdapter
-        {
-            IsOpenedResult = true,
-            OpenResult = true,
-            ReadAction = frame =>
+        var session = new FakeCameraSession([
+            new CameraFrame([1], 42, null)
+        ], repeatLast: true);
+        var sut = CreateSut(
+            CameraSessionOpenResult.Success(session),
+            QrScannerOptions.Default with
             {
-                frame.Create(2, 2, MatType.CV_8UC3);
-                frame.SetTo(new Scalar(20, 40, 60));
-                return true;
-            }
-        };
-        var sut = CreateSut(capture, _ => string.Empty);
+                DecodeInterval = TimeSpan.Zero,
+                StalledFrameLimit = TimeSpan.FromMilliseconds(15),
+                FrameDelay = TimeSpan.FromMilliseconds(10)
+            });
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.RunAsync(
-                TestContext.Current.CancellationToken,
-                _ => { },
-                () => { },
-                _ => { }));
+        var result = await sut.RunAsync(
+            TestContext.Current.CancellationToken,
+            bytes => CryptographicOperations.ZeroMemory(bytes),
+            () => { });
 
-        Assert.Equal("Camera stopped providing new frames.", ex.Message);
-        Assert.True(capture.ReleaseCalled);
-        Assert.True(capture.DisposeCalled);
+        Assert.Equal(QrScannerFailureKind.Stalled, result.Failure);
+        Assert.True(session.DisposeCalled);
     }
 
-    private static QrScannerRunner CreateSut(FakeCaptureAdapter capture, Func<Mat, string> decode)
+    private static OpenCvQrScannerRunner CreateSut(
+        CameraSessionOpenResult openResult,
+        QrScannerOptions? options = null) =>
+        new(
+            new FakeCameraSessionFactory(openResult),
+            TimeProvider.System,
+            options ?? QrScannerOptions.Default with
+            {
+                DecodeInterval = TimeSpan.Zero,
+                FrameDelay = TimeSpan.Zero
+            });
+
+    private sealed class FakeCameraSessionFactory(CameraSessionOpenResult result) : ICameraSessionFactory
     {
-        return new QrScannerRunner(
-            new FakeFactory(capture),
-            new FakeDecoder(decode),
-            new FakeConverter());
+        public CameraSessionOpenResult OpenDefault() => result;
     }
 
-    private sealed class FakeFactory(FakeCaptureAdapter capture) : IVideoCaptureFactory
+    private sealed class FakeCameraSession(
+        IReadOnlyList<CameraFrame> frames,
+        bool repeatLast = false) : ICameraSession
     {
-        public IVideoCaptureAdapter Create() => capture;
-    }
-
-    private sealed class FakeCaptureAdapter : IVideoCaptureAdapter
-    {
-        public bool IsOpenedResult { get; set; }
-        public bool OpenResult { get; set; }
-        public Func<Mat, bool>? ReadAction { get; set; }
-        public bool ReleaseCalled { get; private set; }
+        private int _index;
         public bool DisposeCalled { get; private set; }
 
-        public bool Open(int deviceIndex, VideoCaptureAPIs api) => OpenResult;
-        public bool Open(int deviceIndex) => OpenResult;
-        public bool IsOpened() => IsOpenedResult;
-        public bool Set(VideoCaptureProperties property, double value) => true;
-        public bool Read(Mat frame) => ReadAction?.Invoke(frame) ?? false;
-        public void Release() => ReleaseCalled = true;
+        public bool TryRead(bool decodeQr, out CameraFrame frame)
+        {
+            if (_index < frames.Count)
+            {
+                frame = frames[_index++];
+                return true;
+            }
+
+            if (repeatLast && frames.Count > 0)
+            {
+                var last = frames[^1];
+                frame = last with { PreviewPng = last.PreviewPng.ToArray() };
+                return true;
+            }
+
+            frame = default;
+            return false;
+        }
+
         public void Dispose() => DisposeCalled = true;
-    }
-
-    private sealed class FakeDecoder(Func<Mat, string> decode) : IQrCodeDecoder
-    {
-        public string Decode(Mat frame) => decode(frame);
-    }
-
-    private sealed class FakeConverter : IFramePreviewEncoder
-    {
-        public byte[] Encode(Mat frame) => [1];
     }
 }

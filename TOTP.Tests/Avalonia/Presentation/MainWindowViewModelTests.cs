@@ -5,6 +5,7 @@ using TOTP.Core.Models;
 using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Startup;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
@@ -67,7 +68,8 @@ public sealed class MainWindowViewModelTests
             password,
             accounts,
             CreateSettingsPage(),
-            CreateFilePicker());
+            CreateFilePicker(),
+            CreateCameraScanner());
         await sut.InitializeAsync();
 
         await sut.LockAsync();
@@ -90,7 +92,8 @@ public sealed class MainWindowViewModelTests
                 Mock.Of<IAccountQrCodeService>(),
                 Mock.Of<IAvaloniaQrImageFactory>()),
             CreateSettingsPage(),
-            CreateFilePicker());
+            CreateFilePicker(),
+            CreateCameraScanner());
 
     private static SettingsPageViewModel CreateSettingsPage()
     {
@@ -101,4 +104,12 @@ public sealed class MainWindowViewModelTests
 
     private static NativeFilePickerViewModel CreateFilePicker() =>
         new(Mock.Of<IAvaloniaFilePicker>());
+
+    private static CameraScannerViewModel CreateCameraScanner() =>
+        new(
+            Mock.Of<IQrScannerRunner>(),
+            Mock.Of<IQrPayloadValidator>(),
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IUiScheduler>(),
+            NullLogger<CameraScannerViewModel>.Instance);
 }

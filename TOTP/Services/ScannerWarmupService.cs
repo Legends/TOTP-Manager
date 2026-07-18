@@ -1,15 +1,15 @@
 using Microsoft.Extensions.Logging;
-using OpenCvSharp;
 using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Services.Interfaces;
 
 namespace TOTP.Services;
 
 public sealed class ScannerWarmupService(
-    IVideoCaptureFactory videoCaptureFactory,
+    ICameraBackendWarmup cameraBackendWarmup,
     ILogger<ScannerWarmupService> logger) : IScannerWarmupService
 {
     private int _started;
@@ -28,9 +28,7 @@ public sealed class ScannerWarmupService(
             logger.LogInformation("warmup.scannerbackend.begin trigger={Trigger}", trigger);
             try
             {
-                _ = Cv2.GetVersionString();
-                using var detector = new QRCodeDetector();
-                using var capture = videoCaptureFactory.Create();
+                cameraBackendWarmup.Warmup();
                 logger.LogInformation("warmup.scannerbackend.end trigger={Trigger} elapsed_ms={ElapsedMs}", trigger, sw.ElapsedMilliseconds);
             }
             catch (Exception ex)

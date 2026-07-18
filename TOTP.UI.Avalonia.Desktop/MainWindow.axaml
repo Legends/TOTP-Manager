@@ -69,6 +69,27 @@
                 </DataTemplate>
             </ContentControl.ContentTemplate>
         </ContentControl>
+        <ContentControl
+            Content="{Binding CameraScanner}"
+            IsVisible="{Binding IsAccountListVisible}">
+            <ContentControl.ContentTemplate>
+                <DataTemplate x:DataType="presentation:CameraScannerViewModel">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Command="{Binding StartCommand}" Content="Scan QR with camera" />
+                            <Button Command="{Binding CancelCommand}" Content="Cancel scan" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                        <Image
+                            Width="320"
+                            Height="240"
+                            IsVisible="{Binding HasPreview}"
+                            Source="{Binding PreviewImage}"
+                            Stretch="Uniform" />
+                    </StackPanel>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
         <Button
             HorizontalAlignment="Right"
             Command="{Binding ToggleSettingsCommand}"

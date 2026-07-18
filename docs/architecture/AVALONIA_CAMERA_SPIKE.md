@@ -2,11 +2,11 @@
 
 ## Status
 
-Camera QR scanning remains the last uncompleted interactive M3 slice. The existing runner is testable but lives in the WPF project with Windows-only native OpenCV packaging. Moving only its view would preserve a hidden Windows dependency and is not acceptable.
+The UI-neutral camera module and Avalonia scanner surface are implemented. `TOTP.Camera.OpenCv` now owns capture, frame encoding, QR decoding, native types, and disposal; WPF consumes the same runner through the Core contract. Expected camera failures cross the boundary as typed results. The remaining completion evidence is packaged native-runtime probing on every target plus real-device smoke testing.
 
 ## Required module boundary
 
-Create a UI-neutral `TOTP.Camera.OpenCv` project that owns:
+`TOTP.Camera.OpenCv` owns:
 
 - `QrScannerRunner`
 - the video-capture adapter and factory
@@ -18,7 +18,7 @@ Create a UI-neutral `TOTP.Camera.OpenCv` project that owns:
 
 ## Runtime packaging decision
 
-Keep the managed `OpenCvSharp4` package and every native runtime on exactly the same version. The repository currently uses 4.11; adopting newer runtime packages requires one coordinated dependency upgrade with WPF regression testing.
+Keep the managed `OpenCvSharp4` package and every native runtime on exactly the same version. The managed package and runtime families were upgraded together from 4.11 to 4.13.0.20260627 because the maintained macOS x64/ARM64 runtime families are available in the aligned current release. Windows WPF and Avalonia regression suites must remain green for this coordinated native dependency change.
 
 The supported package families are:
 
@@ -50,3 +50,5 @@ The M3 camera checkbox may be marked complete only when:
 - Windows x64, macOS ARM64, and Linux x64 packages load their native runtime;
 - a real-device smoke test records camera start, first preview, successful decode, cancellation, device loss, and repeated open/close without leaked capture handles;
 - decoded data reaches the existing validated import workflow without being logged.
+
+Current automated evidence covers module isolation, typed failures, frame-buffer clearing, cancellation, device loss, stalled frames, deterministic capture disposal, Avalonia lifecycle cleanup, and payload validation that exposes only issuer/account metadata. It intentionally does not claim real-device or permission-dialog evidence.

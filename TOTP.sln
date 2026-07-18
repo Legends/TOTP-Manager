@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Platform.Unix", "TOTP.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Tests.Unix", "TOTP.Tests.Unix\TOTP.Tests.Unix.csproj", "{D7854DB2-EA50-4E7B-A269-74F3A084A633}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Camera.OpenCv", "TOTP.Camera.OpenCv\TOTP.Camera.OpenCv.csproj", "{A1D1B182-E2A1-4D9D-88B4-25C283768A29}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,6 +92,10 @@ Global
 		{D7854DB2-EA50-4E7B-A269-74F3A084A633}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7854DB2-EA50-4E7B-A269-74F3A084A633}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D7854DB2-EA50-4E7B-A269-74F3A084A633}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1D1B182-E2A1-4D9D-88B4-25C283768A29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1D1B182-E2A1-4D9D-88B4-25C283768A29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1D1B182-E2A1-4D9D-88B4-25C283768A29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1D1B182-E2A1-4D9D-88B4-25C283768A29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

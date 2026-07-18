@@ -11,6 +11,7 @@ using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
+using TOTP.Camera.OpenCv;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
 
 namespace TOTP.Avalonia.Desktop.Startup;
@@ -53,10 +54,13 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IAsyncClipboardService>(provider =>
             provider.GetRequiredService<AsyncClipboardService>());
         services.AddSingleton<IAvaloniaStartupCoordinator, AvaloniaStartupCoordinator>();
+        services.AddSingleton<ICameraSessionFactory, OpenCvCameraSessionFactory>();
+        services.AddSingleton<IQrScannerRunner, OpenCvQrScannerRunner>();
         services.AddSingleton<PasswordUnlockViewModel>();
         services.AddSingleton<AccountListViewModel>();
         services.AddSingleton<SettingsPageViewModel>();
         services.AddSingleton<NativeFilePickerViewModel>();
+        services.AddSingleton<CameraScannerViewModel>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient(provider => new MainWindow
         {

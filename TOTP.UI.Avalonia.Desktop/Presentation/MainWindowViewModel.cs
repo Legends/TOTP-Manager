@@ -27,7 +27,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordUnlockViewModel passwordUnlock,
         AccountListViewModel accountList,
         SettingsPageViewModel settingsPage,
-        NativeFilePickerViewModel nativeFilePicker)
+        NativeFilePickerViewModel nativeFilePicker,
+        CameraScannerViewModel cameraScanner)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
@@ -35,6 +36,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         AccountList = accountList ?? throw new ArgumentNullException(nameof(accountList));
         SettingsPage = settingsPage ?? throw new ArgumentNullException(nameof(settingsPage));
         NativeFilePicker = nativeFilePicker ?? throw new ArgumentNullException(nameof(nativeFilePicker));
+        CameraScanner = cameraScanner ?? throw new ArgumentNullException(nameof(cameraScanner));
         PasswordUnlock.Unlocked += OnUnlocked;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
         _lockCommand = new AsyncCommand(LockAsync, () => _isAccountListVisible);
@@ -78,6 +80,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public SettingsPageViewModel SettingsPage { get; }
 
     public NativeFilePickerViewModel NativeFilePicker { get; }
+
+    public CameraScannerViewModel CameraScanner { get; }
 
     public bool IsPasswordUnlockVisible
     {
@@ -149,6 +153,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordUnlock.Unlocked -= OnUnlocked;
         _lifetime.Cancel();
         _lifetime.Dispose();
+        CameraScanner.Dispose();
     }
 
     private void OnUnlocked(object? sender, EventArgs e)
@@ -163,6 +168,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
         _authorizationService.Lock();
         AccountList.Clear();
+        CameraScanner.Clear();
         IsSettingsVisible = false;
         IsAccountListVisible = false;
         IsPasswordUnlockVisible = true;
