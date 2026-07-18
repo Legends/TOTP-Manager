@@ -14,8 +14,11 @@ public static class AvaloniaCompositionRoot
         ArgumentNullException.ThrowIfNull(desktopLifetime);
 
         var services = new ServiceCollection();
+        var platformServices = DesktopPlatformServiceFactory.Create();
 
         services.AddSingleton(desktopLifetime);
+        services.AddSingleton<IPlatformApplicationPaths>(platformServices.ApplicationPaths);
+        services.AddSingleton<IPlatformFileSecurity>(platformServices.FileSecurity);
         services.AddSingleton(new AvaloniaUiScheduler(Dispatcher.UIThread));
         services.AddSingleton<IUiScheduler>(provider =>
             provider.GetRequiredService<AvaloniaUiScheduler>());

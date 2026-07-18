@@ -2,7 +2,7 @@
 
 ## Status
 
-M1.1 establishes `IPlatformApplicationPaths` as the source of application filesystem locations. Windows, macOS, and Linux adapters implement the policy below without creating directories or weakening filesystem permissions.
+M1.1 establishes `IPlatformApplicationPaths` as the source of application filesystem locations. Windows, macOS, and Linux adapters implement the policy below without creating directories or weakening filesystem permissions. The Avalonia composition root selects its concrete adapter at build time for the host operating system and registers it as the single application-wide implementation.
 
 ## Path policy
 

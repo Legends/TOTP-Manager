@@ -11,6 +11,19 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+    <DefineConstants>$(DefineConstants);TOTP_PLATFORM_WINDOWS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <DefineConstants>$(DefineConstants);TOTP_PLATFORM_MACOS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <DefineConstants>$(DefineConstants);TOTP_PLATFORM_LINUX</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.0" />
@@ -19,7 +32,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TOTP.Core\TOTP.Core.csproj" />
     <ProjectReference Include="..\TOTP.UI.Avalonia.Shared\TOTP.UI.Avalonia.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\TOTP.Platform.Windows\TOTP.Platform.Windows.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <ProjectReference Include="..\TOTP.Platform.MacOS\TOTP.Platform.MacOS.csproj" />
+    <ProjectReference Include="..\TOTP.Platform.Unix\TOTP.Platform.Unix.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <ProjectReference Include="..\TOTP.Platform.Linux\TOTP.Platform.Linux.csproj" />
+    <ProjectReference Include="..\TOTP.Platform.Unix\TOTP.Platform.Unix.csproj" />
   </ItemGroup>
 
 </Project>

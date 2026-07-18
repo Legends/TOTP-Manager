@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Startup;
+using TOTP.Platform.Windows;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
 
 namespace TOTP.Tests.Avalonia.Startup;
@@ -21,5 +22,9 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IClassicDesktopStyleApplicationLifetime>());
         Assert.NotNull(services.GetRequiredService<IUiScheduler>());
         Assert.NotNull(services.GetRequiredService<AppLifetime>());
+        Assert.IsType<WindowsApplicationPaths>(
+            services.GetRequiredService<IPlatformApplicationPaths>());
+        Assert.IsType<WindowsFileSecurity>(
+            services.GetRequiredService<IPlatformFileSecurity>());
     }
 }

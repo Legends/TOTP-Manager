@@ -85,8 +85,12 @@ jobs:
           cache: true
           cache-dependency-path: |
             TOTP.Core/TOTP.Core.csproj
+            TOTP.Platform.Linux/TOTP.Platform.Linux.csproj
+            TOTP.Platform.MacOS/TOTP.Platform.MacOS.csproj
             TOTP.Platform.Unix/TOTP.Platform.Unix.csproj
             TOTP.Tests.Unix/TOTP.Tests.Unix.csproj
+            TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
+            TOTP.UI.Avalonia.Shared/TOTP.UI.Avalonia.Shared.csproj
             NuGet.config
 
       - name: Restore Unix security tests
@@ -94,6 +98,12 @@ jobs:
 
       - name: Run Unix security tests
         run: dotnet test TOTP.Tests.Unix/TOTP.Tests.Unix.csproj --configuration Release --no-restore --nologo --verbosity minimal
+
+      - name: Restore Avalonia desktop host
+        run: dotnet restore TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj --nologo --verbosity minimal --configfile NuGet.config
+
+      - name: Build Avalonia desktop host
+        run: dotnet build TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj --configuration Release --no-restore --nologo --verbosity minimal
 
   publish:
     needs: [build-test, unix-file-security]
