@@ -18,14 +18,20 @@ internal sealed class MacOSNativeApi : IUnixNativeApi
 
     public bool TryGetStatus(int descriptor, out UnixFileStatus status)
     {
-        var succeeded = GetFileStatus(descriptor, out var nativeStatus) == 0;
+        var result = RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+            ? GetFileStatusArm64(descriptor, out var nativeStatus)
+            : GetFileStatusInode64(descriptor, out nativeStatus);
+        var succeeded = result == 0;
         status = succeeded ? Map(nativeStatus) : default;
         return succeeded;
     }
 
     public bool TryGetStatusNoFollow(string path, out UnixFileStatus status)
     {
-        var succeeded = GetLinkStatus(path, out var nativeStatus) == 0;
+        var result = RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+            ? GetLinkStatusArm64(path, out var nativeStatus)
+            : GetLinkStatusInode64(path, out nativeStatus);
+        var succeeded = result == 0;
         status = succeeded ? Map(nativeStatus) : default;
         return succeeded;
     }
@@ -43,11 +49,19 @@ internal sealed class MacOSNativeApi : IUnixNativeApi
     [DllImport("libc", EntryPoint = "open", SetLastError = true)]
     private static extern int Open([MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags);
 
+    [DllImport("libc", EntryPoint = "fstat", SetLastError = true)]
+    private static extern int GetFileStatusArm64(int descriptor, out MacOSFileStatus status);
+
     [DllImport("libc", EntryPoint = "fstat$INODE64", SetLastError = true)]
-    private static extern int GetFileStatus(int descriptor, out MacOSFileStatus status);
+    private static extern int GetFileStatusInode64(int descriptor, out MacOSFileStatus status);
+
+    [DllImport("libc", EntryPoint = "lstat", SetLastError = true)]
+    private static extern int GetLinkStatusArm64(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string path,
+        out MacOSFileStatus status);
 
     [DllImport("libc", EntryPoint = "lstat$INODE64", SetLastError = true)]
-    private static extern int GetLinkStatus(
+    private static extern int GetLinkStatusInode64(
         [MarshalAs(UnmanagedType.LPUTF8Str)] string path,
         out MacOSFileStatus status);
 
