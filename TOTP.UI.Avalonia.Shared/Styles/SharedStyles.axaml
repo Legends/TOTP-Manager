@@ -1,6 +1,8 @@
 <Styles
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:automation="using:Avalonia.Automation"
+    xmlns:controls="using:TOTP.Avalonia.Shared.Controls">
     <Styles.Resources>
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
@@ -144,5 +146,43 @@
     <Style Selector="ListBox:focus-visible">
         <Setter Property="BorderBrush" Value="{DynamicResource BrushFocus}" />
         <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="controls|BusyOverlay">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <ContentPresenter
+                        Name="PART_Content"
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                        Content="{TemplateBinding Content}"
+                        ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    <Border
+                        automation:AutomationProperties.LiveSetting="Polite"
+                        automation:AutomationProperties.Name="{TemplateBinding BusyMessage}"
+                        Background="{DynamicResource BrushSurface}"
+                        IsVisible="{TemplateBinding IsBusy}"
+                        Opacity="0.96">
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="12">
+                            <ProgressBar
+                                Width="180"
+                                IsIndeterminate="True" />
+                            <TextBlock
+                                Classes="secondary"
+                                Text="{TemplateBinding BusyMessage}"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:busy /template/ ContentPresenter#PART_Content">
+            <Setter Property="IsEnabled" Value="False" />
+            <Setter Property="Opacity" Value="0.45" />
+        </Style>
     </Style>
 </Styles>

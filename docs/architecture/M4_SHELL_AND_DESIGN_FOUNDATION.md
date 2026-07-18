@@ -41,6 +41,8 @@ Theme policy is `RequestedThemeVariant="Default"`, so Avalonia follows the opera
 
 The initial shell consumes the tokens and uses a responsive maximum width rather than a fixed width. The existing M3 target record defines 100%, 150%, and 200% scaling tests.
 
+`BusyOverlay` is a reusable shared control with a templated content surface, indeterminate progress, and a polite accessible status. While busy, its content presenter is disabled and visually subdued, preventing pointer or keyboard activation of the underlying shell. The startup shell now consumes this control instead of relying only on command-state conventions.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.

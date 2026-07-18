@@ -4,15 +4,19 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:automation="using:Avalonia.Automation"
     xmlns:presentation="using:TOTP.Avalonia.Desktop.Presentation"
+    xmlns:shared="using:TOTP.Avalonia.Shared.Controls"
     x:DataType="presentation:MainWindowViewModel"
     Title="TOTP Manager (Avalonia Preview)"
     Width="960"
     Height="640"
     MinWidth="640"
     MinHeight="480">
-    <ScrollViewer
-        HorizontalScrollBarVisibility="Disabled"
-        VerticalScrollBarVisibility="Auto">
+    <shared:BusyOverlay
+        BusyMessage="Starting TOTP Manager safely…"
+        IsBusy="{Binding IsBusy}">
+        <ScrollViewer
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
         <StackPanel
             MaxWidth="720"
             Margin="{DynamicResource PagePadding}"
@@ -232,5 +236,6 @@
             </ContentControl>
         </Border>
         </StackPanel>
-    </ScrollViewer>
+        </ScrollViewer>
+    </shared:BusyOverlay>
 </Window>

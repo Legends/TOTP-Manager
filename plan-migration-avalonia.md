@@ -530,7 +530,7 @@ Do not proceed to full UI migration until:
 ### Shared Avalonia controls
 
 - [ ] Revealable secret input.
-- [ ] Busy overlay.
+- [x] Busy overlay.
 - [ ] Account row/cell templates.
 - [ ] QR preview.
 - [ ] Validation presentation.
