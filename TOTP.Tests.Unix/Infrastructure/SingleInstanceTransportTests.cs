@@ -27,15 +27,34 @@ public sealed class SingleInstanceTransportTests
     public async Task NamedMutex_BlocksAnotherThread()
     {
         var name = $"totp-test-{Guid.NewGuid():N}";
-        using var primary = new NamedMutexInstanceLock(name);
-        Assert.NotEqual(InstanceLockAcquireResult.AlreadyRunning, primary.Acquire());
+        var acquired = new TaskCompletionSource<InstanceLockAcquireResult>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var primaryTask = Task.Run(
+            () =>
+            {
+                using var primary = new NamedMutexInstanceLock(name);
+                acquired.SetResult(primary.Acquire());
+                release.Task.GetAwaiter().GetResult();
+            },
+            TestContext.Current.CancellationToken);
+        Assert.NotEqual(
+            InstanceLockAcquireResult.AlreadyRunning,
+            await acquired.Task.WaitAsync(
+                TimeSpan.FromSeconds(2),
+                TestContext.Current.CancellationToken));
 
-        var secondary = await Task.Run(() =>
+        try
         {
-            using var instanceLock = new NamedMutexInstanceLock(name);
-            return instanceLock.Acquire();
-        }, TestContext.Current.CancellationToken);
-
-        Assert.Equal(InstanceLockAcquireResult.AlreadyRunning, secondary);
+            using var secondaryLock = new NamedMutexInstanceLock(name);
+            Assert.Equal(InstanceLockAcquireResult.AlreadyRunning, secondaryLock.Acquire());
+        }
+        finally
+        {
+            release.TrySetResult();
+            await primaryTask.WaitAsync(
+                TimeSpan.FromSeconds(2),
+                TestContext.Current.CancellationToken);
+        }
     }
 }

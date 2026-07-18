@@ -9,17 +9,34 @@ public sealed class NamedMutexInstanceLockTests
     public async Task Acquire_BlocksAnotherThreadUntilOwnerDisposes()
     {
         var name = $"totp-test-{Guid.NewGuid():N}";
-        using var primary = new NamedMutexInstanceLock(name);
+        var acquired = new TaskCompletionSource<InstanceLockAcquireResult>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var primaryTask = Task.Run(
+            () =>
+            {
+                using var primary = new NamedMutexInstanceLock(name);
+                acquired.SetResult(primary.Acquire());
+                release.Task.GetAwaiter().GetResult();
+            },
+            TestContext.Current.CancellationToken);
         Assert.Contains(
-            primary.Acquire(),
+            await acquired.Task.WaitAsync(
+                TimeSpan.FromSeconds(2),
+                TestContext.Current.CancellationToken),
             new[] { InstanceLockAcquireResult.Acquired, InstanceLockAcquireResult.Recovered });
 
-        var secondOutcome = await Task.Run(() =>
+        try
         {
             using var secondary = new NamedMutexInstanceLock(name);
-            return secondary.Acquire();
-        }, TestContext.Current.CancellationToken);
-
-        Assert.Equal(InstanceLockAcquireResult.AlreadyRunning, secondOutcome);
+            Assert.Equal(InstanceLockAcquireResult.AlreadyRunning, secondary.Acquire());
+        }
+        finally
+        {
+            release.TrySetResult();
+            await primaryTask.WaitAsync(
+                TimeSpan.FromSeconds(2),
+                TestContext.Current.CancellationToken);
+        }
     }
 }
