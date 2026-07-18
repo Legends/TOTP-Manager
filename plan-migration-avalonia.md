@@ -463,7 +463,7 @@ Any replacement failure before Active
 - [ ] Camera QR scan. Portable implementation and Avalonia integration are complete; packaged runtime probes and real-device target evidence remain required.
 - [x] Native file picker.
 - [x] Single-instance activation.
-- [ ] Test update check using a signed test appcast.
+- [x] Test update check using a signed test appcast.
 
 ### Required target validation
 

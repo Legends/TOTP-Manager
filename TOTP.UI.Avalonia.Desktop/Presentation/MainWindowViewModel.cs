@@ -28,7 +28,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         AccountListViewModel accountList,
         SettingsPageViewModel settingsPage,
         NativeFilePickerViewModel nativeFilePicker,
-        CameraScannerViewModel cameraScanner)
+        CameraScannerViewModel cameraScanner,
+        UpdateCheckViewModel updateCheck)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
@@ -37,6 +38,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         SettingsPage = settingsPage ?? throw new ArgumentNullException(nameof(settingsPage));
         NativeFilePicker = nativeFilePicker ?? throw new ArgumentNullException(nameof(nativeFilePicker));
         CameraScanner = cameraScanner ?? throw new ArgumentNullException(nameof(cameraScanner));
+        UpdateCheck = updateCheck ?? throw new ArgumentNullException(nameof(updateCheck));
         PasswordUnlock.Unlocked += OnUnlocked;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
         _lockCommand = new AsyncCommand(LockAsync, () => _isAccountListVisible);
@@ -82,6 +84,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public NativeFilePickerViewModel NativeFilePicker { get; }
 
     public CameraScannerViewModel CameraScanner { get; }
+
+    public UpdateCheckViewModel UpdateCheck { get; }
 
     public bool IsPasswordUnlockVisible
     {

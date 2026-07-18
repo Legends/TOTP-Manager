@@ -70,6 +70,18 @@
             </ContentControl.ContentTemplate>
         </ContentControl>
         <ContentControl
+            Content="{Binding UpdateCheck}"
+            IsVisible="{Binding IsAccountListVisible}">
+            <ContentControl.ContentTemplate>
+                <DataTemplate x:DataType="presentation:UpdateCheckViewModel">
+                    <StackPanel Spacing="6">
+                        <Button Command="{Binding CheckCommand}" Content="Verify signed test appcast" />
+                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
+        <ContentControl
             Content="{Binding CameraScanner}"
             IsVisible="{Binding IsAccountListVisible}">
             <ContentControl.ContentTemplate>

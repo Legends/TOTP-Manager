@@ -69,7 +69,8 @@ public sealed class MainWindowViewModelTests
             accounts,
             CreateSettingsPage(),
             CreateFilePicker(),
-            CreateCameraScanner());
+            CreateCameraScanner(),
+            CreateUpdateCheck());
         await sut.InitializeAsync();
 
         await sut.LockAsync();
@@ -93,7 +94,8 @@ public sealed class MainWindowViewModelTests
                 Mock.Of<IAvaloniaQrImageFactory>()),
             CreateSettingsPage(),
             CreateFilePicker(),
-            CreateCameraScanner());
+            CreateCameraScanner(),
+            CreateUpdateCheck());
 
     private static SettingsPageViewModel CreateSettingsPage()
     {
@@ -112,4 +114,7 @@ public sealed class MainWindowViewModelTests
             Mock.Of<IAvaloniaQrImageFactory>(),
             Mock.Of<IUiScheduler>(),
             NullLogger<CameraScannerViewModel>.Instance);
+
+    private static UpdateCheckViewModel CreateUpdateCheck() =>
+        new(Mock.Of<ISignedAppcastVerifier>());
 }

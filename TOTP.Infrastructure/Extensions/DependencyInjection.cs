@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddSingleton<IQrCodeService, QrCodeService>();
         services.AddSingleton<IAccountQrCodeService, AccountQrCodeService>();
         services.AddSingleton<IQrPayloadValidator, QrPayloadValidator>();
+        services.AddSingleton<ISignedAppcastVerifier, SignedAppcastVerifier>();
 
         // 1. Master Password & Security Context
         services.AddSingleton<ISecurityContext, SecurityContext>();
