@@ -38,6 +38,7 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<AppLifetime, AvaloniaApplicationLifetime>();
         services.AddSingleton<IAvaloniaStartupCoordinator, AvaloniaStartupCoordinator>();
         services.AddSingleton<PasswordUnlockViewModel>();
+        services.AddSingleton<AccountListViewModel>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient(provider => new MainWindow
         {

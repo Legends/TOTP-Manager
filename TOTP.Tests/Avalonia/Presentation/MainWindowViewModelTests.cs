@@ -1,5 +1,6 @@
 using Moq;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Avalonia.Desktop.Startup;
 
@@ -47,5 +48,6 @@ public sealed class MainWindowViewModelTests
     private static MainWindowViewModel CreateSut(IAvaloniaStartupCoordinator coordinator) =>
         new(
             coordinator,
-            new PasswordUnlockViewModel(Mock.Of<IAuthorizationService>()));
+            new PasswordUnlockViewModel(Mock.Of<IAuthorizationService>()),
+            new AccountListViewModel(Mock.Of<IAccountManager>()));
 }

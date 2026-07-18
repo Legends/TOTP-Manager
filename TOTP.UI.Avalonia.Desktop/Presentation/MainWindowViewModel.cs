@@ -14,13 +14,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private bool _isBusy;
     private bool _canRetry;
     private bool _isPasswordUnlockVisible;
+    private bool _isAccountListVisible;
 
     public MainWindowViewModel(
         IAvaloniaStartupCoordinator startupCoordinator,
-        PasswordUnlockViewModel passwordUnlock)
+        PasswordUnlockViewModel passwordUnlock,
+        AccountListViewModel accountList)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
         PasswordUnlock = passwordUnlock ?? throw new ArgumentNullException(nameof(passwordUnlock));
+        AccountList = accountList ?? throw new ArgumentNullException(nameof(accountList));
         PasswordUnlock.Unlocked += OnUnlocked;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
     }
@@ -53,10 +56,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public PasswordUnlockViewModel PasswordUnlock { get; }
 
+    public AccountListViewModel AccountList { get; }
+
     public bool IsPasswordUnlockVisible
     {
         get => _isPasswordUnlockVisible;
         private set => SetField(ref _isPasswordUnlockVisible, value);
+    }
+
+    public bool IsAccountListVisible
+    {
+        get => _isAccountListVisible;
+        private set => SetField(ref _isAccountListVisible, value);
     }
 
     public async Task InitializeAsync()
@@ -66,6 +77,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsBusy = true;
         CanRetry = false;
         IsPasswordUnlockVisible = false;
+        IsAccountListVisible = false;
         StatusText = "Starting TOTP Manager…";
 
         try
@@ -109,7 +121,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private void OnUnlocked(object? sender, EventArgs e)
     {
         IsPasswordUnlockVisible = false;
+        IsAccountListVisible = true;
         StatusText = "Vault unlocked.";
+        AccountList.LoadCommand.Execute(null);
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

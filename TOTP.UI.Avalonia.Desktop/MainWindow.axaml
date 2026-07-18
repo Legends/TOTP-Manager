@@ -52,5 +52,36 @@
                 </ContentControl.ContentTemplate>
             </ContentControl>
         </Border>
+        <Border IsVisible="{Binding IsAccountListVisible}">
+            <ContentControl Content="{Binding AccountList}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="presentation:AccountListViewModel">
+                        <StackPanel Spacing="12">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                IsVisible="{Binding HasMessage}"
+                                Text="{Binding Message}"
+                                TextWrapping="Wrap" />
+                            <ListBox
+                                MaxHeight="420"
+                                ItemsSource="{Binding Accounts}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="presentation:AccountListItemViewModel">
+                                        <Grid Margin="8" ColumnDefinitions="2*,3*">
+                                            <TextBlock
+                                                FontWeight="SemiBold"
+                                                Text="{Binding Issuer}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Text="{Binding AccountName}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+        </Border>
     </StackPanel>
 </Window>

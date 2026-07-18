@@ -453,7 +453,7 @@ Any replacement failure before Active
 
 - [x] Application startup and error boundary.
 - [x] Password unlock against synthetic data.
-- [ ] Account list with at least 500 generated entries.
+- [x] Account list with at least 500 generated entries.
 - [ ] Search and filtering.
 - [ ] TOTP generation.
 - [ ] Copy with timed clipboard clearing.
