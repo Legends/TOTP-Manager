@@ -97,6 +97,9 @@
   <data name="ImportConflictHandling" xml:space="preserve"><value>Behandlung von Importkonflikten</value></data>
   <data name="SupportDiagnostics" xml:space="preserve"><value>Support-Diagnose</value></data>
   <data name="RefreshSupportInformation" xml:space="preserve"><value>Support-Informationen aktualisieren</value></data>
+  <data name="DownloadUpdate" xml:space="preserve"><value>Update herunterladen</value></data>
+  <data name="InstallUpdate" xml:space="preserve"><value>Update installieren</value></data>
+  <data name="ReleaseNotes" xml:space="preserve"><value>Versionshinweise</value></data>
   <data name="VerifyAppcast" xml:space="preserve"><value>Signierten Test-Appcast prüfen</value></data>
   <data name="ScanQrCamera" xml:space="preserve"><value>QR-Code mit Kamera scannen</value></data>
   <data name="CancelScan" xml:space="preserve"><value>Scan abbrechen</value></data>

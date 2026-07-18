@@ -53,6 +53,10 @@ public static class DependencyInjection
         services.AddSingleton<IStartupDiagnostics, StartupDiagnostics>();
         services.AddSingleton<ISupportDiagnosticsService, SupportDiagnosticsService>();
         services.AddSingleton<ISignedAppcastVerifier, SignedAppcastVerifier>();
+        services.AddSingleton<ISignedPayloadVerifier, SignedPayloadVerifier>();
+        services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(30) });
+        services.AddSingleton<IPortableUpdateService, PortableUpdateService>();
+        services.AddSingleton<IUpdateInstallerLauncher, UnavailableUpdateInstallerLauncher>();
 
         // 1. Master Password & Security Context
         services.AddSingleton<ISecurityContext, SecurityContext>();

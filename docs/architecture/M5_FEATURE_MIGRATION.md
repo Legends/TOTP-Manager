@@ -1,5 +1,7 @@
 # M5 Avalonia feature migration
 
+The closure matrix is recorded in `M5_FEATURE_PARITY.md`.
+
 ## M5.1 Authorization and recovery
 
 The authorization and recovery implementation and its security review are recorded in `M4_SHELL_AND_DESIGN_FOUNDATION.md` because the first feature slice was built directly on that shell boundary. The persisted v2 contract remains documented in `docs/security/AUTHORIZATION_ENVELOPE_V2.md`.
@@ -91,3 +93,20 @@ Logging continues to use the OS adapter's application paths and the redacting fo
 - Data-flow impact: only stage names from a closed enum, coarse timing, success flags, runtime identifiers, version, and a log-directory availability boolean enter diagnostics state. Diagnostics are memory-only.
 - Compatibility impact: vault, authorization, preferences, export, logging path, and release formats are unchanged. Existing platform-specific application path adapters remain authoritative.
 - Test evidence: tests cover startup stage recording, last-record snapshot behavior, support-output path exclusion, safe diagnostic failure mapping, success/error banner severity, recoverable single-action dialog projection, JSON/URI/key-value/bearer redaction, and existing Windows/macOS/Linux application path contracts.
+
+## M5.8 Auto-update UI
+
+The Avalonia updater is now a stateful client of `IPortableUpdateService`, not a NetSparkle/WPF UI wrapper. Check, explicit download, cancellation, progress, release notes, verified-package-ready, installer-started, and recoverable failure states are presentation-owned and testable without network or process execution. A check never starts a download, and a download never starts installation. Release notes are rendered as bounded plain text rather than remote HTML.
+
+Infrastructure owns feed and package trust. An enabled feed must use HTTPS and provide an Ed25519 public key, separately fetched appcast signature, and a signed appcast. Portable clients require every selected enclosure to declare an explicit OS and architecture, preventing a generic WPF artifact from being offered to Linux, macOS, or an Avalonia Windows package. The selected enclosure must also carry a correctly shaped `sparkle:edSignature` before download is enabled.
+
+Downloads use response streaming, a 128 MiB hard limit, a generated application-data staging name, current-user directory/file restrictions, cancellation, and best-effort partial cleanup. The complete staged payload is verified with Ed25519 before it is renamed to a ready package. Invalid signatures never produce an installable state. The ready-package contract carries the expected signature and public key so each future platform installer adapter can reverify immediately before process handoff and close the post-download TOCTOU window.
+
+Installer execution is isolated behind `IUpdateInstallerLauncher`. M5 intentionally registers a fail-closed unavailable adapter: the existing production updater is Windows/WPF-specific, and no Avalonia release packages or platform installers have been approved yet. The UI therefore reports a verified ready package and an explicit unsupported-installer warning instead of attempting to run the WPF updater or treating a downloaded archive as installed. Windows, macOS, and Linux installer adapters belong to M6 packaging/platform work.
+
+The current Avalonia composition root supplies no production feed configuration, so update checking reports disabled by default. This prevents the preview client from consuming the existing WPF release channel. A future package may enable the service only with its own target-qualified signed appcast entries and installer adapter.
+
+- Threat impact: neither an unsigned appcast, generic cross-target artifact, unsigned package, oversized response, HTTP feed, partial download, nor unsupported installer can reach installation.
+- Data-flow impact: public appcast/package signatures, public key, bounded release notes, target identifiers, progress counts, and the private ready-package path cross the update service boundary. The UI never exposes the URL or local path.
+- Compatibility impact: the existing WPF NetSparkle workflow, production key, appcast parser defaults, and updater process are unchanged. The new explicit-target requirement is requested only by the portable client.
+- Test evidence: verifier tests preserve the existing signed fixture and reject generic artifacts when explicit targeting is requested. Portable service tests generate Ed25519 fixtures, verify both appcast and package, enforce HTTPS, reject tampered payloads, and assert partial cleanup. View-model tests cover no implicit download, release notes, progress-ready state, adapter failure sanitization, and verification failure.

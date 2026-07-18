@@ -271,7 +271,7 @@ public sealed class MainWindowViewModelTests
             CreateLocalization());
 
     private static UpdateCheckViewModel CreateUpdateCheck() =>
-        new(Mock.Of<ISignedAppcastVerifier>());
+        new(Mock.Of<IPortableUpdateService>(), Mock.Of<IUpdateInstallerLauncher>());
 
     private static DiagnosticsViewModel CreateDiagnostics() =>
         new(Mock.Of<ISupportDiagnosticsService>());

@@ -14,12 +14,15 @@ public sealed record SignedAppcastCheckRequest(
     string PublicKey,
     Version CurrentVersion,
     string OperatingSystem,
-    string Architecture);
+    string Architecture,
+    bool RequireExplicitTarget = false);
 
 public sealed record SignedAppcastCheckResult(
     SignedAppcastCheckStatus Status,
     Version? Version = null,
-    Uri? ArtifactUri = null);
+    Uri? ArtifactUri = null,
+    string? ArtifactSignature = null,
+    string? ReleaseNotes = null);
 
 public interface ISignedAppcastVerifier
 {

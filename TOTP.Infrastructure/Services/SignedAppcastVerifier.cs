@@ -56,7 +56,8 @@ public sealed class SignedAppcastVerifier : ISignedAppcastVerifier
                 .Where(candidate => MatchesTarget(
                     candidate,
                     request.OperatingSystem,
-                    request.Architecture))
+                    request.Architecture,
+                    request.RequireExplicitTarget))
                 .Where(candidate => candidate.Version > request.CurrentVersion)
                 .OrderByDescending(candidate => candidate.Version)
                 .ToArray();
@@ -68,7 +69,9 @@ public sealed class SignedAppcastVerifier : ISignedAppcastVerifier
             return new(
                 SignedAppcastCheckStatus.UpdateAvailable,
                 selected.Version,
-                selected.ArtifactUri);
+                selected.ArtifactUri,
+                selected.ArtifactSignature,
+                selected.ReleaseNotes);
         }
         catch (Exception) when (parsingCopy.Length <= MaximumAppcastBytes)
         {
@@ -136,20 +139,42 @@ public sealed class SignedAppcastVerifier : ISignedAppcastVerifier
         return new AppcastCandidate(
             version,
             artifactUri,
+            enclosure?.Attribute(Sparkle + "edSignature")?.Value,
+            BoundReleaseNotes(item.Element("description")?.Value),
             item.Element(Sparkle + "os")?.Value ?? enclosure?.Attribute(Sparkle + "os")?.Value,
             item.Element(Sparkle + "architecture")?.Value
                 ?? enclosure?.Attribute(Sparkle + "architecture")?.Value);
     }
 
-    private static bool MatchesTarget(AppcastCandidate candidate, string operatingSystem, string architecture) =>
-        (string.IsNullOrWhiteSpace(candidate.OperatingSystem)
+    private static bool MatchesTarget(
+        AppcastCandidate candidate,
+        string operatingSystem,
+        string architecture,
+        bool requireExplicitTarget) =>
+        (!requireExplicitTarget
+         || (!string.IsNullOrWhiteSpace(candidate.OperatingSystem)
+             && !string.IsNullOrWhiteSpace(candidate.Architecture)))
+        && (string.IsNullOrWhiteSpace(candidate.OperatingSystem)
          || string.Equals(candidate.OperatingSystem, operatingSystem, StringComparison.OrdinalIgnoreCase))
         && (string.IsNullOrWhiteSpace(candidate.Architecture)
             || string.Equals(candidate.Architecture, architecture, StringComparison.OrdinalIgnoreCase));
 
+    private static string BoundReleaseNotes(string? releaseNotes)
+    {
+        const int maximumCharacters = 20_000;
+        var normalized = string.IsNullOrWhiteSpace(releaseNotes)
+            ? string.Empty
+            : releaseNotes.Trim();
+        return normalized.Length <= maximumCharacters
+            ? normalized
+            : normalized[..maximumCharacters];
+    }
+
     private sealed record AppcastCandidate(
         Version Version,
         Uri ArtifactUri,
+        string? ArtifactSignature,
+        string ReleaseNotes,
         string? OperatingSystem,
         string? Architecture);
 }

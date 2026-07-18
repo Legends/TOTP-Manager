@@ -163,12 +163,28 @@
                 <ContentControl Content="{Binding UpdateCheck}">
             <ContentControl.ContentTemplate>
                 <DataTemplate x:DataType="presentation:UpdateCheckViewModel">
-                    <StackPanel Spacing="6">
-                        <Button Command="{Binding CheckCommand}" Content="{DynamicResource VerifyAppcast}" />
-                        <TextBlock
-                            automation:AutomationProperties.LiveSetting="Polite"
-                            Text="{Binding Message}"
-                            TextWrapping="Wrap" />
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Command="{Binding CheckCommand}" Content="{DynamicResource VerifyAppcast}" />
+                            <Button Command="{Binding DownloadCommand}" Content="{DynamicResource DownloadUpdate}" />
+                            <Button Command="{Binding InstallCommand}" Content="{DynamicResource InstallUpdate}" />
+                            <Button Command="{Binding CancelCommand}" Content="{DynamicResource Cancel}" />
+                        </StackPanel>
+                        <shared:NotificationBanner
+                            Severity="{Binding MessageSeverity}"
+                            Text="{Binding Message}" />
+                        <ProgressBar
+                            IsIndeterminate="{Binding IsProgressIndeterminate}"
+                            Maximum="100"
+                            Minimum="0"
+                            Value="{Binding ProgressPercentage}" />
+                        <TextBlock IsVisible="{Binding HasOffer}" Text="{Binding Version, StringFormat='Available version: {0}'}" />
+                        <Border Classes="subtle-card" IsVisible="{Binding HasReleaseNotes}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Classes="heading" Text="{DynamicResource ReleaseNotes}" />
+                                <TextBlock Text="{Binding ReleaseNotes}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </DataTemplate>
             </ContentControl.ContentTemplate>

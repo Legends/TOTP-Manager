@@ -643,12 +643,12 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 
 ## M5.8 Auto-update UI
 
-- [ ] Port update checking UI.
-- [ ] Port release notes display.
-- [ ] Port download progress.
-- [ ] Port install-ready and failure states.
-- [ ] Preserve strict signature verification.
-- [ ] Separate UI from platform installer execution.
+- [x] Port update checking UI.
+- [x] Port release notes display.
+- [x] Port download progress.
+- [x] Port install-ready and failure states.
+- [x] Preserve strict signature verification.
+- [x] Separate UI from platform installer execution.
 
 ### M5 exit criteria
 

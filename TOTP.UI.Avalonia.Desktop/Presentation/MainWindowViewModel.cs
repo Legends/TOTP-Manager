@@ -256,6 +256,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         _lifetime.Cancel();
         _lifetime.Dispose();
         CameraScanner.Dispose();
+        UpdateCheck.Dispose();
     }
 
     public void PrepareForShutdown()

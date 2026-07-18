@@ -18,6 +18,9 @@ public static class AvaloniaStringKeys
     public const string ImportConflictHandling = nameof(ImportConflictHandling);
     public const string SupportDiagnostics = nameof(SupportDiagnostics);
     public const string RefreshSupportInformation = nameof(RefreshSupportInformation);
+    public const string DownloadUpdate = nameof(DownloadUpdate);
+    public const string InstallUpdate = nameof(InstallUpdate);
+    public const string ReleaseNotes = nameof(ReleaseNotes);
     public const string VerifyAppcast = nameof(VerifyAppcast);
     public const string ScanQrCamera = nameof(ScanQrCamera);
     public const string CancelScan = nameof(CancelScan);
@@ -135,7 +138,8 @@ public static class AvaloniaStringKeys
     [
         AppTitle, AppHeading, StartingSafely, Retry, MasterPassword, MasterPasswordHelp,
         Unlock, Lock, Accounts, Tools, Settings, ChooseImportFile, ExportEncryptedBackup,
-        ImportConflictHandling, SupportDiagnostics, RefreshSupportInformation, VerifyAppcast,
+        ImportConflictHandling, SupportDiagnostics, RefreshSupportInformation,
+        DownloadUpdate, InstallUpdate, ReleaseNotes, VerifyAppcast,
         ScanQrCamera, CancelScan, SecuritySettings, Language, IdleTimeout,
         IdleTimeoutHelp, LockWhenMinimized, SaveSettings, SearchAccounts, GenerateCode,
         ShowQrCode, CopyTimedClear, Password, PasswordAuthorizationHelp,

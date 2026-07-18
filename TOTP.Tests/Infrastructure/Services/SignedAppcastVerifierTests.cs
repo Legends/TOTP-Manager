@@ -70,6 +70,21 @@ public sealed class SignedAppcastVerifierTests
     }
 
     [Fact]
+    public void Verify_WhenPortableClientRequiresExplicitTarget_RejectsGenericArtifact()
+    {
+        var result = _sut.Verify(new SignedAppcastCheckRequest(
+            Encoding.UTF8.GetBytes(Appcast),
+            Signature,
+            PublicKey,
+            new Version(2, 0, 0),
+            "windows",
+            "x64",
+            RequireExplicitTarget: true));
+
+        Assert.Equal(SignedAppcastCheckStatus.NoApplicableUpdate, result.Status);
+    }
+
+    [Fact]
     public void Verify_WhenAppcastExceedsBound_RejectsFormatBeforeSignatureWork()
     {
         var result = Verify(new byte[256 * 1024 + 1], Signature);
