@@ -62,8 +62,41 @@ jobs:
           path: TestResults
           if-no-files-found: ignore
 
+  unix-file-security:
+    name: Unix file security (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu 24.04 x64
+            runner: ubuntu-24.04
+          - name: macOS ARM64
+            runner: macos-15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "9.0.x"
+          cache: true
+          cache-dependency-path: |
+            TOTP.Core/TOTP.Core.csproj
+            TOTP.Platform.Unix/TOTP.Platform.Unix.csproj
+            TOTP.Tests.Unix/TOTP.Tests.Unix.csproj
+            NuGet.config
+
+      - name: Restore Unix security tests
+        run: dotnet restore TOTP.Tests.Unix/TOTP.Tests.Unix.csproj --nologo --verbosity minimal --configfile NuGet.config
+
+      - name: Run Unix security tests
+        run: dotnet test TOTP.Tests.Unix/TOTP.Tests.Unix.csproj --configuration Release --no-restore --nologo --verbosity minimal
+
   publish:
-    needs: build-test
+    needs: [build-test, unix-file-security]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
     permissions:

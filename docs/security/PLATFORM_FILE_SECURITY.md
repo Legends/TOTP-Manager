@@ -44,6 +44,6 @@ Log files must be user-only by default even though redaction remains mandatory.
 ## Verification evidence
 
 - Windows ACL tests verify protected current-user directory and file rules.
-- Unix tests verify `0700`/`0600` modes, symbolic-link rejection, regular-file enforcement, and missing-path failures on Linux and macOS runners.
+- The dedicated portable Unix test project verifies `0700`/`0600` modes, symbolic-link rejection, regular-file enforcement, and missing-path failures in an Ubuntu 24.04 and macOS ARM64 CI matrix.
 - DAL regression tests inject hardening failures during reads and staged writes.
 - Recovery tests verify that failed vault, settings, export, and backup hardening does not replace or rotate live data.

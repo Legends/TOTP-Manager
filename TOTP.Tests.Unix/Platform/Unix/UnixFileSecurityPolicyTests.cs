@@ -1,6 +1,6 @@
 using TOTP.Platform.Unix;
 
-namespace TOTP.Tests.Platform.Unix;
+namespace TOTP.Tests.Unix.Platform.Unix;
 
 public sealed class UnixFileSecurityPolicyTests
 {

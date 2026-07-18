@@ -42,7 +42,6 @@
     <ProjectReference Include="..\TOTP.Infrastructure\TOTP.Infrastructure.csproj" />
     <ProjectReference Include="..\TOTP.Platform.Linux\TOTP.Platform.Linux.csproj" />
     <ProjectReference Include="..\TOTP.Platform.MacOS\TOTP.Platform.MacOS.csproj" />
-    <ProjectReference Include="..\TOTP.Platform.Unix\TOTP.Platform.Unix.csproj" />
     <ProjectReference Include="..\TOTP.Platform.Windows\TOTP.Platform.Windows.csproj" />
     <ProjectReference Include="..\TOTP.UI.Avalonia.Desktop\TOTP.UI.Avalonia.Desktop.csproj" />
     <ProjectReference Include="..\TOTP\TOTP.UI.WPF.csproj" />
