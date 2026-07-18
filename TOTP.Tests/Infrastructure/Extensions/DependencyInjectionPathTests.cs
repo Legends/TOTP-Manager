@@ -39,6 +39,9 @@ public sealed class DependencyInjectionPathTests : IDisposable
             provider.GetRequiredService<IAuthorizationEnvelopeSession>());
         Assert.IsType<PortableSettingsService>(provider.GetRequiredService<ISettingsService>());
         Assert.IsType<PortableAuthorizationService>(provider.GetRequiredService<IAuthorizationService>());
+        Assert.IsType<PlatformQuickUnlockEnrollment>(
+            provider.GetRequiredService<IPlatformQuickUnlockEnrollment>());
+        Assert.IsType<AccountManager>(provider.GetRequiredService<IAccountManager>());
 
         Assert.IsType<WindowsFileSecurity>(provider.GetRequiredService<IPlatformFileSecurity>());
         Assert.Same(vaultService, vaultKeyVerifier);
@@ -94,7 +97,6 @@ public sealed class DependencyInjectionPathTests : IDisposable
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton(Mock.Of<IPlatformQuickUnlock>());
-        services.AddSingleton(Mock.Of<IPlatformQuickUnlockEnrollment>());
         services.AddInfrastructure(configuration, paths, new WindowsFileSecurity());
         return services.BuildServiceProvider();
     }

@@ -1,8 +1,13 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Platform;
+using TOTP.Infrastructure.Extensions;
+using TOTP.Infrastructure.Security;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
 
 namespace TOTP.Avalonia.Desktop.Startup;
@@ -15,10 +20,17 @@ public static class AvaloniaCompositionRoot
 
         var services = new ServiceCollection();
         var platformServices = DesktopPlatformServiceFactory.Create();
+        var configuration = new ConfigurationBuilder().Build();
 
         services.AddSingleton(desktopLifetime);
+        services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<IPlatformApplicationPaths>(platformServices.ApplicationPaths);
-        services.AddSingleton<IPlatformFileSecurity>(platformServices.FileSecurity);
+        services.AddLogging();
+        services.AddSingleton<IPlatformQuickUnlock, UnavailablePlatformQuickUnlock>();
+        services.AddInfrastructure(
+            configuration,
+            platformServices.ApplicationPaths,
+            platformServices.FileSecurity);
         services.AddSingleton(new AvaloniaUiScheduler(Dispatcher.UIThread));
         services.AddSingleton<IUiScheduler>(provider =>
             provider.GetRequiredService<AvaloniaUiScheduler>());

@@ -1,8 +1,12 @@
 using Avalonia.Controls.ApplicationLifetimes;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Startup;
+using TOTP.Infrastructure.Security;
+using TOTP.Infrastructure.Services;
 using TOTP.Platform.Windows;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
 
@@ -26,5 +30,16 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IPlatformApplicationPaths>());
         Assert.IsType<WindowsFileSecurity>(
             services.GetRequiredService<IPlatformFileSecurity>());
+        Assert.NotNull(services.GetRequiredService<IConfiguration>());
+        Assert.IsType<PortableSettingsService>(
+            services.GetRequiredService<ISettingsService>());
+        Assert.IsType<PortableAuthorizationService>(
+            services.GetRequiredService<IAuthorizationService>());
+        Assert.IsType<PlatformQuickUnlockEnrollment>(
+            services.GetRequiredService<IPlatformQuickUnlockEnrollment>());
+        Assert.IsType<UnavailablePlatformQuickUnlock>(
+            services.GetRequiredService<IPlatformQuickUnlock>());
+        Assert.IsType<AccountManager>(
+            services.GetRequiredService<IAccountManager>());
     }
 }
