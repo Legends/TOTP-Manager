@@ -2,24 +2,52 @@ using OpenCvSharp;
 
 namespace TOTP.Camera.OpenCv;
 
-public sealed record OpenCvNativeRuntimeProbeResult(bool IsAvailable, string Version);
+public enum OpenCvNativeRuntimeProbeFailure
+{
+    None = 0,
+    RuntimeLoad,
+    DecoderInitialization,
+    CaptureInitialization
+}
+
+public sealed record OpenCvNativeRuntimeProbeResult(
+    bool IsAvailable,
+    string Version,
+    OpenCvNativeRuntimeProbeFailure Failure);
 
 public static class OpenCvNativeRuntimeProbe
 {
     public static OpenCvNativeRuntimeProbeResult Probe()
     {
+        string version;
         try
         {
-            var version = Cv2.GetVersionString();
-            using var detector = new QRCodeDetector();
-            using var capture = new VideoCapture();
-            return string.IsNullOrWhiteSpace(version)
-                ? new(false, string.Empty)
-                : new(true, version);
+            version = Cv2.GetVersionString();
         }
         catch (Exception)
         {
-            return new(false, string.Empty);
+            return new(false, string.Empty, OpenCvNativeRuntimeProbeFailure.RuntimeLoad);
+        }
+
+        try
+        {
+            using var detector = new QRCodeDetector();
+        }
+        catch (Exception)
+        {
+            return new(false, version, OpenCvNativeRuntimeProbeFailure.DecoderInitialization);
+        }
+
+        try
+        {
+            using var capture = new VideoCapture();
+            return string.IsNullOrWhiteSpace(version)
+                ? new(false, string.Empty, OpenCvNativeRuntimeProbeFailure.RuntimeLoad)
+                : new(true, version, OpenCvNativeRuntimeProbeFailure.None);
+        }
+        catch (Exception)
+        {
+            return new(false, version, OpenCvNativeRuntimeProbeFailure.CaptureInitialization);
         }
     }
 }

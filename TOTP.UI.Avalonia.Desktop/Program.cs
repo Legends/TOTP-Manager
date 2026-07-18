@@ -14,7 +14,10 @@ internal static class Program
     {
         if (args is ["--m3-native-probe"])
         {
-            Environment.ExitCode = OpenCvNativeRuntimeProbe.Probe().IsAvailable ? 0 : 2;
+            var probe = OpenCvNativeRuntimeProbe.Probe();
+            if (!probe.IsAvailable)
+                Console.Error.WriteLine($"OpenCV native probe failure: {probe.Failure}");
+            Environment.ExitCode = probe.IsAvailable ? 0 : 2;
             return;
         }
 

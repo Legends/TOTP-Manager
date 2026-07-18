@@ -9,11 +9,14 @@
     Height="640"
     MinWidth="640"
     MinHeight="480">
-    <StackPanel
-        Width="560"
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center"
-        Spacing="20">
+    <ScrollViewer
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel
+            Width="560"
+            Margin="24"
+            HorizontalAlignment="Center"
+            Spacing="20">
         <TextBlock
             HorizontalAlignment="Center"
             FontSize="24"
@@ -192,5 +195,6 @@
                 </ContentControl.ContentTemplate>
             </ContentControl>
         </Border>
-    </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
 </Window>
