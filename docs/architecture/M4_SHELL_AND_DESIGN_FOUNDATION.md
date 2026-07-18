@@ -91,6 +91,17 @@ Startup attempts quick unlock only when the verified authorization state records
 - Compatibility impact: authorization envelope and preference formats are unchanged. WPF keeps its existing provider. macOS and Linux remain password-only pending reviewed M6 adapters.
 - Test evidence: startup tests cover password-only bypass, verified quick-unlock success, every recoverable failure class, and a fail-closed inconsistent-success result. Shell tests verify automatic authorized entry and password-fallback projection. Interactive Windows Hello acceptance remains target evidence and is not claimed by these automated tests.
 
+## M5.1 quick-unlock settings
+
+The authorized Settings surface checks platform availability through `IAuthorizationService`, reports password-only fallback explicitly, and permits enrollment only through the existing reviewed authorization workflow. If a valid platform wrapper already exists, selecting it changes only the preferred startup gate. Otherwise, the owned password dialog requires the current master password and `ConfigureHelloAsync` verifies recovery access before any platform registration is committed.
+
+Changing the startup preference back to password requires master-password reauthorization. It deliberately retains the platform wrapper, matching the existing service contract, so the user may select quick unlock again without creating abandoned TPM keys. The UI labels this as a startup preference rather than claiming that platform enrollment was deleted.
+
+- Threat impact: quick unlock cannot become the only recovery mechanism; enrollment is unavailable without a valid recovery password, and OS/provider failures preserve password access.
+- Data-flow impact: the recovery password crosses only the owned dialog and authorization contract, and its presentation references are cleared immediately after the call. No password or platform result detail is logged.
+- Compatibility impact: this is an adapter over the existing v2 envelope and preference state machine. It introduces no schema, KDF, wrapper, or migration change.
+- Test evidence: tests cover platform availability, enrollment requiring the recovery-password prompt, cancellation without enrollment, and password reauthorization before changing the startup preference. Physical Windows Hello enrollment and cancellation remain target evidence.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.

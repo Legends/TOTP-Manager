@@ -81,6 +81,7 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<PasswordSetupViewModel>();
         services.AddSingleton<AccountListViewModel>();
         services.AddSingleton<SettingsPageViewModel>();
+        services.AddSingleton<AuthorizationSettingsViewModel>();
         services.AddSingleton<NativeFilePickerViewModel>();
         services.AddSingleton<CameraScannerViewModel>();
         services.AddSingleton<UpdateCheckViewModel>();

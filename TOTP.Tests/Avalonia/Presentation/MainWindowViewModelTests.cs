@@ -89,6 +89,7 @@ public sealed class MainWindowViewModelTests
             CreatePasswordSetup(authorization.Object),
             accounts,
             CreateSettingsPage(),
+            CreateAuthorizationSettings(authorization.Object),
             CreateFilePicker(),
             CreateCameraScanner(),
             CreateUpdateCheck(),
@@ -122,6 +123,7 @@ public sealed class MainWindowViewModelTests
             CreatePasswordSetup(authorization.Object),
             accounts,
             CreateSettingsPage(),
+            CreateAuthorizationSettings(authorization.Object),
             CreateFilePicker(),
             CreateCameraScanner(),
             CreateUpdateCheck(),
@@ -163,6 +165,7 @@ public sealed class MainWindowViewModelTests
             CreatePasswordSetup(authorization.Object),
             accounts,
             CreateSettingsPage(),
+            CreateAuthorizationSettings(authorization.Object),
             CreateFilePicker(),
             CreateCameraScanner(),
             CreateUpdateCheck(),
@@ -201,6 +204,7 @@ public sealed class MainWindowViewModelTests
                 Mock.Of<IAccountQrCodeService>(),
                 Mock.Of<IAvaloniaQrImageFactory>()),
             CreateSettingsPage(),
+            CreateAuthorizationSettings(Mock.Of<IAuthorizationService>()),
             CreateFilePicker(),
             CreateCameraScanner(),
             CreateUpdateCheck(),
@@ -212,6 +216,10 @@ public sealed class MainWindowViewModelTests
         settings.SetupGet(value => value.Current).Returns(new AppSettings());
         return new SettingsPageViewModel(settings.Object);
     }
+
+    private static AuthorizationSettingsViewModel CreateAuthorizationSettings(
+        IAuthorizationService authorization) =>
+        new(authorization, Mock.Of<IAvaloniaDialogService>(), CreateLocalization());
 
     private static NativeFilePickerViewModel CreateFilePicker() =>
         new(Mock.Of<IAvaloniaFilePicker>());

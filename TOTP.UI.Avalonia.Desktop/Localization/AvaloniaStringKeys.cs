@@ -51,6 +51,25 @@ public static class AvaloniaStringKeys
     public const string VaultConfigured = nameof(VaultConfigured);
     public const string VaultUnlocked = nameof(VaultUnlocked);
     public const string QuickUnlockFallback = nameof(QuickUnlockFallback);
+    public const string QuickUnlock = nameof(QuickUnlock);
+    public const string QuickUnlockRecoveryNotice = nameof(QuickUnlockRecoveryNotice);
+    public const string QuickUnlockAvailable = nameof(QuickUnlockAvailable);
+    public const string QuickUnlockUnavailable = nameof(QuickUnlockUnavailable);
+    public const string EnableQuickUnlock = nameof(EnableQuickUnlock);
+    public const string QuickUnlockRecoveryPrompt = nameof(QuickUnlockRecoveryPrompt);
+    public const string QuickUnlockEnrollmentCancelled = nameof(QuickUnlockEnrollmentCancelled);
+    public const string QuickUnlockEnrollmentFailed = nameof(QuickUnlockEnrollmentFailed);
+    public const string QuickUnlockEnabled = nameof(QuickUnlockEnabled);
+    public const string UsePasswordAtStartup = nameof(UsePasswordAtStartup);
+    public const string PasswordPreferencePrompt = nameof(PasswordPreferencePrompt);
+    public const string PasswordPreferenceUnchanged = nameof(PasswordPreferenceUnchanged);
+    public const string PasswordPreferenceFailed = nameof(PasswordPreferenceFailed);
+    public const string PasswordPreferred = nameof(PasswordPreferred);
+    public const string PasswordVerificationFailed = nameof(PasswordVerificationFailed);
+    public const string Enable = nameof(Enable);
+    public const string Confirm = nameof(Confirm);
+    public const string Cancel = nameof(Cancel);
+    public const string Refresh = nameof(Refresh);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -63,6 +82,11 @@ public static class AvaloniaStringKeys
         GeneratedCode, GeneratedQr, QrPrivacyNotice, CameraPreview, CreatePasswordHeading,
         PasswordSetupHelp, NewPassword, ConfirmPassword, CreateVault, PasswordRequired,
         PasswordMinimumLength, PasswordMismatch, PasswordSetupFailed, ExistingVaultConflict,
-        VaultConfigured, VaultUnlocked, QuickUnlockFallback
+        VaultConfigured, VaultUnlocked, QuickUnlockFallback, QuickUnlock,
+        QuickUnlockRecoveryNotice, QuickUnlockAvailable, QuickUnlockUnavailable,
+        EnableQuickUnlock, QuickUnlockRecoveryPrompt, QuickUnlockEnrollmentCancelled,
+        QuickUnlockEnrollmentFailed, QuickUnlockEnabled, UsePasswordAtStartup,
+        PasswordPreferencePrompt, PasswordPreferenceUnchanged, PasswordPreferenceFailed,
+        PasswordPreferred, PasswordVerificationFailed, Enable, Confirm, Cancel, Refresh
     ];
 }

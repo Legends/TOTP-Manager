@@ -13,6 +13,25 @@
   <data name="Unlock" xml:space="preserve"><value>Unlock</value></data>
   <data name="VaultUnlocked" xml:space="preserve"><value>Vault unlocked.</value></data>
   <data name="QuickUnlockFallback" xml:space="preserve"><value>Quick unlock was not completed. Enter your master password to recover access.</value></data>
+  <data name="QuickUnlock" xml:space="preserve"><value>Quick unlock</value></data>
+  <data name="QuickUnlockRecoveryNotice" xml:space="preserve"><value>Quick unlock is optional. Your master password remains the recovery method and is required to enable or change security settings.</value></data>
+  <data name="QuickUnlockAvailable" xml:space="preserve"><value>Quick unlock is available on this system.</value></data>
+  <data name="QuickUnlockUnavailable" xml:space="preserve"><value>Quick unlock is unavailable on this system. Master-password unlock remains available.</value></data>
+  <data name="EnableQuickUnlock" xml:space="preserve"><value>Enable quick unlock</value></data>
+  <data name="QuickUnlockRecoveryPrompt" xml:space="preserve"><value>Enter your master password to verify recovery access before enabling platform quick unlock.</value></data>
+  <data name="QuickUnlockEnrollmentCancelled" xml:space="preserve"><value>Quick unlock was not enabled. Master-password unlock is unchanged.</value></data>
+  <data name="QuickUnlockEnrollmentFailed" xml:space="preserve"><value>Quick unlock could not be enabled. Master-password unlock remains available.</value></data>
+  <data name="QuickUnlockEnabled" xml:space="preserve"><value>Quick unlock is enabled. Keep your master password for recovery.</value></data>
+  <data name="UsePasswordAtStartup" xml:space="preserve"><value>Use password at startup</value></data>
+  <data name="PasswordPreferencePrompt" xml:space="preserve"><value>Verify your master password before changing the preferred startup unlock method.</value></data>
+  <data name="PasswordPreferenceUnchanged" xml:space="preserve"><value>The startup unlock method was not changed.</value></data>
+  <data name="PasswordPreferenceFailed" xml:space="preserve"><value>The startup unlock method could not be changed safely.</value></data>
+  <data name="PasswordPreferred" xml:space="preserve"><value>Master password will be requested at startup. Existing quick-unlock enrollment is retained.</value></data>
+  <data name="PasswordVerificationFailed" xml:space="preserve"><value>The master password could not be verified.</value></data>
+  <data name="Enable" xml:space="preserve"><value>Enable</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
   <data name="Lock" xml:space="preserve"><value>Lock</value></data>
   <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
   <data name="Tools" xml:space="preserve"><value>Tools</value></data>

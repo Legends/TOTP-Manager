@@ -39,6 +39,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordSetupViewModel passwordSetup,
         AccountListViewModel accountList,
         SettingsPageViewModel settingsPage,
+        AuthorizationSettingsViewModel authorizationSettings,
         NativeFilePickerViewModel nativeFilePicker,
         CameraScannerViewModel cameraScanner,
         UpdateCheckViewModel updateCheck,
@@ -50,6 +51,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordSetup = passwordSetup ?? throw new ArgumentNullException(nameof(passwordSetup));
         AccountList = accountList ?? throw new ArgumentNullException(nameof(accountList));
         SettingsPage = settingsPage ?? throw new ArgumentNullException(nameof(settingsPage));
+        AuthorizationSettings = authorizationSettings ?? throw new ArgumentNullException(nameof(authorizationSettings));
         NativeFilePicker = nativeFilePicker ?? throw new ArgumentNullException(nameof(nativeFilePicker));
         CameraScanner = cameraScanner ?? throw new ArgumentNullException(nameof(cameraScanner));
         UpdateCheck = updateCheck ?? throw new ArgumentNullException(nameof(updateCheck));
@@ -116,6 +118,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public AccountListViewModel AccountList { get; }
 
     public SettingsPageViewModel SettingsPage { get; }
+
+    public AuthorizationSettingsViewModel AuthorizationSettings { get; }
 
     public NativeFilePickerViewModel NativeFilePicker { get; }
 
@@ -308,10 +312,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         return Task.CompletedTask;
     }
 
-    public Task ShowSettingsAsync()
+    public async Task ShowSettingsAsync()
     {
-        if (IsShellVisible) SetActivePage(ShellPage.Settings);
-        return Task.CompletedTask;
+        if (!IsShellVisible) return;
+        SetActivePage(ShellPage.Settings);
+        await AuthorizationSettings.RefreshAsync();
     }
 
     private void SetActivePage(ShellPage page)

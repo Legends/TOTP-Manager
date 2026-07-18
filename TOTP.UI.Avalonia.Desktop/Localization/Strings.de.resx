@@ -13,6 +13,25 @@
   <data name="Unlock" xml:space="preserve"><value>Entsperren</value></data>
   <data name="VaultUnlocked" xml:space="preserve"><value>Tresor entsperrt.</value></data>
   <data name="QuickUnlockFallback" xml:space="preserve"><value>Die Schnellentsperrung wurde nicht abgeschlossen. Gib dein Master-Passwort ein, um den Zugriff wiederherzustellen.</value></data>
+  <data name="QuickUnlock" xml:space="preserve"><value>Schnellentsperrung</value></data>
+  <data name="QuickUnlockRecoveryNotice" xml:space="preserve"><value>Die Schnellentsperrung ist optional. Dein Master-Passwort bleibt die Wiederherstellungsmethode und ist zum Aktivieren oder Ändern der Sicherheitseinstellungen erforderlich.</value></data>
+  <data name="QuickUnlockAvailable" xml:space="preserve"><value>Die Schnellentsperrung ist auf diesem System verfügbar.</value></data>
+  <data name="QuickUnlockUnavailable" xml:space="preserve"><value>Die Schnellentsperrung ist auf diesem System nicht verfügbar. Das Entsperren mit Master-Passwort bleibt verfügbar.</value></data>
+  <data name="EnableQuickUnlock" xml:space="preserve"><value>Schnellentsperrung aktivieren</value></data>
+  <data name="QuickUnlockRecoveryPrompt" xml:space="preserve"><value>Gib dein Master-Passwort ein, um den Wiederherstellungszugriff vor der Aktivierung der Plattform-Schnellentsperrung zu bestätigen.</value></data>
+  <data name="QuickUnlockEnrollmentCancelled" xml:space="preserve"><value>Die Schnellentsperrung wurde nicht aktiviert. Das Entsperren mit Master-Passwort bleibt unverändert.</value></data>
+  <data name="QuickUnlockEnrollmentFailed" xml:space="preserve"><value>Die Schnellentsperrung konnte nicht aktiviert werden. Das Entsperren mit Master-Passwort bleibt verfügbar.</value></data>
+  <data name="QuickUnlockEnabled" xml:space="preserve"><value>Die Schnellentsperrung ist aktiviert. Bewahre dein Master-Passwort zur Wiederherstellung auf.</value></data>
+  <data name="UsePasswordAtStartup" xml:space="preserve"><value>Passwort beim Start verwenden</value></data>
+  <data name="PasswordPreferencePrompt" xml:space="preserve"><value>Bestätige dein Master-Passwort, bevor die bevorzugte Entsperrmethode beim Start geändert wird.</value></data>
+  <data name="PasswordPreferenceUnchanged" xml:space="preserve"><value>Die Entsperrmethode beim Start wurde nicht geändert.</value></data>
+  <data name="PasswordPreferenceFailed" xml:space="preserve"><value>Die Entsperrmethode beim Start konnte nicht sicher geändert werden.</value></data>
+  <data name="PasswordPreferred" xml:space="preserve"><value>Beim Start wird das Master-Passwort angefordert. Die vorhandene Schnellentsperrung bleibt registriert.</value></data>
+  <data name="PasswordVerificationFailed" xml:space="preserve"><value>Das Master-Passwort konnte nicht bestätigt werden.</value></data>
+  <data name="Enable" xml:space="preserve"><value>Aktivieren</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Bestätigen</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Aktualisieren</value></data>
   <data name="Lock" xml:space="preserve"><value>Sperren</value></data>
   <data name="Accounts" xml:space="preserve"><value>Konten</value></data>
   <data name="Tools" xml:space="preserve"><value>Werkzeuge</value></data>
