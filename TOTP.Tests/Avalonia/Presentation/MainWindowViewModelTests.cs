@@ -45,9 +45,36 @@ public sealed class MainWindowViewModelTests
         Assert.DoesNotContain("sensitive", sut.StatusText, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task LockAsync_LocksAuthorizationAndReturnsToPasswordGate()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyForUnlock);
+        var authorization = new Mock<IAuthorizationService>();
+        var password = new PasswordUnlockViewModel(authorization.Object);
+        using var accounts = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            Mock.Of<IAccountTotpService>());
+        using var sut = new MainWindowViewModel(
+            coordinator.Object,
+            authorization.Object,
+            password,
+            accounts);
+        await sut.InitializeAsync();
+
+        await sut.LockAsync();
+
+        authorization.Verify(value => value.Lock(), Times.Once);
+        Assert.True(sut.IsPasswordUnlockVisible);
+        Assert.False(sut.IsAccountListVisible);
+        Assert.Contains("locked", sut.StatusText, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static MainWindowViewModel CreateSut(IAvaloniaStartupCoordinator coordinator) =>
         new(
             coordinator,
+            Mock.Of<IAuthorizationService>(),
             new PasswordUnlockViewModel(Mock.Of<IAuthorizationService>()),
             new AccountListViewModel(
                 Mock.Of<IAccountManager>(),

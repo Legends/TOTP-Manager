@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Avalonia.Desktop.Startup;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
@@ -8,7 +9,9 @@ namespace TOTP.Avalonia.Desktop.Presentation;
 public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly IAvaloniaStartupCoordinator _startupCoordinator;
+    private readonly IAuthorizationService _authorizationService;
     private readonly AsyncCommand _initializeCommand;
+    private readonly AsyncCommand _lockCommand;
     private readonly CancellationTokenSource _lifetime = new();
     private string _statusText = "Starting TOTP Manager…";
     private bool _isBusy;
@@ -18,14 +21,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public MainWindowViewModel(
         IAvaloniaStartupCoordinator startupCoordinator,
+        IAuthorizationService authorizationService,
         PasswordUnlockViewModel passwordUnlock,
         AccountListViewModel accountList)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
+        _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
         PasswordUnlock = passwordUnlock ?? throw new ArgumentNullException(nameof(passwordUnlock));
         AccountList = accountList ?? throw new ArgumentNullException(nameof(accountList));
         PasswordUnlock.Unlocked += OnUnlocked;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
+        _lockCommand = new AsyncCommand(LockAsync, () => _isAccountListVisible);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -54,6 +60,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public ICommand InitializeCommand => _initializeCommand;
 
+    public ICommand LockCommand => _lockCommand;
+
     public PasswordUnlockViewModel PasswordUnlock { get; }
 
     public AccountListViewModel AccountList { get; }
@@ -67,7 +75,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public bool IsAccountListVisible
     {
         get => _isAccountListVisible;
-        private set => SetField(ref _isAccountListVisible, value);
+        private set
+        {
+            if (!SetField(ref _isAccountListVisible, value)) return;
+            _lockCommand.NotifyCanExecuteChanged();
+        }
     }
 
     public async Task InitializeAsync()
@@ -124,6 +136,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsAccountListVisible = true;
         StatusText = "Vault unlocked.";
         AccountList.LoadCommand.Execute(null);
+    }
+
+    public Task LockAsync()
+    {
+        _authorizationService.Lock();
+        AccountList.Clear();
+        IsAccountListVisible = false;
+        IsPasswordUnlockVisible = true;
+        StatusText = "Vault locked. Enter your master password to continue.";
+        return Task.CompletedTask;
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

@@ -220,6 +220,16 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     public void Dispose() => ClearGeneratedCode();
 
+    public void Clear()
+    {
+        SelectedAccount = null;
+        SearchText = string.Empty;
+        _allAccounts = [];
+        Accounts = [];
+        Message = string.Empty;
+        ClearGeneratedCode();
+    }
+
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return false;

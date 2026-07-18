@@ -52,6 +52,11 @@
                 </ContentControl.ContentTemplate>
             </ContentControl>
         </Border>
+        <Button
+            HorizontalAlignment="Right"
+            Command="{Binding LockCommand}"
+            Content="Lock"
+            IsVisible="{Binding IsAccountListVisible}" />
         <Border IsVisible="{Binding IsAccountListVisible}">
             <ContentControl Content="{Binding AccountList}">
                 <ContentControl.ContentTemplate>

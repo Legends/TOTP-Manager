@@ -127,6 +127,32 @@ public sealed class AccountListViewModelTests
         Assert.DoesNotContain("SECRET", sut.CodeMessage, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task Clear_RemovesRowsSelectionSearchAndGeneratedCode()
+    {
+        var id = Guid.NewGuid();
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
+                [new Account(id, "Issuer", "SECRET", "account")]));
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(id))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 30, 30)));
+        using var sut = new AccountListViewModel(manager.Object, totp.Object);
+        await sut.LoadAsync();
+        sut.SelectedAccount = sut.Accounts[0];
+        sut.SearchText = "Issuer";
+        await sut.GenerateCodeAsync();
+
+        sut.Clear();
+
+        Assert.Empty(sut.Accounts);
+        Assert.Null(sut.SelectedAccount);
+        Assert.Empty(sut.SearchText);
+        Assert.Empty(sut.GeneratedCode);
+        Assert.Empty(sut.CodeMessage);
+    }
+
     private static AccountListViewModel CreateSut(IAccountManager manager) =>
         new(manager, Mock.Of<IAccountTotpService>());
 }

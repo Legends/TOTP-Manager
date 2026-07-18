@@ -457,7 +457,7 @@ Any replacement failure before Active
 - [x] Search and filtering.
 - [x] TOTP generation.
 - [ ] Copy with timed clipboard clearing.
-- [ ] Manual lock.
+- [x] Manual lock.
 - [ ] One settings page.
 - [ ] QR generation.
 - [ ] Camera QR scan.
