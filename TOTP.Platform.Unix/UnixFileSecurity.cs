@@ -1,4 +1,5 @@
 using TOTP.Core.Services.Interfaces;
+using TOTP.Platform.Unix.Native;
 
 namespace TOTP.Platform.Unix;
 
@@ -12,7 +13,7 @@ public sealed class UnixFileSecurity : IPlatformFileSecurity
     private readonly IUnixFileSystem _fileSystem;
 
     public UnixFileSecurity()
-        : this(new MonoPosixUnixFileSystem())
+        : this(new NativeUnixFileSystem())
     {
     }
 

@@ -27,7 +27,6 @@ Components include (non-exhaustive):
 - `Avalonia.Themes.Fluent`
 - `FluentResults`
 - `Microsoft.Extensions.*`
-- `Mono.Posix.NETStandard`
 - `Microsoft.Xaml.Behaviors.Wpf`
 - `Notification.Wpf`
 - `Newtonsoft.Json`

@@ -17,13 +17,14 @@ Vault, settings, encrypted export, and backup writes use a uniquely named, exclu
 
 The Unix adapter:
 
-- Create application data, configuration, backup, state, and log directories with mode `0700`.
-- Create vault, encrypted settings, backups, and updater state with mode `0600`.
-- Use mode `0600` for application-managed export staging files. The selected export directory itself must not be re-permissioned.
-- Verify that sensitive files and directories are owned by the effective user.
-- Reject symbolic links and unexpected non-regular files at sensitive storage destinations.
-- Apply and then verify permissions; an unsuccessful `chmod`, ownership check, or type check is a hardening failure.
-- Fail closed without falling back to a shared directory or plaintext persistence.
+- Opens paths through platform-specific libc bindings with `O_NOFOLLOW`, `O_NONBLOCK`, and `O_CLOEXEC`; Linux and macOS ABI details remain isolated behind the internal filesystem seam.
+- Creates application data, configuration, backup, state, and log directories with mode `0700`.
+- Creates vault, encrypted settings, backups, and updater state with mode `0600`.
+- Uses mode `0600` for application-managed export staging files. The selected export directory itself must not be re-permissioned.
+- Verifies that sensitive files and directories are owned by the effective user.
+- Rejects symbolic links and unexpected non-regular files at sensitive storage destinations.
+- Applies and then verifies permissions; an unsuccessful `chmod`, ownership check, or type check is a hardening failure.
+- Fails closed without falling back to a shared directory or plaintext persistence.
 
 Log files must be user-only by default even though redaction remains mandatory.
 
@@ -33,6 +34,7 @@ Log files must be user-only by default even though redaction remains mandatory.
 - Closes the previous behavior where an ACL exception was logged but the write still reported success.
 - Hardening before atomic replacement avoids replacing a protected live file with an unverified file.
 - Permission enforcement reduces exposure to other local accounts. It does not protect against malware running as the same user or an already-compromised administrator account.
+- Native helper binaries are not shipped. Using the runtime architecture's libc avoids loading an incompatible helper and keeps permission changes bound to the verified open descriptor.
 
 ## Data flow and compatibility
 
@@ -40,6 +42,7 @@ Log files must be user-only by default even though redaction remains mandatory.
 - Existing files are re-hardened before they are read. If the OS denies that operation, the existing access-denied result is returned and the file is not modified.
 - Existing configured storage paths remain supported.
 - Backup names and rotation depth remain unchanged.
+- Linux x64 and macOS x64/ARM64 are supported by the current native adapters. Other Unix architectures fail closed until their ABI mapping and integration tests are added.
 
 ## Verification evidence
 
