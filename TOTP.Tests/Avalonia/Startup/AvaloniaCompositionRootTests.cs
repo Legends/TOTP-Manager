@@ -11,6 +11,7 @@ using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
 using TOTP.Platform.Windows;
+using TOTP.Platform.Windows.Security;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
 using TOTP.Avalonia.Desktop.Localization;
 
@@ -41,8 +42,11 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IAuthorizationService>());
         Assert.IsType<PlatformQuickUnlockEnrollment>(
             services.GetRequiredService<IPlatformQuickUnlockEnrollment>());
-        Assert.IsType<UnavailablePlatformQuickUnlock>(
+        Assert.IsType<WindowsPlatformQuickUnlock>(
             services.GetRequiredService<IPlatformQuickUnlock>());
+        Assert.IsType<AvaloniaHelloPromptWindowHandleProvider>(
+            services.GetRequiredService<IHelloPromptWindowHandleProvider>());
+        Assert.IsType<HelloGate>(services.GetRequiredService<IHelloGate>());
         Assert.IsType<AccountManager>(
             services.GetRequiredService<IAccountManager>());
         Assert.IsType<AvaloniaStartupCoordinator>(

@@ -18,6 +18,9 @@ using TOTP.Camera.OpenCv;
 using TOTP.Avalonia.Desktop.Localization;
 using Serilog;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
+#if TOTP_PLATFORM_WINDOWS
+using TOTP.Platform.Windows.Security;
+#endif
 
 namespace TOTP.Avalonia.Desktop.Startup;
 
@@ -38,7 +41,14 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<IPlatformApplicationPaths>(platformServices.ApplicationPaths);
         services.AddLogging(builder => builder.AddSerilog(Log.Logger, dispose: false));
+#if TOTP_PLATFORM_WINDOWS
+        services.AddSingleton<IHelloPromptWindowHandleProvider, AvaloniaHelloPromptWindowHandleProvider>();
+        services.AddSingleton<IHelloVerificationRequester, WindowsHelloVerificationRequester>();
+        services.AddSingleton<IHelloGate, HelloGate>();
+        services.AddSingleton<IPlatformQuickUnlock, WindowsPlatformQuickUnlock>();
+#else
         services.AddSingleton<IPlatformQuickUnlock, UnavailablePlatformQuickUnlock>();
+#endif
         services.AddInfrastructure(
             configuration,
             platformServices.ApplicationPaths,
