@@ -587,13 +587,13 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 
 ## M5.3 TOTP and clipboard
 
-- [ ] TOTP timer scheduling.
-- [ ] Remaining-time progress display.
-- [ ] Code copy.
-- [ ] Timed clipboard clear.
-- [ ] Replacement detection where supported.
-- [ ] Lock-time output clearing.
-- [ ] Screen-reader announcement policy.
+- [x] TOTP timer scheduling.
+- [x] Remaining-time progress display.
+- [x] Code copy.
+- [x] Timed clipboard clear.
+- [x] Replacement detection where supported.
+- [x] Lock-time output clearing.
+- [x] Screen-reader announcement policy.
 
 ## M5.4 QR workflows
 

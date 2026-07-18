@@ -147,7 +147,7 @@ public sealed class AccountListViewModelTests
         await sut.GenerateCodeAsync();
 
         Assert.Equal("123456", sut.GeneratedCode);
-        Assert.Contains("30 seconds", sut.CodeMessage, StringComparison.Ordinal);
+        Assert.Equal(AvaloniaStringKeys.CodeAutoRefreshReady, sut.CodeMessage);
         totp.Verify(value => value.GenerateAsync(accountId), Times.Once);
     }
 
@@ -271,7 +271,7 @@ public sealed class AccountListViewModelTests
             "123456",
             TimeSpan.FromSeconds(18),
             It.IsAny<CancellationToken>()), Times.Once);
-        Assert.Contains("scheduled", sut.CodeMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(AvaloniaStringKeys.CodeCopiedWithClear, sut.CodeMessage);
     }
 
     [Fact]
@@ -432,6 +432,36 @@ public sealed class AccountListViewModelTests
         Assert.Equal(string.Empty, sut.EditorSecret);
     }
 
+    [Fact]
+    public async Task CountdownAsync_RefreshesCodeAtPeriodBoundary()
+    {
+        var id = Guid.NewGuid();
+        var totp = new Mock<IAccountTotpService>();
+        totp.SetupSequence(value => value.GenerateAsync(id))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("111111", 1, 30)))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("222222", 30, 30)));
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            totp.Object,
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization(),
+            TimeSpan.FromMilliseconds(10))
+        {
+            SelectedAccount = new AccountListItemViewModel(id, "Issuer", "account")
+        };
+
+        await sut.GenerateCodeAsync();
+        await WaitUntilAsync(() => sut.GeneratedCode == "222222");
+
+        Assert.InRange(sut.RemainingSeconds, 1, 30);
+        Assert.Equal(30, sut.PeriodSeconds);
+        Assert.Equal(AvaloniaStringKeys.CodeRefreshed, sut.CodeMessage);
+        totp.Verify(value => value.GenerateAsync(id), Times.Exactly(2));
+    }
+
     private static AccountListViewModel CreateSut(
         IAccountManager manager,
         IAvaloniaDialogService? dialogs = null) =>
@@ -450,5 +480,12 @@ public sealed class AccountListViewModelTests
         localization.Setup(value => value.GetString(It.IsAny<string>()))
             .Returns((string key) => key);
         return localization.Object;
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> predicate)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        while (!predicate())
+            await Task.Delay(10, timeout.Token);
     }
 }

@@ -385,6 +385,12 @@
                                 FontSize="28"
                                 IsVisible="{Binding HasGeneratedCode}"
                                 Text="{Binding GeneratedCode}" />
+                            <ProgressBar
+                                automation:AutomationProperties.Name="{DynamicResource CodeRemainingTime}"
+                                IsVisible="{Binding HasGeneratedCode}"
+                                Maximum="{Binding PeriodSeconds}"
+                                Minimum="0"
+                                Value="{Binding RemainingSeconds}" />
                             <Button
                                 HorizontalAlignment="Center"
                                 Command="{Binding CopyCommand}"

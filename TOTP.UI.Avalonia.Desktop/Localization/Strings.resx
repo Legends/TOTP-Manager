@@ -59,6 +59,12 @@
   <data name="AccountEditLoadFailed" xml:space="preserve"><value>The selected account could not be opened for editing.</value></data>
   <data name="AccountDeleteFailed" xml:space="preserve"><value>The account could not be deleted safely.</value></data>
   <data name="AccountDeleted" xml:space="preserve"><value>Account deleted.</value></data>
+  <data name="CodeAutoRefreshReady" xml:space="preserve"><value>Code ready. It will refresh automatically.</value></data>
+  <data name="CodeRefreshed" xml:space="preserve"><value>A new code is ready.</value></data>
+  <data name="CodeRefreshFailed" xml:space="preserve"><value>The code expired and could not be refreshed safely.</value></data>
+  <data name="CodeCopiedWithClear" xml:space="preserve"><value>Copied. Conditional clipboard clear is scheduled in {0} seconds.</value></data>
+  <data name="ClipboardSafeCopyUnavailable" xml:space="preserve"><value>This platform cannot safely copy and conditionally clear the code.</value></data>
+  <data name="CodeRemainingTime" xml:space="preserve"><value>Code validity remaining</value></data>
   <data name="Lock" xml:space="preserve"><value>Lock</value></data>
   <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
   <data name="Tools" xml:space="preserve"><value>Tools</value></data>

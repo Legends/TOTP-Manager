@@ -20,6 +20,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly IAvaloniaQrImageFactory _qrImageFactory;
     private readonly IAvaloniaDialogService _dialogs;
     private readonly IAvaloniaLocalizationService _localization;
+    private readonly TimeSpan _countdownTickInterval;
     private readonly AsyncCommand _loadCommand;
     private readonly AsyncCommand _generateCommand;
     private readonly AsyncCommand _copyCommand;
@@ -40,6 +41,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private bool _isBusy;
     private bool _isGenerating;
     private int _remainingSeconds;
+    private int _periodSeconds;
     private AvaloniaQrImageHandle? _qrImage;
     private bool _isEditorVisible;
     private Guid? _editingAccountId;
@@ -55,7 +57,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         IAccountQrCodeService accountQrCodeService,
         IAvaloniaQrImageFactory qrImageFactory,
         IAvaloniaDialogService dialogs,
-        IAvaloniaLocalizationService localization)
+        IAvaloniaLocalizationService localization,
+        TimeSpan? countdownTickInterval = null)
     {
         _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
         _accountTotpService = accountTotpService ?? throw new ArgumentNullException(nameof(accountTotpService));
@@ -64,6 +67,9 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _qrImageFactory = qrImageFactory ?? throw new ArgumentNullException(nameof(qrImageFactory));
         _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        _countdownTickInterval = countdownTickInterval ?? TimeSpan.FromSeconds(1);
+        if (_countdownTickInterval <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(countdownTickInterval));
         _loadCommand = new AsyncCommand(LoadAsync, () => !_isBusy);
         _generateCommand = new AsyncCommand(
             GenerateCodeAsync,
@@ -128,6 +134,18 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     }
 
     public bool HasGeneratedCode => GeneratedCode.Length > 0;
+
+    public int RemainingSeconds
+    {
+        get => _remainingSeconds;
+        private set => SetField(ref _remainingSeconds, Math.Max(0, value));
+    }
+
+    public int PeriodSeconds
+    {
+        get => _periodSeconds;
+        private set => SetField(ref _periodSeconds, Math.Max(0, value));
+    }
 
     public string CodeMessage
     {
@@ -283,12 +301,14 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             }
 
             GeneratedCode = result.Value.Code;
-            _remainingSeconds = Math.Max(1, result.Value.RemainingSeconds);
-            CodeMessage = $"Valid for {result.Value.RemainingSeconds} seconds.";
-            _codeLifetime = new CancellationTokenSource();
-            _ = ClearGeneratedCodeAfterAsync(
-                TimeSpan.FromSeconds(Math.Max(1, result.Value.RemainingSeconds)),
-                _codeLifetime.Token);
+            RemainingSeconds = Math.Max(1, result.Value.RemainingSeconds);
+            PeriodSeconds = Math.Max(RemainingSeconds, result.Value.PeriodSeconds);
+            CodeMessage = _localization.GetString(AvaloniaStringKeys.CodeAutoRefreshReady);
+            var codeLifetime = new CancellationTokenSource();
+            _codeLifetime = codeLifetime;
+            _ = RunCodeCountdownAsync(
+                _selectedAccount.Id,
+                codeLifetime);
         }
         catch (Exception)
         {
@@ -307,10 +327,12 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
         var result = await _clipboardService.CopyAndScheduleClearAsync(
             GeneratedCode,
-            TimeSpan.FromSeconds(_remainingSeconds));
+            TimeSpan.FromSeconds(RemainingSeconds));
         CodeMessage = result.IsSuccess
-            ? $"Copied. Clipboard clear is scheduled in {_remainingSeconds} seconds."
-            : "This platform cannot safely copy and automatically clear the code.";
+            ? string.Format(
+                _localization.GetString(AvaloniaStringKeys.CodeCopiedWithClear),
+                RemainingSeconds)
+            : _localization.GetString(AvaloniaStringKeys.ClipboardSafeCopyUnavailable);
     }
 
     public async Task GenerateQrAsync()
@@ -543,16 +565,46 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         Accounts = AccountListFilter.Apply(_allAccounts, SearchText);
     }
 
-    private async Task ClearGeneratedCodeAfterAsync(TimeSpan delay, CancellationToken cancellationToken)
+    private async Task RunCodeCountdownAsync(Guid accountId, CancellationTokenSource lifetime)
     {
+        var cancellationToken = lifetime.Token;
         try
         {
-            await Task.Delay(delay, cancellationToken);
-            GeneratedCode = string.Empty;
-            CodeMessage = "Code expired. Generate a new code.";
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(_countdownTickInterval, cancellationToken);
+                if (RemainingSeconds > 1)
+                {
+                    RemainingSeconds--;
+                    continue;
+                }
+
+                var refreshed = await _accountTotpService.GenerateAsync(accountId);
+                if (refreshed.IsFailed
+                    || SelectedAccount?.Id != accountId
+                    || cancellationToken.IsCancellationRequested)
+                {
+                    ClearGeneratedCodeWithoutCancellingTimer();
+                    CodeMessage = _localization.GetString(AvaloniaStringKeys.CodeRefreshFailed);
+                    return;
+                }
+
+                GeneratedCode = refreshed.Value.Code;
+                RemainingSeconds = Math.Max(1, refreshed.Value.RemainingSeconds);
+                PeriodSeconds = Math.Max(RemainingSeconds, refreshed.Value.PeriodSeconds);
+                CodeMessage = _localization.GetString(AvaloniaStringKeys.CodeRefreshed);
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+        }
+        finally
+        {
+            if (ReferenceEquals(_codeLifetime, lifetime))
+            {
+                _codeLifetime = null;
+                lifetime.Dispose();
+            }
         }
     }
 
@@ -561,8 +613,14 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _codeLifetime?.Cancel();
         _codeLifetime?.Dispose();
         _codeLifetime = null;
+        ClearGeneratedCodeWithoutCancellingTimer();
+    }
+
+    private void ClearGeneratedCodeWithoutCancellingTimer()
+    {
         GeneratedCode = string.Empty;
-        _remainingSeconds = 0;
+        RemainingSeconds = 0;
+        PeriodSeconds = 0;
         CodeMessage = string.Empty;
     }
 
