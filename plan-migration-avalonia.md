@@ -404,7 +404,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [x] Verify the v2 envelope can open the vault before it becomes active.
 - [x] Preserve a bounded previous-envelope backup.
 - [x] Add interrupted-write tests at every persistence boundary.
-- [ ] Add wrong-password, corrupt-envelope, missing-secret-store, and reset-key tests.
+- [x] Add wrong-password, corrupt-envelope, missing-secret-store, and reset-key tests.
 - [ ] Zero temporary key buffers where practical.
 - [x] Update the threat model and security verification documentation.
 

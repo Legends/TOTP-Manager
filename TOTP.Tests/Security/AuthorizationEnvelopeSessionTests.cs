@@ -59,14 +59,17 @@ public sealed class AuthorizationEnvelopeSessionTests
         Assert.Equal(new AuthorizationEnvelopeSessionState(true, true, false), result.Value);
     }
 
-    [Fact]
-    public async Task InitializeAsync_WhenStoreFails_RemainsUninitializedAndPreservesTypedFailure()
+    [Theory]
+    [InlineData(AuthorizationEnvelopeErrorCode.ReadAccessDenied)]
+    [InlineData(AuthorizationEnvelopeErrorCode.Malformed)]
+    public async Task InitializeAsync_WhenStoreFails_RemainsUninitializedAndPreservesTypedFailure(
+        AuthorizationEnvelopeErrorCode storeErrorCode)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new Mock<IAuthorizationEnvelopeStore>();
         store.Setup(value => value.LoadAsync(cancellationToken))
             .ReturnsAsync(Result.Fail<AuthorizationEnvelopeV2?>(new AuthorizationEnvelopeError(
-                AuthorizationEnvelopeErrorCode.ReadAccessDenied,
+                storeErrorCode,
                 "synthetic failure")));
         using var sut = CreateSession(store);
 
@@ -74,7 +77,7 @@ public sealed class AuthorizationEnvelopeSessionTests
 
         AssertSessionError(result, AuthorizationEnvelopeSessionErrorCode.LoadFailed);
         Assert.Equal(
-            AuthorizationEnvelopeErrorCode.ReadAccessDenied,
+            storeErrorCode,
             Assert.Single(result.Errors.OfType<AuthorizationEnvelopeError>()).Code);
         Assert.Equal(AuthorizationEnvelopeSessionState.NotInitialized, sut.State);
     }
@@ -326,6 +329,41 @@ public sealed class AuthorizationEnvelopeSessionTests
         Assert.Equal(expectedResult, result.Value);
         vault.VerifyNoOtherCalls();
         security.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task TryUnlockWithPlatformAsync_WhenPlatformKeyWasReset_PasswordRecoveryStillUnlocks()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var envelope = CreateEnvelopeWithQuickUnlock();
+        var platform = PlatformFor(envelope.QuickUnlockWrapper!);
+        platform.Setup(value => value.TryUnlockAsync(envelope.QuickUnlockWrapper!, cancellationToken))
+            .ReturnsAsync(Result.Ok(PlatformQuickUnlockAttempt.WithoutKey(
+                PlatformQuickUnlockStatus.KeyNotFound)));
+        var recoveredKey = Enumerable.Range(1, 32).Select(value => (byte)value).ToArray();
+        var password = PasswordReturning(recoveredKey, cancellationToken);
+        var vault = new Mock<IStoredVaultKeyVerifier>();
+        vault.Setup(value => value.VerifyAsync(It.IsAny<ReadOnlyMemory<byte>>(), cancellationToken))
+            .ReturnsAsync(Result.Ok(VaultKeyVerificationStatus.Verified));
+        var security = new Mock<ISecurityContext>();
+        var store = StoreReturning(envelope, cancellationToken);
+        using var sut = CreateSession(
+            store,
+            password,
+            vault,
+            security,
+            [platform.Object]);
+        Assert.True((await sut.InitializeAsync(cancellationToken)).IsSuccess);
+
+        var platformResult = await sut.TryUnlockWithPlatformAsync(cancellationToken);
+        var passwordResult = await sut.TryUnlockWithPasswordAsync("password", cancellationToken);
+
+        Assert.True(platformResult.IsSuccess);
+        Assert.Equal(AuthorizationResult.PasswordRequired, platformResult.Value);
+        Assert.True(passwordResult.IsSuccess);
+        Assert.Equal(AuthorizationResult.Success, passwordResult.Value);
+        security.Verify(value => value.SetDek(It.IsAny<byte[]>()), Times.Once);
+        Assert.All(recoveredKey, value => Assert.Equal(0, value));
     }
 
     [Theory]
