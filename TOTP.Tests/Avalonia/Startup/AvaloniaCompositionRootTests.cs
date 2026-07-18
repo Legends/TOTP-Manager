@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Platform;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Avalonia.Desktop.Platform;
@@ -59,6 +60,8 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IAvaloniaFilePicker>());
         Assert.IsType<NativeFilePickerViewModel>(
             services.GetRequiredService<NativeFilePickerViewModel>());
+        Assert.IsType<NamedPipeActivationListener>(
+            services.GetRequiredService<IActivationListener>());
         Assert.IsType<SettingsPageViewModel>(
             services.GetRequiredService<SettingsPageViewModel>());
         Assert.IsType<AsyncClipboardService>(

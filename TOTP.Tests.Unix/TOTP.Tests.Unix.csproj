@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TOTP.Infrastructure\TOTP.Infrastructure.csproj" />
     <ProjectReference Include="..\TOTP.Platform.Unix\TOTP.Platform.Unix.csproj" />
   </ItemGroup>
 

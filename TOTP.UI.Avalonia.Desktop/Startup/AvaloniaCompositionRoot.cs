@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Platform;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation;
@@ -37,6 +38,8 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IUiScheduler>(provider =>
             provider.GetRequiredService<AvaloniaUiScheduler>());
         services.AddSingleton<AppLifetime, AvaloniaApplicationLifetime>();
+        services.AddSingleton<IActivationListener>(
+            new NamedPipeActivationListener(DesktopInstanceIdentity.PipeName));
         services.AddSingleton<AvaloniaClipboardAccessor>();
         services.AddSingleton<AvaloniaStorageProviderAccessor>();
         services.AddSingleton<IAvaloniaFilePicker, AvaloniaFilePicker>();

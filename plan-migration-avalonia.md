@@ -462,7 +462,7 @@ Any replacement failure before Active
 - [x] QR generation.
 - [ ] Camera QR scan.
 - [x] Native file picker.
-- [ ] Single-instance activation.
+- [x] Single-instance activation.
 - [ ] Test update check using a signed test appcast.
 
 ### Required target validation
