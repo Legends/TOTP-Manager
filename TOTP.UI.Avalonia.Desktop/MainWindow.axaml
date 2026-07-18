@@ -44,11 +44,10 @@
                 <ContentControl.ContentTemplate>
                     <DataTemplate x:DataType="presentation:PasswordUnlockViewModel">
                         <StackPanel Spacing="12">
-                            <TextBox
-                                automation:AutomationProperties.HelpText="Required to unlock the local synthetic vault."
-                                automation:AutomationProperties.Name="Master password"
-                                automation:AutomationProperties.IsRequiredForForm="True"
-                                PasswordChar="●"
+                            <shared:RevealableSecretInput
+                                AccessibleName="Master password"
+                                HelpText="Required to unlock the local synthetic vault."
+                                IsRequired="True"
                                 PlaceholderText="Master password"
                                 Text="{Binding Password, Mode=TwoWay}" />
                             <shared:ValidationMessage

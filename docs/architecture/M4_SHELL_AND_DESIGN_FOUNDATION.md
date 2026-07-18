@@ -34,7 +34,7 @@ No splash window is currently justified. The existing shell reports startup stat
 - fast and standard motion-duration values;
 - page, card, and control padding;
 - minimum interactive-control height;
-- primary, danger, card, heading, secondary-text, and validation-error styles;
+- primary, danger, card, heading, secondary-text, and semantic validation styles;
 - keyboard-visible focus borders for buttons, text input, numeric input, and account lists.
 
 Theme policy is `RequestedThemeVariant="Default"`, so Avalonia follows the operating-system light/dark preference. Theme-dependent resources are always consumed through `DynamicResource`, allowing live variant changes. A high-contrast dictionary is defined, but automatic platform detection/activation and real-target contrast testing remain open; its presence alone is not acceptance evidence.
@@ -45,9 +45,12 @@ The initial shell consumes the tokens and uses a responsive maximum width rather
 
 `ValidationMessage` centralizes information, warning, and error semantics with theme-aware colors, assertive live-region behavior, wrapping, and automatic visibility for non-empty messages. The password gate consumes the error variant; later screens should reuse the control instead of defining local error colors or separate visibility bindings.
 
+`RevealableSecretInput` keeps masking as the fail-closed default and reveals only while its dedicated control is held by pointer or keyboard. Release, capture loss, focus loss, template removal, and clearing the bound value all restore masking. Feature markup cannot bind a persistent revealed state through the control API. The control does not retain a second secret value; it decorates the existing two-way text binding and owns only transient disclosure state.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.
+- Threat impact: password disclosure is transient and automatically cancelled at interaction and visual-tree boundaries; it does not change the existing unavoidable managed-string lifetime in the preview unlock view model.
 - Diagnostic impact: early and DI logging use the existing redaction pipeline; exception messages are deliberately omitted at the boundary.
 - Data-flow impact: no vault, envelope, seed, import/export, or backup format changes.
 - Compatibility impact: WPF startup and release behavior are untouched. Avalonia remains framework-dependent and non-release during migration.

@@ -112,10 +112,6 @@
     <Style Selector="TextBlock.secondary">
         <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
     </Style>
-    <Style Selector="TextBlock.validation-error">
-        <Setter Property="Foreground" Value="{DynamicResource BrushDanger}" />
-        <Setter Property="TextWrapping" Value="Wrap" />
-    </Style>
     <Style Selector="Button">
         <Setter Property="MinHeight" Value="{DynamicResource ControlMinimumHeight}" />
         <Setter Property="Padding" Value="{DynamicResource ControlPadding}" />
@@ -208,5 +204,31 @@
     </Style>
     <Style Selector="controls|ValidationMessage:error /template/ TextBlock#PART_Message">
         <Setter Property="Foreground" Value="{DynamicResource BrushDanger}" />
+    </Style>
+    <Style Selector="controls|RevealableSecretInput">
+        <Setter Property="MinHeight" Value="{DynamicResource ControlMinimumHeight}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBox
+                        Name="PART_Input"
+                        automation:AutomationProperties.HelpText="{TemplateBinding HelpText}"
+                        automation:AutomationProperties.IsRequiredForForm="{TemplateBinding IsRequired}"
+                        automation:AutomationProperties.Name="{TemplateBinding AccessibleName}"
+                        Grid.Column="0"
+                        PasswordChar="●"
+                        PlaceholderText="{TemplateBinding PlaceholderText}"
+                        Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                    <Button
+                        Name="PART_RevealButton"
+                        automation:AutomationProperties.HelpText="The secret is concealed again when the key or pointer is released."
+                        automation:AutomationProperties.Name="Hold to reveal secret"
+                        Grid.Column="1"
+                        Margin="8,0,0,0"
+                        Content="Show"
+                        ToolTip.Tip="Hold to reveal" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
     </Style>
 </Styles>
