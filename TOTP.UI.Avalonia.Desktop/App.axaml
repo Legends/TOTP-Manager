@@ -1,0 +1,10 @@
+<Application
+    x:Class="TOTP.UI.Avalonia.Desktop.App"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    RequestedThemeVariant="Default">
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://TOTP.UI.Avalonia.Shared/Styles/SharedStyles.axaml" />
+    </Application.Styles>
+</Application>

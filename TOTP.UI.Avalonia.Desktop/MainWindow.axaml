@@ -1,0 +1,17 @@
+<Window
+    x:Class="TOTP.UI.Avalonia.Desktop.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="TOTP Manager (Avalonia Preview)"
+    Width="960"
+    Height="640"
+    MinWidth="640"
+    MinHeight="480">
+    <Grid>
+        <TextBlock
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            FontSize="24"
+            Text="TOTP Manager Avalonia migration shell" />
+    </Grid>
+</Window>

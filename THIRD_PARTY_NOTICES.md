@@ -15,9 +15,12 @@ From the current project files:
 - `TOTP.Infrastructure/TOTP.Infrastructure.csproj`
 - `TOTP.DAL/TOTP.DAL.csproj`
 - `TOTP.UI.Avalonia.Shared/TOTP.UI.Avalonia.Shared.csproj`
+- `TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj`
 
 Components include (non-exhaustive):
 - `Avalonia`
+- `Avalonia.Desktop`
+- `Avalonia.Themes.Fluent`
 - `FluentResults`
 - `Microsoft.Extensions.*`
 - `Microsoft.Xaml.Behaviors.Wpf`

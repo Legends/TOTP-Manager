@@ -440,7 +440,7 @@ Any replacement failure before Active
 ### Project creation
 
 - [x] Create `TOTP.UI.Avalonia.Shared`.
-- [ ] Create `TOTP.UI.Avalonia.Desktop`.
+- [x] Create `TOTP.UI.Avalonia.Desktop`.
 - [ ] Add projects to `TOTP.sln`.
 - [ ] Register the same application services through an Avalonia composition root.
 - [ ] Keep WPF as the release/default client.
