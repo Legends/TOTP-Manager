@@ -4,6 +4,7 @@ using System.Windows.Input;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Startup;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
 
@@ -11,6 +12,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly IAvaloniaStartupCoordinator _startupCoordinator;
     private readonly IAuthorizationService _authorizationService;
+    private readonly IAvaloniaLocalizationService _localization;
     private readonly AsyncCommand _initializeCommand;
     private readonly AsyncCommand _lockCommand;
     private readonly AsyncCommand _showAccountsCommand;
@@ -22,6 +24,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private bool _isBusy;
     private bool _canRetry;
     private bool _isPasswordUnlockVisible;
+    private bool _isPasswordSetupVisible;
     private bool _isShellVisible;
     private bool _isAccountListVisible;
     private bool _isToolsVisible;
@@ -33,21 +36,26 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IAvaloniaStartupCoordinator startupCoordinator,
         IAuthorizationService authorizationService,
         PasswordUnlockViewModel passwordUnlock,
+        PasswordSetupViewModel passwordSetup,
         AccountListViewModel accountList,
         SettingsPageViewModel settingsPage,
         NativeFilePickerViewModel nativeFilePicker,
         CameraScannerViewModel cameraScanner,
-        UpdateCheckViewModel updateCheck)
+        UpdateCheckViewModel updateCheck,
+        IAvaloniaLocalizationService localization)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
         PasswordUnlock = passwordUnlock ?? throw new ArgumentNullException(nameof(passwordUnlock));
+        PasswordSetup = passwordSetup ?? throw new ArgumentNullException(nameof(passwordSetup));
         AccountList = accountList ?? throw new ArgumentNullException(nameof(accountList));
         SettingsPage = settingsPage ?? throw new ArgumentNullException(nameof(settingsPage));
         NativeFilePicker = nativeFilePicker ?? throw new ArgumentNullException(nameof(nativeFilePicker));
         CameraScanner = cameraScanner ?? throw new ArgumentNullException(nameof(cameraScanner));
         UpdateCheck = updateCheck ?? throw new ArgumentNullException(nameof(updateCheck));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         PasswordUnlock.Unlocked += OnUnlocked;
+        PasswordSetup.Configured += OnConfigured;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
         _lockCommand = new AsyncCommand(LockAsync, () => _isShellVisible);
         _showAccountsCommand = new AsyncCommand(
@@ -103,6 +111,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public PasswordUnlockViewModel PasswordUnlock { get; }
 
+    public PasswordSetupViewModel PasswordSetup { get; }
+
     public AccountListViewModel AccountList { get; }
 
     public SettingsPageViewModel SettingsPage { get; }
@@ -117,6 +127,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
         get => _isPasswordUnlockVisible;
         private set => SetField(ref _isPasswordUnlockVisible, value);
+    }
+
+    public bool IsPasswordSetupVisible
+    {
+        get => _isPasswordSetupVisible;
+        private set => SetField(ref _isPasswordSetupVisible, value);
     }
 
     public bool IsShellVisible
@@ -166,6 +182,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsBusy = true;
         CanRetry = false;
         IsPasswordUnlockVisible = false;
+        IsPasswordSetupVisible = false;
         IsShellVisible = false;
         IsAccountListVisible = false;
         IsToolsVisible = false;
@@ -188,6 +205,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
                     ("TOTP Manager could not start safely. Your encrypted data was not changed.", true, NotificationSeverity.Error)
             };
             IsPasswordUnlockVisible = outcome == AvaloniaStartupOutcome.ReadyForUnlock;
+            IsPasswordSetupVisible = outcome == AvaloniaStartupOutcome.ReadyForPasswordSetup;
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
         {
@@ -213,6 +231,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
         PrepareForShutdown();
         PasswordUnlock.Unlocked -= OnUnlocked;
+        PasswordSetup.Configured -= OnConfigured;
         _lifetime.Cancel();
         _lifetime.Dispose();
         CameraScanner.Dispose();
@@ -225,12 +244,14 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
         _authorizationService.Lock();
         AccountList.Clear();
+        PasswordSetup.Clear();
         CameraScanner.Clear();
         IsSettingsVisible = false;
         IsToolsVisible = false;
         IsShellVisible = false;
         IsAccountListVisible = false;
         IsPasswordUnlockVisible = false;
+        IsPasswordSetupVisible = false;
         StatusText = "TOTP Manager is closing safely.";
         StatusSeverity = NotificationSeverity.Information;
     }
@@ -245,6 +266,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         AccountList.LoadCommand.Execute(null);
     }
 
+    private void OnConfigured(object? sender, EventArgs e)
+    {
+        IsPasswordSetupVisible = false;
+        IsPasswordUnlockVisible = false;
+        IsShellVisible = true;
+        SetActivePage(ShellPage.Accounts);
+        StatusText = _localization.GetString(AvaloniaStringKeys.VaultConfigured);
+        StatusSeverity = NotificationSeverity.Success;
+        AccountList.LoadCommand.Execute(null);
+    }
+
     public Task LockAsync()
     {
         _authorizationService.Lock();
@@ -255,6 +287,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsShellVisible = false;
         IsAccountListVisible = false;
         IsPasswordUnlockVisible = true;
+        IsPasswordSetupVisible = false;
         StatusText = "Vault locked. Enter your master password to continue.";
         StatusSeverity = NotificationSeverity.Information;
         return Task.CompletedTask;

@@ -68,6 +68,7 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<ICameraSessionFactory, OpenCvCameraSessionFactory>();
         services.AddSingleton<IQrScannerRunner, OpenCvQrScannerRunner>();
         services.AddSingleton<PasswordUnlockViewModel>();
+        services.AddSingleton<PasswordSetupViewModel>();
         services.AddSingleton<AccountListViewModel>();
         services.AddSingleton<SettingsPageViewModel>();
         services.AddSingleton<NativeFilePickerViewModel>();

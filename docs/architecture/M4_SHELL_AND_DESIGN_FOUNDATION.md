@@ -71,6 +71,15 @@ Shared styles now own normal, primary, secondary, danger, disabled, and focus-vi
 
 `PasswordDialogWindow` reuses the fail-closed revealable input, validation presentation, busy overlay, default/cancel behavior, and the same serialized owner path. Its view model removes the password from the bound field before validation, converts validator exceptions to caller-supplied safe text, returns no value on cancellation, prevents duplicate completion, and clears its validator and sensitive fields during teardown. A successful managed-string reference is transferred to the caller because the existing workflows require it; callers remain responsible for minimizing its lifetime.
 
+## M5.1 first-run password setup
+
+`ReadyForPasswordSetup` now projects an explicit setup surface instead of a dead-end startup status. `PasswordSetupViewModel` performs only fast required/minimum-length/confirmation checks, clears both bound fields before crossing the authorization boundary, and delegates envelope creation to the existing reviewed `IAuthorizationService.ConfigurePasswordAsync` workflow. Success enters the same authorized Accounts shell used by password unlock. An existing-vault conflict remains fail-closed and explains that data was not replaced and recovery/migration is required.
+
+- Threat impact: no new cryptography or KDF policy is introduced; presentation cannot bypass the existing password lifecycle and vault activation verification.
+- Data-flow impact: two temporary managed strings exist for password and confirmation because Avalonia binding and the current authorization contract require them; both bound properties and method locals are cleared at the earliest practical points.
+- Compatibility/migration impact: the existing v2 envelope and settings formats are unchanged. `ExistingVaultConflict` explicitly prevents destructive first-run replacement.
+- Test evidence: setup tests cover success, pre-validation without storage access, existing-vault recovery messaging, exception redaction, and input clearing; shell tests cover first-run surface projection.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.

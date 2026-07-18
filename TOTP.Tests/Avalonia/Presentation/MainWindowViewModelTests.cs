@@ -8,6 +8,7 @@ using TOTP.Avalonia.Desktop.Startup;
 using Microsoft.Extensions.Logging.Abstractions;
 using FluentResults;
 using TOTP.Core.Security.Models;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
@@ -34,6 +35,7 @@ public sealed class MainWindowViewModelTests
         Assert.Equal(canRetry, sut.CanRetry);
         Assert.Contains(expectedText, sut.StatusText, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(outcome == AvaloniaStartupOutcome.ReadyForUnlock, sut.IsPasswordUnlockVisible);
+        Assert.Equal(outcome == AvaloniaStartupOutcome.ReadyForPasswordSetup, sut.IsPasswordSetupVisible);
         Assert.Equal(
             outcome switch
             {
@@ -77,11 +79,13 @@ public sealed class MainWindowViewModelTests
             coordinator.Object,
             authorization.Object,
             password,
+            CreatePasswordSetup(authorization.Object),
             accounts,
             CreateSettingsPage(),
             CreateFilePicker(),
             CreateCameraScanner(),
-            CreateUpdateCheck());
+            CreateUpdateCheck(),
+            CreateLocalization());
         await sut.InitializeAsync();
 
         await sut.LockAsync();
@@ -108,11 +112,13 @@ public sealed class MainWindowViewModelTests
             coordinator.Object,
             authorization.Object,
             new PasswordUnlockViewModel(authorization.Object),
+            CreatePasswordSetup(authorization.Object),
             accounts,
             CreateSettingsPage(),
             CreateFilePicker(),
             CreateCameraScanner(),
-            CreateUpdateCheck());
+            CreateUpdateCheck(),
+            CreateLocalization());
 
         sut.PrepareForShutdown();
         sut.PrepareForShutdown();
@@ -147,11 +153,13 @@ public sealed class MainWindowViewModelTests
             coordinator.Object,
             authorization.Object,
             password,
+            CreatePasswordSetup(authorization.Object),
             accounts,
             CreateSettingsPage(),
             CreateFilePicker(),
             CreateCameraScanner(),
-            CreateUpdateCheck());
+            CreateUpdateCheck(),
+            CreateLocalization());
         await sut.InitializeAsync();
         password.Password = "test-password";
 
@@ -178,6 +186,7 @@ public sealed class MainWindowViewModelTests
             coordinator,
             Mock.Of<IAuthorizationService>(),
             new PasswordUnlockViewModel(Mock.Of<IAuthorizationService>()),
+            CreatePasswordSetup(Mock.Of<IAuthorizationService>()),
             new AccountListViewModel(
                 Mock.Of<IAccountManager>(),
                 Mock.Of<IAccountTotpService>(),
@@ -187,7 +196,8 @@ public sealed class MainWindowViewModelTests
             CreateSettingsPage(),
             CreateFilePicker(),
             CreateCameraScanner(),
-            CreateUpdateCheck());
+            CreateUpdateCheck(),
+            CreateLocalization());
 
     private static SettingsPageViewModel CreateSettingsPage()
     {
@@ -209,4 +219,19 @@ public sealed class MainWindowViewModelTests
 
     private static UpdateCheckViewModel CreateUpdateCheck() =>
         new(Mock.Of<ISignedAppcastVerifier>());
+
+    private static PasswordSetupViewModel CreatePasswordSetup(IAuthorizationService authorization)
+    {
+        var validation = new Mock<IPasswordValidationService>();
+        validation.SetupGet(value => value.MinimumLength).Returns(8);
+        return new PasswordSetupViewModel(authorization, validation.Object, CreateLocalization());
+    }
+
+    private static IAvaloniaLocalizationService CreateLocalization()
+    {
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        localization.Setup(value => value.GetString(It.IsAny<string>()))
+            .Returns((string key) => key);
+        return localization.Object;
+    }
 }

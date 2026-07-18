@@ -40,4 +40,15 @@
   <data name="GeneratedQr" xml:space="preserve"><value>Generated account QR code</value></data>
   <data name="QrPrivacyNotice" xml:space="preserve"><value>This QR code contains the account secret. Keep it private.</value></data>
   <data name="CameraPreview" xml:space="preserve"><value>Live camera preview</value></data>
+  <data name="CreatePasswordHeading" xml:space="preserve"><value>Create your master password</value></data>
+  <data name="PasswordSetupHelp" xml:space="preserve"><value>This password protects your local vault and is required for recovery.</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>New master password</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Confirm master password</value></data>
+  <data name="CreateVault" xml:space="preserve"><value>Create protected vault</value></data>
+  <data name="PasswordRequired" xml:space="preserve"><value>Enter and confirm a master password.</value></data>
+  <data name="PasswordMinimumLength" xml:space="preserve"><value>The master password must contain at least {0} characters.</value></data>
+  <data name="PasswordMismatch" xml:space="preserve"><value>The password confirmation does not match.</value></data>
+  <data name="PasswordSetupFailed" xml:space="preserve"><value>The protected vault could not be created safely. No existing data was replaced.</value></data>
+  <data name="ExistingVaultConflict" xml:space="preserve"><value>Existing vault data was found and was not replaced. Use recovery or migration before creating a new vault.</value></data>
+  <data name="VaultConfigured" xml:space="preserve"><value>Your protected vault is ready.</value></data>
 </root>

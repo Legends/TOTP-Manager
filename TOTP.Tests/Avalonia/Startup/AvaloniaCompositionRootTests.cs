@@ -53,6 +53,8 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<MainWindowViewModel>());
         Assert.IsType<PasswordUnlockViewModel>(
             services.GetRequiredService<PasswordUnlockViewModel>());
+        Assert.IsType<PasswordSetupViewModel>(
+            services.GetRequiredService<PasswordSetupViewModel>());
         Assert.IsType<AccountListViewModel>(
             services.GetRequiredService<AccountListViewModel>());
         Assert.IsType<AccountQrCodeService>(

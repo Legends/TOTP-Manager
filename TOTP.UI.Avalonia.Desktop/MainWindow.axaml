@@ -64,6 +64,47 @@
                 </ContentControl.ContentTemplate>
             </ContentControl>
         </Border>
+        <Border Classes="card" IsVisible="{Binding IsPasswordSetupVisible}">
+            <ContentControl Content="{Binding PasswordSetup}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="presentation:PasswordSetupViewModel">
+                        <StackPanel Spacing="12">
+                            <TextBlock
+                                Classes="heading"
+                                Text="{DynamicResource CreatePasswordHeading}"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Classes="secondary"
+                                Text="{DynamicResource PasswordSetupHelp}"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap" />
+                            <shared:RevealableSecretInput
+                                AccessibleName="{DynamicResource NewPassword}"
+                                HelpText="{DynamicResource PasswordSetupHelp}"
+                                IsRequired="True"
+                                PlaceholderText="{DynamicResource NewPassword}"
+                                Text="{Binding Password, Mode=TwoWay}" />
+                            <shared:RevealableSecretInput
+                                AccessibleName="{DynamicResource ConfirmPassword}"
+                                HelpText="{DynamicResource PasswordSetupHelp}"
+                                IsRequired="True"
+                                PlaceholderText="{DynamicResource ConfirmPassword}"
+                                Text="{Binding ConfirmPassword, Mode=TwoWay}" />
+                            <shared:ValidationMessage
+                                Severity="Error"
+                                Text="{Binding Message}"
+                                TextAlignment="Center" />
+                            <Button
+                                Classes="primary"
+                                HorizontalAlignment="Center"
+                                Command="{Binding ConfigureCommand}"
+                                Content="{DynamicResource CreateVault}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+        </Border>
         <Button
             Classes="danger"
             HorizontalAlignment="Right"

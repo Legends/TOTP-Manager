@@ -38,6 +38,17 @@ public static class AvaloniaStringKeys
     public const string GeneratedQr = nameof(GeneratedQr);
     public const string QrPrivacyNotice = nameof(QrPrivacyNotice);
     public const string CameraPreview = nameof(CameraPreview);
+    public const string CreatePasswordHeading = nameof(CreatePasswordHeading);
+    public const string PasswordSetupHelp = nameof(PasswordSetupHelp);
+    public const string NewPassword = nameof(NewPassword);
+    public const string ConfirmPassword = nameof(ConfirmPassword);
+    public const string CreateVault = nameof(CreateVault);
+    public const string PasswordRequired = nameof(PasswordRequired);
+    public const string PasswordMinimumLength = nameof(PasswordMinimumLength);
+    public const string PasswordMismatch = nameof(PasswordMismatch);
+    public const string PasswordSetupFailed = nameof(PasswordSetupFailed);
+    public const string ExistingVaultConflict = nameof(ExistingVaultConflict);
+    public const string VaultConfigured = nameof(VaultConfigured);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -47,6 +58,9 @@ public static class AvaloniaStringKeys
         IdleTimeoutHelp, LockWhenMinimized, SaveSettings, SearchAccounts, GenerateCode,
         ShowQrCode, CopyTimedClear, Password, PasswordAuthorizationHelp,
         ValidatingSecurely, NavAccounts, NavTools, NavSettings, AccountsList,
-        GeneratedCode, GeneratedQr, QrPrivacyNotice, CameraPreview
+        GeneratedCode, GeneratedQr, QrPrivacyNotice, CameraPreview, CreatePasswordHeading,
+        PasswordSetupHelp, NewPassword, ConfirmPassword, CreateVault, PasswordRequired,
+        PasswordMinimumLength, PasswordMismatch, PasswordSetupFailed, ExistingVaultConflict,
+        VaultConfigured
     ];
 }

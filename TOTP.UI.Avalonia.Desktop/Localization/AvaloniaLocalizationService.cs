@@ -35,6 +35,9 @@ public sealed class AvaloniaLocalizationService : IAvaloniaLocalizationService
             _resources[key] = _catalog.Get(key, resourceCulture);
     }
 
+    public string GetString(string key) =>
+        _catalog.Get(key, CultureInfo.GetCultureInfo(CurrentLanguage.CultureName));
+
     private static CultureInfo GetSafeCulture(string cultureName)
     {
         if (string.IsNullOrWhiteSpace(cultureName)) return CultureInfo.GetCultureInfo("en");

@@ -40,4 +40,15 @@
   <data name="GeneratedQr" xml:space="preserve"><value>Erzeugter Konto-QR-Code</value></data>
   <data name="QrPrivacyNotice" xml:space="preserve"><value>Dieser QR-Code enthält das Kontogeheimnis. Halten Sie ihn privat.</value></data>
   <data name="CameraPreview" xml:space="preserve"><value>Live-Kameravorschau</value></data>
+  <data name="CreatePasswordHeading" xml:space="preserve"><value>Master-Passwort erstellen</value></data>
+  <data name="PasswordSetupHelp" xml:space="preserve"><value>Dieses Passwort schützt Ihren lokalen Tresor und wird zur Wiederherstellung benötigt.</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>Neues Master-Passwort</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Master-Passwort bestätigen</value></data>
+  <data name="CreateVault" xml:space="preserve"><value>Geschützten Tresor erstellen</value></data>
+  <data name="PasswordRequired" xml:space="preserve"><value>Geben Sie ein Master-Passwort ein und bestätigen Sie es.</value></data>
+  <data name="PasswordMinimumLength" xml:space="preserve"><value>Das Master-Passwort muss mindestens {0} Zeichen enthalten.</value></data>
+  <data name="PasswordMismatch" xml:space="preserve"><value>Die Passwortbestätigung stimmt nicht überein.</value></data>
+  <data name="PasswordSetupFailed" xml:space="preserve"><value>Der geschützte Tresor konnte nicht sicher erstellt werden. Vorhandene Daten wurden nicht ersetzt.</value></data>
+  <data name="ExistingVaultConflict" xml:space="preserve"><value>Vorhandene Tresordaten wurden gefunden und nicht ersetzt. Verwenden Sie Wiederherstellung oder Migration, bevor Sie einen neuen Tresor erstellen.</value></data>
+  <data name="VaultConfigured" xml:space="preserve"><value>Ihr geschützter Tresor ist bereit.</value></data>
 </root>
