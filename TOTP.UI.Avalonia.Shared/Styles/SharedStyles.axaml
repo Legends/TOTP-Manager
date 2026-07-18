@@ -18,6 +18,7 @@
                     <SolidColorBrush x:Key="BrushDanger" Color="#B42318" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushWarning" Color="#8A4B00" />
+                    <SolidColorBrush x:Key="BrushSuccess" Color="#137333" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#005FCC" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
                 </ResourceDictionary>
@@ -33,6 +34,7 @@
                     <SolidColorBrush x:Key="BrushDanger" Color="#B42318" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushWarning" Color="#8A4B00" />
+                    <SolidColorBrush x:Key="BrushSuccess" Color="#137333" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#005FCC" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
                 </ResourceDictionary>
@@ -48,6 +50,7 @@
                     <SolidColorBrush x:Key="BrushDanger" Color="#FF8A80" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#2A0805" />
                     <SolidColorBrush x:Key="BrushWarning" Color="#FFD166" />
+                    <SolidColorBrush x:Key="BrushSuccess" Color="#6DD58C" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#9CC2FF" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
                 </ResourceDictionary>
@@ -63,6 +66,7 @@
                     <SolidColorBrush x:Key="BrushDanger" Color="#FF8080" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#000000" />
                     <SolidColorBrush x:Key="BrushWarning" Color="#FFFF00" />
+                    <SolidColorBrush x:Key="BrushSuccess" Color="#00FF00" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#00FFFF" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
                 </ResourceDictionary>
@@ -285,5 +289,36 @@
                 </Grid>
             </ControlTemplate>
         </Setter>
+    </Style>
+    <Style Selector="controls|NotificationBanner">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Name="PART_Banner"
+                    automation:AutomationProperties.LiveSetting="{TemplateBinding LiveSetting}"
+                    automation:AutomationProperties.Name="{TemplateBinding Text}"
+                    Background="{DynamicResource BrushSurfaceAlternate}"
+                    BorderThickness="4,0,0,0"
+                    CornerRadius="{DynamicResource RadiusSmall}"
+                    Padding="12,8">
+                    <TextBlock
+                        Text="{TemplateBinding Text}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|NotificationBanner:information /template/ Border#PART_Banner">
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
+    </Style>
+    <Style Selector="controls|NotificationBanner:success /template/ Border#PART_Banner">
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushSuccess}" />
+    </Style>
+    <Style Selector="controls|NotificationBanner:warning /template/ Border#PART_Banner">
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushWarning}" />
+    </Style>
+    <Style Selector="controls|NotificationBanner:error /template/ Border#PART_Banner">
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushDanger}" />
     </Style>
 </Styles>

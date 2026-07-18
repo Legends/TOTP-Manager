@@ -27,13 +27,11 @@
             Classes="title"
             HorizontalAlignment="Center"
             Text="TOTP Manager" />
-        <TextBlock
-            automation:AutomationProperties.LiveSetting="Polite"
-            Classes="secondary"
+        <shared:NotificationBanner
             HorizontalAlignment="Center"
-            Text="{Binding StatusText}"
-            TextAlignment="Center"
-            TextWrapping="Wrap" />
+            MaxWidth="640"
+            Severity="{Binding StatusSeverity}"
+            Text="{Binding StatusText}" />
         <Button
             HorizontalAlignment="Center"
             Command="{Binding InitializeCommand}"

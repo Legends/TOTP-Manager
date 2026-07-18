@@ -51,6 +51,8 @@ The initial shell consumes the tokens and uses a responsive maximum width rather
 
 `AccountRow` owns the reusable two-column issuer/account layout and derives one meaningful accessibility label from that secret-free metadata. Native list items retain selection, focus, and keyboard behavior; the row does not introduce commands, selection state, identifiers, seeds, or OTP values.
 
+`NotificationBanner` presents explicit information, success, warning, and error states without parsing message text. Nonfatal status changes use polite live-region announcements; errors use assertive announcements. Empty notifications leave the visual and accessibility trees. The shell now projects startup, retry, unlock, lock, and shutdown state through this contract.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.

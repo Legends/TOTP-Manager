@@ -34,6 +34,14 @@ public sealed class MainWindowViewModelTests
         Assert.Equal(canRetry, sut.CanRetry);
         Assert.Contains(expectedText, sut.StatusText, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(outcome == AvaloniaStartupOutcome.ReadyForUnlock, sut.IsPasswordUnlockVisible);
+        Assert.Equal(
+            outcome switch
+            {
+                AvaloniaStartupOutcome.PreferencesUnavailable => NotificationSeverity.Warning,
+                AvaloniaStartupOutcome.UnexpectedFailure => NotificationSeverity.Error,
+                _ => NotificationSeverity.Information
+            },
+            sut.StatusSeverity);
     }
 
     [Fact]
@@ -47,6 +55,7 @@ public sealed class MainWindowViewModelTests
         await sut.InitializeAsync();
 
         Assert.True(sut.CanRetry);
+        Assert.Equal(NotificationSeverity.Error, sut.StatusSeverity);
         Assert.DoesNotContain("sensitive", sut.StatusText, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -81,6 +90,7 @@ public sealed class MainWindowViewModelTests
         Assert.True(sut.IsPasswordUnlockVisible);
         Assert.False(sut.IsAccountListVisible);
         Assert.Contains("locked", sut.StatusText, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(NotificationSeverity.Information, sut.StatusSeverity);
     }
 
     [Fact]

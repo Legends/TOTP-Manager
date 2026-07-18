@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Startup;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
@@ -17,6 +18,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly AsyncCommand _showSettingsCommand;
     private readonly CancellationTokenSource _lifetime = new();
     private string _statusText = "Starting TOTP Manager…";
+    private NotificationSeverity _statusSeverity = NotificationSeverity.Information;
     private bool _isBusy;
     private bool _canRetry;
     private bool _isPasswordUnlockVisible;
@@ -65,6 +67,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
         get => _statusText;
         private set => SetField(ref _statusText, value);
+    }
+
+    public NotificationSeverity StatusSeverity
+    {
+        get => _statusSeverity;
+        private set => SetField(ref _statusSeverity, value);
     }
 
     public bool IsBusy
@@ -163,30 +171,33 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsToolsVisible = false;
         IsSettingsVisible = false;
         StatusText = "Starting TOTP Manager…";
+        StatusSeverity = NotificationSeverity.Information;
 
         try
         {
             var outcome = await _startupCoordinator.InitializeAsync(_lifetime.Token);
-            (StatusText, CanRetry) = outcome switch
+            (StatusText, CanRetry, StatusSeverity) = outcome switch
             {
                 AvaloniaStartupOutcome.ReadyForPasswordSetup =>
-                    ("Create a master password to protect your authenticator.", false),
+                    ("Create a master password to protect your authenticator.", false, NotificationSeverity.Information),
                 AvaloniaStartupOutcome.ReadyForUnlock =>
-                    ("Enter your master password to unlock your authenticator.", false),
+                    ("Enter your master password to unlock your authenticator.", false, NotificationSeverity.Information),
                 AvaloniaStartupOutcome.PreferencesUnavailable =>
-                    ("Your preferences could not be loaded. Your encrypted data was not changed.", true),
+                    ("Your preferences could not be loaded. Your encrypted data was not changed.", true, NotificationSeverity.Warning),
                 _ =>
-                    ("TOTP Manager could not start safely. Your encrypted data was not changed.", true)
+                    ("TOTP Manager could not start safely. Your encrypted data was not changed.", true, NotificationSeverity.Error)
             };
             IsPasswordUnlockVisible = outcome == AvaloniaStartupOutcome.ReadyForUnlock;
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
         {
             StatusText = "Startup cancelled.";
+            StatusSeverity = NotificationSeverity.Information;
         }
         catch (Exception)
         {
             StatusText = "TOTP Manager could not start safely. Your encrypted data was not changed.";
+            StatusSeverity = NotificationSeverity.Error;
             CanRetry = true;
         }
         finally
@@ -221,6 +232,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsAccountListVisible = false;
         IsPasswordUnlockVisible = false;
         StatusText = "TOTP Manager is closing safely.";
+        StatusSeverity = NotificationSeverity.Information;
     }
 
     private void OnUnlocked(object? sender, EventArgs e)
@@ -229,6 +241,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsShellVisible = true;
         SetActivePage(ShellPage.Accounts);
         StatusText = "Vault unlocked.";
+        StatusSeverity = NotificationSeverity.Success;
         AccountList.LoadCommand.Execute(null);
     }
 
@@ -243,6 +256,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsAccountListVisible = false;
         IsPasswordUnlockVisible = true;
         StatusText = "Vault locked. Enter your master password to continue.";
+        StatusSeverity = NotificationSeverity.Information;
         return Task.CompletedTask;
     }
 

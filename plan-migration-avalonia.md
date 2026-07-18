@@ -535,7 +535,7 @@ Do not proceed to full UI migration until:
 - [x] QR preview.
 - [x] Validation presentation.
 - [ ] Confirmation/password dialogs.
-- [ ] Notification presentation.
+- [x] Notification presentation.
 
 ### Exit criteria
 
