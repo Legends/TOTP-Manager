@@ -26,13 +26,15 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IAuthorizationService authorizationService,
         PasswordUnlockViewModel passwordUnlock,
         AccountListViewModel accountList,
-        SettingsPageViewModel settingsPage)
+        SettingsPageViewModel settingsPage,
+        NativeFilePickerViewModel nativeFilePicker)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
         PasswordUnlock = passwordUnlock ?? throw new ArgumentNullException(nameof(passwordUnlock));
         AccountList = accountList ?? throw new ArgumentNullException(nameof(accountList));
         SettingsPage = settingsPage ?? throw new ArgumentNullException(nameof(settingsPage));
+        NativeFilePicker = nativeFilePicker ?? throw new ArgumentNullException(nameof(nativeFilePicker));
         PasswordUnlock.Unlocked += OnUnlocked;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
         _lockCommand = new AsyncCommand(LockAsync, () => _isAccountListVisible);
@@ -74,6 +76,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public AccountListViewModel AccountList { get; }
 
     public SettingsPageViewModel SettingsPage { get; }
+
+    public NativeFilePickerViewModel NativeFilePicker { get; }
 
     public bool IsPasswordUnlockVisible
     {

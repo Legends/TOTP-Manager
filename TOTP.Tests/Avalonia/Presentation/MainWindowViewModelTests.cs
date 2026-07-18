@@ -66,7 +66,8 @@ public sealed class MainWindowViewModelTests
             authorization.Object,
             password,
             accounts,
-            CreateSettingsPage());
+            CreateSettingsPage(),
+            CreateFilePicker());
         await sut.InitializeAsync();
 
         await sut.LockAsync();
@@ -88,7 +89,8 @@ public sealed class MainWindowViewModelTests
                 Mock.Of<IAsyncClipboardService>(),
                 Mock.Of<IAccountQrCodeService>(),
                 Mock.Of<IAvaloniaQrImageFactory>()),
-            CreateSettingsPage());
+            CreateSettingsPage(),
+            CreateFilePicker());
 
     private static SettingsPageViewModel CreateSettingsPage()
     {
@@ -96,4 +98,7 @@ public sealed class MainWindowViewModelTests
         settings.SetupGet(value => value.Current).Returns(new AppSettings());
         return new SettingsPageViewModel(settings.Object);
     }
+
+    private static NativeFilePickerViewModel CreateFilePicker() =>
+        new(Mock.Of<IAvaloniaFilePicker>());
 }

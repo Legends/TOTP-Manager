@@ -57,6 +57,18 @@
             Command="{Binding LockCommand}"
             Content="Lock"
             IsVisible="{Binding IsAccountListVisible}" />
+        <ContentControl
+            Content="{Binding NativeFilePicker}"
+            IsVisible="{Binding IsAccountListVisible}">
+            <ContentControl.ContentTemplate>
+                <DataTemplate x:DataType="presentation:NativeFilePickerViewModel">
+                    <StackPanel Spacing="6">
+                        <Button Command="{Binding PickCommand}" Content="Choose import file…" />
+                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
         <Button
             HorizontalAlignment="Right"
             Command="{Binding ToggleSettingsCommand}"

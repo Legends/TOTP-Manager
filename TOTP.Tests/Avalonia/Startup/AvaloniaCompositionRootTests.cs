@@ -55,6 +55,10 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IAccountQrCodeService>());
         Assert.IsType<AvaloniaQrImageFactory>(
             services.GetRequiredService<IAvaloniaQrImageFactory>());
+        Assert.IsType<AvaloniaFilePicker>(
+            services.GetRequiredService<IAvaloniaFilePicker>());
+        Assert.IsType<NativeFilePickerViewModel>(
+            services.GetRequiredService<NativeFilePickerViewModel>());
         Assert.IsType<SettingsPageViewModel>(
             services.GetRequiredService<SettingsPageViewModel>());
         Assert.IsType<AsyncClipboardService>(

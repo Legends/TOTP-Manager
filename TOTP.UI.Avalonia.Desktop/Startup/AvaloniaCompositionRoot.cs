@@ -38,6 +38,8 @@ public static class AvaloniaCompositionRoot
             provider.GetRequiredService<AvaloniaUiScheduler>());
         services.AddSingleton<AppLifetime, AvaloniaApplicationLifetime>();
         services.AddSingleton<AvaloniaClipboardAccessor>();
+        services.AddSingleton<AvaloniaStorageProviderAccessor>();
+        services.AddSingleton<IAvaloniaFilePicker, AvaloniaFilePicker>();
         services.AddSingleton<IAvaloniaQrImageFactory, AvaloniaQrImageFactory>();
         services.AddSingleton<IAsyncPlatformClipboard>(provider =>
             new AvaloniaPlatformClipboard(
@@ -51,11 +53,13 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<PasswordUnlockViewModel>();
         services.AddSingleton<AccountListViewModel>();
         services.AddSingleton<SettingsPageViewModel>();
+        services.AddSingleton<NativeFilePickerViewModel>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient(provider => new MainWindow
         {
             DataContext = provider.GetRequiredService<MainWindowViewModel>(),
-            ClipboardAccessor = provider.GetRequiredService<AvaloniaClipboardAccessor>()
+            ClipboardAccessor = provider.GetRequiredService<AvaloniaClipboardAccessor>(),
+            StorageProviderAccessor = provider.GetRequiredService<AvaloniaStorageProviderAccessor>()
         });
 
         return services.BuildServiceProvider(new ServiceProviderOptions

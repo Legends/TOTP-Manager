@@ -461,7 +461,7 @@ Any replacement failure before Active
 - [x] One settings page.
 - [x] QR generation.
 - [ ] Camera QR scan.
-- [ ] Native file picker.
+- [x] Native file picker.
 - [ ] Single-instance activation.
 - [ ] Test update check using a signed test appcast.
 
