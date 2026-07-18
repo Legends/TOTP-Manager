@@ -20,6 +20,8 @@ The main window initializes its view model only on the first open. Window closin
 
 After authorization, the shell exposes exactly one of three explicit pages: Accounts, Tools, or Settings. Locking hides the entire authorized shell and returns to the password gate. Leaving Accounts clears generated OTP/QR output while preserving the loaded secret-free rows; leaving Tools cancels and clears camera capture. Settings reload when entered. Navigation commands cannot execute while locked, and the current-page command is disabled to provide a consistent keyboard state.
 
+`AvaloniaWindowCoordinator` is the single owner registry for the main window and active modal dialog. `AvaloniaDialogService` serializes confirmations, always calls Avalonia's asynchronous `ShowDialog` with the registered main-window owner, clears dialog data context after completion, and routes secondary-instance activation to the active modal instead of surfacing an unusable owner behind it. Missing or competing owners fail explicitly. The existing synchronous Core/WPF confirmation contract is not implemented by blocking the Avalonia UI thread; feature workflows will consume the async boundary during their migration.
+
 No splash window is currently justified. The existing shell reports startup state and recoverable failure without adding another lifetime or focus owner. Revisit only if measured interactive startup makes the password gate materially late.
 
 ## Design tokens
@@ -52,6 +54,8 @@ The initial shell consumes the tokens and uses a responsive maximum width rather
 `AccountRow` owns the reusable two-column issuer/account layout and derives one meaningful accessibility label from that secret-free metadata. Native list items retain selection, focus, and keyboard behavior; the row does not introduce commands, selection state, identifiers, seeds, or OTP values.
 
 `NotificationBanner` presents explicit information, success, warning, and error states without parsing message text. Nonfatal status changes use polite live-region announcements; errors use assertive announcements. Empty notifications leave the visual and accessibility trees. The shell now projects startup, retry, unlock, lock, and shutdown state through this contract.
+
+`ConfirmationDialogWindow` consumes the shared notification and button styles, supplies default/cancel keyboard behavior, cannot create an unowned top-level window through the dialog service, and keeps decision policy in a testable view model rather than code-behind.
 
 ## Security and compatibility impact
 

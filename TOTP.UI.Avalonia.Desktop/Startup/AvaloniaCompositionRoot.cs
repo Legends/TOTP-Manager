@@ -44,6 +44,8 @@ public static class AvaloniaCompositionRoot
             new NamedPipeActivationListener(DesktopInstanceIdentity.PipeName));
         services.AddSingleton<AvaloniaClipboardAccessor>();
         services.AddSingleton<AvaloniaStorageProviderAccessor>();
+        services.AddSingleton<AvaloniaWindowCoordinator>();
+        services.AddSingleton<IAvaloniaDialogService, AvaloniaDialogService>();
         services.AddSingleton<IAvaloniaFilePicker, AvaloniaFilePicker>();
         services.AddSingleton<IAvaloniaQrImageFactory, AvaloniaQrImageFactory>();
         services.AddSingleton<IAsyncPlatformClipboard>(provider =>
@@ -69,7 +71,8 @@ public static class AvaloniaCompositionRoot
         {
             DataContext = provider.GetRequiredService<MainWindowViewModel>(),
             ClipboardAccessor = provider.GetRequiredService<AvaloniaClipboardAccessor>(),
-            StorageProviderAccessor = provider.GetRequiredService<AvaloniaStorageProviderAccessor>()
+            StorageProviderAccessor = provider.GetRequiredService<AvaloniaStorageProviderAccessor>(),
+            WindowCoordinator = provider.GetRequiredService<AvaloniaWindowCoordinator>()
         });
 
         return services.BuildServiceProvider(new ServiceProviderOptions

@@ -60,6 +60,8 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IAvaloniaQrImageFactory>());
         Assert.IsType<AvaloniaFilePicker>(
             services.GetRequiredService<IAvaloniaFilePicker>());
+        Assert.IsType<AvaloniaDialogService>(
+            services.GetRequiredService<IAvaloniaDialogService>());
         Assert.IsType<NativeFilePickerViewModel>(
             services.GetRequiredService<NativeFilePickerViewModel>());
         Assert.IsType<NamedPipeActivationListener>(

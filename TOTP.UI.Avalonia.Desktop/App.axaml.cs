@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Core.Platform;
 
@@ -31,16 +32,14 @@ public partial class App : Application
                 _services.Dispose();
             };
             var mainWindow = _services.GetRequiredService<MainWindow>();
+            var windows = _services.GetRequiredService<AvaloniaWindowCoordinator>();
             desktop.MainWindow = mainWindow;
             _services.GetRequiredService<IActivationListener>().Start(request =>
             {
                 if (request.Kind != ApplicationActivationKind.ActivateMainWindow) return;
                 global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
-                    if (mainWindow.WindowState == global::Avalonia.Controls.WindowState.Minimized)
-                        mainWindow.WindowState = global::Avalonia.Controls.WindowState.Normal;
-                    mainWindow.Show();
-                    mainWindow.Activate();
+                    windows.ActivateCurrent();
                 });
             });
         }

@@ -1,0 +1,38 @@
+<Window
+    x:Class="TOTP.Avalonia.Desktop.Dialogs.ConfirmationDialogWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dialogs="using:TOTP.Avalonia.Desktop.Presentation.Dialogs"
+    xmlns:shared="using:TOTP.Avalonia.Shared.Controls"
+    x:DataType="dialogs:ConfirmationDialogViewModel"
+    Width="460"
+    MinWidth="360"
+    SizeToContent="Height"
+    CanResize="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    Title="{Binding Title}">
+    <StackPanel Margin="24" Spacing="20">
+        <TextBlock
+            Classes="heading"
+            Text="{Binding Title}"
+            TextWrapping="Wrap" />
+        <shared:NotificationBanner
+            Severity="{Binding Severity}"
+            Text="{Binding Message}" />
+        <StackPanel
+            HorizontalAlignment="Right"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+                Command="{Binding CancelCommand}"
+                Content="{Binding CancelText}"
+                IsCancel="True" />
+            <Button
+                Classes="primary"
+                Command="{Binding ConfirmCommand}"
+                Content="{Binding ConfirmText}"
+                IsDefault="True" />
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -10,6 +10,7 @@ public partial class MainWindow : Window
 
     public AvaloniaClipboardAccessor? ClipboardAccessor { get; init; }
     public AvaloniaStorageProviderAccessor? StorageProviderAccessor { get; init; }
+    public AvaloniaWindowCoordinator? WindowCoordinator { get; init; }
 
     public MainWindow()
     {
@@ -19,6 +20,7 @@ public partial class MainWindow : Window
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
+        WindowCoordinator?.RegisterMainWindow(this);
         if (Clipboard is not null)
             ClipboardAccessor?.Set(Clipboard);
         StorageProviderAccessor?.Set(StorageProvider);
@@ -27,6 +29,12 @@ public partial class MainWindow : Window
             _initialized = true;
             viewModel.InitializeCommand.Execute(null);
         }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        WindowCoordinator?.UnregisterMainWindow(this);
+        base.OnClosed(e);
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)

@@ -514,7 +514,7 @@ Do not proceed to full UI migration until:
 - [x] Splash/startup decision: not currently justified; use measured shell status and revisit only if interactive startup regresses.
 - [x] Authorization-gated shell navigation and lock gate.
 - [x] Settings navigation.
-- [ ] Dialog ownership and activation.
+- [x] Dialog ownership and activation.
 - [ ] Localization startup and live language switching.
 
 ### Design system
