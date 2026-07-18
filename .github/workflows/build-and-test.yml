@@ -7,6 +7,7 @@ on:
       - 'v*'  # This triggers release publishing only when a tag is pushed
   pull_request:
     branches: [master, 'release/1.x']
+  workflow_dispatch:
 
 jobs:
   build-test:
@@ -105,8 +106,94 @@ jobs:
       - name: Build Avalonia desktop host
         run: dotnet build TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj --configuration Release --no-restore --nologo --verbosity minimal
 
+  m3-package-probe:
+    name: M3 package probe (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            runner: windows-2025
+            rid: win-x64
+            executable: TOTP.UI.Avalonia.Desktop.exe
+          - name: Ubuntu 24.04 x64
+            runner: ubuntu-24.04
+            rid: linux-x64
+            executable: TOTP.UI.Avalonia.Desktop
+          - name: macOS ARM64
+            runner: macos-15
+            rid: osx-arm64
+            executable: TOTP.UI.Avalonia.Desktop
+          - name: macOS x64
+            runner: macos-15-intel
+            rid: osx-x64
+            executable: TOTP.UI.Avalonia.Desktop
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "9.0.x"
+          cache: true
+          cache-dependency-path: |
+            TOTP.Camera.OpenCv/TOTP.Camera.OpenCv.csproj
+            TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
+            NuGet.config
+
+      - name: Restore target package graph
+        run: >-
+          dotnet restore TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
+          --runtime ${{ matrix.rid }}
+          --nologo
+          --verbosity minimal
+          --configfile NuGet.config
+
+      - name: Publish framework-dependent M3 package
+        run: >-
+          dotnet publish TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
+          --configuration Release
+          --runtime ${{ matrix.rid }}
+          --self-contained false
+          --no-restore
+          --nologo
+          --verbosity minimal
+          --output m3-package
+
+      - name: Execute packaged native-runtime probe
+        shell: pwsh
+        run: |
+          $executable = Join-Path $PWD "m3-package/${{ matrix.executable }}"
+          if ($IsWindows) {
+            $process = Start-Process -FilePath $executable -ArgumentList "--m3-native-probe" -Wait -PassThru -WindowStyle Hidden
+            $probeExitCode = $process.ExitCode
+          }
+          else {
+            & $executable --m3-native-probe
+            $probeExitCode = $LASTEXITCODE
+          }
+          if ($probeExitCode -ne 0) {
+            throw "Packaged OpenCV native-runtime probe failed with exit code $probeExitCode."
+          }
+
+          $packageBytes = (Get-ChildItem m3-package -File -Recurse | Measure-Object Length -Sum).Sum
+          "M3_PACKAGE_BYTES=$packageBytes" >> $env:GITHUB_ENV
+          "### ${{ matrix.name }}`n`nPackage bytes: $packageBytes" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload M3 validation package
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: m3-${{ matrix.rid }}-${{ github.sha }}
+          path: m3-package
+          retention-days: 7
+          if-no-files-found: error
+
   publish:
-    needs: [build-test, unix-file-security]
+    needs: [build-test, unix-file-security, m3-package-probe]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
     permissions:

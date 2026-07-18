@@ -472,6 +472,8 @@ Any replacement failure before Active
 - [ ] macOS x64 if supported by product policy
 - [ ] Linux x64 on the selected baseline distribution
 
+Automated publish/native-runtime probes cover all four targets. The checkboxes require the real-target record in `docs/architecture/M3_TARGET_VALIDATION.md` and are not satisfied by hosted compilation alone.
+
 ### Measurements
 
 - Startup duration

@@ -51,4 +51,4 @@ The M3 camera checkbox may be marked complete only when:
 - a real-device smoke test records camera start, first preview, successful decode, cancellation, device loss, and repeated open/close without leaked capture handles;
 - decoded data reaches the existing validated import workflow without being logged.
 
-Current automated evidence covers module isolation, typed failures, frame-buffer clearing, cancellation, device loss, stalled frames, deterministic capture disposal, Avalonia lifecycle cleanup, and payload validation that exposes only issuer/account metadata. It intentionally does not claim real-device or permission-dialog evidence.
+Current automated evidence covers module isolation, typed failures, frame-buffer clearing, cancellation, device loss, stalled frames, deterministic capture disposal, Avalonia lifecycle cleanup, payload validation that exposes only issuer/account metadata, and a packaged native-runtime probe matrix. It intentionally does not claim real-device or permission-dialog evidence. Target records are defined in [`M3_TARGET_VALIDATION.md`](M3_TARGET_VALIDATION.md).
