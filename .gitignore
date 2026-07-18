@@ -53,6 +53,9 @@ appsettings.*.json
 *.key
 *.cer
 publish/
+/m3-publish/
+/m3-package/
+/m3-measurement-*.json
 
 # Local updater test artifacts
 updatertest/iis-feed/

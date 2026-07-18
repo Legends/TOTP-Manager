@@ -19,6 +19,8 @@ The automated probe is a repeatable technical gate, not a substitute for interac
 
 The process probe deliberately includes OpenCV native loading and 500/1,000/5,000-account filter samples. These generous technical ceilings are intended to detect architectural regressions and packaging explosions across heterogeneous hosted runners. M8 must establish tighter release budgets from interactive clean-machine evidence.
 
+The portable dependency boundary currently contains zero WPF types: Core, DAL, Infrastructure, the shared Avalonia presentation project, and the camera module all target platform-neutral `net9.0`, and the Ubuntu/macOS CI jobs compile the Avalonia host against those projects. This is rechecked by every cross-platform build rather than inferred from a Windows build.
+
 ## Real-target budgets
 
 Record these from a packaged synthetic-vault run on every supported target:

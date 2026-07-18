@@ -14,6 +14,8 @@ macOS x64 was evaluated and excluded from the initial product policy. Its aligne
 
 Every matrix run records package byte size in the GitHub job summary. A manual `workflow_dispatch` additionally retains each framework-dependent validation package for seven days. These are unsigned technical artifacts, not releases.
 
+The first complete three-target package and budget matrix passed for commit `2846f09` in workflow run `29645981850`. Later runs remain authoritative for later commits; the commit recorded inside each JSON report prevents evidence from being attributed to a different build.
+
 This evidence proves restore, publish, native-asset placement, process startup, and native OpenCV loading on the target OS/architecture. It does not prove camera permission UX, camera-device behavior, accessibility, signing, notarization, installation, or update execution.
 
 Automated thresholds are defined in [`M3_MEASUREMENT_BUDGETS.md`](M3_MEASUREMENT_BUDGETS.md).
@@ -35,6 +37,8 @@ Complete one record per supported target using a packaged commit that passed the
 - [ ] Verify native file picker and single-instance activation.
 - [ ] Verify keyboard-only navigation and screen-reader announcements.
 - [ ] Verify 100%, 150%, and 200% scaling where the platform supports them.
+
+The preview window is vertically scrollable at its minimum size and declares automation names for otherwise ambiguous inputs, account content, camera/QR images, and generated-code output. Status and error text use polite or assertive live-region semantics. These establish a testable accessibility path; they do not replace the target screen-reader and scaling rows above.
 
 macOS packages used for real camera testing must include `NSCameraUsageDescription`. Signed/notarized artifacts and production update behavior remain M7 gates.
 

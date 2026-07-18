@@ -476,16 +476,19 @@ Automated publish/native-runtime probes cover the three supported targets. The s
 
 ### Measurements
 
-- Startup duration
-- Working-set memory
-- Account-list rendering and filtering latency
-- Camera startup and disposal reliability
-- High-DPI rendering
-- Keyboard navigation
-- Screen-reader behavior
-- Package size
-- Native dependency footprint
-- Number of WPF types still leaking into shared code
+- [x] Packaged technical-probe startup duration
+- [x] Technical-probe working-set memory
+- [x] Synthetic account-filtering latency at 500, 1,000, and 5,000 entries
+- [ ] Interactive account-list rendering latency
+- [ ] Physical-camera startup and disposal reliability
+- [ ] High-DPI rendering at 100%, 150%, and 200%
+- [ ] Keyboard navigation on each supported target
+- [ ] Screen-reader behavior on each supported target
+- [x] Package size
+- [x] Native dependency footprint
+- [x] Number of WPF types leaking into portable/shared code: zero
+
+Automated budgets and evidence format are defined in `docs/architecture/M3_MEASUREMENT_BUDGETS.md`. Interactive and hardware-dependent rows remain open until recorded on the packaged supported targets.
 
 ### Decision gate
 

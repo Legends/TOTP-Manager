@@ -2,6 +2,7 @@
     x:Class="TOTP.Avalonia.Desktop.MainWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:automation="using:Avalonia.Automation"
     xmlns:presentation="using:TOTP.Avalonia.Desktop.Presentation"
     x:DataType="presentation:MainWindowViewModel"
     Title="TOTP Manager (Avalonia Preview)"
@@ -18,10 +19,12 @@
             HorizontalAlignment="Center"
             Spacing="20">
         <TextBlock
+            automation:AutomationProperties.HeadingLevel="1"
             HorizontalAlignment="Center"
             FontSize="24"
             Text="TOTP Manager" />
         <TextBlock
+            automation:AutomationProperties.LiveSetting="Polite"
             HorizontalAlignment="Center"
             Text="{Binding StatusText}"
             TextAlignment="Center"
@@ -37,10 +40,14 @@
                     <DataTemplate x:DataType="presentation:PasswordUnlockViewModel">
                         <StackPanel Spacing="12">
                             <TextBox
+                                automation:AutomationProperties.HelpText="Required to unlock the local synthetic vault."
+                                automation:AutomationProperties.Name="Master password"
+                                automation:AutomationProperties.IsRequiredForForm="True"
                                 PasswordChar="●"
                                 PlaceholderText="Master password"
                                 Text="{Binding Password, Mode=TwoWay}" />
                             <TextBlock
+                                automation:AutomationProperties.LiveSetting="Assertive"
                                 Foreground="Crimson"
                                 IsVisible="{Binding HasMessage}"
                                 Text="{Binding Message}"
@@ -79,7 +86,10 @@
                 <DataTemplate x:DataType="presentation:UpdateCheckViewModel">
                     <StackPanel Spacing="6">
                         <Button Command="{Binding CheckCommand}" Content="Verify signed test appcast" />
-                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                        <TextBlock
+                            automation:AutomationProperties.LiveSetting="Polite"
+                            Text="{Binding Message}"
+                            TextWrapping="Wrap" />
                     </StackPanel>
                 </DataTemplate>
             </ContentControl.ContentTemplate>
@@ -94,8 +104,12 @@
                             <Button Command="{Binding StartCommand}" Content="Scan QR with camera" />
                             <Button Command="{Binding CancelCommand}" Content="Cancel scan" />
                         </StackPanel>
-                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                        <TextBlock
+                            automation:AutomationProperties.LiveSetting="Polite"
+                            Text="{Binding Message}"
+                            TextWrapping="Wrap" />
                         <Image
+                            automation:AutomationProperties.Name="Live camera preview"
                             Width="320"
                             Height="240"
                             IsVisible="{Binding HasPreview}"
@@ -118,6 +132,8 @@
                             <TextBlock FontSize="20" Text="Security settings" />
                             <TextBlock Text="Idle timeout in minutes (0 disables idle lock)" />
                             <NumericUpDown
+                                automation:AutomationProperties.HelpText="Enter zero to disable idle locking."
+                                automation:AutomationProperties.Name="Idle timeout in minutes"
                                 Maximum="1440"
                                 Minimum="0"
                                 Value="{Binding IdleTimeoutMinutes, Mode=TwoWay}" />
@@ -137,14 +153,17 @@
                     <DataTemplate x:DataType="presentation:AccountListViewModel">
                         <StackPanel Spacing="12">
                             <TextBox
+                                automation:AutomationProperties.Name="Search accounts"
                                 PlaceholderText="Search issuer or account"
                                 Text="{Binding SearchText, Mode=TwoWay}" />
                             <TextBlock
+                                automation:AutomationProperties.LiveSetting="Polite"
                                 HorizontalAlignment="Center"
                                 IsVisible="{Binding HasMessage}"
                                 Text="{Binding Message}"
                                 TextWrapping="Wrap" />
                             <ListBox
+                                automation:AutomationProperties.Name="Accounts"
                                 MaxHeight="420"
                                 ItemsSource="{Binding Accounts}"
                                 SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
@@ -170,6 +189,7 @@
                                 Command="{Binding GenerateQrCommand}"
                                 Content="Show QR code" />
                             <TextBlock
+                                automation:AutomationProperties.Name="Generated one-time code"
                                 HorizontalAlignment="Center"
                                 FontFamily="Consolas"
                                 FontSize="28"
@@ -181,10 +201,12 @@
                                 Content="Copy with timed clear"
                                 IsVisible="{Binding HasGeneratedCode}" />
                             <TextBlock
+                                automation:AutomationProperties.LiveSetting="Polite"
                                 HorizontalAlignment="Center"
                                 IsVisible="{Binding HasCodeMessage}"
                                 Text="{Binding CodeMessage}" />
                             <Image
+                                automation:AutomationProperties.Name="Generated account QR code"
                                 Width="240"
                                 Height="240"
                                 IsVisible="{Binding HasQrImage}"
