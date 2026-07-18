@@ -124,7 +124,7 @@ jobs:
           - name: macOS ARM64
             runner: macos-15
             rid: osx-arm64
-            executable: TOTP.UI.Avalonia.Desktop
+            executable: TOTP Manager.app/Contents/MacOS/TOTP.UI.Avalonia.Desktop
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -156,7 +156,19 @@ jobs:
           --no-restore
           --nologo
           --verbosity minimal
-          --output m3-package
+          --output m3-publish
+
+      - name: Assemble target-shaped M3 package
+        shell: pwsh
+        run: |
+          ./scripts/validation/Package-M3Target.ps1 `
+            -PublishDirectory m3-publish `
+            -RuntimeIdentifier "${{ matrix.rid }}" `
+            -OutputDirectory m3-package
+
+          if ($IsMacOS) {
+            plutil -lint "m3-package/TOTP Manager.app/Contents/Info.plist"
+          }
 
       - name: Execute packaged native-runtime probe
         shell: pwsh

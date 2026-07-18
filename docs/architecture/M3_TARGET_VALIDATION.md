@@ -2,7 +2,7 @@
 
 ## Automated package evidence
 
-The `M3 package probe` matrix publishes the Avalonia desktop host for each technical target and executes `--m3-native-probe` from the publish directory. The probe loads the managed/native OpenCvSharp pair, constructs both QR-decoder and video-capture objects, and exits without opening a camera or touching vault state.
+The `M3 package probe` matrix publishes the Avalonia desktop host, assembles a target-shaped technical package, and executes `--m3-native-probe` from that package. The probe loads the managed/native OpenCvSharp pair, constructs both QR-decoder and video-capture objects, and exits without opening a camera or touching vault state. macOS uses an `.app` bundle whose `Info.plist` declares `NSCameraUsageDescription`, minimum macOS 14, high-resolution rendering, bundle identity, and executable metadata; CI validates the plist before probing the bundled executable.
 
 Targets:
 
