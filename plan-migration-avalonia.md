@@ -490,6 +490,8 @@ Automated publish/native-runtime probes cover the three supported targets. The s
 
 Automated budgets and evidence format are defined in `docs/architecture/M3_MEASUREMENT_BUDGETS.md`. Interactive and hardware-dependent rows remain open until recorded on the packaged supported targets.
 
+The requirement-by-requirement status and exact closure procedure are maintained in `docs/architecture/M3_COMPLETION_AUDIT.md`.
+
 ### Decision gate
 
 Do not proceed to full UI migration until:

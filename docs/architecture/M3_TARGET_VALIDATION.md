@@ -18,6 +18,8 @@ The first complete three-target package and budget matrix passed for commit `284
 
 This evidence proves restore, publish, native-asset placement, process startup, and native OpenCV loading on the target OS/architecture. It does not prove camera permission UX, camera-device behavior, accessibility, signing, notarization, installation, or update execution.
 
+Final repository verification for commit `3b3426c` passed in build/package workflow run `29646239524` and security workflow run `29646239521`. The complete requirement-to-proof mapping is recorded in [`M3_COMPLETION_AUDIT.md`](M3_COMPLETION_AUDIT.md).
+
 Automated thresholds are defined in [`M3_MEASUREMENT_BUDGETS.md`](M3_MEASUREMENT_BUDGETS.md).
 
 ## Required real-target record
