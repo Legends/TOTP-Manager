@@ -57,6 +57,32 @@
             Command="{Binding LockCommand}"
             Content="Lock"
             IsVisible="{Binding IsAccountListVisible}" />
+        <Button
+            HorizontalAlignment="Right"
+            Command="{Binding ToggleSettingsCommand}"
+            Content="Settings"
+            IsVisible="{Binding IsAccountListVisible}" />
+        <Border IsVisible="{Binding IsSettingsVisible}">
+            <ContentControl Content="{Binding SettingsPage}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="presentation:SettingsPageViewModel">
+                        <StackPanel Spacing="10">
+                            <TextBlock FontSize="20" Text="Security settings" />
+                            <TextBlock Text="Idle timeout in minutes (0 disables idle lock)" />
+                            <NumericUpDown
+                                Maximum="1440"
+                                Minimum="0"
+                                Value="{Binding IdleTimeoutMinutes, Mode=TwoWay}" />
+                            <CheckBox
+                                Content="Lock when minimized"
+                                IsChecked="{Binding LockOnMinimize, Mode=TwoWay}" />
+                            <Button Command="{Binding SaveCommand}" Content="Save settings" />
+                            <TextBlock Text="{Binding Message}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+        </Border>
         <Border IsVisible="{Binding IsAccountListVisible}">
             <ContentControl Content="{Binding AccountList}">
                 <ContentControl.ContentTemplate>

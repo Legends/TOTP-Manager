@@ -12,26 +12,31 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly IAuthorizationService _authorizationService;
     private readonly AsyncCommand _initializeCommand;
     private readonly AsyncCommand _lockCommand;
+    private readonly AsyncCommand _toggleSettingsCommand;
     private readonly CancellationTokenSource _lifetime = new();
     private string _statusText = "Starting TOTP Manager…";
     private bool _isBusy;
     private bool _canRetry;
     private bool _isPasswordUnlockVisible;
     private bool _isAccountListVisible;
+    private bool _isSettingsVisible;
 
     public MainWindowViewModel(
         IAvaloniaStartupCoordinator startupCoordinator,
         IAuthorizationService authorizationService,
         PasswordUnlockViewModel passwordUnlock,
-        AccountListViewModel accountList)
+        AccountListViewModel accountList,
+        SettingsPageViewModel settingsPage)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
         PasswordUnlock = passwordUnlock ?? throw new ArgumentNullException(nameof(passwordUnlock));
         AccountList = accountList ?? throw new ArgumentNullException(nameof(accountList));
+        SettingsPage = settingsPage ?? throw new ArgumentNullException(nameof(settingsPage));
         PasswordUnlock.Unlocked += OnUnlocked;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
         _lockCommand = new AsyncCommand(LockAsync, () => _isAccountListVisible);
+        _toggleSettingsCommand = new AsyncCommand(ToggleSettingsAsync, () => _isAccountListVisible);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -62,9 +67,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public ICommand LockCommand => _lockCommand;
 
+    public ICommand ToggleSettingsCommand => _toggleSettingsCommand;
+
     public PasswordUnlockViewModel PasswordUnlock { get; }
 
     public AccountListViewModel AccountList { get; }
+
+    public SettingsPageViewModel SettingsPage { get; }
 
     public bool IsPasswordUnlockVisible
     {
@@ -79,7 +88,14 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         {
             if (!SetField(ref _isAccountListVisible, value)) return;
             _lockCommand.NotifyCanExecuteChanged();
+            _toggleSettingsCommand.NotifyCanExecuteChanged();
         }
+    }
+
+    public bool IsSettingsVisible
+    {
+        get => _isSettingsVisible;
+        private set => SetField(ref _isSettingsVisible, value);
     }
 
     public async Task InitializeAsync()
@@ -90,6 +106,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         CanRetry = false;
         IsPasswordUnlockVisible = false;
         IsAccountListVisible = false;
+        IsSettingsVisible = false;
         StatusText = "Starting TOTP Manager…";
 
         try
@@ -142,9 +159,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
         _authorizationService.Lock();
         AccountList.Clear();
+        IsSettingsVisible = false;
         IsAccountListVisible = false;
         IsPasswordUnlockVisible = true;
         StatusText = "Vault locked. Enter your master password to continue.";
+        return Task.CompletedTask;
+    }
+
+    public Task ToggleSettingsAsync()
+    {
+        IsSettingsVisible = !IsSettingsVisible;
+        if (IsSettingsVisible) SettingsPage.Reload();
         return Task.CompletedTask;
     }
 

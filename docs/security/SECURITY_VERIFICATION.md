@@ -52,6 +52,7 @@ Workflow: `.github/workflows/security-audit.yml`
 - `IAccountTotpService` resolves the selected account and invokes the existing zeroing `ITotpGenerator` inside Infrastructure. Avalonia supplies only the non-secret account ID and never receives the seed. Generated codes are never logged and are removed from presentation state when their current time step expires, selection changes, or the view model is disposed. Managed code strings cannot be deterministically zeroed, so their lifetime is minimized rather than claimed to be zeroized.
 - TOTP tests verify account-ID selection, seed confinement to the infrastructure service, invalid-seed redaction, generic UI failures, and expiring-code projection.
 - Manual lock delegates to `IAuthorizationService.Lock`, clears generated codes, selection, search text, and projected account rows, then returns the shell to the password gate. Regression coverage verifies both authorization-state locking and presentation-state cleanup.
+- The first Avalonia settings page edits only the already-reviewed idle-timeout and lock-on-minimize preferences through `ISettingsService`. It does not bind or serialize authorization metadata. Failed or exceptional saves restore the prior active values and expose only generic UI text; tests cover successful persistence and rollback.
 - These presentation slices do not change the vault, envelope, preferences, import/export, or backup formats. WPF remains the release/default client during M3.
 
 ## Exception Handling

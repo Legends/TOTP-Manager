@@ -1,6 +1,7 @@
 using Moq;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Models;
 using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Avalonia.Desktop.Startup;
 
@@ -60,7 +61,8 @@ public sealed class MainWindowViewModelTests
             coordinator.Object,
             authorization.Object,
             password,
-            accounts);
+            accounts,
+            CreateSettingsPage());
         await sut.InitializeAsync();
 
         await sut.LockAsync();
@@ -78,5 +80,13 @@ public sealed class MainWindowViewModelTests
             new PasswordUnlockViewModel(Mock.Of<IAuthorizationService>()),
             new AccountListViewModel(
                 Mock.Of<IAccountManager>(),
-                Mock.Of<IAccountTotpService>()));
+                Mock.Of<IAccountTotpService>()),
+            CreateSettingsPage());
+
+    private static SettingsPageViewModel CreateSettingsPage()
+    {
+        var settings = new Mock<ISettingsService>();
+        settings.SetupGet(value => value.Current).Returns(new AppSettings());
+        return new SettingsPageViewModel(settings.Object);
+    }
 }
