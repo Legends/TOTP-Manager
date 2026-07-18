@@ -1,7 +1,7 @@
 using TOTP.Core.Common;
 using TOTP.Platform.Windows;
 
-namespace TOTP.Tests.Infrastructure.Platform;
+namespace TOTP.Tests.Platform.Windows;
 
 public sealed class WindowsApplicationPathsTests
 {

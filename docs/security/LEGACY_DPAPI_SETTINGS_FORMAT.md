@@ -166,6 +166,6 @@ Do not log decrypted JSON, Base64 authorization fields, DPAPI blobs, key identif
 - `TOTP.Core/Models/AppSettings.cs`
 - `TOTP.Core/Security/Models/AuthorizationProfile.cs`
 - `TOTP.Infrastructure/Security/MasterPasswordService.cs`
-- `TOTP.Infrastructure/Security/Provider/HelloGate.cs`
+- `TOTP.Platform.Windows/Security/HelloGate.cs`
 - `TOTP.Platform.Windows/WindowsFileSecurity.cs`
 - `TOTP.Tests/Integration/AppSettingsDalIntegrationTests.cs`

@@ -1,6 +1,6 @@
 using Windows.Security.Credentials.UI;
 
-namespace TOTP.Infrastructure.Security.Provider;
+namespace TOTP.Platform.Windows.Security;
 
 public sealed class WindowsHelloVerificationRequester : IHelloVerificationRequester
 {

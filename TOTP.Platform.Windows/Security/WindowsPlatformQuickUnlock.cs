@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 
-namespace TOTP.Infrastructure.Security.Provider;
+namespace TOTP.Platform.Windows.Security;
 
 public sealed class WindowsPlatformQuickUnlock : IPlatformQuickUnlock
 {

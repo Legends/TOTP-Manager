@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
-using TOTP.Infrastructure.Security.Provider;
+using TOTP.Platform.Windows.Security;
 
-namespace TOTP.Tests.Infrastructure.Security;
+namespace TOTP.Tests.Platform.Windows.Security;
 
 public sealed class WindowsPlatformQuickUnlockTests
 {
