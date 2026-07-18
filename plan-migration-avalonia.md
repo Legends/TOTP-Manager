@@ -177,6 +177,9 @@ TOTP.Platform.Abstractions
 TOTP.Platform.Windows
   Hello/TPM, Windows ACLs, session events
 
+TOTP.Platform.Unix
+  Shared descriptor-based POSIX permission enforcement
+
 TOTP.Platform.MacOS
   Keychain, LocalAuthentication, file permissions, lifecycle
 

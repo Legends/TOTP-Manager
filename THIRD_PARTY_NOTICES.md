@@ -19,6 +19,7 @@ From the current project files:
 - `TOTP.Platform.Windows/TOTP.Platform.Windows.csproj`
 - `TOTP.Platform.MacOS/TOTP.Platform.MacOS.csproj`
 - `TOTP.Platform.Linux/TOTP.Platform.Linux.csproj`
+- `TOTP.Platform.Unix/TOTP.Platform.Unix.csproj`
 
 Components include (non-exhaustive):
 - `Avalonia`
@@ -26,6 +27,7 @@ Components include (non-exhaustive):
 - `Avalonia.Themes.Fluent`
 - `FluentResults`
 - `Microsoft.Extensions.*`
+- `Mono.Posix.NETStandard`
 - `Microsoft.Xaml.Behaviors.Wpf`
 - `Notification.Wpf`
 - `Newtonsoft.Json`

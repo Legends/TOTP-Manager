@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Platform.MacOS", "TOTP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Platform.Linux", "TOTP.Platform.Linux\TOTP.Platform.Linux.csproj", "{43C89FB2-5B2F-43E9-A11E-8AE8C214BA05}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TOTP.Platform.Unix", "TOTP.Platform.Unix\TOTP.Platform.Unix.csproj", "{8FBF07F2-8841-4F56-ADD2-3271A1FE10D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -78,6 +80,10 @@ Global
 		{43C89FB2-5B2F-43E9-A11E-8AE8C214BA05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43C89FB2-5B2F-43E9-A11E-8AE8C214BA05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43C89FB2-5B2F-43E9-A11E-8AE8C214BA05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FBF07F2-8841-4F56-ADD2-3271A1FE10D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FBF07F2-8841-4F56-ADD2-3271A1FE10D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FBF07F2-8841-4F56-ADD2-3271A1FE10D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FBF07F2-8841-4F56-ADD2-3271A1FE10D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

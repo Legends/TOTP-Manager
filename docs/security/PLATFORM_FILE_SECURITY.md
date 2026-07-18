@@ -2,7 +2,7 @@
 
 ## Scope
 
-M1.2 places filesystem permission enforcement behind `IPlatformFileSecurity`. The Windows implementation is active for the WPF client. macOS and Linux rules below are mandatory for their future adapters.
+M1.2 places filesystem permission enforcement behind `IPlatformFileSecurity`. Windows uses protected current-user ACLs. macOS and Linux share a descriptor-based POSIX implementation that enforces the rules below.
 
 ## Windows behavior
 
@@ -13,9 +13,9 @@ M1.2 places filesystem permission enforcement behind `IPlatformFileSecurity`. Th
 
 Vault, settings, encrypted export, and backup writes use a uniquely named, exclusively created staging file. The staging file is hardened before it replaces the live destination. If hardening fails, the operation returns a failure and preserves the previous live file. Reparse-point destinations are rejected.
 
-## macOS and Linux policy
+## macOS and Linux behavior
 
-Future Unix adapters must:
+The Unix adapter:
 
 - Create application data, configuration, backup, state, and log directories with mode `0700`.
 - Create vault, encrypted settings, backups, and updater state with mode `0600`.
@@ -44,5 +44,6 @@ Log files must be user-only by default even though redaction remains mandatory.
 ## Verification evidence
 
 - Windows ACL tests verify protected current-user directory and file rules.
+- Unix tests verify `0700`/`0600` modes, symbolic-link rejection, regular-file enforcement, and missing-path failures on Linux and macOS runners.
 - DAL regression tests inject hardening failures during reads and staged writes.
 - Recovery tests verify that failed vault, settings, export, and backup hardening does not replace or rotate live data.
