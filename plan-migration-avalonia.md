@@ -521,7 +521,7 @@ Do not proceed to full UI migration until:
 
 - [x] Define colors, typography, spacing, radii, elevation, and motion tokens.
 - [x] Port the application icon and reusable vector symbol set; feature-specific assets remain with M5 screens.
-- [ ] Port reusable button, input, validation, and dialog styles.
+- [x] Port reusable button, input, validation, notification, and dialog styles.
 - [x] Implement system-following light/dark policy.
 - [x] Create initial desktop keyboard/focus standards.
 - [x] Define and automatically activate high-contrast behavior; physical acceptance remains a target-validation gate.

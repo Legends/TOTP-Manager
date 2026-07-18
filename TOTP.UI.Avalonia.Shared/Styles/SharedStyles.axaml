@@ -127,20 +127,48 @@
         <Setter Property="MinHeight" Value="{DynamicResource ControlMinimumHeight}" />
         <Setter Property="Padding" Value="{DynamicResource ControlPadding}" />
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+        <Setter Property="Background" Value="{DynamicResource BrushSurfaceAlternate}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="{DynamicResource BrushAccent}" />
         <Setter Property="Foreground" Value="{DynamicResource BrushOnAccent}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
+    </Style>
+    <Style Selector="Button.secondary">
+        <Setter Property="Background" Value="{DynamicResource BrushSurface}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
     </Style>
     <Style Selector="Button.danger">
         <Setter Property="Background" Value="{DynamicResource BrushDanger}" />
         <Setter Property="Foreground" Value="{DynamicResource BrushOnDanger}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushDanger}" />
+    </Style>
+    <Style Selector="Button:disabled">
+        <Setter Property="Opacity" Value="0.55" />
     </Style>
     <Style Selector="TextBox">
         <Setter Property="MinHeight" Value="{DynamicResource ControlMinimumHeight}" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+        <Setter Property="Background" Value="{DynamicResource BrushSurface}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
     </Style>
     <Style Selector="NumericUpDown">
         <Setter Property="MinHeight" Value="{DynamicResource ControlMinimumHeight}" />
+        <Setter Property="Background" Value="{DynamicResource BrushSurface}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
+    </Style>
+    <Style Selector="ComboBox">
+        <Setter Property="MinHeight" Value="{DynamicResource ControlMinimumHeight}" />
+        <Setter Property="Background" Value="{DynamicResource BrushSurface}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
     </Style>
     <Style Selector="Button:focus-visible">
         <Setter Property="BorderBrush" Value="{DynamicResource BrushFocus}" />
@@ -151,6 +179,10 @@
         <Setter Property="BorderThickness" Value="2" />
     </Style>
     <Style Selector="NumericUpDown:focus-visible">
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushFocus}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="ComboBox:focus-visible">
         <Setter Property="BorderBrush" Value="{DynamicResource BrushFocus}" />
         <Setter Property="BorderThickness" Value="2" />
     </Style>
@@ -341,5 +373,22 @@
                 </Viewbox>
             </ControlTemplate>
         </Setter>
+    </Style>
+    <Style Selector="Window.dialog">
+        <Setter Property="Width" Value="460" />
+        <Setter Property="MinWidth" Value="360" />
+        <Setter Property="SizeToContent" Value="Height" />
+        <Setter Property="CanResize" Value="False" />
+        <Setter Property="ShowInTaskbar" Value="False" />
+        <Setter Property="WindowStartupLocation" Value="CenterOwner" />
+    </Style>
+    <Style Selector="StackPanel.dialog-content">
+        <Setter Property="Margin" Value="24" />
+        <Setter Property="Spacing" Value="16" />
+    </Style>
+    <Style Selector="StackPanel.dialog-actions">
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="8" />
     </Style>
 </Styles>
