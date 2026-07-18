@@ -70,6 +70,11 @@ public static class AvaloniaStringKeys
     public const string Confirm = nameof(Confirm);
     public const string Cancel = nameof(Cancel);
     public const string Refresh = nameof(Refresh);
+    public const string ChangeMasterPassword = nameof(ChangeMasterPassword);
+    public const string CurrentPasswordPrompt = nameof(CurrentPasswordPrompt);
+    public const string PasswordChangeCancelled = nameof(PasswordChangeCancelled);
+    public const string PasswordChangeFailed = nameof(PasswordChangeFailed);
+    public const string PasswordChanged = nameof(PasswordChanged);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -87,6 +92,8 @@ public static class AvaloniaStringKeys
         EnableQuickUnlock, QuickUnlockRecoveryPrompt, QuickUnlockEnrollmentCancelled,
         QuickUnlockEnrollmentFailed, QuickUnlockEnabled, UsePasswordAtStartup,
         PasswordPreferencePrompt, PasswordPreferenceUnchanged, PasswordPreferenceFailed,
-        PasswordPreferred, PasswordVerificationFailed, Enable, Confirm, Cancel, Refresh
+        PasswordPreferred, PasswordVerificationFailed, Enable, Confirm, Cancel, Refresh,
+        ChangeMasterPassword, CurrentPasswordPrompt, PasswordChangeCancelled,
+        PasswordChangeFailed, PasswordChanged
     ];
 }

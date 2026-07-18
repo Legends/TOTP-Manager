@@ -32,6 +32,11 @@
   <data name="Confirm" xml:space="preserve"><value>Confirm</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="ChangeMasterPassword" xml:space="preserve"><value>Change master password</value></data>
+  <data name="CurrentPasswordPrompt" xml:space="preserve"><value>Enter your current master password to authorize password rotation.</value></data>
+  <data name="PasswordChangeCancelled" xml:space="preserve"><value>The master password was not changed.</value></data>
+  <data name="PasswordChangeFailed" xml:space="preserve"><value>The master password could not be changed safely. Existing recovery access remains active.</value></data>
+  <data name="PasswordChanged" xml:space="preserve"><value>Master password changed. Existing quick-unlock recovery remains available.</value></data>
   <data name="Lock" xml:space="preserve"><value>Lock</value></data>
   <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
   <data name="Tools" xml:space="preserve"><value>Tools</value></data>

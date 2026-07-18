@@ -555,9 +555,9 @@ Migrate feature-by-feature. Each feature should include UI, view-model cleanup, 
 - [x] Platform quick-unlock availability.
 - [x] Quick-unlock enrollment.
 - [x] Quick-unlock failure fallback.
-- [ ] Password change.
-- [ ] Lock and reauthorization.
-- [ ] Recovery messaging.
+- [x] Password change.
+- [x] Lock and reauthorization.
+- [x] Recovery messaging.
 - [ ] Migration messaging and rollback UI.
 
 Definition of done:

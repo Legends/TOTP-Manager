@@ -218,8 +218,16 @@ public sealed class MainWindowViewModelTests
     }
 
     private static AuthorizationSettingsViewModel CreateAuthorizationSettings(
-        IAuthorizationService authorization) =>
-        new(authorization, Mock.Of<IAvaloniaDialogService>(), CreateLocalization());
+        IAuthorizationService authorization)
+    {
+        var validation = new Mock<IPasswordValidationService>();
+        validation.SetupGet(value => value.MinimumLength).Returns(8);
+        return new AuthorizationSettingsViewModel(
+            authorization,
+            Mock.Of<IAvaloniaDialogService>(),
+            CreateLocalization(),
+            validation.Object);
+    }
 
     private static NativeFilePickerViewModel CreateFilePicker() =>
         new(Mock.Of<IAvaloniaFilePicker>());

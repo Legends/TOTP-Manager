@@ -249,6 +249,24 @@
                                     Command="{Binding UsePasswordCommand}"
                                     Content="{DynamicResource UsePasswordAtStartup}" />
                             </StackPanel>
+                            <TextBlock Classes="heading" Text="{DynamicResource ChangeMasterPassword}" />
+                            <shared:RevealableSecretInput
+                                AccessibleName="{DynamicResource NewPassword}"
+                                HelpText="{DynamicResource PasswordSetupHelp}"
+                                IsRequired="True"
+                                PlaceholderText="{DynamicResource NewPassword}"
+                                Text="{Binding NewPassword, Mode=TwoWay}" />
+                            <shared:RevealableSecretInput
+                                AccessibleName="{DynamicResource ConfirmPassword}"
+                                HelpText="{DynamicResource PasswordSetupHelp}"
+                                IsRequired="True"
+                                PlaceholderText="{DynamicResource ConfirmPassword}"
+                                Text="{Binding ConfirmPassword, Mode=TwoWay}" />
+                            <Button
+                                Classes="danger"
+                                HorizontalAlignment="Left"
+                                Command="{Binding ChangePasswordCommand}"
+                                Content="{DynamicResource ChangeMasterPassword}" />
                         </StackPanel>
                     </DataTemplate>
                 </ContentControl.ContentTemplate>

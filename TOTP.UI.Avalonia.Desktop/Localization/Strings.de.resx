@@ -32,6 +32,11 @@
   <data name="Confirm" xml:space="preserve"><value>Bestätigen</value></data>
   <data name="Cancel" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="Refresh" xml:space="preserve"><value>Aktualisieren</value></data>
+  <data name="ChangeMasterPassword" xml:space="preserve"><value>Master-Passwort ändern</value></data>
+  <data name="CurrentPasswordPrompt" xml:space="preserve"><value>Gib dein aktuelles Master-Passwort ein, um die Passwortänderung zu autorisieren.</value></data>
+  <data name="PasswordChangeCancelled" xml:space="preserve"><value>Das Master-Passwort wurde nicht geändert.</value></data>
+  <data name="PasswordChangeFailed" xml:space="preserve"><value>Das Master-Passwort konnte nicht sicher geändert werden. Der vorhandene Wiederherstellungszugriff bleibt aktiv.</value></data>
+  <data name="PasswordChanged" xml:space="preserve"><value>Das Master-Passwort wurde geändert. Die vorhandene Schnellentsperrung bleibt verfügbar.</value></data>
   <data name="Lock" xml:space="preserve"><value>Sperren</value></data>
   <data name="Accounts" xml:space="preserve"><value>Konten</value></data>
   <data name="Tools" xml:space="preserve"><value>Werkzeuge</value></data>

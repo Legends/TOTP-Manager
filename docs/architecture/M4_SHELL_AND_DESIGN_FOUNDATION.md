@@ -102,6 +102,17 @@ Changing the startup preference back to password requires master-password reauth
 - Compatibility impact: this is an adapter over the existing v2 envelope and preference state machine. It introduces no schema, KDF, wrapper, or migration change.
 - Test evidence: tests cover platform availability, enrollment requiring the recovery-password prompt, cancellation without enrollment, and password reauthorization before changing the startup preference. Physical Windows Hello enrollment and cancellation remain target evidence.
 
+## M5.1 password rotation and reauthorization
+
+The security settings surface delegates master-password rotation to `IAuthorizationService.ChangePasswordAsync`; it does not reproduce KDF, envelope replacement, vault verification, or rollback policy in the view model. New-password inputs are checked for required value, minimum length, and exact confirmation, then removed from their bound fields before the owned current-password authorization dialog opens. Inputs are also cleared whenever Settings is left, the vault is locked, or shutdown begins.
+
+Successful rotation preserves the existing quick-unlock wrapper through the reviewed password lifecycle, while the new password remains the universal recovery path. Invalid current credentials and storage/activation failures return sanitized messages and never claim that a change occurred.
+
+- Threat impact: password rotation requires current-password authorization and cannot be triggered from a locked surface. Presentation validation is advisory; the authorization and lifecycle services remain authoritative.
+- Data-flow impact: current, new, and confirmation values necessarily exist briefly as managed strings under current contracts. Bound values are cleared before authorization, locals are released at the earliest practical boundary, and none are logged.
+- Compatibility/migration impact: the v2 password wrapper is atomically replaced by the existing lifecycle; quick-unlock metadata and rollback behavior are preserved. No schema changes are introduced.
+- Test evidence: tests cover input clearing before authorization, successful delegation, mismatch rejection without dialog/storage calls, lock-state shell hiding, and password reauthorization for startup-gate changes.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.

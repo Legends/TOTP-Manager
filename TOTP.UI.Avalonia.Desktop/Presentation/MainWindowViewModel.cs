@@ -256,7 +256,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         _authorizationService.Lock();
         AccountList.Clear();
         PasswordSetup.Clear();
+        AuthorizationSettings.ClearSensitiveInputs();
         CameraScanner.Clear();
+        AuthorizationSettings.ClearSensitiveInputs();
         IsSettingsVisible = false;
         IsToolsVisible = false;
         IsShellVisible = false;
@@ -325,6 +327,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
             AccountList.ClearSensitiveOutput();
         if (IsToolsVisible && page != ShellPage.Tools)
             CameraScanner.Clear();
+        if (IsSettingsVisible && page != ShellPage.Settings)
+            AuthorizationSettings.ClearSensitiveInputs();
 
         IsAccountListVisible = page == ShellPage.Accounts;
         IsToolsVisible = page == ShellPage.Tools;

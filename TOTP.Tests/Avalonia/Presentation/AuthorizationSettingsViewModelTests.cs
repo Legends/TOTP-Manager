@@ -105,10 +105,69 @@ public sealed class AuthorizationSettingsViewModelTests
         Assert.False(sut.IsQuickUnlockEnabled);
     }
 
+    [Fact]
+    public async Task ChangePasswordAsync_ClearsNewInputsBeforeAuthorizingRotation()
+    {
+        var state = ConfiguredState(PreferredUnlockMethod.PlatformQuickUnlock);
+        var authorization = Authorization(state);
+        authorization.Setup(value => value.ChangePasswordAsync("current-password", "new-password"))
+            .ReturnsAsync(AuthorizationResult.Success);
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        AuthorizationSettingsViewModel? sut = null;
+        dialogs.Setup(value => value.PromptForPasswordAsync(
+                It.IsAny<PasswordDialogRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                Assert.Equal(string.Empty, sut!.NewPassword);
+                Assert.Equal(string.Empty, sut.ConfirmPassword);
+                return "current-password";
+            });
+        sut = CreateSut(authorization.Object, dialogs.Object);
+        sut.NewPassword = "new-password";
+        sut.ConfirmPassword = "new-password";
+
+        await sut.ChangePasswordAsync();
+
+        authorization.Verify(
+            value => value.ChangePasswordAsync("current-password", "new-password"),
+            Times.Once);
+        Assert.Equal(AvaloniaStringKeys.PasswordChanged, sut.Message);
+        Assert.Equal(NotificationSeverity.Success, sut.MessageSeverity);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_WhenConfirmationDiffers_DoesNotOpenAuthorizationDialog()
+    {
+        var authorization = Authorization(ConfiguredState(PreferredUnlockMethod.Password));
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        var sut = CreateSut(authorization.Object, dialogs.Object);
+        sut.NewPassword = "new-password";
+        sut.ConfirmPassword = "different-password";
+
+        await sut.ChangePasswordAsync();
+
+        dialogs.Verify(value => value.PromptForPasswordAsync(
+            It.IsAny<PasswordDialogRequest>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+        authorization.Verify(value => value.ChangePasswordAsync(
+            It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        Assert.Equal(string.Empty, sut.NewPassword);
+        Assert.Equal(string.Empty, sut.ConfirmPassword);
+    }
+
     private static AuthorizationSettingsViewModel CreateSut(
         IAuthorizationService authorization,
-        IAvaloniaDialogService dialogs) =>
-        new(authorization, dialogs, Localization());
+        IAvaloniaDialogService dialogs)
+    {
+        var validation = new Mock<IPasswordValidationService>();
+        validation.SetupGet(value => value.MinimumLength).Returns(8);
+        return new AuthorizationSettingsViewModel(
+            authorization,
+            dialogs,
+            Localization(),
+            validation.Object);
+    }
 
     private static Mock<IAuthorizationService> Authorization(AuthorizationState state)
     {
