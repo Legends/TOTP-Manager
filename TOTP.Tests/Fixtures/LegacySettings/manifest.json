@@ -5,7 +5,7 @@
     "sourceCommit": "29a1af4",
     "rootKind": "AuthorizationProfile",
     "authorizationKind": "Pbkdf2PasswordHash",
-    "expectedCurrentReader": "LosesTopLevelAuthorization"
+    "historicalReaderOutcome": "LosesTopLevelAuthorization"
   },
   {
     "id": "v1-global-profile-minimal-pbkdf2",
@@ -13,7 +13,7 @@
     "sourceCommit": "ad26f22",
     "rootKind": "GlobalProfile",
     "authorizationKind": "Pbkdf2PasswordHash",
-    "expectedCurrentReader": "PasswordHashUnsupported"
+    "historicalReaderOutcome": "PasswordHashUnsupported"
   },
   {
     "id": "v2-global-profile-expanded-pbkdf2",
@@ -21,7 +21,7 @@
     "sourceCommit": "47aef6d",
     "rootKind": "GlobalProfile",
     "authorizationKind": "Pbkdf2PasswordHash",
-    "expectedCurrentReader": "PasswordHashUnsupported"
+    "historicalReaderOutcome": "PasswordHashUnsupported"
   },
   {
     "id": "v3-global-profile-dek-envelope",
@@ -29,7 +29,7 @@
     "sourceCommit": "d7133ef",
     "rootKind": "GlobalProfile",
     "authorizationKind": "Argon2idWrappedDek",
-    "expectedCurrentReader": "PasswordEnvelopeSupported"
+    "historicalReaderOutcome": "PasswordEnvelopeSupported"
   },
   {
     "id": "v4-app-settings-dek-envelope",
@@ -37,7 +37,7 @@
     "sourceCommit": "e816612",
     "rootKind": "AppSettings",
     "authorizationKind": "Argon2idWrappedDek",
-    "expectedCurrentReader": "PasswordEnvelopeSupported"
+    "historicalReaderOutcome": "PasswordEnvelopeSupported"
   },
   {
     "id": "v5-current-app-settings",
@@ -45,6 +45,6 @@
     "sourceCommit": "570e5ed",
     "rootKind": "AppSettings",
     "authorizationKind": "Argon2idWrappedDekAndHello",
-    "expectedCurrentReader": "PasswordEnvelopeSupported"
+    "historicalReaderOutcome": "PasswordEnvelopeSupported"
   }
 ]

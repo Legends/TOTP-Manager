@@ -39,7 +39,6 @@ public sealed class DependencyInjectionPathTests : IDisposable
             provider.GetRequiredService<IAuthorizationEnvelopeSession>());
         Assert.IsType<PortableSettingsService>(provider.GetRequiredService<ISettingsService>());
         Assert.IsType<PortableAuthorizationService>(provider.GetRequiredService<IAuthorizationService>());
-        Assert.Null(provider.GetService<IAppSettingsDAL>());
 
         Assert.IsType<WindowsFileSecurity>(provider.GetRequiredService<IPlatformFileSecurity>());
         Assert.Same(vaultService, vaultKeyVerifier);
@@ -50,15 +49,13 @@ public sealed class DependencyInjectionPathTests : IDisposable
     }
 
     [Fact]
-    public void AddInfrastructure_WhenStorageOverridesExist_IgnoresLegacySettingsPathAndPreservesVaultPath()
+    public void AddInfrastructure_WhenVaultOverrideExists_UsesConfiguredVaultPath()
     {
         var paths = new WindowsApplicationPaths(_root, _root);
-        var configuredSettingsPath = Path.Combine(_root, "custom", "profile.totp");
         var configuredVaultPath = Path.Combine(_root, "custom", "accounts.totp");
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["AppSettings:StorageFilePath"] = configuredSettingsPath,
                 ["Accounts:StorageFilePath"] = configuredVaultPath
             })
             .Build();
@@ -69,7 +66,6 @@ public sealed class DependencyInjectionPathTests : IDisposable
             paths.PreferencesFilePath,
             ReadPath(Assert.IsType<AppPreferencesStore>(
                 provider.GetRequiredService<IAppPreferencesStore>()), "_path"));
-        Assert.Null(provider.GetService<IAppSettingsDAL>());
         Assert.Equal(
             configuredVaultPath,
             ReadPath(Assert.IsType<AccountDAL>(provider.GetRequiredService<IAccountDAL>()), "_secretsPath"));

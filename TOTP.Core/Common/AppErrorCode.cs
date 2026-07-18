@@ -15,15 +15,6 @@ public enum AppErrorCode
     OtpUpdateFailed,
     OtpDeleteFailed,
 
-    // App settings
-    AppSettingsLoadFailed,
-    AppSettingsLoadAccessDenied,
-    AppSettingsDecryptFailed,
-    AppSettingsDeserializeFailed,
-    AppSettingsSaveFailed,
-    AppSettingsSaveAccessDenied,
-    AppSettingsEncryptFailed,
-
     // Encrypted import/export
     ExportFileWriteFailed,
     ExportFileAccessDenied,

@@ -36,7 +36,6 @@ Components include (non-exhaustive):
 - `System.Drawing.Common`
 - `ZXing.Net`
 - `NSec.Cryptography`
-- `System.Security.Cryptography.ProtectedData`
 
 Action required:
 - Confirm each package license from upstream and keep a record in release artifacts.

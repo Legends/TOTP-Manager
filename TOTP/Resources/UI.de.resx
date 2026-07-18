@@ -117,27 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="err_AppSettingsDecryptFailed" xml:space="preserve">
-    <value>Anwendungseinstellungen konnten nicht entschlüsselt werden.</value>
-  </data>
-  <data name="err_AppSettingsDeserializeFailed" xml:space="preserve">
-    <value>Anwendungseinstellungen sind ungültig.</value>
-  </data>
-  <data name="err_AppSettingsEncryptFailed" xml:space="preserve">
-    <value>Anwendungseinstellungen konnten nicht verschlüsselt werden.</value>
-  </data>
-  <data name="err_AppSettingsLoadAccessDenied" xml:space="preserve">
-    <value>Der Zugriff auf die Anwendungseinstellungen wurde verweigert.</value>
-  </data>
-  <data name="err_AppSettingsLoadFailed" xml:space="preserve">
-    <value>Anwendungseinstellungen konnten nicht geladen werden.</value>
-  </data>
-  <data name="err_AppSettingsSaveAccessDenied" xml:space="preserve">
-    <value>Anwendungseinstellungen konnten wegen fehlender Berechtigung nicht gespeichert werden.</value>
-  </data>
-  <data name="err_AppSettingsSaveFailed" xml:space="preserve">
-    <value>Anwendungseinstellungen konnten nicht gespeichert werden.</value>
-  </data>
   <data name="err_ExportEncryptionFailed" xml:space="preserve">
     <value>Exportdaten konnten nicht verschlüsselt werden.</value>
   </data>

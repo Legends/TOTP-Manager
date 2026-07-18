@@ -61,69 +61,6 @@ namespace TOTP.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Application settings could not be decrypted..
-        /// </summary>
-        internal static string err_AppSettingsDecryptFailed {
-            get {
-                return ResourceManager.GetString("err_AppSettingsDecryptFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Application settings are invalid..
-        /// </summary>
-        internal static string err_AppSettingsDeserializeFailed {
-            get {
-                return ResourceManager.GetString("err_AppSettingsDeserializeFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Application settings could not be encrypted..
-        /// </summary>
-        internal static string err_AppSettingsEncryptFailed {
-            get {
-                return ResourceManager.GetString("err_AppSettingsEncryptFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Access to application settings was denied..
-        /// </summary>
-        internal static string err_AppSettingsLoadAccessDenied {
-            get {
-                return ResourceManager.GetString("err_AppSettingsLoadAccessDenied", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Application settings could not be loaded..
-        /// </summary>
-        internal static string err_AppSettingsLoadFailed {
-            get {
-                return ResourceManager.GetString("err_AppSettingsLoadFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Application settings could not be saved due to missing permissions..
-        /// </summary>
-        internal static string err_AppSettingsSaveAccessDenied {
-            get {
-                return ResourceManager.GetString("err_AppSettingsSaveAccessDenied", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Application settings could not be saved..
-        /// </summary>
-        internal static string err_AppSettingsSaveFailed {
-            get {
-                return ResourceManager.GetString("err_AppSettingsSaveFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Export data could not be encrypted..
         /// </summary>
         internal static string err_ExportEncryptionFailed {

@@ -237,9 +237,9 @@ The largest migration risk is not XAML. It is the storage and authorization enve
 
 The account vault is relatively portable. `VaultService` uses AES-256-GCM, and the current encrypted vault format can remain compatible across supported operating systems.
 
-The settings and authorization envelope are Windows-specific:
+The original settings and authorization envelope were Windows-specific. The active implementation now uses portable preferences and authorization-envelope stores; the following bullets describe the retired design and the remaining Windows quick-unlock adapter:
 
-- `AppSettingsDAL` encrypts and decrypts the entire settings file with Windows DPAPI.
+- The removed `AppSettingsDAL` encrypted and decrypted the entire settings file with Windows DPAPI.
 - `HelloGate` creates a TPM-backed CNG key for Windows Hello quick unlock.
 - `AuthorizationProfile` persists Windows Hello-wrapped DEK information.
 - The DAL applies Windows-specific file ACL hardening.

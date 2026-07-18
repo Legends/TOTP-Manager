@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Models;
-using TOTP.DAL.Services;
 using TOTP.Infrastructure.Security;
 using TOTP.Tests.Common;
 
@@ -35,51 +34,9 @@ public sealed class LegacySettingsFixtureTests
         foreach (var entry in manifest)
         {
             Assert.False(string.IsNullOrWhiteSpace(entry.SourceCommit));
+            Assert.False(string.IsNullOrWhiteSpace(entry.HistoricalReaderOutcome));
             using var document = JsonDocument.Parse(File.ReadAllBytes(FixturePath(entry)));
             Assert.Equal(JsonValueKind.Object, document.RootElement.ValueKind);
-        }
-    }
-
-    [Fact]
-    public async Task DpapiProtectedFixtures_ExposeDocumentedCurrentReaderBehavior()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        using var temp = new TempDir();
-
-        foreach (var entry in LoadManifest())
-        {
-            var plaintext = await File.ReadAllBytesAsync(FixturePath(entry), cancellationToken);
-            var protectedBytes = ProtectedData.Protect(plaintext, null, DataProtectionScope.CurrentUser);
-            var path = Path.Combine(temp.Path, $"{entry.Id}.totp");
-            await File.WriteAllBytesAsync(path, protectedBytes, cancellationToken);
-            using var dal = new AppSettingsDAL(
-                path,
-                NullLogger<AppSettingsDAL>.Instance,
-                NoOpPlatformFileSecurity.Instance);
-
-            var result = await dal.LoadAsync();
-
-            Assert.True(result.IsSuccess, entry.Id);
-            var settings = Assert.IsType<AppSettings>(result.Value);
-            switch (entry.ExpectedCurrentReader)
-            {
-                case "LosesTopLevelAuthorization":
-                    Assert.Equal(AuthorizationGateKind.None, settings.Authorization.Gate);
-                    Assert.Null(settings.Authorization.PasswordSalt);
-                    break;
-                case "PasswordHashUnsupported":
-                    Assert.Equal(AuthorizationGateKind.Password, settings.Authorization.Gate);
-                    Assert.NotNull(settings.Authorization.PasswordSalt);
-                    Assert.Null(settings.Authorization.PasswordWrappedDek);
-                    Assert.False(settings.Authorization.IsPasswordSetup);
-                    break;
-                case "PasswordEnvelopeSupported":
-                    Assert.NotNull(settings.Authorization.PasswordWrappedDek);
-                    Assert.True(settings.Authorization.IsPasswordSetup);
-                    break;
-                default:
-                    throw new InvalidOperationException($"Unknown reader expectation: {entry.ExpectedCurrentReader}");
-            }
         }
     }
 
@@ -158,33 +115,5 @@ public sealed class LegacySettingsFixtureTests
         string SourceCommit,
         string RootKind,
         string AuthorizationKind,
-        string ExpectedCurrentReader);
-
-    private sealed class TempDir : IDisposable
-    {
-        public TempDir()
-        {
-            Path = System.IO.Path.Combine(
-                System.IO.Path.GetTempPath(),
-                $"totp-legacy-settings-fixtures-{Guid.NewGuid():N}");
-            Directory.CreateDirectory(Path);
-        }
-
-        public string Path { get; }
-
-        public void Dispose()
-        {
-            try
-            {
-                if (Directory.Exists(Path))
-                {
-                    Directory.Delete(Path, recursive: true);
-                }
-            }
-            catch
-            {
-                // Best-effort test cleanup.
-            }
-        }
-    }
+        string HistoricalReaderOutcome);
 }

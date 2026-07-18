@@ -36,7 +36,6 @@ public sealed class BootLoaderCompositionTests : IDisposable
             host.Services.GetRequiredService<IPlatformQuickUnlockEnrollment>());
         Assert.IsType<WindowsPlatformQuickUnlock>(
             host.Services.GetRequiredService<IPlatformQuickUnlock>());
-        Assert.Null(host.Services.GetService<IAppSettingsDAL>());
     }
 
     public void Dispose()

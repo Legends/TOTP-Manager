@@ -15,7 +15,7 @@ Modules:
 ## Checklist
 | ID | OWASP-aligned control | UI | Core | Infra | DAL | DevSecOps | Evidence |
 |---|---|---|---|---|---|---|---|
-| DS-01 | Sensitive local data encrypted at rest | Partial | Implemented | Implemented | Implemented | Partial | `VaultService`, `AppSettingsDAL` (DPAPI), encrypted `.totp` export |
+| DS-01 | Sensitive local data encrypted at rest | Partial | Implemented | Implemented | Implemented | Partial | `VaultService`, authorization envelope v2, encrypted `.totp` export |
 | DS-02 | Sensitive keys isolated in memory and cleared | Implemented | Partial | Implemented | Partial | Missing | `SecurityContext`, `MasterPasswordService`, password consume-and-clear, flyout secret cache clearing, `RevealableSecretBox` unload wipe, and token-only clipboard clear scheduling |
 | DS-03 | Modern crypto + authenticated encryption (AEAD) | Partial | Implemented | Implemented | Implemented | Partial | AES-256-GCM + Argon2id in security services |
 | DS-04 | KDF parameters validated against abuse bounds | Missing | Missing | Implemented | Partial | Missing | `MasterPasswordService` now bounds-checks iterations/memory/salt/nonce |

@@ -2,6 +2,8 @@
 
 This document records the settings format in use before the portable authorization-envelope migration. It is an implementation inventory, not a proposal for the new format.
 
+The unpublished development-era reader has been removed. No runtime compatibility path for this format is shipped; synthetic fixtures remain solely as security and format-design evidence.
+
 ## Storage location and override
 
 The default Windows path is:
@@ -10,7 +12,7 @@ The default Windows path is:
 %APPDATA%\TOTP-Manager\settings.totp
 ```
 
-`WindowsApplicationPaths.SettingsFilePath` supplies that default. `AppSettings:StorageFilePath` in the packaged `appsettings.json` can override it; environment variables in the override are expanded and the DAL normalizes the result to a full path.
+The retired Windows implementation derived this path from the roaming application-data directory. Its packaged `AppSettings:StorageFilePath` setting could override the default, with environment-variable expansion and full-path normalization.
 
 Despite the `.totp` suffix, this file is not an account export or the encrypted account vault. It contains preferences and authorization key-wrapping metadata.
 
@@ -160,12 +162,12 @@ The current DAL holds encrypted bytes, serialized JSON, and decrypted JSON in ma
 
 Do not log decrypted JSON, Base64 authorization fields, DPAPI blobs, key identifiers beyond what is operationally necessary, or raw migration fixtures derived from a real user profile. All fixtures must use synthetic keys and salts.
 
-## Implementation and test references
+## Historical implementation and retained evidence
 
-- `TOTP.DAL/Services/AppSettingsDAL.cs`
+- `TOTP.DAL/Services/AppSettingsDAL.cs` (removed)
 - `TOTP.Core/Models/AppSettings.cs`
 - `TOTP.Core/Security/Models/AuthorizationProfile.cs`
 - `TOTP.Infrastructure/Security/MasterPasswordService.cs`
 - `TOTP.Platform.Windows/Security/HelloGate.cs`
 - `TOTP.Platform.Windows/WindowsFileSecurity.cs`
-- `TOTP.Tests/Integration/AppSettingsDalIntegrationTests.cs`
+- `TOTP.Tests/Fixtures/LegacySettings` (synthetic evidence retained)
