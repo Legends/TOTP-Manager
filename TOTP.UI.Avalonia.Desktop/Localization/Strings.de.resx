@@ -41,6 +41,24 @@
   <data name="PortableEnvelopeStatus" xml:space="preserve"><value>Dein Master-Passwort schützt den portablen Autorisierungsumschlag der Version 2 und bleibt die Wiederherstellungsmethode auf jedem unterstützten System.</value></data>
   <data name="AutomaticRollbackStatus" xml:space="preserve"><value>Autorisierungsänderungen werden vor der Aktivierung geprüft. Schlägt ein atomarer Austausch fehl, wird der vorherige geprüfte Umschlag automatisch wiederhergestellt.</value></data>
   <data name="LegacyMigrationStatus" xml:space="preserve"><value>Autorisierungsformate aus der Entwicklungsphase werden nicht automatisch importiert. Vorhandene verschlüsselte Tresordaten werden nie ersetzt; verwende das zugehörige Wiederherstellungsmaterial oder einen ausdrücklich geprüften Migrationspfad.</value></data>
+  <data name="AddAccount" xml:space="preserve"><value>Konto hinzufügen</value></data>
+  <data name="EditAccount" xml:space="preserve"><value>Konto bearbeiten</value></data>
+  <data name="DeleteAccount" xml:space="preserve"><value>Konto löschen</value></data>
+  <data name="DeleteAccountPrompt" xml:space="preserve"><value>{0} ({1}) löschen? Dadurch wird der verschlüsselte Kontoeintrag unwiderruflich entfernt.</value></data>
+  <data name="Delete" xml:space="preserve"><value>Löschen</value></data>
+  <data name="Issuer" xml:space="preserve"><value>Anbieter</value></data>
+  <data name="AccountName" xml:space="preserve"><value>Kontoname</value></data>
+  <data name="Secret" xml:space="preserve"><value>Base32-Geheimnis</value></data>
+  <data name="SaveAccount" xml:space="preserve"><value>Konto speichern</value></data>
+  <data name="CancelEdit" xml:space="preserve"><value>Bearbeitung abbrechen</value></data>
+  <data name="AccountIssuerRequired" xml:space="preserve"><value>Der Anbieter ist erforderlich.</value></data>
+  <data name="AccountSecretInvalid" xml:space="preserve"><value>Gib ein gültiges Base32-Geheimnis ein.</value></data>
+  <data name="AccountDuplicate" xml:space="preserve"><value>Ein Konto mit demselben Anbieter und Kontonamen ist bereits vorhanden.</value></data>
+  <data name="AccountSaveFailed" xml:space="preserve"><value>Das Konto konnte nicht sicher gespeichert werden. Vorhandene verschlüsselte Daten wurden nicht geändert.</value></data>
+  <data name="AccountSaved" xml:space="preserve"><value>Konto gespeichert.</value></data>
+  <data name="AccountEditLoadFailed" xml:space="preserve"><value>Das ausgewählte Konto konnte nicht zur Bearbeitung geöffnet werden.</value></data>
+  <data name="AccountDeleteFailed" xml:space="preserve"><value>Das Konto konnte nicht sicher gelöscht werden.</value></data>
+  <data name="AccountDeleted" xml:space="preserve"><value>Konto gelöscht.</value></data>
   <data name="Lock" xml:space="preserve"><value>Sperren</value></data>
   <data name="Accounts" xml:space="preserve"><value>Konten</value></data>
   <data name="Tools" xml:space="preserve"><value>Werkzeuge</value></data>

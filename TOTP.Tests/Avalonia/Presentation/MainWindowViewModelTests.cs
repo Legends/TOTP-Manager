@@ -81,7 +81,9 @@ public sealed class MainWindowViewModelTests
             Mock.Of<IAccountTotpService>(),
             Mock.Of<IAsyncClipboardService>(),
             Mock.Of<IAccountQrCodeService>(),
-            Mock.Of<IAvaloniaQrImageFactory>());
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            CreateLocalization());
         using var sut = new MainWindowViewModel(
             coordinator.Object,
             authorization.Object,
@@ -115,7 +117,9 @@ public sealed class MainWindowViewModelTests
             Mock.Of<IAccountTotpService>(),
             Mock.Of<IAsyncClipboardService>(),
             Mock.Of<IAccountQrCodeService>(),
-            Mock.Of<IAvaloniaQrImageFactory>());
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            CreateLocalization());
         using var sut = new MainWindowViewModel(
             coordinator.Object,
             authorization.Object,
@@ -157,7 +161,9 @@ public sealed class MainWindowViewModelTests
             Mock.Of<IAccountTotpService>(),
             Mock.Of<IAsyncClipboardService>(),
             Mock.Of<IAccountQrCodeService>(),
-            Mock.Of<IAvaloniaQrImageFactory>());
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            CreateLocalization());
         using var sut = new MainWindowViewModel(
             coordinator.Object,
             authorization.Object,
@@ -202,7 +208,9 @@ public sealed class MainWindowViewModelTests
                 Mock.Of<IAccountTotpService>(),
                 Mock.Of<IAsyncClipboardService>(),
                 Mock.Of<IAccountQrCodeService>(),
-                Mock.Of<IAvaloniaQrImageFactory>()),
+                Mock.Of<IAvaloniaQrImageFactory>(),
+                Mock.Of<IAvaloniaDialogService>(),
+                CreateLocalization()),
             CreateSettingsPage(),
             CreateAuthorizationSettings(Mock.Of<IAuthorizationService>()),
             CreateFilePicker(),

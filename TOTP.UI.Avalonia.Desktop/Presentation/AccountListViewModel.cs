@@ -3,7 +3,11 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Avalonia.Media;
 using TOTP.Avalonia.Desktop.Platform;
+using TOTP.Avalonia.Desktop.Localization;
+using TOTP.Avalonia.Desktop.Presentation.Dialogs;
+using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Validation;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
 
@@ -14,10 +18,17 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly IAsyncClipboardService _clipboardService;
     private readonly IAccountQrCodeService _accountQrCodeService;
     private readonly IAvaloniaQrImageFactory _qrImageFactory;
+    private readonly IAvaloniaDialogService _dialogs;
+    private readonly IAvaloniaLocalizationService _localization;
     private readonly AsyncCommand _loadCommand;
     private readonly AsyncCommand _generateCommand;
     private readonly AsyncCommand _copyCommand;
     private readonly AsyncCommand _generateQrCommand;
+    private readonly AsyncCommand _beginAddCommand;
+    private readonly AsyncCommand _beginEditCommand;
+    private readonly AsyncCommand _saveAccountCommand;
+    private readonly AsyncCommand _cancelEditCommand;
+    private readonly AsyncCommand _deleteAccountCommand;
     private CancellationTokenSource? _codeLifetime;
     private IReadOnlyList<AccountListItemViewModel> _allAccounts = [];
     private IReadOnlyList<AccountListItemViewModel> _accounts = [];
@@ -30,25 +41,44 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private bool _isGenerating;
     private int _remainingSeconds;
     private AvaloniaQrImageHandle? _qrImage;
+    private bool _isEditorVisible;
+    private Guid? _editingAccountId;
+    private string _editorIssuer = string.Empty;
+    private string _editorAccountName = string.Empty;
+    private string _editorSecret = string.Empty;
+    private string _editorMessage = string.Empty;
 
     public AccountListViewModel(
         IAccountManager accountManager,
         IAccountTotpService accountTotpService,
         IAsyncClipboardService clipboardService,
         IAccountQrCodeService accountQrCodeService,
-        IAvaloniaQrImageFactory qrImageFactory)
+        IAvaloniaQrImageFactory qrImageFactory,
+        IAvaloniaDialogService dialogs,
+        IAvaloniaLocalizationService localization)
     {
         _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
         _accountTotpService = accountTotpService ?? throw new ArgumentNullException(nameof(accountTotpService));
         _clipboardService = clipboardService ?? throw new ArgumentNullException(nameof(clipboardService));
         _accountQrCodeService = accountQrCodeService ?? throw new ArgumentNullException(nameof(accountQrCodeService));
         _qrImageFactory = qrImageFactory ?? throw new ArgumentNullException(nameof(qrImageFactory));
+        _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _loadCommand = new AsyncCommand(LoadAsync, () => !_isBusy);
         _generateCommand = new AsyncCommand(
             GenerateCodeAsync,
             () => !_isGenerating && _selectedAccount is not null);
         _copyCommand = new AsyncCommand(CopyCodeAsync, () => HasGeneratedCode);
         _generateQrCommand = new AsyncCommand(GenerateQrAsync, () => _selectedAccount is not null);
+        _beginAddCommand = new AsyncCommand(BeginAddAsync, () => !IsBusy && !IsEditorVisible);
+        _beginEditCommand = new AsyncCommand(
+            BeginEditAsync,
+            () => !IsBusy && !IsEditorVisible && SelectedAccount is not null);
+        _saveAccountCommand = new AsyncCommand(SaveAccountAsync, () => !IsBusy && IsEditorVisible);
+        _cancelEditCommand = new AsyncCommand(CancelEditAsync, () => !IsBusy && IsEditorVisible);
+        _deleteAccountCommand = new AsyncCommand(
+            DeleteAccountAsync,
+            () => !IsBusy && !IsEditorVisible && SelectedAccount is not null);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -81,6 +111,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             ClearQrImage();
             _generateCommand.NotifyCanExecuteChanged();
             _generateQrCommand.NotifyCanExecuteChanged();
+            _beginEditCommand.NotifyCanExecuteChanged();
+            _deleteAccountCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -130,6 +162,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         {
             if (!SetField(ref _isBusy, value)) return;
             _loadCommand.NotifyCanExecuteChanged();
+            NotifyCrudCommands();
         }
     }
 
@@ -140,6 +173,60 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public ICommand CopyCommand => _copyCommand;
 
     public ICommand GenerateQrCommand => _generateQrCommand;
+
+    public ICommand BeginAddCommand => _beginAddCommand;
+    public ICommand BeginEditCommand => _beginEditCommand;
+    public ICommand SaveAccountCommand => _saveAccountCommand;
+    public ICommand CancelEditCommand => _cancelEditCommand;
+    public ICommand DeleteAccountCommand => _deleteAccountCommand;
+
+    public bool IsEditorVisible
+    {
+        get => _isEditorVisible;
+        private set
+        {
+            if (!SetField(ref _isEditorVisible, value)) return;
+            NotifyCrudCommands();
+        }
+    }
+
+    public bool IsEditingExistingAccount => _editingAccountId.HasValue;
+
+    public string EditorIssuer
+    {
+        get => _editorIssuer;
+        set
+        {
+            if (!SetField(ref _editorIssuer, value ?? string.Empty)) return;
+            EditorMessage = string.Empty;
+        }
+    }
+
+    public string EditorAccountName
+    {
+        get => _editorAccountName;
+        set
+        {
+            if (!SetField(ref _editorAccountName, value ?? string.Empty)) return;
+            EditorMessage = string.Empty;
+        }
+    }
+
+    public string EditorSecret
+    {
+        get => _editorSecret;
+        set
+        {
+            if (!SetField(ref _editorSecret, value ?? string.Empty)) return;
+            EditorMessage = string.Empty;
+        }
+    }
+
+    public string EditorMessage
+    {
+        get => _editorMessage;
+        private set => SetField(ref _editorMessage, value);
+    }
 
     public async Task LoadAsync()
     {
@@ -158,6 +245,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                 return;
             }
 
+            SelectedAccount = null;
             _allAccounts = result.Value
                 .Select(account => new AccountListItemViewModel(
                     account.ID,
@@ -251,6 +339,205 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    public Task BeginAddAsync()
+    {
+        if (IsBusy || IsEditorVisible) return Task.CompletedTask;
+        ClearEditor();
+        IsEditorVisible = true;
+        return Task.CompletedTask;
+    }
+
+    public async Task BeginEditAsync()
+    {
+        if (IsBusy || IsEditorVisible || SelectedAccount is null) return;
+
+        IsBusy = true;
+        try
+        {
+            var loaded = await _accountManager.GetAllOtpEntriesSortedAsync();
+            var account = loaded.IsSuccess
+                ? loaded.Value.FirstOrDefault(value => value.ID == SelectedAccount.Id)
+                : null;
+            if (account is null)
+            {
+                Message = _localization.GetString(AvaloniaStringKeys.AccountEditLoadFailed);
+                return;
+            }
+
+            _editingAccountId = account.ID;
+            OnPropertyChanged(nameof(IsEditingExistingAccount));
+            EditorIssuer = account.Issuer;
+            EditorAccountName = account.AccountName ?? string.Empty;
+            EditorSecret = account.Secret;
+            IsEditorVisible = true;
+        }
+        catch (Exception)
+        {
+            Message = _localization.GetString(AvaloniaStringKeys.AccountEditLoadFailed);
+            ClearEditor();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    public async Task SaveAccountAsync()
+    {
+        if (IsBusy || !IsEditorVisible) return;
+
+        var issuer = EditorIssuer.Trim();
+        var accountName = EditorAccountName.Trim();
+        var secret = EditorSecret;
+        EditorSecret = string.Empty;
+        if (issuer.Length == 0)
+        {
+            EditorMessage = _localization.GetString(AvaloniaStringKeys.AccountIssuerRequired);
+            return;
+        }
+
+        if (!SecretValidation.IsValidBase32Secret(secret))
+        {
+            EditorMessage = _localization.GetString(AvaloniaStringKeys.AccountSecretInvalid);
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var loaded = await _accountManager.GetAllOtpEntriesSortedAsync();
+            if (loaded.IsFailed)
+            {
+                EditorMessage = _localization.GetString(AvaloniaStringKeys.AccountSaveFailed);
+                return;
+            }
+
+            if (HasDuplicateIdentity(loaded.Value, issuer, accountName, _editingAccountId))
+            {
+                EditorMessage = _localization.GetString(AvaloniaStringKeys.AccountDuplicate);
+                return;
+            }
+
+            var normalizedSecret = SecretValidation.NormalizeBase32Secret(secret);
+            var updated = new Account(
+                _editingAccountId ?? Guid.NewGuid(),
+                issuer,
+                normalizedSecret,
+                accountName.Length == 0 ? null : accountName);
+            var saved = _editingAccountId.HasValue
+                ? await UpdateExistingAsync(loaded.Value, updated)
+                : await _accountManager.AddNewAsync(updated);
+            if (saved.IsFailed)
+            {
+                EditorMessage = _localization.GetString(AvaloniaStringKeys.AccountSaveFailed);
+                return;
+            }
+
+            ClearEditor();
+            IsBusy = false;
+            await LoadAsync();
+            if (!HasMessage)
+                Message = _localization.GetString(AvaloniaStringKeys.AccountSaved);
+        }
+        catch (Exception)
+        {
+            EditorMessage = _localization.GetString(AvaloniaStringKeys.AccountSaveFailed);
+        }
+        finally
+        {
+            secret = string.Empty;
+            IsBusy = false;
+        }
+    }
+
+    public Task CancelEditAsync()
+    {
+        if (IsBusy || !IsEditorVisible) return Task.CompletedTask;
+        ClearEditor();
+        return Task.CompletedTask;
+    }
+
+    public async Task DeleteAccountAsync()
+    {
+        if (IsBusy || IsEditorVisible || SelectedAccount is null) return;
+
+        var selected = SelectedAccount;
+        IsBusy = true;
+        bool confirmed;
+        try
+        {
+            confirmed = await _dialogs.ConfirmAsync(new ConfirmationDialogRequest(
+                _localization.GetString(AvaloniaStringKeys.DeleteAccount),
+                string.Format(
+                    _localization.GetString(AvaloniaStringKeys.DeleteAccountPrompt),
+                    selected.Issuer,
+                    selected.AccountName),
+                NotificationSeverity.Warning,
+                _localization.GetString(AvaloniaStringKeys.Delete),
+                _localization.GetString(AvaloniaStringKeys.Cancel)));
+        }
+        catch (Exception)
+        {
+            Message = _localization.GetString(AvaloniaStringKeys.AccountDeleteFailed);
+            IsBusy = false;
+            return;
+        }
+        if (!confirmed)
+        {
+            IsBusy = false;
+            return;
+        }
+
+        try
+        {
+            var loaded = await _accountManager.GetAllOtpEntriesSortedAsync();
+            var account = loaded.IsSuccess
+                ? loaded.Value.FirstOrDefault(value => value.ID == selected.Id)
+                : null;
+            if (account is null || (await _accountManager.DeleteAsync(account)).IsFailed)
+            {
+                Message = _localization.GetString(AvaloniaStringKeys.AccountDeleteFailed);
+                return;
+            }
+
+            SelectedAccount = null;
+            IsBusy = false;
+            await LoadAsync();
+            if (!HasMessage)
+                Message = _localization.GetString(AvaloniaStringKeys.AccountDeleted);
+        }
+        catch (Exception)
+        {
+            Message = _localization.GetString(AvaloniaStringKeys.AccountDeleteFailed);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task<FluentResults.Result> UpdateExistingAsync(
+        IReadOnlyList<Account> accounts,
+        Account updated)
+    {
+        var previous = accounts.FirstOrDefault(value => value.ID == updated.ID);
+        return previous is null
+            ? FluentResults.Result.Fail("Account unavailable for update.")
+            : await _accountManager.UpdateAsync(previous, updated);
+    }
+
+    private static bool HasDuplicateIdentity(
+        IEnumerable<Account> accounts,
+        string issuer,
+        string accountName,
+        Guid? excludedId) =>
+        accounts.Any(account => account.ID != excludedId
+            && string.Equals(account.Issuer.Trim(), issuer, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(
+                (account.AccountName ?? string.Empty).Trim(),
+                accountName,
+                StringComparison.OrdinalIgnoreCase));
+
     private void ApplyFilter()
     {
         Accounts = AccountListFilter.Apply(_allAccounts, SearchText);
@@ -283,6 +570,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     {
         ClearGeneratedCode();
         ClearQrImage();
+        ClearEditor();
     }
 
     public void Clear()
@@ -294,12 +582,34 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         Message = string.Empty;
         ClearGeneratedCode();
         ClearQrImage();
+        ClearEditor();
     }
 
     public void ClearSensitiveOutput()
     {
         ClearGeneratedCode();
         ClearQrImage();
+        ClearEditor();
+    }
+
+    private void ClearEditor()
+    {
+        _editingAccountId = null;
+        OnPropertyChanged(nameof(IsEditingExistingAccount));
+        EditorIssuer = string.Empty;
+        EditorAccountName = string.Empty;
+        EditorSecret = string.Empty;
+        EditorMessage = string.Empty;
+        IsEditorVisible = false;
+    }
+
+    private void NotifyCrudCommands()
+    {
+        _beginAddCommand.NotifyCanExecuteChanged();
+        _beginEditCommand.NotifyCanExecuteChanged();
+        _saveAccountCommand.NotifyCanExecuteChanged();
+        _cancelEditCommand.NotifyCanExecuteChanged();
+        _deleteAccountCommand.NotifyCanExecuteChanged();
     }
 
     private void ClearQrImage()

@@ -300,11 +300,67 @@
                                 IsVisible="{Binding HasMessage}"
                                 Text="{Binding Message}"
                                 TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Classes="primary" Command="{Binding BeginAddCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <shared:SymbolIcon Kind="Add" />
+                                        <TextBlock Text="{DynamicResource AddAccount}" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding BeginEditCommand}" Content="{DynamicResource EditAccount}" />
+                                <Button
+                                    Classes="danger"
+                                    Command="{Binding DeleteAccountCommand}"
+                                    Content="{DynamicResource DeleteAccount}" />
+                            </StackPanel>
+                            <Border Classes="card" IsVisible="{Binding IsEditorVisible}">
+                                <StackPanel Spacing="8">
+                                    <TextBox
+                                        automation:AutomationProperties.Name="{DynamicResource Issuer}"
+                                        PlaceholderText="{DynamicResource Issuer}"
+                                        Text="{Binding EditorIssuer, Mode=TwoWay}" />
+                                    <TextBox
+                                        automation:AutomationProperties.Name="{DynamicResource AccountName}"
+                                        PlaceholderText="{DynamicResource AccountName}"
+                                        Text="{Binding EditorAccountName, Mode=TwoWay}" />
+                                    <shared:RevealableSecretInput
+                                        AccessibleName="{DynamicResource Secret}"
+                                        HelpText="{DynamicResource AccountSecretInvalid}"
+                                        IsRequired="True"
+                                        PlaceholderText="{DynamicResource Secret}"
+                                        Text="{Binding EditorSecret, Mode=TwoWay}" />
+                                    <shared:ValidationMessage Severity="Error" Text="{Binding EditorMessage}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button
+                                            Classes="primary"
+                                            Command="{Binding SaveAccountCommand}"
+                                            Content="{DynamicResource SaveAccount}" />
+                                        <Button
+                                            Command="{Binding CancelEditCommand}"
+                                            Content="{DynamicResource CancelEdit}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
                             <ListBox
                                 automation:AutomationProperties.Name="{DynamicResource AccountsList}"
                                 MaxHeight="420"
                                 ItemsSource="{Binding Accounts}"
                                 SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel />
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem
+                                            Command="{Binding BeginEditCommand}"
+                                            Header="{DynamicResource EditAccount}" />
+                                        <MenuItem
+                                            Command="{Binding DeleteAccountCommand}"
+                                            Header="{DynamicResource DeleteAccount}" />
+                                    </ContextMenu>
+                                </ListBox.ContextMenu>
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="presentation:AccountListItemViewModel">
                                         <shared:AccountRow

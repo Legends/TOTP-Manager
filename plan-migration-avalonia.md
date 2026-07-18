@@ -569,19 +569,19 @@ Definition of done:
 
 ## M5.2 Account list and CRUD
 
-- [ ] Replace Syncfusion `SfDataGrid`.
-- [ ] Account list virtualization.
-- [ ] Search and filtering.
-- [ ] Sorting.
-- [ ] Selection.
-- [ ] Add account.
-- [ ] Edit account.
-- [ ] Delete confirmation.
-- [ ] Duplicate validation.
-- [ ] Inline editing if retained.
-- [ ] Keyboard navigation.
-- [ ] Context menu behavior.
-- [ ] Large-vault performance tests.
+- [x] Replace Syncfusion `SfDataGrid`.
+- [x] Account list virtualization.
+- [x] Search and filtering.
+- [x] Sorting.
+- [x] Selection.
+- [x] Add account.
+- [x] Edit account.
+- [x] Delete confirmation.
+- [x] Duplicate validation.
+- [x] Use an explicit secret-clearing editor instead of retaining inline grid editing.
+- [x] Keyboard navigation.
+- [x] Context menu behavior.
+- [x] Large-vault performance tests.
 
 The WPF grid should not dictate the Avalonia interaction model. Preserve capability and efficiency, not necessarily identical control behavior.
 

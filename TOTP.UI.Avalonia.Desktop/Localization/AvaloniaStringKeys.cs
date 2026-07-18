@@ -79,6 +79,24 @@ public static class AvaloniaStringKeys
     public const string PortableEnvelopeStatus = nameof(PortableEnvelopeStatus);
     public const string AutomaticRollbackStatus = nameof(AutomaticRollbackStatus);
     public const string LegacyMigrationStatus = nameof(LegacyMigrationStatus);
+    public const string AddAccount = nameof(AddAccount);
+    public const string EditAccount = nameof(EditAccount);
+    public const string DeleteAccount = nameof(DeleteAccount);
+    public const string DeleteAccountPrompt = nameof(DeleteAccountPrompt);
+    public const string Delete = nameof(Delete);
+    public const string Issuer = nameof(Issuer);
+    public const string AccountName = nameof(AccountName);
+    public const string Secret = nameof(Secret);
+    public const string SaveAccount = nameof(SaveAccount);
+    public const string CancelEdit = nameof(CancelEdit);
+    public const string AccountIssuerRequired = nameof(AccountIssuerRequired);
+    public const string AccountSecretInvalid = nameof(AccountSecretInvalid);
+    public const string AccountDuplicate = nameof(AccountDuplicate);
+    public const string AccountSaveFailed = nameof(AccountSaveFailed);
+    public const string AccountSaved = nameof(AccountSaved);
+    public const string AccountEditLoadFailed = nameof(AccountEditLoadFailed);
+    public const string AccountDeleteFailed = nameof(AccountDeleteFailed);
+    public const string AccountDeleted = nameof(AccountDeleted);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -99,6 +117,10 @@ public static class AvaloniaStringKeys
         PasswordPreferred, PasswordVerificationFailed, Enable, Confirm, Cancel, Refresh,
         ChangeMasterPassword, CurrentPasswordPrompt, PasswordChangeCancelled,
         PasswordChangeFailed, PasswordChanged, RecoveryAndCompatibility,
-        PortableEnvelopeStatus, AutomaticRollbackStatus, LegacyMigrationStatus
+        PortableEnvelopeStatus, AutomaticRollbackStatus, LegacyMigrationStatus,
+        AddAccount, EditAccount, DeleteAccount, DeleteAccountPrompt, Delete, Issuer,
+        AccountName, Secret, SaveAccount, CancelEdit, AccountIssuerRequired,
+        AccountSecretInvalid, AccountDuplicate, AccountSaveFailed, AccountSaved,
+        AccountEditLoadFailed, AccountDeleteFailed, AccountDeleted
     ];
 }

@@ -1,4 +1,5 @@
 using FluentResults;
+using System.Diagnostics;
 using Moq;
 using Avalonia.Media;
 using TOTP.Core.Models;
@@ -6,11 +7,14 @@ using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation;
+using TOTP.Avalonia.Desktop.Presentation.Dialogs;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
 public sealed class AccountListViewModelTests
 {
+    private const string ValidSecret = "JBSWY3DPEHPK3PXP";
     [Fact]
     public async Task LoadAsync_WithFiveHundredSyntheticAccounts_ProjectsSecretFreeRows()
     {
@@ -35,6 +39,33 @@ public sealed class AccountListViewModelTests
             typeof(AccountListItemViewModel).GetProperties(),
             property => string.Equals(property.Name, "Secret", StringComparison.Ordinal));
         Assert.False(sut.HasMessage);
+    }
+
+    [Fact]
+    public async Task TenThousandAccountProjectionAndFiltering_RemainsWithinDesktopBudget()
+    {
+        var accounts = Enumerable.Range(1, 10_000)
+            .Select(index => new Account(
+                Guid.NewGuid(),
+                $"Issuer {index:D5}",
+                ValidSecret,
+                $"user{index:D5}@example.test"))
+            .ToArray();
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(accounts));
+        var sut = CreateSut(manager.Object);
+        var stopwatch = Stopwatch.StartNew();
+
+        await sut.LoadAsync();
+        sut.SearchText = "user09999";
+        stopwatch.Stop();
+
+        Assert.Single(sut.Accounts);
+        Assert.Equal("user09999@example.test", sut.Accounts[0].AccountName);
+        Assert.True(
+            stopwatch.Elapsed < TimeSpan.FromSeconds(5),
+            $"Projection and filtering took {stopwatch.Elapsed}.");
     }
 
     [Fact]
@@ -106,7 +137,9 @@ public sealed class AccountListViewModelTests
             totp.Object,
             Mock.Of<IAsyncClipboardService>(),
             Mock.Of<IAccountQrCodeService>(),
-            Mock.Of<IAvaloniaQrImageFactory>())
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization())
         {
             SelectedAccount = new AccountListItemViewModel(accountId, "Issuer", "account")
         };
@@ -129,7 +162,9 @@ public sealed class AccountListViewModelTests
             totp.Object,
             Mock.Of<IAsyncClipboardService>(),
             Mock.Of<IAccountQrCodeService>(),
-            Mock.Of<IAvaloniaQrImageFactory>())
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization())
         {
             SelectedAccount = new AccountListItemViewModel(Guid.NewGuid(), "Issuer", "account")
         };
@@ -156,7 +191,9 @@ public sealed class AccountListViewModelTests
             totp.Object,
             Mock.Of<IAsyncClipboardService>(),
             Mock.Of<IAccountQrCodeService>(),
-            Mock.Of<IAvaloniaQrImageFactory>());
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization());
         await sut.LoadAsync();
         sut.SelectedAccount = sut.Accounts[0];
         sut.SearchText = "Issuer";
@@ -187,7 +224,9 @@ public sealed class AccountListViewModelTests
             totp.Object,
             Mock.Of<IAsyncClipboardService>(),
             Mock.Of<IAccountQrCodeService>(),
-            Mock.Of<IAvaloniaQrImageFactory>());
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization());
         await sut.LoadAsync();
         sut.SelectedAccount = sut.Accounts[0];
         await sut.GenerateCodeAsync();
@@ -218,7 +257,9 @@ public sealed class AccountListViewModelTests
             totp.Object,
             clipboard.Object,
             Mock.Of<IAccountQrCodeService>(),
-            Mock.Of<IAvaloniaQrImageFactory>())
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization())
         {
             SelectedAccount = new AccountListItemViewModel(id, "Issuer", "account")
         };
@@ -251,7 +292,9 @@ public sealed class AccountListViewModelTests
             Mock.Of<IAccountTotpService>(),
             Mock.Of<IAsyncClipboardService>(),
             qr.Object,
-            imageFactory.Object)
+            imageFactory.Object,
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization())
         {
             SelectedAccount = new AccountListItemViewModel(id, "Issuer", "account")
         };
@@ -264,11 +307,148 @@ public sealed class AccountListViewModelTests
         lifetime.Verify(value => value.Dispose(), Times.Once);
     }
 
-    private static AccountListViewModel CreateSut(IAccountManager manager) =>
+    [Fact]
+    public async Task SaveAccountAsync_CreatesNormalizedAccountAfterClearingBoundSecret()
+    {
+        var manager = new Mock<IAccountManager>();
+        Account? created = null;
+        manager.SetupSequence(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]))
+            .ReturnsAsync(() => Result.Ok<IReadOnlyList<Account>>(
+                created is null ? [] : [created]));
+        AccountListViewModel? sut = null;
+        manager.Setup(value => value.AddNewAsync(It.IsAny<Account>()))
+            .ReturnsAsync((Account account) =>
+            {
+                Assert.Equal(string.Empty, sut!.EditorSecret);
+                created = account;
+                return Result.Ok();
+            });
+        sut = CreateSut(manager.Object);
+        await sut.BeginAddAsync();
+        sut.EditorIssuer = "  GitHub  ";
+        sut.EditorAccountName = " alice@example.test ";
+        sut.EditorSecret = "JBSW Y3DP-EHPK3PXP";
+
+        await sut.SaveAccountAsync();
+
+        Assert.NotNull(created);
+        Assert.Equal("GitHub", created.Issuer);
+        Assert.Equal("alice@example.test", created.AccountName);
+        Assert.Equal(ValidSecret, created.Secret);
+        Assert.False(sut.IsEditorVisible);
+        Assert.Equal(AvaloniaStringKeys.AccountSaved, sut.Message);
+    }
+
+    [Fact]
+    public async Task SaveAccountAsync_RejectsDuplicateIssuerAndAccountWithoutWriting()
+    {
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
+                [new Account(Guid.NewGuid(), "GitHub", ValidSecret, "alice@example.test")]));
+        var sut = CreateSut(manager.Object);
+        await sut.BeginAddAsync();
+        sut.EditorIssuer = "github";
+        sut.EditorAccountName = "ALICE@example.test";
+        sut.EditorSecret = ValidSecret;
+
+        await sut.SaveAccountAsync();
+
+        manager.Verify(value => value.AddNewAsync(It.IsAny<Account>()), Times.Never);
+        Assert.Equal(AvaloniaStringKeys.AccountDuplicate, sut.EditorMessage);
+        Assert.Equal(string.Empty, sut.EditorSecret);
+    }
+
+    [Fact]
+    public async Task BeginEditAndSave_UsesSelectedIdentityAndClearsSecretAtBoundaries()
+    {
+        var id = Guid.NewGuid();
+        var original = new Account(id, "GitHub", ValidSecret, "alice@example.test");
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([original]));
+        AccountListViewModel? sut = null;
+        manager.Setup(value => value.UpdateAsync(original, It.IsAny<Account>()))
+            .ReturnsAsync((Account _, Account updated) =>
+            {
+                Assert.Equal(string.Empty, sut!.EditorSecret);
+                Assert.Equal(id, updated.ID);
+                return Result.Ok();
+            });
+        sut = CreateSut(manager.Object);
+        await sut.LoadAsync();
+        sut.SelectedAccount = sut.Accounts[0];
+
+        await sut.BeginEditAsync();
+        Assert.Equal(ValidSecret, sut.EditorSecret);
+        sut.EditorIssuer = "GitHub Enterprise";
+        await sut.SaveAccountAsync();
+
+        manager.Verify(value => value.UpdateAsync(
+            original,
+            It.Is<Account>(account => account.Issuer == "GitHub Enterprise")), Times.Once);
+        Assert.False(sut.IsEditorVisible);
+        Assert.Equal(string.Empty, sut.EditorSecret);
+    }
+
+    [Fact]
+    public async Task DeleteAccountAsync_DeletesOnlyAfterOwnedConfirmation()
+    {
+        var id = Guid.NewGuid();
+        var account = new Account(id, "GitHub", ValidSecret, "alice@example.test");
+        var manager = new Mock<IAccountManager>();
+        manager.SetupSequence(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([account]))
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([account]))
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]));
+        manager.Setup(value => value.DeleteAsync(account)).ReturnsAsync(Result.Ok());
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        dialogs.Setup(value => value.ConfirmAsync(
+                It.IsAny<ConfirmationDialogRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        var sut = CreateSut(manager.Object, dialogs.Object);
+        await sut.LoadAsync();
+        sut.SelectedAccount = sut.Accounts[0];
+
+        await sut.DeleteAccountAsync();
+
+        manager.Verify(value => value.DeleteAsync(account), Times.Once);
+        Assert.Empty(sut.Accounts);
+        Assert.Equal(AvaloniaStringKeys.AccountDeleted, sut.Message);
+    }
+
+    [Fact]
+    public async Task ClearSensitiveOutput_DiscardsUncommittedEditorSecret()
+    {
+        var sut = CreateSut(Mock.Of<IAccountManager>());
+        await sut.BeginAddAsync();
+        sut.EditorSecret = ValidSecret;
+
+        sut.ClearSensitiveOutput();
+
+        Assert.False(sut.IsEditorVisible);
+        Assert.Equal(string.Empty, sut.EditorSecret);
+    }
+
+    private static AccountListViewModel CreateSut(
+        IAccountManager manager,
+        IAvaloniaDialogService? dialogs = null) =>
         new(
             manager,
             Mock.Of<IAccountTotpService>(),
             Mock.Of<IAsyncClipboardService>(),
             Mock.Of<IAccountQrCodeService>(),
-            Mock.Of<IAvaloniaQrImageFactory>());
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            dialogs ?? Mock.Of<IAvaloniaDialogService>(),
+            Localization());
+
+    private static IAvaloniaLocalizationService Localization()
+    {
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        localization.Setup(value => value.GetString(It.IsAny<string>()))
+            .Returns((string key) => key);
+        return localization.Object;
+    }
 }
