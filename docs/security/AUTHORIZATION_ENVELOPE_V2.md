@@ -149,6 +149,8 @@ Contract semantics:
 
 `SensitiveBuffer` copies retrieved bytes, exposes them as read-only memory, and zeroes its owned array on disposal. The caller owns and must dispose it promptly. Providers must likewise clear temporary copies where practical and must not retain caller memory after `StoreAsync` completes.
 
+`SecurityContext` accepts only an exact 32-byte DEK, clones caller-owned input into one pinned owned buffer, returns only independent caller-owned copies, and cryptographically zeroes the pinned buffer before unpinning it on lock or disposal. Invalid key lengths fail before changing the active context. Focused ownership tests retain the internal array across `Lock` to verify it is zeroed and verify that clearing or modifying caller copies cannot alter the active key. The active v2 lifecycle, session, activator, platform enrollment, Windows quick-unlock adapter, and facade each clear their temporary DEK copies at their established ownership boundaries.
+
 The secret store is intended to hold a random device-local quick-unlock wrapping secret, never the master password, OTP seeds, or the sole copy of the vault DEK. An unavailable, missing, denied, or corrupt store routes to master-password recovery; there is no plaintext filesystem fallback. Concrete Windows, macOS, and Linux providers and their platform access-control policies remain later implementation steps.
 
 ## Platform quick-unlock contract
@@ -252,6 +254,7 @@ The clean version discriminator removes the legacy type-confusion risk. Explicit
 - The focused WPF authorization and settings-orchestration selection passes 54 tests.
 - The focused portable-authorization and password-setup presentation selection passes 28 tests.
 - The focused infrastructure and WPF composition selection passes 3 tests and verifies that the legacy DPAPI settings DAL is absent.
+- The focused security-context and active key-consumer selection passes 72 tests.
 - The full Debug solution test run passes 718 tests.
 - The Release solution build succeeds with zero warnings and errors, and the filtered PR-like Release test run passes 662 tests.
 - A real Windows Hello/TPM registration and unlock smoke test remains required on supported hardware before release; automated tests use the existing `IHelloGate` OS boundary.

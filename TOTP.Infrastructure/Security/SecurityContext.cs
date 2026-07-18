@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using TOTP.Core.Security.Interfaces;
 
 namespace TOTP.Infrastructure.Security;
 
 public sealed class SecurityContext : ISecurityContext, IDisposable
 {
+    private const int VaultKeySize = 32;
+
     private byte[]? _rawDek;
     private GCHandle _memoryHandle;
 
@@ -17,14 +20,15 @@ public sealed class SecurityContext : ISecurityContext, IDisposable
     /// </summary>
     public void SetDek(byte[] dek)
     {
-        if (dek == null || dek.Length == 0) return;
+        ArgumentNullException.ThrowIfNull(dek);
+        if (dek.Length != VaultKeySize)
+            throw new ArgumentException($"DEK must be exactly {VaultKeySize} bytes.", nameof(dek));
 
         // 1. Clean up any existing key before setting a new one
         Lock();
 
-        // 2. Clone and Pin the memory
-        // Pinned memory prevents the Garbage Collector from moving the array,
-        // ensuring that when we call Array.Clear, we are clearing the ONLY copy.
+        // 2. Clone and pin the owned copy. The caller retains ownership of its input
+        // and must clear that separate buffer at its own boundary.
         _rawDek = (byte[])dek.Clone();
         _memoryHandle = GCHandle.Alloc(_rawDek, GCHandleType.Pinned);
     }
@@ -48,7 +52,7 @@ public sealed class SecurityContext : ISecurityContext, IDisposable
         if (_rawDek != null)
         {
             // 1. Zero-out the memory contents
-            Array.Clear(_rawDek, 0, _rawDek.Length);
+            CryptographicOperations.ZeroMemory(_rawDek);
 
             // 2. Release the handle so the GC can reclaim the empty array
             if (_memoryHandle.IsAllocated)

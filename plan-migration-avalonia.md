@@ -405,7 +405,7 @@ The exact division must be reviewed. Authorization data must not be moved into p
 - [x] Preserve a bounded previous-envelope backup.
 - [x] Add interrupted-write tests at every persistence boundary.
 - [x] Add wrong-password, corrupt-envelope, missing-secret-store, and reset-key tests.
-- [ ] Zero temporary key buffers where practical.
+- [x] Zero temporary key buffers where practical.
 - [x] Update the threat model and security verification documentation.
 
 ### Activation state machine
