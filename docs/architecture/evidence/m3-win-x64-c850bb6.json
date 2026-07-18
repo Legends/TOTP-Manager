@@ -1,0 +1,46 @@
+{
+  "SchemaVersion": 1,
+  "Commit": "c850bb68094a22162e9548d5f464c224dbca50ab",
+  "WorkingTreeClean": true,
+  "RecordedAtUtc": "2026-07-18T13:27:36.0572673Z",
+  "OperatingSystem": "Microsoft Windows 10.0.26100",
+  "Architecture": "X64",
+  "Iterations": 5,
+  "ProcessStartup": {
+    "FirstMilliseconds": 235.299,
+    "WarmP50Milliseconds": 248.07,
+    "WarmP95Milliseconds": 280.605,
+    "AllP95Milliseconds": 280.605
+  },
+  "WorkingSet": {
+    "P50Bytes": 33394688,
+    "P95Bytes": 33456128
+  },
+  "Filtering": [
+    {
+      "AccountCount": 500,
+      "P50Milliseconds": 0.028,
+      "P95Milliseconds": 0.066
+    },
+    {
+      "AccountCount": 1000,
+      "P50Milliseconds": 0.056,
+      "P95Milliseconds": 0.126
+    },
+    {
+      "AccountCount": 5000,
+      "P50Milliseconds": 0.317,
+      "P95Milliseconds": 0.546
+    }
+  ],
+  "NativeRuntime": {
+    "Available": true,
+    "Version": "4.13.0"
+  },
+  "Package": {
+    "TotalBytes": 259598262,
+    "FileCount": 83,
+    "NativeFileCount": 6,
+    "NativeBytes": 116337192
+  }
+}

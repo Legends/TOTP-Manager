@@ -52,3 +52,8 @@ Use [`evidence/M3_REAL_TARGET_RECORD_TEMPLATE.md`](evidence/M3_REAL_TARGET_RECOR
 Checked-in baselines:
 
 - [`evidence/m3-win-x64-09da29e.json`](evidence/m3-win-x64-09da29e.json) — clean `09da29e` Windows x64 package, 10 iterations, all automated budgets passed.
+- [`evidence/m3-win-x64-c850bb6.json`](evidence/m3-win-x64-c850bb6.json) — retained-package Windows x64 run.
+- [`evidence/m3-linux-x64-c850bb6.json`](evidence/m3-linux-x64-c850bb6.json) — retained-package Ubuntu 24.04 x64 run.
+- [`evidence/m3-osx-arm64-c850bb6.json`](evidence/m3-osx-arm64-c850bb6.json) — retained-package macOS ARM64 run.
+
+The three `c850bb6` reports came from workflow-dispatch run `29646133644`; all were recorded from clean trees and passed every automated budget. Their corresponding unsigned target packages are retained by GitHub for seven days from the run.

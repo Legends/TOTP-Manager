@@ -1,0 +1,46 @@
+{
+  "SchemaVersion": 1,
+  "Commit": "c850bb68094a22162e9548d5f464c224dbca50ab",
+  "WorkingTreeClean": true,
+  "RecordedAtUtc": "2026-07-18T13:26:35.6231900Z",
+  "OperatingSystem": "Darwin 24.6.0 Darwin Kernel Version 24.6.0: Tue Apr 21 20:18:00 PDT 2026; root:xnu-11417.140.69.710.16~1/RELEASE_ARM64_VMAPPLE",
+  "Architecture": "Arm64",
+  "Iterations": 5,
+  "ProcessStartup": {
+    "FirstMilliseconds": 303.788,
+    "WarmP50Milliseconds": 172.7,
+    "WarmP95Milliseconds": 217.609,
+    "AllP95Milliseconds": 303.788
+  },
+  "WorkingSet": {
+    "P50Bytes": 54476800,
+    "P95Bytes": 54673408
+  },
+  "Filtering": [
+    {
+      "AccountCount": 500,
+      "P50Milliseconds": 0.04,
+      "P95Milliseconds": 0.049
+    },
+    {
+      "AccountCount": 1000,
+      "P50Milliseconds": 0.081,
+      "P95Milliseconds": 0.238
+    },
+    {
+      "AccountCount": 5000,
+      "P50Milliseconds": 0.412,
+      "P95Milliseconds": 1.901
+    }
+  ],
+  "NativeRuntime": {
+    "Available": true,
+    "Version": "4.13.0"
+  },
+  "Package": {
+    "TotalBytes": 101314868,
+    "FileCount": 79,
+    "NativeFileCount": 5,
+    "NativeBytes": 88979224
+  }
+}

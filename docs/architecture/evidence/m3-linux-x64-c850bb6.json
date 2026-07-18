@@ -1,0 +1,46 @@
+{
+  "SchemaVersion": 1,
+  "Commit": "c850bb68094a22162e9548d5f464c224dbca50ab",
+  "WorkingTreeClean": true,
+  "RecordedAtUtc": "2026-07-18T13:26:49.0119712Z",
+  "OperatingSystem": "Ubuntu 24.04.4 LTS",
+  "Architecture": "X64",
+  "Iterations": 5,
+  "ProcessStartup": {
+    "FirstMilliseconds": 175.368,
+    "WarmP50Milliseconds": 168.857,
+    "WarmP95Milliseconds": 169.747,
+    "AllP95Milliseconds": 175.368
+  },
+  "WorkingSet": {
+    "P50Bytes": 68952064,
+    "P95Bytes": 69099520
+  },
+  "Filtering": [
+    {
+      "AccountCount": 500,
+      "P50Milliseconds": 0.017,
+      "P95Milliseconds": 0.024
+    },
+    {
+      "AccountCount": 1000,
+      "P50Milliseconds": 0.034,
+      "P95Milliseconds": 0.051
+    },
+    {
+      "AccountCount": 5000,
+      "P50Milliseconds": 0.169,
+      "P95Milliseconds": 0.193
+    }
+  ],
+  "NativeRuntime": {
+    "Available": true,
+    "Version": "4.13.0"
+  },
+  "Package": {
+    "TotalBytes": 140470240,
+    "FileCount": 77,
+    "NativeFileCount": 4,
+    "NativeBytes": 128166960
+  }
+}
