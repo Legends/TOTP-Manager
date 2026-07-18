@@ -57,6 +57,9 @@
                 <ContentControl.ContentTemplate>
                     <DataTemplate x:DataType="presentation:AccountListViewModel">
                         <StackPanel Spacing="12">
+                            <TextBox
+                                PlaceholderText="Search issuer or account"
+                                Text="{Binding SearchText, Mode=TwoWay}" />
                             <TextBlock
                                 HorizontalAlignment="Center"
                                 IsVisible="{Binding HasMessage}"

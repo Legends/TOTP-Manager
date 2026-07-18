@@ -49,6 +49,35 @@ public sealed class AccountListViewModelTests
     }
 
     [Fact]
+    public async Task SearchText_FiltersIssuerAndAccountNameCaseInsensitively()
+    {
+        IReadOnlyList<Account> accounts =
+        [
+            new(Guid.NewGuid(), "GitHub", "SECRET-A", "alice@example.test"),
+            new(Guid.NewGuid(), "Microsoft", "SECRET-B", "bob@example.test"),
+            new(Guid.NewGuid(), "Example", "SECRET-C", "github-user@example.test")
+        ];
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok(accounts));
+        var sut = new AccountListViewModel(manager.Object);
+        await sut.LoadAsync();
+
+        sut.SearchText = "GITHUB";
+
+        Assert.Equal(2, sut.Accounts.Count);
+        Assert.Contains(sut.Accounts, account => account.Issuer == "GitHub");
+        Assert.Contains(sut.Accounts, account => account.AccountName == "github-user@example.test");
+
+        sut.SearchText = "  bob  ";
+        Assert.Single(sut.Accounts);
+        Assert.Equal("Microsoft", sut.Accounts[0].Issuer);
+
+        sut.SearchText = string.Empty;
+        Assert.Equal(3, sut.Accounts.Count);
+    }
+
+    [Fact]
     public async Task LoadAsync_WhenBoundaryThrows_DoesNotExposeExceptionText()
     {
         var manager = new Mock<IAccountManager>();
