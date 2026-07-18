@@ -44,3 +44,18 @@ New identities are added directly. An exact issuer/account/secret match is repor
 - Data-flow impact: the decoded URI and parsed secret necessarily exist briefly in scanner/import locals and the domain account passed to `IAccountManager`; no long-lived presentation property is added.
 - Compatibility impact: the encrypted account schema remains unchanged, so unsupported algorithm/digit/period combinations are rejected rather than silently downgraded.
 - Test evidence: parser/validator tests cover malformed, oversized, and unsupported payloads; import tests cover add, exact duplicate, update, keep-both, cancel, and pre-storage rejection; camera tests cover safe preview transfer, typed platform failures, cancellation, import delegation, and exception-detail suppression. Physical camera permission and target acceptance remain postponed M3 evidence.
+
+## M5.5 Settings
+
+The Avalonia Settings surface now edits the complete allowlisted `AppPreferencesV1` projection: culture, logging threshold, idle timeout, session/minimize locks, conditional clipboard policy and maximum lifetime, QR preview scale, encrypted-export defaults, export-location behavior, and secret visibility. Save validates codec bounds before persistence and restores the complete prior projection on expected or exceptional failure rather than partially retaining edited runtime values.
+
+Clipboard policy remains fail-closed: disabling conditional clear disables OTP copy in Avalonia instead of copying without cleanup. When enabled, the scheduled lifetime is the smaller of the code's remaining validity and the configured maximum. QR scale updates the secret-bearing preview only after a successful settings save. Logging-level text explicitly notes that the bootstrap logger applies the new threshold after restart.
+
+Language changes still apply live through dynamic resources and are now persisted through the reviewed culture field. Startup applies the loaded culture before authorization projection; malformed/unsupported cultures continue to fall back through the catalog policy. Security settings remain a separate authorization view model so general preference persistence cannot bypass password/quick-unlock workflows.
+
+About/diagnostics exposes the non-secret informational version and opens the adapter-provided log directory through an injected platform launcher. It never displays the path or passes it through a shell command string. Signed update verification remains available from the Tools surface and does not weaken signature policy.
+
+- Threat impact: settings cannot enable unsafe plaintext clipboard copying, bypass authorization, or expose filesystem paths in status text.
+- Data-flow impact: only the existing allowlisted non-secret preference fields are persisted; no password, wrapper, seed, OTP, or account metadata enters preferences.
+- Compatibility impact: the existing v1 preference schema is fully consumed without a version change. WPF and Avalonia continue to share it.
+- Test evidence: tests cover complete preference persistence, all-or-nothing restoration, bounds, immediate language application, persisted culture startup, clipboard disable enforcement, version presence, path-only launcher delegation, and DI composition.

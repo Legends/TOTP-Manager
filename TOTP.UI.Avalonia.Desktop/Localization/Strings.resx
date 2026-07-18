@@ -76,6 +76,18 @@
   <data name="QrConflictMessage" xml:space="preserve"><value>{0} ({1}) already exists with a different secret. Update it, keep both accounts, or cancel?</value></data>
   <data name="UpdateExisting" xml:space="preserve"><value>Update existing</value></data>
   <data name="KeepBoth" xml:space="preserve"><value>Keep both</value></data>
+  <data name="LockOnSessionLock" xml:space="preserve"><value>Lock when the operating-system session locks</value></data>
+  <data name="ClearClipboard" xml:space="preserve"><value>Allow code copying with conditional automatic clear</value></data>
+  <data name="ClipboardClearSeconds" xml:space="preserve"><value>Maximum clipboard lifetime in seconds</value></data>
+  <data name="QrPreviewScale" xml:space="preserve"><value>QR preview scale</value></data>
+  <data name="EncryptExports" xml:space="preserve"><value>Encrypt exports by default</value></data>
+  <data name="OpenExportAfter" xml:space="preserve"><value>Open export location after export</value></data>
+  <data name="HideSecretsDefault" xml:space="preserve"><value>Hide secrets by default</value></data>
+  <data name="LoggingLevel" xml:space="preserve"><value>Minimum logging level (applies after restart)</value></data>
+  <data name="ClipboardCopyDisabled" xml:space="preserve"><value>Code copying is disabled by the clipboard safety policy.</value></data>
+  <data name="About" xml:space="preserve"><value>About and diagnostics</value></data>
+  <data name="Version" xml:space="preserve"><value>Version</value></data>
+  <data name="OpenLogFolder" xml:space="preserve"><value>Open log folder</value></data>
   <data name="Lock" xml:space="preserve"><value>Lock</value></data>
   <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
   <data name="Tools" xml:space="preserve"><value>Tools</value></data>

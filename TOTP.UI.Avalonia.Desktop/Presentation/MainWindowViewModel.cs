@@ -59,6 +59,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordUnlock.Unlocked += OnUnlocked;
         PasswordSetup.Configured += OnConfigured;
         CameraScanner.AccountImported += OnAccountImported;
+        SettingsPage.SettingsSaved += OnSettingsSaved;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
         _lockCommand = new AsyncCommand(LockAsync, () => _isShellVisible);
         _showAccountsCommand = new AsyncCommand(
@@ -245,6 +246,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordUnlock.Unlocked -= OnUnlocked;
         PasswordSetup.Configured -= OnConfigured;
         CameraScanner.AccountImported -= OnAccountImported;
+        SettingsPage.SettingsSaved -= OnSettingsSaved;
         _lifetime.Cancel();
         _lifetime.Dispose();
         CameraScanner.Dispose();
@@ -290,6 +292,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     private void OnAccountImported(object? sender, EventArgs e) =>
         AccountList.LoadCommand.Execute(null);
+
+    private void OnSettingsSaved(object? sender, EventArgs e) =>
+        AccountList.NotifySettingsChanged();
 
     public Task LockAsync()
     {

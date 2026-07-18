@@ -114,6 +114,18 @@ public static class AvaloniaStringKeys
     public const string QrConflictMessage = nameof(QrConflictMessage);
     public const string UpdateExisting = nameof(UpdateExisting);
     public const string KeepBoth = nameof(KeepBoth);
+    public const string LockOnSessionLock = nameof(LockOnSessionLock);
+    public const string ClearClipboard = nameof(ClearClipboard);
+    public const string ClipboardClearSeconds = nameof(ClipboardClearSeconds);
+    public const string QrPreviewScale = nameof(QrPreviewScale);
+    public const string EncryptExports = nameof(EncryptExports);
+    public const string OpenExportAfter = nameof(OpenExportAfter);
+    public const string HideSecretsDefault = nameof(HideSecretsDefault);
+    public const string LoggingLevel = nameof(LoggingLevel);
+    public const string ClipboardCopyDisabled = nameof(ClipboardCopyDisabled);
+    public const string About = nameof(About);
+    public const string Version = nameof(Version);
+    public const string OpenLogFolder = nameof(OpenLogFolder);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -142,6 +154,9 @@ public static class AvaloniaStringKeys
         CodeRefreshed, CodeRefreshFailed, CodeCopiedWithClear,
         ClipboardSafeCopyUnavailable, CodeRemainingTime, QrInvalid, QrImportFailed,
         QrAccountAdded, QrAccountUpdated, QrAccountKeptBoth, QrAccountDuplicate,
-        QrImportCancelled, QrConflictTitle, QrConflictMessage, UpdateExisting, KeepBoth
+        QrImportCancelled, QrConflictTitle, QrConflictMessage, UpdateExisting, KeepBoth,
+        LockOnSessionLock, ClearClipboard, ClipboardClearSeconds, QrPreviewScale,
+        EncryptExports, OpenExportAfter, HideSecretsDefault, LoggingLevel,
+        ClipboardCopyDisabled, About, Version, OpenLogFolder
     ];
 }

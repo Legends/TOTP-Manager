@@ -2,12 +2,14 @@ using Microsoft.Extensions.Logging;
 using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Avalonia.Desktop.Startup;
 
 public sealed class AvaloniaStartupCoordinator(
     ISettingsService settingsService,
     IAuthorizationService authorizationService,
+    IAvaloniaLocalizationService localizationService,
     ILogger<AvaloniaStartupCoordinator> logger) : IAvaloniaStartupCoordinator
 {
     public async Task<AvaloniaStartupOutcome> InitializeAsync(
@@ -23,6 +25,8 @@ public sealed class AvaloniaStartupCoordinator(
                 logger.LogError("Avalonia startup could not load application preferences.");
                 return AvaloniaStartupOutcome.PreferencesUnavailable;
             }
+
+            localizationService.ApplyCulture(settings.Value.CultureName);
 
             cancellationToken.ThrowIfCancellationRequested();
             await authorizationService.InitializeAsync();

@@ -4,6 +4,7 @@ using Moq;
 using Avalonia.Media;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Models;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation;
@@ -460,6 +461,40 @@ public sealed class AccountListViewModelTests
         Assert.Equal(30, sut.PeriodSeconds);
         Assert.Equal(AvaloniaStringKeys.CodeRefreshed, sut.CodeMessage);
         totp.Verify(value => value.GenerateAsync(id), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task CopyCodeAsync_WhenClipboardPolicyIsDisabled_DoesNotCopy()
+    {
+        var id = Guid.NewGuid();
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(id))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 30, 30)));
+        var clipboard = new Mock<IAsyncClipboardService>();
+        var settings = new Mock<ISettingsService>();
+        settings.SetupGet(value => value.Current).Returns(new AppSettings
+        {
+            ClearClipboardEnabled = false
+        });
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            totp.Object,
+            clipboard.Object,
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization(),
+            settingsService: settings.Object)
+        {
+            SelectedAccount = new AccountListItemViewModel(id, "Issuer", "account")
+        };
+        await sut.GenerateCodeAsync();
+
+        await sut.CopyCodeAsync();
+
+        clipboard.Verify(value => value.CopyAndScheduleClearAsync(
+            It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Never);
+        Assert.Equal(AvaloniaStringKeys.ClipboardCopyDisabled, sut.CodeMessage);
     }
 
     private static AccountListViewModel CreateSut(

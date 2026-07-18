@@ -5,6 +5,7 @@ using TOTP.Core.Security;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Avalonia.Desktop.Startup;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Tests.Avalonia.Startup;
 
@@ -102,6 +103,20 @@ public sealed class AvaloniaStartupCoordinatorTests
     }
 
     [Fact]
+    public async Task InitializeAsync_AppliesPersistedCultureBeforeAuthorizationProjection()
+    {
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        var (sut, settings, _) = CreateSut(new AuthorizationState(), localization);
+        var preferences = new Mock<IAppSettings>();
+        preferences.SetupGet(value => value.CultureName).Returns("de");
+        settings.Setup(value => value.LoadAsync()).ReturnsAsync(Result.Ok(preferences.Object));
+
+        await sut.InitializeAsync(TestContext.Current.CancellationToken);
+
+        localization.Verify(value => value.ApplyCulture("de"), Times.Once);
+    }
+
+    [Fact]
     public async Task InitializeAsync_WhenBoundaryThrows_ReturnsSanitizedFailure()
     {
         var (sut, settings, _) = CreateSut(new AuthorizationState());
@@ -116,7 +131,9 @@ public sealed class AvaloniaStartupCoordinatorTests
     private static (
         AvaloniaStartupCoordinator Sut,
         Mock<ISettingsService> Settings,
-        Mock<IAuthorizationService> Authorization) CreateSut(AuthorizationState state)
+        Mock<IAuthorizationService> Authorization) CreateSut(
+        AuthorizationState state,
+        Mock<IAvaloniaLocalizationService>? localization = null)
     {
         var settings = new Mock<ISettingsService>();
         settings.Setup(service => service.LoadAsync())
@@ -129,6 +146,7 @@ public sealed class AvaloniaStartupCoordinatorTests
             new AvaloniaStartupCoordinator(
                 settings.Object,
                 authorization.Object,
+                (localization ?? new Mock<IAvaloniaLocalizationService>()).Object,
                 Mock.Of<ILogger<AvaloniaStartupCoordinator>>()),
             settings,
             authorization);

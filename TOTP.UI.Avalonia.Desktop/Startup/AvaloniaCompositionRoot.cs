@@ -65,6 +65,7 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IAvaloniaDialogService, AvaloniaDialogService>();
         services.AddSingleton<IAvaloniaFilePicker, AvaloniaFilePicker>();
         services.AddSingleton<IAvaloniaQrImageFactory, AvaloniaQrImageFactory>();
+        services.AddSingleton<IPlatformFolderLauncher, AvaloniaPlatformFolderLauncher>();
         services.AddSingleton<IAsyncPlatformClipboard>(provider =>
             new AvaloniaPlatformClipboard(
                 provider.GetRequiredService<AvaloniaClipboardAccessor>(),

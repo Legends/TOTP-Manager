@@ -608,16 +608,16 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 
 ## M5.5 Settings
 
-- [ ] General preferences.
-- [ ] Security settings.
-- [ ] Lock policies.
-- [ ] Clipboard policies.
-- [ ] QR preview settings.
-- [ ] Logging level.
-- [ ] About/version information.
-- [ ] Update checks.
-- [ ] Log-folder access.
-- [ ] Live localization.
+- [x] General preferences.
+- [x] Security settings.
+- [x] Lock policies.
+- [x] Clipboard policies.
+- [x] QR preview settings.
+- [x] Logging level.
+- [x] About/version information.
+- [x] Update checks.
+- [x] Log-folder access.
+- [x] Live localization.
 
 ## M5.6 Import, export, and backup
 

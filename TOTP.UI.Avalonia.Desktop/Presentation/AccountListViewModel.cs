@@ -6,6 +6,7 @@ using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Localization;
 using TOTP.Avalonia.Desktop.Presentation.Dialogs;
 using TOTP.Core.Models;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Validation;
 
@@ -21,6 +22,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly IAvaloniaDialogService _dialogs;
     private readonly IAvaloniaLocalizationService _localization;
     private readonly TimeSpan _countdownTickInterval;
+    private readonly ISettingsService? _settingsService;
     private readonly AsyncCommand _loadCommand;
     private readonly AsyncCommand _generateCommand;
     private readonly AsyncCommand _copyCommand;
@@ -58,7 +60,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         IAvaloniaQrImageFactory qrImageFactory,
         IAvaloniaDialogService dialogs,
         IAvaloniaLocalizationService localization,
-        TimeSpan? countdownTickInterval = null)
+        TimeSpan? countdownTickInterval = null,
+        ISettingsService? settingsService = null)
     {
         _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
         _accountTotpService = accountTotpService ?? throw new ArgumentNullException(nameof(accountTotpService));
@@ -68,6 +71,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _countdownTickInterval = countdownTickInterval ?? TimeSpan.FromSeconds(1);
+        _settingsService = settingsService;
         if (_countdownTickInterval <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(countdownTickInterval));
         _loadCommand = new AsyncCommand(LoadAsync, () => !_isBusy);
@@ -162,6 +166,12 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public IImage? QrImage => _qrImage?.Image;
 
     public bool HasQrImage => QrImage is not null;
+
+    public double QrPreviewSize => 256 * Math.Clamp(
+        _settingsService?.Current.QrPreviewScaleFactor
+            ?? TOTP.Core.Models.AppSettings.DefaultQrPreviewScaleFactor,
+        1.0,
+        6.0);
 
     public string SearchText
     {
@@ -324,14 +334,22 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public async Task CopyCodeAsync()
     {
         if (!HasGeneratedCode) return;
+        if (_settingsService?.Current.ClearClipboardEnabled == false)
+        {
+            CodeMessage = _localization.GetString(AvaloniaStringKeys.ClipboardCopyDisabled);
+            return;
+        }
 
+        var configuredLifetime = _settingsService?.Current.ClearClipboardSeconds
+            ?? RemainingSeconds;
+        var clearSeconds = Math.Max(1, Math.Min(RemainingSeconds, configuredLifetime));
         var result = await _clipboardService.CopyAndScheduleClearAsync(
             GeneratedCode,
-            TimeSpan.FromSeconds(RemainingSeconds));
+            TimeSpan.FromSeconds(clearSeconds));
         CodeMessage = result.IsSuccess
             ? string.Format(
                 _localization.GetString(AvaloniaStringKeys.CodeCopiedWithClear),
-                RemainingSeconds)
+                clearSeconds)
             : _localization.GetString(AvaloniaStringKeys.ClipboardSafeCopyUnavailable);
     }
 
@@ -649,6 +667,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         ClearQrImage();
         ClearEditor();
     }
+
+    public void NotifySettingsChanged() => OnPropertyChanged(nameof(QrPreviewSize));
 
     private void ClearEditor()
     {

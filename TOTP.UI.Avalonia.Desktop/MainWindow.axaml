@@ -214,12 +214,50 @@
                             <CheckBox
                                 Content="{DynamicResource LockWhenMinimized}"
                                 IsChecked="{Binding LockOnMinimize, Mode=TwoWay}" />
+                            <CheckBox
+                                Content="{DynamicResource LockOnSessionLock}"
+                                IsChecked="{Binding LockOnSessionLock, Mode=TwoWay}" />
+                            <CheckBox
+                                Content="{DynamicResource ClearClipboard}"
+                                IsChecked="{Binding ClearClipboardEnabled, Mode=TwoWay}" />
+                            <TextBlock Text="{DynamicResource ClipboardClearSeconds}" />
+                            <NumericUpDown
+                                Maximum="300"
+                                Minimum="1"
+                                Value="{Binding ClearClipboardSeconds, Mode=TwoWay}" />
+                            <TextBlock Text="{DynamicResource QrPreviewScale}" />
+                            <NumericUpDown
+                                Increment="0.5"
+                                Maximum="6"
+                                Minimum="1"
+                                Value="{Binding QrPreviewScaleFactor, Mode=TwoWay}" />
+                            <CheckBox
+                                Content="{DynamicResource EncryptExports}"
+                                IsChecked="{Binding ExportEncrypt, Mode=TwoWay}" />
+                            <CheckBox
+                                Content="{DynamicResource OpenExportAfter}"
+                                IsChecked="{Binding OpenExportFileAfterExport, Mode=TwoWay}" />
+                            <CheckBox
+                                Content="{DynamicResource HideSecretsDefault}"
+                                IsChecked="{Binding HideSecretsByDefault, Mode=TwoWay}" />
+                            <TextBlock Text="{DynamicResource LoggingLevel}" />
+                            <ComboBox
+                                ItemsSource="{Binding LogLevels}"
+                                SelectedItem="{Binding MinimumLogLevel, Mode=TwoWay}" />
                             <Button Command="{Binding SaveCommand}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <shared:SymbolIcon Kind="Settings" />
                                     <TextBlock Text="{DynamicResource SaveSettings}" />
                                 </StackPanel>
                             </Button>
+                            <TextBlock Classes="heading" Text="{DynamicResource About}" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{DynamicResource Version}" />
+                                <TextBlock Text="{Binding VersionText}" />
+                            </StackPanel>
+                            <Button
+                                Command="{Binding OpenLogFolderCommand}"
+                                Content="{DynamicResource OpenLogFolder}" />
                             <TextBlock Text="{Binding Message}" />
                         </StackPanel>
                     </DataTemplate>
@@ -408,7 +446,9 @@
                             <shared:QrPreview
                                 Description="{DynamicResource GeneratedQr}"
                                 PrivacyNotice="{DynamicResource QrPrivacyNotice}"
-                                Source="{Binding QrImage}" />
+                                Source="{Binding QrImage}"
+                                Width="{Binding QrPreviewSize}"
+                                Height="{Binding QrPreviewSize}" />
                         </StackPanel>
                     </DataTemplate>
                 </ContentControl.ContentTemplate>

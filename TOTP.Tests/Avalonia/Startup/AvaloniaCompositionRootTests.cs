@@ -69,6 +69,8 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IAvaloniaQrImageFactory>());
         Assert.IsType<AvaloniaFilePicker>(
             services.GetRequiredService<IAvaloniaFilePicker>());
+        Assert.IsType<AvaloniaPlatformFolderLauncher>(
+            services.GetRequiredService<IPlatformFolderLauncher>());
         Assert.IsType<AvaloniaDialogService>(
             services.GetRequiredService<IAvaloniaDialogService>());
         Assert.IsType<AvaloniaLocalizationService>(

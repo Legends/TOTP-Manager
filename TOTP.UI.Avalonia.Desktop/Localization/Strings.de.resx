@@ -76,6 +76,18 @@
   <data name="QrConflictMessage" xml:space="preserve"><value>{0} ({1}) ist bereits mit einem anderen Geheimnis vorhanden. Aktualisieren, beide Konten behalten oder abbrechen?</value></data>
   <data name="UpdateExisting" xml:space="preserve"><value>Vorhandenes aktualisieren</value></data>
   <data name="KeepBoth" xml:space="preserve"><value>Beide behalten</value></data>
+  <data name="LockOnSessionLock" xml:space="preserve"><value>Bei Sperrung der Betriebssystemsitzung sperren</value></data>
+  <data name="ClearClipboard" xml:space="preserve"><value>Code-Kopieren mit bedingtem automatischem Leeren erlauben</value></data>
+  <data name="ClipboardClearSeconds" xml:space="preserve"><value>Maximale Zwischenablage-Dauer in Sekunden</value></data>
+  <data name="QrPreviewScale" xml:space="preserve"><value>QR-Vorschau-Skalierung</value></data>
+  <data name="EncryptExports" xml:space="preserve"><value>Exporte standardmäßig verschlüsseln</value></data>
+  <data name="OpenExportAfter" xml:space="preserve"><value>Exportordner nach dem Export öffnen</value></data>
+  <data name="HideSecretsDefault" xml:space="preserve"><value>Geheimnisse standardmäßig ausblenden</value></data>
+  <data name="LoggingLevel" xml:space="preserve"><value>Minimale Protokollstufe (gilt nach Neustart)</value></data>
+  <data name="ClipboardCopyDisabled" xml:space="preserve"><value>Das Kopieren von Codes ist durch die Zwischenablage-Sicherheitsrichtlinie deaktiviert.</value></data>
+  <data name="About" xml:space="preserve"><value>Info und Diagnose</value></data>
+  <data name="Version" xml:space="preserve"><value>Version</value></data>
+  <data name="OpenLogFolder" xml:space="preserve"><value>Protokollordner öffnen</value></data>
   <data name="Lock" xml:space="preserve"><value>Sperren</value></data>
   <data name="Accounts" xml:space="preserve"><value>Konten</value></data>
   <data name="Tools" xml:space="preserve"><value>Werkzeuge</value></data>

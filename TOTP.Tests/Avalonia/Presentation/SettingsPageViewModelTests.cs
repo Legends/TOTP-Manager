@@ -4,6 +4,8 @@ using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Avalonia.Desktop.Localization;
+using TOTP.Core.Enums;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
@@ -72,6 +74,63 @@ public sealed class SettingsPageViewModelTests
         localization.Verify(value => value.ApplyCulture("de"), Times.Once);
         Assert.Equal(TimeSpan.FromMinutes(12), current.IdleTimeout);
         Assert.True(current.LockOnMinimize);
+    }
+
+    [Fact]
+    public async Task SaveAsync_PersistsCompletePortablePreferenceSet()
+    {
+        var current = new AppSettings();
+        var settings = CreateSettings(current);
+        settings.Setup(value => value.SaveAsync()).ReturnsAsync(Result.Ok());
+        var sut = new SettingsPageViewModel(settings.Object)
+        {
+            IdleTimeoutMinutes = 45,
+            LockOnMinimize = false,
+            LockOnSessionLock = false,
+            ClearClipboardEnabled = true,
+            ClearClipboardSeconds = 20,
+            QrPreviewScaleFactor = 2.5m,
+            ExportEncrypt = true,
+            OpenExportFileAfterExport = false,
+            HideSecretsByDefault = false,
+            MinimumLogLevel = AppLogLevel.Warning
+        };
+
+        await sut.SaveAsync();
+
+        Assert.Equal(TimeSpan.FromMinutes(45), current.IdleTimeout);
+        Assert.False(current.LockOnMinimize);
+        Assert.False(current.LockOnSessionLock);
+        Assert.True(current.ClearClipboardEnabled);
+        Assert.Equal(20, current.ClearClipboardSeconds);
+        Assert.Equal(2.5, current.QrPreviewScaleFactor);
+        Assert.True(current.ExportEncrypt);
+        Assert.False(current.OpenExportFileAfterExport);
+        Assert.False(current.HideSecretsByDefault);
+        Assert.Equal(AppLogLevel.Warning, current.MinimumLogLevel);
+    }
+
+    [Fact]
+    public async Task OpenLogFolderAsync_UsesPlatformPathWithoutDisplayingIt()
+    {
+        var settings = CreateSettings(new AppSettings());
+        var paths = new Mock<IPlatformApplicationPaths>();
+        paths.SetupGet(value => value.LogDirectory).Returns(@"C:\synthetic\logs");
+        var launcher = new Mock<IPlatformFolderLauncher>();
+        launcher.Setup(value => value.OpenFolderAsync(
+                @"C:\synthetic\logs",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        var sut = new SettingsPageViewModel(
+            settings.Object,
+            applicationPaths: paths.Object,
+            folderLauncher: launcher.Object);
+
+        await sut.OpenLogFolderAsync();
+
+        Assert.Contains("opened", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("synthetic", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.False(string.IsNullOrWhiteSpace(sut.VersionText));
     }
 
     private static Mock<ISettingsService> CreateSettings(AppSettings current)
