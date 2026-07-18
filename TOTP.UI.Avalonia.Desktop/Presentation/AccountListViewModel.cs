@@ -296,6 +296,12 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         ClearQrImage();
     }
 
+    public void ClearSensitiveOutput()
+    {
+        ClearGeneratedCode();
+        ClearQrImage();
+    }
+
     private void ClearQrImage()
     {
         var image = _qrImage;

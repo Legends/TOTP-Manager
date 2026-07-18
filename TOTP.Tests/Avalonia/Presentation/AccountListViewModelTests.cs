@@ -172,6 +172,35 @@ public sealed class AccountListViewModelTests
     }
 
     [Fact]
+    public async Task ClearSensitiveOutput_PreservesRowsAndSelectionButRemovesCode()
+    {
+        var id = Guid.NewGuid();
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
+                [new Account(id, "Issuer", "SECRET", "account")]));
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(id))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 30, 30)));
+        using var sut = new AccountListViewModel(
+            manager.Object,
+            totp.Object,
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>());
+        await sut.LoadAsync();
+        sut.SelectedAccount = sut.Accounts[0];
+        await sut.GenerateCodeAsync();
+
+        sut.ClearSensitiveOutput();
+
+        Assert.Single(sut.Accounts);
+        Assert.NotNull(sut.SelectedAccount);
+        Assert.Empty(sut.GeneratedCode);
+        Assert.Empty(sut.CodeMessage);
+    }
+
+    [Fact]
     public async Task CopyCodeAsync_UsesRemainingLifetimeForConditionalClear()
     {
         var id = Guid.NewGuid();

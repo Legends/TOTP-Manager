@@ -12,13 +12,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly IAuthorizationService _authorizationService;
     private readonly AsyncCommand _initializeCommand;
     private readonly AsyncCommand _lockCommand;
-    private readonly AsyncCommand _toggleSettingsCommand;
+    private readonly AsyncCommand _showAccountsCommand;
+    private readonly AsyncCommand _showToolsCommand;
+    private readonly AsyncCommand _showSettingsCommand;
     private readonly CancellationTokenSource _lifetime = new();
     private string _statusText = "Starting TOTP Manager…";
     private bool _isBusy;
     private bool _canRetry;
     private bool _isPasswordUnlockVisible;
+    private bool _isShellVisible;
     private bool _isAccountListVisible;
+    private bool _isToolsVisible;
     private bool _isSettingsVisible;
     private bool _shutdownPrepared;
     private bool _disposed;
@@ -43,8 +47,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         UpdateCheck = updateCheck ?? throw new ArgumentNullException(nameof(updateCheck));
         PasswordUnlock.Unlocked += OnUnlocked;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
-        _lockCommand = new AsyncCommand(LockAsync, () => _isAccountListVisible);
-        _toggleSettingsCommand = new AsyncCommand(ToggleSettingsAsync, () => _isAccountListVisible);
+        _lockCommand = new AsyncCommand(LockAsync, () => _isShellVisible);
+        _showAccountsCommand = new AsyncCommand(
+            ShowAccountsAsync,
+            () => _isShellVisible && !_isAccountListVisible);
+        _showToolsCommand = new AsyncCommand(
+            ShowToolsAsync,
+            () => _isShellVisible && !_isToolsVisible);
+        _showSettingsCommand = new AsyncCommand(
+            ShowSettingsAsync,
+            () => _isShellVisible && !_isSettingsVisible);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -75,7 +87,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public ICommand LockCommand => _lockCommand;
 
-    public ICommand ToggleSettingsCommand => _toggleSettingsCommand;
+    public ICommand ShowAccountsCommand => _showAccountsCommand;
+
+    public ICommand ShowToolsCommand => _showToolsCommand;
+
+    public ICommand ShowSettingsCommand => _showSettingsCommand;
 
     public PasswordUnlockViewModel PasswordUnlock { get; }
 
@@ -95,21 +111,44 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         private set => SetField(ref _isPasswordUnlockVisible, value);
     }
 
+    public bool IsShellVisible
+    {
+        get => _isShellVisible;
+        private set
+        {
+            if (!SetField(ref _isShellVisible, value)) return;
+            NotifyShellCommands();
+        }
+    }
+
     public bool IsAccountListVisible
     {
         get => _isAccountListVisible;
         private set
         {
             if (!SetField(ref _isAccountListVisible, value)) return;
-            _lockCommand.NotifyCanExecuteChanged();
-            _toggleSettingsCommand.NotifyCanExecuteChanged();
+            _showAccountsCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    public bool IsToolsVisible
+    {
+        get => _isToolsVisible;
+        private set
+        {
+            if (!SetField(ref _isToolsVisible, value)) return;
+            _showToolsCommand.NotifyCanExecuteChanged();
         }
     }
 
     public bool IsSettingsVisible
     {
         get => _isSettingsVisible;
-        private set => SetField(ref _isSettingsVisible, value);
+        private set
+        {
+            if (!SetField(ref _isSettingsVisible, value)) return;
+            _showSettingsCommand.NotifyCanExecuteChanged();
+        }
     }
 
     public async Task InitializeAsync()
@@ -119,7 +158,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsBusy = true;
         CanRetry = false;
         IsPasswordUnlockVisible = false;
+        IsShellVisible = false;
         IsAccountListVisible = false;
+        IsToolsVisible = false;
         IsSettingsVisible = false;
         StatusText = "Starting TOTP Manager…";
 
@@ -175,6 +216,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         AccountList.Clear();
         CameraScanner.Clear();
         IsSettingsVisible = false;
+        IsToolsVisible = false;
+        IsShellVisible = false;
         IsAccountListVisible = false;
         IsPasswordUnlockVisible = false;
         StatusText = "TOTP Manager is closing safely.";
@@ -183,7 +226,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private void OnUnlocked(object? sender, EventArgs e)
     {
         IsPasswordUnlockVisible = false;
-        IsAccountListVisible = true;
+        IsShellVisible = true;
+        SetActivePage(ShellPage.Accounts);
         StatusText = "Vault unlocked.";
         AccountList.LoadCommand.Execute(null);
     }
@@ -194,17 +238,51 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         AccountList.Clear();
         CameraScanner.Clear();
         IsSettingsVisible = false;
+        IsToolsVisible = false;
+        IsShellVisible = false;
         IsAccountListVisible = false;
         IsPasswordUnlockVisible = true;
         StatusText = "Vault locked. Enter your master password to continue.";
         return Task.CompletedTask;
     }
 
-    public Task ToggleSettingsAsync()
+    public Task ShowAccountsAsync()
     {
-        IsSettingsVisible = !IsSettingsVisible;
-        if (IsSettingsVisible) SettingsPage.Reload();
+        if (IsShellVisible) SetActivePage(ShellPage.Accounts);
         return Task.CompletedTask;
+    }
+
+    public Task ShowToolsAsync()
+    {
+        if (IsShellVisible) SetActivePage(ShellPage.Tools);
+        return Task.CompletedTask;
+    }
+
+    public Task ShowSettingsAsync()
+    {
+        if (IsShellVisible) SetActivePage(ShellPage.Settings);
+        return Task.CompletedTask;
+    }
+
+    private void SetActivePage(ShellPage page)
+    {
+        if (IsAccountListVisible && page != ShellPage.Accounts)
+            AccountList.ClearSensitiveOutput();
+        if (IsToolsVisible && page != ShellPage.Tools)
+            CameraScanner.Clear();
+
+        IsAccountListVisible = page == ShellPage.Accounts;
+        IsToolsVisible = page == ShellPage.Tools;
+        IsSettingsVisible = page == ShellPage.Settings;
+        if (IsSettingsVisible) SettingsPage.Reload();
+    }
+
+    private void NotifyShellCommands()
+    {
+        _lockCommand.NotifyCanExecuteChanged();
+        _showAccountsCommand.NotifyCanExecuteChanged();
+        _showToolsCommand.NotifyCanExecuteChanged();
+        _showSettingsCommand.NotifyCanExecuteChanged();
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

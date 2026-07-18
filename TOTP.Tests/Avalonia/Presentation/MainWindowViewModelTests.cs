@@ -6,6 +6,8 @@ using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Startup;
 using Microsoft.Extensions.Logging.Abstractions;
+using FluentResults;
+using TOTP.Core.Security.Models;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
@@ -110,6 +112,55 @@ public sealed class MainWindowViewModelTests
         Assert.False(sut.IsAccountListVisible);
         Assert.False(sut.IsSettingsVisible);
         Assert.Contains("closing", sut.StatusText, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task AuthorizedNavigation_ExposesExactlyOnePage()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyForUnlock);
+        var authorization = new Mock<IAuthorizationService>();
+        authorization.Setup(value => value.TryUnlockWithPasswordAsync("test-password"))
+            .ReturnsAsync(AuthorizationResult.Success);
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]));
+        var password = new PasswordUnlockViewModel(authorization.Object);
+        using var accounts = new AccountListViewModel(
+            manager.Object,
+            Mock.Of<IAccountTotpService>(),
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>());
+        using var sut = new MainWindowViewModel(
+            coordinator.Object,
+            authorization.Object,
+            password,
+            accounts,
+            CreateSettingsPage(),
+            CreateFilePicker(),
+            CreateCameraScanner(),
+            CreateUpdateCheck());
+        await sut.InitializeAsync();
+        password.Password = "test-password";
+
+        await password.UnlockAsync();
+
+        Assert.True(sut.IsShellVisible);
+        Assert.True(sut.IsAccountListVisible);
+        Assert.False(sut.IsToolsVisible);
+        Assert.False(sut.IsSettingsVisible);
+
+        await sut.ShowToolsAsync();
+        Assert.False(sut.IsAccountListVisible);
+        Assert.True(sut.IsToolsVisible);
+        Assert.False(sut.IsSettingsVisible);
+
+        await sut.ShowSettingsAsync();
+        Assert.False(sut.IsAccountListVisible);
+        Assert.False(sut.IsToolsVisible);
+        Assert.True(sut.IsSettingsVisible);
     }
 
     private static MainWindowViewModel CreateSut(IAvaloniaStartupCoordinator coordinator) =>

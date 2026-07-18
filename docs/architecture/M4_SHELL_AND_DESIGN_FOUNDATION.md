@@ -18,6 +18,8 @@ The desktop entry point now starts the existing redacting Serilog pipeline befor
 
 The main window initializes its view model only on the first open. Window closing synchronously prepares the shell for shutdown: authorization is locked, generated output/account presentation is cleared, camera capture is cancelled and cleared, authorized surfaces are hidden, and service-provider disposal then releases owned resources. Preparation and disposal are idempotent.
 
+After authorization, the shell exposes exactly one of three explicit pages: Accounts, Tools, or Settings. Locking hides the entire authorized shell and returns to the password gate. Leaving Accounts clears generated OTP/QR output while preserving the loaded secret-free rows; leaving Tools cancels and clears camera capture. Settings reload when entered. Navigation commands cannot execute while locked, and the current-page command is disabled to provide a consistent keyboard state.
+
 No splash window is currently justified. The existing shell reports startup state and recoverable failure without adding another lifetime or focus owner. Revisit only if measured interactive startup makes the password gate materially late.
 
 ## Design tokens
@@ -46,3 +48,4 @@ The initial shell consumes the tokens and uses a responsive maximum width rather
 - Data-flow impact: no vault, envelope, seed, import/export, or backup format changes.
 - Compatibility impact: WPF startup and release behavior are untouched. Avalonia remains framework-dependent and non-release during migration.
 - Test evidence: boundary tests cover safe logging, authorization lock, fatal shutdown, shutdown failure, domain lock failure, and unobserved-task policy. Main-shell tests cover idempotent shutdown preparation.
+- Navigation evidence: tests cover authorization-gated single-page navigation and preservation of account rows while sensitive generated output is cleared.

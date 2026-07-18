@@ -512,8 +512,8 @@ Do not proceed to full UI migration until:
 - [x] Global exception handling.
 - [x] Main window lifecycle.
 - [x] Splash/startup decision: not currently justified; use measured shell status and revisit only if interactive startup regresses.
-- [ ] Lock overlay/navigation.
-- [ ] Settings window or settings navigation.
+- [x] Authorization-gated shell navigation and lock gate.
+- [x] Settings navigation.
 - [ ] Dialog ownership and activation.
 - [ ] Localization startup and live language switching.
 

@@ -69,10 +69,27 @@
             HorizontalAlignment="Right"
             Command="{Binding LockCommand}"
             Content="Lock"
-            IsVisible="{Binding IsAccountListVisible}" />
-        <ContentControl
-            Content="{Binding NativeFilePicker}"
-            IsVisible="{Binding IsAccountListVisible}">
+            IsVisible="{Binding IsShellVisible}" />
+        <Border Classes="card" IsVisible="{Binding IsShellVisible}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button
+                    automation:AutomationProperties.Name="Open accounts page"
+                    Command="{Binding ShowAccountsCommand}"
+                    Content="Accounts" />
+                <Button
+                    automation:AutomationProperties.Name="Open tools page"
+                    Command="{Binding ShowToolsCommand}"
+                    Content="Tools" />
+                <Button
+                    automation:AutomationProperties.Name="Open settings page"
+                    Command="{Binding ShowSettingsCommand}"
+                    Content="Settings" />
+            </StackPanel>
+        </Border>
+        <Border Classes="card" IsVisible="{Binding IsToolsVisible}">
+            <StackPanel Spacing="16">
+                <TextBlock Classes="heading" Text="Tools" />
+                <ContentControl Content="{Binding NativeFilePicker}">
             <ContentControl.ContentTemplate>
                 <DataTemplate x:DataType="presentation:NativeFilePickerViewModel">
                     <StackPanel Spacing="6">
@@ -82,9 +99,7 @@
                 </DataTemplate>
             </ContentControl.ContentTemplate>
         </ContentControl>
-        <ContentControl
-            Content="{Binding UpdateCheck}"
-            IsVisible="{Binding IsAccountListVisible}">
+                <ContentControl Content="{Binding UpdateCheck}">
             <ContentControl.ContentTemplate>
                 <DataTemplate x:DataType="presentation:UpdateCheckViewModel">
                     <StackPanel Spacing="6">
@@ -97,9 +112,7 @@
                 </DataTemplate>
             </ContentControl.ContentTemplate>
         </ContentControl>
-        <ContentControl
-            Content="{Binding CameraScanner}"
-            IsVisible="{Binding IsAccountListVisible}">
+                <ContentControl Content="{Binding CameraScanner}">
             <ContentControl.ContentTemplate>
                 <DataTemplate x:DataType="presentation:CameraScannerViewModel">
                     <StackPanel Spacing="8">
@@ -122,11 +135,8 @@
                 </DataTemplate>
             </ContentControl.ContentTemplate>
         </ContentControl>
-        <Button
-            HorizontalAlignment="Right"
-            Command="{Binding ToggleSettingsCommand}"
-            Content="Settings"
-            IsVisible="{Binding IsAccountListVisible}" />
+            </StackPanel>
+        </Border>
         <Border Classes="card" IsVisible="{Binding IsSettingsVisible}">
             <ContentControl Content="{Binding SettingsPage}">
                 <ContentControl.ContentTemplate>
