@@ -13,11 +13,14 @@ public sealed class SessionLockPolicyBackgroundServiceTests
     public async Task SessionLocked_WhenEnabled_LocksApplication()
     {
         var context = CreateContext(lockOnSessionLock: true);
+        var notifications = 0;
+        context.Service.ApplicationLocked += (_, _) => notifications++;
         await context.Service.StartAsync(TestContext.Current.CancellationToken);
 
         context.Events.Raise(PlatformSessionState.Locked);
 
         context.Authorization.Verify(service => service.Lock(), Times.Once);
+        Assert.Equal(1, notifications);
         await context.Service.StopAsync(TestContext.Current.CancellationToken);
     }
 
@@ -58,6 +61,14 @@ public sealed class SessionLockPolicyBackgroundServiceTests
         context.Events.Raise(PlatformSessionState.Locked);
 
         VerifyLog(context.Logger, LogLevel.Critical, Times.Once());
+        context.Logger.Verify(
+            entry => entry.Log(
+                LogLevel.Critical,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((_, _) => true),
+                It.Is<Exception?>(exception => exception == null),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
         await context.Service.StopAsync(TestContext.Current.CancellationToken);
     }
 

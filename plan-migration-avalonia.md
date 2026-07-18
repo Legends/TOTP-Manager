@@ -661,22 +661,22 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 
 ## Windows
 
-- [ ] Portable v2 envelope storage.
-- [ ] First-run/reset handling for development-era local data.
-- [ ] Hello/TPM quick unlock.
-- [ ] Windows ACL hardening.
-- [ ] Session-lock event handling.
-- [ ] Single-instance activation.
-- [ ] Clipboard behavior.
-- [ ] Native dialogs and shell integration.
+- [x] Portable v2 envelope storage.
+- [x] First-run/reset handling for development-era local data.
+- [x] Hello/TPM quick unlock.
+- [x] Windows ACL hardening.
+- [x] Session-lock event handling.
+- [x] Single-instance activation.
+- [x] Clipboard behavior.
+- [x] Native dialogs and shell integration.
 - [ ] Signed installer/update execution.
 
 ## macOS
 
-- [ ] Application Support, Cache, and Logs paths.
+- [x] Application Support, Cache, and Logs paths.
 - [ ] Keychain secret storage.
 - [ ] LocalAuthentication quick unlock.
-- [ ] File permission hardening.
+- [x] File permission hardening.
 - [ ] Camera entitlement and permission handling.
 - [ ] App activation and single-instance behavior.
 - [ ] Clipboard handling.
@@ -686,10 +686,10 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 
 ## Linux
 
-- [ ] XDG paths.
+- [x] XDG paths.
 - [ ] Secret Service/libsecret integration.
-- [ ] Master-password-only fallback.
-- [ ] Unix file permissions.
+- [x] Master-password-only fallback.
+- [x] Unix file permissions.
 - [ ] Desktop session-lock detection for supported environments.
 - [ ] X11/Wayland behavior validation.
 - [ ] Camera/V4L2 permission handling.

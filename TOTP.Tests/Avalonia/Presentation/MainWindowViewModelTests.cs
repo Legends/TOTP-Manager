@@ -200,6 +200,48 @@ public sealed class MainWindowViewModelTests
         Assert.True(sut.IsSettingsVisible);
     }
 
+    [Fact]
+    public async Task HandleWindowMinimizedAsync_WhenPolicyEnabled_LocksAuthorizedShell()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
+        var authorization = new Mock<IAuthorizationService>();
+        var settings = new Mock<ISettingsService>();
+        settings.SetupGet(value => value.Current).Returns(new AppSettings
+        {
+            LockOnMinimize = true
+        });
+        using var sut = new MainWindowViewModel(
+            coordinator.Object,
+            authorization.Object,
+            new PasswordUnlockViewModel(authorization.Object),
+            CreatePasswordSetup(authorization.Object),
+            new AccountListViewModel(
+                Mock.Of<IAccountManager>(),
+                Mock.Of<IAccountTotpService>(),
+                Mock.Of<IAsyncClipboardService>(),
+                Mock.Of<IAccountQrCodeService>(),
+                Mock.Of<IAvaloniaQrImageFactory>(),
+                Mock.Of<IAvaloniaDialogService>(),
+                CreateLocalization()),
+            CreateSettingsPage(),
+            CreateAuthorizationSettings(authorization.Object),
+            CreateFilePicker(),
+            CreateCameraScanner(),
+            CreateUpdateCheck(),
+            CreateDiagnostics(),
+            CreateLocalization(),
+            settings.Object);
+        await sut.InitializeAsync();
+
+        await sut.HandleWindowMinimizedAsync();
+
+        authorization.Verify(value => value.Lock(), Times.Once);
+        Assert.True(sut.IsPasswordUnlockVisible);
+        Assert.False(sut.IsShellVisible);
+    }
+
     private static MainWindowViewModel CreateSut(IAvaloniaStartupCoordinator coordinator) =>
         new(
             coordinator,

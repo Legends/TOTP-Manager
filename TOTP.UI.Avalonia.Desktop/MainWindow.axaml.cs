@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia;
 using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Avalonia.Desktop.Platform;
 
@@ -42,5 +43,16 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel viewModel)
             viewModel.PrepareForShutdown();
         base.OnClosing(e);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == WindowStateProperty
+            && change.NewValue is WindowState.Minimized
+            && DataContext is MainWindowViewModel viewModel)
+        {
+            _ = viewModel.HandleWindowMinimizedAsync();
+        }
     }
 }

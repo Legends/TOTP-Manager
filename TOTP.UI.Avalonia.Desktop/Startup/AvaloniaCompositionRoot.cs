@@ -42,11 +42,13 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IPlatformApplicationPaths>(platformServices.ApplicationPaths);
         services.AddLogging(builder => builder.AddSerilog(Log.Logger, dispose: false));
 #if TOTP_PLATFORM_WINDOWS
+        services.AddSingleton<IPlatformSessionEventSource, TOTP.Platform.Windows.WindowsSessionEventSource>();
         services.AddSingleton<IHelloPromptWindowHandleProvider, AvaloniaHelloPromptWindowHandleProvider>();
         services.AddSingleton<IHelloVerificationRequester, WindowsHelloVerificationRequester>();
         services.AddSingleton<IHelloGate, HelloGate>();
         services.AddSingleton<IPlatformQuickUnlock, WindowsPlatformQuickUnlock>();
 #else
+        services.AddSingleton<IPlatformSessionEventSource, UnavailablePlatformSessionEventSource>();
         services.AddSingleton<IPlatformQuickUnlock, UnavailablePlatformQuickUnlock>();
 #endif
         services.AddInfrastructure(
@@ -76,6 +78,7 @@ public static class AvaloniaCompositionRoot
             provider.GetRequiredService<AsyncClipboardService>());
         services.AddSingleton<IAvaloniaStartupCoordinator, AvaloniaStartupCoordinator>();
         services.AddSingleton<AvaloniaExceptionBoundary>();
+        services.AddSingleton<SessionLockPolicyBackgroundService>();
         services.AddSingleton<ICameraSessionFactory, OpenCvCameraSessionFactory>();
         services.AddSingleton<IQrScannerRunner, OpenCvQrScannerRunner>();
         services.AddSingleton<PasswordUnlockViewModel>();

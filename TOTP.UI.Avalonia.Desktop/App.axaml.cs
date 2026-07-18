@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Core.Platform;
+using TOTP.Infrastructure.Services;
 
 namespace TOTP.Avalonia.Desktop;
 
@@ -13,6 +14,7 @@ public partial class App : Application
     private ServiceProvider? _services;
     private AvaloniaExceptionHooks? _exceptionHooks;
     private AvaloniaThemeService? _themeService;
+    private SessionLockPolicyBackgroundService? _sessionLockPolicy;
 
     public override void Initialize()
     {
@@ -29,11 +31,20 @@ public partial class App : Application
             _exceptionHooks = new AvaloniaExceptionHooks(
                 global::Avalonia.Threading.Dispatcher.UIThread,
                 _services.GetRequiredService<AvaloniaExceptionBoundary>());
+            _sessionLockPolicy = _services.GetRequiredService<SessionLockPolicyBackgroundService>();
+            _sessionLockPolicy.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
             desktop.Exit += (_, _) =>
             {
-                _exceptionHooks.Dispose();
-                _themeService.Dispose();
-                _services.Dispose();
+                try
+                {
+                    _sessionLockPolicy.StopAsync(CancellationToken.None).GetAwaiter().GetResult();
+                }
+                finally
+                {
+                    _exceptionHooks.Dispose();
+                    _themeService.Dispose();
+                    _services.Dispose();
+                }
             };
             var mainWindow = _services.GetRequiredService<MainWindow>();
             var windows = _services.GetRequiredService<AvaloniaWindowCoordinator>();

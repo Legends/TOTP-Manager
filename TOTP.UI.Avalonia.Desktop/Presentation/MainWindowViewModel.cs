@@ -5,6 +5,7 @@ using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Avalonia.Desktop.Localization;
+using TOTP.Infrastructure.Services;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
 
@@ -13,6 +14,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly IAvaloniaStartupCoordinator _startupCoordinator;
     private readonly IAuthorizationService _authorizationService;
     private readonly IAvaloniaLocalizationService _localization;
+    private readonly ISettingsService? _settingsService;
+    private readonly SessionLockPolicyBackgroundService? _sessionLockPolicy;
+    private readonly IUiScheduler? _uiScheduler;
     private readonly AsyncCommand _initializeCommand;
     private readonly AsyncCommand _lockCommand;
     private readonly AsyncCommand _showAccountsCommand;
@@ -44,7 +48,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         CameraScannerViewModel cameraScanner,
         UpdateCheckViewModel updateCheck,
         DiagnosticsViewModel diagnostics,
-        IAvaloniaLocalizationService localization)
+        IAvaloniaLocalizationService localization,
+        ISettingsService? settingsService = null,
+        SessionLockPolicyBackgroundService? sessionLockPolicy = null,
+        IUiScheduler? uiScheduler = null)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
@@ -58,6 +65,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         UpdateCheck = updateCheck ?? throw new ArgumentNullException(nameof(updateCheck));
         Diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        _settingsService = settingsService;
+        _sessionLockPolicy = sessionLockPolicy;
+        _uiScheduler = uiScheduler;
+        if (_sessionLockPolicy is not null)
+            _sessionLockPolicy.ApplicationLocked += OnPlatformSessionLocked;
         PasswordUnlock.Unlocked += OnUnlocked;
         PasswordSetup.Configured += OnConfigured;
         CameraScanner.AccountImported += OnAccountImported;
@@ -253,6 +265,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         CameraScanner.AccountImported -= OnAccountImported;
         NativeFilePicker.AccountsChanged -= OnAccountImported;
         SettingsPage.SettingsSaved -= OnSettingsSaved;
+        if (_sessionLockPolicy is not null)
+            _sessionLockPolicy.ApplicationLocked -= OnPlatformSessionLocked;
         _lifetime.Cancel();
         _lifetime.Dispose();
         CameraScanner.Dispose();
@@ -306,6 +320,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public Task LockAsync()
     {
         _authorizationService.Lock();
+        ApplyLockedUiState();
+        return Task.CompletedTask;
+    }
+
+    private void ApplyLockedUiState()
+    {
         AccountList.Clear();
         CameraScanner.Clear();
         IsSettingsVisible = false;
@@ -316,7 +336,24 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsPasswordSetupVisible = false;
         StatusText = "Vault locked. Enter your master password to continue.";
         StatusSeverity = NotificationSeverity.Information;
-        return Task.CompletedTask;
+    }
+
+    public Task HandleWindowMinimizedAsync()
+    {
+        if (!IsShellVisible || _settingsService?.Current.LockOnMinimize != true)
+            return Task.CompletedTask;
+        return LockAsync();
+    }
+
+    private void OnPlatformSessionLocked(object? sender, EventArgs args)
+    {
+        if (_uiScheduler is null)
+        {
+            ApplyLockedUiState();
+            return;
+        }
+
+        _uiScheduler.Post(ApplyLockedUiState);
     }
 
     public Task ShowAccountsAsync()

@@ -11,6 +11,8 @@ public sealed class SessionLockPolicyBackgroundService(
     ISettingsService settingsService,
     ILogger<SessionLockPolicyBackgroundService> logger) : BackgroundService
 {
+    public event EventHandler? ApplicationLocked;
+
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         sessionEvents.SessionChanged += OnSessionChanged;
@@ -38,10 +40,13 @@ public sealed class SessionLockPolicyBackgroundService(
         {
             logger.LogInformation("Platform session locked. Locking application.");
             authorizationService.Lock();
+            ApplicationLocked?.Invoke(this, EventArgs.Empty);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            logger.LogCritical(ex, "Failed to lock application after the platform session was locked.");
+            logger.LogCritical(
+                "Failed to lock application after the platform session was locked. Exception type: {ExceptionType}.",
+                exception.GetType().FullName);
         }
     }
 
