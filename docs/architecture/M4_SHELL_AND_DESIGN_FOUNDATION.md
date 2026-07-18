@@ -57,11 +57,14 @@ The initial shell consumes the tokens and uses a responsive maximum width rather
 
 `ConfirmationDialogWindow` consumes the shared notification and button styles, supplies default/cancel keyboard behavior, cannot create an unowned top-level window through the dialog service, and keeps decision policy in a testable view model rather than code-behind.
 
+`PasswordDialogWindow` reuses the fail-closed revealable input, validation presentation, busy overlay, default/cancel behavior, and the same serialized owner path. Its view model removes the password from the bound field before validation, converts validator exceptions to caller-supplied safe text, returns no value on cancellation, prevents duplicate completion, and clears its validator and sensitive fields during teardown. A successful managed-string reference is transferred to the caller because the existing workflows require it; callers remain responsible for minimizing its lifetime.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.
 - Threat impact: password disclosure is transient and automatically cancelled at interaction and visual-tree boundaries; it does not change the existing unavoidable managed-string lifetime in the preview unlock view model.
 - Threat impact: generated account QR codes now carry an unavoidable on-screen privacy warning and disappear automatically when their disposed image reference is cleared.
+- Threat impact: modal password entry is cleared before asynchronous validation and during every teardown path; no password or validator exception detail is logged or projected into dialog errors.
 - Diagnostic impact: early and DI logging use the existing redaction pipeline; exception messages are deliberately omitted at the boundary.
 - Data-flow impact: no vault, envelope, seed, import/export, or backup format changes.
 - Compatibility impact: WPF startup and release behavior are untouched. Avalonia remains framework-dependent and non-release during migration.

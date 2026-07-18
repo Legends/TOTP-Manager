@@ -534,7 +534,7 @@ Do not proceed to full UI migration until:
 - [x] Account row/cell templates.
 - [x] QR preview.
 - [x] Validation presentation.
-- [ ] Confirmation/password dialogs.
+- [x] Confirmation/password dialogs.
 - [x] Notification presentation.
 
 ### Exit criteria

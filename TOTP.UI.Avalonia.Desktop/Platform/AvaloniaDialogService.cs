@@ -47,4 +47,45 @@ public sealed class AvaloniaDialogService(AvaloniaWindowCoordinator windows) : I
             _dialogGate.Release();
         }
     }
+
+    public async Task<string?> PromptForPasswordAsync(
+        PasswordDialogRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        await _dialogGate.WaitAsync(cancellationToken);
+        try
+        {
+            var owner = windows.GetRequiredMainWindow();
+            using var viewModel = new PasswordDialogViewModel(request, cancellationToken);
+            var dialog = new PasswordDialogWindow { DataContext = viewModel };
+            string? confirmedPassword = null;
+            viewModel.CloseRequested += Close;
+            using var ownership = windows.RegisterOwnedDialog(dialog);
+            using var cancellation = cancellationToken.Register(
+                () => Dispatcher.UIThread.Post(() => dialog.Close(false)));
+
+            try
+            {
+                var result = await dialog.ShowDialog<bool>(owner);
+                return result ? confirmedPassword : null;
+            }
+            finally
+            {
+                viewModel.CloseRequested -= Close;
+                viewModel.ClearSensitiveData();
+                dialog.DataContext = null;
+            }
+
+            void Close(string? password)
+            {
+                confirmedPassword = password;
+                dialog.Close(password is not null);
+            }
+        }
+        finally
+        {
+            _dialogGate.Release();
+        }
+    }
 }
