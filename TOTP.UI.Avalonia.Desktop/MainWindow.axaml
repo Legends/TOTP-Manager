@@ -182,14 +182,9 @@
                                 SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="presentation:AccountListItemViewModel">
-                                        <Grid Margin="8" ColumnDefinitions="2*,3*">
-                                            <TextBlock
-                                                FontWeight="SemiBold"
-                                                Text="{Binding Issuer}" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                Text="{Binding AccountName}" />
-                                        </Grid>
+                                        <shared:AccountRow
+                                            AccountName="{Binding AccountName}"
+                                            Issuer="{Binding Issuer}" />
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>

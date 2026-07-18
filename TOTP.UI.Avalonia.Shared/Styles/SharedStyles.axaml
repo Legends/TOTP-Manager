@@ -263,4 +263,27 @@
             </ControlTemplate>
         </Setter>
     </Style>
+    <Style Selector="controls|AccountRow">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid
+                    automation:AutomationProperties.Name="{TemplateBinding AccessibleName}"
+                    ColumnDefinitions="2*,3*"
+                    MinHeight="{DynamicResource ControlMinimumHeight}">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontWeight="SemiBold"
+                        Text="{TemplateBinding Issuer}"
+                        TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="12,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{TemplateBinding AccountName}"
+                        TextTrimming="CharacterEllipsis" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
 </Styles>

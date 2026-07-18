@@ -531,7 +531,7 @@ Do not proceed to full UI migration until:
 
 - [x] Revealable secret input.
 - [x] Busy overlay.
-- [ ] Account row/cell templates.
+- [x] Account row/cell templates.
 - [x] QR preview.
 - [x] Validation presentation.
 - [ ] Confirmation/password dialogs.

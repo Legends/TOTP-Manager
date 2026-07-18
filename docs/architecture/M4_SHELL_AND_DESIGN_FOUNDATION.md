@@ -49,6 +49,8 @@ The initial shell consumes the tokens and uses a responsive maximum width rather
 
 `QrPreview` is reserved for generated account QR images. It stays out of the visual and accessibility trees when no image is bound, supplies a meaningful image description, and presents an assertive privacy warning by default because the rendered QR contains the OTP seed. The view model continues to own and dispose the bitmap lifetime; the control holds only the displayed image reference and does not copy or encode secret material. Live camera frames intentionally remain a separate presentation because they have different privacy and lifecycle semantics.
 
+`AccountRow` owns the reusable two-column issuer/account layout and derives one meaningful accessibility label from that secret-free metadata. Native list items retain selection, focus, and keyboard behavior; the row does not introduce commands, selection state, identifiers, seeds, or OTP values.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.
