@@ -22,7 +22,7 @@ Automated thresholds are defined in [`M3_MEASUREMENT_BUDGETS.md`](M3_MEASUREMENT
 
 ## Required real-target record
 
-Complete one record per supported target using a packaged commit that passed the matrix. Record the commit, package RID, OS version, hardware, display scaling, desktop/session type, and tester.
+Complete one copy of [`evidence/M3_REAL_TARGET_RECORD_TEMPLATE.md`](evidence/M3_REAL_TARGET_RECORD_TEMPLATE.md) per supported target using a packaged commit that passed the matrix. The package SHA-256 binds interactive results to the tested bytes; the commit and workflow run bind them to automated evidence.
 
 - [ ] Launch to the password gate without secret-bearing diagnostics.
 - [ ] Unlock a synthetic test vault and render 500 accounts.

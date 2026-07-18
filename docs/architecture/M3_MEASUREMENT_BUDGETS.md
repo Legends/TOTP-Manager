@@ -40,6 +40,8 @@ Record these from a packaged synthetic-vault run on every supported target:
 
 Measurements must identify commit, package RID, OS version, architecture, hardware class, display/session characteristics, iteration count, and p50/p95 where applicable. Never use a real OTP seed in measurement fixtures or reports.
 
+Use [`evidence/M3_REAL_TARGET_RECORD_TEMPLATE.md`](evidence/M3_REAL_TARGET_RECORD_TEMPLATE.md) for the interactive record. It requires raw-sample attachment or preservation, package SHA-256, target identity, and explicit failure disposition so measurements remain attributable and repeatable.
+
 ## Interpretation
 
 - A CI pass proves only the automated rows.
