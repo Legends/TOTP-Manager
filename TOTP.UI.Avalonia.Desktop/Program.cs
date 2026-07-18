@@ -3,6 +3,7 @@ using TOTP.Core.Platform;
 using TOTP.Infrastructure.Services;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Camera.OpenCv;
+using System.Text.Json;
 
 namespace TOTP.Avalonia.Desktop;
 
@@ -14,6 +15,14 @@ internal static class Program
         if (args is ["--m3-native-probe"])
         {
             Environment.ExitCode = OpenCvNativeRuntimeProbe.Probe().IsAvailable ? 0 : 2;
+            return;
+        }
+
+        if (args is ["--m3-measurement-probe"])
+        {
+            var measurements = M3MeasurementProbe.Measure();
+            Console.WriteLine(JsonSerializer.Serialize(measurements));
+            Environment.ExitCode = measurements.NativeRuntimeAvailable ? 0 : 2;
             return;
         }
 

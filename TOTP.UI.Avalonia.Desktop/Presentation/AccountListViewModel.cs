@@ -253,14 +253,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     private void ApplyFilter()
     {
-        var query = SearchText.Trim();
-        Accounts = query.Length == 0
-            ? _allAccounts
-            : _allAccounts
-                .Where(account =>
-                    account.Issuer.Contains(query, StringComparison.OrdinalIgnoreCase)
-                    || account.AccountName.Contains(query, StringComparison.OrdinalIgnoreCase))
-                .ToArray();
+        Accounts = AccountListFilter.Apply(_allAccounts, SearchText);
     }
 
     private async Task ClearGeneratedCodeAfterAsync(TimeSpan delay, CancellationToken cancellationToken)

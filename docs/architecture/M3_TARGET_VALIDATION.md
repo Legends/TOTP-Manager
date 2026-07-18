@@ -15,6 +15,8 @@ Every matrix run records package byte size in the GitHub job summary. A manual `
 
 This evidence proves restore, publish, native-asset placement, process startup, and native OpenCV loading on the target OS/architecture. It does not prove camera permission UX, camera-device behavior, accessibility, signing, notarization, installation, or update execution.
 
+Automated thresholds are defined in [`M3_MEASUREMENT_BUDGETS.md`](M3_MEASUREMENT_BUDGETS.md).
+
 ## Required real-target record
 
 Complete one record per supported target using a packaged commit that passed the matrix. Record the commit, package RID, OS version, hardware, display scaling, desktop/session type, and tester.

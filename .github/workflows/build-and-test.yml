@@ -183,6 +183,32 @@ jobs:
           "M3_PACKAGE_BYTES=$packageBytes" >> $env:GITHUB_ENV
           "### ${{ matrix.name }}`n`nPackage bytes: $packageBytes" >> $env:GITHUB_STEP_SUMMARY
 
+      - name: Record automated M3 measurements
+        shell: pwsh
+        run: |
+          ./scripts/validation/Measure-M3Target.ps1 `
+            -PackageDirectory m3-package `
+            -ExecutableName "${{ matrix.executable }}" `
+            -OutputPath "m3-measurement-${{ matrix.rid }}.json" `
+            -Iterations 5
+
+          ./scripts/validation/Test-M3MeasurementBudget.ps1 `
+            -ReportPath "m3-measurement-${{ matrix.rid }}.json"
+
+          $measurement = Get-Content "m3-measurement-${{ matrix.rid }}.json" -Raw | ConvertFrom-Json
+          "First probe ms: $($measurement.ProcessStartup.FirstMilliseconds)" >> $env:GITHUB_STEP_SUMMARY
+          "Warm startup p95 ms: $($measurement.ProcessStartup.WarmP95Milliseconds)" >> $env:GITHUB_STEP_SUMMARY
+          "Working set p95 bytes: $($measurement.WorkingSet.P95Bytes)" >> $env:GITHUB_STEP_SUMMARY
+          "Native bytes: $($measurement.Package.NativeBytes)" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload M3 measurement evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: m3-measurement-${{ matrix.rid }}-${{ github.sha }}
+          path: m3-measurement-${{ matrix.rid }}.json
+          retention-days: 30
+          if-no-files-found: error
+
       - name: Upload M3 validation package
         if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/upload-artifact@v6
