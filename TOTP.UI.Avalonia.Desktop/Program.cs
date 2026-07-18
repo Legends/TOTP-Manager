@@ -1,6 +1,6 @@
 using Avalonia;
 
-namespace TOTP.UI.Avalonia.Desktop;
+namespace TOTP.Avalonia.Desktop;
 
 internal static class Program
 {

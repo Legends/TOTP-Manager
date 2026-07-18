@@ -1,5 +1,5 @@
 <Window
-    x:Class="TOTP.UI.Avalonia.Desktop.MainWindow"
+    x:Class="TOTP.Avalonia.Desktop.MainWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="TOTP Manager (Avalonia Preview)"

@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace TOTP.UI.Avalonia.Desktop;
+namespace TOTP.Avalonia.Desktop;
 
 public partial class MainWindow : Window
 {

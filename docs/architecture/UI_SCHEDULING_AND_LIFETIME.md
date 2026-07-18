@@ -7,7 +7,7 @@ M1.4 moves UI-thread scheduling and application termination contracts into `TOTP
 - `IUiScheduler` provides framework-neutral access checks, queued posts, and awaited synchronous/asynchronous invocation.
 - `IApplicationLifetime` provides graceful shutdown and explicit process-exit operations.
 
-The WPF client implements these contracts with `WpfDispatcherService` and `WpfApplicationLifetime`. Future Avalonia clients must provide their own adapters at their composition roots.
+The WPF client implements these contracts with `WpfDispatcherService` and `WpfApplicationLifetime`. The Avalonia desktop host implements them with `AvaloniaUiScheduler` and `AvaloniaApplicationLifetime`, registered at its composition root.
 
 ## Scheduling semantics
 
@@ -16,6 +16,7 @@ The WPF client implements these contracts with `WpfDispatcherService` and `WpfAp
 - `InvokeAsync(Func<Task>)` schedules asynchronous UI work and unwraps its task so failures and completion propagate to the caller.
 - `CheckAccess` reports whether the caller may touch UI-owned state directly.
 - In a headless/test context without an active WPF application, the WPF adapter executes inline. Reusable workflows do not inspect `Application.Current` themselves.
+- The Avalonia adapter queues posts at its native `Normal` priority and awaited work at `Background` priority, matching the portable contract without exposing Avalonia dispatcher types.
 
 ## Lifetime semantics
 
