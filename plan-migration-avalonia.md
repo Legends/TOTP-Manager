@@ -520,7 +520,7 @@ Do not proceed to full UI migration until:
 ### Design system
 
 - [x] Define colors, typography, spacing, radii, elevation, and motion tokens.
-- [ ] Port icons and image assets.
+- [x] Port the application icon and reusable vector symbol set; feature-specific assets remain with M5 screens.
 - [ ] Port reusable button, input, validation, and dialog styles.
 - [x] Implement system-following light/dark policy.
 - [x] Create initial desktop keyboard/focus standards.

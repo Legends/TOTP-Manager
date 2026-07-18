@@ -51,6 +51,8 @@ Theme policy defaults to `RequestedThemeVariant="Default"`, so Avalonia follows 
 
 The initial shell consumes the tokens and uses a responsive maximum width rather than a fixed width. The existing M3 target record defines 100%, 150%, and 200% scaling tests.
 
+The Avalonia asset baseline links the existing application icon for native window identity and supplies a shared `SymbolIcon` control for Add, Camera, Conceal, Copy, Lock, Reveal, Search, and Settings. Symbols are code-native vector geometry, inherit semantic foreground brushes, and therefore scale cleanly and remain visible under theme/high-contrast changes without an SVG renderer dependency. Only icons with a current or near-term shared-control consumer are ported; feature-specific imagery remains with its M5 feature slice.
+
 `BusyOverlay` is a reusable shared control with a templated content surface, indeterminate progress, and a polite accessible status. While busy, its content presenter is disabled and visually subdued, preventing pointer or keyboard activation of the underlying shell. The startup shell now consumes this control instead of relying only on command-state conventions.
 
 `ValidationMessage` centralizes information, warning, and error semantics with theme-aware colors, assertive live-region behavior, wrapping, and automatic visibility for non-empty messages. The password gate consumes the error variant; later screens should reuse the control instead of defining local error colors or separate visibility bindings.

@@ -324,4 +324,22 @@
     <Style Selector="controls|NotificationBanner:error /template/ Border#PART_Banner">
         <Setter Property="BorderBrush" Value="{DynamicResource BrushDanger}" />
     </Style>
+    <Style Selector="controls|SymbolIcon">
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox
+                    Width="{TemplateBinding IconSize}"
+                    Height="{TemplateBinding IconSize}"
+                    Stretch="Uniform">
+                    <Path
+                        Width="24"
+                        Height="24"
+                        Data="{Binding IconData, RelativeSource={RelativeSource TemplatedParent}}"
+                        Fill="{TemplateBinding Foreground}"
+                        Stretch="Uniform" />
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
 </Styles>
