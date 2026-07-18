@@ -44,3 +44,7 @@ Measurements must identify commit, package RID, OS version, architecture, hardwa
 - A target checkbox requires the real-target record and interactive budgets.
 - Camera timing and disposal require a physical camera; synthetic or hosted-runner substitutes cannot close that gate.
 - Package/signing/notarization release budgets remain M7/M8 work even when the unsigned M3 package is technically viable.
+
+Checked-in baselines:
+
+- [`evidence/m3-win-x64-09da29e.json`](evidence/m3-win-x64-09da29e.json) — clean `09da29e` Windows x64 package, 10 iterations, all automated budgets passed.

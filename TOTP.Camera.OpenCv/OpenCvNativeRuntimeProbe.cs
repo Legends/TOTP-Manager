@@ -19,10 +19,10 @@ public static class OpenCvNativeRuntimeProbe
 {
     public static OpenCvNativeRuntimeProbeResult Probe()
     {
-        string version;
+        var version = string.Empty;
         try
         {
-            version = Cv2.GetVersionString();
+            version = Cv2.GetVersionString() ?? string.Empty;
         }
         catch (Exception)
         {
