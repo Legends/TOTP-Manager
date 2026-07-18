@@ -90,7 +90,7 @@ This storage hardening reduces partial-write, replacement, and unbounded-secret-
 
 `IStoredVaultKeyVerifier` adds the read-only persistence boundary around that primitive. It resolves the same configured vault path as `AccountDAL`, applies current-user file protection, rejects payloads above 16 MiB before allocation, clears the bounded ciphertext buffer after use, and reports a missing vault explicitly for first-run orchestration. Access, size, and other I/O failures remain typed failures rather than being confused with a wrong key. It never creates or changes a vault and does not activate an authorization envelope.
 
-`AccountDAL` now commits the active encrypted vault and encrypted exports through write-through same-directory staging. It compares staged and committed ciphertext byte-for-byte with the newly produced encrypted blob without decrypting a second copy of the account data. Replacements retain a temporary rollback file and a SHA-256 digest of the previous ciphertext until post-commit hardening and verification succeed; failed first commits are removed, failed replacements restore the exact previous bytes, and temporary encrypted output and digest buffers are cleared. Deterministic tests cover truncated staging plus pre-commit and post-commit failures. Backup-set rotation remains a separately reviewed persistence boundary.
+`AccountDAL` now commits the active encrypted vault and encrypted exports through write-through same-directory staging. It compares staged and committed ciphertext byte-for-byte with the newly produced encrypted blob without decrypting a second copy of the account data. Replacements retain a temporary rollback file and a SHA-256 digest of the previous ciphertext until post-commit hardening and verification succeed; failed first commits are removed, failed replacements restore the exact previous bytes, and temporary encrypted output and digest buffers are cleared. Backup rotation is serialized with vault writes and copies generations forward from oldest to newest through the same verified commit helper. Sources are never destructively moved, exactly five generations are retained, and `bak1` is published only after every older generation succeeds. An interruption may leave a harmless duplicate older generation but cannot expose a partial backup or publish a new latest backup with an incomplete rotation. Deterministic tests cover truncated staging plus pre-commit, post-commit, and mid-rotation failures.
 
 `IAuthorizationEnvelopeActivator` is the active boundary for turning a proposed v2 envelope into the persisted envelope. It serializes and decodes the proposal through the strict codec, unwraps that exact wire-equivalent password wrapper, fixed-time compares the recovered key with an owned copy of the candidate DEK, and clears the owned key, serialized payload, and decoded envelope arrays. An existing vault must authenticate and deserialize with the candidate key before persistence; on first run, the explicit missing-vault outcome is accepted only after the password wrapper proves it contains the candidate key. Cancellation is checked before the atomic store call, and typed verification or persistence failures prevent activation.
 
@@ -245,13 +245,13 @@ The clean version discriminator removes the legacy type-confusion risk. Explicit
 - The focused enrollment test selection passes 14 tests.
 - The focused portable-settings test selection passes 6 tests.
 - The focused portable-preferences store selection passes 7 tests.
-- The focused encrypted-vault persistence selection passes 17 tests.
+- The focused encrypted-vault and backup persistence selection passes 20 tests.
 - The focused authorization-envelope session test selection passes 33 tests.
 - The focused authorization-envelope password-lifecycle selection passes 12 tests.
 - The focused portable-authorization facade selection passes 18 tests.
 - The focused WPF authorization and settings-orchestration selection passes 54 tests.
 - The focused portable-authorization and password-setup presentation selection passes 28 tests.
 - The focused infrastructure and WPF composition selection passes 3 tests and verifies that the legacy DPAPI settings DAL is absent.
-- The full Debug solution test run passes 713 tests.
+- The full Debug solution test run passes 716 tests.
 - The Release solution build succeeds with zero warnings and errors, and the filtered PR-like Release test run passes 660 tests.
 - A real Windows Hello/TPM registration and unlock smoke test remains required on supported hardware before release; automated tests use the existing `IHelloGate` OS boundary.

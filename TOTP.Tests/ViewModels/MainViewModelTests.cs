@@ -18,21 +18,11 @@ using TOTP.Presentation.Adapters;
 using TOTP.Services.Interfaces;
 using TOTP.ViewModels;
 using TOTP.Views.Interfaces;
-using TOTP.Infrastructure.Platform;
 
 namespace TOTP.Tests.ViewModels;
 
-public sealed class MainViewModelTests : IDisposable
+public sealed class MainViewModelTests
 {
-    private readonly string _settingsPath = new WindowsApplicationPaths().ConfigurationFilePath;
-    private readonly string? _settingsBackup;
-
-    public MainViewModelTests()
-    {
-        _settingsBackup = File.Exists(_settingsPath) ? File.ReadAllText(_settingsPath) : null;
-        File.WriteAllText(_settingsPath, """{"Localization":{"Culture":"en"}}""");
-    }
-
     [Fact]
     public async Task InitializeMainViewAsync_InitializesSessionAndClearsBusy()
     {
@@ -525,28 +515,6 @@ public sealed class MainViewModelTests : IDisposable
         ctx.Session.Setup(s => s.IsUnlocked).Returns(false);
 
         Assert.False(ctx.Sut.OpenSettingsCommand.CanExecute(null));
-    }
-
-    public void Dispose()
-    {
-        try
-        {
-            if (_settingsBackup is null)
-            {
-                if (File.Exists(_settingsPath))
-                {
-                    File.Delete(_settingsPath);
-                }
-            }
-            else
-            {
-                File.WriteAllText(_settingsPath, _settingsBackup);
-            }
-        }
-        catch
-        {
-            // best-effort cleanup
-        }
     }
 
     private sealed class MainVmTestContext : IDisposable

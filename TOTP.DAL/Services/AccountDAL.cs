@@ -147,85 +147,71 @@ public sealed class AccountDAL : IAccountDAL
 
     public async Task<Result> BackupOtpEntriesStorageFileAsync()
     {
-        return await Task.Run(() =>
+        await _semaphore.WaitAsync();
+        try
         {
-            try
+            if (!File.Exists(_secretsPath))
             {
-                if (!File.Exists(_secretsPath))
-                {
-                    return Result.Ok();
-                }
-
-                var dir = Path.GetDirectoryName(_secretsPath)!;
-                var fileName = Path.GetFileName(_secretsPath);
-                string latestBackupPath = Path.Combine(dir, $"{fileName}.bak1");
-
-                SecureStorageDirectory();
-                _fileSecurity.RestrictFileToCurrentUser(_secretsPath);
-
-                if (File.Exists(latestBackupPath))
-                {
-                    _fileSecurity.RestrictFileToCurrentUser(latestBackupPath);
-                    if (AreFilesIdentical(_secretsPath, latestBackupPath))
-                    {
-                        _logger.LogInformation("Backup skipped: No changes detected in storage file.");
-                        return Result.Ok();
-                    }
-                }
-
-                var stagedBackupPath = CreateStagingPath(Path.Combine(dir, $"{fileName}.bak"));
-                try
-                {
-                    File.Copy(_secretsPath, stagedBackupPath, true);
-                    _fileSecurity.RestrictFileToCurrentUser(stagedBackupPath);
-
-                    for (var i = 5; i >= 1; i--)
-                    {
-                        var oldBackup = Path.Combine(dir, $"{fileName}.bak{i}");
-                        var nextBackup = Path.Combine(dir, $"{fileName}.bak{i + 1}");
-
-                        if (!File.Exists(oldBackup))
-                        {
-                            continue;
-                        }
-
-                        if (i == 5)
-                        {
-                            File.Delete(oldBackup);
-                        }
-                        else
-                        {
-                            File.Move(oldBackup, nextBackup, true);
-                        }
-                    }
-
-                    File.Move(stagedBackupPath, latestBackupPath, true);
-                }
-                finally
-                {
-                    TryDeleteTemporaryFile(stagedBackupPath);
-                }
                 return Result.Ok();
             }
-            catch (Exception ex)
+
+            var dir = Path.GetDirectoryName(_secretsPath)
+                ?? throw new DirectoryNotFoundException("The OTP backup directory is unavailable.");
+            var fileName = Path.GetFileName(_secretsPath);
+            var latestBackupPath = Path.Combine(dir, $"{fileName}.bak1");
+
+            SecureStorageDirectory();
+            _fileSecurity.RestrictFileToCurrentUser(_secretsPath);
+
+            if (File.Exists(latestBackupPath))
             {
-                _logger.LogError(ex, nameof(BackupOtpEntriesStorageFileAsync));
-                return Result.Fail(new AppError(AppErrorCode.OtpStorageBackupFailed, "Failed to create OTP storage backup.", ex));
+                _fileSecurity.RestrictFileToCurrentUser(latestBackupPath);
+                if (await AreFilesIdenticalAsync(_secretsPath, latestBackupPath))
+                {
+                    _logger.LogInformation("Backup skipped: No changes detected in storage file.");
+                    return Result.Ok();
+                }
             }
-        });
+
+            for (var generation = 5; generation >= 2; generation--)
+            {
+                var sourcePath = Path.Combine(dir, $"{fileName}.bak{generation - 1}");
+                if (!File.Exists(sourcePath)) continue;
+
+                var destinationPath = Path.Combine(dir, $"{fileName}.bak{generation}");
+                await CopyEncryptedFileAsync(sourcePath, destinationPath);
+            }
+
+            await CopyEncryptedFileAsync(_secretsPath, latestBackupPath);
+            return Result.Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, nameof(BackupOtpEntriesStorageFileAsync));
+            return Result.Fail(new AppError(
+                AppErrorCode.OtpStorageBackupFailed,
+                "Failed to create OTP storage backup.",
+                ex));
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
-    private bool AreFilesIdentical(string path1, string path2)
+    private static async Task<bool> AreFilesIdenticalAsync(string path1, string path2)
     {
-        using var hashAlgorithm = SHA256.Create();
-
-        using var stream1 = File.OpenRead(path1);
-        using var stream2 = File.OpenRead(path2);
-
-        byte[] hash1 = hashAlgorithm.ComputeHash(stream1);
-        byte[] hash2 = hashAlgorithm.ComputeHash(stream2);
-
-        return CryptographicOperations.FixedTimeEquals(hash1, hash2);
+        var hash1 = await ComputeFileHashAsync(path1);
+        var hash2 = await ComputeFileHashAsync(path2);
+        try
+        {
+            return CryptographicOperations.FixedTimeEquals(hash1, hash2);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(hash1);
+            CryptographicOperations.ZeroMemory(hash2);
+        }
     }
 
     public void Dispose()
@@ -314,6 +300,20 @@ public sealed class AccountDAL : IAccountDAL
             TryDeleteTemporaryFile(tempPath);
             TryDeleteTemporaryFile(rollbackPath);
             if (previousHash is not null) CryptographicOperations.ZeroMemory(previousHash);
+        }
+    }
+
+    private async Task CopyEncryptedFileAsync(string sourcePath, string destinationPath)
+    {
+        _fileSecurity.RestrictFileToCurrentUser(sourcePath);
+        var encryptedBlob = await File.ReadAllBytesAsync(sourcePath);
+        try
+        {
+            await CommitEncryptedBlobAsync(destinationPath, encryptedBlob);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(encryptedBlob);
         }
     }
 

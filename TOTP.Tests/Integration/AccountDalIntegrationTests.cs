@@ -155,6 +155,28 @@ public sealed class AccountDalIntegrationTests
     }
 
     [Fact]
+    public async Task BackupOtpEntriesStorageFileAsync_KeepsExactlyFiveGenerations()
+    {
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var sut = CreateSut(storagePath, new EchoVaultService());
+
+        for (var generation = 1; generation <= 7; generation++)
+        {
+            Assert.True((await sut.AddNewAsync(new Account(
+                Guid.NewGuid(),
+                $"Account {generation}",
+                $"secret-{generation}"))).IsSuccess);
+            Assert.True((await sut.BackupOtpEntriesStorageFileAsync()).IsSuccess);
+        }
+
+        Assert.Equal(5, Directory.GetFiles(temp.Path, "master.totp.bak*").Length);
+        for (var generation = 1; generation <= 5; generation++)
+            Assert.True(File.Exists($"{storagePath}.bak{generation}"));
+        Assert.False(File.Exists($"{storagePath}.bak6"));
+    }
+
+    [Fact]
     public async Task GetAllAsync_WhenVaultThrowsCryptographicException_ReturnsDecryptFailedError()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -403,7 +425,7 @@ public sealed class AccountDalIntegrationTests
             {
                 RestrictFile = path =>
                 {
-                    if (Path.GetFileName(path).Contains(".bak.", StringComparison.Ordinal)
+                    if (Path.GetFileName(path).Contains(".bak1.", StringComparison.Ordinal)
                         && path.EndsWith(".tmp", StringComparison.Ordinal))
                     {
                         throw new UnauthorizedAccessException("denied");
@@ -416,6 +438,87 @@ public sealed class AccountDalIntegrationTests
         Assert.False(result.IsSuccess);
         Assert.Equal(AppErrorCode.OtpStorageBackupFailed, result.GetErrorCode());
         Assert.Empty(Directory.GetFiles(temp.Path, "*.bak*"));
+    }
+
+    [Fact]
+    public async Task BackupAsync_WhenLatestStagingIsTruncated_DoesNotPublishBackup()
+    {
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var setupSut = CreateSut(storagePath, new EchoVaultService());
+        Assert.True((await setupSut.AddNewAsync(new Account(Guid.NewGuid(), "GitHub", "AAAA"))).IsSuccess);
+        var sut = new AccountDAL(
+            NullLogger<AccountDAL>.Instance,
+            new EchoVaultService(),
+            storagePath,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = path =>
+                {
+                    if (Path.GetFileName(path).Contains(".bak1.", StringComparison.Ordinal)
+                        && path.EndsWith(".tmp", StringComparison.Ordinal))
+                    {
+                        File.WriteAllText(path, "[");
+                    }
+                }
+            });
+
+        var result = await sut.BackupOtpEntriesStorageFileAsync();
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.OtpStorageBackupFailed, result.GetErrorCode());
+        Assert.Empty(Directory.GetFiles(temp.Path, "*.bak*"));
+        Assert.Empty(Directory.GetFiles(temp.Path, "*.tmp"));
+    }
+
+    [Fact]
+    public async Task BackupAsync_WhenOlderGenerationCommitFails_DoesNotPublishNewLatestBackup()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var setupSut = CreateSut(storagePath, new EchoVaultService());
+        Assert.True((await setupSut.AddNewAsync(new Account(Guid.NewGuid(), "One", "1111"))).IsSuccess);
+        Assert.True((await setupSut.BackupOtpEntriesStorageFileAsync()).IsSuccess);
+        Assert.True((await setupSut.AddNewAsync(new Account(Guid.NewGuid(), "Two", "2222"))).IsSuccess);
+        Assert.True((await setupSut.BackupOtpEntriesStorageFileAsync()).IsSuccess);
+        Assert.True((await setupSut.AddNewAsync(new Account(Guid.NewGuid(), "Three", "3333"))).IsSuccess);
+        var originalLatest = await File.ReadAllBytesAsync($"{storagePath}.bak1", cancellationToken);
+        var originalSecond = await File.ReadAllBytesAsync($"{storagePath}.bak2", cancellationToken);
+        var secondGenerationWasStaged = false;
+        var sut = new AccountDAL(
+            NullLogger<AccountDAL>.Instance,
+            new EchoVaultService(),
+            storagePath,
+            new DelegatingPlatformFileSecurity
+            {
+                RestrictFile = path =>
+                {
+                    if (path.StartsWith($"{storagePath}.bak2.", StringComparison.Ordinal)
+                        && path.EndsWith(".tmp", StringComparison.Ordinal))
+                    {
+                        secondGenerationWasStaged = true;
+                    }
+                    else if (secondGenerationWasStaged
+                             && string.Equals(path, $"{storagePath}.bak2", StringComparison.Ordinal))
+                    {
+                        throw new UnauthorizedAccessException("denied during rotation");
+                    }
+                }
+            });
+
+        var result = await sut.BackupOtpEntriesStorageFileAsync();
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppErrorCode.OtpStorageBackupFailed, result.GetErrorCode());
+        Assert.Equal(originalLatest, await File.ReadAllBytesAsync($"{storagePath}.bak1", cancellationToken));
+        Assert.Equal(originalSecond, await File.ReadAllBytesAsync($"{storagePath}.bak2", cancellationToken));
+        Assert.Empty(Directory.GetFiles(temp.Path, "*.tmp"));
+        Assert.Empty(Directory.GetFiles(temp.Path, "*.rollback"));
+
+        var vault = new EchoVaultService();
+        foreach (var backupPath in Directory.GetFiles(temp.Path, "master.totp.bak*"))
+            Assert.NotNull(vault.DecryptVault(await File.ReadAllBytesAsync(backupPath, cancellationToken)));
     }
 
     private static AccountDAL CreateSut(string storagePath, IVaultService vault) =>
