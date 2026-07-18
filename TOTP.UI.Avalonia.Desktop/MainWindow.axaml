@@ -51,13 +51,10 @@
                                 PasswordChar="●"
                                 PlaceholderText="Master password"
                                 Text="{Binding Password, Mode=TwoWay}" />
-                            <TextBlock
-                                automation:AutomationProperties.LiveSetting="Assertive"
-                                Classes="validation-error"
-                                IsVisible="{Binding HasMessage}"
-                                Text="{Binding Message}"
-                                TextAlignment="Center"
-                                TextWrapping="Wrap" />
+                            <shared:ValidationMessage
+                                HorizontalAlignment="Center"
+                                Severity="Error"
+                                Text="{Binding Message}" />
                             <Button
                                 Classes="primary"
                                 HorizontalAlignment="Center"

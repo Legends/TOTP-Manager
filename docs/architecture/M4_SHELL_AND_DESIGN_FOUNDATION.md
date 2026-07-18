@@ -43,6 +43,8 @@ The initial shell consumes the tokens and uses a responsive maximum width rather
 
 `BusyOverlay` is a reusable shared control with a templated content surface, indeterminate progress, and a polite accessible status. While busy, its content presenter is disabled and visually subdued, preventing pointer or keyboard activation of the underlying shell. The startup shell now consumes this control instead of relying only on command-state conventions.
 
+`ValidationMessage` centralizes information, warning, and error semantics with theme-aware colors, assertive live-region behavior, wrapping, and automatic visibility for non-empty messages. The password gate consumes the error variant; later screens should reuse the control instead of defining local error colors or separate visibility bindings.
+
 ## Security and compatibility impact
 
 - Threat impact: fatal presentation faults now fail closed instead of leaving an authorized shell running in unknown state.

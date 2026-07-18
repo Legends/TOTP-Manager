@@ -17,6 +17,7 @@
                     <SolidColorBrush x:Key="BrushOnAccent" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushDanger" Color="#B42318" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushWarning" Color="#8A4B00" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#005FCC" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Light">
@@ -30,6 +31,7 @@
                     <SolidColorBrush x:Key="BrushOnAccent" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushDanger" Color="#B42318" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushWarning" Color="#8A4B00" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#005FCC" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
@@ -43,6 +45,7 @@
                     <SolidColorBrush x:Key="BrushOnAccent" Color="#081426" />
                     <SolidColorBrush x:Key="BrushDanger" Color="#FF8A80" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#2A0805" />
+                    <SolidColorBrush x:Key="BrushWarning" Color="#FFD166" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#9CC2FF" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="HighContrast">
@@ -56,6 +59,7 @@
                     <SolidColorBrush x:Key="BrushOnAccent" Color="#000000" />
                     <SolidColorBrush x:Key="BrushDanger" Color="#FF8080" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#000000" />
+                    <SolidColorBrush x:Key="BrushWarning" Color="#FFFF00" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#00FFFF" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
@@ -184,5 +188,25 @@
             <Setter Property="IsEnabled" Value="False" />
             <Setter Property="Opacity" Value="0.45" />
         </Style>
+    </Style>
+    <Style Selector="controls|ValidationMessage">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <TextBlock
+                    Name="PART_Message"
+                    automation:AutomationProperties.LiveSetting="Assertive"
+                    Text="{TemplateBinding Text}"
+                    TextWrapping="Wrap" />
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|ValidationMessage:information /template/ TextBlock#PART_Message">
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
+    </Style>
+    <Style Selector="controls|ValidationMessage:warning /template/ TextBlock#PART_Message">
+        <Setter Property="Foreground" Value="{DynamicResource BrushWarning}" />
+    </Style>
+    <Style Selector="controls|ValidationMessage:error /template/ TextBlock#PART_Message">
+        <Setter Property="Foreground" Value="{DynamicResource BrushDanger}" />
     </Style>
 </Styles>

@@ -533,7 +533,7 @@ Do not proceed to full UI migration until:
 - [x] Busy overlay.
 - [ ] Account row/cell templates.
 - [ ] QR preview.
-- [ ] Validation presentation.
+- [x] Validation presentation.
 - [ ] Confirmation/password dialogs.
 - [ ] Notification presentation.
 
