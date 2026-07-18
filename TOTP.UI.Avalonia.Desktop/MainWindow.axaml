@@ -28,5 +28,29 @@
             Command="{Binding InitializeCommand}"
             Content="Retry"
             IsVisible="{Binding CanRetry}" />
+        <Border IsVisible="{Binding IsPasswordUnlockVisible}">
+            <ContentControl Content="{Binding PasswordUnlock}">
+                <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="presentation:PasswordUnlockViewModel">
+                        <StackPanel Spacing="12">
+                            <TextBox
+                                PasswordChar="●"
+                                PlaceholderText="Master password"
+                                Text="{Binding Password, Mode=TwoWay}" />
+                            <TextBlock
+                                Foreground="Crimson"
+                                IsVisible="{Binding HasMessage}"
+                                Text="{Binding Message}"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap" />
+                            <Button
+                                HorizontalAlignment="Center"
+                                Command="{Binding UnlockCommand}"
+                                Content="Unlock" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+        </Border>
     </StackPanel>
 </Window>

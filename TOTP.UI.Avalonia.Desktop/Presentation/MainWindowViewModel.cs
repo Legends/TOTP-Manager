@@ -13,10 +13,15 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private string _statusText = "Starting TOTP Manager…";
     private bool _isBusy;
     private bool _canRetry;
+    private bool _isPasswordUnlockVisible;
 
-    public MainWindowViewModel(IAvaloniaStartupCoordinator startupCoordinator)
+    public MainWindowViewModel(
+        IAvaloniaStartupCoordinator startupCoordinator,
+        PasswordUnlockViewModel passwordUnlock)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
+        PasswordUnlock = passwordUnlock ?? throw new ArgumentNullException(nameof(passwordUnlock));
+        PasswordUnlock.Unlocked += OnUnlocked;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
     }
 
@@ -46,12 +51,21 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public ICommand InitializeCommand => _initializeCommand;
 
+    public PasswordUnlockViewModel PasswordUnlock { get; }
+
+    public bool IsPasswordUnlockVisible
+    {
+        get => _isPasswordUnlockVisible;
+        private set => SetField(ref _isPasswordUnlockVisible, value);
+    }
+
     public async Task InitializeAsync()
     {
         if (IsBusy) return;
 
         IsBusy = true;
         CanRetry = false;
+        IsPasswordUnlockVisible = false;
         StatusText = "Starting TOTP Manager…";
 
         try
@@ -68,6 +82,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
                 _ =>
                     ("TOTP Manager could not start safely. Your encrypted data was not changed.", true)
             };
+            IsPasswordUnlockVisible = outcome == AvaloniaStartupOutcome.ReadyForUnlock;
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
         {
@@ -86,8 +101,15 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public void Dispose()
     {
+        PasswordUnlock.Unlocked -= OnUnlocked;
         _lifetime.Cancel();
         _lifetime.Dispose();
+    }
+
+    private void OnUnlocked(object? sender, EventArgs e)
+    {
+        IsPasswordUnlockVisible = false;
+        StatusText = "Vault unlocked.";
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

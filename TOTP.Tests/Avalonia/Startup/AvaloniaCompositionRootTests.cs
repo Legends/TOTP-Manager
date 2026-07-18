@@ -46,5 +46,7 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IAvaloniaStartupCoordinator>());
         Assert.IsType<MainWindowViewModel>(
             services.GetRequiredService<MainWindowViewModel>());
+        Assert.IsType<PasswordUnlockViewModel>(
+            services.GetRequiredService<PasswordUnlockViewModel>());
     }
 }
