@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Platform;
+using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Infrastructure.Extensions;
 using TOTP.Infrastructure.Security;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
@@ -35,7 +36,12 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IUiScheduler>(provider =>
             provider.GetRequiredService<AvaloniaUiScheduler>());
         services.AddSingleton<AppLifetime, AvaloniaApplicationLifetime>();
-        services.AddTransient<MainWindow>();
+        services.AddSingleton<IAvaloniaStartupCoordinator, AvaloniaStartupCoordinator>();
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddTransient(provider => new MainWindow
+        {
+            DataContext = provider.GetRequiredService<MainWindowViewModel>()
+        });
 
         return services.BuildServiceProvider(new ServiceProviderOptions
         {

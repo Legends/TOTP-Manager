@@ -451,7 +451,7 @@ Any replacement failure before Active
 
 ### Vertical slice
 
-- [ ] Application startup and error boundary.
+- [x] Application startup and error boundary.
 - [ ] Password unlock against synthetic data.
 - [ ] Account list with at least 500 generated entries.
 - [ ] Search and filtering.

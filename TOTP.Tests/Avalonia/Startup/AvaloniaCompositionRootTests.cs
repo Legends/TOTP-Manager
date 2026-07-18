@@ -5,6 +5,7 @@ using Moq;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Startup;
+using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
 using TOTP.Platform.Windows;
@@ -41,5 +42,9 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IPlatformQuickUnlock>());
         Assert.IsType<AccountManager>(
             services.GetRequiredService<IAccountManager>());
+        Assert.IsType<AvaloniaStartupCoordinator>(
+            services.GetRequiredService<IAvaloniaStartupCoordinator>());
+        Assert.IsType<MainWindowViewModel>(
+            services.GetRequiredService<MainWindowViewModel>());
     }
 }
