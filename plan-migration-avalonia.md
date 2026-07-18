@@ -597,14 +597,14 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 
 ## M5.4 QR workflows
 
-- [ ] QR generation.
-- [ ] QR preview overlay.
-- [ ] Camera discovery.
-- [ ] Camera permission UX.
-- [ ] QR decoding.
-- [ ] Duplicate/update/keep-both workflow.
-- [ ] Cancellation and disposal.
-- [ ] Camera-unavailable recovery.
+- [x] QR generation.
+- [x] QR preview overlay.
+- [x] Camera discovery.
+- [x] Camera permission UX.
+- [x] QR decoding.
+- [x] Duplicate/update/keep-both workflow.
+- [x] Cancellation and disposal.
+- [x] Camera-unavailable recovery.
 
 ## M5.5 Settings
 

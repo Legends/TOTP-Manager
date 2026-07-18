@@ -1,0 +1,29 @@
+<Window
+    x:Class="TOTP.Avalonia.Desktop.Dialogs.ChoiceDialogWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dialogs="using:TOTP.Avalonia.Desktop.Presentation.Dialogs"
+    xmlns:shared="using:TOTP.Avalonia.Shared.Controls"
+    x:DataType="dialogs:ChoiceDialogViewModel"
+    Classes="dialog"
+    Title="{Binding Title}">
+    <StackPanel Classes="dialog-content" Spacing="20">
+        <TextBlock Classes="heading" Text="{Binding Title}" TextWrapping="Wrap" />
+        <shared:NotificationBanner Severity="{Binding Severity}" Text="{Binding Message}" />
+        <StackPanel Classes="dialog-actions">
+            <Button
+                Classes="secondary"
+                Command="{Binding CancelCommand}"
+                Content="{Binding CancelText}"
+                IsCancel="True" />
+            <Button
+                Command="{Binding SecondaryCommand}"
+                Content="{Binding SecondaryText}" />
+            <Button
+                Classes="primary"
+                Command="{Binding PrimaryCommand}"
+                Content="{Binding PrimaryText}"
+                IsDefault="True" />
+        </StackPanel>
+    </StackPanel>
+</Window>

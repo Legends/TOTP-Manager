@@ -13,6 +13,7 @@ public sealed class QrPayloadValidator : IQrPayloadValidator
         try
         {
             var parsed = OtpauthParser.Parse(decodedPayload);
+            if (!OtpAuthSupportPolicy.IsSupported(parsed)) return QrPayloadValidationResult.Invalid;
             return new QrPayloadValidationResult(
                 true,
                 parsed.Issuer?.Trim() ?? string.Empty,
@@ -23,4 +24,5 @@ public sealed class QrPayloadValidator : IQrPayloadValidator
             return QrPayloadValidationResult.Invalid;
         }
     }
+
 }

@@ -5,7 +5,10 @@ using System.Windows.Input;
 using Avalonia.Media;
 using Microsoft.Extensions.Logging;
 using TOTP.Avalonia.Desktop.Platform;
+using TOTP.Avalonia.Desktop.Localization;
+using TOTP.Avalonia.Desktop.Presentation.Dialogs;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Services.Models;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
 
@@ -16,6 +19,9 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
     private readonly IAvaloniaQrImageFactory _imageFactory;
     private readonly IUiScheduler _uiScheduler;
     private readonly ILogger<CameraScannerViewModel> _logger;
+    private readonly IQrAccountImportService _importService;
+    private readonly IAvaloniaDialogService _dialogs;
+    private readonly IAvaloniaLocalizationService _localization;
     private readonly AsyncCommand _startCommand;
     private readonly AsyncCommand _cancelCommand;
     private CancellationTokenSource? _captureLifetime;
@@ -30,18 +36,25 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         IQrPayloadValidator payloadValidator,
         IAvaloniaQrImageFactory imageFactory,
         IUiScheduler uiScheduler,
-        ILogger<CameraScannerViewModel> logger)
+        ILogger<CameraScannerViewModel> logger,
+        IQrAccountImportService importService,
+        IAvaloniaDialogService dialogs,
+        IAvaloniaLocalizationService localization)
     {
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));
         _payloadValidator = payloadValidator ?? throw new ArgumentNullException(nameof(payloadValidator));
         _imageFactory = imageFactory ?? throw new ArgumentNullException(nameof(imageFactory));
         _uiScheduler = uiScheduler ?? throw new ArgumentNullException(nameof(uiScheduler));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _importService = importService ?? throw new ArgumentNullException(nameof(importService));
+        _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _startCommand = new AsyncCommand(StartAsync, () => !_disposed && !IsScanning);
         _cancelCommand = new AsyncCommand(CancelAsync, () => !_disposed && IsScanning);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event EventHandler? AccountImported;
 
     public ICommand StartCommand => _startCommand;
 
@@ -92,9 +105,14 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
             if (result.IsDecoded)
             {
                 var validation = _payloadValidator.Validate(result.DecodedText!);
-                Message = validation.IsValid
-                    ? BuildValidatedMessage(validation)
-                    : "The QR code is not a valid supported TOTP account.";
+                if (!validation.IsValid)
+                {
+                    Message = _localization.GetString(AvaloniaStringKeys.QrInvalid);
+                }
+                else
+                {
+                    await ImportDecodedAsync(result.DecodedText!, token);
+                }
             }
             else
             {
@@ -107,9 +125,11 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
             if (!_disposed && generation == Volatile.Read(ref _generation))
                 Message = "QR scan cancelled.";
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Avalonia camera scan failed at the platform boundary.");
+            _logger.LogError(
+                "Avalonia camera scan failed at the platform boundary with exception type {ExceptionType}.",
+                exception.GetType().FullName);
             if (!_disposed && generation == Volatile.Read(ref _generation))
                 Message = "The camera scanner failed safely. No account data was changed.";
         }
@@ -199,14 +219,52 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         preview?.Dispose();
     }
 
-    private static string BuildValidatedMessage(QrPayloadValidationResult validation)
+    private async Task ImportDecodedAsync(string payload, CancellationToken cancellationToken)
     {
-        var displayName = string.Join(
-            " / ",
-            new[] { validation.Issuer, validation.AccountName }.Where(value => value.Length > 0));
-        return displayName.Length == 0
-            ? "A valid TOTP QR code was scanned. Import remains disabled in this technical preview."
-            : $"Validated TOTP account: {displayName}. Import remains disabled in this technical preview.";
+        var imported = await _importService.ImportAsync(payload, ResolveConflictAsync, cancellationToken);
+        if (imported.IsFailed)
+        {
+            Message = _localization.GetString(AvaloniaStringKeys.QrImportFailed);
+            return;
+        }
+
+        Message = _localization.GetString(imported.Value.Status switch
+        {
+            QrAccountImportStatus.Added => AvaloniaStringKeys.QrAccountAdded,
+            QrAccountImportStatus.Updated => AvaloniaStringKeys.QrAccountUpdated,
+            QrAccountImportStatus.KeptBoth => AvaloniaStringKeys.QrAccountKeptBoth,
+            QrAccountImportStatus.DuplicateUnchanged => AvaloniaStringKeys.QrAccountDuplicate,
+            _ => AvaloniaStringKeys.QrImportCancelled
+        });
+        if (imported.Value.Status is QrAccountImportStatus.Added
+            or QrAccountImportStatus.Updated
+            or QrAccountImportStatus.KeptBoth)
+        {
+            AccountImported?.Invoke(this, EventArgs.Empty);
+        }
+
+        async Task<QrAccountConflictDecision> ResolveConflictAsync(
+            QrAccountConflict conflict,
+            CancellationToken token)
+        {
+            var choice = await _dialogs.ChooseAsync(new ChoiceDialogRequest(
+                _localization.GetString(AvaloniaStringKeys.QrConflictTitle),
+                string.Format(
+                    _localization.GetString(AvaloniaStringKeys.QrConflictMessage),
+                    conflict.Issuer,
+                    conflict.AccountName),
+                NotificationSeverity.Warning,
+                _localization.GetString(AvaloniaStringKeys.UpdateExisting),
+                _localization.GetString(AvaloniaStringKeys.KeepBoth),
+                _localization.GetString(AvaloniaStringKeys.Cancel)),
+                token);
+            return choice switch
+            {
+                ChoiceDialogResult.Primary => QrAccountConflictDecision.UpdateExisting,
+                ChoiceDialogResult.Secondary => QrAccountConflictDecision.KeepBoth,
+                _ => QrAccountConflictDecision.Cancel
+            };
+        }
     }
 
     private static string FailureMessage(QrScannerFailureKind failure) => failure switch

@@ -246,7 +246,10 @@ public sealed class MainWindowViewModelTests
             Mock.Of<IQrPayloadValidator>(),
             Mock.Of<IAvaloniaQrImageFactory>(),
             Mock.Of<IUiScheduler>(),
-            NullLogger<CameraScannerViewModel>.Instance);
+            NullLogger<CameraScannerViewModel>.Instance,
+            Mock.Of<IQrAccountImportService>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            CreateLocalization());
 
     private static UpdateCheckViewModel CreateUpdateCheck() =>
         new(Mock.Of<ISignedAppcastVerifier>());

@@ -38,4 +38,19 @@ public sealed class QrPayloadValidatorTests
 
         Assert.False(result.IsValid);
     }
+
+    [Theory]
+    [InlineData("SHA256", 6, 30)]
+    [InlineData("SHA1", 8, 30)]
+    [InlineData("SHA1", 6, 60)]
+    public void Validate_WhenTotpParametersCannotBePersisted_FailsClosed(
+        string algorithm,
+        int digits,
+        int period)
+    {
+        var result = _sut.Validate(
+            $"otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&algorithm={algorithm}&digits={digits}&period={period}");
+
+        Assert.False(result.IsValid);
+    }
 }

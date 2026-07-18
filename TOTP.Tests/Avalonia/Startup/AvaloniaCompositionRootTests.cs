@@ -63,6 +63,8 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<AccountListViewModel>());
         Assert.IsType<AccountQrCodeService>(
             services.GetRequiredService<IAccountQrCodeService>());
+        Assert.IsType<QrAccountImportService>(
+            services.GetRequiredService<IQrAccountImportService>());
         Assert.IsType<AvaloniaQrImageFactory>(
             services.GetRequiredService<IAvaloniaQrImageFactory>());
         Assert.IsType<AvaloniaFilePicker>(

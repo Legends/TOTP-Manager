@@ -65,6 +65,17 @@
   <data name="CodeCopiedWithClear" xml:space="preserve"><value>Copied. Conditional clipboard clear is scheduled in {0} seconds.</value></data>
   <data name="ClipboardSafeCopyUnavailable" xml:space="preserve"><value>This platform cannot safely copy and conditionally clear the code.</value></data>
   <data name="CodeRemainingTime" xml:space="preserve"><value>Code validity remaining</value></data>
+  <data name="QrInvalid" xml:space="preserve"><value>The QR code is not a valid supported TOTP account.</value></data>
+  <data name="QrImportFailed" xml:space="preserve"><value>The QR account could not be imported safely. Existing encrypted data was not changed.</value></data>
+  <data name="QrAccountAdded" xml:space="preserve"><value>QR account added.</value></data>
+  <data name="QrAccountUpdated" xml:space="preserve"><value>Existing account updated from the QR code.</value></data>
+  <data name="QrAccountKeptBoth" xml:space="preserve"><value>QR account added alongside the existing account.</value></data>
+  <data name="QrAccountDuplicate" xml:space="preserve"><value>This QR account already exists and was not changed.</value></data>
+  <data name="QrImportCancelled" xml:space="preserve"><value>QR account import was cancelled.</value></data>
+  <data name="QrConflictTitle" xml:space="preserve"><value>Account already exists</value></data>
+  <data name="QrConflictMessage" xml:space="preserve"><value>{0} ({1}) already exists with a different secret. Update it, keep both accounts, or cancel?</value></data>
+  <data name="UpdateExisting" xml:space="preserve"><value>Update existing</value></data>
+  <data name="KeepBoth" xml:space="preserve"><value>Keep both</value></data>
   <data name="Lock" xml:space="preserve"><value>Lock</value></data>
   <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
   <data name="Tools" xml:space="preserve"><value>Tools</value></data>

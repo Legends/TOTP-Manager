@@ -88,4 +88,43 @@ public sealed class AvaloniaDialogService(AvaloniaWindowCoordinator windows) : I
             _dialogGate.Release();
         }
     }
+
+    public async Task<ChoiceDialogResult> ChooseAsync(
+        ChoiceDialogRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        await _dialogGate.WaitAsync(cancellationToken);
+        try
+        {
+            var owner = windows.GetRequiredMainWindow();
+            var viewModel = new ChoiceDialogViewModel(request);
+            var dialog = new ChoiceDialogWindow { DataContext = viewModel };
+            var requestedResult = ChoiceDialogResult.Cancel;
+            viewModel.CloseRequested += Close;
+            using var ownership = windows.RegisterOwnedDialog(dialog);
+            using var cancellation = cancellationToken.Register(
+                () => Dispatcher.UIThread.Post(() => dialog.Close(ChoiceDialogResult.Cancel)));
+            try
+            {
+                await dialog.ShowDialog<ChoiceDialogResult>(owner);
+                return requestedResult;
+            }
+            finally
+            {
+                viewModel.CloseRequested -= Close;
+                dialog.DataContext = null;
+            }
+
+            void Close(ChoiceDialogResult result)
+            {
+                requestedResult = result;
+                dialog.Close(result);
+            }
+        }
+        finally
+        {
+            _dialogGate.Release();
+        }
+    }
 }

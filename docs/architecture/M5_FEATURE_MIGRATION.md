@@ -31,3 +31,16 @@ Copy delegates to `IAsyncClipboardService` for the exact remaining code lifetime
 - Data-flow impact: the code crosses only the TOTP result, visible code property, and conditional clipboard boundary. It is not logged, placed in notification text, or included in accessibility labels.
 - Compatibility impact: TOTP algorithm, period calculation, account/vault formats, and WPF behavior are unchanged.
 - Test evidence: tests cover generation by selected identifier, period-boundary refresh, failure sanitization, selected-state clearing, copy duration, conditional-clear capability/replacement behavior, and bitmap/editor teardown sharing the same lock path.
+
+## M5.4 QR workflows
+
+Generated QR images continue to use the secret-bearing preview control and are disposed on selection, navigation, lock, and view-model teardown. Camera capture remains explicitly user initiated, owns one cancellable session, throttles decode work, detects stalled/disconnected devices, clears encoded preview buffers after UI transfer, and maps missing runtime, missing camera, permission denial, and device loss to recoverable states.
+
+Decoded text now crosses directly into `IQrAccountImportService`; the camera view model never stores or displays the URI or secret. The service rejects payloads above 4 KiB, invalid Base32, non-TOTP URIs, and TOTP parameters the current account model cannot persist accurately. Only SHA-1, six digits, and a 30-second period are accepted until algorithm/digit/period fields are added to the encrypted account schema. This prevents a successful-looking import that would later generate incorrect codes.
+
+New identities are added directly. An exact issuer/account/secret match is reported unchanged. A matching issuer/account with a different secret opens one owned three-way decision: update the existing identifier, keep both with a new identifier, or cancel. The decision callback receives issuer/account metadata only; persistence and secret comparison remain in Infrastructure. Successful mutation raises a metadata-free event that reloads the account list.
+
+- Threat impact: QR secrets never enter notification, conflict-dialog, list-row, logging, or accessibility text. Unsupported TOTP semantics fail before vault access.
+- Data-flow impact: the decoded URI and parsed secret necessarily exist briefly in scanner/import locals and the domain account passed to `IAccountManager`; no long-lived presentation property is added.
+- Compatibility impact: the encrypted account schema remains unchanged, so unsupported algorithm/digit/period combinations are rejected rather than silently downgraded.
+- Test evidence: parser/validator tests cover malformed, oversized, and unsupported payloads; import tests cover add, exact duplicate, update, keep-both, cancel, and pre-storage rejection; camera tests cover safe preview transfer, typed platform failures, cancellation, import delegation, and exception-detail suppression. Physical camera permission and target acceptance remain postponed M3 evidence.

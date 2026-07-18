@@ -58,6 +58,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         PasswordUnlock.Unlocked += OnUnlocked;
         PasswordSetup.Configured += OnConfigured;
+        CameraScanner.AccountImported += OnAccountImported;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
         _lockCommand = new AsyncCommand(LockAsync, () => _isShellVisible);
         _showAccountsCommand = new AsyncCommand(
@@ -243,6 +244,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PrepareForShutdown();
         PasswordUnlock.Unlocked -= OnUnlocked;
         PasswordSetup.Configured -= OnConfigured;
+        CameraScanner.AccountImported -= OnAccountImported;
         _lifetime.Cancel();
         _lifetime.Dispose();
         CameraScanner.Dispose();
@@ -285,6 +287,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         StatusText = _localization.GetString(AvaloniaStringKeys.VaultConfigured);
         StatusSeverity = NotificationSeverity.Success;
     }
+
+    private void OnAccountImported(object? sender, EventArgs e) =>
+        AccountList.LoadCommand.Execute(null);
 
     public Task LockAsync()
     {

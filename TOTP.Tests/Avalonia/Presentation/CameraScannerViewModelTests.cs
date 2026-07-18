@@ -1,9 +1,12 @@
 using Avalonia.Media;
+using FluentResults;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Services.Models;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
@@ -28,17 +31,26 @@ public sealed class CameraScannerViewModelTests
         var validator = new Mock<IQrPayloadValidator>();
         validator.Setup(value => value.Validate(It.IsAny<string>()))
             .Returns(new QrPayloadValidationResult(true, "Example", "alice"));
+        var import = new Mock<IQrAccountImportService>();
+        import.Setup(value => value.ImportAsync(
+                It.IsAny<string>(),
+                It.IsAny<Func<QrAccountConflict, CancellationToken, Task<QrAccountConflictDecision>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(new QrAccountImportOutcome(
+                QrAccountImportStatus.Added,
+                "Example",
+                "alice")));
         var lifetime = new TrackingDisposable();
         var imageFactory = new Mock<IAvaloniaQrImageFactory>();
         imageFactory.Setup(value => value.Create(It.IsAny<ReadOnlyMemory<byte>>()))
             .Returns(new AvaloniaQrImageHandle(Mock.Of<IImage>(), lifetime));
-        using var sut = CreateSut(runner.Object, validator.Object, imageFactory.Object);
+        using var sut = CreateSut(runner.Object, validator.Object, imageFactory.Object, import.Object);
 
         await sut.StartAsync();
 
         Assert.False(sut.IsScanning);
         Assert.True(sut.HasPreview);
-        Assert.Contains("Example / alice", sut.Message, StringComparison.Ordinal);
+        Assert.Equal(AvaloniaStringKeys.QrAccountAdded, sut.Message);
         Assert.DoesNotContain("JBSWY", sut.Message, StringComparison.Ordinal);
         Assert.All(encodedFrame, value => Assert.Equal(0, value));
         validator.Verify(value => value.Validate(It.Is<string>(payload => payload.Contains("secret="))), Times.Once);
@@ -96,13 +108,25 @@ public sealed class CameraScannerViewModelTests
     private static CameraScannerViewModel CreateSut(
         IQrScannerRunner runner,
         IQrPayloadValidator? validator = null,
-        IAvaloniaQrImageFactory? imageFactory = null) =>
+        IAvaloniaQrImageFactory? imageFactory = null,
+        IQrAccountImportService? importService = null) =>
         new(
             runner,
             validator ?? Mock.Of<IQrPayloadValidator>(),
             imageFactory ?? Mock.Of<IAvaloniaQrImageFactory>(),
             new ImmediateUiScheduler(),
-            NullLogger<CameraScannerViewModel>.Instance);
+            NullLogger<CameraScannerViewModel>.Instance,
+            importService ?? Mock.Of<IQrAccountImportService>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization());
+
+    private static IAvaloniaLocalizationService Localization()
+    {
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        localization.Setup(value => value.GetString(It.IsAny<string>()))
+            .Returns((string key) => key);
+        return localization.Object;
+    }
 
     private sealed class ImmediateUiScheduler : IUiScheduler
     {

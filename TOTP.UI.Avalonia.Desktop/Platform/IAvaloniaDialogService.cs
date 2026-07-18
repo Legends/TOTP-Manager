@@ -11,4 +11,8 @@ public interface IAvaloniaDialogService
     Task<string?> PromptForPasswordAsync(
         PasswordDialogRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ChoiceDialogResult> ChooseAsync(
+        ChoiceDialogRequest request,
+        CancellationToken cancellationToken = default);
 }

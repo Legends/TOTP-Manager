@@ -103,6 +103,17 @@ public static class AvaloniaStringKeys
     public const string CodeCopiedWithClear = nameof(CodeCopiedWithClear);
     public const string ClipboardSafeCopyUnavailable = nameof(ClipboardSafeCopyUnavailable);
     public const string CodeRemainingTime = nameof(CodeRemainingTime);
+    public const string QrInvalid = nameof(QrInvalid);
+    public const string QrImportFailed = nameof(QrImportFailed);
+    public const string QrAccountAdded = nameof(QrAccountAdded);
+    public const string QrAccountUpdated = nameof(QrAccountUpdated);
+    public const string QrAccountKeptBoth = nameof(QrAccountKeptBoth);
+    public const string QrAccountDuplicate = nameof(QrAccountDuplicate);
+    public const string QrImportCancelled = nameof(QrImportCancelled);
+    public const string QrConflictTitle = nameof(QrConflictTitle);
+    public const string QrConflictMessage = nameof(QrConflictMessage);
+    public const string UpdateExisting = nameof(UpdateExisting);
+    public const string KeepBoth = nameof(KeepBoth);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -129,6 +140,8 @@ public static class AvaloniaStringKeys
         AccountSecretInvalid, AccountDuplicate, AccountSaveFailed, AccountSaved,
         AccountEditLoadFailed, AccountDeleteFailed, AccountDeleted, CodeAutoRefreshReady,
         CodeRefreshed, CodeRefreshFailed, CodeCopiedWithClear,
-        ClipboardSafeCopyUnavailable, CodeRemainingTime
+        ClipboardSafeCopyUnavailable, CodeRemainingTime, QrInvalid, QrImportFailed,
+        QrAccountAdded, QrAccountUpdated, QrAccountKeptBoth, QrAccountDuplicate,
+        QrImportCancelled, QrConflictTitle, QrConflictMessage, UpdateExisting, KeepBoth
     ];
 }
