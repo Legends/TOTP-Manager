@@ -49,5 +49,7 @@ public sealed class MainWindowViewModelTests
         new(
             coordinator,
             new PasswordUnlockViewModel(Mock.Of<IAuthorizationService>()),
-            new AccountListViewModel(Mock.Of<IAccountManager>()));
+            new AccountListViewModel(
+                Mock.Of<IAccountManager>(),
+                Mock.Of<IAccountTotpService>()));
 }

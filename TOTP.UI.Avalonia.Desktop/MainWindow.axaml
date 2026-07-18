@@ -67,7 +67,8 @@
                                 TextWrapping="Wrap" />
                             <ListBox
                                 MaxHeight="420"
-                                ItemsSource="{Binding Accounts}">
+                                ItemsSource="{Binding Accounts}"
+                                SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="presentation:AccountListItemViewModel">
                                         <Grid Margin="8" ColumnDefinitions="2*,3*">
@@ -81,6 +82,20 @@
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
+                            <Button
+                                HorizontalAlignment="Center"
+                                Command="{Binding GenerateCommand}"
+                                Content="Generate code" />
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontFamily="Consolas"
+                                FontSize="28"
+                                IsVisible="{Binding HasGeneratedCode}"
+                                Text="{Binding GeneratedCode}" />
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                IsVisible="{Binding HasCodeMessage}"
+                                Text="{Binding CodeMessage}" />
                         </StackPanel>
                     </DataTemplate>
                 </ContentControl.ContentTemplate>

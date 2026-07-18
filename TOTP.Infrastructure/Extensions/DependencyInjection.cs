@@ -44,6 +44,7 @@ public static class DependencyInjection
        
         services.AddSingleton<ISettingsService, PortableSettingsService>();
         services.AddSingleton<ITotpGenerator, OtpNetTotpGenerator>();
+        services.AddSingleton<IAccountTotpService, AccountTotpService>();
 
         // 1. Master Password & Security Context
         services.AddSingleton<ISecurityContext, SecurityContext>();

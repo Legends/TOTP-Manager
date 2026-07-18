@@ -5,20 +5,33 @@ using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
 
-public sealed class AccountListViewModel : INotifyPropertyChanged
+public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly IAccountManager _accountManager;
+    private readonly IAccountTotpService _accountTotpService;
     private readonly AsyncCommand _loadCommand;
+    private readonly AsyncCommand _generateCommand;
+    private CancellationTokenSource? _codeLifetime;
     private IReadOnlyList<AccountListItemViewModel> _allAccounts = [];
     private IReadOnlyList<AccountListItemViewModel> _accounts = [];
     private string _message = string.Empty;
     private string _searchText = string.Empty;
+    private AccountListItemViewModel? _selectedAccount;
+    private string _generatedCode = string.Empty;
+    private string _codeMessage = string.Empty;
     private bool _isBusy;
+    private bool _isGenerating;
 
-    public AccountListViewModel(IAccountManager accountManager)
+    public AccountListViewModel(
+        IAccountManager accountManager,
+        IAccountTotpService accountTotpService)
     {
         _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
+        _accountTotpService = accountTotpService ?? throw new ArgumentNullException(nameof(accountTotpService));
         _loadCommand = new AsyncCommand(LoadAsync, () => !_isBusy);
+        _generateCommand = new AsyncCommand(
+            GenerateCodeAsync,
+            () => !_isGenerating && _selectedAccount is not null);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -41,6 +54,41 @@ public sealed class AccountListViewModel : INotifyPropertyChanged
 
     public bool HasMessage => Message.Length > 0;
 
+    public AccountListItemViewModel? SelectedAccount
+    {
+        get => _selectedAccount;
+        set
+        {
+            if (!SetField(ref _selectedAccount, value)) return;
+            ClearGeneratedCode();
+            _generateCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    public string GeneratedCode
+    {
+        get => _generatedCode;
+        private set
+        {
+            if (!SetField(ref _generatedCode, value)) return;
+            OnPropertyChanged(nameof(HasGeneratedCode));
+        }
+    }
+
+    public bool HasGeneratedCode => GeneratedCode.Length > 0;
+
+    public string CodeMessage
+    {
+        get => _codeMessage;
+        private set
+        {
+            if (!SetField(ref _codeMessage, value)) return;
+            OnPropertyChanged(nameof(HasCodeMessage));
+        }
+    }
+
+    public bool HasCodeMessage => CodeMessage.Length > 0;
+
     public string SearchText
     {
         get => _searchText;
@@ -62,6 +110,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged
     }
 
     public ICommand LoadCommand => _loadCommand;
+
+    public ICommand GenerateCommand => _generateCommand;
 
     public async Task LoadAsync()
     {
@@ -100,6 +150,40 @@ public sealed class AccountListViewModel : INotifyPropertyChanged
         }
     }
 
+    public async Task GenerateCodeAsync()
+    {
+        if (_selectedAccount is null || _isGenerating) return;
+
+        _isGenerating = true;
+        _generateCommand.NotifyCanExecuteChanged();
+        ClearGeneratedCode();
+        try
+        {
+            var result = await _accountTotpService.GenerateAsync(_selectedAccount.Id);
+            if (result.IsFailed)
+            {
+                CodeMessage = "A code could not be generated for this account.";
+                return;
+            }
+
+            GeneratedCode = result.Value.Code;
+            CodeMessage = $"Valid for {result.Value.RemainingSeconds} seconds.";
+            _codeLifetime = new CancellationTokenSource();
+            _ = ClearGeneratedCodeAfterAsync(
+                TimeSpan.FromSeconds(Math.Max(1, result.Value.RemainingSeconds)),
+                _codeLifetime.Token);
+        }
+        catch (Exception)
+        {
+            CodeMessage = "A code could not be generated safely. Try again.";
+        }
+        finally
+        {
+            _isGenerating = false;
+            _generateCommand.NotifyCanExecuteChanged();
+        }
+    }
+
     private void ApplyFilter()
     {
         var query = SearchText.Trim();
@@ -111,6 +195,30 @@ public sealed class AccountListViewModel : INotifyPropertyChanged
                     || account.AccountName.Contains(query, StringComparison.OrdinalIgnoreCase))
                 .ToArray();
     }
+
+    private async Task ClearGeneratedCodeAfterAsync(TimeSpan delay, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(delay, cancellationToken);
+            GeneratedCode = string.Empty;
+            CodeMessage = "Code expired. Generate a new code.";
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+    }
+
+    private void ClearGeneratedCode()
+    {
+        _codeLifetime?.Cancel();
+        _codeLifetime?.Dispose();
+        _codeLifetime = null;
+        GeneratedCode = string.Empty;
+        CodeMessage = string.Empty;
+    }
+
+    public void Dispose() => ClearGeneratedCode();
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {

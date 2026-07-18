@@ -21,7 +21,7 @@ public sealed class AccountListViewModelTests
         var manager = new Mock<IAccountManager>();
         manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
             .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(accounts));
-        var sut = new AccountListViewModel(manager.Object);
+        var sut = CreateSut(manager.Object);
 
         await sut.LoadAsync();
 
@@ -40,7 +40,7 @@ public sealed class AccountListViewModelTests
         var manager = new Mock<IAccountManager>();
         manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
             .ReturnsAsync(Result.Fail<IReadOnlyList<Account>>("synthetic failure"));
-        var sut = new AccountListViewModel(manager.Object);
+        var sut = CreateSut(manager.Object);
 
         await sut.LoadAsync();
 
@@ -60,7 +60,7 @@ public sealed class AccountListViewModelTests
         var manager = new Mock<IAccountManager>();
         manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
             .ReturnsAsync(Result.Ok(accounts));
-        var sut = new AccountListViewModel(manager.Object);
+        var sut = CreateSut(manager.Object);
         await sut.LoadAsync();
 
         sut.SearchText = "GITHUB";
@@ -83,11 +83,50 @@ public sealed class AccountListViewModelTests
         var manager = new Mock<IAccountManager>();
         manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
             .ThrowsAsync(new InvalidOperationException("sensitive synthetic detail"));
-        var sut = new AccountListViewModel(manager.Object);
+        var sut = CreateSut(manager.Object);
 
         await sut.LoadAsync();
 
         Assert.Empty(sut.Accounts);
         Assert.DoesNotContain("sensitive", sut.Message, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public async Task GenerateCodeAsync_UsesSelectedIdAndProjectsExpiringCode()
+    {
+        var accountId = Guid.NewGuid();
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(accountId))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 30, 30)));
+        using var sut = new AccountListViewModel(Mock.Of<IAccountManager>(), totp.Object)
+        {
+            SelectedAccount = new AccountListItemViewModel(accountId, "Issuer", "account")
+        };
+
+        await sut.GenerateCodeAsync();
+
+        Assert.Equal("123456", sut.GeneratedCode);
+        Assert.Contains("30 seconds", sut.CodeMessage, StringComparison.Ordinal);
+        totp.Verify(value => value.GenerateAsync(accountId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GenerateCodeAsync_WhenServiceFails_DoesNotExposeFailureDetail()
+    {
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(Result.Fail<TotpGenerationResult>("SYNTHETIC-SECRET-DETAIL"));
+        using var sut = new AccountListViewModel(Mock.Of<IAccountManager>(), totp.Object)
+        {
+            SelectedAccount = new AccountListItemViewModel(Guid.NewGuid(), "Issuer", "account")
+        };
+
+        await sut.GenerateCodeAsync();
+
+        Assert.Empty(sut.GeneratedCode);
+        Assert.DoesNotContain("SECRET", sut.CodeMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static AccountListViewModel CreateSut(IAccountManager manager) =>
+        new(manager, Mock.Of<IAccountTotpService>());
 }

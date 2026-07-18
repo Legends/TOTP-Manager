@@ -49,6 +49,8 @@ Workflow: `.github/workflows/security-audit.yml`
 - Password unlock delegates to the portable authorization facade, removes the bound password before awaiting verification, and never echoes credential or exception text.
 - The account-list projection retains only account ID, issuer, and account name. OTP seeds remain outside the Avalonia row model and are never required for list rendering.
 - Synthetic 500-account coverage verifies the list capacity and the absence of a `Secret` member on the presentation type. Search coverage verifies that filtering is limited to issuer and account name. Failure tests verify that account loading is recoverable and does not expose underlying exception text.
+- `IAccountTotpService` resolves the selected account and invokes the existing zeroing `ITotpGenerator` inside Infrastructure. Avalonia supplies only the non-secret account ID and never receives the seed. Generated codes are never logged and are removed from presentation state when their current time step expires, selection changes, or the view model is disposed. Managed code strings cannot be deterministically zeroed, so their lifetime is minimized rather than claimed to be zeroized.
+- TOTP tests verify account-ID selection, seed confinement to the infrastructure service, invalid-seed redaction, generic UI failures, and expiring-code projection.
 - These presentation slices do not change the vault, envelope, preferences, import/export, or backup formats. WPF remains the release/default client during M3.
 
 ## Exception Handling

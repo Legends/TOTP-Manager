@@ -455,7 +455,7 @@ Any replacement failure before Active
 - [x] Password unlock against synthetic data.
 - [x] Account list with at least 500 generated entries.
 - [x] Search and filtering.
-- [ ] TOTP generation.
+- [x] TOTP generation.
 - [ ] Copy with timed clipboard clearing.
 - [ ] Manual lock.
 - [ ] One settings page.
