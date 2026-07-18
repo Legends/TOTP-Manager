@@ -25,16 +25,17 @@ Windows releases kernel handles when a process exits, so a normally crashed proc
 
 `WindowsExistingInstanceActivator` preserves the existing behavior for a secondary launch: locate visible windows owned by the existing process, prefer an unowned top-level window, restore it, and perform the foreground activation sequence. Windows-specific process enumeration and `user32.dll` calls remain in the WPF platform layer.
 
-## Future platform implementations
+## Avalonia desktop implementation
 
-- macOS should use an OS-managed application-instance mechanism or an atomic advisory lock, then deliver the versioned activation request through a same-user local channel before asking the application to activate.
-- Linux should prefer the desktop application's D-Bus name as both ownership and activation transport. A same-user Unix domain socket plus an advisory lock is an acceptable fallback.
-- File-based fallbacks must acquire an OS lock atomically. They must not delete a lock merely because its timestamp is old; owner liveness and lock ownership must be established first.
-- Local activation transports must restrict access to the current user, validate the payload version and size, and reject unknown activation kinds.
+The Avalonia host uses `NamedMutexInstanceLock` plus `NamedPipeActivationDispatcher`/`NamedPipeActivationListener` on Windows, macOS, and Linux. Both names include a stable hash of the current user so independent user sessions do not contend. The pipe is created with `PipeOptions.CurrentUserOnly`.
+
+The transport reads exactly two bytes: activation schema version and kind. Unsupported values are ignored. The secondary process exits only after the primary accepts the dispatch; a failed redirect produces a non-zero exit code. The primary posts the accepted request to Avalonia's UI dispatcher, restores a minimized main window, and activates it. This action never changes authorization state, so an activated locked window remains locked.
+
+The listener is owned by the Avalonia service provider and cancelled on application exit. Mutex ownership remains on the main startup thread until the classic desktop lifetime returns. Real transport/mutual-exclusion tests run in Windows tests and in the Ubuntu/macOS portable CI job.
 
 ## Security and compatibility review
 
 - Threat impact: a secondary process cannot become primary while a live owner holds the lock. Stale or abandoned ownership cannot permanently deny startup.
 - Data flow: the secondary process sends only a versioned activation intent to the platform dispatcher. No vault or authorization data is included.
-- Compatibility: the mutex remains global and uses the existing `TOTP.UI.WPF` identity. Existing foreground restoration behavior is retained.
-- Test evidence: coordination tests cover primary, recovered, redirected, failed, repeated, invalid-payload, and disposal paths. Windows tests cover fresh, live-owner, unlocked-stale, and abandoned-owner mutex states plus the native foreground sequence.
+- Compatibility: WPF retains its existing global mutex and native foreground activation. Avalonia uses a separate v2 identity during migration, so preview launches cannot redirect or suppress the release client.
+- Test evidence: coordination tests cover primary, recovered, redirected, failed, repeated, invalid-payload, and disposal paths. Windows tests cover the native WPF foreground sequence and the Avalonia pipe/mutex transport; Ubuntu and macOS CI execute the same Avalonia transport against their real host implementations.
