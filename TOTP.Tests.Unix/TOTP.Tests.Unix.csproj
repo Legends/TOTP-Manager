@@ -20,7 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TOTP.Camera.OpenCv\TOTP.Camera.OpenCv.csproj" />
     <ProjectReference Include="..\TOTP.Infrastructure\TOTP.Infrastructure.csproj" />
+    <ProjectReference Include="..\TOTP.Platform.Linux\TOTP.Platform.Linux.csproj" />
+    <ProjectReference Include="..\TOTP.Platform.MacOS\TOTP.Platform.MacOS.csproj" />
     <ProjectReference Include="..\TOTP.Platform.Unix\TOTP.Platform.Unix.csproj" />
   </ItemGroup>
 

@@ -12,6 +12,7 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
 {
     private readonly ISupportDiagnosticsService _diagnostics;
     private readonly IAvaloniaDialogService? _dialogs;
+    private readonly IPlatformCapabilityReport? _capabilities;
     private readonly AsyncCommand _refreshCommand;
     private string _supportInformation = string.Empty;
     private string _message = string.Empty;
@@ -20,10 +21,12 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
 
     public DiagnosticsViewModel(
         ISupportDiagnosticsService diagnostics,
-        IAvaloniaDialogService? dialogs = null)
+        IAvaloniaDialogService? dialogs = null,
+        IPlatformCapabilityReport? capabilities = null)
     {
         _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         _dialogs = dialogs;
+        _capabilities = capabilities;
         _refreshCommand = new AsyncCommand(RefreshAsync, () => !_isBusy);
     }
 
@@ -72,6 +75,14 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
                     output.AppendLine(
                         $"- {record.Stage}: {record.ElapsedMilliseconds} ms ({(record.Succeeded ? "ok" : "failed")})");
                 }
+            }
+
+            if (_capabilities is not null)
+            {
+                var capabilities = await _capabilities.CaptureAsync();
+                output.AppendLine("Platform capabilities:");
+                foreach (var capability in capabilities)
+                    output.AppendLine($"- {capability.Name}: {capability.Status}");
             }
 
             SupportInformation = output.ToString().TrimEnd();

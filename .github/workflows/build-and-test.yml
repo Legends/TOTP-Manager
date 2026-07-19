@@ -190,6 +190,31 @@ jobs:
           "M3_PACKAGE_BYTES=$packageBytes" >> $env:GITHUB_ENV
           "### ${{ matrix.name }}`n`nPackage bytes: $packageBytes" >> $env:GITHUB_STEP_SUMMARY
 
+      - name: Validate Linux distribution packages
+        if: ${{ matrix.rid == 'linux-x64' }}
+        shell: pwsh
+        run: |
+          ./scripts/release/Package-AvaloniaLinux.ps1 `
+            -PublishDirectory m3-publish `
+            -OutputDirectory m6-linux-distribution `
+            -ReleaseVersion "2.0.0" `
+            -FrameworkDependent
+
+          tar -tzf m6-linux-distribution/TOTP-Manager-linux-x64-2.0.0.tar.gz > /dev/null
+          dpkg-deb --info m6-linux-distribution/totp-manager_2.0.0_amd64.deb
+
+      - name: Validate unsigned macOS DMG structure
+        if: ${{ matrix.rid == 'osx-arm64' }}
+        shell: pwsh
+        run: |
+          ./scripts/release/Package-AvaloniaMacOS.ps1 `
+            -PublishDirectory m3-publish `
+            -OutputDirectory m6-macos-distribution `
+            -ReleaseVersion "2.0.0"
+
+          plutil -lint "m6-macos-distribution/TOTP Manager.app/Contents/Info.plist"
+          hdiutil verify m6-macos-distribution/TOTP-Manager-macos-arm64-2.0.0.dmg
+
       - name: Record automated M3 measurements
         shell: pwsh
         run: |

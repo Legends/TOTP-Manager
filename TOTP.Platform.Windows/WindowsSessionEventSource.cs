@@ -1,14 +1,19 @@
 using Microsoft.Win32;
 using TOTP.Core.Platform;
+using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Services.Models;
 
 namespace TOTP.Platform.Windows;
 
-public sealed class WindowsSessionEventSource : IPlatformSessionEventSource
+public sealed class WindowsSessionEventSource : IPlatformSessionEventSource, IPlatformCapabilityStatusProvider
 {
     private readonly object _gate = new();
     private bool _started;
 
     public bool IsSupported => OperatingSystem.IsWindows();
+    public PlatformCapabilityStatus CapabilityStatus => IsSupported
+        ? PlatformCapabilityStatus.Supported
+        : PlatformCapabilityStatus.PermanentlyUnavailable;
     public event EventHandler<PlatformSessionChangedEventArgs>? SessionChanged;
 
     public void Start()

@@ -21,6 +21,12 @@ using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
 #if TOTP_PLATFORM_WINDOWS
 using TOTP.Platform.Windows;
 using TOTP.Platform.Windows.Security;
+#elif TOTP_PLATFORM_MACOS
+using TOTP.Platform.MacOS;
+using TOTP.Platform.MacOS.Security;
+#elif TOTP_PLATFORM_LINUX
+using TOTP.Platform.Linux;
+using TOTP.Platform.Linux.Security;
 #endif
 
 namespace TOTP.Avalonia.Desktop.Startup;
@@ -48,6 +54,25 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IHelloVerificationRequester, WindowsHelloVerificationRequester>();
         services.AddSingleton<IHelloGate, HelloGate>();
         services.AddSingleton<IPlatformQuickUnlock, WindowsPlatformQuickUnlock>();
+#elif TOTP_PLATFORM_MACOS
+        services.AddSingleton<IMacOSSessionStateReader, MacOSSessionStateReader>();
+        services.AddSingleton<IPlatformSessionEventSource, MacOSSessionEventSource>();
+        services.AddSingleton<ICameraAccessProbe, MacOSCameraAccessProbe>();
+        services.AddSingleton<IMacOSKeychainNative, MacOSKeychainNative>();
+        services.AddSingleton<MacOSKeychainSecretStore>();
+        services.AddSingleton<IPlatformSecretStore>(provider =>
+            provider.GetRequiredService<MacOSKeychainSecretStore>());
+        services.AddSingleton<IPlatformQuickUnlock, MacOSPlatformQuickUnlock>();
+#elif TOTP_PLATFORM_LINUX
+        services.AddSingleton<ILinuxSessionMonitorRuntime, LinuxSessionMonitorRuntime>();
+        services.AddSingleton<IPlatformSessionEventSource, LinuxSessionEventSource>();
+        services.AddSingleton<ILinuxCameraDeviceAccess, LinuxCameraDeviceAccess>();
+        services.AddSingleton<ICameraAccessProbe, LinuxCameraAccessProbe>();
+        services.AddSingleton<ILinuxSecretServiceRuntime, LinuxSecretServiceRuntime>();
+        services.AddSingleton<LinuxSecretServiceStore>();
+        services.AddSingleton<IPlatformSecretStore>(provider =>
+            provider.GetRequiredService<LinuxSecretServiceStore>());
+        services.AddSingleton<IPlatformQuickUnlock, UnavailablePlatformQuickUnlock>();
 #else
         services.AddSingleton<IPlatformSessionEventSource, UnavailablePlatformSessionEventSource>();
         services.AddSingleton<IPlatformQuickUnlock, UnavailablePlatformQuickUnlock>();
@@ -81,6 +106,7 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<AsyncClipboardService>();
         services.AddSingleton<IAsyncClipboardService>(provider =>
             provider.GetRequiredService<AsyncClipboardService>());
+        services.AddSingleton<IPlatformCapabilityReport, AvaloniaPlatformCapabilityReport>();
         services.AddSingleton<IAvaloniaStartupCoordinator, AvaloniaStartupCoordinator>();
         services.AddSingleton<AvaloniaExceptionBoundary>();
         services.AddSingleton<SessionLockPolicyBackgroundService>();

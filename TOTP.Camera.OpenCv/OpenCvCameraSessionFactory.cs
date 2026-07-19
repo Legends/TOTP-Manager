@@ -3,10 +3,24 @@ using OpenCvSharp;
 
 namespace TOTP.Camera.OpenCv;
 
-public sealed class OpenCvCameraSessionFactory : ICameraSessionFactory
+public sealed class OpenCvCameraSessionFactory(ICameraAccessProbe? accessProbe = null) : ICameraSessionFactory
 {
     public CameraSessionOpenResult OpenDefault()
     {
+        CameraAccessStatus access;
+        try
+        {
+            access = accessProbe?.Probe() ?? CameraAccessStatus.Unknown;
+        }
+        catch
+        {
+            return CameraSessionOpenResult.Failed(CameraOpenFailure.Unexpected);
+        }
+        if (access == CameraAccessStatus.PermissionDenied)
+            return CameraSessionOpenResult.Failed(CameraOpenFailure.PermissionDenied);
+        if (access == CameraAccessStatus.NoCamera)
+            return CameraSessionOpenResult.Failed(CameraOpenFailure.NoCamera);
+
         VideoCapture? capture = null;
         try
         {

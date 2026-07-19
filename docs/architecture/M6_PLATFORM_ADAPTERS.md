@@ -37,3 +37,43 @@ The production Avalonia feed remains disabled until M7 publishes and configures 
 - Test evidence: adapter tests cover signature revalidation, structured helper handoff followed by shutdown, rejection of non-ZIP payloads, and rejection of an executable outside the selected installation directory. Build output inspection confirms the helper executable is bundled.
 
 Physical install/relaunch acceptance against a target-qualified signed Avalonia ZIP remains required before the M6 exit criteria can be signed off.
+
+## macOS authorization adapters
+
+The macOS host now registers a `MacOSKeychainSecretStore` and `MacOSPlatformQuickUnlock`. The native adapter targets the data-protection Keychain and creates a generic-password item guarded by `SecAccessControlCreateWithFlags` using `userPresence`. Availability is evaluated with LocalAuthentication's device-owner policy, which permits Touch ID, Apple Watch, or the macOS account password according to system policy.
+
+The 32-byte vault key exists in caller-owned memory only long enough to cross the Keychain call. The authorization envelope stores an opaque item reference plus a SHA-256 reference binding, never the vault key or a software-encrypted substitute. The closed v2 contract now recognizes this exact provider/version/policy/algorithm shape. Retrieval prompts through Keychain access control and returns a disposable `SensitiveBuffer`; missing or deleted items fall back to master-password recovery.
+
+- Threat impact: quick unlock cannot silently degrade to plaintext or a software-only local key. Copying the envelope to another device does not copy the Keychain item. A modified reference binding is rejected before Keychain access.
+- Data-flow impact: registration sends the vault key directly to Security.framework on a background worker. Temporary native and managed buffers are cleared. Logs contain operation and exception types only.
+- Compatibility impact: the password wrapper and vault format do not change. Windows Hello wrappers remain valid and provider-routed; Linux remains master-password-only.
+- Recovery impact: enrollment still requires the verified recovery password. Missing, cancelled, unavailable, or reset Keychain state returns to password recovery.
+- Test evidence: contract, store, provider, tampered-binding, missing-item, idempotent-delete, and native-framework smoke tests are present. Physical Keychain/LocalAuthentication prompts remain in the macOS acceptance checklist.
+
+## Linux Secret Service and session lock
+
+Linux now exposes `LinuxSecretServiceStore` through the existing platform-secret contract. The adapter requires `secret-tool` plus a live session D-Bus. Binary secrets are base64-encoded into clearable UTF-8 buffers and written only to standard input; references are non-secret structured arguments. Lookup output is bounded, decoded without immutable secret strings, copied into a disposable buffer, and cleared. This capability is not wired as Linux quick unlock: the approved Linux authorization policy remains master-password-only.
+
+`LinuxSessionEventSource` monitors the session bus for the standard freedesktop or GNOME `ScreenSaver.ActiveChanged` signal on selected GNOME, KDE/Plasma, Cinnamon, and MATE sessions. It maps only the signal's boolean payload to `Locked` or `Active`, suppresses duplicates, and does not infer locking from focus loss. Unsupported/headless desktops report unavailable instead of claiming protection.
+
+- Threat impact: Secret Service values never enter process arguments or application logs. Session locking reacts only to a recognized OS/desktop signal.
+- Data-flow impact: the secret store passes an opaque reference and clearable encoded bytes to `secret-tool`. The session adapter emits only the closed session-state enum.
+- Compatibility impact: Linux authorization remains password-only. Absence of `libsecret-tools`, D-Bus, or a selected desktop is an explicit safe capability state.
+- Recovery impact: Secret Service failure cannot block master-password unlock. Session-monitor failure leaves manual/minimize locking available and is reported as temporarily unavailable.
+- Test evidence: store tests cover stdin-only transfer, bounded decoding, missing items, malformed output, absent D-Bus, and idempotent deletion. Session tests cover signal mapping, unrelated payload rejection, duplicate suppression, and monitor lifetime.
+
+## Camera, clipboard, activation, and capability reporting
+
+macOS camera preflight reads AVFoundation authorization state without prompting; the app bundle retains `NSCameraUsageDescription`, and first OpenCV use remains the explicit user-triggered prompt. Linux enumerates `/dev/video*` and tests read/write access before opening OpenCV, distinguishing no device from denied V4L2 access. Both feed the existing typed QR failure states.
+
+The existing current-user named mutex/pipe activation transport is already exercised on Ubuntu and macOS CI. Clipboard writing remains available on all targets; ownership-safe conditional clearing is enabled on macOS and X11 and deliberately reported unavailable on Wayland where Avalonia cannot prove ownership.
+
+`IPlatformCapabilityReport` exposes the required closed states: `Supported`, `TemporarilyUnavailable`, `PermanentlyUnavailable`, `PermissionDenied`, `Misconfigured`, and `Failed`. Avalonia support diagnostics include only capability name/state pairs and continue to omit paths, account data, and secrets.
+
+## Distribution implementation
+
+The initial macOS channel is an ARM64 Developer ID app in a notarized DMG. The release script creates stable bundle metadata, enables the minimum .NET hardened-runtime entitlements plus camera access, signs nested Mach-O files and the app without `--deep` signing, signs the DMG, submits with `notarytool`, staples, and asks Gatekeeper to assess it. CI builds and verifies an unsigned structural DMG; credentialed signing/notarization remains a release gate.
+
+Linux ships as a self-contained x64 portable tarball and an Ubuntu/Debian DEB. The DEB installs under `/opt/totp-manager`, supplies a launcher and desktop entry, and declares `libsecret-tools` plus native graphics/runtime prerequisites. AppImage is deferred until it has a maintained update, desktop-integration, and D-Bus policy; PKG is not selected on macOS because the app has no privileged daemon or system-wide payload.
+
+Detailed commands and physical acceptance records are in `docs/architecture/AVALONIA_DESKTOP_DISTRIBUTION.md` and `docs/architecture/M6_PHYSICAL_ACCEPTANCE.md`.

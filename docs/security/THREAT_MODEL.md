@@ -1,7 +1,7 @@
 # TOTP Manager Threat Model
 
 ## 1. Scope
-- Product: TOTP Manager (WPF desktop app)
+- Product: TOTP Manager (WPF release client and Avalonia cross-platform desktop client)
 - In scope:
   - Local secret handling (OTP seeds, export/import files, passwords, keys in memory)
   - Settings and security workflows
@@ -10,7 +10,7 @@
   - Third-party services not controlled by this repository
 
 ## 2. Architecture Summary
-- Client: WPF desktop application
+- Clients: WPF Windows application and Avalonia Windows/macOS/Linux desktop application
 - Data stores:
   - Plaintext allowlisted non-secret preferences (`preferences.json`)
   - Password-wrapped authorization envelope (`authorization-envelope.bin`)
@@ -33,6 +33,8 @@
   - Process memory boundary
   - Filesystem boundary
   - Windows Hello/TPM provider boundary
+  - macOS LocalAuthentication/data-protection Keychain boundary
+  - Linux session D-Bus/Secret Service boundary
   - CI/CD boundary (GitHub Actions, secrets)
 
 ## 4. STRIDE Threat Analysis
@@ -44,6 +46,8 @@
 | Repudiation | No trace of security-sensitive actions | App logging exists | Add security event taxonomy and redaction policy |
 | Information Disclosure | Secrets/passwords retained in memory | Sensitive-data clearing and copied-key patterns | Add periodic memory review and secure-string strategy decision |
 | Information Disclosure | Authorization material accidentally enters plaintext preferences | Allowlisted `AppPreferencesV1` mapper and strict unknown-field rejection; authorization has a separate encrypted envelope | Require data-classification review for every new preference field |
+| Information Disclosure | Platform-store secret leaks through helper process arguments or logs | macOS uses in-process Security.framework; Linux sends clearable base64 only through `secret-tool` stdin and bounds stdout; logs contain status/type only | Physical memory/log review remains a release gate |
+| Spoofing | Focus loss or unrelated D-Bus traffic is treated as a session lock | macOS reads OS session lock state; Linux accepts only selected ScreenSaver `ActiveChanged` signals | Validate selected desktops physically and report unsupported environments explicitly |
 | Denial of Service | Malformed import payload crashes workflow | Error mapping and guarded workflows | Add fuzz tests for import parsers |
 | Elevation of Privilege | Weak CI/release controls | GitHub secrets and signed builds | Enforce branch protection + required security workflow gates |
 
@@ -52,7 +56,8 @@
 - Export path handling
 - Password prompt and validation flows
 - Authorization-envelope and preferences file replacement
-- Windows Hello/TPM registration, reset, and unlock
+- Windows Hello/TPM and macOS Keychain/LocalAuthentication registration, reset, and unlock
+- Linux Secret Service and desktop session-lock signal handling
 - CI/CD pipeline and release artifacts
 - Dependency supply chain
 
@@ -73,7 +78,8 @@
 - Manual penetration testing still required for release confidence
 - Desktop runtime hardening (host OS, malware resistance) is environment-dependent
 - A local attacker able to run as the user can replace or roll back application files; authenticated unwrap and vault verification prevent silent key substitution but do not provide a monotonic anti-rollback counter
-- Loss or reset of Windows Hello/TPM state disables quick unlock; recovery remains dependent on the master password
+- Loss or reset of Windows Hello/TPM or macOS Keychain state disables quick unlock; recovery remains dependent on the master password
+- Linux desktop D-Bus and Secret Service behavior varies by distribution/session; unsupported or misconfigured environments remain password/manual-lock capable and are reported explicitly
 - Third-party dependency risk remains ongoing and must be continuously monitored
 
 ## 8. Review Cadence

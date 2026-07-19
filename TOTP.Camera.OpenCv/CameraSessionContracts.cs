@@ -35,6 +35,19 @@ public interface ICameraSessionFactory
     CameraSessionOpenResult OpenDefault();
 }
 
+public enum CameraAccessStatus
+{
+    Unknown = 0,
+    Ready,
+    PermissionDenied,
+    NoCamera
+}
+
+public interface ICameraAccessProbe
+{
+    CameraAccessStatus Probe();
+}
+
 public interface ICameraSession : IDisposable
 {
     bool TryRead(bool decodeQr, out CameraFrame frame);

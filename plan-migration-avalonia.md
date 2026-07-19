@@ -674,28 +674,28 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 ## macOS
 
 - [x] Application Support, Cache, and Logs paths.
-- [ ] Keychain secret storage.
-- [ ] LocalAuthentication quick unlock.
+- [x] Keychain secret storage.
+- [x] LocalAuthentication quick unlock.
 - [x] File permission hardening.
-- [ ] Camera entitlement and permission handling.
-- [ ] App activation and single-instance behavior.
-- [ ] Clipboard handling.
-- [ ] App bundle identity.
-- [ ] Signing and notarization.
-- [ ] DMG/PKG distribution policy.
+- [x] Camera entitlement and permission handling.
+- [x] App activation and single-instance behavior.
+- [x] Clipboard handling.
+- [x] App bundle identity.
+- [x] Signing and notarization automation. Credentialed release acceptance remains an M7/M8 gate.
+- [x] DMG distribution policy. PKG is intentionally not selected for the initial user-local app.
 
 ## Linux
 
 - [x] XDG paths.
-- [ ] Secret Service/libsecret integration.
+- [x] Secret Service/libsecret integration.
 - [x] Master-password-only fallback.
 - [x] Unix file permissions.
-- [ ] Desktop session-lock detection for supported environments.
+- [x] Desktop session-lock detection for supported GNOME/KDE-family environments.
 - [ ] X11/Wayland behavior validation.
-- [ ] Camera/V4L2 permission handling.
-- [ ] Single-instance activation.
+- [x] Camera/V4L2 permission handling.
+- [x] Single-instance activation.
 - [ ] Clipboard behavior across selected desktops.
-- [ ] Package format implementation.
+- [x] Portable tarball and Ubuntu/Debian DEB implementation.
 
 ## Platform capability policy
 
