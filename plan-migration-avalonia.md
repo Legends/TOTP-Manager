@@ -720,14 +720,14 @@ The UI must not treat every failure as equivalent to “not supported.”
 
 ## CI matrix
 
-- [ ] Windows build and portable tests.
-- [ ] macOS build and portable tests.
-- [ ] Linux build and portable tests.
-- [ ] Platform integration tests on matching runners.
+- [x] Windows build and portable tests.
+- [x] macOS build and portable tests.
+- [x] Linux build and portable tests.
+- [x] Platform integration tests on matching runners.
 - [ ] Avalonia UI smoke tests.
-- [ ] Native dependency validation.
-- [ ] Artifact manifest generation.
-- [ ] SBOM/dependency audit where appropriate.
+- [x] Native dependency validation.
+- [x] Artifact manifest generation.
+- [x] SBOM/dependency audit where appropriate. A blocking structured NuGet vulnerability audit is retained; formal SBOM publication remains a release-pipeline follow-up if required by the distribution channel.
 
 ## Windows artifacts
 
@@ -739,11 +739,11 @@ The UI must not treat every failure as equivalent to “not supported.”
 
 ## macOS artifacts
 
-- [ ] `.app` bundle.
-- [ ] DMG or PKG.
-- [ ] Application signing.
-- [ ] Notarization.
-- [ ] Stapling where appropriate.
+- [x] `.app` bundle.
+- [x] DMG selected and structurally validated on macOS CI.
+- [x] Application signing automation.
+- [x] Notarization automation.
+- [x] Stapling automation.
 - [ ] Update artifact and appcast metadata.
 - [ ] Clean-machine install/update test.
 
@@ -751,22 +751,22 @@ The UI must not treat every failure as equivalent to “not supported.”
 
 Select a narrow initial set, for example:
 
-- [ ] AppImage or tarball for broad direct distribution.
-- [ ] DEB for Debian/Ubuntu users.
-- [ ] Add RPM or Snap only when justified.
-- [ ] Desktop file and icons.
-- [ ] Package permissions.
-- [ ] Update behavior compatible with package ownership.
+- [x] Tarball selected for broad direct distribution; AppImage is deferred with rationale.
+- [x] DEB for Debian/Ubuntu users.
+- [x] RPM and Snap deferred until demand and maintained release policy justify them.
+- [ ] Desktop file is packaged; target-appropriate application icons still require final assets.
+- [x] Package permissions.
+- [x] Update behavior compatible with package ownership.
 
 ## Update feed
 
-- [ ] Per-OS and per-architecture asset selection.
-- [ ] Strict Ed25519 verification.
-- [ ] Version and channel compatibility.
-- [ ] Store-distributed build policy.
-- [ ] Invalid-signature regression tests.
-- [ ] Wrong-platform artifact rejection.
-- [ ] Interrupted-download recovery.
+- [x] Per-OS and per-architecture asset selection.
+- [x] Strict Ed25519 verification.
+- [x] Version and channel compatibility.
+- [x] Store-distributed build policy.
+- [x] Invalid-signature regression tests.
+- [x] Wrong-platform artifact rejection.
+- [x] Interrupted-download recovery.
 
 ### Exit criteria
 

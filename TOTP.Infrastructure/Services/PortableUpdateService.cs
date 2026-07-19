@@ -28,9 +28,18 @@ public sealed class PortableUpdateService(
         if (!configuration.GetValue("AutoUpdate:Enabled", false))
             return Result.Ok(new PortableUpdateCheckResult(PortableUpdateCheckStatus.Disabled));
 
+        var distributionMode = configuration["AutoUpdate:DistributionMode"] ?? "direct";
+        if (distributionMode is "package-manager" or "store")
+            return Result.Ok(new PortableUpdateCheckResult(PortableUpdateCheckStatus.Disabled));
+        if (!string.Equals(distributionMode, "direct", StringComparison.Ordinal))
+            return Result.Fail("The update distribution policy is invalid.");
+
         var appcastText = configuration["AutoUpdate:AppcastUrl"];
         var publicKey = configuration["AutoUpdate:PublicKey"];
-        if (!TryHttpsUri(appcastText, out var appcastUri) || string.IsNullOrWhiteSpace(publicKey))
+        var channel = configuration["AutoUpdate:Channel"] ?? "stable";
+        if (!TryHttpsUri(appcastText, out var appcastUri)
+            || string.IsNullOrWhiteSpace(publicKey)
+            || channel is not ("stable" or "rc"))
             return Result.Fail("The signed update feed is not configured safely.");
 
         byte[]? appcastBytes = null;
@@ -51,7 +60,8 @@ public sealed class PortableUpdateService(
                 CurrentOperatingSystem(),
                 System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture
                     .ToString().ToLowerInvariant(),
-                RequireExplicitTarget: true));
+                RequireExplicitTarget: true,
+                Channel: channel));
             if (verified.Status is SignedAppcastCheckStatus.InvalidFormat
                 or SignedAppcastCheckStatus.InvalidSignature)
             {

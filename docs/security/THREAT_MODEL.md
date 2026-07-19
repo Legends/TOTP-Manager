@@ -28,6 +28,7 @@
   - Password-wrapper and platform quick-unlock metadata
   - Exported encrypted backup files
   - Signing/release credentials in CI
+  - Signed update feeds, release payloads, and artifact manifests
 - Trust boundaries:
   - User input boundary (UI and file dialog)
   - Process memory boundary

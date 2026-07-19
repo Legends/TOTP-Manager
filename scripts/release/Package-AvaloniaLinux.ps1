@@ -18,6 +18,7 @@ if ($ReleaseVersion -notmatch '^(?<base>\d+\.\d+\.\d+)(?:-rc(?<rc>\d+))?$') {
 }
 $baseVersion = $Matches.base
 $releaseCandidateNumber = $Matches.rc
+$releaseChannel = if ($releaseCandidateNumber) { "rc" } else { "stable" }
 
 $resolvedPublish = (Resolve-Path -LiteralPath $PublishDirectory).Path
 $resolvedOutput = [IO.Path]::GetFullPath($OutputDirectory)
@@ -33,6 +34,10 @@ else {
 $portableRoot = Join-Path $resolvedOutput "TOTP-Manager-linux-x64-$ReleaseVersion"
 New-Item -ItemType Directory -Path $portableRoot | Out-Null
 Copy-Item -Path (Join-Path $resolvedPublish "*") -Destination $portableRoot -Recurse
+& (Join-Path $PSScriptRoot "Set-PackageUpdatePolicy.ps1") `
+    -PackageDirectory $portableRoot `
+    -DistributionMode direct `
+    -Channel $releaseChannel
 $portableExecutable = Join-Path $portableRoot "TOTP.UI.Avalonia.Desktop"
 & chmod "+x" $portableExecutable
 if ($LASTEXITCODE -ne 0) { throw "Could not mark the Linux host executable." }
@@ -48,6 +53,10 @@ $debBin = Join-Path $debRoot "usr/bin"
 $debDesktop = Join-Path $debRoot "usr/share/applications"
 New-Item -ItemType Directory -Path $debControl, $debApp, $debBin, $debDesktop -Force | Out-Null
 Copy-Item -Path (Join-Path $resolvedPublish "*") -Destination $debApp -Recurse
+& (Join-Path $PSScriptRoot "Set-PackageUpdatePolicy.ps1") `
+    -PackageDirectory $debApp `
+    -DistributionMode package-manager `
+    -Channel $releaseChannel
 & chmod "+x" (Join-Path $debApp "TOTP.UI.Avalonia.Desktop")
 if ($LASTEXITCODE -ne 0) { throw "Could not mark the packaged Linux host executable." }
 

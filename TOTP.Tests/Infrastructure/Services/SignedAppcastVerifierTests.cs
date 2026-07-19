@@ -1,6 +1,7 @@
 using System.Text;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.SignatureVerifiers;
+using NSec.Cryptography;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Infrastructure.Services;
 
@@ -85,6 +86,36 @@ public sealed class SignedAppcastVerifierTests
     }
 
     [Fact]
+    public void Verify_WhenSignedArtifactTargetsAnotherOperatingSystem_RejectsIt()
+    {
+        var result = VerifyDynamic(
+            "<sparkle:os>linux</sparkle:os><sparkle:architecture>x64</sparkle:architecture>",
+            operatingSystem: "windows");
+
+        Assert.Equal(SignedAppcastCheckStatus.NoApplicableUpdate, result.Status);
+    }
+
+    [Fact]
+    public void Verify_WhenStableClientReceivesReleaseCandidate_RejectsIt()
+    {
+        var result = VerifyDynamic(
+            "<sparkle:os>windows</sparkle:os><sparkle:architecture>x64</sparkle:architecture><sparkle:channel>rc</sparkle:channel>",
+            channel: "stable");
+
+        Assert.Equal(SignedAppcastCheckStatus.NoApplicableUpdate, result.Status);
+    }
+
+    [Fact]
+    public void Verify_WhenReleaseCandidateClientReceivesMatchingChannel_SelectsIt()
+    {
+        var result = VerifyDynamic(
+            "<sparkle:os>windows</sparkle:os><sparkle:architecture>x64</sparkle:architecture><sparkle:channel>rc</sparkle:channel>",
+            channel: "rc");
+
+        Assert.Equal(SignedAppcastCheckStatus.UpdateAvailable, result.Status);
+    }
+
+    [Fact]
     public void Verify_WhenAppcastExceedsBound_RejectsFormatBeforeSignatureWork()
     {
         var result = Verify(new byte[256 * 1024 + 1], Signature);
@@ -100,4 +131,28 @@ public sealed class SignedAppcastVerifierTests
             new Version(2, 0, 0),
             "windows",
             "x64"));
+
+    private SignedAppcastCheckResult VerifyDynamic(
+        string targetElements,
+        string operatingSystem = "windows",
+        string channel = "stable")
+    {
+        using var key = Key.Create(SignatureAlgorithm.Ed25519, new KeyCreationParameters
+        {
+            ExportPolicy = KeyExportPolicies.AllowPlaintextExport
+        });
+        var appcast = $"<?xml version=\"1.0\"?><rss version=\"2.0\" xmlns:sparkle=\"http://www.andymatuschak.org/xml-namespaces/sparkle\"><channel><item><sparkle:version>99.0.0</sparkle:version>{targetElements}<enclosure url=\"https://example.invalid/update.zip\" sparkle:version=\"99.0.0\" /></item></channel></rss>";
+        var bytes = Encoding.UTF8.GetBytes(appcast);
+        var signature = Convert.ToBase64String(SignatureAlgorithm.Ed25519.Sign(key, bytes));
+        var publicKey = Convert.ToBase64String(key.PublicKey.Export(KeyBlobFormat.RawPublicKey));
+        return _sut.Verify(new SignedAppcastCheckRequest(
+            bytes,
+            signature,
+            publicKey,
+            new Version(2, 0, 0),
+            operatingSystem,
+            "x64",
+            RequireExplicitTarget: true,
+            Channel: channel));
+    }
 }

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NSec.Cryptography;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Services.Models;
 using TOTP.Infrastructure.Services;
 using TOTP.Tests.Common;
 
@@ -89,6 +90,50 @@ public sealed class PortableUpdateServiceTests
         Assert.True(result.IsFailed);
     }
 
+    [Theory]
+    [InlineData("package-manager")]
+    [InlineData("store")]
+    public async Task CheckAsync_WhenInstallIsExternallyManaged_DoesNotAccessNetwork(string mode)
+    {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["AutoUpdate:Enabled"] = "true",
+            ["AutoUpdate:DistributionMode"] = mode
+        }).Build();
+        using var client = new HttpClient(new ThrowingHandler());
+        var sut = new PortableUpdateService(
+            configuration,
+            client,
+            new SignedAppcastVerifier(),
+            new SignedPayloadVerifier(),
+            Mock.Of<IPlatformApplicationPaths>(),
+            NoOpPlatformFileSecurity.Instance,
+            NullLogger<PortableUpdateService>.Instance);
+
+        var result = await sut.CheckAsync(TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(PortableUpdateCheckStatus.Disabled, result.Value.Status);
+    }
+
+    [Fact]
+    public async Task DownloadAsync_WhenResponseStreamFails_DeletesPartialFile()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var temp = new TempDir();
+        var fixture = CreateSignedFixture("verified package"u8.ToArray());
+        using var client = new HttpClient(new FixtureHandler(fixture, interruptPackage: true));
+        var paths = new Mock<IPlatformApplicationPaths>();
+        paths.SetupGet(value => value.ApplicationDataDirectory).Returns(temp.Path);
+        var sut = CreateSut(fixture.PublicKey, client, paths.Object);
+        var check = await sut.CheckAsync(cancellationToken);
+
+        var download = await sut.DownloadAsync(check.Value.Offer!, cancellationToken: cancellationToken);
+
+        Assert.True(download.IsFailed);
+        Assert.Empty(Directory.GetFiles(Path.Combine(temp.Path, "Updates")));
+    }
+
     [Fact]
     public async Task DownloadAsync_WhenReadyFilePermissionsCannotBeApplied_DeletesPackage()
     {
@@ -168,7 +213,7 @@ public sealed class PortableUpdateServiceTests
         byte[] AppcastSignatureBytes,
         byte[] PackageBytes);
 
-    private sealed class FixtureHandler(SignedFixture fixture) : HttpMessageHandler
+    private sealed class FixtureHandler(SignedFixture fixture, bool interruptPackage = false) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
@@ -181,10 +226,27 @@ public sealed class PortableUpdateServiceTests
                 "/update.zip" => fixture.PackageBytes,
                 _ => throw new InvalidOperationException("Unexpected test URI.")
             };
+            HttpContent content = interruptPackage && request.RequestUri.AbsolutePath == "/update.zip"
+                ? new StreamContent(new InterruptingStream(bytes))
+                : new ByteArrayContent(bytes);
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new ByteArrayContent(bytes)
+                Content = content
             });
+        }
+    }
+
+    private sealed class InterruptingStream(byte[] bytes) : MemoryStream(bytes)
+    {
+        private bool _hasRead;
+
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            if (_hasRead) throw new IOException("Synthetic interrupted download.");
+            _hasRead = true;
+            return await base.ReadAsync(buffer[..Math.Min(buffer.Length, 4)], cancellationToken);
         }
     }
 

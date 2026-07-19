@@ -19,6 +19,7 @@ if ($ReleaseVersion -notmatch '^(?<base>\d+\.\d+\.\d+)(?:-rc(?<rc>\d+))?$') {
 }
 $baseVersion = $Matches.base
 $releaseCandidateNumber = $Matches.rc
+$releaseChannel = if ($releaseCandidateNumber) { "rc" } else { "stable" }
 
 $resolvedPublish = (Resolve-Path -LiteralPath $PublishDirectory).Path
 $resolvedOutput = [IO.Path]::GetFullPath($OutputDirectory)
@@ -44,6 +45,10 @@ $resources = Join-Path $contents "Resources"
 New-Item -ItemType Directory -Path $macOS -Force | Out-Null
 New-Item -ItemType Directory -Path $resources -Force | Out-Null
 Copy-Item -Path (Join-Path $resolvedPublish "*") -Destination $macOS -Recurse
+& (Join-Path $PSScriptRoot "Set-PackageUpdatePolicy.ps1") `
+    -PackageDirectory $macOS `
+    -DistributionMode direct `
+    -Channel $releaseChannel
 
 $plist = @"
 <?xml version="1.0" encoding="UTF-8"?>

@@ -15,7 +15,8 @@ public sealed record SignedAppcastCheckRequest(
     Version CurrentVersion,
     string OperatingSystem,
     string Architecture,
-    bool RequireExplicitTarget = false);
+    bool RequireExplicitTarget = false,
+    string Channel = "stable");
 
 public sealed record SignedAppcastCheckResult(
     SignedAppcastCheckStatus Status,

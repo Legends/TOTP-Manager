@@ -40,6 +40,21 @@ jobs:
       - name: Build solution
         run: dotnet build --configuration Release --no-restore --nologo --verbosity minimal
 
+      - name: Audit NuGet dependency graph
+        shell: pwsh
+        run: |
+          ./scripts/validation/Test-NuGetVulnerabilities.ps1 `
+            -SolutionPath TOTP.sln `
+            -OutputPath TestResults/nuget-vulnerability-audit.json
+
+      - name: Upload dependency audit evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: nuget-vulnerability-audit-${{ github.sha }}
+          path: TestResults/nuget-vulnerability-audit.json
+          retention-days: 30
+          if-no-files-found: error
+
       - name: Run fast tests (PR)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -190,6 +205,22 @@ jobs:
           "M3_PACKAGE_BYTES=$packageBytes" >> $env:GITHUB_ENV
           "### ${{ matrix.name }}`n`nPackage bytes: $packageBytes" >> $env:GITHUB_STEP_SUMMARY
 
+      - name: Validate native dependency closure
+        shell: pwsh
+        run: |
+          ./scripts/validation/Test-NativePackageDependencies.ps1 `
+            -PackageDirectory m3-package `
+            -RuntimeIdentifier "${{ matrix.rid }}"
+
+      - name: Assemble Windows distribution archive
+        if: ${{ matrix.rid == 'win-x64' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path m7-release | Out-Null
+          Compress-Archive `
+            -Path m3-package/* `
+            -DestinationPath m7-release/TOTP-Manager-windows-x64-2.0.0.zip
+
       - name: Validate Linux distribution packages
         if: ${{ matrix.rid == 'linux-x64' }}
         shell: pwsh
@@ -214,6 +245,56 @@ jobs:
 
           plutil -lint "m6-macos-distribution/TOTP Manager.app/Contents/Info.plist"
           hdiutil verify m6-macos-distribution/TOTP-Manager-macos-arm64-2.0.0.dmg
+
+      - name: Generate and verify target artifact manifest
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path m7-release -Force | Out-Null
+          $artifactPaths = switch ("${{ matrix.rid }}") {
+            "win-x64" {
+              "m7-release/TOTP-Manager-windows-x64-2.0.0.zip"
+            }
+            "linux-x64" {
+              Copy-Item m6-linux-distribution/TOTP-Manager-linux-x64-2.0.0.tar.gz m7-release/
+              Copy-Item m6-linux-distribution/totp-manager_2.0.0_amd64.deb m7-release/
+              "m7-release/TOTP-Manager-linux-x64-2.0.0.tar.gz"
+              "m7-release/totp-manager_2.0.0_amd64.deb"
+            }
+            "osx-arm64" {
+              Copy-Item m6-macos-distribution/TOTP-Manager-macos-arm64-2.0.0.dmg m7-release/
+              "m7-release/TOTP-Manager-macos-arm64-2.0.0.dmg"
+            }
+            default { throw "Unsupported release target." }
+          }
+
+          $manifestPath = "m7-release/release-artifacts-${{ matrix.rid }}.json"
+          ./scripts/release/New-ReleaseArtifactManifest.ps1 `
+            -ReleaseVersion "2.0.0" `
+            -SourceCommit "${{ github.sha }}" `
+            -ArtifactPath $artifactPaths `
+            -OutputPath $manifestPath
+          ./scripts/release/Test-ReleaseArtifactManifest.ps1 `
+            -ManifestPath $manifestPath `
+            -ArtifactDirectory m7-release
+
+      - name: Upload target artifact manifest
+        uses: actions/upload-artifact@v6
+        with:
+          name: m7-artifact-manifest-${{ matrix.rid }}-${{ github.sha }}
+          path: m7-release/release-artifacts-${{ matrix.rid }}.json
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Upload target release package evidence
+        if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: m7-release-${{ matrix.rid }}-${{ github.sha }}
+          path: |
+            m7-release/*
+            !m7-release/release-artifacts-${{ matrix.rid }}.json
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Record automated M3 measurements
         shell: pwsh

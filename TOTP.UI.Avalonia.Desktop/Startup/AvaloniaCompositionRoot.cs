@@ -39,7 +39,11 @@ public static class AvaloniaCompositionRoot
 
         var services = new ServiceCollection();
         var platformServices = DesktopPlatformServiceFactory.Create();
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .AddEnvironmentVariables("TOTP_")
+            .Build();
 
         services.AddSingleton(desktopLifetime);
         services.AddSingleton(Application.Current?.Resources ?? new ResourceDictionary());

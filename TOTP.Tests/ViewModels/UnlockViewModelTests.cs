@@ -23,7 +23,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
         authMock.SetupGet(x => x.State).Returns(authorizationState);
 
         // Act
-        var sut = CreateWithFixture<UnlockViewModel>();
+        var sut = CreateUnlockViewModel();
 
         // Assert
         sut.IsConfigured.Should().BeFalse();
@@ -39,7 +39,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
         var authorizationState = new AuthorizationState();
         var authMock = FreezeMock<IAuthorizationService>();
         authMock.SetupGet(x => x.State).Returns(authorizationState);
-        var sut = CreateWithFixture<UnlockViewModel>();
+        var sut = CreateUnlockViewModel();
         using var monitoredSubject = sut.MonitorEvents();
 
         // Act
@@ -61,7 +61,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
         var authorizationState = new AuthorizationState();
         var authMock = FreezeMock<IAuthorizationService>();
         authMock.SetupGet(x => x.State).Returns(authorizationState);
-        var sut = CreateWithFixture<UnlockViewModel>();
+        var sut = CreateUnlockViewModel();
 
         // Assert
         sut.ChoosePasswordCommand.CanExecute(null).Should().BeFalse();
@@ -99,7 +99,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
                 UI.ui_EnableHelloAfterPasswordSetup_Enable,
                 UI.ui_EnableHelloAfterPasswordSetup_NotNow))
             .Returns(true);
-        var sut = CreateWithFixture<UnlockViewModel>();
+        var sut = CreateUnlockViewModel();
         SetupValidPassword(sut.PasswordUnlockVM, "StrongPwd1!", "StrongPwd1!");
 
         // Act
@@ -134,7 +134,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
                 UI.ui_EnableHelloAfterPasswordSetup_Enable,
                 UI.ui_EnableHelloAfterPasswordSetup_NotNow))
             .Returns(false);
-        var sut = CreateWithFixture<UnlockViewModel>();
+        var sut = CreateUnlockViewModel();
         SetupValidPassword(sut.PasswordUnlockVM, "StrongPwd1!", "StrongPwd1!");
 
         // Act
@@ -161,7 +161,7 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
         authMock.Setup(x => x.IsHelloAvailableAsync()).ReturnsAsync(false);
         SetupValidPasswordValidation(FreezeMock<IPasswordValidationService>(), "StrongPwd1!", "StrongPwd1!");
         var messageMock = FreezeMock<IMessageService>();
-        var sut = CreateWithFixture<UnlockViewModel>();
+        var sut = CreateUnlockViewModel();
         SetupValidPassword(sut.PasswordUnlockVM, "StrongPwd1!", "StrongPwd1!");
 
         // Act
@@ -215,6 +215,34 @@ public sealed class UnlockViewModelTests : BaseAutoMockTest
         sut.IsConfigured.Should().BeTrue();
         sut.CurrentGate.Should().BeSameAs(sut.HelloUnlockVM);
         sut.ConfiguredGate.Should().Be(AuthorizationGateKind.Hello);
+    }
+
+    private UnlockViewModel CreateUnlockViewModel()
+    {
+        var auth = FreezeMock<IAuthorizationService>();
+        var validator = FreezeMock<IPasswordValidationService>();
+        validator
+            .Setup(value => value.ValidateRequired(It.IsAny<string?>(), It.IsAny<string>()))
+            .Returns(new PasswordValidationResult());
+        validator
+            .Setup(value => value.ValidateNewWithConfirmation(
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .Returns(new PasswordValidationResult());
+
+        return new UnlockViewModel(
+            auth.Object,
+            new HelloUnlockViewModel(auth.Object),
+            new PasswordUnlockViewModel(
+                auth.Object,
+                validator.Object,
+                Mock.Of<ILogger<PasswordUnlockViewModel>>()),
+            FreezeMock<IPasswordPromptService>().Object,
+            FreezeMock<IMessageService>().Object);
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 1500)

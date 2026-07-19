@@ -20,7 +20,8 @@ public sealed class SignedAppcastVerifier : ISignedAppcastVerifier
             || request.AppcastBytes.Length > MaximumAppcastBytes
             || request.CurrentVersion is null
             || string.IsNullOrWhiteSpace(request.OperatingSystem)
-            || string.IsNullOrWhiteSpace(request.Architecture))
+            || string.IsNullOrWhiteSpace(request.Architecture)
+            || !IsSupportedChannel(request.Channel))
         {
             return new(SignedAppcastCheckStatus.InvalidFormat);
         }
@@ -57,7 +58,8 @@ public sealed class SignedAppcastVerifier : ISignedAppcastVerifier
                     candidate,
                     request.OperatingSystem,
                     request.Architecture,
-                    request.RequireExplicitTarget))
+                    request.RequireExplicitTarget,
+                    request.Channel))
                 .Where(candidate => candidate.Version > request.CurrentVersion)
                 .OrderByDescending(candidate => candidate.Version)
                 .ToArray();
@@ -143,21 +145,31 @@ public sealed class SignedAppcastVerifier : ISignedAppcastVerifier
             BoundReleaseNotes(item.Element("description")?.Value),
             item.Element(Sparkle + "os")?.Value ?? enclosure?.Attribute(Sparkle + "os")?.Value,
             item.Element(Sparkle + "architecture")?.Value
-                ?? enclosure?.Attribute(Sparkle + "architecture")?.Value);
+                ?? enclosure?.Attribute(Sparkle + "architecture")?.Value,
+            item.Element(Sparkle + "channel")?.Value
+                ?? enclosure?.Attribute(Sparkle + "channel")?.Value
+                ?? "stable");
     }
 
     private static bool MatchesTarget(
         AppcastCandidate candidate,
         string operatingSystem,
         string architecture,
-        bool requireExplicitTarget) =>
+        bool requireExplicitTarget,
+        string channel) =>
         (!requireExplicitTarget
          || (!string.IsNullOrWhiteSpace(candidate.OperatingSystem)
              && !string.IsNullOrWhiteSpace(candidate.Architecture)))
         && (string.IsNullOrWhiteSpace(candidate.OperatingSystem)
          || string.Equals(candidate.OperatingSystem, operatingSystem, StringComparison.OrdinalIgnoreCase))
         && (string.IsNullOrWhiteSpace(candidate.Architecture)
-            || string.Equals(candidate.Architecture, architecture, StringComparison.OrdinalIgnoreCase));
+            || string.Equals(candidate.Architecture, architecture, StringComparison.OrdinalIgnoreCase))
+        && IsSupportedChannel(candidate.Channel)
+        && string.Equals(candidate.Channel, channel, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsSupportedChannel(string? channel) =>
+        string.Equals(channel, "stable", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(channel, "rc", StringComparison.OrdinalIgnoreCase);
 
     private static string BoundReleaseNotes(string? releaseNotes)
     {
@@ -176,5 +188,6 @@ public sealed class SignedAppcastVerifier : ISignedAppcastVerifier
         string? ArtifactSignature,
         string ReleaseNotes,
         string? OperatingSystem,
-        string? Architecture);
+        string? Architecture,
+        string Channel);
 }

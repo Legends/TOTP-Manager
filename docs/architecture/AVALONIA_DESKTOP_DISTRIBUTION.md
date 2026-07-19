@@ -42,11 +42,15 @@ Publish the x64 host self-contained on Ubuntu 24.04, then run:
 
 The DEB depends on `libsecret-tools` so the Secret Service capability has a concrete client. If the desktop has no session D-Bus or supported secret collection, the app reports that capability as misconfigured/unavailable and continues with master-password authorization.
 
+Package assembly stamps the DEB with `AutoUpdate:DistributionMode=package-manager`, so the application cannot replace package-manager-owned files. The portable tarball remains `direct`; it may consume only a matching signed `appcast-v2.xml` entry.
+
 ## Release guardrails
 
 - Unsigned CI artifacts are technical evidence only and must never be presented as production releases.
 - Artifact filenames, appcast target OS/architecture, assembly version, bundle/debian version, and Git tag must agree.
 - macOS and Linux packages do not consume the WPF appcast.
+- Avalonia direct packages consume `appcast-v2.xml` and require an explicit OS, architecture, and stable/RC channel match.
+- Every release artifact is recorded in a deterministic manifest with its source commit, byte length, SHA-256, ownership, and update policy.
 - No package may contain authorization envelopes, vaults, logs, user preferences, private keys, certificates, or notarization credentials.
 - Physical acceptance uses the exact retained candidate artifact, not a local development build.
 
