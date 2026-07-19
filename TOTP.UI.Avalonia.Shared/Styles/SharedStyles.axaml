@@ -460,12 +460,12 @@
                         Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                     <Button
                         Name="PART_RevealButton"
-                        automation:AutomationProperties.HelpText="The secret is concealed again when the key or pointer is released."
-                        automation:AutomationProperties.Name="Hold to reveal secret"
+                        automation:AutomationProperties.HelpText="{DynamicResource RevealSecretHelp}"
+                        automation:AutomationProperties.Name="{DynamicResource RevealSecretAutomation}"
                         Grid.Column="1"
                         Margin="8,0,0,0"
-                        Content="Show"
-                        ToolTip.Tip="Hold to reveal" />
+                        Content="{DynamicResource RevealSecret}"
+                        ToolTip.Tip="{DynamicResource RevealSecretAutomation}" />
                 </Grid>
             </ControlTemplate>
         </Setter>
@@ -586,8 +586,32 @@
         <Setter Property="Orientation" Value="Horizontal" />
         <Setter Property="Spacing" Value="8" />
     </Style>
-    <Style Selector="TabControl.settings-tabs TabItem">
-        <Setter Property="FontSize" Value="10" />
-        <Setter Property="Padding" Value="5,6" />
+    <Style Selector="Grid.settings-page TextBlock.page-title">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Grid.settings-page TextBlock.section-title">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,0,2" />
+    </Style>
+    <Style Selector="Grid.settings-page TextBlock.settings-label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Grid.settings-page TextBlock.settings-group-label">
+        <Setter Property="Margin" Value="0,8,0,3" />
+    </Style>
+    <Style Selector="Grid.settings-page TextBlock.secondary">
+        <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="Grid.settings-page TabControl.settings-tabs TabItem">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="7,6" />
+    </Style>
+    <Style Selector="Grid.settings-page TabControl.settings-tabs TabItem:selected">
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextBrand}" />
     </Style>
 </Styles>

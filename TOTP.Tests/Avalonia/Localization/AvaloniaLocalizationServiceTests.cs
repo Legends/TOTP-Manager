@@ -10,12 +10,17 @@ public sealed class AvaloniaLocalizationServiceTests
     {
         var resources = new ResourceDictionary();
         var sut = new AvaloniaLocalizationService(resources, new AvaloniaStringCatalog());
+        var cultureChanged = 0;
+        sut.CultureChanged += (_, _) => cultureChanged++;
 
         sut.ApplyCulture("de-DE");
 
         Assert.Equal("de", sut.CurrentLanguage.CultureName);
         Assert.Equal("Erneut versuchen", resources[AvaloniaStringKeys.Retry]);
         Assert.Equal("Master-Passwort", resources[AvaloniaStringKeys.MasterPassword]);
+        Assert.Equal("Anzeigen", resources[AvaloniaStringKeys.RevealSecret]);
+        Assert.Equal("Vorhandene Konten überspringen", resources[AvaloniaStringKeys.ImportSkipExisting]);
+        Assert.Equal(1, cultureChanged);
     }
 
     [Theory]

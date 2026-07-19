@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using TOTP.Avalonia.Desktop.Localization;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Services.Models;
 
@@ -10,6 +11,7 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly IPortableUpdateService _updates;
     private readonly IUpdateInstallerLauncher _installer;
+    private readonly IAvaloniaLocalizationService _localization;
     private readonly AsyncCommand _checkCommand;
     private readonly AsyncCommand _downloadCommand;
     private readonly AsyncCommand _installCommand;
@@ -17,21 +19,28 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
     private PortableUpdateOffer? _offer;
     private PortableUpdatePackage? _package;
     private CancellationTokenSource? _operationLifetime;
-    private string _message = "Check the configured signed update feed when you are ready.";
+    private string _message = string.Empty;
+    private string _messageKey = AvaloniaStringKeys.UpdateReadyToCheck;
+    private object[] _messageArguments = [];
     private string _version = string.Empty;
     private string _releaseNotes = string.Empty;
     private NotificationSeverity _messageSeverity = NotificationSeverity.Information;
     private int _progressPercentage;
     private bool _isProgressIndeterminate;
+    private bool _isDownloading;
     private bool _isBusy;
     private bool _disposed;
 
     public UpdateCheckViewModel(
         IPortableUpdateService updates,
-        IUpdateInstallerLauncher installer)
+        IUpdateInstallerLauncher installer,
+        IAvaloniaLocalizationService localization)
     {
         _updates = updates ?? throw new ArgumentNullException(nameof(updates));
         _installer = installer ?? throw new ArgumentNullException(nameof(installer));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        _message = LocalizeMessage();
+        _localization.CultureChanged += LocalizationCultureChanged;
         _checkCommand = new AsyncCommand(CheckAsync, () => !_disposed && !IsBusy);
         _downloadCommand = new AsyncCommand(
             DownloadAsync,
@@ -64,6 +73,7 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
         {
             if (!SetField(ref _version, value)) return;
             OnPropertyChanged(nameof(HasOffer));
+            NotifyActionVisibility();
         }
     }
 
@@ -102,6 +112,7 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
         {
             if (!SetField(ref _isBusy, value)) return;
             NotifyCommands();
+            NotifyActionVisibility();
         }
     }
 
@@ -109,6 +120,11 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
     public bool HasReleaseNotes => ReleaseNotes.Length > 0;
     public bool IsInstallReady => _package is not null;
     public bool InstallerSupported => _installer.IsSupported;
+    public bool ShowCheckAction => !IsBusy && !HasOffer && !IsInstallReady;
+    public bool ShowDownloadAction => !IsBusy && HasOffer && !IsInstallReady;
+    public bool ShowInstallAction => !IsBusy && IsInstallReady;
+    public bool ShowCancelAction => IsBusy;
+    public bool IsDownloadInProgress => _isDownloading;
 
     public async Task CheckAsync()
     {
@@ -117,45 +133,40 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
         using var operation = BeginOperation();
         try
         {
-            Message = "Checking the signed update feed…";
-            MessageSeverity = NotificationSeverity.Information;
+            SetMessage(AvaloniaStringKeys.UpdateChecking, NotificationSeverity.Information);
             var result = await _updates.CheckAsync(operation.Token);
             if (result.IsFailed)
             {
-                SetFailure("The signed update feed could not be verified. No download was started.");
+                SetFailure(AvaloniaStringKeys.UpdateFeedVerificationFailed);
                 return;
             }
 
             switch (result.Value.Status)
             {
                 case PortableUpdateCheckStatus.Disabled:
-                    Message = "Automatic updates are disabled or not configured for this package.";
-                    MessageSeverity = NotificationSeverity.Information;
+                    SetMessage(AvaloniaStringKeys.UpdateDisabled, NotificationSeverity.Information);
                     break;
                 case PortableUpdateCheckStatus.NoUpdate:
-                    Message = "No applicable signed update is available.";
-                    MessageSeverity = NotificationSeverity.Success;
+                    SetMessage(AvaloniaStringKeys.UpdateNoneAvailable, NotificationSeverity.Success);
                     break;
                 case PortableUpdateCheckStatus.UpdateAvailable when result.Value.Offer is not null:
                     _offer = result.Value.Offer;
                     Version = result.Value.Offer.Version.ToString();
                     ReleaseNotes = result.Value.Offer.ReleaseNotes;
-                    Message = $"Signed update {Version} is available. Download starts only when you choose Download.";
-                    MessageSeverity = NotificationSeverity.Success;
+                    SetMessage(AvaloniaStringKeys.UpdateAvailable, NotificationSeverity.Success, Version);
                     break;
                 default:
-                    SetFailure("The update response was incomplete. No download was started.");
+                    SetFailure(AvaloniaStringKeys.UpdateResponseIncomplete);
                     break;
             }
         }
         catch (OperationCanceledException) when (operation.IsCancellationRequested)
         {
-            Message = "Update check cancelled.";
-            MessageSeverity = NotificationSeverity.Information;
+            SetMessage(AvaloniaStringKeys.UpdateCheckCancelled, NotificationSeverity.Information);
         }
         catch (Exception)
         {
-            SetFailure("The update check failed safely. No download was started.");
+            SetFailure(AvaloniaStringKeys.UpdateCheckFailed);
         }
     }
 
@@ -164,13 +175,15 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
         if (_disposed || IsBusy || _offer is null) return;
         _package = null;
         OnPropertyChanged(nameof(IsInstallReady));
+        NotifyActionVisibility();
         using var operation = BeginOperation();
+        _isDownloading = true;
+        OnPropertyChanged(nameof(IsDownloadInProgress));
         ProgressPercentage = 0;
         IsProgressIndeterminate = true;
         try
         {
-            Message = "Downloading and verifying the signed update package…";
-            MessageSeverity = NotificationSeverity.Information;
+            SetMessage(AvaloniaStringKeys.UpdateDownloading, NotificationSeverity.Information);
             var progress = new Progress<PortableUpdateDownloadProgress>(value =>
             {
                 IsProgressIndeterminate = value.Percentage is null;
@@ -179,7 +192,7 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
             var result = await _updates.DownloadAsync(_offer, progress, operation.Token);
             if (result.IsFailed)
             {
-                SetFailure("The update package failed download or signature verification and cannot be installed.");
+                SetFailure(AvaloniaStringKeys.UpdatePackageVerificationFailed);
                 return;
             }
 
@@ -187,25 +200,28 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
             ProgressPercentage = 100;
             IsProgressIndeterminate = false;
             OnPropertyChanged(nameof(IsInstallReady));
+            NotifyActionVisibility();
             _installCommand.NotifyCanExecuteChanged();
-            Message = _installer.IsSupported
-                ? "The signed update package is verified and ready to install."
-                : "The signed update package is verified, but this desktop package has no supported installer adapter.";
-            MessageSeverity = _installer.IsSupported
-                ? NotificationSeverity.Success
-                : NotificationSeverity.Warning;
+            SetMessage(
+                _installer.IsSupported
+                    ? AvaloniaStringKeys.UpdateReadyToInstall
+                    : AvaloniaStringKeys.UpdateInstallerUnsupported,
+                _installer.IsSupported
+                    ? NotificationSeverity.Success
+                    : NotificationSeverity.Warning);
         }
         catch (OperationCanceledException) when (operation.IsCancellationRequested)
         {
-            Message = "Update download cancelled. The partial package was discarded.";
-            MessageSeverity = NotificationSeverity.Information;
+            SetMessage(AvaloniaStringKeys.UpdateDownloadCancelled, NotificationSeverity.Information);
         }
         catch (Exception)
         {
-            SetFailure("The update download failed safely. An incomplete package cannot be installed.");
+            SetFailure(AvaloniaStringKeys.UpdateDownloadFailed);
         }
         finally
         {
+            _isDownloading = false;
+            OnPropertyChanged(nameof(IsDownloadInProgress));
             IsProgressIndeterminate = false;
         }
     }
@@ -219,22 +235,19 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
             var result = await _installer.LaunchAsync(_package, operation.Token);
             if (result.IsFailed)
             {
-                Message = "The verified update is ready, but the platform installer could not be started.";
-                MessageSeverity = NotificationSeverity.Error;
+                SetMessage(AvaloniaStringKeys.UpdateInstallerStartFailed, NotificationSeverity.Error);
                 return;
             }
 
-            Message = "The platform installer was started. Follow its prompts to complete the update.";
-            MessageSeverity = NotificationSeverity.Success;
+            SetMessage(AvaloniaStringKeys.UpdateInstallerStarted, NotificationSeverity.Success);
         }
         catch (OperationCanceledException) when (operation.IsCancellationRequested)
         {
-            Message = "Update installation cancelled.";
-            MessageSeverity = NotificationSeverity.Information;
+            SetMessage(AvaloniaStringKeys.UpdateInstallCancelled, NotificationSeverity.Information);
         }
         catch (Exception)
         {
-            SetFailure("The platform installer failed to start safely.");
+            SetFailure(AvaloniaStringKeys.UpdateInstallerFailedSafely);
         }
     }
 
@@ -248,6 +261,7 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _localization.CultureChanged -= LocalizationCultureChanged;
         _operationLifetime?.Cancel();
         _operationLifetime?.Dispose();
         _operationLifetime = null;
@@ -279,15 +293,36 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
         ReleaseNotes = string.Empty;
         ProgressPercentage = 0;
         IsProgressIndeterminate = false;
+        _isDownloading = false;
+        OnPropertyChanged(nameof(IsDownloadInProgress));
         OnPropertyChanged(nameof(IsInstallReady));
+        NotifyActionVisibility();
         NotifyCommands();
     }
 
-    private void SetFailure(string message)
+    private void SetFailure(string key)
     {
-        Message = message;
-        MessageSeverity = NotificationSeverity.Error;
+        SetMessage(key, NotificationSeverity.Error);
     }
+
+    private void SetMessage(string key, NotificationSeverity severity, params object[] arguments)
+    {
+        _messageKey = key;
+        _messageArguments = arguments;
+        Message = LocalizeMessage();
+        MessageSeverity = severity;
+    }
+
+    private string LocalizeMessage()
+    {
+        var template = _localization.GetString(_messageKey);
+        return _messageArguments.Length == 0
+            ? template
+            : string.Format(template, _messageArguments);
+    }
+
+    private void LocalizationCultureChanged(object? sender, EventArgs e) =>
+        Message = LocalizeMessage();
 
     private void NotifyCommands()
     {
@@ -295,6 +330,15 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
         _downloadCommand.NotifyCanExecuteChanged();
         _installCommand.NotifyCanExecuteChanged();
         _cancelCommand.NotifyCanExecuteChanged();
+    }
+
+    private void NotifyActionVisibility()
+    {
+        OnPropertyChanged(nameof(ShowCheckAction));
+        OnPropertyChanged(nameof(ShowDownloadAction));
+        OnPropertyChanged(nameof(ShowInstallAction));
+        OnPropertyChanged(nameof(ShowCancelAction));
+        OnPropertyChanged(nameof(IsDownloadInProgress));
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

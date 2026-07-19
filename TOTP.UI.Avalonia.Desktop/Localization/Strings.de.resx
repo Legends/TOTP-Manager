@@ -24,6 +24,7 @@
   <data name="QuickUnlockAvailable" xml:space="preserve"><value>Die Schnellentsperrung ist auf diesem System verfügbar.</value></data>
   <data name="QuickUnlockUnavailable" xml:space="preserve"><value>Die Schnellentsperrung ist auf diesem System nicht verfügbar. Das Entsperren mit Master-Passwort bleibt verfügbar.</value></data>
   <data name="EnableQuickUnlock" xml:space="preserve"><value>Schnellentsperrung aktivieren</value></data>
+  <data name="QuickUnlockAtStartup" xml:space="preserve"><value>Schnellentsperrung beim Start</value></data>
   <data name="QuickUnlockRecoveryPrompt" xml:space="preserve"><value>Gib dein Master-Passwort ein, um den Wiederherstellungszugriff vor der Aktivierung der Plattform-Schnellentsperrung zu bestätigen.</value></data>
   <data name="QuickUnlockEnrollmentCancelled" xml:space="preserve"><value>Die Schnellentsperrung wurde nicht aktiviert. Das Entsperren mit Master-Passwort bleibt unverändert.</value></data>
   <data name="QuickUnlockEnrollmentFailed" xml:space="preserve"><value>Die Schnellentsperrung konnte nicht aktiviert werden. Das Entsperren mit Master-Passwort bleibt verfügbar.</value></data>
@@ -99,12 +100,16 @@
   <data name="ChooseImportFile" xml:space="preserve"><value>Importdatei auswählen…</value></data>
   <data name="ExportEncryptedBackup" xml:space="preserve"><value>Verschlüsselte Sicherung exportieren…</value></data>
   <data name="ImportConflictHandling" xml:space="preserve"><value>Behandlung von Importkonflikten</value></data>
+  <data name="ImportAccounts" xml:space="preserve"><value>Konten importieren</value></data>
+  <data name="EncryptedBackup" xml:space="preserve"><value>Verschlüsselte Sicherung</value></data>
+  <data name="EncryptedBackupHelp" xml:space="preserve"><value>Erstellen Sie eine portable, passwortgeschützte Sicherung aller Konten.</value></data>
   <data name="SupportDiagnostics" xml:space="preserve"><value>Support-Diagnose</value></data>
   <data name="RefreshSupportInformation" xml:space="preserve"><value>Support-Informationen aktualisieren</value></data>
   <data name="DownloadUpdate" xml:space="preserve"><value>Update herunterladen</value></data>
   <data name="InstallUpdate" xml:space="preserve"><value>Update installieren</value></data>
   <data name="ReleaseNotes" xml:space="preserve"><value>Versionshinweise</value></data>
-  <data name="VerifyAppcast" xml:space="preserve"><value>Signierten Test-Appcast prüfen</value></data>
+  <data name="VerifyAppcast" xml:space="preserve"><value>Nach Updates suchen</value></data>
+  <data name="SoftwareUpdates" xml:space="preserve"><value>Softwareupdates</value></data>
   <data name="ScanQrCamera" xml:space="preserve"><value>QR-Code mit Kamera scannen</value></data>
   <data name="CancelScan" xml:space="preserve"><value>Scan abbrechen</value></data>
   <data name="SecuritySettings" xml:space="preserve"><value>Sicherheitseinstellungen</value></data>
@@ -147,4 +152,30 @@
   <data name="PasswordSetupFailed" xml:space="preserve"><value>Der geschützte Tresor konnte nicht sicher erstellt werden. Vorhandene Daten wurden nicht ersetzt.</value></data>
   <data name="ExistingVaultConflict" xml:space="preserve"><value>Vorhandene Tresordaten wurden gefunden und nicht ersetzt. Verwenden Sie Wiederherstellung oder Migration, bevor Sie einen neuen Tresor erstellen.</value></data>
   <data name="VaultConfigured" xml:space="preserve"><value>Ihr geschützter Tresor ist bereit.</value></data>
+  <data name="RevealSecret" xml:space="preserve"><value>Anzeigen</value></data>
+  <data name="RevealSecretHelp" xml:space="preserve"><value>Das Geheimnis wird wieder verborgen, sobald die Taste oder der Mauszeiger losgelassen wird.</value></data>
+  <data name="RevealSecretAutomation" xml:space="preserve"><value>Zum Anzeigen des Geheimnisses gedrückt halten</value></data>
+  <data name="ImportSkipExisting" xml:space="preserve"><value>Vorhandene Konten überspringen</value></data>
+  <data name="ImportReplaceExisting" xml:space="preserve"><value>Vorhandene Konten ersetzen</value></data>
+  <data name="ImportKeepBoth" xml:space="preserve"><value>Beide Konten behalten</value></data>
+  <data name="NoImportFileSelected" xml:space="preserve"><value>Keine Importdatei ausgewählt.</value></data>
+  <data name="UpdateReadyToCheck" xml:space="preserve"><value>Prüfen Sie den konfigurierten signierten Update-Feed, wenn Sie bereit sind.</value></data>
+  <data name="UpdateChecking" xml:space="preserve"><value>Der signierte Update-Feed wird geprüft…</value></data>
+  <data name="UpdateFeedVerificationFailed" xml:space="preserve"><value>Der signierte Update-Feed konnte nicht verifiziert werden. Es wurde kein Download gestartet.</value></data>
+  <data name="UpdateDisabled" xml:space="preserve"><value>Automatische Updates sind deaktiviert oder für dieses Paket nicht konfiguriert.</value></data>
+  <data name="UpdateNoneAvailable" xml:space="preserve"><value>Es ist kein passendes signiertes Update verfügbar.</value></data>
+  <data name="UpdateAvailable" xml:space="preserve"><value>Das signierte Update {0} ist verfügbar. Der Download startet erst, wenn Sie „Herunterladen“ auswählen.</value></data>
+  <data name="UpdateResponseIncomplete" xml:space="preserve"><value>Die Update-Antwort war unvollständig. Es wurde kein Download gestartet.</value></data>
+  <data name="UpdateCheckCancelled" xml:space="preserve"><value>Die Update-Prüfung wurde abgebrochen.</value></data>
+  <data name="UpdateCheckFailed" xml:space="preserve"><value>Die Update-Prüfung ist sicher fehlgeschlagen. Es wurde kein Download gestartet.</value></data>
+  <data name="UpdateDownloading" xml:space="preserve"><value>Das signierte Update-Paket wird heruntergeladen und verifiziert…</value></data>
+  <data name="UpdatePackageVerificationFailed" xml:space="preserve"><value>Das Update-Paket konnte nicht heruntergeladen oder verifiziert werden und kann nicht installiert werden.</value></data>
+  <data name="UpdateReadyToInstall" xml:space="preserve"><value>Das signierte Update-Paket wurde verifiziert und kann installiert werden.</value></data>
+  <data name="UpdateInstallerUnsupported" xml:space="preserve"><value>Das signierte Update-Paket wurde verifiziert, aber dieses Desktop-Paket besitzt keinen unterstützten Installer-Adapter.</value></data>
+  <data name="UpdateDownloadCancelled" xml:space="preserve"><value>Der Update-Download wurde abgebrochen. Das unvollständige Paket wurde verworfen.</value></data>
+  <data name="UpdateDownloadFailed" xml:space="preserve"><value>Der Update-Download ist sicher fehlgeschlagen. Ein unvollständiges Paket kann nicht installiert werden.</value></data>
+  <data name="UpdateInstallerStartFailed" xml:space="preserve"><value>Das verifizierte Update ist bereit, aber der Plattform-Installer konnte nicht gestartet werden.</value></data>
+  <data name="UpdateInstallerStarted" xml:space="preserve"><value>Der Plattform-Installer wurde gestartet. Folgen Sie seinen Anweisungen, um das Update abzuschließen.</value></data>
+  <data name="UpdateInstallCancelled" xml:space="preserve"><value>Die Update-Installation wurde abgebrochen.</value></data>
+  <data name="UpdateInstallerFailedSafely" xml:space="preserve"><value>Der Plattform-Installer konnte nicht sicher gestartet werden.</value></data>
 </root>

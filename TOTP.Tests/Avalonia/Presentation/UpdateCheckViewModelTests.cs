@@ -1,5 +1,7 @@
 using FluentResults;
+using Avalonia.Controls;
 using Moq;
+using TOTP.Avalonia.Desktop.Localization;
 using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Services.Models;
@@ -8,6 +10,23 @@ namespace TOTP.Tests.Avalonia.Presentation;
 
 public sealed class UpdateCheckViewModelTests
 {
+    [Fact]
+    public void Constructor_WhenGermanIsActive_UsesLocalizedReadyMessage()
+    {
+        var localization = new AvaloniaLocalizationService(
+            new ResourceDictionary(),
+            new AvaloniaStringCatalog());
+        localization.ApplyCulture("de");
+        using var sut = new UpdateCheckViewModel(
+            Mock.Of<IPortableUpdateService>(),
+            Mock.Of<IUpdateInstallerLauncher>(),
+            localization);
+
+        Assert.Equal(
+            "Prüfen Sie den konfigurierten signierten Update-Feed, wenn Sie bereit sind.",
+            sut.Message);
+    }
+
     [Fact]
     public async Task CheckAsync_WhenSignedOfferAvailable_ShowsVersionAndReleaseNotesWithoutDownloading()
     {
@@ -19,11 +38,17 @@ public sealed class UpdateCheckViewModelTests
                 offer)));
         using var sut = new UpdateCheckViewModel(
             updates.Object,
-            Mock.Of<IUpdateInstallerLauncher>());
+            Mock.Of<IUpdateInstallerLauncher>(),
+            Localization());
+
+        Assert.True(sut.ShowCheckAction);
+        Assert.False(sut.ShowDownloadAction);
 
         await sut.CheckAsync();
 
         Assert.Equal("9.0.0", sut.Version);
+        Assert.False(sut.ShowCheckAction);
+        Assert.True(sut.ShowDownloadAction);
         Assert.Equal("Security and reliability improvements.", sut.ReleaseNotes);
         Assert.Contains("Download starts only", sut.Message, StringComparison.OrdinalIgnoreCase);
         updates.Verify(value => value.DownloadAsync(
@@ -50,12 +75,14 @@ public sealed class UpdateCheckViewModelTests
             .ReturnsAsync(Result.Ok(package));
         var installer = new Mock<IUpdateInstallerLauncher>();
         installer.SetupGet(value => value.IsSupported).Returns(true);
-        using var sut = new UpdateCheckViewModel(updates.Object, installer.Object);
+        using var sut = new UpdateCheckViewModel(updates.Object, installer.Object, Localization());
         await sut.CheckAsync();
 
         await sut.DownloadAsync();
 
         Assert.True(sut.IsInstallReady);
+        Assert.False(sut.ShowDownloadAction);
+        Assert.True(sut.ShowInstallAction);
         Assert.Equal(100, sut.ProgressPercentage);
         Assert.Equal(NotificationSeverity.Success, sut.MessageSeverity);
     }
@@ -80,7 +107,7 @@ public sealed class UpdateCheckViewModelTests
         installer.SetupGet(value => value.IsSupported).Returns(true);
         installer.Setup(value => value.LaunchAsync(package, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Fail("sensitive installer detail"));
-        using var sut = new UpdateCheckViewModel(updates.Object, installer.Object);
+        using var sut = new UpdateCheckViewModel(updates.Object, installer.Object, Localization());
         await sut.CheckAsync();
         await sut.DownloadAsync();
 
@@ -98,7 +125,8 @@ public sealed class UpdateCheckViewModelTests
             .ReturnsAsync(Result.Fail<PortableUpdateCheckResult>("signature detail"));
         using var sut = new UpdateCheckViewModel(
             updates.Object,
-            Mock.Of<IUpdateInstallerLauncher>());
+            Mock.Of<IUpdateInstallerLauncher>(),
+            Localization());
 
         await sut.CheckAsync();
 
@@ -112,4 +140,14 @@ public sealed class UpdateCheckViewModelTests
         new Uri("https://example.invalid/update.zip"),
         Convert.ToBase64String(new byte[64]),
         "Security and reliability improvements.");
+
+    private static IAvaloniaLocalizationService Localization()
+    {
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        localization.Setup(value => value.GetString(It.IsAny<string>()))
+            .Returns((string key) => key == AvaloniaStringKeys.UpdateAvailable
+                ? "Signed update {0} is available. Download starts only when you choose Download."
+                : key);
+        return localization.Object;
+    }
 }

@@ -26,6 +26,22 @@ public sealed class AuthorizationSettingsViewModelTests
         Assert.True(sut.IsQuickUnlockAvailable);
         Assert.True(sut.IsQuickUnlockEnabled);
         Assert.Equal(AvaloniaStringKeys.QuickUnlockAvailable, sut.Message);
+        Assert.False(sut.ShowQuickUnlockRetry);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_WhenAvailabilityCheckThrows_OffersTargetedRetry()
+    {
+        var authorization = Authorization(ConfiguredState(PreferredUnlockMethod.Password));
+        authorization.Setup(value => value.IsHelloAvailableAsync())
+            .ThrowsAsync(new InvalidOperationException("synthetic platform failure"));
+        var sut = CreateSut(authorization.Object, Mock.Of<IAvaloniaDialogService>());
+
+        await sut.RefreshAsync();
+
+        Assert.False(sut.IsQuickUnlockAvailable);
+        Assert.True(sut.ShowQuickUnlockRetry);
+        Assert.Equal(AvaloniaStringKeys.QuickUnlockUnavailable, sut.Message);
     }
 
     [Fact]
@@ -154,6 +170,30 @@ public sealed class AuthorizationSettingsViewModelTests
             It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         Assert.Equal(string.Empty, sut.NewPassword);
         Assert.Equal(string.Empty, sut.ConfirmPassword);
+    }
+
+    [Fact]
+    public async Task CultureChanged_RelocalizesCurrentStatusMessage()
+    {
+        var authorization = Authorization(ConfiguredState(PreferredUnlockMethod.Password));
+        authorization.Setup(value => value.IsHelloAvailableAsync()).ReturnsAsync(true);
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        var german = false;
+        localization.Setup(value => value.GetString(AvaloniaStringKeys.QuickUnlockAvailable))
+            .Returns(() => german ? "Schnellentsperrung ist verfügbar." : "Quick unlock is available.");
+        var validation = new Mock<IPasswordValidationService>();
+        validation.SetupGet(value => value.MinimumLength).Returns(8);
+        var sut = new AuthorizationSettingsViewModel(
+            authorization.Object,
+            Mock.Of<IAvaloniaDialogService>(),
+            localization.Object,
+            validation.Object);
+        await sut.RefreshAsync();
+
+        german = true;
+        localization.Raise(value => value.CultureChanged += null, EventArgs.Empty);
+
+        Assert.Equal("Schnellentsperrung ist verfügbar.", sut.Message);
     }
 
     private static AuthorizationSettingsViewModel CreateSut(

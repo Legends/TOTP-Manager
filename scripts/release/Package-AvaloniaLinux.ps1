@@ -13,6 +13,20 @@ param(
 
 $ErrorActionPreference = "Stop"
 if (-not $IsLinux) { throw "The Linux packages must be assembled on Linux." }
+
+function Write-Utf8FileWithFinalNewline {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Content
+    )
+
+    $terminatedContent = $Content.TrimEnd([char[]]"`r`n") + "`n"
+    [IO.File]::WriteAllText($Path, $terminatedContent, [Text.UTF8Encoding]::new($false))
+}
+
 if ($ReleaseVersion -notmatch '^(?<base>\d+\.\d+\.\d+)(?:-rc(?<rc>\d+))?$') {
     throw "ReleaseVersion must match <major>.<minor>.<patch>[-rc<nr>]."
 }
@@ -80,14 +94,14 @@ Depends: $($dependencies -join ', ')
 Description: Local-first desktop TOTP authenticator
  A local-first Avalonia desktop authenticator with encrypted local storage.
 "@
-[IO.File]::WriteAllText((Join-Path $debControl "control"), $control, [Text.UTF8Encoding]::new($false))
+Write-Utf8FileWithFinalNewline -Path (Join-Path $debControl "control") -Content $control
 
 $launcher = @'
 #!/bin/sh
 exec /opt/totp-manager/TOTP.UI.Avalonia.Desktop "$@"
 '@
 $launcherPath = Join-Path $debBin "totp-manager"
-[IO.File]::WriteAllText($launcherPath, $launcher, [Text.UTF8Encoding]::new($false))
+Write-Utf8FileWithFinalNewline -Path $launcherPath -Content $launcher
 & chmod "+x" $launcherPath
 if ($LASTEXITCODE -ne 0) { throw "Could not mark the Linux launcher executable." }
 
@@ -108,10 +122,9 @@ Terminal=false
 Categories=Utility;Security;
 StartupWMClass=TOTP Manager
 "@
-[IO.File]::WriteAllText(
-    (Join-Path $debDesktop "io.github.legends.totpmanager.desktop"),
-    $desktopEntry,
-    [Text.UTF8Encoding]::new($false))
+Write-Utf8FileWithFinalNewline `
+    -Path (Join-Path $debDesktop "io.github.legends.totpmanager.desktop") `
+    -Content $desktopEntry
 
 $debPath = Join-Path $resolvedOutput "totp-manager_${debianVersion}_amd64.deb"
 & dpkg-deb --root-owner-group --build $debRoot $debPath

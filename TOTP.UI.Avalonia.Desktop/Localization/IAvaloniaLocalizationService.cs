@@ -4,6 +4,7 @@ namespace TOTP.Avalonia.Desktop.Localization;
 
 public interface IAvaloniaLocalizationService
 {
+    event EventHandler? CultureChanged;
     IReadOnlyList<LanguageOption> SupportedLanguages { get; }
     LanguageOption CurrentLanguage { get; }
     void ApplyCulture(string cultureName);

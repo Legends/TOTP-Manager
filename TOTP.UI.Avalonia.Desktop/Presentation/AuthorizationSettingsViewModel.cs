@@ -23,7 +23,9 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
     private bool _isBusy;
     private bool _isQuickUnlockAvailable;
     private bool _isQuickUnlockEnabled;
+    private bool _showQuickUnlockRetry;
     private string _message = string.Empty;
+    private string? _messageKey;
     private NotificationSeverity _messageSeverity = NotificationSeverity.Information;
     private string _newPassword = string.Empty;
     private string _confirmPassword = string.Empty;
@@ -37,14 +39,15 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
         _authorization = authorization ?? throw new ArgumentNullException(nameof(authorization));
         _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        _localization.CultureChanged += LocalizationCultureChanged;
         _passwordValidation = passwordValidation ?? throw new ArgumentNullException(nameof(passwordValidation));
         _refreshCommand = new AsyncCommand(RefreshAsync, () => !IsBusy);
         _enableQuickUnlockCommand = new AsyncCommand(
             EnableQuickUnlockAsync,
-            () => !IsBusy && IsQuickUnlockAvailable && !IsQuickUnlockEnabled);
+            () => !IsBusy && IsQuickUnlockAvailable);
         _usePasswordCommand = new AsyncCommand(
             UsePasswordAsync,
-            () => !IsBusy && IsQuickUnlockEnabled);
+            () => !IsBusy);
         _changePasswordCommand = new AsyncCommand(ChangePasswordAsync, () => !IsBusy);
     }
 
@@ -106,6 +109,12 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool ShowQuickUnlockRetry
+    {
+        get => _showQuickUnlockRetry;
+        private set => SetField(ref _showQuickUnlockRetry, value);
+    }
+
     public string Message
     {
         get => _message;
@@ -122,6 +131,7 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
     {
         if (IsBusy) return;
         IsBusy = true;
+        ShowQuickUnlockRetry = false;
         try
         {
             IsQuickUnlockEnabled = IsQuickUnlockPreferred();
@@ -137,6 +147,7 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
         catch (Exception)
         {
             IsQuickUnlockAvailable = false;
+            ShowQuickUnlockRetry = true;
             SetMessage(AvaloniaStringKeys.QuickUnlockUnavailable, NotificationSeverity.Warning);
         }
         finally
@@ -186,6 +197,7 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
         {
             recoveryPassword = null;
             IsBusy = false;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsQuickUnlockEnabled)));
         }
     }
 
@@ -221,6 +233,7 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
         {
             verifiedPassword = null;
             IsBusy = false;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsQuickUnlockEnabled)));
         }
     }
 
@@ -326,8 +339,15 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
 
     private void SetMessage(string key, NotificationSeverity severity)
     {
+        _messageKey = key;
         Message = _localization.GetString(key);
         MessageSeverity = severity;
+    }
+
+    private void LocalizationCultureChanged(object? sender, EventArgs e)
+    {
+        if (_messageKey is not null)
+            Message = _localization.GetString(_messageKey);
     }
 
     private void NotifyCommands()

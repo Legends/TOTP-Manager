@@ -472,7 +472,8 @@ public sealed class MainWindowViewModelTests
             validation.Object,
             Mock.Of<IPlatformFileSecurity>(),
             settings.Object,
-            Mock.Of<IPlatformFolderLauncher>());
+            Mock.Of<IPlatformFolderLauncher>(),
+            CreateLocalization());
     }
 
     private static CameraScannerViewModel CreateCameraScanner() =>
@@ -487,7 +488,10 @@ public sealed class MainWindowViewModelTests
             CreateLocalization());
 
     private static UpdateCheckViewModel CreateUpdateCheck() =>
-        new(Mock.Of<IPortableUpdateService>(), Mock.Of<IUpdateInstallerLauncher>());
+        new(
+            Mock.Of<IPortableUpdateService>(),
+            Mock.Of<IUpdateInstallerLauncher>(),
+            CreateLocalization());
 
     private static DiagnosticsViewModel CreateDiagnostics() =>
         new(Mock.Of<ISupportDiagnosticsService>());

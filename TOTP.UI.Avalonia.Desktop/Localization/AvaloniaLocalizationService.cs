@@ -31,6 +31,8 @@ public sealed class AvaloniaLocalizationService : IAvaloniaLocalizationService
 
     public IReadOnlyList<LanguageOption> SupportedLanguages { get; }
 
+    public event EventHandler? CultureChanged;
+
     public LanguageOption CurrentLanguage { get; private set; }
 
     public void ApplyCulture(string cultureName)
@@ -42,6 +44,7 @@ public sealed class AvaloniaLocalizationService : IAvaloniaLocalizationService
         var resourceCulture = CultureInfo.GetCultureInfo(CurrentLanguage.CultureName);
         foreach (var key in AvaloniaStringKeys.All)
             _resources[key] = _catalog.Get(key, resourceCulture);
+        CultureChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public string GetString(string key) =>

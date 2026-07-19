@@ -308,6 +308,16 @@ public sealed class MainWindowSmokeTests
             Assert.NotEmpty(window.GetVisualDescendants().OfType<ScrollViewer>());
             Assert.Single(window.GetVisualDescendants().OfType<TabControl>());
             Assert.Equal(4, window.GetVisualDescendants().OfType<TabItem>().Count());
+            var settingsTabs = window.GetVisualDescendants()
+                .OfType<TabControl>()
+                .Single(tabControl => tabControl.Classes.Contains("settings-tabs"));
+            Assert.All(
+                settingsTabs.GetVisualDescendants().OfType<TabItem>(),
+                tabItem =>
+                {
+                    Assert.Equal(11, tabItem.FontSize);
+                    Assert.Equal(FontWeight.SemiBold, tabItem.FontWeight);
+                });
             Assert.True(AssetLoader.Exists(new Uri(
                 "avares://TOTP.UI.Avalonia.Desktop/Assets/flags/en.png")));
             Assert.True(AssetLoader.Exists(new Uri(

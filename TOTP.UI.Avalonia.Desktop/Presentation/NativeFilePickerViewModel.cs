@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using FluentResults;
+using TOTP.Avalonia.Desktop.Localization;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation.Dialogs;
 using TOTP.Core.Common;
@@ -23,6 +24,7 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
     private readonly IPlatformFileSecurity _fileSecurity;
     private readonly ISettingsService _settings;
     private readonly IPlatformFolderLauncher _folderLauncher;
+    private readonly IAvaloniaLocalizationService _localization;
     private readonly AsyncCommand _importCommand;
     private readonly AsyncCommand _exportCommand;
     private string _message = string.Empty;
@@ -39,7 +41,8 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
         IPasswordValidationService passwordValidation,
         IPlatformFileSecurity fileSecurity,
         ISettingsService settings,
-        IPlatformFolderLauncher folderLauncher)
+        IPlatformFolderLauncher folderLauncher,
+        IAvaloniaLocalizationService localization)
     {
         _filePicker = filePicker ?? throw new ArgumentNullException(nameof(filePicker));
         _exportService = exportService ?? throw new ArgumentNullException(nameof(exportService));
@@ -50,7 +53,10 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
         _fileSecurity = fileSecurity ?? throw new ArgumentNullException(nameof(fileSecurity));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _folderLauncher = folderLauncher ?? throw new ArgumentNullException(nameof(folderLauncher));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        ConflictStrategies = CreateConflictStrategies();
         _selectedConflictStrategyOption = ConflictStrategies[0];
+        _localization.CultureChanged += LocalizationCultureChanged;
         _importCommand = new AsyncCommand(ImportAsync, () => !_isBusy);
         _exportCommand = new AsyncCommand(ExportEncryptedAsync, () => !_isBusy);
     }
@@ -58,12 +64,7 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler? AccountsChanged;
 
-    public IReadOnlyList<ImportStrategyOption> ConflictStrategies { get; } =
-    [
-        new(ImportConflictStrategy.SkipExisting, "Skip existing accounts"),
-        new(ImportConflictStrategy.ReplaceExisting, "Replace existing accounts"),
-        new(ImportConflictStrategy.KeepBoth, "Keep both accounts")
-    ];
+    public IReadOnlyList<ImportStrategyOption> ConflictStrategies { get; private set; }
 
     public ImportConflictStrategy ConflictStrategy
     {
@@ -98,7 +99,7 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
             await using var file = await _filePicker.PickImportFileAsync();
             if (file is null)
             {
-                Message = "No import file selected.";
+                Message = _localization.GetString(AvaloniaStringKeys.NoImportFileSelected);
                 return;
             }
 
@@ -311,6 +312,21 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
     private string StrategyLabel(ImportConflictStrategy strategy) =>
         ConflictStrategies.First(option => option.Strategy == strategy).Label;
 
+    private IReadOnlyList<ImportStrategyOption> CreateConflictStrategies() =>
+    [
+        new(ImportConflictStrategy.SkipExisting, _localization.GetString(AvaloniaStringKeys.ImportSkipExisting)),
+        new(ImportConflictStrategy.ReplaceExisting, _localization.GetString(AvaloniaStringKeys.ImportReplaceExisting)),
+        new(ImportConflictStrategy.KeepBoth, _localization.GetString(AvaloniaStringKeys.ImportKeepBoth))
+    ];
+
+    private void LocalizationCultureChanged(object? sender, EventArgs e)
+    {
+        var selectedStrategy = ConflictStrategy;
+        ConflictStrategies = CreateConflictStrategies();
+        OnPropertyChanged(nameof(ConflictStrategies));
+        SelectedConflictStrategyOption = ConflictStrategies.First(option => option.Strategy == selectedStrategy);
+    }
+
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return false;
@@ -318,6 +334,9 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
     }
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
     public sealed record ImportStrategyOption(ImportConflictStrategy Strategy, string Label);
 

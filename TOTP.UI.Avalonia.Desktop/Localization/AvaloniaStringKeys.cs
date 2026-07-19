@@ -16,12 +16,16 @@ public static class AvaloniaStringKeys
     public const string ChooseImportFile = nameof(ChooseImportFile);
     public const string ExportEncryptedBackup = nameof(ExportEncryptedBackup);
     public const string ImportConflictHandling = nameof(ImportConflictHandling);
+    public const string ImportAccounts = nameof(ImportAccounts);
+    public const string EncryptedBackup = nameof(EncryptedBackup);
+    public const string EncryptedBackupHelp = nameof(EncryptedBackupHelp);
     public const string SupportDiagnostics = nameof(SupportDiagnostics);
     public const string RefreshSupportInformation = nameof(RefreshSupportInformation);
     public const string DownloadUpdate = nameof(DownloadUpdate);
     public const string InstallUpdate = nameof(InstallUpdate);
     public const string ReleaseNotes = nameof(ReleaseNotes);
     public const string VerifyAppcast = nameof(VerifyAppcast);
+    public const string SoftwareUpdates = nameof(SoftwareUpdates);
     public const string ScanQrCamera = nameof(ScanQrCamera);
     public const string CancelScan = nameof(CancelScan);
     public const string SecuritySettings = nameof(SecuritySettings);
@@ -77,6 +81,7 @@ public static class AvaloniaStringKeys
     public const string QuickUnlockAvailable = nameof(QuickUnlockAvailable);
     public const string QuickUnlockUnavailable = nameof(QuickUnlockUnavailable);
     public const string EnableQuickUnlock = nameof(EnableQuickUnlock);
+    public const string QuickUnlockAtStartup = nameof(QuickUnlockAtStartup);
     public const string QuickUnlockRecoveryPrompt = nameof(QuickUnlockRecoveryPrompt);
     public const string QuickUnlockEnrollmentCancelled = nameof(QuickUnlockEnrollmentCancelled);
     public const string QuickUnlockEnrollmentFailed = nameof(QuickUnlockEnrollmentFailed);
@@ -142,6 +147,32 @@ public static class AvaloniaStringKeys
     public const string HideSecretsDefault = nameof(HideSecretsDefault);
     public const string LoggingLevel = nameof(LoggingLevel);
     public const string ClipboardCopyDisabled = nameof(ClipboardCopyDisabled);
+    public const string RevealSecret = nameof(RevealSecret);
+    public const string RevealSecretHelp = nameof(RevealSecretHelp);
+    public const string RevealSecretAutomation = nameof(RevealSecretAutomation);
+    public const string ImportSkipExisting = nameof(ImportSkipExisting);
+    public const string ImportReplaceExisting = nameof(ImportReplaceExisting);
+    public const string ImportKeepBoth = nameof(ImportKeepBoth);
+    public const string NoImportFileSelected = nameof(NoImportFileSelected);
+    public const string UpdateReadyToCheck = nameof(UpdateReadyToCheck);
+    public const string UpdateChecking = nameof(UpdateChecking);
+    public const string UpdateFeedVerificationFailed = nameof(UpdateFeedVerificationFailed);
+    public const string UpdateDisabled = nameof(UpdateDisabled);
+    public const string UpdateNoneAvailable = nameof(UpdateNoneAvailable);
+    public const string UpdateAvailable = nameof(UpdateAvailable);
+    public const string UpdateResponseIncomplete = nameof(UpdateResponseIncomplete);
+    public const string UpdateCheckCancelled = nameof(UpdateCheckCancelled);
+    public const string UpdateCheckFailed = nameof(UpdateCheckFailed);
+    public const string UpdateDownloading = nameof(UpdateDownloading);
+    public const string UpdatePackageVerificationFailed = nameof(UpdatePackageVerificationFailed);
+    public const string UpdateReadyToInstall = nameof(UpdateReadyToInstall);
+    public const string UpdateInstallerUnsupported = nameof(UpdateInstallerUnsupported);
+    public const string UpdateDownloadCancelled = nameof(UpdateDownloadCancelled);
+    public const string UpdateDownloadFailed = nameof(UpdateDownloadFailed);
+    public const string UpdateInstallerStartFailed = nameof(UpdateInstallerStartFailed);
+    public const string UpdateInstallerStarted = nameof(UpdateInstallerStarted);
+    public const string UpdateInstallCancelled = nameof(UpdateInstallCancelled);
+    public const string UpdateInstallerFailedSafely = nameof(UpdateInstallerFailedSafely);
     public const string About = nameof(About);
     public const string Version = nameof(Version);
     public const string OpenLogFolder = nameof(OpenLogFolder);
@@ -150,8 +181,9 @@ public static class AvaloniaStringKeys
     [
         AppTitle, AppHeading, StartingSafely, Retry, MasterPassword, MasterPasswordHelp,
         Unlock, Lock, Accounts, Tools, Settings, ChooseImportFile, ExportEncryptedBackup,
-        ImportConflictHandling, SupportDiagnostics, RefreshSupportInformation,
-        DownloadUpdate, InstallUpdate, ReleaseNotes, VerifyAppcast,
+        ImportConflictHandling, ImportAccounts, EncryptedBackup, EncryptedBackupHelp,
+        SupportDiagnostics, RefreshSupportInformation,
+        DownloadUpdate, InstallUpdate, ReleaseNotes, VerifyAppcast, SoftwareUpdates,
         ScanQrCamera, CancelScan, SecuritySettings, Security, ImportExport, Miscellaneous,
         Language, IdleTimeout,
         IdleTimeoutHelp, LockWhenMinimized, SettingsAutoSaveHint,
@@ -166,7 +198,7 @@ public static class AvaloniaStringKeys
         UseMasterPassword, VaultLockedQuickUnlock, VaultLockedPassword,
         QuickUnlockCancelled, QuickUnlockFailed, QuickUnlock,
         QuickUnlockRecoveryNotice, QuickUnlockAvailable, QuickUnlockUnavailable,
-        EnableQuickUnlock, QuickUnlockRecoveryPrompt, QuickUnlockEnrollmentCancelled,
+        EnableQuickUnlock, QuickUnlockAtStartup, QuickUnlockRecoveryPrompt, QuickUnlockEnrollmentCancelled,
         QuickUnlockEnrollmentFailed, QuickUnlockEnabled, UsePasswordAtStartup,
         PasswordPreferencePrompt, PasswordPreferenceUnchanged, PasswordPreferenceFailed,
         PasswordPreferred, PasswordVerificationFailed, Enable, Confirm, Cancel, Refresh,
@@ -183,6 +215,14 @@ public static class AvaloniaStringKeys
         QrImportCancelled, QrConflictTitle, QrConflictMessage, UpdateExisting, KeepBoth,
         LockOnSessionLock, ClearClipboard, ClipboardClearSeconds, QrPreviewScale,
         EncryptExports, OpenExportAfter, HideSecretsDefault, LoggingLevel,
-        ClipboardCopyDisabled, About, Version, OpenLogFolder
+        ClipboardCopyDisabled, RevealSecret, RevealSecretHelp, RevealSecretAutomation,
+        ImportSkipExisting, ImportReplaceExisting, ImportKeepBoth, NoImportFileSelected,
+        UpdateReadyToCheck, UpdateChecking, UpdateFeedVerificationFailed, UpdateDisabled,
+        UpdateNoneAvailable, UpdateAvailable, UpdateResponseIncomplete, UpdateCheckCancelled,
+        UpdateCheckFailed, UpdateDownloading, UpdatePackageVerificationFailed,
+        UpdateReadyToInstall, UpdateInstallerUnsupported, UpdateDownloadCancelled,
+        UpdateDownloadFailed, UpdateInstallerStartFailed, UpdateInstallerStarted,
+        UpdateInstallCancelled, UpdateInstallerFailedSafely,
+        About, Version, OpenLogFolder
     ];
 }

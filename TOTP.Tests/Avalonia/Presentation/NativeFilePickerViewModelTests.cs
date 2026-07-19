@@ -1,5 +1,6 @@
 using FluentResults;
 using Moq;
+using TOTP.Avalonia.Desktop.Localization;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Avalonia.Desktop.Presentation.Dialogs;
@@ -207,7 +208,16 @@ public sealed class NativeFilePickerViewModelTests
             passwordValidation.Object,
             security ?? Mock.Of<IPlatformFileSecurity>(),
             settings,
-            folderLauncher ?? Mock.Of<IPlatformFolderLauncher>());
+            folderLauncher ?? Mock.Of<IPlatformFolderLauncher>(),
+            Localization());
+    }
+
+    private static IAvaloniaLocalizationService Localization()
+    {
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        localization.Setup(value => value.GetString(It.IsAny<string>()))
+            .Returns((string key) => key);
+        return localization.Object;
     }
 
     private sealed class TestStorageFile(
