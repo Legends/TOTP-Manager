@@ -32,7 +32,9 @@ public static class AvaloniaStringKeys
     public const string IdleTimeout = nameof(IdleTimeout);
     public const string IdleTimeoutHelp = nameof(IdleTimeoutHelp);
     public const string LockWhenMinimized = nameof(LockWhenMinimized);
-    public const string SaveSettings = nameof(SaveSettings);
+    public const string SettingsAutoSaveHint = nameof(SettingsAutoSaveHint);
+    public const string SettingsSavedAutomatically = nameof(SettingsSavedAutomatically);
+    public const string SettingsSaveFailed = nameof(SettingsSaveFailed);
     public const string SearchAccounts = nameof(SearchAccounts);
     public const string GenerateCode = nameof(GenerateCode);
     public const string ShowQrCode = nameof(ShowQrCode);
@@ -151,7 +153,8 @@ public static class AvaloniaStringKeys
         DownloadUpdate, InstallUpdate, ReleaseNotes, VerifyAppcast,
         ScanQrCamera, CancelScan, SecuritySettings, Security, ImportExport, Miscellaneous,
         Language, IdleTimeout,
-        IdleTimeoutHelp, LockWhenMinimized, SaveSettings, SearchAccounts, GenerateCode,
+        IdleTimeoutHelp, LockWhenMinimized, SettingsAutoSaveHint,
+        SettingsSavedAutomatically, SettingsSaveFailed, SearchAccounts, GenerateCode,
         ShowQrCode, CopyTimedClear, Password, PasswordAuthorizationHelp,
         ValidatingSecurely, NavAccounts, NavTools, NavSettings, AccountsList,
         GeneratedCode, GeneratedQr, QrPrivacyNotice, CameraPreview, CreatePasswordHeading,

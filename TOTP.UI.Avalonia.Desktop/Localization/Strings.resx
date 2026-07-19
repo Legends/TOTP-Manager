@@ -117,7 +117,9 @@
   <data name="IdleTimeout" xml:space="preserve"><value>Idle timeout in minutes (0 disables idle lock)</value></data>
   <data name="IdleTimeoutHelp" xml:space="preserve"><value>Enter zero to disable idle locking.</value></data>
   <data name="LockWhenMinimized" xml:space="preserve"><value>Lock when minimized</value></data>
-  <data name="SaveSettings" xml:space="preserve"><value>Save settings</value></data>
+  <data name="SettingsAutoSaveHint" xml:space="preserve"><value>Changes are saved automatically.</value></data>
+  <data name="SettingsSavedAutomatically" xml:space="preserve"><value>Settings saved automatically.</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>Settings could not be saved. Existing settings remain active.</value></data>
   <data name="SearchAccounts" xml:space="preserve"><value>Search issuer or account</value></data>
   <data name="GenerateCode" xml:space="preserve"><value>Generate code</value></data>
   <data name="ShowQrCode" xml:space="preserve"><value>Show QR code</value></data>

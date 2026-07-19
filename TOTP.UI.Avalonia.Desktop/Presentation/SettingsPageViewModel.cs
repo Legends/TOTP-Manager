@@ -1,22 +1,23 @@
 using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using TOTP.Core.Security.Interfaces;
 using TOTP.Avalonia.Desktop.Localization;
 using TOTP.Core.Enums;
+using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
-using System.Reflection;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
 
-public sealed class SettingsPageViewModel : INotifyPropertyChanged
+public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly ISettingsService _settingsService;
-    private readonly AsyncCommand _saveCommand;
     private readonly IAvaloniaLocalizationService? _localization;
     private readonly IPlatformApplicationPaths? _applicationPaths;
     private readonly IPlatformFolderLauncher? _folderLauncher;
     private readonly AsyncCommand _openLogFolderCommand;
+    private readonly TimeSpan _autoSaveDelay;
+    private CancellationTokenSource? _autoSaveCts;
     private int _idleTimeoutMinutes;
     private bool _lockOnMinimize;
     private bool _lockOnSessionLock;
@@ -28,6 +29,9 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
     private bool _hideSecretsByDefault;
     private AppLogLevel _minimumLogLevel;
     private bool _isBusy;
+    private bool _isReloading;
+    private bool _saveRequested;
+    private bool _disposed;
     private string _message = string.Empty;
     private LanguageOption? _selectedLanguage;
 
@@ -35,21 +39,17 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
         ISettingsService settingsService,
         IAvaloniaLocalizationService? localization = null,
         IPlatformApplicationPaths? applicationPaths = null,
-        IPlatformFolderLauncher? folderLauncher = null)
+        IPlatformFolderLauncher? folderLauncher = null,
+        TimeSpan? autoSaveDelay = null)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localization = localization;
         _applicationPaths = applicationPaths;
         _folderLauncher = folderLauncher;
+        _autoSaveDelay = autoSaveDelay ?? TimeSpan.FromMilliseconds(200);
         Languages = localization?.SupportedLanguages ?? [];
         LogLevels = Enum.GetValues<AppLogLevel>();
         _selectedLanguage = localization?.CurrentLanguage;
-        _saveCommand = new AsyncCommand(SaveAsync, () =>
-            !_isBusy
-            && _idleTimeoutMinutes is >= 0 and <= 1440
-            && _clearClipboardSeconds is >= 1 and <= 300
-            && _qrPreviewScaleFactor is >= 1.0m and <= 6.0m
-            && _qrPreviewScaleFactor * 2 == decimal.Truncate(_qrPreviewScaleFactor * 2));
         _openLogFolderCommand = new AsyncCommand(
             OpenLogFolderAsync,
             () => !_isBusy && _applicationPaths is not null && _folderLauncher is not null);
@@ -76,6 +76,7 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
         {
             if (!SetField(ref _selectedLanguage, value) || value is null) return;
             _localization?.ApplyCulture(value.CultureName);
+            QueueAutoSave();
         }
     }
 
@@ -85,27 +86,38 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
         set
         {
             if (!SetField(ref _idleTimeoutMinutes, value)) return;
-            _saveCommand.NotifyCanExecuteChanged();
-            _openLogFolderCommand.NotifyCanExecuteChanged();
+            QueueAutoSave();
         }
     }
 
     public bool LockOnMinimize
     {
         get => _lockOnMinimize;
-        set => SetField(ref _lockOnMinimize, value);
+        set
+        {
+            if (!SetField(ref _lockOnMinimize, value)) return;
+            QueueAutoSave();
+        }
     }
 
     public bool LockOnSessionLock
     {
         get => _lockOnSessionLock;
-        set => SetField(ref _lockOnSessionLock, value);
+        set
+        {
+            if (!SetField(ref _lockOnSessionLock, value)) return;
+            QueueAutoSave();
+        }
     }
 
     public bool ClearClipboardEnabled
     {
         get => _clearClipboardEnabled;
-        set => SetField(ref _clearClipboardEnabled, value);
+        set
+        {
+            if (!SetField(ref _clearClipboardEnabled, value)) return;
+            QueueAutoSave();
+        }
     }
 
     public int ClearClipboardSeconds
@@ -114,7 +126,7 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
         set
         {
             if (!SetField(ref _clearClipboardSeconds, value)) return;
-            _saveCommand.NotifyCanExecuteChanged();
+            QueueAutoSave();
         }
     }
 
@@ -124,32 +136,48 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
         set
         {
             if (!SetField(ref _qrPreviewScaleFactor, value)) return;
-            _saveCommand.NotifyCanExecuteChanged();
+            QueueAutoSave();
         }
     }
 
     public bool ExportEncrypt
     {
         get => _exportEncrypt;
-        set => SetField(ref _exportEncrypt, value);
+        set
+        {
+            if (!SetField(ref _exportEncrypt, value)) return;
+            QueueAutoSave();
+        }
     }
 
     public bool OpenExportFileAfterExport
     {
         get => _openExportFileAfterExport;
-        set => SetField(ref _openExportFileAfterExport, value);
+        set
+        {
+            if (!SetField(ref _openExportFileAfterExport, value)) return;
+            QueueAutoSave();
+        }
     }
 
     public bool HideSecretsByDefault
     {
         get => _hideSecretsByDefault;
-        set => SetField(ref _hideSecretsByDefault, value);
+        set
+        {
+            if (!SetField(ref _hideSecretsByDefault, value)) return;
+            QueueAutoSave();
+        }
     }
 
     public AppLogLevel MinimumLogLevel
     {
         get => _minimumLogLevel;
-        set => SetField(ref _minimumLogLevel, value);
+        set
+        {
+            if (!SetField(ref _minimumLogLevel, value)) return;
+            QueueAutoSave();
+        }
     }
 
     public string Message
@@ -158,36 +186,50 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
         private set => SetField(ref _message, value);
     }
 
-    public ICommand SaveCommand => _saveCommand;
-
     public void Reload()
     {
-        IdleTimeoutMinutes = (int)Math.Clamp(
-            Math.Round(_settingsService.Current.IdleTimeout.TotalMinutes),
-            0,
-            1440);
-        LockOnMinimize = _settingsService.Current.LockOnMinimize;
-        LockOnSessionLock = _settingsService.Current.LockOnSessionLock;
-        ClearClipboardEnabled = _settingsService.Current.ClearClipboardEnabled;
-        ClearClipboardSeconds = _settingsService.Current.ClearClipboardSeconds;
-        QrPreviewScaleFactor = (decimal)_settingsService.Current.QrPreviewScaleFactor;
-        ExportEncrypt = _settingsService.Current.ExportEncrypt;
-        OpenExportFileAfterExport = _settingsService.Current.OpenExportFileAfterExport;
-        HideSecretsByDefault = _settingsService.Current.HideSecretsByDefault;
-        MinimumLogLevel = _settingsService.Current.MinimumLogLevel;
-        Message = string.Empty;
+        if (_saveRequested || _isBusy) return;
+
+        _isReloading = true;
+        try
+        {
+            IdleTimeoutMinutes = (int)Math.Clamp(
+                Math.Round(_settingsService.Current.IdleTimeout.TotalMinutes),
+                0,
+                1440);
+            LockOnMinimize = _settingsService.Current.LockOnMinimize;
+            LockOnSessionLock = _settingsService.Current.LockOnSessionLock;
+            ClearClipboardEnabled = _settingsService.Current.ClearClipboardEnabled;
+            ClearClipboardSeconds = _settingsService.Current.ClearClipboardSeconds;
+            QrPreviewScaleFactor = (decimal)_settingsService.Current.QrPreviewScaleFactor;
+            ExportEncrypt = _settingsService.Current.ExportEncrypt;
+            OpenExportFileAfterExport = _settingsService.Current.OpenExportFileAfterExport;
+            HideSecretsByDefault = _settingsService.Current.HideSecretsByDefault;
+            MinimumLogLevel = _settingsService.Current.MinimumLogLevel;
+            Message = string.Empty;
+        }
+        finally
+        {
+            _isReloading = false;
+        }
     }
 
     public async Task SaveAsync()
     {
-        if (_isBusy
-            || IdleTimeoutMinutes is < 0 or > 1440
+        if (IdleTimeoutMinutes is < 0 or > 1440
             || ClearClipboardSeconds is < 1 or > 300
             || QrPreviewScaleFactor is < 1.0m or > 6.0m
             || QrPreviewScaleFactor * 2 != decimal.Truncate(QrPreviewScaleFactor * 2)) return;
 
+        CancelAutoSaveDelay();
+        if (_isBusy)
+        {
+            _saveRequested = true;
+            return;
+        }
+
         _isBusy = true;
-        _saveCommand.NotifyCanExecuteChanged();
+        _saveRequested = false;
         _openLogFolderCommand.NotifyCanExecuteChanged();
         var previous = TOTP.Core.Models.AppPreferencesMapper.FromSettings(_settingsService.Current);
         try
@@ -207,25 +249,38 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
             var result = await _settingsService.SaveAsync();
             if (result.IsSuccess)
             {
-                Message = "Settings saved.";
+                Message = Localize(
+                    AvaloniaStringKeys.SettingsSavedAutomatically,
+                    "Settings saved automatically.");
                 SettingsSaved?.Invoke(this, EventArgs.Empty);
                 return;
             }
 
             TOTP.Core.Models.AppPreferencesMapper.ApplyTo(previous, _settingsService.Current);
-            Message = "Settings could not be saved. Existing settings remain active.";
+            Message = Localize(
+                AvaloniaStringKeys.SettingsSaveFailed,
+                "Settings could not be saved. Existing settings remain active.");
         }
         catch (Exception)
         {
             TOTP.Core.Models.AppPreferencesMapper.ApplyTo(previous, _settingsService.Current);
-            Message = "Settings could not be saved safely. Existing settings remain active.";
+            Message = Localize(
+                AvaloniaStringKeys.SettingsSaveFailed,
+                "Settings could not be saved. Existing settings remain active.");
         }
         finally
         {
             _isBusy = false;
-            _saveCommand.NotifyCanExecuteChanged();
             _openLogFolderCommand.NotifyCanExecuteChanged();
+            if (_saveRequested) QueueAutoSave();
         }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        CancelAutoSaveDelay();
     }
 
     public async Task OpenLogFolderAsync()
@@ -233,7 +288,6 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
         if (_isBusy || _applicationPaths is null || _folderLauncher is null) return;
         _isBusy = true;
         _openLogFolderCommand.NotifyCanExecuteChanged();
-        _saveCommand.NotifyCanExecuteChanged();
         try
         {
             var opened = await _folderLauncher.OpenFolderAsync(_applicationPaths.LogDirectory);
@@ -249,7 +303,6 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
         {
             _isBusy = false;
             _openLogFolderCommand.NotifyCanExecuteChanged();
-            _saveCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -260,4 +313,39 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
     }
+
+    private void QueueAutoSave()
+    {
+        if (_isReloading || _disposed) return;
+
+        _saveRequested = true;
+        CancelAutoSaveDelay();
+        var cts = new CancellationTokenSource();
+        _autoSaveCts = cts;
+        _ = SaveAfterDelayAsync(cts.Token);
+    }
+
+    private async Task SaveAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(_autoSaveDelay, cancellationToken);
+            await SaveAsync();
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+    }
+
+    private void CancelAutoSaveDelay()
+    {
+        var cts = _autoSaveCts;
+        _autoSaveCts = null;
+        if (cts is null) return;
+        cts.Cancel();
+        cts.Dispose();
+    }
+
+    private string Localize(string key, string fallback) =>
+        _localization?.GetString(key) ?? fallback;
 }

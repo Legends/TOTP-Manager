@@ -502,7 +502,7 @@
                                                         <CheckBox Content="{DynamicResource HideSecretsDefault}" IsChecked="{Binding HideSecretsByDefault, Mode=TwoWay}" />
                                                         <TextBlock Text="{DynamicResource LoggingLevel}" />
                                                         <ComboBox ItemsSource="{Binding LogLevels}" SelectedItem="{Binding MinimumLogLevel, Mode=TwoWay}" />
-                                                        <Button Classes="primary" Command="{Binding SaveCommand}" Content="{DynamicResource SaveSettings}" />
+                                                        <TextBlock Classes="secondary" Text="{DynamicResource SettingsAutoSaveHint}" TextWrapping="Wrap" />
                                                         <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
                                                     </StackPanel>
                                                 </Border>

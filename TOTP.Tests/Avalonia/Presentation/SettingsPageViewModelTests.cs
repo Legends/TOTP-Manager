@@ -22,12 +22,24 @@ public sealed class SettingsPageViewModelTests
     }
 
     [Fact]
+    public void Constructor_DoesNotPersistValuesWhileLoading()
+    {
+        var settings = CreateSettings(new AppSettings());
+
+        using var sut = new SettingsPageViewModel(
+            settings.Object,
+            autoSaveDelay: TimeSpan.Zero);
+
+        settings.Verify(value => value.SaveAsync(), Times.Never);
+    }
+
+    [Fact]
     public async Task SaveAsync_PersistsReviewedSecurityPreferences()
     {
         var current = new AppSettings();
         var settings = CreateSettings(current);
         settings.Setup(value => value.SaveAsync()).ReturnsAsync(Result.Ok());
-        var sut = new SettingsPageViewModel(settings.Object)
+        using var sut = new SettingsPageViewModel(settings.Object)
         {
             IdleTimeoutMinutes = 25,
             LockOnMinimize = false
@@ -37,7 +49,7 @@ public sealed class SettingsPageViewModelTests
 
         Assert.Equal(TimeSpan.FromMinutes(25), current.IdleTimeout);
         Assert.False(current.LockOnMinimize);
-        Assert.Equal("Settings saved.", sut.Message);
+        Assert.Equal("Settings saved automatically.", sut.Message);
     }
 
     [Fact]
@@ -51,7 +63,7 @@ public sealed class SettingsPageViewModelTests
         var settings = CreateSettings(current);
         settings.Setup(value => value.SaveAsync())
             .ReturnsAsync(Result.Fail("synthetic failure"));
-        var sut = new SettingsPageViewModel(settings.Object)
+        using var sut = new SettingsPageViewModel(settings.Object)
         {
             IdleTimeoutMinutes = 60,
             LockOnMinimize = false
@@ -77,7 +89,7 @@ public sealed class SettingsPageViewModelTests
         var german = new LanguageOption("de", "Deutsch");
         localization.SetupGet(value => value.SupportedLanguages).Returns([english, german]);
         localization.SetupGet(value => value.CurrentLanguage).Returns(english);
-        var sut = new SettingsPageViewModel(CreateSettings(current).Object, localization.Object);
+        using var sut = new SettingsPageViewModel(CreateSettings(current).Object, localization.Object);
 
         sut.SelectedLanguage = german;
 
@@ -92,7 +104,7 @@ public sealed class SettingsPageViewModelTests
         var current = new AppSettings();
         var settings = CreateSettings(current);
         settings.Setup(value => value.SaveAsync()).ReturnsAsync(Result.Ok());
-        var sut = new SettingsPageViewModel(settings.Object)
+        using var sut = new SettingsPageViewModel(settings.Object)
         {
             IdleTimeoutMinutes = 45,
             LockOnMinimize = false,
@@ -131,7 +143,7 @@ public sealed class SettingsPageViewModelTests
                 @"C:\synthetic\logs",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok());
-        var sut = new SettingsPageViewModel(
+        using var sut = new SettingsPageViewModel(
             settings.Object,
             applicationPaths: paths.Object,
             folderLauncher: launcher.Object);
@@ -141,6 +153,59 @@ public sealed class SettingsPageViewModelTests
         Assert.Contains("opened", sut.Message, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("synthetic", sut.Message, StringComparison.OrdinalIgnoreCase);
         Assert.False(string.IsNullOrWhiteSpace(sut.VersionText));
+    }
+
+    [Fact]
+    public async Task ChangedPreference_IsSavedAutomatically()
+    {
+        var current = new AppSettings { LockOnMinimize = true };
+        var settings = CreateSettings(current);
+        var saved = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        settings.Setup(value => value.SaveAsync()).Returns(() =>
+        {
+            saved.TrySetResult();
+            return Task.FromResult(Result.Ok());
+        });
+        using var sut = new SettingsPageViewModel(
+            settings.Object,
+            autoSaveDelay: TimeSpan.Zero);
+
+        sut.LockOnMinimize = false;
+        await saved.Task.WaitAsync(
+            TimeSpan.FromSeconds(1),
+            TestContext.Current.CancellationToken);
+
+        Assert.False(current.LockOnMinimize);
+        settings.Verify(value => value.SaveAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task RapidPreferenceChanges_ArePersistedAsOneSnapshot()
+    {
+        var current = new AppSettings();
+        var settings = CreateSettings(current);
+        var saved = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        settings.Setup(value => value.SaveAsync()).Returns(() =>
+        {
+            saved.TrySetResult();
+            return Task.FromResult(Result.Ok());
+        });
+        using var sut = new SettingsPageViewModel(
+            settings.Object,
+            autoSaveDelay: TimeSpan.FromMilliseconds(25));
+
+        sut.IdleTimeoutMinutes = 15;
+        sut.ClearClipboardSeconds = 20;
+        sut.HideSecretsByDefault = false;
+        await saved.Task.WaitAsync(
+            TimeSpan.FromSeconds(1),
+            TestContext.Current.CancellationToken);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
+
+        Assert.Equal(TimeSpan.FromMinutes(15), current.IdleTimeout);
+        Assert.Equal(20, current.ClearClipboardSeconds);
+        Assert.False(current.HideSecretsByDefault);
+        settings.Verify(value => value.SaveAsync(), Times.Once);
     }
 
     private static Mock<ISettingsService> CreateSettings(AppSettings current)

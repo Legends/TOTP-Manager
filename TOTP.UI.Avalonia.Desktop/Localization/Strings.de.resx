@@ -117,7 +117,9 @@
   <data name="IdleTimeout" xml:space="preserve"><value>Leerlaufzeit in Minuten (0 deaktiviert die Sperre)</value></data>
   <data name="IdleTimeoutHelp" xml:space="preserve"><value>Null eingeben, um die Leerlaufsperre zu deaktivieren.</value></data>
   <data name="LockWhenMinimized" xml:space="preserve"><value>Beim Minimieren sperren</value></data>
-  <data name="SaveSettings" xml:space="preserve"><value>Einstellungen speichern</value></data>
+  <data name="SettingsAutoSaveHint" xml:space="preserve"><value>Änderungen werden automatisch gespeichert.</value></data>
+  <data name="SettingsSavedAutomatically" xml:space="preserve"><value>Einstellungen automatisch gespeichert.</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>Die Einstellungen konnten nicht gespeichert werden. Die bisherigen Einstellungen bleiben aktiv.</value></data>
   <data name="SearchAccounts" xml:space="preserve"><value>Aussteller oder Konto suchen</value></data>
   <data name="GenerateCode" xml:space="preserve"><value>Code erzeugen</value></data>
   <data name="ShowQrCode" xml:space="preserve"><value>QR-Code anzeigen</value></data>
