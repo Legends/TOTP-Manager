@@ -28,40 +28,54 @@ function Get-ArtifactTarget {
     param([string]$FileName)
 
     switch -Regex ($FileName) {
-        '^TOTP-Manager-(?:windows-x64-[0-9A-Za-z.-]+|fast|portable)\.zip$' {
+        '^TOTP-Manager-windows-x64-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.zip$' {
             return [ordered]@{
                 operatingSystem = "windows"
                 architecture = "x64"
                 format = "zip"
                 ownership = "application"
                 updatePolicy = "signed-appcast"
+                releaseVersion = $Matches.version
             }
         }
-        '^TOTP-Manager-macos-arm64-[0-9A-Za-z.-]+\.dmg$' {
+        '^TOTP-Manager-(?:fast|portable)\.zip$' {
+            return [ordered]@{
+                operatingSystem = "windows"
+                architecture = "x64"
+                format = "zip"
+                ownership = "application"
+                updatePolicy = "signed-appcast"
+                releaseVersion = $null
+            }
+        }
+        '^TOTP-Manager-macos-arm64-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.dmg$' {
             return [ordered]@{
                 operatingSystem = "macos"
                 architecture = "arm64"
                 format = "dmg"
                 ownership = "application"
                 updatePolicy = "manual-signed-release"
+                releaseVersion = $Matches.version
             }
         }
-        '^TOTP-Manager-linux-x64-[0-9A-Za-z.-]+\.tar\.gz$' {
+        '^TOTP-Manager-linux-x64-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.tar\.gz$' {
             return [ordered]@{
                 operatingSystem = "linux"
                 architecture = "x64"
                 format = "tar.gz"
                 ownership = "application"
                 updatePolicy = "manual-signed-release"
+                releaseVersion = $Matches.version
             }
         }
-        '^totp-manager_[0-9A-Za-z.+~-]+_amd64\.deb$' {
+        '^totp-manager_(?<version>\d+\.\d+\.\d+(?:~rc\d+)?)_amd64\.deb$' {
             return [ordered]@{
                 operatingSystem = "linux"
                 architecture = "x64"
                 format = "deb"
                 ownership = "package-manager"
                 updatePolicy = "package-manager"
+                releaseVersion = $Matches.version.Replace("~rc", "-rc")
             }
         }
         default {
@@ -78,6 +92,7 @@ if ([string]::IsNullOrWhiteSpace($outputDirectory)) {
 [IO.Directory]::CreateDirectory($outputDirectory) | Out-Null
 
 $seenNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$maximumDirectUpdateBytes = 128L * 1024 * 1024
 $artifacts = foreach ($path in $ArtifactPath) {
     $resolved = (Resolve-Path -LiteralPath $path).Path
     $file = Get-Item -LiteralPath $resolved
@@ -86,6 +101,12 @@ $artifacts = foreach ($path in $ArtifactPath) {
             throw "Artifact names must be unique: $($file.Name)"
         }
         $target = Get-ArtifactTarget $file.Name
+        if ($null -ne $target.releaseVersion -and $target.releaseVersion -cne $ReleaseVersion) {
+            throw "Artifact version does not match ReleaseVersion: $($file.Name)"
+        }
+        if ($target.updatePolicy -ne "package-manager" -and $file.Length -gt $maximumDirectUpdateBytes) {
+            throw "Direct-update artifact exceeds the 128 MiB client safety limit: $($file.Name)"
+        }
         [ordered]@{
             fileName = $file.Name
             operatingSystem = $target.operatingSystem

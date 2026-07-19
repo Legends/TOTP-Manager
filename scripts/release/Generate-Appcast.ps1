@@ -38,6 +38,16 @@ if (-not (Test-Path $PublicKeyPath)) {
     throw "Public key file not found: $PublicKeyPath"
 }
 
+$resolvedPrivateKeyPath = (Resolve-Path -LiteralPath $PrivateKeyPath).Path
+$resolvedPublicKeyPath = (Resolve-Path -LiteralPath $PublicKeyPath).Path
+$keyDirectory = [IO.Path]::GetDirectoryName($resolvedPrivateKeyPath)
+$invalidKeyLayout = [IO.Path]::GetFileName($resolvedPrivateKeyPath) -cne "NetSparkle_Ed25519.priv" -or
+    [IO.Path]::GetFileName($resolvedPublicKeyPath) -cne "NetSparkle_Ed25519.pub" -or
+    [IO.Path]::GetDirectoryName($resolvedPublicKeyPath) -cne $keyDirectory
+if ($invalidKeyLayout) {
+    throw "NetSparkle key files must use canonical names in the same directory."
+}
+
 if ([string]::IsNullOrWhiteSpace($MainArtifactName)) {
     throw "Main artifact name must not be empty."
 }
@@ -81,9 +91,7 @@ $arguments = @(
     '--base-url', "$BaseDownloadUrl",
     '--appcast-output-directory', "$ReleaseFolder",
     '--output-file-name', 'appcast',
-    '--key-path', ([IO.Path]::GetDirectoryName($PrivateKeyPath)),
-    '--private-key-override', (Get-Content $PrivateKeyPath -Raw).Trim(),
-    '--public-key-override', (Get-Content $PublicKeyPath -Raw).Trim(),
+    '--key-path', $keyDirectory,
     '--human-readable'
 )
 
@@ -129,7 +137,7 @@ if (-not [string]::IsNullOrWhiteSpace($FileVersion)) {
     }
 
     $itemVersionNode.InnerText = $FileVersion
-    $enclosureNode.SetAttribute("version", $sparkleNs, $FileVersion)
+    [void]$enclosureNode.SetAttribute("version", $sparkleNs, $FileVersion)
 }
 
 if (-not [string]::IsNullOrWhiteSpace($DisplayVersion)) {
@@ -140,7 +148,7 @@ if (-not [string]::IsNullOrWhiteSpace($DisplayVersion)) {
     }
 
     $shortVersionNode.InnerText = $DisplayVersion
-    $enclosureNode.SetAttribute("shortVersionString", $sparkleNs, $DisplayVersion)
+    [void]$enclosureNode.SetAttribute("shortVersionString", $sparkleNs, $DisplayVersion)
 
     $titleNode = $itemNode.SelectSingleNode("title")
     if ($null -ne $titleNode) {
@@ -163,8 +171,7 @@ $appcastSignature = $null
 if (-not [string]::IsNullOrWhiteSpace($PrivateKeyPath) -and -not [string]::IsNullOrWhiteSpace($PublicKeyPath)) {
     $appcastSignature = & netsparkle-generate-appcast `
         --generate-signature $appcastPath `
-        --private-key-override ((Get-Content $PrivateKeyPath -Raw).Trim()) `
-        --public-key-override ((Get-Content $PublicKeyPath -Raw).Trim())
+        --key-path $keyDirectory
 
     $signatureValue = ($appcastSignature | Select-String -Pattern '^Signature:\s*(.+)$').Matches.Groups[1].Value.Trim()
     if ([string]::IsNullOrWhiteSpace($signatureValue)) {

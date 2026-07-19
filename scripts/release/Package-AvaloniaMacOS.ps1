@@ -9,7 +9,10 @@ param(
     [string]$ReleaseVersion,
 
     [string]$SigningIdentity,
-    [string]$NotaryKeychainProfile
+    [string]$NotaryKeychainProfile,
+    [string]$NotaryKeyPath,
+    [string]$NotaryKeyId,
+    [string]$NotaryIssuerId
 )
 
 $ErrorActionPreference = "Stop"
@@ -20,6 +23,22 @@ if ($ReleaseVersion -notmatch '^(?<base>\d+\.\d+\.\d+)(?:-rc(?<rc>\d+))?$') {
 $baseVersion = $Matches.base
 $releaseCandidateNumber = $Matches.rc
 $releaseChannel = if ($releaseCandidateNumber) { "rc" } else { "stable" }
+$hasNotaryProfile = -not [string]::IsNullOrWhiteSpace($NotaryKeychainProfile)
+$hasAnyApiKeyValue = -not [string]::IsNullOrWhiteSpace($NotaryKeyPath) -or
+    -not [string]::IsNullOrWhiteSpace($NotaryKeyId) -or
+    -not [string]::IsNullOrWhiteSpace($NotaryIssuerId)
+$hasCompleteApiKey = -not [string]::IsNullOrWhiteSpace($NotaryKeyPath) -and
+    -not [string]::IsNullOrWhiteSpace($NotaryKeyId) -and
+    -not [string]::IsNullOrWhiteSpace($NotaryIssuerId)
+if ($hasNotaryProfile -and $hasAnyApiKeyValue) {
+    throw "Choose either a notary Keychain profile or App Store Connect API key credentials."
+}
+if ($hasAnyApiKeyValue -and -not $hasCompleteApiKey) {
+    throw "Notary API key path, key ID, and issuer ID must be provided together."
+}
+if (($hasNotaryProfile -or $hasCompleteApiKey) -and [string]::IsNullOrWhiteSpace($SigningIdentity)) {
+    throw "Notarization requires SigningIdentity."
+}
 
 $resolvedPublish = (Resolve-Path -LiteralPath $PublishDirectory).Path
 $resolvedOutput = [IO.Path]::GetFullPath($OutputDirectory)
@@ -110,9 +129,6 @@ if (-not [string]::IsNullOrWhiteSpace($SigningIdentity)) {
     & codesign --verify --deep --strict --verbose=2 $appRoot
     if ($LASTEXITCODE -ne 0) { throw "Application signature verification failed." }
 }
-elseif (-not [string]::IsNullOrWhiteSpace($NotaryKeychainProfile)) {
-    throw "Notarization requires SigningIdentity."
-}
 
 $dmgPath = Join-Path $resolvedOutput "TOTP-Manager-macos-arm64-$ReleaseVersion.dmg"
 & hdiutil create -volname "TOTP Manager" -srcfolder $appRoot -ov -format UDZO $dmgPath
@@ -123,8 +139,19 @@ if (-not [string]::IsNullOrWhiteSpace($SigningIdentity)) {
     if ($LASTEXITCODE -ne 0) { throw "Could not sign the DMG." }
 }
 
-if (-not [string]::IsNullOrWhiteSpace($NotaryKeychainProfile)) {
-    & xcrun notarytool submit $dmgPath --keychain-profile $NotaryKeychainProfile --wait
+if ($hasNotaryProfile -or $hasCompleteApiKey) {
+    $notaryArguments = @("notarytool", "submit", $dmgPath, "--wait")
+    if ($hasNotaryProfile) {
+        $notaryArguments += @("--keychain-profile", $NotaryKeychainProfile)
+    }
+    else {
+        $resolvedNotaryKey = (Resolve-Path -LiteralPath $NotaryKeyPath).Path
+        $notaryArguments += @(
+            "--key", $resolvedNotaryKey,
+            "--key-id", $NotaryKeyId,
+            "--issuer", $NotaryIssuerId)
+    }
+    & xcrun @notaryArguments
     if ($LASTEXITCODE -ne 0) { throw "Apple notarization failed." }
     & xcrun stapler staple $dmgPath
     if ($LASTEXITCODE -ne 0) { throw "Could not staple the notarization ticket." }

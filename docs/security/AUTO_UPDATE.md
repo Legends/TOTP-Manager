@@ -1,16 +1,18 @@
-# Automatic Update Setup (No Code-Signing Cert Required)
+# Automatic Update Setup
 
-This project uses NetSparkle with Ed25519 update signatures.
+This project uses NetSparkle-compatible Ed25519 update signatures. Production Windows and macOS artifacts also require their platform signing/notarization credentials; Ed25519 does not replace platform trust.
 
-## 1. Keep It Disabled Until Configured
-Default in `TOTP/appsettings.json`:
-- `AutoUpdate:Enabled = false`
+## 1. Separate release feeds
+
+- The WPF Windows client consumes `appcast.xml`.
+- Avalonia direct packages consume `appcast-v2.xml` and require explicit OS, architecture, channel, and package signatures.
+- Linux DEB and future store builds are stamped as externally managed and do not self-update.
 
 ## 2. Generate NetSparkle Ed25519 Keys
 Install tool once:
 
 ```powershell
-dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator
+dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator --version 2.9.0
 ```
 
 Generate keys:
@@ -22,6 +24,8 @@ netsparkle-generate-appcast --generate-keys
 This creates:
 - public key (place into app config/user-secrets as `AutoUpdate:PublicKey`)
 - private key file (keep private; use only in release pipeline)
+
+Keep the canonical `NetSparkle_Ed25519.pub` and `NetSparkle_Ed25519.priv` names in one protected directory. Release scripts pass only that directory to the tool; private key contents must not be placed in process arguments.
 
 ## 3. Configure App for Update Checks
 Recommended via user-secrets for local testing:
@@ -119,6 +123,7 @@ Set these repository secrets:
 When present, publish workflow will:
 - generate `publish/appcast.xml`
 - upload `TOTP.UI.WPF.exe`, `appcast.xml`, and `appcast.xml.signature` to GitHub Releases
+- sign every direct Avalonia payload, `release-artifacts-v2.json`, and `appcast-v2.xml` after all native packaging jobs succeed
 
 ## 7. Security Notes
 - Ed25519 appcast signatures protect update integrity/authenticity.

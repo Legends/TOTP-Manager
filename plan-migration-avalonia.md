@@ -732,9 +732,9 @@ The UI must not treat every failure as equivalent to “not supported.”
 ## Windows artifacts
 
 - [ ] Fast installer artifact.
-- [ ] Portable artifact if retained.
-- [ ] Code signing.
-- [ ] Appcast generation.
+- [x] Signed self-contained ZIP artifact retained for the Avalonia direct/update path.
+- [x] Code signing is mandatory in the Avalonia tag job.
+- [x] Appcast generation.
 - [ ] Upgrade and rollback test.
 
 ## macOS artifacts
@@ -744,7 +744,7 @@ The UI must not treat every failure as equivalent to “not supported.”
 - [x] Application signing automation.
 - [x] Notarization automation.
 - [x] Stapling automation.
-- [ ] Update artifact and appcast metadata.
+- [x] Update artifact and appcast metadata.
 - [ ] Clean-machine install/update test.
 
 ## Linux artifacts

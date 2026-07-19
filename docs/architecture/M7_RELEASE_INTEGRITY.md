@@ -8,7 +8,7 @@ M7.1 establishes a shared integrity contract for Avalonia release artifacts befo
 
 `New-ReleaseArtifactManifest.ps1` accepts only the selected Windows x64, macOS ARM64, and Linux x64 artifact names. Every entry records the target, format, byte length, lowercase SHA-256, installation ownership, and update policy. The manifest contains the full source commit and release version and deliberately omits timestamps so identical inputs produce stable content.
 
-`Test-ReleaseArtifactManifest.ps1` rejects duplicate names, traversal, missing files, changed sizes, and changed hashes. The manifest is audit metadata; the release workflow must still sign update payloads and the feed with Ed25519.
+`Test-ReleaseArtifactManifest.ps1` rejects duplicate names, traversal, missing files, changed sizes, and changed hashes. Manifest generation also rejects direct-update artifacts above the client's 128 MiB safety limit. The manifest is audit metadata; the release workflow must still sign update payloads and the feed with Ed25519.
 
 ## Native dependency validation
 
@@ -16,7 +16,7 @@ The native package validator rejects foreign OpenCV runtimes on every target. Li
 
 ## Update selection policy
 
-The portable updater accepts only a signed feed and signed payload over HTTPS. Portable clients require explicit `sparkle:os` and `sparkle:architecture` fields. The closed channel set is `stable` and `rc`; stable and RC clients cannot consume each other's entries. Unknown client or item channels fail closed.
+The portable updater accepts only a signed feed and signed payload over HTTPS. Portable clients require explicit `sparkle:os` and `sparkle:architecture` fields. The closed channel set is `stable` and `rc`: stable clients reject RC entries, while RC clients may select either a newer RC or the stable release. Unknown client or item channels fail closed. Avalonia stable builds reserve numeric revision `65535`; RC numbers are limited to `1..65534`, so the stable release correctly sorts after every RC of the same base version.
 
 Distribution ownership is also closed:
 
@@ -47,3 +47,11 @@ The Linux DEB is stamped `package-manager`; direct tar and DMG packages are stam
 - solution-wide NuGet vulnerability enumeration.
 
 Physical clean-machine installation, signed macOS notarization, and target update handoff remain explicit M7 acceptance gates.
+
+## Credentialed tag publication
+
+Version tags run a separate self-contained native packaging matrix after the build, Unix integration, and package-probe jobs succeed. Windows release archives cannot be retained without Authenticode credentials. macOS release artifacts cannot be retained without a Developer ID certificate and a complete App Store Connect notarization API-key triplet. Linux direct and DEB artifacts are assembled on Ubuntu 24.04.
+
+The final publication job downloads only those retained native outputs, rebuilds and validates one aggregate manifest, and uses pinned NetSparkle AppCast Generator 2.9.0 to sign each direct payload, `appcast-v2.xml`, and the manifest. The signing tool receives only a protected key-directory path; private key contents are not placed in process arguments. The final job verifies both metadata signatures before uploading any Avalonia asset to the GitHub release.
+
+Release payload preparation removes only debug-symbol files below the resolved generated publish directory and rejects stale updater build/RID subtrees. This keeps direct artifacts within the existing 128 MiB client limit without increasing the download memory/denial-of-service boundary.

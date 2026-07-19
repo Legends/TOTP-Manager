@@ -116,6 +116,16 @@ public sealed class SignedAppcastVerifierTests
     }
 
     [Fact]
+    public void Verify_WhenReleaseCandidateClientReceivesNewerStableChannel_SelectsIt()
+    {
+        var result = VerifyDynamic(
+            "<sparkle:os>windows</sparkle:os><sparkle:architecture>x64</sparkle:architecture><sparkle:channel>stable</sparkle:channel>",
+            channel: "rc");
+
+        Assert.Equal(SignedAppcastCheckStatus.UpdateAvailable, result.Status);
+    }
+
+    [Fact]
     public void Verify_WhenAppcastExceedsBound_RejectsFormatBeforeSignatureWork()
     {
         var result = Verify(new byte[256 * 1024 + 1], Signature);

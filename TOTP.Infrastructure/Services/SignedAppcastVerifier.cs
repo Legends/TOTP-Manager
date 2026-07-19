@@ -165,7 +165,12 @@ public sealed class SignedAppcastVerifier : ISignedAppcastVerifier
         && (string.IsNullOrWhiteSpace(candidate.Architecture)
             || string.Equals(candidate.Architecture, architecture, StringComparison.OrdinalIgnoreCase))
         && IsSupportedChannel(candidate.Channel)
-        && string.Equals(candidate.Channel, channel, StringComparison.OrdinalIgnoreCase);
+        && MatchesChannel(candidate.Channel, channel);
+
+    private static bool MatchesChannel(string candidateChannel, string requestedChannel) =>
+        string.Equals(candidateChannel, requestedChannel, StringComparison.OrdinalIgnoreCase)
+        || (string.Equals(requestedChannel, "rc", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(candidateChannel, "stable", StringComparison.OrdinalIgnoreCase));
 
     private static bool IsSupportedChannel(string? channel) =>
         string.Equals(channel, "stable", StringComparison.OrdinalIgnoreCase)

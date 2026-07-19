@@ -25,6 +25,17 @@ Publish the ARM64 host self-contained on macOS, then run:
 
 The notary profile must be created outside the repository with `xcrun notarytool store-credentials`. Never pass Apple credentials directly in repository scripts or command-line arguments. The script requires Developer ID signing, hardened runtime, secure timestamps, `notarytool`, stapling, and Gatekeeper assessment before a credentialed package is accepted.
 
+CI may instead supply the App Store Connect API-key triplet `-NotaryKeyPath`, `-NotaryKeyId`, and `-NotaryIssuerId`. The private key is materialized only in the runner's temporary directory and only its path is passed to `notarytool`; profile and API-key modes are mutually exclusive.
+
+Credentialed tag publication expects these GitHub Actions secrets:
+
+- Windows: `SIGNING_CERT_BASE64`, `SIGNING_CERT_PASSWORD`;
+- macOS signing: `MACOS_SIGNING_CERTIFICATE_BASE64`, `MACOS_SIGNING_CERTIFICATE_PASSWORD`, `MACOS_SIGNING_IDENTITY`;
+- macOS notarization: `MACOS_NOTARY_KEY_BASE64`, `MACOS_NOTARY_KEY_ID`, `MACOS_NOTARY_ISSUER_ID`;
+- update feed: `NETSPARKLE_PUBLIC_KEY`, `NETSPARKLE_PRIVATE_KEY`.
+
+A missing credential fails the tag workflow. It never downgrades a production artifact to unsigned output.
+
 The entitlements are limited to the camera capability and the current Microsoft-documented defaults required by a notarized .NET app host. Any removal or addition requires a physical launch/camera/Keychain regression on the signed bundle.
 
 ## Linux release procedure
@@ -51,6 +62,8 @@ Package assembly stamps the DEB with `AutoUpdate:DistributionMode=package-manage
 - macOS and Linux packages do not consume the WPF appcast.
 - Avalonia direct packages consume `appcast-v2.xml` and require an explicit OS, architecture, and stable/RC channel match.
 - Every release artifact is recorded in a deterministic manifest with its source commit, byte length, SHA-256, ownership, and update policy.
+- The aggregate manifest, every direct payload, and `appcast-v2.xml` are Ed25519-signed with pinned NetSparkle tooling. The client-embedded public key must match the CI public key before publication.
+- Direct-update artifacts above 128 MiB are rejected rather than expanding the client's bounded download policy.
 - No package may contain authorization envelopes, vaults, logs, user preferences, private keys, certificates, or notarization credentials.
 - Physical acceptance uses the exact retained candidate artifact, not a local development build.
 

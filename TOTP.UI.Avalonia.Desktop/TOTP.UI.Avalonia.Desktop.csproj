@@ -75,7 +75,7 @@
              Properties="Configuration=$(Configuration)" />
     <ItemGroup>
       <WindowsUpdaterBundleOutput Include="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*"
-                                  Exclude="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\ref\**\*" />
+                                  Exclude="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\ref\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\win-x64\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\publish\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*.pdb" />
     </ItemGroup>
     <Copy SourceFiles="@(WindowsUpdaterBundleOutput)"
           DestinationFiles="@(WindowsUpdaterBundleOutput->'$(OutDir)TOTP.Updater\%(RecursiveDir)%(Filename)%(Extension)')"
@@ -90,7 +90,7 @@
              Properties="Configuration=$(Configuration)" />
     <ItemGroup>
       <WindowsUpdaterBundlePublish Include="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*"
-                                   Exclude="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\ref\**\*" />
+                                   Exclude="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\ref\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\win-x64\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\publish\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*.pdb" />
     </ItemGroup>
     <Copy SourceFiles="@(WindowsUpdaterBundlePublish)"
           DestinationFiles="@(WindowsUpdaterBundlePublish->'$(PublishDir)TOTP.Updater\%(RecursiveDir)%(Filename)%(Extension)')"

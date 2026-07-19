@@ -61,4 +61,4 @@ The Windows Avalonia host uses the same dedicated updater runtime through `Windo
 5. passes arguments with `ProcessStartInfo.ArgumentList`;
 6. waits for the helper's ready signal before requesting Avalonia shutdown.
 
-The Avalonia update feed remains disabled until a target-qualified release channel is configured. The Windows adapter must not be used to consume generic WPF appcast entries.
+The Avalonia host consumes only the separate `appcast-v2.xml` feed. Target fields and the stable/RC channel must match, and the Windows adapter must not consume generic WPF appcast entries. Linux package-manager/store builds disable application-owned updates; direct Linux and macOS packages may verify/download matching artifacts but retain manual platform handoff until a dedicated installer adapter is approved.
