@@ -58,7 +58,7 @@ A separate repository should be considered only if the Avalonia client becomes a
 
 ## Recommended branch model
 
-The repository currently uses `master` as the default branch, and CI is configured primarily for `master`. Existing Git tags extend beyond `v1.0`; the latest local tag observed during planning is `v1.8.1.0`. The exact WPF maintenance baseline must therefore be chosen from the actual production commit, not inferred from the version currently written in a project file.
+The repository uses `master` as the default branch, and both build and security CI target `master` and `release/1.x`. The latest production tag observed and reconciled locally is the annotated tag `v1.8.1.0`, which resolves to commit `13126f63aab8a7889e9c4f65cdfd7b0adca05f42`. The WPF maintenance baseline is therefore anchored to release history rather than the default version written in a project file.
 
 ### Before migration work begins
 
@@ -113,7 +113,7 @@ Rules:
 - Security fixes land in the affected branch and are forward-ported to `master` immediately.
 - Storage-format fixes must be evaluated in both directions.
 - Do not add new product features only to `release/1.x`.
-- Add CI triggers for `release/1.x` before relying on it; current workflows primarily target `master`.
+- Keep the existing build and security CI triggers for `release/1.x` before relying on it.
 - Use explicit WPF maintenance tags and do not reuse tags.
 
 ### What not to do
@@ -137,7 +137,7 @@ Recommended product-line convention:
 - `2.0.0`: First supported Windows/macOS/Linux Avalonia release
 - Later `2.x`: Android/iOS clients if storage and protocol compatibility remain intact
 
-Before applying this convention, reconcile it with the repository's existing tag format and release workflow. Existing tags and the documented RC workflow are not currently identical, so version normalization should be its own reviewed change.
+Historical WPF tags use four numeric components, ending with `v1.8.1.0`. The reviewed v2 workflow deliberately accepts only `v<major>.<minor>.<patch>` and `v<major>.<minor>.<patch>-rc<nr>`, stamps package/file versions from that tag, publishes RCs as prereleases, and never lets an RC replace the latest stable release. Existing v1 tags remain immutable historical identifiers and are not renamed.
 
 ## Migration principles
 
@@ -268,18 +268,18 @@ Total expected production effort remains approximately **37-62 person-weeks**, w
 
 ### Tasks
 
-- [ ] Finish, split, or shelve current uncommitted changes.
-- [ ] Run `dotnet restore TOTP.sln --configfile NuGet.config`.
-- [ ] Run a clean Debug build.
-- [ ] Run a clean Release build.
-- [ ] Run the complete test suite.
+- [x] Finish, split, or shelve current uncommitted changes.
+- [x] Run `dotnet restore TOTP.sln --configfile NuGet.config`.
+- [x] Run a clean Debug build.
+- [x] Run a clean Release build.
+- [x] Run the complete test suite.
 - [ ] Verify current WPF startup, unlock, account CRUD, QR, export, and update checks manually.
-- [ ] Identify the exact latest production commit and tag.
-- [ ] Reconcile the current project version, historical tags, and RC workflow.
-- [ ] Create `docs/architecture/ADR-avalonia.md`.
-- [ ] Record supported initial OS versions.
-- [ ] Record Linux distribution and packaging scope.
-- [ ] Decide whether `release/1.x` is needed immediately.
+- [x] Identify the exact latest production commit and tag (`v1.8.1.0`, commit `13126f63aab8a7889e9c4f65cdfd7b0adca05f42`).
+- [x] Reconcile the current project version, historical tags, and RC workflow.
+- [x] Create the Avalonia decision record (`docs/architecture/ADR-0001-native-avalonia-migration.md`).
+- [x] Record supported initial OS versions.
+- [x] Record Linux distribution and packaging scope.
+- [x] Create and wire CI for the `release/1.x` maintenance branch.
 - [ ] Update branch protection for any maintenance branch.
 - [ ] Add Avalonia migration labels and milestones to issue tracking.
 
