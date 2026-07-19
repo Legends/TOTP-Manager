@@ -778,25 +778,25 @@ Select a narrow initial set, for example:
 
 ### Security
 
-- [ ] Update threat model.
-- [ ] Review all quick-unlock providers.
-- [ ] Review sensitive buffer lifetime.
-- [ ] Review clipboard limitations.
-- [ ] Review logs for secret leakage.
-- [ ] Test storage corruption and rollback.
-- [ ] Test secure-store reset and OS-account changes.
-- [ ] Test downgrade and replay behavior.
-- [ ] Test malicious appcasts and substituted installers.
+- [x] Update threat model.
+- [x] Review all quick-unlock providers; native prompts/reset remain physical gates.
+- [x] Review sensitive buffer lifetime; managed string-binding limitations are documented for external memory review.
+- [x] Review clipboard limitations; desktop clipboard-manager behavior remains a physical gate.
+- [x] Review logs for secret leakage; exact-artifact sanitized log review remains physical acceptance.
+- [x] Test storage corruption and rollback.
+- [x] Test secure-store reset and OS-account changes through fail-closed adapters; destructive native-account reset remains physical acceptance.
+- [x] Test downgrade and replay behavior.
+- [x] Test malicious appcasts and substituted installers.
 - [ ] Commission external review or penetration test.
 
 ### Reliability
 
-- [ ] Startup failure recovery.
-- [ ] Crash recovery.
-- [ ] Camera failure recovery.
-- [ ] Missing secure-store recovery.
-- [ ] Update failure recovery.
-- [ ] Backup restore verification.
+- [x] Startup failure recovery.
+- [x] Crash recovery.
+- [x] Camera failure recovery.
+- [x] Missing secure-store recovery.
+- [x] Update failure recovery.
+- [x] Backup restore verification.
 - [ ] Long-running timer and idle-lock soak tests.
 
 ### Accessibility and UX
@@ -806,16 +806,16 @@ Select a narrow initial set, for example:
 - [ ] Focus order.
 - [ ] High contrast.
 - [ ] DPI scaling.
-- [ ] Reduced motion where applicable.
+- [x] Reduced motion: no animation or transition is currently applied.
 - [ ] Localization overflow.
-- [ ] Right-to-left readiness if later required.
+- [x] Right-to-left localization is deferred until an RTL locale enters scope; no physical readiness claim is made.
 
 ### Performance
 
 - [ ] Cold startup budget.
 - [ ] Warm startup budget.
-- [ ] 500/1,000/5,000-account list tests.
-- [ ] Search latency budget.
+- [x] 500/1,000/5,000-account list tests, plus a 10,000-account projection regression.
+- [x] Search latency budget in all three retained M3 package-probe reports.
 - [ ] Memory budget.
 - [ ] Camera startup budget.
 - [ ] Lock/unlock latency budget.

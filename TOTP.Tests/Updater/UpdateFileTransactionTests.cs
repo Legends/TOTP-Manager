@@ -42,6 +42,38 @@ public sealed class UpdateFileTransactionTests : IDisposable
         Assert.Equal("blocking-file", await File.ReadAllTextAsync(Path.Combine(target, "z-blocked"), cancellationToken));
     }
 
+    [Fact]
+    public async Task ApplyAsync_WhenCancelledAfterFirstReplacement_RestoresEveryFile()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var stage = Directory.CreateDirectory(Path.Combine(_root, "stage")).FullName;
+        var target = Directory.CreateDirectory(Path.Combine(_root, "target")).FullName;
+        await File.WriteAllTextAsync(Path.Combine(stage, "a-first.txt"), "new-first", cancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(stage, "b-second.txt"), "new-second", cancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(target, "a-first.txt"), "old-first", cancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(target, "b-second.txt"), "old-second", cancellationToken);
+        var progress = new InlineProgress<InstallerProgressState>(state =>
+        {
+            if (state.Detail.StartsWith("2/", StringComparison.Ordinal))
+                cancellation.Cancel();
+        });
+        var files = Directory.EnumerateFiles(stage, "*", SearchOption.AllDirectories)
+            .Select(path => new FileInfo(path))
+            .ToArray();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => UpdateFileTransaction.ApplyAsync(
+            files,
+            stage,
+            target,
+            progress,
+            _ => { },
+            cancellation.Token));
+
+        Assert.Equal("old-first", await File.ReadAllTextAsync(Path.Combine(target, "a-first.txt"), cancellationToken));
+        Assert.Equal("old-second", await File.ReadAllTextAsync(Path.Combine(target, "b-second.txt"), cancellationToken));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_root))
@@ -60,5 +92,10 @@ public sealed class UpdateFileTransactionTests : IDisposable
             new Progress<InstallerProgressState>(),
             _ => { },
             cancellationToken);
+    }
+
+    private sealed class InlineProgress<T>(Action<T> report) : IProgress<T>
+    {
+        public void Report(T value) => report(value);
     }
 }

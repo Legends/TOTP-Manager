@@ -71,6 +71,20 @@ public sealed class SignedAppcastVerifierTests
     }
 
     [Fact]
+    public void Verify_WhenCurrentVersionMatchesSignedOffer_RejectsReplay()
+    {
+        var result = _sut.Verify(new SignedAppcastCheckRequest(
+            Encoding.UTF8.GetBytes(Appcast),
+            Signature,
+            PublicKey,
+            new Version(99, 0, 0),
+            "windows",
+            "x64"));
+
+        Assert.Equal(SignedAppcastCheckStatus.NoApplicableUpdate, result.Status);
+    }
+
+    [Fact]
     public void Verify_WhenPortableClientRequiresExplicitTarget_RejectsGenericArtifact()
     {
         var result = _sut.Verify(new SignedAppcastCheckRequest(
@@ -133,6 +147,37 @@ public sealed class SignedAppcastVerifierTests
         Assert.Equal(SignedAppcastCheckStatus.InvalidFormat, result.Status);
     }
 
+    [Fact]
+    public void Verify_WhenSignedAppcastContainsDtd_RejectsWithoutResolvingIt()
+    {
+        const string appcast = "<?xml version=\"1.0\"?><!DOCTYPE rss [<!ENTITY local SYSTEM \"file:///synthetic-sensitive-file\">]><rss version=\"2.0\"><channel><item><title>&local;</title><sparkle:version xmlns:sparkle=\"http://www.andymatuschak.org/xml-namespaces/sparkle\">99.0.0</sparkle:version><enclosure url=\"https://example.invalid/update.zip\" /></item></channel></rss>";
+
+        var result = VerifySignedAppcast(appcast, new Version(2, 0, 0));
+
+        Assert.Equal(SignedAppcastCheckStatus.InvalidFormat, result.Status);
+    }
+
+    [Fact]
+    public void Verify_WhenSignedAppcastFloodsItemLimit_RejectsEntireFeed()
+    {
+        var items = string.Concat(Enumerable.Range(0, 129).Select(index =>
+            $"<item><sparkle:version>{index + 3}.0.0</sparkle:version><enclosure url=\"https://example.invalid/update-{index}.zip\" /></item>"));
+        var appcast = $"<?xml version=\"1.0\"?><rss version=\"2.0\" xmlns:sparkle=\"http://www.andymatuschak.org/xml-namespaces/sparkle\"><channel>{items}</channel></rss>";
+
+        var result = VerifySignedAppcast(appcast, new Version(2, 0, 0));
+
+        Assert.Equal(SignedAppcastCheckStatus.InvalidFormat, result.Status);
+    }
+
+    [Fact]
+    public void Verify_WhenSignedOfferUsesUnknownChannel_FailsClosed()
+    {
+        var result = VerifyDynamic(
+            "<sparkle:os>windows</sparkle:os><sparkle:architecture>x64</sparkle:architecture><sparkle:channel>preview</sparkle:channel>");
+
+        Assert.Equal(SignedAppcastCheckStatus.NoApplicableUpdate, result.Status);
+    }
+
     private SignedAppcastCheckResult Verify(byte[] appcast, string signature) =>
         _sut.Verify(new SignedAppcastCheckRequest(
             appcast,
@@ -164,5 +209,23 @@ public sealed class SignedAppcastVerifierTests
             "x64",
             RequireExplicitTarget: true,
             Channel: channel));
+    }
+
+    private SignedAppcastCheckResult VerifySignedAppcast(string appcast, Version currentVersion)
+    {
+        using var key = Key.Create(SignatureAlgorithm.Ed25519, new KeyCreationParameters
+        {
+            ExportPolicy = KeyExportPolicies.AllowPlaintextExport
+        });
+        var bytes = Encoding.UTF8.GetBytes(appcast);
+        var signature = Convert.ToBase64String(SignatureAlgorithm.Ed25519.Sign(key, bytes));
+        var publicKey = Convert.ToBase64String(key.PublicKey.Export(KeyBlobFormat.RawPublicKey));
+        return _sut.Verify(new SignedAppcastCheckRequest(
+            bytes,
+            signature,
+            publicKey,
+            currentVersion,
+            "windows",
+            "x64"));
     }
 }

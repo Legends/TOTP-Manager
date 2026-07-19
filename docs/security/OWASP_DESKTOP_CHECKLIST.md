@@ -6,7 +6,7 @@ Status values:
 - `Missing`: control not present or not enforceable yet.
 
 Modules:
-- `UI`: `TOTP` (WPF)
+- `UI`: `TOTP` (WPF), `TOTP.UI.Avalonia.Desktop`, and `TOTP.UI.Avalonia.Shared`
 - `Core`: `TOTP.Core`
 - `Infra`: `TOTP.Infrastructure`
 - `DAL`: `TOTP.DAL`
@@ -15,25 +15,22 @@ Modules:
 ## Checklist
 | ID | OWASP-aligned control | UI | Core | Infra | DAL | DevSecOps | Evidence |
 |---|---|---|---|---|---|---|---|
-| DS-01 | Sensitive local data encrypted at rest | Partial | Implemented | Implemented | Implemented | Partial | `VaultService`, authorization envelope v2, encrypted `.totp` export |
-| DS-02 | Sensitive keys isolated in memory and cleared | Implemented | Partial | Implemented | Partial | Missing | `SecurityContext`, `MasterPasswordService`, password consume-and-clear, flyout secret cache clearing, `RevealableSecretBox` unload wipe, and token-only clipboard clear scheduling |
-| DS-03 | Modern crypto + authenticated encryption (AEAD) | Partial | Implemented | Implemented | Implemented | Partial | AES-256-GCM + Argon2id in security services |
-| DS-04 | KDF parameters validated against abuse bounds | Missing | Missing | Implemented | Partial | Missing | `MasterPasswordService` now bounds-checks iterations/memory/salt/nonce |
-| DS-05 | Import parsers resistant to malformed/oversized files | Partial | Partial | Implemented | Partial | Partial | `ExportService` enforces max import size (5 MiB) and fuzz-style tests cover malformed `.json/.csv/.txt/.totp` import paths |
-| DS-06 | Least-privilege filesystem ACL for secret/settings files | Missing | Partial | Implemented | Implemented | Partial | `WindowsFileSecurity` applies fail-closed current-user ACLs behind `IPlatformFileSecurity` |
-| DS-07 | Secure write pattern (atomic writes, temp file) | Partial | Implemented | Partial | Implemented | Partial | `AccountDAL` temp-write + replace |
-| DS-08 | Authorization required for sensitive operations | Partial | Implemented | Implemented | Partial | Partial | `AuthorizationService`, password/hello gate, session lock services |
-| DS-09 | Security logging without secret leakage | Partial | Partial | Implemented | Partial | Partial | Central redaction covers structured properties and rendered sink text (message/exception key-value, bearer, query secrets) |
+| DS-01 | Sensitive local data encrypted at rest | Implemented | Implemented | Implemented | Implemented | Implemented | AES-GCM vault, authorization envelope v2, encrypted `.totp` export, plaintext-preference allowlist |
+| DS-02 | Sensitive keys isolated in memory and cleared | Partial | Implemented | Implemented | Implemented | Implemented | `SecurityContext`, `SensitiveBuffer`, provider/camera/QR/updater temporary clearing; managed UI strings remain a platform limitation |
+| DS-03 | Modern crypto + authenticated encryption (AEAD) | Implemented | Implemented | Implemented | Implemented | Implemented | AES-256-GCM, Argon2id, Ed25519 release verification |
+| DS-04 | KDF parameters validated against abuse bounds | Implemented | Implemented | Implemented | Implemented | Implemented | Strict algorithm/iteration/memory/parallelism/salt/nonce bounds and hostile-parameter tests |
+| DS-05 | Import parsers resistant to malformed/oversized files | Implemented | Implemented | Implemented | Implemented | Implemented | 5 MiB limit, bounded encrypted framing, deterministic JSON/CSV/TXT/TOTP fuzz tests |
+| DS-06 | Least-privilege filesystem protection for secret/settings files | Implemented | Implemented | Implemented | Implemented | Implemented | Fail-closed Windows ACL and Unix 0700/0600/reparse/symlink policies on matching CI runners |
+| DS-07 | Secure write pattern (atomic writes, temp file) | Implemented | Implemented | Implemented | Implemented | Implemented | Exclusive staged writes, harden-before-replace, bounded backups, rollback regression tests |
+| DS-08 | Authorization required for sensitive operations | Implemented | Implemented | Implemented | Implemented | Implemented | Recovery-password authority, reviewed quick unlock, lock/session policy, authorized-shell and confirmation boundaries |
+| DS-09 | Security logging without secret leakage | Implemented | Implemented | Implemented | Implemented | Implemented | Structured and rendered redaction plus exception-type-only startup/UI security boundaries |
 | DS-10 | Build/release security gates (SAST/SCA/secrets) | Missing | Missing | Missing | Missing | Implemented | `.github/workflows/security-audit.yml`, `SECURITY_VERIFICATION.md` |
 | DS-11 | Signed release artifacts and key custody | Missing | Missing | Missing | Missing | Implemented | CI publish signs from secrets (`SIGNING_CERT_BASE64` + `SIGNING_CERT_PASSWORD`), repo-local `.pfx` removed, rotation runbook added |
-| DS-12 | Security tests for critical controls | Partial | Partial | Partial | Partial | Partial | Import/KDF, ACL recovery, and clipboard replacement/failure regression tests |
+| DS-12 | Security tests for critical controls | Implemented | Implemented | Implemented | Implemented | Implemented | Crypto/envelope/store/import/update/logging/clipboard/platform failure and recovery suites |
 
-## Highest-Risk Gaps Prioritized First
-1. `DS-06` file ACL hardening for secrets/settings (implemented now).
-2. `DS-05` import size hard limits to reduce DoS parsing risk (implemented now).
-3. `DS-04` strict Argon/KDF parameter bounds to prevent resource exhaustion (implemented now).
+## Remaining release risks
 
-## Remaining High-Risk Next
-1. Add periodic signing-secret rotation compliance checks in CI governance.
-2. Expand memory-hardening beyond string-backed WPF bindings where practical (custom secure input strategy).
-3. Add parser fuzz tests for import formats to close residual DoS/corruption risk.
+1. Complete independent penetration testing against exact signed release artifacts.
+2. Inspect managed-process memory around string-backed password/secret UI bindings and decide whether a platform-specific secure-input redesign has sufficient benefit.
+3. Complete physical platform, assistive-technology, native-store reset, clipboard-manager, camera, and clean-machine update acceptance.
+4. Verify signing-secret rotation and branch-protection operations outside the repository.

@@ -75,4 +75,25 @@ public sealed class SecurityContextTests
         Assert.False(sut.IsUnlocked);
         Assert.All(retainedBuffer, value => Assert.Equal(0, value));
     }
+
+    [Fact]
+    public void RepeatedUnlockLockCycles_AlwaysZeroReleasedKeyBuffers()
+    {
+        using var sut = new SecurityContext();
+        var field = typeof(SecurityContext).GetField(
+            "_rawDek",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        for (var cycle = 0; cycle < 1_000; cycle++)
+        {
+            var input = Enumerable.Repeat((byte)((cycle % 254) + 1), 32).ToArray();
+            sut.SetDek(input);
+            var retainedBuffer = Assert.IsType<byte[]>(field?.GetValue(sut));
+
+            sut.Lock();
+
+            Assert.False(sut.IsUnlocked);
+            Assert.All(retainedBuffer, value => Assert.Equal(0, value));
+        }
+    }
 }

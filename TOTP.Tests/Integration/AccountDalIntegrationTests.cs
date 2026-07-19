@@ -177,6 +177,27 @@ public sealed class AccountDalIntegrationTests
     }
 
     [Fact]
+    public async Task BackupOtpEntriesStorageFileAsync_PublishedGenerationCanRestoreVault()
+    {
+        using var temp = new TempDir();
+        var storagePath = Path.Combine(temp.Path, "master.totp");
+        var vault = new EchoVaultService();
+        var sut = CreateSut(storagePath, vault);
+        var recoverable = new Account(Guid.NewGuid(), "Recoverable", "SYNTHETIC", "backup@example.test");
+        Assert.True((await sut.AddNewAsync(recoverable)).IsSuccess);
+        Assert.True((await sut.BackupOtpEntriesStorageFileAsync()).IsSuccess);
+        Assert.True((await sut.AddNewAsync(new Account(Guid.NewGuid(), "Later", "SYNTHETIC-2"))).IsSuccess);
+
+        File.Copy($"{storagePath}.bak1", storagePath, overwrite: true);
+        var restored = await CreateSut(storagePath, vault).GetAllAsync();
+
+        Assert.True(restored.IsSuccess);
+        var account = Assert.Single(restored.Value);
+        Assert.Equal(recoverable.ID, account.ID);
+        Assert.Equal(recoverable.Secret, account.Secret);
+    }
+
+    [Fact]
     public async Task GetAllAsync_WhenVaultThrowsCryptographicException_ReturnsDecryptFailedError()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

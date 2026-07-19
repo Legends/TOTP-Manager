@@ -41,16 +41,17 @@
 ## 4. STRIDE Threat Analysis
 | Threat | Example | Current Mitigation | Gap / Action |
 |---|---|---|---|
-| Spoofing | Fake user input into import/export workflows | Password prompts and explicit confirmation paths | Add stronger re-auth policy for sensitive actions |
-| Tampering | Modified encrypted export payload | Crypto validation during import | Add integrity verification tests per file format/version |
+| Spoofing | Unattended or injected input reaches import/export workflows | Authorized-shell boundary, owned native dialogs, password-protected export/import, explicit conflict/confirmation paths | Validate native dialog ownership physically |
+| Tampering | Modified encrypted export payload | Bounded authenticated decryption, wrong-password/tamper result, round-trip and fuzz regressions | External parser/crypto review |
 | Tampering | Replaced, corrupted, or rolled-back authorization envelope | Strict bounded codec, authenticated password wrapper, candidate-key vault verification, atomic replacement, one bounded backup | Add explicit rollback-version policy before multi-device synchronization |
-| Repudiation | No trace of security-sensitive actions | App logging exists | Add security event taxonomy and redaction policy |
-| Information Disclosure | Secrets/passwords retained in memory | Sensitive-data clearing and copied-key patterns | Add periodic memory review and secure-string strategy decision |
+| Tampering | Substituted update feed, payload, or target package | Ed25519 feed/payload verification, target/channel matching, signed manifest, platform signing, bounded transactional replacement and rollback | Physical signed handoff plus external review |
+| Repudiation | No trace of security-sensitive actions | Allowlisted startup/security status and typed failure logging with centralized rendered-text redaction | Release-log review; never add secret-bearing audit fields |
+| Information Disclosure | Secrets/passwords retained in memory | Owned clearable buffers, short-lived copies, pinned DEK storage, lock/disposal zeroing, and presentation cleanup | Managed string bindings remain; perform external memory inspection |
 | Information Disclosure | Authorization material accidentally enters plaintext preferences | Allowlisted `AppPreferencesV1` mapper and strict unknown-field rejection; authorization has a separate encrypted envelope | Require data-classification review for every new preference field |
 | Information Disclosure | Platform-store secret leaks through helper process arguments or logs | macOS uses in-process Security.framework; Linux sends clearable base64 only through `secret-tool` stdin and bounds stdout; logs contain status/type only | Physical memory/log review remains a release gate |
 | Spoofing | Focus loss or unrelated D-Bus traffic is treated as a session lock | macOS reads OS session lock state; Linux accepts only selected ScreenSaver `ActiveChanged` signals | Validate selected desktops physically and report unsupported environments explicitly |
-| Denial of Service | Malformed import payload crashes workflow | Error mapping and guarded workflows | Add fuzz tests for import parsers |
-| Elevation of Privilege | Weak CI/release controls | GitHub secrets and signed builds | Enforce branch protection + required security workflow gates |
+| Denial of Service | Malformed import or update payload crashes workflow | Size/item/KDF bounds, DTD prohibition, streamed downloads, error mapping, deterministic fuzz/adversarial tests | Continue fuzz corpus expansion |
+| Elevation of Privilege | Weak CI/release controls | Required security workflows, vulnerability audit, secret scan, mandatory target signing/notarization, signed aggregate metadata | Verify repository branch rules and credential rotation operationally |
 
 ## 5. Attack Surfaces
 - Import file parsing (`.totp`, `.json`, `.txt`, `.csv`)
@@ -61,6 +62,8 @@
 - Linux Secret Service and desktop session-lock signal handling
 - CI/CD pipeline and release artifacts
 - Dependency supply chain
+- Windows updater process and temporary staging/rollback directories
+- macOS bundle/notarization and Linux package-manager ownership boundaries
 
 ## 6. Security Controls Baseline
 - Centralized password validation service
@@ -74,11 +77,16 @@
   - SCA (NuGet vulnerability/deprecation scan)
   - Secret scanning (Gitleaks)
   - Optional DAST (ZAP baseline) for externally reachable endpoints
+  - target-native dependency closure and runtime loading
+  - signed artifact/feed/manifest verification
+  - cross-platform real-XAML headless loading
 
 ## 7. Residual Risks
 - Manual penetration testing still required for release confidence
 - Desktop runtime hardening (host OS, malware resistance) is environment-dependent
 - A local attacker able to run as the user can replace or roll back application files; authenticated unwrap and vault verification prevent silent key substitution but do not provide a monotonic anti-rollback counter
+- A valid older authorization envelope can be replayed by a same-user local attacker; strict version/crypto validation prevents format downgrade but there is no trusted monotonic envelope counter
+- The Windows updater can restore files after ordinary copy failure/cancellation, but power loss or hostile interference during rollback still requires manual re-extraction of a signed package
 - Loss or reset of Windows Hello/TPM or macOS Keychain state disables quick unlock; recovery remains dependent on the master password
 - Linux desktop D-Bus and Secret Service behavior varies by distribution/session; unsupported or misconfigured environments remain password/manual-lock capable and are reported explicitly
 - Third-party dependency risk remains ongoing and must be continuously monitored
