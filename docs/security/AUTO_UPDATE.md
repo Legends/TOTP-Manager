@@ -120,10 +120,12 @@ Set these repository secrets:
 - `NETSPARKLE_PUBLIC_KEY`
 - `NETSPARKLE_PRIVATE_KEY`
 
-When present, publish workflow will:
-- generate `publish/appcast.xml`
-- upload `TOTP.UI.WPF.exe`, `appcast.xml`, and `appcast.xml.signature` to GitHub Releases
+Both secrets are mandatory for a version-tag workflow. The public key must exactly match the key embedded in both desktop clients. The workflow will:
+- generate and verify the legacy WPF `appcast.xml`
 - sign every direct Avalonia payload, `release-artifacts-v2.json`, and `appcast-v2.xml` after all native packaging jobs succeed
+- retain the signed WPF and native packages as workflow artifacts until every packaging job succeeds
+- upload the complete asset set to a draft GitHub release, then make it visible only after every expected file is present
+- publish `-rc<nr>` tags as prereleases that never replace the latest stable release
 
 ## 7. Security Notes
 - Ed25519 appcast signatures protect update integrity/authenticity.

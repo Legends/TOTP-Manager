@@ -611,12 +611,13 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-  publish:
+  package-wpf-release:
+    name: Package signed legacy WPF release
     needs: [build-test, unix-file-security, m3-package-probe]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
     permissions:
-      contents: write
+      contents: read
 
     env:
       SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
@@ -662,61 +663,6 @@ jobs:
           Write-Host "Release version: $releaseVersion"
           Write-Host "File version: $fileVersion"
 
-      - name: Determine whether this tag should be latest
-        id: latest_release
-        shell: pwsh
-        run: |
-          $currentTag = "${{ github.ref_name }}"
-          if ($currentTag -notmatch '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-rc(?<rc>\d+))?$') {
-            throw "Release tag '$currentTag' does not match expected format v<major>.<minor>.<patch>[-rc<nr>]."
-          }
-
-          $tagLines = git ls-remote --tags --refs origin "v*"
-          if (-not $tagLines) {
-            throw "Could not resolve release tags from origin."
-          }
-
-          $releaseTags = foreach ($line in $tagLines) {
-            $parts = $line -split '\s+'
-            if ($parts.Count -lt 2) {
-              continue
-            }
-
-            $ref = $parts[1]
-            if ($ref -notmatch '^refs/tags/(?<tag>v\d+\.\d+\.\d+(?:-rc\d+)?)$') {
-              continue
-            }
-
-            $tag = $Matches.tag
-            if ($tag -notmatch '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-rc(?<rc>\d+))?$') {
-              continue
-            }
-
-            [PSCustomObject]@{
-              Tag = $tag
-              Major = [int]$Matches.major
-              Minor = [int]$Matches.minor
-              Patch = [int]$Matches.patch
-              Stable = if ($Matches.rc) { 0 } else { 1 }
-              Rc = if ($Matches.rc) { [int]$Matches.rc } else { 0 }
-            }
-          }
-
-          $highestTag = $releaseTags |
-            Sort-Object Major, Minor, Patch, Stable, Rc |
-            Select-Object -Last 1 -ExpandProperty Tag
-
-          if ([string]::IsNullOrWhiteSpace($highestTag)) {
-            throw "Could not determine the highest release tag."
-          }
-
-          $makeLatest = if ($currentTag -eq $highestTag) { 'true' } else { 'false' }
-          "make_latest=$makeLatest" >> $env:GITHUB_OUTPUT
-
-          Write-Host "Current tag: $currentTag"
-          Write-Host "Highest tag: $highestTag"
-          Write-Host "Mark release as latest: $makeLatest"
-
       - name: Publish WPF app (fast startup)
         run: |
           dotnet publish TOTP/TOTP.UI.WPF.csproj `
@@ -761,17 +707,15 @@ jobs:
           path: ~/.dotnet/tools
           key: ${{ runner.os }}-dotnet-tools-netsparkle-appcastgenerator-2.9.0
 
-      - name: Sign published executable
-        if: ${{ env.SIGNING_CERT_BASE64 != '' && env.SIGNING_CERT_PASSWORD != '' }}
+      - name: Require and sign published executables
         shell: pwsh
         run: |
+          if ([string]::IsNullOrWhiteSpace($env:SIGNING_CERT_BASE64) -or
+              [string]::IsNullOrWhiteSpace($env:SIGNING_CERT_PASSWORD)) {
+            throw "Windows release signing credentials are required."
+          }
           ./TOTP/Properties/Signing/Sign-App.ps1 -ExePath ./publish-fast/TOTP.UI.WPF.exe
           ./TOTP/Properties/Signing/Sign-App.ps1 -ExePath ./publish-portable/TOTP.UI.WPF.exe
-
-      - name: Signing skipped notice
-        if: ${{ env.SIGNING_CERT_BASE64 == '' || env.SIGNING_CERT_PASSWORD == '' }}
-        run: |
-          echo "Signing skipped: SIGNING_CERT_BASE64 or SIGNING_CERT_PASSWORD is not configured."
 
       - name: Compress release artifacts
         run: |
@@ -779,8 +723,11 @@ jobs:
           Compress-Archive -Path publish-portable\* -DestinationPath TOTP-Manager-portable.zip
 
       - name: Install NetSparkle appcast tool
-        if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
         run: |
+          if ([string]::IsNullOrWhiteSpace($env:NETSPARKLE_PUBLIC_KEY) -or
+              [string]::IsNullOrWhiteSpace($env:NETSPARKLE_PRIVATE_KEY)) {
+            throw "Ed25519 release signing credentials are required."
+          }
           dotnet tool list --global | findstr /I "NetSparkleUpdater.Tools.AppCastGenerator" >nul
           if ($LASTEXITCODE -ne 0) {
             dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator --version 2.9.0 --verbosity minimal
@@ -790,9 +737,13 @@ jobs:
           }
 
       - name: Generate appcast for auto-update
-        if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
         shell: pwsh
         run: |
+          $clientSettings = Get-Content TOTP/appsettings.json -Raw | ConvertFrom-Json
+          $expectedPublicKey = $clientSettings.AutoUpdate.PublicKey
+          if ($expectedPublicKey -cne $env:NETSPARKLE_PUBLIC_KEY.Trim()) {
+            throw "The CI public key does not match the key embedded in the WPF client."
+          }
           $keyDir = Join-Path $env:RUNNER_TEMP "netsparkle-keys"
           New-Item -ItemType Directory -Path $keyDir -Force | Out-Null
           $pubPath = Join-Path $keyDir "NetSparkle_Ed25519.pub"
@@ -810,7 +761,6 @@ jobs:
             -DisplayVersion "${{ steps.versioning.outputs.release_version }}"
 
       - name: Validate generated appcast versions
-        if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
         shell: pwsh
         run: |
           $appcastPath = "./publish-fast/appcast.xml"
@@ -848,36 +798,27 @@ jobs:
 
           Write-Host "Appcast version fields validated."
 
-      - name: Appcast generation skipped notice
-        if: ${{ env.NETSPARKLE_PUBLIC_KEY == '' || env.NETSPARKLE_PRIVATE_KEY == '' }}
+      - name: Stage retained WPF release assets
+        shell: pwsh
         run: |
-          echo "Appcast generation skipped: NETSPARKLE_PUBLIC_KEY or NETSPARKLE_PRIVATE_KEY is not configured."
+          New-Item -ItemType Directory -Path wpf-release-assets | Out-Null
+          Copy-Item TOTP-Manager-fast.zip wpf-release-assets/
+          Copy-Item TOTP-Manager-portable.zip wpf-release-assets/
+          Copy-Item publish-fast/TOTP.UI.WPF.exe wpf-release-assets/
+          Copy-Item publish-fast/appcast.xml wpf-release-assets/
+          Copy-Item publish-fast/appcast.xml.signature wpf-release-assets/
 
-      - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v3.0.1
+      - name: Upload retained WPF release assets
+        uses: actions/upload-artifact@v6
         with:
-          make_latest: ${{ steps.latest_release.outputs.make_latest }}
-          files: |
-            TOTP-Manager-fast.zip
-            TOTP-Manager-portable.zip
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload auto-update assets to GitHub Release
-        if: ${{ env.NETSPARKLE_PUBLIC_KEY != '' && env.NETSPARKLE_PRIVATE_KEY != '' }}
-        uses: softprops/action-gh-release@v3.0.1
-        with:
-          make_latest: ${{ steps.latest_release.outputs.make_latest }}
-          files: |
-            publish-fast/TOTP.UI.WPF.exe
-            publish-fast/appcast.xml
-            publish-fast/appcast.xml.signature
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          name: wpf-release-${{ github.sha }}
+          path: wpf-release-assets/*
+          retention-days: 7
+          if-no-files-found: error
 
   publish-avalonia-release:
-    name: Publish signed Avalonia release
-    needs: [publish, package-avalonia-release]
+    name: Publish complete signed release
+    needs: [package-wpf-release, package-avalonia-release]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-24.04
     permissions:
@@ -896,10 +837,10 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
-      - name: Download retained native artifacts
+      - name: Download all retained release artifacts
         uses: actions/download-artifact@v6
         with:
-          pattern: avalonia-release-*-${{ github.sha }}
+          pattern: '*-release-*${{ github.sha }}'
           path: release-assets
           merge-multiple: true
 
@@ -915,6 +856,7 @@ jobs:
           $rcNumber = $Matches.rc
           $releaseVersion = if ($rcNumber) { "$baseVersion-rc$rcNumber" } else { $baseVersion }
           "release_version=$releaseVersion" >> $env:GITHUB_OUTPUT
+          "prerelease=$(if ($rcNumber) { 'true' } else { 'false' })" >> $env:GITHUB_OUTPUT
 
           $artifactPaths = @(Get-ChildItem release-assets -File | Where-Object {
             $_.Name -match '^(TOTP-Manager-(windows-x64(?:-fast)?|macos-arm64|linux-x64)-.+\.(zip|dmg|tar\.gz)|totp-manager_.+_amd64\.deb)$'
@@ -931,6 +873,41 @@ jobs:
           ./scripts/release/Test-ReleaseArtifactManifest.ps1 `
             -ManifestPath release-assets/release-artifacts-v2.json `
             -ArtifactDirectory release-assets
+
+      - name: Determine whether this stable tag should be latest
+        id: latest_release
+        shell: pwsh
+        run: |
+          $currentTag = "${{ github.ref_name }}"
+          if ($currentTag -match '-rc\d+$') {
+            "make_latest=false" >> $env:GITHUB_OUTPUT
+            Write-Host "Release candidates are never marked latest."
+            exit 0
+          }
+          if ($currentTag -notmatch '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$') {
+            throw "Stable release tag '$currentTag' has an unsupported format."
+          }
+
+          $stableTags = foreach ($line in (git ls-remote --tags --refs origin "v*")) {
+            $parts = $line -split '\s+'
+            if ($parts.Count -ge 2 -and $parts[1] -match '^refs/tags/(?<tag>v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+))$') {
+              [PSCustomObject]@{
+                Tag = $Matches.tag
+                Major = [int]$Matches.major
+                Minor = [int]$Matches.minor
+                Patch = [int]$Matches.patch
+              }
+            }
+          }
+          $highestStableTag = $stableTags |
+            Sort-Object Major, Minor, Patch |
+            Select-Object -Last 1 -ExpandProperty Tag
+          if ([string]::IsNullOrWhiteSpace($highestStableTag)) {
+            throw "Could not determine the highest stable release tag."
+          }
+          $makeLatest = if ($currentTag -eq $highestStableTag) { 'true' } else { 'false' }
+          "make_latest=$makeLatest" >> $env:GITHUB_OUTPUT
+          Write-Host "Mark stable release as latest: $makeLatest"
 
       - name: Install pinned NetSparkle signing tool
         run: dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator --version 2.9.0
@@ -987,10 +964,19 @@ jobs:
           Copy-Item release-feed/appcast-v2.xml release-assets/
           Copy-Item release-feed/appcast-v2.xml.signature release-assets/
 
-      - name: Upload signed Avalonia release assets
+      - name: Upload complete signed release to a draft
         uses: softprops/action-gh-release@v3.0.1
         with:
+          draft: true
+          prerelease: ${{ steps.versioning.outputs.prerelease }}
+          make_latest: false
+          fail_on_unmatched_files: true
           files: |
+            release-assets/TOTP-Manager-fast.zip
+            release-assets/TOTP-Manager-portable.zip
+            release-assets/TOTP.UI.WPF.exe
+            release-assets/appcast.xml
+            release-assets/appcast.xml.signature
             release-assets/TOTP-Manager-windows-x64-${{ steps.versioning.outputs.release_version }}.zip
             release-assets/TOTP-Manager-windows-x64-fast-${{ steps.versioning.outputs.release_version }}.zip
             release-assets/TOTP-Manager-macos-arm64-${{ steps.versioning.outputs.release_version }}.dmg
@@ -1002,3 +988,21 @@ jobs:
             release-assets/appcast-v2.xml.signature
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Publish validated draft release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $releaseId = gh api `
+            "repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" `
+            --jq .id
+          if ([string]::IsNullOrWhiteSpace($releaseId)) {
+            throw "Could not resolve the validated draft release."
+          }
+          gh api `
+            --method PATCH `
+            "repos/${{ github.repository }}/releases/$releaseId" `
+            -F draft=false `
+            -F prerelease=${{ steps.versioning.outputs.prerelease }} `
+            -f make_latest=${{ steps.latest_release.outputs.make_latest }} | Out-Null
