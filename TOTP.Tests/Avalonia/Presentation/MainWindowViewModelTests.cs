@@ -298,6 +298,40 @@ public sealed class MainWindowViewModelTests
         Assert.False(sut.IsAccountListVisible);
         Assert.False(sut.IsToolsVisible);
         Assert.True(sut.IsSettingsVisible);
+        Assert.True(sut.CloseSettingsCommand.CanExecute(null));
+        Assert.False(sut.LockCommand.CanExecute(null));
+        Assert.False(sut.ToggleSearchCommand.CanExecute(null));
+        Assert.False(sut.BeginAddAccountCommand.CanExecute(null));
+
+        await sut.CloseSettingsAsync();
+        Assert.False(sut.IsAccountListVisible);
+        Assert.True(sut.IsToolsVisible);
+        Assert.False(sut.IsSettingsVisible);
+        Assert.True(sut.LockCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task ToolbarSearch_TogglesClearsAndReturnsToAccounts()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
+        using var sut = CreateSut(coordinator.Object);
+        await sut.InitializeAsync();
+
+        await sut.ToggleSearchAsync();
+        Assert.True(sut.IsSearchVisible);
+        sut.AccountList.SearchText = "github";
+
+        await sut.ToggleSearchAsync();
+        Assert.False(sut.IsSearchVisible);
+        Assert.Empty(sut.AccountList.SearchText);
+
+        await sut.ShowToolsAsync();
+        await sut.ToggleSearchAsync();
+        Assert.True(sut.IsAccountListVisible);
+        Assert.False(sut.IsToolsVisible);
+        Assert.True(sut.IsSearchVisible);
     }
 
     [Fact]

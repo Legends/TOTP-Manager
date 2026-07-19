@@ -97,8 +97,19 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public IReadOnlyList<AccountListItemViewModel> Accounts
     {
         get => _accounts;
-        private set => SetField(ref _accounts, value);
+        private set
+        {
+            if (!SetField(ref _accounts, value)) return;
+            OnPropertyChanged(nameof(HasNoAccounts));
+            OnPropertyChanged(nameof(HasNoSearchResults));
+        }
     }
+
+    public bool HasNoAccounts =>
+        !IsBusy && !HasMessage && _allAccounts.Count == 0;
+
+    public bool HasNoSearchResults =>
+        !IsBusy && !HasMessage && _allAccounts.Count > 0 && Accounts.Count == 0;
 
     public string Message
     {
@@ -107,6 +118,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         {
             if (!SetField(ref _message, value)) return;
             OnPropertyChanged(nameof(HasMessage));
+            OnPropertyChanged(nameof(HasNoAccounts));
+            OnPropertyChanged(nameof(HasNoSearchResults));
         }
     }
 
@@ -185,9 +198,12 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         set
         {
             if (!SetField(ref _searchText, value ?? string.Empty)) return;
+            OnPropertyChanged(nameof(HasSearchText));
             ApplyFilter();
         }
     }
+
+    public bool HasSearchText => SearchText.Length > 0;
 
     public bool IsBusy
     {
@@ -197,6 +213,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             if (!SetField(ref _isBusy, value)) return;
             _loadCommand.NotifyCanExecuteChanged();
             NotifyCrudCommands();
+            OnPropertyChanged(nameof(HasNoAccounts));
+            OnPropertyChanged(nameof(HasNoSearchResults));
         }
     }
 

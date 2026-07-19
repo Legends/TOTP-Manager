@@ -15,9 +15,9 @@
     Icon="/Assets/Icons/app.ico">
 
     <Window.KeyBindings>
-        <KeyBinding Gesture="Ctrl+A" Command="{Binding AccountList.BeginAddCommand}" />
-        <KeyBinding Gesture="Ctrl+E" Command="{Binding AccountList.BeginEditCommand}" />
-        <KeyBinding Gesture="Ctrl+D" Command="{Binding AccountList.DeleteAccountCommand}" />
+        <KeyBinding Gesture="Ctrl+A" Command="{Binding BeginAddAccountCommand}" />
+        <KeyBinding Gesture="Ctrl+E" Command="{Binding BeginEditAccountCommand}" />
+        <KeyBinding Gesture="Ctrl+D" Command="{Binding DeleteAccountCommand}" />
         <KeyBinding Gesture="Ctrl+L" Command="{Binding LockCommand}" />
     </Window.KeyBindings>
 
@@ -145,7 +145,7 @@
             <Grid
                 RowDefinitions="Auto,*"
                 IsVisible="{Binding IsShellVisible}">
-                <Border Grid.Row="0" Classes="toolbar">
+                <Border Grid.Row="0" Classes="toolbar" IsEnabled="{Binding !IsSettingsVisible}">
                     <Grid ColumnDefinitions="Auto,Auto,Auto,*,50,Auto,Auto">
                         <Button
                             Grid.Column="0"
@@ -157,7 +157,7 @@
                         <Button
                             Grid.Column="1"
                             Classes="icon"
-                            Command="{Binding AccountList.BeginAddCommand}"
+                            Command="{Binding BeginAddAccountCommand}"
                             ToolTip.Tip="{DynamicResource AddAccount}">
                             <shared:SymbolIcon IconSize="16" Kind="Add" />
                         </Button>
@@ -165,9 +165,37 @@
                             Grid.Column="2"
                             Classes="icon"
                             Click="FocusAccountSearch"
+                            Command="{Binding ToggleSearchCommand}"
                             ToolTip.Tip="{DynamicResource SearchAccounts}">
                             <shared:SymbolIcon IconSize="16" Kind="Search" />
                         </Button>
+                        <Grid
+                            Grid.Column="3"
+                            Margin="4,0"
+                            ColumnDefinitions="*,Auto"
+                            IsVisible="{Binding IsSearchVisible}">
+                            <TextBox
+                                x:Name="AccountSearchBox"
+                                Grid.ColumnSpan="2"
+                                MinWidth="72"
+                                MinHeight="28"
+                                Padding="7,2,22,2"
+                                automation:AutomationProperties.Name="{DynamicResource SearchAccounts}"
+                                Classes="search"
+                                PlaceholderText="{DynamicResource SearchAccounts}"
+                                Text="{Binding AccountList.SearchText, Mode=TwoWay}" />
+                            <Button
+                                Grid.Column="1"
+                                Width="20"
+                                Height="20"
+                                Margin="0,0,2,0"
+                                Padding="0"
+                                VerticalAlignment="Center"
+                                Classes="link"
+                                Command="{Binding ClearSearchCommand}"
+                                Content="×"
+                                IsVisible="{Binding AccountList.HasSearchText}" />
+                        </Grid>
                         <ComboBox
                             Grid.Column="4"
                             Width="46"
@@ -214,17 +242,23 @@
                                         HorizontalScrollBarVisibility="Disabled"
                                         VerticalScrollBarVisibility="Auto">
                                         <StackPanel Margin="10,8,10,12" Spacing="8">
-                                            <TextBox
-                                                x:Name="AccountSearchBox"
-                                                automation:AutomationProperties.Name="{DynamicResource SearchAccounts}"
-                                                Classes="search"
-                                                PlaceholderText="{DynamicResource SearchAccounts}"
-                                                Text="{Binding SearchText, Mode=TwoWay}" />
                                             <TextBlock
                                                 Classes="inline-message"
                                                 IsVisible="{Binding HasMessage}"
                                                 Text="{Binding Message}"
                                                 TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Margin="0,28"
+                                                HorizontalAlignment="Center"
+                                                Classes="secondary"
+                                                IsVisible="{Binding HasNoAccounts}"
+                                                Text="{DynamicResource NoEntriesYet}" />
+                                            <TextBlock
+                                                Margin="0,28"
+                                                HorizontalAlignment="Center"
+                                                Classes="secondary"
+                                                IsVisible="{Binding HasNoSearchResults}"
+                                                Text="{DynamicResource NoMatchingEntries}" />
                                             <ListBox
                                                 automation:AutomationProperties.Name="{DynamicResource AccountsList}"
                                                 Classes="accounts"
@@ -405,7 +439,15 @@
                         Margin="10,8,10,10"
                         IsVisible="{Binding IsSettingsVisible}"
                         RowDefinitions="Auto,*">
-                        <TextBlock Classes="page-title" Text="{DynamicResource Settings}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="page-title" Text="{DynamicResource Settings}" />
+                            <Button
+                                Grid.Column="1"
+                                Classes="icon"
+                                Command="{Binding CloseSettingsCommand}"
+                                Content="✕"
+                                ToolTip.Tip="{DynamicResource CloseSettings}" />
+                        </Grid>
                         <TabControl Grid.Row="1" Margin="0,8,0,0" Classes="settings-tabs">
                             <TabItem Header="{DynamicResource Security}">
                                 <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">

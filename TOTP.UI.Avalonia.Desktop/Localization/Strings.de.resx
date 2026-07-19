@@ -121,6 +121,9 @@
   <data name="SettingsSavedAutomatically" xml:space="preserve"><value>Einstellungen automatisch gespeichert.</value></data>
   <data name="SettingsSaveFailed" xml:space="preserve"><value>Die Einstellungen konnten nicht gespeichert werden. Die bisherigen Einstellungen bleiben aktiv.</value></data>
   <data name="SearchAccounts" xml:space="preserve"><value>Aussteller oder Konto suchen</value></data>
+  <data name="NoEntriesYet" xml:space="preserve"><value>Noch keine Einträge.</value></data>
+  <data name="NoMatchingEntries" xml:space="preserve"><value>Keine passenden Einträge.</value></data>
+  <data name="CloseSettings" xml:space="preserve"><value>Einstellungen schließen</value></data>
   <data name="GenerateCode" xml:space="preserve"><value>Code erzeugen</value></data>
   <data name="ShowQrCode" xml:space="preserve"><value>QR-Code anzeigen</value></data>
   <data name="CopyTimedClear" xml:space="preserve"><value>Kopieren und zeitgesteuert löschen</value></data>

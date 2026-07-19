@@ -12,8 +12,8 @@ namespace TOTP.Tests.Avalonia.Presentation;
 public sealed class SettingsPageViewModelTests
 {
     [Theory]
-    [InlineData("en", "/Assets/flags/en.png")]
-    [InlineData("de", "/Assets/flags/de.png")]
+    [InlineData("en", "avares://TOTP.UI.Avalonia.Desktop/Assets/flags/en.png")]
+    [InlineData("de", "avares://TOTP.UI.Avalonia.Desktop/Assets/flags/de.png")]
     public void LanguageOption_UsesBundledFlagAsset(string culture, string expectedPath)
     {
         var option = new LanguageOption(culture, culture);

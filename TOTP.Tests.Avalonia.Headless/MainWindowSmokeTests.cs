@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
+using Avalonia.Platform;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using TOTP.Avalonia.Desktop;
@@ -28,6 +29,10 @@ public sealed class MainWindowSmokeTests
             Assert.NotEmpty(window.GetVisualDescendants().OfType<ScrollViewer>());
             Assert.Single(window.GetVisualDescendants().OfType<TabControl>());
             Assert.Equal(4, window.GetVisualDescendants().OfType<TabItem>().Count());
+            Assert.True(AssetLoader.Exists(new Uri(
+                "avares://TOTP.UI.Avalonia.Desktop/Assets/flags/en.png")));
+            Assert.True(AssetLoader.Exists(new Uri(
+                "avares://TOTP.UI.Avalonia.Desktop/Assets/flags/de.png")));
             Assert.Equal(320, window.Width);
             Assert.Equal(520, window.Height);
             Assert.Equal(300, window.MinWidth);

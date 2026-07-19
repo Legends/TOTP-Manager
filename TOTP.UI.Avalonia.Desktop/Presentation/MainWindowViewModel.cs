@@ -24,6 +24,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly AsyncCommand _showAccountsCommand;
     private readonly AsyncCommand _showToolsCommand;
     private readonly AsyncCommand _showSettingsCommand;
+    private readonly AsyncCommand _closeSettingsCommand;
+    private readonly AsyncCommand _toggleSearchCommand;
+    private readonly AsyncCommand _clearSearchCommand;
+    private readonly AsyncCommand _beginAddAccountCommand;
+    private readonly AsyncCommand _beginEditAccountCommand;
+    private readonly AsyncCommand _deleteAccountCommand;
     private readonly AsyncCommand _quickUnlockCommand;
     private readonly AsyncCommand _usePasswordFallbackCommand;
     private readonly CancellationTokenSource _lifetime = new();
@@ -40,6 +46,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private bool _isAccountListVisible;
     private bool _isToolsVisible;
     private bool _isSettingsVisible;
+    private bool _isSearchVisible;
+    private ShellPage _pageBeforeSettings = ShellPage.Accounts;
     private bool _shutdownPrepared;
     private bool _disposed;
 
@@ -84,16 +92,36 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         NativeFilePicker.AccountsChanged += OnAccountImported;
         SettingsPage.SettingsSaved += OnSettingsSaved;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
-        _lockCommand = new AsyncCommand(LockAsync, () => _isShellVisible);
+        _lockCommand = new AsyncCommand(
+            LockAsync,
+            () => _isShellVisible && !_isSettingsVisible);
         _showAccountsCommand = new AsyncCommand(
             ShowAccountsAsync,
-            () => _isShellVisible && !_isAccountListVisible);
+            () => _isShellVisible && !_isSettingsVisible && !_isAccountListVisible);
         _showToolsCommand = new AsyncCommand(
             ShowToolsAsync,
-            () => _isShellVisible && !_isToolsVisible);
+            () => _isShellVisible && !_isSettingsVisible && !_isToolsVisible);
         _showSettingsCommand = new AsyncCommand(
             ShowSettingsAsync,
             () => _isShellVisible && !_isSettingsVisible);
+        _closeSettingsCommand = new AsyncCommand(
+            CloseSettingsAsync,
+            () => _isShellVisible && _isSettingsVisible);
+        _toggleSearchCommand = new AsyncCommand(
+            ToggleSearchAsync,
+            CanUseToolbarSearch);
+        _clearSearchCommand = new AsyncCommand(
+            ClearSearchAsync,
+            () => CanInteractWithAccounts() && _isSearchVisible);
+        _beginAddAccountCommand = new AsyncCommand(
+            AccountList.BeginAddAsync,
+            () => CanInteractWithAccounts() && AccountList.BeginAddCommand.CanExecute(null));
+        _beginEditAccountCommand = new AsyncCommand(
+            AccountList.BeginEditAsync,
+            () => CanInteractWithAccounts() && AccountList.BeginEditCommand.CanExecute(null));
+        _deleteAccountCommand = new AsyncCommand(
+            AccountList.DeleteAccountAsync,
+            () => CanInteractWithAccounts() && AccountList.DeleteAccountCommand.CanExecute(null));
         _quickUnlockCommand = new AsyncCommand(
             TryQuickUnlockAsync,
             () => _isQuickUnlockVisible && !_isQuickUnlockBusy);
@@ -141,6 +169,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public ICommand ShowToolsCommand => _showToolsCommand;
 
     public ICommand ShowSettingsCommand => _showSettingsCommand;
+
+    public ICommand CloseSettingsCommand => _closeSettingsCommand;
+
+    public ICommand ToggleSearchCommand => _toggleSearchCommand;
+
+    public ICommand ClearSearchCommand => _clearSearchCommand;
+
+    public ICommand BeginAddAccountCommand => _beginAddAccountCommand;
+
+    public ICommand BeginEditAccountCommand => _beginEditAccountCommand;
+
+    public ICommand DeleteAccountCommand => _deleteAccountCommand;
 
     public ICommand QuickUnlockCommand => _quickUnlockCommand;
 
@@ -219,6 +259,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         {
             if (!SetField(ref _isAccountListVisible, value)) return;
             _showAccountsCommand.NotifyCanExecuteChanged();
+            NotifyModalCommands();
         }
     }
 
@@ -239,6 +280,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         {
             if (!SetField(ref _isSettingsVisible, value)) return;
             _showSettingsCommand.NotifyCanExecuteChanged();
+            NotifyModalCommands();
+        }
+    }
+
+    public bool IsSearchVisible
+    {
+        get => _isSearchVisible;
+        private set
+        {
+            if (!SetField(ref _isSearchVisible, value)) return;
+            _clearSearchCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -256,6 +308,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsAccountListVisible = false;
         IsToolsVisible = false;
         IsSettingsVisible = false;
+        IsSearchVisible = false;
         StatusText = "Starting TOTP Manager…";
         StatusSeverity = NotificationSeverity.Information;
 
@@ -332,6 +385,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         AuthorizationSettings.ClearSensitiveInputs();
         IsSettingsVisible = false;
         IsToolsVisible = false;
+        IsSearchVisible = false;
         IsShellVisible = false;
         IsAccountListVisible = false;
         IsPasswordUnlockVisible = false;
@@ -379,6 +433,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         CameraScanner.Clear();
         IsSettingsVisible = false;
         IsToolsVisible = false;
+        IsSearchVisible = false;
         IsShellVisible = false;
         IsAccountListVisible = false;
         var quickUnlockPreferred = _authorizationService.State is { } state
@@ -480,9 +535,36 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public async Task ShowSettingsAsync()
     {
-        if (!IsShellVisible) return;
+        if (!IsShellVisible || IsSettingsVisible) return;
+        _pageBeforeSettings = IsToolsVisible ? ShellPage.Tools : ShellPage.Accounts;
         SetActivePage(ShellPage.Settings);
         await AuthorizationSettings.RefreshAsync();
+    }
+
+    public Task CloseSettingsAsync()
+    {
+        if (!IsShellVisible || !IsSettingsVisible) return Task.CompletedTask;
+        SetActivePage(_pageBeforeSettings);
+        return Task.CompletedTask;
+    }
+
+    public Task ToggleSearchAsync()
+    {
+        if (!CanUseToolbarSearch()) return Task.CompletedTask;
+        if (!IsAccountListVisible) SetActivePage(ShellPage.Accounts);
+        IsSearchVisible = !IsSearchVisible;
+        if (!IsSearchVisible) AccountList.SearchText = string.Empty;
+        return Task.CompletedTask;
+    }
+
+    public Task ClearSearchAsync()
+    {
+        if (!CanInteractWithAccounts() || !IsSearchVisible) return Task.CompletedTask;
+        if (AccountList.HasSearchText)
+            AccountList.SearchText = string.Empty;
+        else
+            IsSearchVisible = false;
+        return Task.CompletedTask;
     }
 
     private void SetActivePage(ShellPage page)
@@ -493,6 +575,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
             CameraScanner.Clear();
         if (IsSettingsVisible && page != ShellPage.Settings)
             AuthorizationSettings.ClearSensitiveInputs();
+        if (page != ShellPage.Accounts)
+        {
+            IsSearchVisible = false;
+            AccountList.SearchText = string.Empty;
+        }
 
         IsAccountListVisible = page == ShellPage.Accounts;
         IsToolsVisible = page == ShellPage.Tools;
@@ -515,6 +602,26 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         _showAccountsCommand.NotifyCanExecuteChanged();
         _showToolsCommand.NotifyCanExecuteChanged();
         _showSettingsCommand.NotifyCanExecuteChanged();
+        NotifyModalCommands();
+    }
+
+    private bool CanInteractWithAccounts() =>
+        _isShellVisible && _isAccountListVisible && !_isSettingsVisible;
+
+    private bool CanUseToolbarSearch() =>
+        _isShellVisible && !_isSettingsVisible;
+
+    private void NotifyModalCommands()
+    {
+        _lockCommand.NotifyCanExecuteChanged();
+        _showAccountsCommand.NotifyCanExecuteChanged();
+        _showToolsCommand.NotifyCanExecuteChanged();
+        _closeSettingsCommand?.NotifyCanExecuteChanged();
+        _toggleSearchCommand?.NotifyCanExecuteChanged();
+        _clearSearchCommand?.NotifyCanExecuteChanged();
+        _beginAddAccountCommand?.NotifyCanExecuteChanged();
+        _beginEditAccountCommand?.NotifyCanExecuteChanged();
+        _deleteAccountCommand?.NotifyCanExecuteChanged();
     }
 
     private void NotifyQuickUnlockCommands()

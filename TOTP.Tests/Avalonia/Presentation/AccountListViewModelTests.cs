@@ -16,6 +16,40 @@ namespace TOTP.Tests.Avalonia.Presentation;
 public sealed class AccountListViewModelTests
 {
     private const string ValidSecret = "JBSWY3DPEHPK3PXP";
+
+    [Fact]
+    public async Task LoadAsync_WithNoStoredAccounts_ExposesEmptyState()
+    {
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]));
+        var sut = CreateSut(manager.Object);
+
+        await sut.LoadAsync();
+
+        Assert.True(sut.HasNoAccounts);
+        Assert.False(sut.HasNoSearchResults);
+        Assert.False(sut.HasMessage);
+    }
+
+    [Fact]
+    public async Task SearchText_WithNoMatches_ExposesFilteredEmptyState()
+    {
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
+            [
+                new(Guid.NewGuid(), "GitHub", ValidSecret, "alice")
+            ]));
+        var sut = CreateSut(manager.Object);
+        await sut.LoadAsync();
+
+        sut.SearchText = "missing";
+
+        Assert.False(sut.HasNoAccounts);
+        Assert.True(sut.HasNoSearchResults);
+    }
+
     [Fact]
     public async Task LoadAsync_WithFiveHundredSyntheticAccounts_ProjectsSecretFreeRows()
     {

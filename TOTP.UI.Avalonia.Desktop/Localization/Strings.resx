@@ -121,6 +121,9 @@
   <data name="SettingsSavedAutomatically" xml:space="preserve"><value>Settings saved automatically.</value></data>
   <data name="SettingsSaveFailed" xml:space="preserve"><value>Settings could not be saved. Existing settings remain active.</value></data>
   <data name="SearchAccounts" xml:space="preserve"><value>Search issuer or account</value></data>
+  <data name="NoEntriesYet" xml:space="preserve"><value>No entries yet.</value></data>
+  <data name="NoMatchingEntries" xml:space="preserve"><value>No matching entries.</value></data>
+  <data name="CloseSettings" xml:space="preserve"><value>Close settings</value></data>
   <data name="GenerateCode" xml:space="preserve"><value>Generate code</value></data>
   <data name="ShowQrCode" xml:space="preserve"><value>Show QR code</value></data>
   <data name="CopyTimedClear" xml:space="preserve"><value>Copy with timed clear</value></data>
