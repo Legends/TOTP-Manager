@@ -848,7 +848,7 @@ Select a narrow initial set, for example:
 - [ ] Signed updates work on all platforms.
 - [ ] Accessibility criteria pass.
 - [ ] Security review findings are resolved.
-- [ ] Support and recovery documentation is published.
+- [x] Support and recovery documentation is published; exact-artifact physical acceptance records remain required.
 
 ### WPF retirement
 

@@ -12,7 +12,7 @@ M1.1 establishes `IPlatformApplicationPaths` as the source of application filesy
 | Vault | `%AppData%\TOTP-Manager\master.totp` | `~/Library/Application Support/TOTP-Manager/master.totp` | `$XDG_DATA_HOME/totp-manager/master.totp` |
 | Authorization envelope | `%AppData%\TOTP-Manager\authorization-envelope.bin` | `~/Library/Application Support/TOTP-Manager/authorization-envelope.bin` | `$XDG_DATA_HOME/totp-manager/authorization-envelope.bin` |
 | Preferences | `%AppData%\TOTP-Manager\preferences.json` | `~/Library/Application Support/TOTP-Manager/preferences.json` | `$XDG_CONFIG_HOME/totp-manager/preferences.json` |
-| Backups | Beside the vault for compatibility | `~/Library/Application Support/TOTP-Manager/Backups` | `$XDG_DATA_HOME/totp-manager/backups` |
+| Rotating vault backups | Beside the vault (`master.totp.bak1`…`.bak5`) | Beside the vault (`master.totp.bak1`…`.bak5`) | Beside the vault (`master.totp.bak1`…`.bak5`) |
 | Logs | Executable directory, `Logs` | `~/Library/Logs/TOTP-Manager` | `$XDG_STATE_HOME/totp-manager/logs` |
 | Update state | `%AppData%\TOTP-Manager\autoupdate-state.json` | `~/Library/Application Support/TOTP-Manager/autoupdate-state.json` | `$XDG_STATE_HOME/totp-manager/autoupdate-state.json` |
 
@@ -28,7 +28,7 @@ Relative XDG locations are invalid and must not be accepted as application stora
 
 - The Windows adapter deliberately preserves every existing production location. M1.1 does not move or rewrite user data.
 - Existing configuration overrides for the vault path remain supported and take precedence over adapter defaults.
-- Windows backups remain adjacent to the configured vault. A later backup-policy extraction must retain discovery of those files.
+- Rotating vault backups remain adjacent to the configured vault on every platform. The platform `BackupDirectory` property is reserved for future backup-policy extraction and must not be presented as the current rotating-backup location.
 - A future Windows-to-portable migration must discover the existing roaming-data files before creating a new layout. It must use atomic copy/verification and leave rollback data intact.
 - Path comparisons and migration fixtures must not contain real secrets.
 

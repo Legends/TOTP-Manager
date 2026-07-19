@@ -101,6 +101,7 @@ Appcast signing protects the update feed and is separate from Windows Authentico
 - [Security verification](docs/security/SECURITY_VERIFICATION.md)
 - [Penetration-test plan](docs/security/PENTEST_PLAN.md)
 - [Automatic-update design](docs/security/AUTO_UPDATE.md)
+- [Recovery guide](docs/RECOVERY.md)
 
 To report a suspected vulnerability, follow the private reporting instructions in [SECURITY.md](SECURITY.md). Do not include secrets or exploit details in a public issue.
 
@@ -114,6 +115,8 @@ Application data is stored under `%APPDATA%\TOTP-Manager` by default, including 
 - Keep the master password available even when Windows Hello is enabled.
 - Automatic local backup rotation protects against some local file failures, but it is not a substitute for an external encrypted backup.
 - Plaintext interoperability exports require additional care and should be deleted securely when no longer needed.
+
+Detailed master-password, quick-unlock reset, encrypted-export, rotating-backup, startup, and safe-support procedures are in the [recovery guide](docs/RECOVERY.md).
 
 ## Automatic updates
 
