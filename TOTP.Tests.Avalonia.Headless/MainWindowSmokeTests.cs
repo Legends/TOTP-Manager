@@ -26,6 +26,8 @@ public sealed class MainWindowSmokeTests
             Assert.True(window.GetVisualDescendants().OfType<Button>().Count() >= 5);
             Assert.True(window.GetVisualDescendants().OfType<Border>().Count() >= 5);
             Assert.NotEmpty(window.GetVisualDescendants().OfType<ScrollViewer>());
+            Assert.Single(window.GetVisualDescendants().OfType<TabControl>());
+            Assert.Equal(4, window.GetVisualDescendants().OfType<TabItem>().Count());
             Assert.Equal(320, window.Width);
             Assert.Equal(520, window.Height);
             Assert.Equal(300, window.MinWidth);

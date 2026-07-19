@@ -25,6 +25,9 @@ public static class AvaloniaStringKeys
     public const string ScanQrCamera = nameof(ScanQrCamera);
     public const string CancelScan = nameof(CancelScan);
     public const string SecuritySettings = nameof(SecuritySettings);
+    public const string Security = nameof(Security);
+    public const string ImportExport = nameof(ImportExport);
+    public const string Miscellaneous = nameof(Miscellaneous);
     public const string Language = nameof(Language);
     public const string IdleTimeout = nameof(IdleTimeout);
     public const string IdleTimeoutHelp = nameof(IdleTimeoutHelp);
@@ -58,6 +61,12 @@ public static class AvaloniaStringKeys
     public const string VaultConfigured = nameof(VaultConfigured);
     public const string VaultUnlocked = nameof(VaultUnlocked);
     public const string QuickUnlockFallback = nameof(QuickUnlockFallback);
+    public const string UnlockWithQuickUnlock = nameof(UnlockWithQuickUnlock);
+    public const string UseMasterPassword = nameof(UseMasterPassword);
+    public const string VaultLockedQuickUnlock = nameof(VaultLockedQuickUnlock);
+    public const string VaultLockedPassword = nameof(VaultLockedPassword);
+    public const string QuickUnlockCancelled = nameof(QuickUnlockCancelled);
+    public const string QuickUnlockFailed = nameof(QuickUnlockFailed);
     public const string QuickUnlock = nameof(QuickUnlock);
     public const string QuickUnlockRecoveryNotice = nameof(QuickUnlockRecoveryNotice);
     public const string QuickUnlockAvailable = nameof(QuickUnlockAvailable);
@@ -140,14 +149,17 @@ public static class AvaloniaStringKeys
         Unlock, Lock, Accounts, Tools, Settings, ChooseImportFile, ExportEncryptedBackup,
         ImportConflictHandling, SupportDiagnostics, RefreshSupportInformation,
         DownloadUpdate, InstallUpdate, ReleaseNotes, VerifyAppcast,
-        ScanQrCamera, CancelScan, SecuritySettings, Language, IdleTimeout,
+        ScanQrCamera, CancelScan, SecuritySettings, Security, ImportExport, Miscellaneous,
+        Language, IdleTimeout,
         IdleTimeoutHelp, LockWhenMinimized, SaveSettings, SearchAccounts, GenerateCode,
         ShowQrCode, CopyTimedClear, Password, PasswordAuthorizationHelp,
         ValidatingSecurely, NavAccounts, NavTools, NavSettings, AccountsList,
         GeneratedCode, GeneratedQr, QrPrivacyNotice, CameraPreview, CreatePasswordHeading,
         PasswordSetupHelp, NewPassword, ConfirmPassword, CreateVault, PasswordRequired,
         PasswordMinimumLength, PasswordMismatch, PasswordSetupFailed, ExistingVaultConflict,
-        VaultConfigured, VaultUnlocked, QuickUnlockFallback, QuickUnlock,
+        VaultConfigured, VaultUnlocked, QuickUnlockFallback, UnlockWithQuickUnlock,
+        UseMasterPassword, VaultLockedQuickUnlock, VaultLockedPassword,
+        QuickUnlockCancelled, QuickUnlockFailed, QuickUnlock,
         QuickUnlockRecoveryNotice, QuickUnlockAvailable, QuickUnlockUnavailable,
         EnableQuickUnlock, QuickUnlockRecoveryPrompt, QuickUnlockEnrollmentCancelled,
         QuickUnlockEnrollmentFailed, QuickUnlockEnabled, UsePasswordAtStartup,

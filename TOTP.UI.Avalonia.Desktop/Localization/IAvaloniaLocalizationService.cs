@@ -8,4 +8,7 @@ public interface IAvaloniaLocalizationService
     string GetString(string key);
 }
 
-public sealed record LanguageOption(string CultureName, string DisplayName);
+public sealed record LanguageOption(string CultureName, string DisplayName)
+{
+    public string IconPath => $"/Assets/flags/{CultureName}.png";
+}

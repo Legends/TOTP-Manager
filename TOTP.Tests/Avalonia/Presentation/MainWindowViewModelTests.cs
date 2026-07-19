@@ -8,6 +8,8 @@ using TOTP.Avalonia.Desktop.Startup;
 using Microsoft.Extensions.Logging.Abstractions;
 using FluentResults;
 using TOTP.Core.Security.Models;
+using TOTP.Core.Security;
+using TOTP.Core.Enums;
 using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Tests.Avalonia.Presentation;
@@ -69,43 +71,141 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
-    public async Task LockAsync_LocksAuthorizationAndReturnsToPasswordGate()
+    public async Task LockAsync_WhenPasswordPreferred_ReturnsToPasswordGate()
     {
         var coordinator = new Mock<IAvaloniaStartupCoordinator>();
         coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(AvaloniaStartupOutcome.ReadyForUnlock);
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
         var authorization = new Mock<IAuthorizationService>();
-        var password = new PasswordUnlockViewModel(authorization.Object);
-        using var accounts = new AccountListViewModel(
-            Mock.Of<IAccountManager>(),
-            Mock.Of<IAccountTotpService>(),
-            Mock.Of<IAsyncClipboardService>(),
-            Mock.Of<IAccountQrCodeService>(),
-            Mock.Of<IAvaloniaQrImageFactory>(),
-            Mock.Of<IAvaloniaDialogService>(),
-            CreateLocalization());
-        using var sut = new MainWindowViewModel(
-            coordinator.Object,
-            authorization.Object,
-            password,
-            CreatePasswordSetup(authorization.Object),
-            accounts,
-            CreateSettingsPage(),
-            CreateAuthorizationSettings(authorization.Object),
-            CreateFilePicker(),
-            CreateCameraScanner(),
-            CreateUpdateCheck(),
-            CreateDiagnostics(),
-            CreateLocalization());
+        var state = CreateAuthorizationState(PreferredUnlockMethod.Password);
+        authorization.SetupGet(value => value.State).Returns(state);
+        authorization.Setup(value => value.Lock()).Callback(state.Lock);
+        using var sut = CreateSut(coordinator.Object, authorization.Object);
         await sut.InitializeAsync();
 
         await sut.LockAsync();
 
         authorization.Verify(value => value.Lock(), Times.Once);
         Assert.True(sut.IsPasswordUnlockVisible);
+        Assert.False(sut.IsQuickUnlockVisible);
         Assert.False(sut.IsAccountListVisible);
         Assert.Contains("locked", sut.StatusText, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(NotificationSeverity.Information, sut.StatusSeverity);
+    }
+
+    [Fact]
+    public async Task LockAsync_WhenQuickUnlockPreferred_ReturnsToQuickUnlockGate()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
+        var authorization = new Mock<IAuthorizationService>();
+        var state = CreateAuthorizationState(PreferredUnlockMethod.PlatformQuickUnlock);
+        authorization.SetupGet(value => value.State).Returns(state);
+        authorization.Setup(value => value.Lock()).Callback(state.Lock);
+        using var sut = CreateSut(coordinator.Object, authorization.Object);
+        await sut.InitializeAsync();
+
+        await sut.LockAsync();
+
+        Assert.True(sut.IsQuickUnlockVisible);
+        Assert.False(sut.IsPasswordUnlockVisible);
+        Assert.Equal(PreferredUnlockMethod.PlatformQuickUnlock, state.PreferredUnlockMethod);
+    }
+
+    [Fact]
+    public async Task TryQuickUnlockAsync_WhenAuthorized_ReentersShell()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
+        var authorization = new Mock<IAuthorizationService>();
+        var state = CreateAuthorizationState(PreferredUnlockMethod.PlatformQuickUnlock);
+        authorization.SetupGet(value => value.State).Returns(state);
+        authorization.Setup(value => value.Lock()).Callback(state.Lock);
+        authorization.Setup(value => value.TryUnlockWithHelloAsync(It.IsAny<CancellationToken>()))
+            .Returns<CancellationToken>(_ =>
+            {
+                state.Unlock();
+                return Task.FromResult(AuthorizationResult.Success);
+            });
+        using var sut = CreateSut(coordinator.Object, authorization.Object);
+        await sut.InitializeAsync();
+        await sut.LockAsync();
+
+        await sut.TryQuickUnlockAsync();
+
+        Assert.True(sut.IsShellVisible);
+        Assert.True(sut.IsAccountListVisible);
+        Assert.False(sut.IsQuickUnlockVisible);
+        Assert.False(sut.IsPasswordUnlockVisible);
+    }
+
+    [Fact]
+    public async Task TryQuickUnlockAsync_WhenCancelled_RemainsAtQuickUnlockGate()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
+        var authorization = new Mock<IAuthorizationService>();
+        var state = CreateAuthorizationState(PreferredUnlockMethod.PlatformQuickUnlock);
+        authorization.SetupGet(value => value.State).Returns(state);
+        authorization.Setup(value => value.Lock()).Callback(state.Lock);
+        authorization.Setup(value => value.TryUnlockWithHelloAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AuthorizationResult.Cancelled);
+        using var sut = CreateSut(coordinator.Object, authorization.Object);
+        await sut.InitializeAsync();
+        await sut.LockAsync();
+
+        await sut.TryQuickUnlockAsync();
+
+        Assert.True(sut.IsQuickUnlockVisible);
+        Assert.False(sut.IsPasswordUnlockVisible);
+        Assert.Contains(AvaloniaStringKeys.QuickUnlockCancelled, sut.QuickUnlockMessage);
+    }
+
+    [Fact]
+    public async Task TryQuickUnlockAsync_WhenPasswordIsRequired_ShowsRecoveryGate()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
+        var authorization = new Mock<IAuthorizationService>();
+        var state = CreateAuthorizationState(PreferredUnlockMethod.PlatformQuickUnlock);
+        authorization.SetupGet(value => value.State).Returns(state);
+        authorization.Setup(value => value.Lock()).Callback(state.Lock);
+        authorization.Setup(value => value.TryUnlockWithHelloAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AuthorizationResult.PasswordRequired);
+        using var sut = CreateSut(coordinator.Object, authorization.Object);
+        await sut.InitializeAsync();
+        await sut.LockAsync();
+
+        await sut.TryQuickUnlockAsync();
+
+        Assert.False(sut.IsQuickUnlockVisible);
+        Assert.True(sut.IsPasswordUnlockVisible);
+        Assert.False(sut.IsShellVisible);
+    }
+
+    [Fact]
+    public async Task UsePasswordFallbackAsync_DoesNotChangeQuickUnlockPreference()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
+        var authorization = new Mock<IAuthorizationService>();
+        var state = CreateAuthorizationState(PreferredUnlockMethod.PlatformQuickUnlock);
+        authorization.SetupGet(value => value.State).Returns(state);
+        authorization.Setup(value => value.Lock()).Callback(state.Lock);
+        using var sut = CreateSut(coordinator.Object, authorization.Object);
+        await sut.InitializeAsync();
+        await sut.LockAsync();
+
+        await sut.UsePasswordFallbackAsync();
+
+        Assert.False(sut.IsQuickUnlockVisible);
+        Assert.True(sut.IsPasswordUnlockVisible);
+        Assert.Equal(PreferredUnlockMethod.PlatformQuickUnlock, state.PreferredUnlockMethod);
     }
 
     [Fact]
@@ -243,11 +343,16 @@ public sealed class MainWindowViewModelTests
     }
 
     private static MainWindowViewModel CreateSut(IAvaloniaStartupCoordinator coordinator) =>
+        CreateSut(coordinator, Mock.Of<IAuthorizationService>());
+
+    private static MainWindowViewModel CreateSut(
+        IAvaloniaStartupCoordinator coordinator,
+        IAuthorizationService authorization) =>
         new(
             coordinator,
-            Mock.Of<IAuthorizationService>(),
-            new PasswordUnlockViewModel(Mock.Of<IAuthorizationService>()),
-            CreatePasswordSetup(Mock.Of<IAuthorizationService>()),
+            authorization,
+            new PasswordUnlockViewModel(authorization),
+            CreatePasswordSetup(authorization),
             new AccountListViewModel(
                 Mock.Of<IAccountManager>(),
                 Mock.Of<IAccountTotpService>(),
@@ -257,12 +362,20 @@ public sealed class MainWindowViewModelTests
                 Mock.Of<IAvaloniaDialogService>(),
                 CreateLocalization()),
             CreateSettingsPage(),
-            CreateAuthorizationSettings(Mock.Of<IAuthorizationService>()),
+            CreateAuthorizationSettings(authorization),
             CreateFilePicker(),
             CreateCameraScanner(),
             CreateUpdateCheck(),
             CreateDiagnostics(),
             CreateLocalization());
+
+    private static AuthorizationState CreateAuthorizationState(PreferredUnlockMethod preference)
+    {
+        var state = new AuthorizationState();
+        state.SetConfiguration(true, preference);
+        state.Unlock();
+        return state;
+    }
 
     private static SettingsPageViewModel CreateSettingsPage()
     {

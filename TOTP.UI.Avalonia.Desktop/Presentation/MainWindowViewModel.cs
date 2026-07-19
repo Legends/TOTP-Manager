@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Avalonia.Desktop.Localization;
@@ -22,12 +24,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly AsyncCommand _showAccountsCommand;
     private readonly AsyncCommand _showToolsCommand;
     private readonly AsyncCommand _showSettingsCommand;
+    private readonly AsyncCommand _quickUnlockCommand;
+    private readonly AsyncCommand _usePasswordFallbackCommand;
     private readonly CancellationTokenSource _lifetime = new();
     private string _statusText = "Starting TOTP Manager…";
     private NotificationSeverity _statusSeverity = NotificationSeverity.Information;
     private bool _isBusy;
     private bool _canRetry;
     private bool _isPasswordUnlockVisible;
+    private bool _isQuickUnlockVisible;
+    private bool _isQuickUnlockBusy;
+    private string _quickUnlockMessage = string.Empty;
     private bool _isPasswordSetupVisible;
     private bool _isShellVisible;
     private bool _isAccountListVisible;
@@ -87,6 +94,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         _showSettingsCommand = new AsyncCommand(
             ShowSettingsAsync,
             () => _isShellVisible && !_isSettingsVisible);
+        _quickUnlockCommand = new AsyncCommand(
+            TryQuickUnlockAsync,
+            () => _isQuickUnlockVisible && !_isQuickUnlockBusy);
+        _usePasswordFallbackCommand = new AsyncCommand(
+            UsePasswordFallbackAsync,
+            () => _isQuickUnlockVisible && !_isQuickUnlockBusy);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -129,6 +142,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public ICommand ShowSettingsCommand => _showSettingsCommand;
 
+    public ICommand QuickUnlockCommand => _quickUnlockCommand;
+
+    public ICommand UsePasswordFallbackCommand => _usePasswordFallbackCommand;
+
     public PasswordUnlockViewModel PasswordUnlock { get; }
 
     public PasswordSetupViewModel PasswordSetup { get; }
@@ -151,6 +168,32 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
         get => _isPasswordUnlockVisible;
         private set => SetField(ref _isPasswordUnlockVisible, value);
+    }
+
+    public bool IsQuickUnlockVisible
+    {
+        get => _isQuickUnlockVisible;
+        private set
+        {
+            if (!SetField(ref _isQuickUnlockVisible, value)) return;
+            NotifyQuickUnlockCommands();
+        }
+    }
+
+    public bool IsQuickUnlockBusy
+    {
+        get => _isQuickUnlockBusy;
+        private set
+        {
+            if (!SetField(ref _isQuickUnlockBusy, value)) return;
+            NotifyQuickUnlockCommands();
+        }
+    }
+
+    public string QuickUnlockMessage
+    {
+        get => _quickUnlockMessage;
+        private set => SetField(ref _quickUnlockMessage, value);
     }
 
     public bool IsPasswordSetupVisible
@@ -206,6 +249,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsBusy = true;
         CanRetry = false;
         IsPasswordUnlockVisible = false;
+        IsQuickUnlockVisible = false;
+        QuickUnlockMessage = string.Empty;
         IsPasswordSetupVisible = false;
         IsShellVisible = false;
         IsAccountListVisible = false;
@@ -290,6 +335,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsShellVisible = false;
         IsAccountListVisible = false;
         IsPasswordUnlockVisible = false;
+        IsQuickUnlockVisible = false;
         IsPasswordSetupVisible = false;
         StatusText = "TOTP Manager is closing safely.";
         StatusSeverity = NotificationSeverity.Information;
@@ -298,6 +344,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private void OnUnlocked(object? sender, EventArgs e)
     {
         IsPasswordUnlockVisible = false;
+        IsQuickUnlockVisible = false;
         EnterAuthorizedShell();
         StatusText = _localization.GetString(AvaloniaStringKeys.VaultUnlocked);
         StatusSeverity = NotificationSeverity.Success;
@@ -307,6 +354,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
         IsPasswordSetupVisible = false;
         IsPasswordUnlockVisible = false;
+        IsQuickUnlockVisible = false;
         EnterAuthorizedShell();
         StatusText = _localization.GetString(AvaloniaStringKeys.VaultConfigured);
         StatusSeverity = NotificationSeverity.Success;
@@ -333,10 +381,71 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsToolsVisible = false;
         IsShellVisible = false;
         IsAccountListVisible = false;
-        IsPasswordUnlockVisible = true;
+        var quickUnlockPreferred = _authorizationService.State is { } state
+            && state.PreferredUnlockMethod == PreferredUnlockMethod.PlatformQuickUnlock;
+        IsQuickUnlockVisible = quickUnlockPreferred;
+        IsPasswordUnlockVisible = !quickUnlockPreferred;
         IsPasswordSetupVisible = false;
-        StatusText = "Vault locked. Enter your master password to continue.";
+        QuickUnlockMessage = string.Empty;
+        StatusText = _localization.GetString(
+            quickUnlockPreferred
+                ? AvaloniaStringKeys.VaultLockedQuickUnlock
+                : AvaloniaStringKeys.VaultLockedPassword);
         StatusSeverity = NotificationSeverity.Information;
+    }
+
+    public async Task TryQuickUnlockAsync()
+    {
+        if (!IsQuickUnlockVisible || IsQuickUnlockBusy) return;
+
+        IsQuickUnlockBusy = true;
+        QuickUnlockMessage = string.Empty;
+        try
+        {
+            var result = await _authorizationService.TryUnlockWithHelloAsync(_lifetime.Token);
+            if (result == AuthorizationResult.Success && _authorizationService.State.IsUnlocked)
+            {
+                IsQuickUnlockVisible = false;
+                EnterAuthorizedShell();
+                StatusText = _localization.GetString(AvaloniaStringKeys.VaultUnlocked);
+                StatusSeverity = NotificationSeverity.Success;
+                return;
+            }
+
+            if (result == AuthorizationResult.PasswordRequired
+                || _authorizationService.State.PreferredUnlockMethod == PreferredUnlockMethod.Password)
+            {
+                await UsePasswordFallbackAsync();
+                return;
+            }
+
+            QuickUnlockMessage = _localization.GetString(
+                result == AuthorizationResult.Cancelled
+                    ? AvaloniaStringKeys.QuickUnlockCancelled
+                    : AvaloniaStringKeys.QuickUnlockFailed);
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+        {
+        }
+        catch (Exception)
+        {
+            QuickUnlockMessage = _localization.GetString(AvaloniaStringKeys.QuickUnlockFailed);
+        }
+        finally
+        {
+            IsQuickUnlockBusy = false;
+        }
+    }
+
+    public Task UsePasswordFallbackAsync()
+    {
+        if (!IsQuickUnlockVisible) return Task.CompletedTask;
+        IsQuickUnlockVisible = false;
+        IsPasswordUnlockVisible = true;
+        QuickUnlockMessage = string.Empty;
+        StatusText = _localization.GetString(AvaloniaStringKeys.QuickUnlockFallback);
+        StatusSeverity = NotificationSeverity.Information;
+        return Task.CompletedTask;
     }
 
     public Task HandleWindowMinimizedAsync()
@@ -406,6 +515,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         _showAccountsCommand.NotifyCanExecuteChanged();
         _showToolsCommand.NotifyCanExecuteChanged();
         _showSettingsCommand.NotifyCanExecuteChanged();
+    }
+
+    private void NotifyQuickUnlockCommands()
+    {
+        _quickUnlockCommand?.NotifyCanExecuteChanged();
+        _usePasswordFallbackCommand?.NotifyCanExecuteChanged();
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

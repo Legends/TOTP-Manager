@@ -11,6 +11,16 @@ namespace TOTP.Tests.Avalonia.Presentation;
 
 public sealed class SettingsPageViewModelTests
 {
+    [Theory]
+    [InlineData("en", "/Assets/flags/en.png")]
+    [InlineData("de", "/Assets/flags/de.png")]
+    public void LanguageOption_UsesBundledFlagAsset(string culture, string expectedPath)
+    {
+        var option = new LanguageOption(culture, culture);
+
+        Assert.Equal(expectedPath, option.IconPath);
+    }
+
     [Fact]
     public async Task SaveAsync_PersistsReviewedSecurityPreferences()
     {

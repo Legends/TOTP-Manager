@@ -522,4 +522,8 @@
         <Setter Property="Orientation" Value="Horizontal" />
         <Setter Property="Spacing" Value="8" />
     </Style>
+    <Style Selector="TabControl.settings-tabs TabItem">
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Padding" Value="5,6" />
+    </Style>
 </Styles>

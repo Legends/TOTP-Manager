@@ -13,6 +13,12 @@
   <data name="Unlock" xml:space="preserve"><value>Entsperren</value></data>
   <data name="VaultUnlocked" xml:space="preserve"><value>Tresor entsperrt.</value></data>
   <data name="QuickUnlockFallback" xml:space="preserve"><value>Die Schnellentsperrung wurde nicht abgeschlossen. Gib dein Master-Passwort ein, um den Zugriff wiederherzustellen.</value></data>
+  <data name="UnlockWithQuickUnlock" xml:space="preserve"><value>Mit Schnellentsperrung entsperren</value></data>
+  <data name="UseMasterPassword" xml:space="preserve"><value>Master-Passwort verwenden</value></data>
+  <data name="VaultLockedQuickUnlock" xml:space="preserve"><value>Tresor gesperrt. Verwende die Schnellentsperrung oder dein Master-Passwort, um fortzufahren.</value></data>
+  <data name="VaultLockedPassword" xml:space="preserve"><value>Tresor gesperrt. Gib dein Master-Passwort ein, um fortzufahren.</value></data>
+  <data name="QuickUnlockCancelled" xml:space="preserve"><value>Die Schnellentsperrung wurde abgebrochen. Dein Tresor bleibt gesperrt.</value></data>
+  <data name="QuickUnlockFailed" xml:space="preserve"><value>Die Schnellentsperrung konnte nicht abgeschlossen werden. Verwende dein Master-Passwort, um den Zugriff wiederherzustellen.</value></data>
   <data name="QuickUnlock" xml:space="preserve"><value>Schnellentsperrung</value></data>
   <data name="QuickUnlockRecoveryNotice" xml:space="preserve"><value>Die Schnellentsperrung ist optional. Dein Master-Passwort bleibt die Wiederherstellungsmethode und ist zum Aktivieren oder Ändern der Sicherheitseinstellungen erforderlich.</value></data>
   <data name="QuickUnlockAvailable" xml:space="preserve"><value>Die Schnellentsperrung ist auf diesem System verfügbar.</value></data>
@@ -85,7 +91,7 @@
   <data name="HideSecretsDefault" xml:space="preserve"><value>Geheimnisse standardmäßig ausblenden</value></data>
   <data name="LoggingLevel" xml:space="preserve"><value>Minimale Protokollstufe (gilt nach Neustart)</value></data>
   <data name="ClipboardCopyDisabled" xml:space="preserve"><value>Das Kopieren von Codes ist durch die Zwischenablage-Sicherheitsrichtlinie deaktiviert.</value></data>
-  <data name="About" xml:space="preserve"><value>Info und Diagnose</value></data>
+  <data name="About" xml:space="preserve"><value>Info</value></data>
   <data name="Version" xml:space="preserve"><value>Version</value></data>
   <data name="OpenLogFolder" xml:space="preserve"><value>Protokollordner öffnen</value></data>
   <data name="Lock" xml:space="preserve"><value>Sperren</value></data>
@@ -104,6 +110,9 @@
   <data name="ScanQrCamera" xml:space="preserve"><value>QR-Code mit Kamera scannen</value></data>
   <data name="CancelScan" xml:space="preserve"><value>Scan abbrechen</value></data>
   <data name="SecuritySettings" xml:space="preserve"><value>Sicherheitseinstellungen</value></data>
+  <data name="Security" xml:space="preserve"><value>Sicherheit</value></data>
+  <data name="ImportExport" xml:space="preserve"><value>Import / Export</value></data>
+  <data name="Miscellaneous" xml:space="preserve"><value>Sonstiges</value></data>
   <data name="Language" xml:space="preserve"><value>Sprache</value></data>
   <data name="IdleTimeout" xml:space="preserve"><value>Leerlaufzeit in Minuten (0 deaktiviert die Sperre)</value></data>
   <data name="IdleTimeoutHelp" xml:space="preserve"><value>Null eingeben, um die Leerlaufsperre zu deaktivieren.</value></data>

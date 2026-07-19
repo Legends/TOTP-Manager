@@ -13,6 +13,12 @@
   <data name="Unlock" xml:space="preserve"><value>Unlock</value></data>
   <data name="VaultUnlocked" xml:space="preserve"><value>Vault unlocked.</value></data>
   <data name="QuickUnlockFallback" xml:space="preserve"><value>Quick unlock was not completed. Enter your master password to recover access.</value></data>
+  <data name="UnlockWithQuickUnlock" xml:space="preserve"><value>Unlock with quick unlock</value></data>
+  <data name="UseMasterPassword" xml:space="preserve"><value>Use master password</value></data>
+  <data name="VaultLockedQuickUnlock" xml:space="preserve"><value>Vault locked. Use quick unlock or your master password to continue.</value></data>
+  <data name="VaultLockedPassword" xml:space="preserve"><value>Vault locked. Enter your master password to continue.</value></data>
+  <data name="QuickUnlockCancelled" xml:space="preserve"><value>Quick unlock was cancelled. Your vault remains locked.</value></data>
+  <data name="QuickUnlockFailed" xml:space="preserve"><value>Quick unlock could not be completed. Use your master password to recover access.</value></data>
   <data name="QuickUnlock" xml:space="preserve"><value>Quick unlock</value></data>
   <data name="QuickUnlockRecoveryNotice" xml:space="preserve"><value>Quick unlock is optional. Your master password remains the recovery method and is required to enable or change security settings.</value></data>
   <data name="QuickUnlockAvailable" xml:space="preserve"><value>Quick unlock is available on this system.</value></data>
@@ -85,7 +91,7 @@
   <data name="HideSecretsDefault" xml:space="preserve"><value>Hide secrets by default</value></data>
   <data name="LoggingLevel" xml:space="preserve"><value>Minimum logging level (applies after restart)</value></data>
   <data name="ClipboardCopyDisabled" xml:space="preserve"><value>Code copying is disabled by the clipboard safety policy.</value></data>
-  <data name="About" xml:space="preserve"><value>About and diagnostics</value></data>
+  <data name="About" xml:space="preserve"><value>About</value></data>
   <data name="Version" xml:space="preserve"><value>Version</value></data>
   <data name="OpenLogFolder" xml:space="preserve"><value>Open log folder</value></data>
   <data name="Lock" xml:space="preserve"><value>Lock</value></data>
@@ -104,6 +110,9 @@
   <data name="ScanQrCamera" xml:space="preserve"><value>Scan QR with camera</value></data>
   <data name="CancelScan" xml:space="preserve"><value>Cancel scan</value></data>
   <data name="SecuritySettings" xml:space="preserve"><value>Security settings</value></data>
+  <data name="Security" xml:space="preserve"><value>Security</value></data>
+  <data name="ImportExport" xml:space="preserve"><value>Import / export</value></data>
+  <data name="Miscellaneous" xml:space="preserve"><value>Miscellaneous</value></data>
   <data name="Language" xml:space="preserve"><value>Language</value></data>
   <data name="IdleTimeout" xml:space="preserve"><value>Idle timeout in minutes (0 disables idle lock)</value></data>
   <data name="IdleTimeoutHelp" xml:space="preserve"><value>Enter zero to disable idle locking.</value></data>

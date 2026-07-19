@@ -54,6 +54,28 @@
                         Content="{DynamicResource Retry}"
                         IsVisible="{Binding CanRetry}" />
 
+                    <Border Classes="unlock-card" IsVisible="{Binding IsQuickUnlockVisible}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Classes="section-title" Text="{DynamicResource QuickUnlock}" />
+                            <TextBlock
+                                Classes="secondary"
+                                Text="{DynamicResource QuickUnlockRecoveryNotice}"
+                                TextWrapping="Wrap" />
+                            <shared:ValidationMessage
+                                Severity="Error"
+                                Text="{Binding QuickUnlockMessage}" />
+                            <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsQuickUnlockBusy}" />
+                            <Button
+                                Classes="primary wide"
+                                Command="{Binding QuickUnlockCommand}"
+                                Content="{DynamicResource UnlockWithQuickUnlock}" />
+                            <Button
+                                Classes="link wide"
+                                Command="{Binding UsePasswordFallbackCommand}"
+                                Content="{DynamicResource UseMasterPassword}" />
+                        </StackPanel>
+                    </Border>
+
                     <Border Classes="unlock-card" IsVisible="{Binding IsPasswordUnlockVisible}">
                         <ContentControl Content="{Binding PasswordUnlock}">
                             <ContentControl.ContentTemplate>
@@ -156,7 +178,13 @@
                             ToolTip.Tip="{DynamicResource Language}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate x:DataType="localization:LanguageOption">
-                                    <TextBlock HorizontalAlignment="Center" Text="{Binding CultureName}" />
+                                    <Image
+                                        Width="24"
+                                        Height="18"
+                                        HorizontalAlignment="Center"
+                                        Source="{Binding IconPath}"
+                                        Stretch="Uniform"
+                                        ToolTip.Tip="{Binding DisplayName}" />
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
@@ -370,150 +398,174 @@
                                     </DataTemplate>
                                 </ContentControl.ContentTemplate>
                             </ContentControl>
-                            <ContentControl Content="{Binding NativeFilePicker}">
-                                <ContentControl.ContentTemplate>
-                                    <DataTemplate x:DataType="presentation:NativeFilePickerViewModel">
-                                        <Border Classes="panel">
-                                            <StackPanel Spacing="8">
-                                                <TextBlock Classes="section-title" Text="{DynamicResource ImportConflictHandling}" />
-                                                <ComboBox ItemsSource="{Binding ConflictStrategies}" SelectedItem="{Binding SelectedConflictStrategyOption, Mode=TwoWay}">
-                                                    <ComboBox.ItemTemplate>
-                                                        <DataTemplate x:DataType="presentation:NativeFilePickerViewModel+ImportStrategyOption">
-                                                            <TextBlock Text="{Binding Label}" />
-                                                        </DataTemplate>
-                                                    </ComboBox.ItemTemplate>
-                                                </ComboBox>
-                                                <Button Command="{Binding ImportCommand}" Content="{DynamicResource ChooseImportFile}" />
-                                                <Button Command="{Binding ExportCommand}" Content="{DynamicResource ExportEncryptedBackup}" />
-                                                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ContentControl.ContentTemplate>
-                            </ContentControl>
-                            <ContentControl Content="{Binding UpdateCheck}">
-                                <ContentControl.ContentTemplate>
-                                    <DataTemplate x:DataType="presentation:UpdateCheckViewModel">
-                                        <Border Classes="panel">
-                                            <StackPanel Spacing="8">
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                                    <Button Command="{Binding CheckCommand}" Content="{DynamicResource VerifyAppcast}" />
-                                                    <Button Command="{Binding DownloadCommand}" Content="{DynamicResource DownloadUpdate}" />
-                                                </StackPanel>
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                                    <Button Command="{Binding InstallCommand}" Content="{DynamicResource InstallUpdate}" />
-                                                    <Button Command="{Binding CancelCommand}" Content="{DynamicResource Cancel}" />
-                                                </StackPanel>
-                                                <shared:NotificationBanner Severity="{Binding MessageSeverity}" Text="{Binding Message}" />
-                                                <ProgressBar IsIndeterminate="{Binding IsProgressIndeterminate}" Maximum="100" Value="{Binding ProgressPercentage}" />
-                                                <TextBlock IsVisible="{Binding HasReleaseNotes}" Text="{Binding ReleaseNotes}" TextWrapping="Wrap" />
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ContentControl.ContentTemplate>
-                            </ContentControl>
-                            <ContentControl Content="{Binding Diagnostics}">
-                                <ContentControl.ContentTemplate>
-                                    <DataTemplate x:DataType="presentation:DiagnosticsViewModel">
-                                        <Border Classes="panel">
-                                            <StackPanel Spacing="8">
-                                                <TextBlock Classes="section-title" Text="{DynamicResource SupportDiagnostics}" />
-                                                <Button Command="{Binding RefreshCommand}" Content="{DynamicResource RefreshSupportInformation}" />
-                                                <TextBox AcceptsReturn="True" IsReadOnly="True" MinHeight="100" Text="{Binding SupportInformation}" TextWrapping="Wrap" />
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ContentControl.ContentTemplate>
-                            </ContentControl>
                         </StackPanel>
                     </ScrollViewer>
 
-                    <ScrollViewer
+                    <Grid
+                        Margin="10,8,10,10"
                         IsVisible="{Binding IsSettingsVisible}"
-                        HorizontalScrollBarVisibility="Disabled"
-                        VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="14" Spacing="14">
-                            <TextBlock Classes="page-title" Text="{DynamicResource Settings}" />
-                            <ContentControl Content="{Binding SettingsPage}">
-                                <ContentControl.ContentTemplate>
-                                    <DataTemplate x:DataType="presentation:SettingsPageViewModel">
-                                        <StackPanel Spacing="12">
-                                            <Border Classes="panel">
-                                                <StackPanel Spacing="8">
-                                                    <TextBlock Classes="section-title" Text="{DynamicResource SecuritySettings}" />
-                                                    <TextBlock Text="{DynamicResource Language}" />
-                                                    <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}">
-                                                        <ComboBox.ItemTemplate>
-                                                            <DataTemplate x:DataType="localization:LanguageOption">
-                                                                <TextBlock Text="{Binding DisplayName}" />
-                                                            </DataTemplate>
-                                                        </ComboBox.ItemTemplate>
-                                                    </ComboBox>
-                                                    <TextBlock Text="{DynamicResource IdleTimeout}" />
-                                                    <NumericUpDown Maximum="1440" Minimum="0" Value="{Binding IdleTimeoutMinutes, Mode=TwoWay}" />
-                                                    <CheckBox Content="{DynamicResource LockWhenMinimized}" IsChecked="{Binding LockOnMinimize, Mode=TwoWay}" />
-                                                    <CheckBox Content="{DynamicResource LockOnSessionLock}" IsChecked="{Binding LockOnSessionLock, Mode=TwoWay}" />
-                                                    <CheckBox Content="{DynamicResource ClearClipboard}" IsChecked="{Binding ClearClipboardEnabled, Mode=TwoWay}" />
-                                                    <TextBlock Text="{DynamicResource ClipboardClearSeconds}" />
-                                                    <NumericUpDown Maximum="300" Minimum="1" Value="{Binding ClearClipboardSeconds, Mode=TwoWay}" />
-                                                    <TextBlock Text="{DynamicResource QrPreviewScale}" />
-                                                    <NumericUpDown Increment="0.5" Maximum="6" Minimum="1" Value="{Binding QrPreviewScaleFactor, Mode=TwoWay}" />
-                                                    <CheckBox Content="{DynamicResource EncryptExports}" IsChecked="{Binding ExportEncrypt, Mode=TwoWay}" />
-                                                    <CheckBox Content="{DynamicResource OpenExportAfter}" IsChecked="{Binding OpenExportFileAfterExport, Mode=TwoWay}" />
-                                                    <CheckBox Content="{DynamicResource HideSecretsDefault}" IsChecked="{Binding HideSecretsByDefault, Mode=TwoWay}" />
-                                                    <TextBlock Text="{DynamicResource LoggingLevel}" />
-                                                    <ComboBox ItemsSource="{Binding LogLevels}" SelectedItem="{Binding MinimumLogLevel, Mode=TwoWay}" />
-                                                    <Button Classes="primary" Command="{Binding SaveCommand}" Content="{DynamicResource SaveSettings}" />
-                                                    <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                        RowDefinitions="Auto,*">
+                        <TextBlock Classes="page-title" Text="{DynamicResource Settings}" />
+                        <TabControl Grid.Row="1" Margin="0,8,0,0" Classes="settings-tabs">
+                            <TabItem Header="{DynamicResource Security}">
+                                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                    <ContentControl Margin="4,8" Content="{Binding AuthorizationSettings}">
+                                        <ContentControl.ContentTemplate>
+                                            <DataTemplate x:DataType="presentation:AuthorizationSettingsViewModel">
+                                                <StackPanel Spacing="12">
+                                                    <Border Classes="panel">
+                                                        <StackPanel Spacing="8">
+                                                            <TextBlock Classes="section-title" Text="{DynamicResource QuickUnlock}" />
+                                                            <TextBlock Classes="secondary" Text="{DynamicResource QuickUnlockRecoveryNotice}" TextWrapping="Wrap" />
+                                                            <shared:NotificationBanner Severity="{Binding MessageSeverity}" Text="{Binding Message}" />
+                                                            <Button Classes="primary" Command="{Binding EnableQuickUnlockCommand}" Content="{DynamicResource EnableQuickUnlock}" />
+                                                            <Button Command="{Binding UsePasswordCommand}" Content="{DynamicResource UsePasswordAtStartup}" />
+                                                            <Button Command="{Binding RefreshCommand}" Content="{DynamicResource Refresh}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <Border Classes="panel">
+                                                        <StackPanel Spacing="8">
+                                                            <TextBlock Classes="section-title" Text="{DynamicResource ChangeMasterPassword}" />
+                                                            <shared:RevealableSecretInput AccessibleName="{DynamicResource NewPassword}" PlaceholderText="{DynamicResource NewPassword}" Text="{Binding NewPassword, Mode=TwoWay}" />
+                                                            <shared:RevealableSecretInput AccessibleName="{DynamicResource ConfirmPassword}" PlaceholderText="{DynamicResource ConfirmPassword}" Text="{Binding ConfirmPassword, Mode=TwoWay}" />
+                                                            <Button Classes="danger" Command="{Binding ChangePasswordCommand}" Content="{DynamicResource ChangeMasterPassword}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <Border Classes="panel">
+                                                        <StackPanel Spacing="6">
+                                                            <TextBlock Classes="section-title" Text="{DynamicResource RecoveryAndCompatibility}" />
+                                                            <TextBlock Text="{DynamicResource PortableEnvelopeStatus}" TextWrapping="Wrap" />
+                                                            <TextBlock Classes="secondary" Text="{DynamicResource AutomaticRollbackStatus}" TextWrapping="Wrap" />
+                                                            <TextBlock Classes="secondary" Text="{DynamicResource LegacyMigrationStatus}" TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                    </Border>
                                                 </StackPanel>
-                                            </Border>
-                                            <Border Classes="panel">
-                                                <StackPanel Spacing="8">
-                                                    <TextBlock Classes="section-title" Text="{DynamicResource About}" />
-                                                    <TextBlock Text="{Binding VersionText}" />
-                                                    <Button Command="{Binding OpenLogFolderCommand}" Content="{DynamicResource OpenLogFolder}" />
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ContentControl.ContentTemplate>
-                            </ContentControl>
-                            <ContentControl Content="{Binding AuthorizationSettings}">
-                                <ContentControl.ContentTemplate>
-                                    <DataTemplate x:DataType="presentation:AuthorizationSettingsViewModel">
-                                        <StackPanel Spacing="12">
-                                            <Border Classes="panel">
-                                                <StackPanel Spacing="8">
-                                                    <TextBlock Classes="section-title" Text="{DynamicResource QuickUnlock}" />
-                                                    <TextBlock Classes="secondary" Text="{DynamicResource QuickUnlockRecoveryNotice}" TextWrapping="Wrap" />
-                                                    <shared:NotificationBanner Severity="{Binding MessageSeverity}" Text="{Binding Message}" />
-                                                    <Button Classes="primary" Command="{Binding EnableQuickUnlockCommand}" Content="{DynamicResource EnableQuickUnlock}" />
-                                                    <Button Command="{Binding UsePasswordCommand}" Content="{DynamicResource UsePasswordAtStartup}" />
-                                                    <Button Command="{Binding RefreshCommand}" Content="{DynamicResource Refresh}" />
-                                                </StackPanel>
-                                            </Border>
-                                            <Border Classes="panel">
-                                                <StackPanel Spacing="8">
-                                                    <TextBlock Classes="section-title" Text="{DynamicResource ChangeMasterPassword}" />
-                                                    <shared:RevealableSecretInput AccessibleName="{DynamicResource NewPassword}" PlaceholderText="{DynamicResource NewPassword}" Text="{Binding NewPassword, Mode=TwoWay}" />
-                                                    <shared:RevealableSecretInput AccessibleName="{DynamicResource ConfirmPassword}" PlaceholderText="{DynamicResource ConfirmPassword}" Text="{Binding ConfirmPassword, Mode=TwoWay}" />
-                                                    <Button Classes="danger" Command="{Binding ChangePasswordCommand}" Content="{DynamicResource ChangeMasterPassword}" />
-                                                </StackPanel>
-                                            </Border>
-                                            <Border Classes="panel">
-                                                <StackPanel Spacing="6">
-                                                    <TextBlock Classes="section-title" Text="{DynamicResource RecoveryAndCompatibility}" />
-                                                    <TextBlock Text="{DynamicResource PortableEnvelopeStatus}" TextWrapping="Wrap" />
-                                                    <TextBlock Classes="secondary" Text="{DynamicResource AutomaticRollbackStatus}" TextWrapping="Wrap" />
-                                                    <TextBlock Classes="secondary" Text="{DynamicResource LegacyMigrationStatus}" TextWrapping="Wrap" />
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ContentControl.ContentTemplate>
-                            </ContentControl>
-                        </StackPanel>
-                    </ScrollViewer>
+                                            </DataTemplate>
+                                        </ContentControl.ContentTemplate>
+                                    </ContentControl>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="{DynamicResource ImportExport}">
+                                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                    <ContentControl Margin="4,8" Content="{Binding NativeFilePicker}">
+                                        <ContentControl.ContentTemplate>
+                                            <DataTemplate x:DataType="presentation:NativeFilePickerViewModel">
+                                                <Border Classes="panel">
+                                                    <StackPanel Spacing="8">
+                                                        <TextBlock Classes="section-title" Text="{DynamicResource ImportConflictHandling}" />
+                                                        <ComboBox ItemsSource="{Binding ConflictStrategies}" SelectedItem="{Binding SelectedConflictStrategyOption, Mode=TwoWay}">
+                                                            <ComboBox.ItemTemplate>
+                                                                <DataTemplate x:DataType="presentation:NativeFilePickerViewModel+ImportStrategyOption">
+                                                                    <TextBlock Text="{Binding Label}" />
+                                                                </DataTemplate>
+                                                            </ComboBox.ItemTemplate>
+                                                        </ComboBox>
+                                                        <Button Command="{Binding ImportCommand}" Content="{DynamicResource ChooseImportFile}" />
+                                                        <Button Command="{Binding ExportCommand}" Content="{DynamicResource ExportEncryptedBackup}" />
+                                                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ContentControl.ContentTemplate>
+                                    </ContentControl>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="{DynamicResource Miscellaneous}">
+                                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                    <ContentControl Margin="4,8" Content="{Binding SettingsPage}">
+                                        <ContentControl.ContentTemplate>
+                                            <DataTemplate x:DataType="presentation:SettingsPageViewModel">
+                                                <Border Classes="panel">
+                                                    <StackPanel Spacing="8">
+                                                        <TextBlock Text="{DynamicResource Language}" />
+                                                        <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}">
+                                                            <ComboBox.ItemTemplate>
+                                                                <DataTemplate x:DataType="localization:LanguageOption">
+                                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                        <Image Width="24" Height="18" Source="{Binding IconPath}" Stretch="Uniform" />
+                                                                        <TextBlock VerticalAlignment="Center" Text="{Binding DisplayName}" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ComboBox.ItemTemplate>
+                                                        </ComboBox>
+                                                        <TextBlock Text="{DynamicResource IdleTimeout}" />
+                                                        <NumericUpDown Maximum="1440" Minimum="0" Value="{Binding IdleTimeoutMinutes, Mode=TwoWay}" />
+                                                        <CheckBox Content="{DynamicResource LockWhenMinimized}" IsChecked="{Binding LockOnMinimize, Mode=TwoWay}" />
+                                                        <CheckBox Content="{DynamicResource LockOnSessionLock}" IsChecked="{Binding LockOnSessionLock, Mode=TwoWay}" />
+                                                        <CheckBox Content="{DynamicResource ClearClipboard}" IsChecked="{Binding ClearClipboardEnabled, Mode=TwoWay}" />
+                                                        <TextBlock Text="{DynamicResource ClipboardClearSeconds}" />
+                                                        <NumericUpDown Maximum="300" Minimum="1" Value="{Binding ClearClipboardSeconds, Mode=TwoWay}" />
+                                                        <TextBlock Text="{DynamicResource QrPreviewScale}" />
+                                                        <NumericUpDown Increment="0.5" Maximum="6" Minimum="1" Value="{Binding QrPreviewScaleFactor, Mode=TwoWay}" />
+                                                        <CheckBox Content="{DynamicResource EncryptExports}" IsChecked="{Binding ExportEncrypt, Mode=TwoWay}" />
+                                                        <CheckBox Content="{DynamicResource OpenExportAfter}" IsChecked="{Binding OpenExportFileAfterExport, Mode=TwoWay}" />
+                                                        <CheckBox Content="{DynamicResource HideSecretsDefault}" IsChecked="{Binding HideSecretsByDefault, Mode=TwoWay}" />
+                                                        <TextBlock Text="{DynamicResource LoggingLevel}" />
+                                                        <ComboBox ItemsSource="{Binding LogLevels}" SelectedItem="{Binding MinimumLogLevel, Mode=TwoWay}" />
+                                                        <Button Classes="primary" Command="{Binding SaveCommand}" Content="{DynamicResource SaveSettings}" />
+                                                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ContentControl.ContentTemplate>
+                                    </ContentControl>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="{DynamicResource About}">
+                                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="4,8" Spacing="12">
+                                        <ContentControl Content="{Binding SettingsPage}">
+                                            <ContentControl.ContentTemplate>
+                                                <DataTemplate x:DataType="presentation:SettingsPageViewModel">
+                                                    <Border Classes="panel">
+                                                        <StackPanel Spacing="8">
+                                                            <TextBlock Classes="section-title" Text="{DynamicResource About}" />
+                                                            <TextBlock Text="{Binding VersionText}" />
+                                                            <Button Command="{Binding OpenLogFolderCommand}" Content="{DynamicResource OpenLogFolder}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ContentControl.ContentTemplate>
+                                        </ContentControl>
+                                        <ContentControl Content="{Binding UpdateCheck}">
+                                            <ContentControl.ContentTemplate>
+                                                <DataTemplate x:DataType="presentation:UpdateCheckViewModel">
+                                                    <Border Classes="panel">
+                                                        <StackPanel Spacing="8">
+                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                <Button Command="{Binding CheckCommand}" Content="{DynamicResource VerifyAppcast}" />
+                                                                <Button Command="{Binding DownloadCommand}" Content="{DynamicResource DownloadUpdate}" />
+                                                            </StackPanel>
+                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                <Button Command="{Binding InstallCommand}" Content="{DynamicResource InstallUpdate}" />
+                                                                <Button Command="{Binding CancelCommand}" Content="{DynamicResource Cancel}" />
+                                                            </StackPanel>
+                                                            <shared:NotificationBanner Severity="{Binding MessageSeverity}" Text="{Binding Message}" />
+                                                            <ProgressBar IsIndeterminate="{Binding IsProgressIndeterminate}" Maximum="100" Value="{Binding ProgressPercentage}" />
+                                                            <TextBlock IsVisible="{Binding HasReleaseNotes}" Text="{Binding ReleaseNotes}" TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ContentControl.ContentTemplate>
+                                        </ContentControl>
+                                        <ContentControl Content="{Binding Diagnostics}">
+                                            <ContentControl.ContentTemplate>
+                                                <DataTemplate x:DataType="presentation:DiagnosticsViewModel">
+                                                    <Border Classes="panel">
+                                                        <StackPanel Spacing="8">
+                                                            <TextBlock Classes="section-title" Text="{DynamicResource SupportDiagnostics}" />
+                                                            <Button Command="{Binding RefreshCommand}" Content="{DynamicResource RefreshSupportInformation}" />
+                                                            <TextBox AcceptsReturn="True" IsReadOnly="True" MinHeight="100" Text="{Binding SupportInformation}" TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ContentControl.ContentTemplate>
+                                        </ContentControl>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                        </TabControl>
+                    </Grid>
                 </Grid>
             </Grid>
         </Grid>
