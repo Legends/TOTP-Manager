@@ -21,3 +21,19 @@ Window minimization now delegates to the same view-model lock transition when th
 - Test evidence: policy tests cover enabled/disabled behavior, non-lock states, source lifetime, UI notification, and sanitized lock failure logging. Main-window tests cover configured minimize lock and secret-surface teardown. The complete solution continues to compile without warnings.
 
 Physical Windows session-switch acceptance remains required before the M6 exit criteria can be signed off.
+
+## Windows signed update execution slice
+
+The Windows Avalonia host now replaces the portable fail-closed installer placeholder with a Windows adapter. The adapter accepts only a regular ZIP package produced by the portable update service, opens it without write/delete sharing, enforces the same 128 MiB ceiling, and repeats Ed25519 package verification immediately before process handoff. A failed or malformed signature never reaches process execution.
+
+The existing `TOTP.Updater` helper remains isolated from Avalonia and is bundled under the Windows desktop output. Before staging, the adapter requires a regular helper directory and executable and rejects reparse points anywhere in the copied helper bundle. It resolves the running executable only when it is directly inside the selected installation directory, constructs each helper argument through `ProcessStartInfo.ArgumentList`, and does not request application shutdown until the helper signals that its window is ready.
+
+The production Avalonia feed remains disabled until M7 publishes and configures target-qualified Windows artifacts. Completing this adapter does not authorize the existing WPF appcast or an unqualified release artifact for Avalonia.
+
+- Threat impact: a package modified after download verification, an unsigned package, a non-ZIP payload, a redirected helper bundle, or an executable outside the active installation directory fails closed before application shutdown.
+- Data-flow impact: package bytes are read once more at the platform boundary and cleared after verification. Only local package/install paths and the parent process ID are passed to the bundled helper; none are exposed by the Avalonia view model or written to the application log.
+- Compatibility impact: the WPF NetSparkle workflow, authorization envelope, vault, export, and appcast formats are unchanged. Windows Avalonia artifacts now include the same updater runtime in a dedicated subdirectory.
+- Recovery impact: failure before helper readiness leaves the application running and reports the existing sanitized installer error. After readiness, the helper owns visible progress, in-place replacement, and relaunch.
+- Test evidence: adapter tests cover signature revalidation, structured helper handoff followed by shutdown, rejection of non-ZIP payloads, and rejection of an executable outside the selected installation directory. Build output inspection confirms the helper executable is bundled.
+
+Physical install/relaunch acceptance against a target-qualified signed Avalonia ZIP remains required before the M6 exit criteria can be signed off.

@@ -669,7 +669,7 @@ The WPF grid should not dictate the Avalonia interaction model. Preserve capabil
 - [x] Single-instance activation.
 - [x] Clipboard behavior.
 - [x] Native dialogs and shell integration.
-- [ ] Signed installer/update execution.
+- [x] Signed installer/update execution.
 
 ## macOS
 

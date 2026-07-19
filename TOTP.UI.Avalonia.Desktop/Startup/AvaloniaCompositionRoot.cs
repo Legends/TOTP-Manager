@@ -19,6 +19,7 @@ using TOTP.Avalonia.Desktop.Localization;
 using Serilog;
 using AppLifetime = TOTP.Core.Services.Interfaces.IApplicationLifetime;
 #if TOTP_PLATFORM_WINDOWS
+using TOTP.Platform.Windows;
 using TOTP.Platform.Windows.Security;
 #endif
 
@@ -55,6 +56,10 @@ public static class AvaloniaCompositionRoot
             configuration,
             platformServices.ApplicationPaths,
             platformServices.FileSecurity);
+#if TOTP_PLATFORM_WINDOWS
+        services.AddSingleton<IWindowsUpdateInstallerRuntime, WindowsUpdateInstallerRuntime>();
+        services.AddSingleton<IUpdateInstallerLauncher, WindowsUpdateInstallerLauncher>();
+#endif
         services.AddSingleton(new AvaloniaUiScheduler(Dispatcher.UIThread));
         services.AddSingleton<IUiScheduler>(provider =>
             provider.GetRequiredService<AvaloniaUiScheduler>());

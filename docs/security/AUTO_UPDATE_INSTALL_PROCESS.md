@@ -49,3 +49,16 @@ Relevant code:
 - `TOTP/AutoUpdate/TOTPDownloadProgressWindow.xaml.cs`
 - `TOTP.Updater/Program.cs`
 - `TOTP/Services/AutoUpdateService.cs`
+
+## Avalonia Windows handoff
+
+The Windows Avalonia host uses the same dedicated updater runtime through `WindowsUpdateInstallerLauncher`; it does not call the WPF/NetSparkle service. Its portable update service verifies the signed appcast and downloaded package first. At install time the Windows adapter:
+
+1. accepts only a regular ZIP package within the portable 128 MiB limit;
+2. holds the package without write/delete sharing and repeats Ed25519 verification;
+3. rejects reparse points in the bundled updater runtime;
+4. stages the trusted helper into a fresh `%TEMP%` directory;
+5. passes arguments with `ProcessStartInfo.ArgumentList`;
+6. waits for the helper's ready signal before requesting Avalonia shutdown.
+
+The Avalonia update feed remains disabled until a target-qualified release channel is configured. The Windows adapter must not be used to consume generic WPF appcast entries.
