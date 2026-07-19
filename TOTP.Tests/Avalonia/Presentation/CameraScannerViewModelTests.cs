@@ -32,12 +32,14 @@ public sealed class CameraScannerViewModelTests
         validator.Setup(value => value.Validate(It.IsAny<string>()))
             .Returns(new QrPayloadValidationResult(true, "Example", "alice"));
         var import = new Mock<IQrAccountImportService>();
+        var importedAccountId = Guid.NewGuid();
         import.Setup(value => value.ImportAsync(
                 It.IsAny<string>(),
                 It.IsAny<Func<QrAccountConflict, CancellationToken, Task<QrAccountConflictDecision>>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok(new QrAccountImportOutcome(
                 QrAccountImportStatus.Added,
+                importedAccountId,
                 "Example",
                 "alice")));
         var lifetime = new TrackingDisposable();
@@ -45,6 +47,10 @@ public sealed class CameraScannerViewModelTests
         imageFactory.Setup(value => value.Create(It.IsAny<ReadOnlyMemory<byte>>()))
             .Returns(new AvaloniaQrImageHandle(Mock.Of<IImage>(), lifetime));
         using var sut = CreateSut(runner.Object, validator.Object, imageFactory.Object, import.Object);
+        var closeRequested = false;
+        AccountImportedEventArgs? importedEvent = null;
+        sut.CloseRequested += (_, _) => closeRequested = true;
+        sut.AccountImported += (_, args) => importedEvent = args;
 
         await sut.StartAsync();
 
@@ -53,7 +59,23 @@ public sealed class CameraScannerViewModelTests
         Assert.Equal(AvaloniaStringKeys.QrAccountAdded, sut.Message);
         Assert.DoesNotContain("JBSWY", sut.Message, StringComparison.Ordinal);
         Assert.All(encodedFrame, value => Assert.Equal(0, value));
+        Assert.True(closeRequested);
+        Assert.Equal(importedAccountId, importedEvent!.AccountId);
+        Assert.Equal(AvaloniaStringKeys.QrAccountAdded, importedEvent.Message);
         validator.Verify(value => value.Validate(It.Is<string>(payload => payload.Contains("secret="))), Times.Once);
+    }
+
+    [Fact]
+    public async Task CancelAsync_WhenScannerIsIdle_RequestsDialogClose()
+    {
+        using var sut = CreateSut(Mock.Of<IQrScannerRunner>());
+        var closeRequested = false;
+        sut.CloseRequested += (_, _) => closeRequested = true;
+
+        await sut.CancelAsync();
+
+        Assert.True(closeRequested);
+        Assert.True(sut.CancelCommand.CanExecute(null));
     }
 
     [Theory]

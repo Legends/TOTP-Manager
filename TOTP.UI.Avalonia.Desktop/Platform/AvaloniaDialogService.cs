@@ -16,7 +16,7 @@ public sealed class AvaloniaDialogService(AvaloniaWindowCoordinator windows) : I
         await _dialogGate.WaitAsync(cancellationToken);
         try
         {
-            var owner = windows.GetRequiredMainWindow();
+            var owner = windows.GetRequiredDialogOwner();
             var viewModel = new ConfirmationDialogViewModel(request);
             var dialog = new ConfirmationDialogWindow { DataContext = viewModel };
             var requestedResult = false;
@@ -56,7 +56,7 @@ public sealed class AvaloniaDialogService(AvaloniaWindowCoordinator windows) : I
         await _dialogGate.WaitAsync(cancellationToken);
         try
         {
-            var owner = windows.GetRequiredMainWindow();
+            var owner = windows.GetRequiredDialogOwner();
             using var viewModel = new PasswordDialogViewModel(request, cancellationToken);
             var dialog = new PasswordDialogWindow { DataContext = viewModel };
             string? confirmedPassword = null;
@@ -97,7 +97,7 @@ public sealed class AvaloniaDialogService(AvaloniaWindowCoordinator windows) : I
         await _dialogGate.WaitAsync(cancellationToken);
         try
         {
-            var owner = windows.GetRequiredMainWindow();
+            var owner = windows.GetRequiredDialogOwner();
             var viewModel = new ChoiceDialogViewModel(request);
             var dialog = new ChoiceDialogWindow { DataContext = viewModel };
             var requestedResult = ChoiceDialogResult.Cancel;

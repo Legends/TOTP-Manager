@@ -233,7 +233,8 @@ public sealed class MainWindowViewModelTests
             CreateCameraScanner(),
             CreateUpdateCheck(),
             CreateDiagnostics(),
-            CreateLocalization());
+            CreateLocalization(),
+            Mock.Of<IAvaloniaCameraScannerDialogService>());
 
         sut.PrepareForShutdown();
         sut.PrepareForShutdown();
@@ -278,7 +279,8 @@ public sealed class MainWindowViewModelTests
             CreateCameraScanner(),
             CreateUpdateCheck(),
             CreateDiagnostics(),
-            CreateLocalization());
+            CreateLocalization(),
+            Mock.Of<IAvaloniaCameraScannerDialogService>());
         await sut.InitializeAsync();
         password.Password = "test-password";
 
@@ -335,6 +337,28 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
+    public async Task ScanQrAsync_WhenUnlocked_OpensScannerDialogDirectly()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
+        var scannerDialogs = new Mock<IAvaloniaCameraScannerDialogService>();
+        using var sut = CreateSut(
+            coordinator.Object,
+            Mock.Of<IAuthorizationService>(),
+            scannerDialogs.Object);
+        await sut.InitializeAsync();
+
+        await sut.ScanQrAsync();
+
+        scannerDialogs.Verify(value => value.ShowAsync(
+            sut.CameraScanner,
+            It.IsAny<CancellationToken>()), Times.Once);
+        Assert.True(sut.IsAccountListVisible);
+        Assert.False(sut.IsToolsVisible);
+    }
+
+    [Fact]
     public async Task HandleWindowMinimizedAsync_WhenPolicyEnabled_LocksAuthorizedShell()
     {
         var coordinator = new Mock<IAvaloniaStartupCoordinator>();
@@ -366,6 +390,7 @@ public sealed class MainWindowViewModelTests
             CreateUpdateCheck(),
             CreateDiagnostics(),
             CreateLocalization(),
+            Mock.Of<IAvaloniaCameraScannerDialogService>(),
             settings.Object);
         await sut.InitializeAsync();
 
@@ -381,7 +406,8 @@ public sealed class MainWindowViewModelTests
 
     private static MainWindowViewModel CreateSut(
         IAvaloniaStartupCoordinator coordinator,
-        IAuthorizationService authorization) =>
+        IAuthorizationService authorization,
+        IAvaloniaCameraScannerDialogService? scannerDialogs = null) =>
         new(
             coordinator,
             authorization,
@@ -401,7 +427,8 @@ public sealed class MainWindowViewModelTests
             CreateCameraScanner(),
             CreateUpdateCheck(),
             CreateDiagnostics(),
-            CreateLocalization());
+            CreateLocalization(),
+            scannerDialogs ?? Mock.Of<IAvaloniaCameraScannerDialogService>());
 
     private static AuthorizationState CreateAuthorizationState(PreferredUnlockMethod preference)
     {

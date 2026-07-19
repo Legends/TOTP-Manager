@@ -5,8 +5,10 @@ using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Services.Models;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Avalonia.Desktop.Localization;
+using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Infrastructure.Services;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
@@ -19,6 +21,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly ISettingsService? _settingsService;
     private readonly SessionLockPolicyBackgroundService? _sessionLockPolicy;
     private readonly IUiScheduler? _uiScheduler;
+    private readonly IAvaloniaCameraScannerDialogService _cameraScannerDialogs;
     private readonly AsyncCommand _initializeCommand;
     private readonly AsyncCommand _lockCommand;
     private readonly AsyncCommand _showAccountsCommand;
@@ -30,6 +33,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly AsyncCommand _beginAddAccountCommand;
     private readonly AsyncCommand _beginEditAccountCommand;
     private readonly AsyncCommand _deleteAccountCommand;
+    private readonly AsyncCommand _scanQrCommand;
     private readonly AsyncCommand _quickUnlockCommand;
     private readonly AsyncCommand _usePasswordFallbackCommand;
     private readonly CancellationTokenSource _lifetime = new();
@@ -64,6 +68,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         UpdateCheckViewModel updateCheck,
         DiagnosticsViewModel diagnostics,
         IAvaloniaLocalizationService localization,
+        IAvaloniaCameraScannerDialogService cameraScannerDialogs,
         ISettingsService? settingsService = null,
         SessionLockPolicyBackgroundService? sessionLockPolicy = null,
         IUiScheduler? uiScheduler = null)
@@ -81,6 +86,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         UpdateCheck = updateCheck ?? throw new ArgumentNullException(nameof(updateCheck));
         Diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        _cameraScannerDialogs = cameraScannerDialogs
+            ?? throw new ArgumentNullException(nameof(cameraScannerDialogs));
         _settingsService = settingsService;
         _sessionLockPolicy = sessionLockPolicy;
         _uiScheduler = uiScheduler;
@@ -89,7 +96,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordUnlock.Unlocked += OnUnlocked;
         PasswordSetup.Configured += OnConfigured;
         CameraScanner.AccountImported += OnAccountImported;
-        NativeFilePicker.AccountsChanged += OnAccountImported;
+        NativeFilePicker.AccountsChanged += OnAccountsChanged;
         SettingsPage.SettingsSaved += OnSettingsSaved;
         _initializeCommand = new AsyncCommand(InitializeAsync, () => !_isBusy);
         _lockCommand = new AsyncCommand(
@@ -122,6 +129,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         _deleteAccountCommand = new AsyncCommand(
             AccountList.DeleteAccountAsync,
             () => CanInteractWithAccounts() && AccountList.DeleteAccountCommand.CanExecute(null));
+        _scanQrCommand = new AsyncCommand(
+            ScanQrAsync,
+            () => _isShellVisible && !_isSettingsVisible);
         _quickUnlockCommand = new AsyncCommand(
             TryQuickUnlockAsync,
             () => _isQuickUnlockVisible && !_isQuickUnlockBusy);
@@ -181,6 +191,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public ICommand BeginEditAccountCommand => _beginEditAccountCommand;
 
     public ICommand DeleteAccountCommand => _deleteAccountCommand;
+
+    public ICommand ScanQrCommand => _scanQrCommand;
 
     public ICommand QuickUnlockCommand => _quickUnlockCommand;
 
@@ -362,7 +374,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordUnlock.Unlocked -= OnUnlocked;
         PasswordSetup.Configured -= OnConfigured;
         CameraScanner.AccountImported -= OnAccountImported;
-        NativeFilePicker.AccountsChanged -= OnAccountImported;
+        NativeFilePicker.AccountsChanged -= OnAccountsChanged;
         SettingsPage.SettingsSaved -= OnSettingsSaved;
         if (_sessionLockPolicy is not null)
             _sessionLockPolicy.ApplicationLocked -= OnPlatformSessionLocked;
@@ -381,7 +393,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         AccountList.Clear();
         PasswordSetup.Clear();
         AuthorizationSettings.ClearSensitiveInputs();
-        CameraScanner.Clear();
+        CameraScanner.Dismiss();
         AuthorizationSettings.ClearSensitiveInputs();
         IsSettingsVisible = false;
         IsToolsVisible = false;
@@ -414,7 +426,22 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         StatusSeverity = NotificationSeverity.Success;
     }
 
-    private void OnAccountImported(object? sender, EventArgs e) =>
+    private async void OnAccountImported(object? sender, AccountImportedEventArgs e)
+    {
+        try
+        {
+            await AccountList.RevealImportedAccountAsync(
+                e.AccountId,
+                e.Status is QrAccountImportStatus.Added or QrAccountImportStatus.KeptBoth,
+                e.Message);
+        }
+        catch (Exception)
+        {
+            AccountList.LoadCommand.Execute(null);
+        }
+    }
+
+    private void OnAccountsChanged(object? sender, EventArgs e) =>
         AccountList.LoadCommand.Execute(null);
 
     private void OnSettingsSaved(object? sender, EventArgs e) =>
@@ -430,7 +457,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private void ApplyLockedUiState()
     {
         AccountList.Clear();
-        CameraScanner.Clear();
+        CameraScanner.Dismiss();
         IsSettingsVisible = false;
         IsToolsVisible = false;
         IsSearchVisible = false;
@@ -533,6 +560,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task ScanQrAsync()
+    {
+        if (!IsShellVisible || IsSettingsVisible) return Task.CompletedTask;
+        return _cameraScannerDialogs.ShowAsync(CameraScanner, _lifetime.Token);
+    }
+
     public async Task ShowSettingsAsync()
     {
         if (!IsShellVisible || IsSettingsVisible) return;
@@ -622,6 +655,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         _beginAddAccountCommand?.NotifyCanExecuteChanged();
         _beginEditAccountCommand?.NotifyCanExecuteChanged();
         _deleteAccountCommand?.NotifyCanExecuteChanged();
+        _scanQrCommand?.NotifyCanExecuteChanged();
     }
 
     private void NotifyQuickUnlockCommands()

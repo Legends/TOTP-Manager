@@ -65,8 +65,6 @@
   <data name="AccountEditLoadFailed" xml:space="preserve"><value>Das ausgewählte Konto konnte nicht zur Bearbeitung geöffnet werden.</value></data>
   <data name="AccountDeleteFailed" xml:space="preserve"><value>Das Konto konnte nicht sicher gelöscht werden.</value></data>
   <data name="AccountDeleted" xml:space="preserve"><value>Konto gelöscht.</value></data>
-  <data name="CodeAutoRefreshReady" xml:space="preserve"><value>Code bereit. Er wird automatisch aktualisiert.</value></data>
-  <data name="CodeRefreshed" xml:space="preserve"><value>Ein neuer Code ist bereit.</value></data>
   <data name="CodeRefreshFailed" xml:space="preserve"><value>Der Code ist abgelaufen und konnte nicht sicher aktualisiert werden.</value></data>
   <data name="CodeCopiedWithClear" xml:space="preserve"><value>Kopiert. Das bedingte Leeren der Zwischenablage ist in {0} Sekunden geplant.</value></data>
   <data name="ClipboardSafeCopyUnavailable" xml:space="preserve"><value>Diese Plattform kann den Code nicht sicher kopieren und bedingt aus der Zwischenablage entfernen.</value></data>

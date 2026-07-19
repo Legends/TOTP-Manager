@@ -6,7 +6,7 @@ public sealed class AvaloniaWindowCoordinator
 {
     private readonly object _gate = new();
     private Window? _mainWindow;
-    private Window? _activeDialog;
+    private readonly List<Window> _ownedDialogs = [];
 
     public Window? CurrentActivationTarget
     {
@@ -14,7 +14,7 @@ public sealed class AvaloniaWindowCoordinator
         {
             lock (_gate)
             {
-                return _activeDialog ?? _mainWindow;
+                return _ownedDialogs.Count > 0 ? _ownedDialogs[^1] : _mainWindow;
             }
         }
     }
@@ -48,6 +48,18 @@ public sealed class AvaloniaWindowCoordinator
         }
     }
 
+    public Window GetRequiredDialogOwner()
+    {
+        lock (_gate)
+        {
+            return _ownedDialogs.Count > 0
+                ? _ownedDialogs[^1]
+                : _mainWindow
+                    ?? throw new InvalidOperationException(
+                        "The main window is not available for dialog ownership.");
+        }
+    }
+
     public IDisposable RegisterOwnedDialog(Window dialog)
     {
         ArgumentNullException.ThrowIfNull(dialog);
@@ -55,9 +67,9 @@ public sealed class AvaloniaWindowCoordinator
         {
             if (_mainWindow is null)
                 throw new InvalidOperationException("A dialog cannot be registered before the main window.");
-            if (_activeDialog is not null)
-                throw new InvalidOperationException("Another owned dialog is already active.");
-            _activeDialog = dialog;
+            if (_ownedDialogs.Contains(dialog))
+                throw new InvalidOperationException("The dialog is already registered.");
+            _ownedDialogs.Add(dialog);
         }
 
         return new Registration(this, dialog);
@@ -78,7 +90,7 @@ public sealed class AvaloniaWindowCoordinator
     {
         lock (_gate)
         {
-            if (ReferenceEquals(_activeDialog, dialog)) _activeDialog = null;
+            _ownedDialogs.Remove(dialog);
         }
     }
 

@@ -3,6 +3,7 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:automation="using:Avalonia.Automation"
+    xmlns:controls="using:TOTP.Avalonia.Desktop.Controls"
     xmlns:localization="using:TOTP.Avalonia.Desktop.Localization"
     xmlns:presentation="using:TOTP.Avalonia.Desktop.Presentation"
     xmlns:shared="using:TOTP.Avalonia.Shared.Controls"
@@ -11,7 +12,8 @@
     Width="320"
     Height="520"
     MinWidth="300"
-    MinHeight="420"
+    MinHeight="200"
+    WindowStartupLocation="CenterScreen"
     Icon="/Assets/Icons/app.ico">
 
     <Window.KeyBindings>
@@ -146,11 +148,11 @@
                 RowDefinitions="Auto,*"
                 IsVisible="{Binding IsShellVisible}">
                 <Border Grid.Row="0" Classes="toolbar" IsEnabled="{Binding !IsSettingsVisible}">
-                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,50,Auto,Auto">
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,64,Auto,Auto">
                         <Button
                             Grid.Column="0"
                             Classes="icon"
-                            Command="{Binding ShowToolsCommand}"
+                            Command="{Binding ScanQrCommand}"
                             ToolTip.Tip="{DynamicResource ScanQrCamera}">
                             <shared:SymbolIcon IconSize="16" Kind="Camera" />
                         </Button>
@@ -198,9 +200,10 @@
                         </Grid>
                         <ComboBox
                             Grid.Column="4"
-                            Width="46"
+                            Width="64"
                             MinHeight="28"
-                            Padding="4,2"
+                            Padding="2"
+                            HorizontalContentAlignment="Center"
                             ItemsSource="{Binding SettingsPage.Languages}"
                             SelectedItem="{Binding SettingsPage.SelectedLanguage, Mode=TwoWay}"
                             ToolTip.Tip="{DynamicResource Language}">
@@ -210,7 +213,7 @@
                                         Width="24"
                                         Height="18"
                                         HorizontalAlignment="Center"
-                                        Source="{Binding IconPath}"
+                                        Source="{Binding Icon}"
                                         Stretch="Uniform"
                                         ToolTip.Tip="{Binding DisplayName}" />
                                 </DataTemplate>
@@ -239,14 +242,13 @@
                             <DataTemplate x:DataType="presentation:AccountListViewModel">
                                 <Grid>
                                     <ScrollViewer
+                                        x:Name="AccountPageScrollViewer"
                                         HorizontalScrollBarVisibility="Disabled"
-                                        VerticalScrollBarVisibility="Auto">
-                                        <StackPanel Margin="10,8,10,12" Spacing="8">
-                                            <TextBlock
-                                                Classes="inline-message"
-                                                IsVisible="{Binding HasMessage}"
-                                                Text="{Binding Message}"
-                                                TextWrapping="Wrap" />
+                                        VerticalScrollBarVisibility="Disabled">
+                                        <StackPanel
+                                            x:Name="AccountPageContent"
+                                            Margin="10,8,10,12"
+                                            Spacing="8">
                                             <TextBlock
                                                 Margin="0,28"
                                                 HorizontalAlignment="Center"
@@ -259,12 +261,14 @@
                                                 Classes="secondary"
                                                 IsVisible="{Binding HasNoSearchResults}"
                                                 Text="{DynamicResource NoMatchingEntries}" />
-                                            <ListBox
+                                            <controls:ContextPreservingAccountListBox
+                                                x:Name="AccountsListBox"
                                                 automation:AutomationProperties.Name="{DynamicResource AccountsList}"
                                                 Classes="accounts"
-                                                MaxHeight="220"
+                                                ContextAccount="{Binding ContextAccount, Mode=TwoWay}"
                                                 ItemsSource="{Binding Accounts}"
-                                                SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
+                                                SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
+                                                ScrollViewer.VerticalScrollBarVisibility="Auto">
                                                 <ListBox.ItemsPanel>
                                                     <ItemsPanelTemplate>
                                                         <VirtualizingStackPanel />
@@ -272,19 +276,24 @@
                                                 </ListBox.ItemsPanel>
                                                 <ListBox.ContextMenu>
                                                     <ContextMenu>
-                                                        <MenuItem Command="{Binding BeginEditCommand}" Header="{DynamicResource EditAccount}" />
-                                                        <MenuItem Command="{Binding DeleteAccountCommand}" Header="{DynamicResource DeleteAccount}" />
+                                                        <MenuItem Command="{Binding BeginContextEditCommand}" Header="{DynamicResource EditAccount}" />
+                                                        <MenuItem Command="{Binding DeleteContextAccountCommand}" Header="{DynamicResource DeleteAccount}" />
                                                     </ContextMenu>
                                                 </ListBox.ContextMenu>
                                                 <ListBox.ItemTemplate>
                                                     <DataTemplate x:DataType="presentation:AccountListItemViewModel">
-                                                        <shared:AccountRow AccountName="{Binding AccountName}" Issuer="{Binding Issuer}" />
+                                                        <Border
+                                                            Classes="account-row-container"
+                                                            Classes.recently-added="{Binding IsRecentlyAdded}">
+                                                            <shared:AccountRow AccountName="{Binding AccountName}" Issuer="{Binding Issuer}" />
+                                                        </Border>
                                                     </DataTemplate>
                                                 </ListBox.ItemTemplate>
-                                            </ListBox>
+                                            </controls:ContextPreservingAccountListBox>
 
                                             <StackPanel
                                                 HorizontalAlignment="Center"
+                                                IsVisible="{Binding HasSelectedAccount}"
                                                 Spacing="4">
                                                 <TextBlock
                                                     Classes="issuer"
@@ -322,7 +331,11 @@
                                                 </Grid>
                                             </StackPanel>
 
-                                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="6">
+                                            <StackPanel
+                                                HorizontalAlignment="Center"
+                                                IsVisible="{Binding HasSelectedAccount}"
+                                                Orientation="Horizontal"
+                                                Spacing="6">
                                                 <Button
                                                     Classes="link"
                                                     Command="{Binding BeginEditCommand}"
@@ -341,23 +354,46 @@
                                                 IsVisible="{Binding HasCodeMessage}"
                                                 Text="{Binding CodeMessage}"
                                                 TextWrapping="Wrap" />
-                                            <shared:QrPreview
-                                                Description="{DynamicResource GeneratedQr}"
-                                                IsVisible="{Binding HasQrImage}"
-                                                PrivacyNotice="{DynamicResource QrPrivacyNotice}"
-                                                Source="{Binding QrImage}"
-                                                Width="190"
-                                                Height="220" />
                                         </StackPanel>
                                     </ScrollViewer>
 
                                     <Border
-                                        Width="300"
+                                        x:Name="AccountMessageToast"
+                                        ZIndex="10"
+                                        MinWidth="180"
+                                        MaxWidth="280"
+                                        Margin="10,8"
+                                        Padding="12,8"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Top"
+                                        automation:AutomationProperties.LiveSetting="Polite"
+                                        automation:AutomationProperties.Name="{Binding Message}"
+                                        Classes="account-toast"
+                                        Classes.open="{Binding HasMessage}"
+                                        IsHitTestVisible="False"
+                                        IsVisible="{Binding HasMessage}">
+                                        <Border.RenderTransform>
+                                            <TranslateTransform />
+                                        </Border.RenderTransform>
+                                        <TextBlock
+                                            Text="{Binding Message}"
+                                            TextAlignment="Center"
+                                            TextWrapping="Wrap" />
+                                    </Border>
+
+                                    <Border
+                                        x:Name="AccountEditorFlyout"
+                                        ZIndex="20"
                                         Margin="0"
-                                        HorizontalAlignment="Right"
+                                        HorizontalAlignment="Stretch"
                                         VerticalAlignment="Stretch"
                                         Classes="flyout"
-                                        IsVisible="{Binding IsEditorVisible}">
+                                        Classes.open="{Binding IsEditorVisible}"
+                                        IsVisible="{Binding IsEditorVisible}"
+                                        PropertyChanged="AccountEditorFlyoutPropertyChanged">
+                                        <Border.RenderTransform>
+                                            <TranslateTransform />
+                                        </Border.RenderTransform>
                                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                                             <StackPanel Margin="18" Spacing="10">
                                                 <Grid ColumnDefinitions="*,Auto">
@@ -378,6 +414,7 @@
                                                         Content="✕" />
                                                 </Grid>
                                                 <TextBox
+                                                    x:Name="AccountIssuerBox"
                                                     automation:AutomationProperties.Name="{DynamicResource Issuer}"
                                                     PlaceholderText="{DynamicResource Issuer}"
                                                     Text="{Binding EditorIssuer, Mode=TwoWay}" />
@@ -524,7 +561,7 @@
                                                             <ComboBox.ItemTemplate>
                                                                 <DataTemplate x:DataType="localization:LanguageOption">
                                                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                                                        <Image Width="24" Height="18" Source="{Binding IconPath}" Stretch="Uniform" />
+                                                                        <Image Width="24" Height="18" Source="{Binding Icon}" Stretch="Uniform" />
                                                                         <TextBlock VerticalAlignment="Center" Text="{Binding DisplayName}" />
                                                                     </StackPanel>
                                                                 </DataTemplate>

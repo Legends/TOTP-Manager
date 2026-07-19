@@ -34,7 +34,8 @@ public sealed class QrAccountImportServiceTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(QrAccountImportStatus.Added, result.Value.Status);
-        Assert.Equal("Example", added!.Issuer);
+        Assert.Equal(added!.ID, result.Value.AccountId);
+        Assert.Equal("Example", added.Issuer);
         Assert.Equal("alice", added.AccountName);
         Assert.Equal("JBSWY3DPEHPK3PXP", added.Secret);
         resolver.Verify(value => value(It.IsAny<QrAccountConflict>(), It.IsAny<CancellationToken>()), Times.Never);

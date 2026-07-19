@@ -1,3 +1,5 @@
+using Avalonia.Media;
+
 namespace TOTP.Avalonia.Desktop.Localization;
 
 public interface IAvaloniaLocalizationService
@@ -10,6 +12,5 @@ public interface IAvaloniaLocalizationService
 
 public sealed record LanguageOption(string CultureName, string DisplayName)
 {
-    public string IconPath =>
-        $"avares://TOTP.UI.Avalonia.Desktop/Assets/flags/{CultureName}.png";
+    public IImage? Icon { get; init; }
 }

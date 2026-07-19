@@ -23,6 +23,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly IAvaloniaLocalizationService _localization;
     private readonly TimeSpan _countdownTickInterval;
     private readonly ISettingsService? _settingsService;
+    private readonly IAvaloniaQrPreviewDialogService? _qrPreviewDialogs;
+    private readonly TimeSpan _transientMessageDuration;
     private readonly AsyncCommand _loadCommand;
     private readonly AsyncCommand _generateCommand;
     private readonly AsyncCommand _copyCommand;
@@ -32,12 +34,17 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly AsyncCommand _saveAccountCommand;
     private readonly AsyncCommand _cancelEditCommand;
     private readonly AsyncCommand _deleteAccountCommand;
+    private readonly AsyncCommand _beginContextEditCommand;
+    private readonly AsyncCommand _deleteContextAccountCommand;
     private CancellationTokenSource? _codeLifetime;
+    private CancellationTokenSource? _messageLifetime;
+    private CancellationTokenSource? _recentHighlightLifetime;
     private IReadOnlyList<AccountListItemViewModel> _allAccounts = [];
     private IReadOnlyList<AccountListItemViewModel> _accounts = [];
     private string _message = string.Empty;
     private string _searchText = string.Empty;
     private AccountListItemViewModel? _selectedAccount;
+    private AccountListItemViewModel? _contextAccount;
     private string _generatedCode = string.Empty;
     private string _codeMessage = string.Empty;
     private bool _isBusy;
@@ -62,7 +69,9 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         IAvaloniaDialogService dialogs,
         IAvaloniaLocalizationService localization,
         TimeSpan? countdownTickInterval = null,
-        ISettingsService? settingsService = null)
+        ISettingsService? settingsService = null,
+        IAvaloniaQrPreviewDialogService? qrPreviewDialogs = null,
+        TimeSpan? transientMessageDuration = null)
     {
         _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
         _accountTotpService = accountTotpService ?? throw new ArgumentNullException(nameof(accountTotpService));
@@ -73,8 +82,12 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _countdownTickInterval = countdownTickInterval ?? TimeSpan.FromSeconds(1);
         _settingsService = settingsService;
+        _qrPreviewDialogs = qrPreviewDialogs;
+        _transientMessageDuration = transientMessageDuration ?? TimeSpan.FromSeconds(3);
         if (_countdownTickInterval <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(countdownTickInterval));
+        if (_transientMessageDuration <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(transientMessageDuration));
         _loadCommand = new AsyncCommand(LoadAsync, () => !_isBusy);
         _generateCommand = new AsyncCommand(
             GenerateCodeAsync,
@@ -90,6 +103,12 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _deleteAccountCommand = new AsyncCommand(
             DeleteAccountAsync,
             () => !IsBusy && !IsEditorVisible && SelectedAccount is not null);
+        _beginContextEditCommand = new AsyncCommand(
+            BeginContextEditAsync,
+            () => !IsBusy && !IsEditorVisible && ContextAccount is not null);
+        _deleteContextAccountCommand = new AsyncCommand(
+            DeleteContextAccountAsync,
+            () => !IsBusy && !IsEditorVisible && ContextAccount is not null);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -137,6 +156,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             _generateQrCommand.NotifyCanExecuteChanged();
             _beginEditCommand.NotifyCanExecuteChanged();
             _deleteAccountCommand.NotifyCanExecuteChanged();
+            OnPropertyChanged(nameof(HasSelectedAccount));
             if (_autoGenerateCodeOnSelection && _selectedAccount is not null)
                 _generateCommand.Execute(null);
         }
@@ -144,6 +164,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     public void EnableAutomaticCodeGenerationOnSelection() =>
         _autoGenerateCodeOnSelection = true;
+
+    public bool HasSelectedAccount => SelectedAccount is not null;
 
     public string GeneratedCode
     {
@@ -198,6 +220,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         set
         {
             if (!SetField(ref _searchText, value ?? string.Empty)) return;
+            ClearRecentHighlight();
             OnPropertyChanged(nameof(HasSearchText));
             ApplyFilter();
         }
@@ -231,6 +254,19 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public ICommand SaveAccountCommand => _saveAccountCommand;
     public ICommand CancelEditCommand => _cancelEditCommand;
     public ICommand DeleteAccountCommand => _deleteAccountCommand;
+    public ICommand BeginContextEditCommand => _beginContextEditCommand;
+    public ICommand DeleteContextAccountCommand => _deleteContextAccountCommand;
+
+    public AccountListItemViewModel? ContextAccount
+    {
+        get => _contextAccount;
+        set
+        {
+            if (!SetField(ref _contextAccount, value)) return;
+            _beginContextEditCommand.NotifyCanExecuteChanged();
+            _deleteContextAccountCommand.NotifyCanExecuteChanged();
+        }
+    }
 
     public bool IsEditorVisible
     {
@@ -280,7 +316,9 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         private set => SetField(ref _editorMessage, value);
     }
 
-    public async Task LoadAsync()
+    public Task LoadAsync() => LoadAsync(null);
+
+    private async Task LoadAsync(Guid? recentlyAddedAccountId)
     {
         if (IsBusy) return;
 
@@ -302,9 +340,12 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                 .Select(account => new AccountListItemViewModel(
                     account.ID,
                     account.Issuer,
-                    account.AccountName ?? string.Empty))
+                    account.AccountName ?? string.Empty,
+                    account.ID == recentlyAddedAccountId))
                 .ToArray();
             ApplyFilter();
+            StartRecentHighlightLifetime(
+                _allAccounts.FirstOrDefault(account => account.IsRecentlyAdded));
         }
         catch (Exception)
         {
@@ -340,7 +381,6 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             GeneratedCode = result.Value.Code;
             RemainingSeconds = Math.Max(1, result.Value.RemainingSeconds);
             PeriodSeconds = Math.Max(RemainingSeconds, result.Value.PeriodSeconds);
-            CodeMessage = _localization.GetString(AvaloniaStringKeys.CodeAutoRefreshReady);
             var codeLifetime = new CancellationTokenSource();
             _codeLifetime = codeLifetime;
             _ = RunCodeCountdownAsync(
@@ -406,11 +446,36 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             _qrImage = _qrImageFactory.Create(sensitivePng.Memory);
             OnPropertyChanged(nameof(QrImage));
             OnPropertyChanged(nameof(HasQrImage));
+            await ShowQrPreviewAsync();
         }
         catch (Exception)
         {
-            ClearQrImage();
             CodeMessage = "A QR code could not be displayed safely.";
+        }
+        finally
+        {
+            ClearQrImage();
+        }
+    }
+
+    private async Task ShowQrPreviewAsync()
+    {
+        var image = QrImage;
+        if (image is null) return;
+        if (_qrPreviewDialogs is null)
+        {
+            CodeMessage = "A QR code preview is not available on this platform.";
+            return;
+        }
+
+        try
+        {
+            await _qrPreviewDialogs.ShowAsync(image, QrPreviewSize);
+        }
+        catch (Exception)
+        {
+            if (ReferenceEquals(QrImage, image))
+                CodeMessage = "The enlarged QR code could not be displayed safely.";
         }
     }
 
@@ -422,16 +487,20 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         return Task.CompletedTask;
     }
 
-    public async Task BeginEditAsync()
+    public Task BeginEditAsync() => BeginEditAsync(SelectedAccount);
+
+    public Task BeginContextEditAsync() => BeginEditAsync(ContextAccount);
+
+    private async Task BeginEditAsync(AccountListItemViewModel? target)
     {
-        if (IsBusy || IsEditorVisible || SelectedAccount is null) return;
+        if (IsBusy || IsEditorVisible || target is null) return;
 
         IsBusy = true;
         try
         {
             var loaded = await _accountManager.GetAllOtpEntriesSortedAsync();
             var account = loaded.IsSuccess
-                ? loaded.Value.FirstOrDefault(value => value.ID == SelectedAccount.Id)
+                ? loaded.Value.FirstOrDefault(value => value.ID == target.Id)
                 : null;
             if (account is null)
             {
@@ -493,6 +562,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                 return;
             }
 
+            var isNewAccount = !_editingAccountId.HasValue;
             var normalizedSecret = SecretValidation.NormalizeBase32Secret(secret);
             var updated = new Account(
                 _editingAccountId ?? Guid.NewGuid(),
@@ -510,9 +580,12 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
             ClearEditor();
             IsBusy = false;
-            await LoadAsync();
+            await LoadAsync(isNewAccount ? updated.ID : null);
             if (!HasMessage)
-                Message = _localization.GetString(AvaloniaStringKeys.AccountSaved);
+            {
+                SelectedAccount = Accounts.FirstOrDefault(account => account.Id == updated.ID);
+                ShowTransientMessage(_localization.GetString(AvaloniaStringKeys.AccountSaved));
+            }
         }
         catch (Exception)
         {
@@ -532,11 +605,28 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         return Task.CompletedTask;
     }
 
-    public async Task DeleteAccountAsync()
+    public async Task RevealImportedAccountAsync(
+        Guid accountId,
+        bool highlightAsNew,
+        string successMessage)
     {
-        if (IsBusy || IsEditorVisible || SelectedAccount is null) return;
+        SearchText = string.Empty;
+        await LoadAsync(highlightAsNew ? accountId : null);
+        if (HasMessage) return;
 
-        var selected = SelectedAccount;
+        SelectedAccount = Accounts.FirstOrDefault(account => account.Id == accountId);
+        ShowTransientMessage(successMessage);
+    }
+
+    public Task DeleteAccountAsync() => DeleteAccountAsync(SelectedAccount);
+
+    public Task DeleteContextAccountAsync() => DeleteAccountAsync(ContextAccount);
+
+    private async Task DeleteAccountAsync(AccountListItemViewModel? target)
+    {
+        if (IsBusy || IsEditorVisible || target is null) return;
+
+        var selected = target;
         IsBusy = true;
         bool confirmed;
         try
@@ -579,7 +669,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             IsBusy = false;
             await LoadAsync();
             if (!HasMessage)
-                Message = _localization.GetString(AvaloniaStringKeys.AccountDeleted);
+                ShowTransientMessage(_localization.GetString(AvaloniaStringKeys.AccountDeleted));
         }
         catch (Exception)
         {
@@ -645,7 +735,6 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                 GeneratedCode = refreshed.Value.Code;
                 RemainingSeconds = Math.Max(1, refreshed.Value.RemainingSeconds);
                 PeriodSeconds = Math.Max(RemainingSeconds, refreshed.Value.PeriodSeconds);
-                CodeMessage = _localization.GetString(AvaloniaStringKeys.CodeRefreshed);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -679,6 +768,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     public void Dispose()
     {
+        CancelTransientMessage();
+        ClearRecentHighlight();
         ClearGeneratedCode();
         ClearQrImage();
         ClearEditor();
@@ -686,6 +777,9 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     public void Clear()
     {
+        CancelTransientMessage();
+        ClearRecentHighlight();
+        ContextAccount = null;
         SelectedAccount = null;
         SearchText = string.Empty;
         _allAccounts = [];
@@ -723,15 +817,98 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _saveAccountCommand.NotifyCanExecuteChanged();
         _cancelEditCommand.NotifyCanExecuteChanged();
         _deleteAccountCommand.NotifyCanExecuteChanged();
+        _beginContextEditCommand.NotifyCanExecuteChanged();
+        _deleteContextAccountCommand.NotifyCanExecuteChanged();
     }
 
     private void ClearQrImage()
     {
+        _qrPreviewDialogs?.Close();
         var image = _qrImage;
         _qrImage = null;
         OnPropertyChanged(nameof(QrImage));
         OnPropertyChanged(nameof(HasQrImage));
         image?.Dispose();
+    }
+
+    private void ShowTransientMessage(string message)
+    {
+        CancelTransientMessage();
+        Message = message;
+        var lifetime = new CancellationTokenSource();
+        _messageLifetime = lifetime;
+        _ = ClearTransientMessageAsync(message, lifetime);
+    }
+
+    private async Task ClearTransientMessageAsync(
+        string expectedMessage,
+        CancellationTokenSource lifetime)
+    {
+        try
+        {
+            await Task.Delay(_transientMessageDuration, lifetime.Token);
+            if (ReferenceEquals(_messageLifetime, lifetime)
+                && string.Equals(Message, expectedMessage, StringComparison.Ordinal))
+            {
+                Message = string.Empty;
+            }
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            if (ReferenceEquals(_messageLifetime, lifetime)) _messageLifetime = null;
+            lifetime.Dispose();
+        }
+    }
+
+    private void CancelTransientMessage()
+    {
+        var lifetime = _messageLifetime;
+        _messageLifetime = null;
+        lifetime?.Cancel();
+    }
+
+    private void StartRecentHighlightLifetime(AccountListItemViewModel? highlightedAccount)
+    {
+        _recentHighlightLifetime?.Cancel();
+        _recentHighlightLifetime = null;
+        if (highlightedAccount is null) return;
+
+        var lifetime = new CancellationTokenSource();
+        _recentHighlightLifetime = lifetime;
+        _ = ClearRecentHighlightAfterAnimationAsync(highlightedAccount, lifetime);
+    }
+
+    private async Task ClearRecentHighlightAfterAnimationAsync(
+        AccountListItemViewModel highlightedAccount,
+        CancellationTokenSource lifetime)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(1400), lifetime.Token);
+            if (ReferenceEquals(_recentHighlightLifetime, lifetime))
+                highlightedAccount.ClearRecentlyAdded();
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            if (ReferenceEquals(_recentHighlightLifetime, lifetime))
+                _recentHighlightLifetime = null;
+            lifetime.Dispose();
+        }
+    }
+
+    private void ClearRecentHighlight()
+    {
+        var lifetime = _recentHighlightLifetime;
+        _recentHighlightLifetime = null;
+        lifetime?.Cancel();
+        foreach (var account in _allAccounts)
+            account.ClearRecentlyAdded();
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

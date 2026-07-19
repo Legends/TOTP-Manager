@@ -50,11 +50,12 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _startCommand = new AsyncCommand(StartAsync, () => !_disposed && !IsScanning);
-        _cancelCommand = new AsyncCommand(CancelAsync, () => !_disposed && IsScanning);
+        _cancelCommand = new AsyncCommand(CancelAsync, () => !_disposed);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-    public event EventHandler? AccountImported;
+    public event EventHandler<AccountImportedEventArgs>? AccountImported;
+    public event EventHandler? CloseRequested;
 
     public ICommand StartCommand => _startCommand;
 
@@ -143,7 +144,14 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
     public Task CancelAsync()
     {
         _captureLifetime?.Cancel();
+        CloseRequested?.Invoke(this, EventArgs.Empty);
         return Task.CompletedTask;
+    }
+
+    public void Dismiss()
+    {
+        Clear();
+        CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 
     public void Clear()
@@ -240,8 +248,12 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
             or QrAccountImportStatus.Updated
             or QrAccountImportStatus.KeptBoth)
         {
-            AccountImported?.Invoke(this, EventArgs.Empty);
+            AccountImported?.Invoke(this, new AccountImportedEventArgs(
+                imported.Value.AccountId,
+                imported.Value.Status,
+                Message));
         }
+        CloseRequested?.Invoke(this, EventArgs.Empty);
 
         async Task<QrAccountConflictDecision> ResolveConflictAsync(
             QrAccountConflict conflict,

@@ -118,8 +118,6 @@ public static class AvaloniaStringKeys
     public const string AccountEditLoadFailed = nameof(AccountEditLoadFailed);
     public const string AccountDeleteFailed = nameof(AccountDeleteFailed);
     public const string AccountDeleted = nameof(AccountDeleted);
-    public const string CodeAutoRefreshReady = nameof(CodeAutoRefreshReady);
-    public const string CodeRefreshed = nameof(CodeRefreshed);
     public const string CodeRefreshFailed = nameof(CodeRefreshFailed);
     public const string CodeCopiedWithClear = nameof(CodeCopiedWithClear);
     public const string ClipboardSafeCopyUnavailable = nameof(ClipboardSafeCopyUnavailable);
@@ -178,8 +176,8 @@ public static class AvaloniaStringKeys
         AddAccount, EditAccount, DeleteAccount, DeleteAccountPrompt, Delete, Issuer,
         AccountName, Secret, SaveAccount, CancelEdit, AccountIssuerRequired,
         AccountSecretInvalid, AccountDuplicate, AccountSaveFailed, AccountSaved,
-        AccountEditLoadFailed, AccountDeleteFailed, AccountDeleted, CodeAutoRefreshReady,
-        CodeRefreshed, CodeRefreshFailed, CodeCopiedWithClear,
+        AccountEditLoadFailed, AccountDeleteFailed, AccountDeleted, CodeRefreshFailed,
+        CodeCopiedWithClear,
         ClipboardSafeCopyUnavailable, CodeRemainingTime, QrInvalid, QrImportFailed,
         QrAccountAdded, QrAccountUpdated, QrAccountKeptBoth, QrAccountDuplicate,
         QrImportCancelled, QrConflictTitle, QrConflictMessage, UpdateExisting, KeepBoth,

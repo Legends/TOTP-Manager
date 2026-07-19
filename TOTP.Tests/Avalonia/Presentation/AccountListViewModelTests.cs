@@ -33,6 +33,37 @@ public sealed class AccountListViewModelTests
     }
 
     [Fact]
+    public async Task RevealImportedAccountAsync_SelectsHighlightsAndAnnouncesImportedRow()
+    {
+        var importedId = Guid.NewGuid();
+        var accounts = Enumerable.Range(0, 30)
+            .Select(index => new Account(
+                index == 29 ? importedId : Guid.NewGuid(),
+                $"Issuer {index:00}",
+                ValidSecret,
+                $"account-{index:00}"))
+            .ToArray();
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(accounts));
+        using var sut = CreateSut(manager.Object);
+
+        await sut.RevealImportedAccountAsync(
+            importedId,
+            highlightAsNew: true,
+            AvaloniaStringKeys.QrAccountAdded);
+
+        Assert.Equal(importedId, sut.SelectedAccount!.Id);
+        Assert.True(sut.SelectedAccount.IsRecentlyAdded);
+        Assert.Equal(AvaloniaStringKeys.QrAccountAdded, sut.Message);
+
+        sut.SearchText = "does-not-match";
+        sut.SearchText = string.Empty;
+
+        Assert.False(sut.SelectedAccount.IsRecentlyAdded);
+    }
+
+    [Fact]
     public async Task SearchText_WithNoMatches_ExposesFilteredEmptyState()
     {
         var manager = new Mock<IAccountManager>();
@@ -182,7 +213,7 @@ public sealed class AccountListViewModelTests
         await sut.GenerateCodeAsync();
 
         Assert.Equal("123456", sut.GeneratedCode);
-        Assert.Equal(AvaloniaStringKeys.CodeAutoRefreshReady, sut.CodeMessage);
+        Assert.Empty(sut.CodeMessage);
         totp.Verify(value => value.GenerateAsync(accountId), Times.Once);
     }
 
@@ -373,6 +404,7 @@ public sealed class AccountListViewModelTests
         var imageFactory = new Mock<IAvaloniaQrImageFactory>();
         imageFactory.Setup(value => value.Create(It.IsAny<ReadOnlyMemory<byte>>()))
             .Returns(new AvaloniaQrImageHandle(image.Object, lifetime.Object));
+        var previewDialogs = new Mock<IAvaloniaQrPreviewDialogService>();
         var qr = new Mock<IAccountQrCodeService>();
         qr.Setup(value => value.GenerateAsync(id))
             .ReturnsAsync(() => Result.Ok(SensitiveBuffer.CopyFrom(png)));
@@ -383,16 +415,20 @@ public sealed class AccountListViewModelTests
             qr.Object,
             imageFactory.Object,
             Mock.Of<IAvaloniaDialogService>(),
-            Localization())
+            Localization(),
+            qrPreviewDialogs: previewDialogs.Object)
         {
             SelectedAccount = new AccountListItemViewModel(id, "Issuer", "account")
         };
 
         await sut.GenerateQrAsync();
 
-        Assert.True(sut.HasQrImage);
-        sut.Clear();
         Assert.False(sut.HasQrImage);
+        previewDialogs.Verify(value => value.ShowAsync(
+            image.Object,
+            384,
+            It.IsAny<CancellationToken>()), Times.Once);
+        previewDialogs.Verify(value => value.Close(), Times.AtLeastOnce);
         lifetime.Verify(value => value.Dispose(), Times.Once);
     }
 
@@ -482,6 +518,27 @@ public sealed class AccountListViewModelTests
     }
 
     [Fact]
+    public async Task BeginContextEditAsync_TargetsRightClickedRowWithoutChangingSelection()
+    {
+        var first = new Account(Guid.NewGuid(), "First", ValidSecret, "selected");
+        var second = new Account(Guid.NewGuid(), "Second", ValidSecret, "context");
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([first, second]));
+        using var sut = CreateSut(manager.Object);
+        await sut.LoadAsync();
+        sut.SelectedAccount = sut.Accounts[0];
+        sut.ContextAccount = sut.Accounts[1];
+
+        await sut.BeginContextEditAsync();
+
+        Assert.Equal(first.ID, sut.SelectedAccount!.Id);
+        Assert.Equal("Second", sut.EditorIssuer);
+        Assert.Equal("context", sut.EditorAccountName);
+        Assert.True(sut.IsEditorVisible);
+    }
+
+    [Fact]
     public async Task DeleteAccountAsync_DeletesOnlyAfterOwnedConfirmation()
     {
         var id = Guid.NewGuid();
@@ -497,7 +554,10 @@ public sealed class AccountListViewModelTests
                 It.IsAny<ConfirmationDialogRequest>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
-        var sut = CreateSut(manager.Object, dialogs.Object);
+        var sut = CreateSut(
+            manager.Object,
+            dialogs.Object,
+            TimeSpan.FromMilliseconds(100));
         await sut.LoadAsync();
         sut.SelectedAccount = sut.Accounts[0];
 
@@ -506,6 +566,38 @@ public sealed class AccountListViewModelTests
         manager.Verify(value => value.DeleteAsync(account), Times.Once);
         Assert.Empty(sut.Accounts);
         Assert.Equal(AvaloniaStringKeys.AccountDeleted, sut.Message);
+        await WaitUntilAsync(() => !sut.HasMessage);
+        Assert.Empty(sut.Message);
+    }
+
+    [Fact]
+    public async Task DeleteContextAccountAsync_DeletesRightClickedRowNotSelection()
+    {
+        var first = new Account(Guid.NewGuid(), "First", ValidSecret, "selected");
+        var second = new Account(Guid.NewGuid(), "Second", ValidSecret, "context");
+        var remaining = new List<Account> { first, second };
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(() => Result.Ok<IReadOnlyList<Account>>(remaining.ToArray()));
+        manager.Setup(value => value.DeleteAsync(second))
+            .Callback(() => remaining.Remove(second))
+            .ReturnsAsync(Result.Ok());
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        dialogs.Setup(value => value.ConfirmAsync(
+                It.IsAny<ConfirmationDialogRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        using var sut = CreateSut(manager.Object, dialogs.Object);
+        await sut.LoadAsync();
+        sut.SelectedAccount = sut.Accounts[0];
+        sut.ContextAccount = sut.Accounts[1];
+
+        await sut.DeleteContextAccountAsync();
+
+        manager.Verify(value => value.DeleteAsync(second), Times.Once);
+        manager.Verify(value => value.DeleteAsync(first), Times.Never);
+        Assert.Single(sut.Accounts);
+        Assert.Equal(first.ID, sut.Accounts[0].Id);
     }
 
     [Fact]
@@ -547,7 +639,7 @@ public sealed class AccountListViewModelTests
 
         Assert.InRange(sut.RemainingSeconds, 1, 30);
         Assert.Equal(30, sut.PeriodSeconds);
-        Assert.Equal(AvaloniaStringKeys.CodeRefreshed, sut.CodeMessage);
+        Assert.Empty(sut.CodeMessage);
         totp.Verify(value => value.GenerateAsync(id), Times.Exactly(2));
     }
 
@@ -587,7 +679,8 @@ public sealed class AccountListViewModelTests
 
     private static AccountListViewModel CreateSut(
         IAccountManager manager,
-        IAvaloniaDialogService? dialogs = null) =>
+        IAvaloniaDialogService? dialogs = null,
+        TimeSpan? transientMessageDuration = null) =>
         new(
             manager,
             Mock.Of<IAccountTotpService>(),
@@ -595,7 +688,8 @@ public sealed class AccountListViewModelTests
             Mock.Of<IAccountQrCodeService>(),
             Mock.Of<IAvaloniaQrImageFactory>(),
             dialogs ?? Mock.Of<IAvaloniaDialogService>(),
-            Localization());
+            Localization(),
+            transientMessageDuration: transientMessageDuration);
 
     private static IAvaloniaLocalizationService Localization()
     {

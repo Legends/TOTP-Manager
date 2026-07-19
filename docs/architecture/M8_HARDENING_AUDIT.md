@@ -36,7 +36,7 @@ No cryptographic, vault, authorization-envelope, preferences, import/export, or 
 - The custom high-contrast dictionary uses the same typed theme variant as the runtime theme service; its previous string-key construction failure has a regression gate.
 - Shared secret input, validation, notification, QR, symbol, and account-row controls have automation/name/live-region tests. Main XAML supplies heading levels and names for navigation, account search/list, generated code/timing, camera preview, and settings controls.
 - English and German catalogs are complete for every declared Avalonia key and update dynamic resources in place.
-- No animation or transition is currently applied, so reduced-motion behavior has no active motion to suppress.
+- The account editor uses one short, non-repeating 180 ms right-edge entrance animation; it does not animate secret content independently or delay interaction. Reduced-motion behavior remains part of real-target accessibility acceptance because Avalonia's current cross-platform settings contract does not expose a system reduced-motion preference.
 - Initial locales are left-to-right. RTL localization is explicitly deferred until an RTL locale enters product scope; no code claims that mirrored layout has been physically accepted.
 
 Keyboard traversal/focus order, screen-reader announcements, high-contrast appearance, 100/150/200% DPI, and localization overflow require the real-target record template and remain open.

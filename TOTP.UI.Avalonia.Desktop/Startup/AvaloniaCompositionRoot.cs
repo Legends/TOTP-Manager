@@ -33,7 +33,9 @@ namespace TOTP.Avalonia.Desktop.Startup;
 
 public static class AvaloniaCompositionRoot
 {
-    public static ServiceProvider Build(IClassicDesktopStyleApplicationLifetime desktopLifetime)
+    public static ServiceProvider Build(
+        IClassicDesktopStyleApplicationLifetime desktopLifetime,
+        ILanguageFlagProvider? languageFlags = null)
     {
         ArgumentNullException.ThrowIfNull(desktopLifetime);
 
@@ -98,7 +100,15 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<AvaloniaClipboardAccessor>();
         services.AddSingleton<AvaloniaStorageProviderAccessor>();
         services.AddSingleton<AvaloniaWindowCoordinator>();
+        if (languageFlags is null)
+            services.AddSingleton<ILanguageFlagProvider, AvaloniaLanguageFlagProvider>();
+        else
+            services.AddSingleton(languageFlags);
         services.AddSingleton<IAvaloniaDialogService, AvaloniaDialogService>();
+        services.AddSingleton<IAvaloniaCameraScannerDialogService,
+            AvaloniaCameraScannerDialogService>();
+        services.AddSingleton<IAvaloniaQrPreviewDialogService,
+            AvaloniaQrPreviewDialogService>();
         services.AddSingleton<IAvaloniaFilePicker, AvaloniaFilePicker>();
         services.AddSingleton<IAvaloniaQrImageFactory, AvaloniaQrImageFactory>();
         services.AddSingleton<IPlatformFolderLauncher, AvaloniaPlatformFolderLauncher>();

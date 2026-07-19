@@ -7,7 +7,7 @@ namespace TOTP.Tests.Avalonia.Platform;
 public sealed class AvaloniaWindowCoordinatorTests
 {
     [Fact]
-    public void OwnedDialog_TemporarilyBecomesActivationTarget()
+    public void NestedOwnedDialogs_TrackTheActiveActivationTarget()
     {
         var sut = new AvaloniaWindowCoordinator();
         var main = CreateWindowIdentity();
@@ -17,7 +17,14 @@ public sealed class AvaloniaWindowCoordinatorTests
         using (sut.RegisterOwnedDialog(dialog))
         {
             Assert.Same(dialog, sut.CurrentActivationTarget);
-            Assert.Throws<InvalidOperationException>(() => sut.RegisterOwnedDialog(CreateWindowIdentity()));
+            Assert.Same(dialog, sut.GetRequiredDialogOwner());
+            var nested = CreateWindowIdentity();
+            using (sut.RegisterOwnedDialog(nested))
+            {
+                Assert.Same(nested, sut.CurrentActivationTarget);
+                Assert.Same(nested, sut.GetRequiredDialogOwner());
+            }
+            Assert.Same(dialog, sut.CurrentActivationTarget);
         }
 
         Assert.Same(main, sut.CurrentActivationTarget);

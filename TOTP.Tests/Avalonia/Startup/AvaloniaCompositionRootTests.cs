@@ -23,8 +23,9 @@ public sealed class AvaloniaCompositionRootTests
     public void Build_RegistersAvaloniaPlatformContracts()
     {
         var desktopLifetime = new Mock<IClassicDesktopStyleApplicationLifetime>().Object;
+        var languageFlags = new Mock<ILanguageFlagProvider>().Object;
 
-        using var services = AvaloniaCompositionRoot.Build(desktopLifetime);
+        using var services = AvaloniaCompositionRoot.Build(desktopLifetime, languageFlags);
 
         Assert.Same(
             desktopLifetime,
@@ -73,8 +74,13 @@ public sealed class AvaloniaCompositionRootTests
             services.GetRequiredService<IPlatformFolderLauncher>());
         Assert.IsType<AvaloniaDialogService>(
             services.GetRequiredService<IAvaloniaDialogService>());
+        Assert.IsType<AvaloniaCameraScannerDialogService>(
+            services.GetRequiredService<IAvaloniaCameraScannerDialogService>());
+        Assert.IsType<AvaloniaQrPreviewDialogService>(
+            services.GetRequiredService<IAvaloniaQrPreviewDialogService>());
         Assert.IsType<AvaloniaLocalizationService>(
             services.GetRequiredService<IAvaloniaLocalizationService>());
+        Assert.Same(languageFlags, services.GetRequiredService<ILanguageFlagProvider>());
         Assert.IsType<NativeFilePickerViewModel>(
             services.GetRequiredService<NativeFilePickerViewModel>());
         Assert.IsType<NamedPipeActivationListener>(

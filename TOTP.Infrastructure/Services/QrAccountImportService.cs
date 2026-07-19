@@ -51,7 +51,11 @@ public sealed class QrAccountImportService(IAccountManager accounts) : IQrAccoun
         {
             var added = await accounts.AddNewAsync(incoming);
             return added.IsSuccess
-                ? Result.Ok(new QrAccountImportOutcome(QrAccountImportStatus.Added, issuer, accountName))
+                ? Result.Ok(new QrAccountImportOutcome(
+                    QrAccountImportStatus.Added,
+                    incoming.ID,
+                    issuer,
+                    accountName))
                 : Result.Fail<QrAccountImportOutcome>(added.Errors);
         }
 
@@ -62,6 +66,7 @@ public sealed class QrAccountImportService(IAccountManager accounts) : IQrAccoun
         {
             return Result.Ok(new QrAccountImportOutcome(
                 QrAccountImportStatus.DuplicateUnchanged,
+                existing.ID,
                 issuer,
                 accountName));
         }
@@ -74,26 +79,30 @@ public sealed class QrAccountImportService(IAccountManager accounts) : IQrAccoun
         {
             return Result.Ok(new QrAccountImportOutcome(
                 QrAccountImportStatus.Cancelled,
+                existing.ID,
                 issuer,
                 accountName));
         }
 
         FluentResults.Result saved;
         QrAccountImportStatus status;
+        Guid affectedAccountId;
         if (decision == QrAccountConflictDecision.UpdateExisting)
         {
             var updated = new Account(existing.ID, issuer, incoming.Secret, EmptyToNull(accountName));
             saved = await accounts.UpdateAsync(existing, updated);
             status = QrAccountImportStatus.Updated;
+            affectedAccountId = existing.ID;
         }
         else
         {
             saved = await accounts.AddNewAsync(incoming);
             status = QrAccountImportStatus.KeptBoth;
+            affectedAccountId = incoming.ID;
         }
 
         return saved.IsSuccess
-            ? Result.Ok(new QrAccountImportOutcome(status, issuer, accountName))
+            ? Result.Ok(new QrAccountImportOutcome(status, affectedAccountId, issuer, accountName))
             : Result.Fail<QrAccountImportOutcome>(saved.Errors);
     }
 
