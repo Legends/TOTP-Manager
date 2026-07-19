@@ -4,6 +4,6 @@ namespace TOTP.Avalonia.Desktop.Startup;
 
 public static class AvaloniaThemeVariants
 {
-    public static ThemeVariant HighContrast { get; } =
-        new("HighContrast", ThemeVariant.Dark);
+    public static ThemeVariant HighContrast =>
+        global::TOTP.Avalonia.Shared.Styles.AvaloniaThemeVariants.HighContrast;
 }

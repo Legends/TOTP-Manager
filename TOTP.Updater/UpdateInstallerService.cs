@@ -31,10 +31,15 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
         {
             await StagePackageAsync(stageDirectory, cancellationToken);
             var files = EnumerateStageFiles(stageDirectory);
-            var totalBytes = files.Sum(static file => file.Length);
 
             progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.InstallingFiles, UpdaterText.FilesQueued(files.Count), UpdaterText.ItemsQueued(files.Count), false, 0, false));
-            await CopyFilesAsync(files, stageDirectory, arguments.TargetDirectory, totalBytes, progress, cancellationToken);
+            await UpdateFileTransaction.ApplyAsync(
+                files,
+                stageDirectory,
+                arguments.TargetDirectory,
+                progress,
+                Log,
+                cancellationToken);
 
             var relaunchTarget = Path.Combine(arguments.TargetDirectory, Path.GetFileName(arguments.ExecutablePath));
             progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.RelaunchingApp, relaunchTarget, UpdaterText.Complete100, false, 100, false));
@@ -248,101 +253,6 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
         return Directory.EnumerateFiles(stageDirectory, "*", SearchOption.AllDirectories)
             .Select(path => new FileInfo(path))
             .ToList();
-    }
-
-    private async Task CopyFilesAsync(
-        IReadOnlyList<FileInfo> files,
-        string stageDirectory,
-        string targetDirectory,
-        long totalBytes,
-        IProgress<InstallerProgressState> progress,
-        CancellationToken cancellationToken)
-    {
-        long copiedBytes = 0;
-        var copiedFiles = 0;
-
-        foreach (var sourceFile in files)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var relativePath = Path.GetRelativePath(stageDirectory, sourceFile.FullName);
-            var destinationPath = Path.Combine(targetDirectory, relativePath);
-            var destinationDirectory = Path.GetDirectoryName(destinationPath);
-            if (!string.IsNullOrWhiteSpace(destinationDirectory))
-            {
-                Directory.CreateDirectory(destinationDirectory);
-            }
-
-            copiedFiles++;
-            progress.Report(CreateState(
-                UpdaterText.InstallingUpdate,
-                UpdaterText.InstallingFiles,
-                $"{copiedFiles}/{files.Count}: {relativePath}",
-                UpdaterText.FileCountProgress(copiedFiles, files.Count),
-                false,
-                totalBytes == 0 ? 0 : (int)Math.Clamp((copiedBytes * 100L) / totalBytes, 0, 100),
-                false));
-
-            copiedBytes += await CopyFileWithRetriesAsync(sourceFile.FullName, destinationPath, copiedBytes, totalBytes, progress, cancellationToken);
-        }
-
-        progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.InstallingFiles, UpdaterText.FinalizingCopiedFiles, UpdaterText.Complete100, false, 100, false));
-        Log($"files copied: {files.Count}");
-    }
-
-    private async Task<long> CopyFileWithRetriesAsync(
-        string sourcePath,
-        string destinationPath,
-        long copiedBytesBeforeFile,
-        long totalBytes,
-        IProgress<InstallerProgressState> progress,
-        CancellationToken cancellationToken)
-    {
-        const int maxAttempts = 10;
-        for (var attempt = 1; attempt <= maxAttempts; attempt++)
-        {
-            try
-            {
-                return await CopyFileAsync(sourcePath, destinationPath, copiedBytesBeforeFile, totalBytes, progress, cancellationToken);
-            }
-            catch when (attempt < maxAttempts)
-            {
-                await Task.Delay(500, cancellationToken);
-            }
-        }
-
-        throw new IOException($"Failed to replace '{destinationPath}' after {maxAttempts} attempts.");
-    }
-
-    private static async Task<long> CopyFileAsync(
-        string sourcePath,
-        string destinationPath,
-        long copiedBytesBeforeFile,
-        long totalBytes,
-        IProgress<InstallerProgressState> progress,
-        CancellationToken cancellationToken)
-    {
-        const int bufferSize = 1024 * 128;
-        await using var source = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, useAsync: true);
-        await using var destination = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, useAsync: true);
-
-        var buffer = new byte[bufferSize];
-        int bytesRead;
-        long fileBytesCopied = 0;
-
-        while ((bytesRead = await source.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken)) > 0)
-        {
-            await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
-            fileBytesCopied += bytesRead;
-
-            if (totalBytes > 0)
-            {
-                var percentage = (int)Math.Clamp(((copiedBytesBeforeFile + fileBytesCopied) * 100L) / totalBytes, 0, 100);
-                progress.Report(CreateState(UpdaterText.InstallingUpdate, UpdaterText.InstallingFiles, UpdaterText.PercentComplete(percentage), UpdaterText.PercentComplete(percentage), false, percentage, false));
-            }
-        }
-
-        return fileBytesCopied;
     }
 
     private static async Task CopyDirectoryAsync(string sourceDirectory, string destinationDirectory, CancellationToken cancellationToken)

@@ -2,6 +2,16 @@
 
 Automated implementation is not physical acceptance. Record the artifact hash, OS version, desktop/session type, hardware, result, and any screenshots or sanitized diagnostics for every run. Never attach a real vault, OTP seed, password, Keychain item value, or Secret Service value.
 
+## Windows 10/11 x64 checklist
+
+Use the exact retained Authenticode-signed self-contained ZIP candidate. The framework-dependent fast ZIP may be checked separately on a machine with the .NET 9 desktop runtime, but it is not the appcast update payload.
+
+1. Verify the SHA-256 against the signed release manifest and verify Authenticode on both the application and bundled updater.
+2. Extract to a clean user-writable directory and launch. Confirm the taskbar/window icon, startup, single-instance activation, and password setup with synthetic data.
+3. Install a newer signed local candidate through the update UI. Confirm visible updater handoff, application relaunch, version change, and preservation of the synthetic vault.
+4. Repeat with an intentionally obstructed disposable application copy. Confirm the updater reports failure and the prior application files remain launchable; do not induce failure in a real vault-bearing install.
+5. Confirm lock-on-session-lock, clipboard ownership clearing, camera permission/no-device behavior, and sanitized logs.
+
 ## Ubuntu 24.04 live-stick checklist
 
 Use the retained self-contained `linux-x64` tarball or DEB candidate.

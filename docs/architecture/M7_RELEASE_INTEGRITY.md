@@ -4,6 +4,8 @@
 
 M7.1 establishes a shared integrity contract for Avalonia release artifacts before credentialed native publication is enabled. CI now validates native dependency closure, generates target-specific artifact manifests, verifies every manifest hash and size, and fails on known vulnerable NuGet packages. These controls complement platform signing; they do not replace Authenticode, Developer ID, notarization, or Ed25519 update signatures.
 
+The CI matrix also loads the real Avalonia application resources and main-window XAML under Avalonia Headless on all three supported runners. This detected and closed an Avalonia 12 custom-theme construction failure that ordinary compilation did not exercise.
+
 ## Artifact manifest
 
 `New-ReleaseArtifactManifest.ps1` accepts only the selected Windows x64, macOS ARM64, and Linux x64 artifact names. Every entry records the target, format, byte length, lowercase SHA-256, installation ownership, and update policy. The manifest contains the full source commit and release version and deliberately omits timestamps so identical inputs produce stable content.
@@ -34,6 +36,7 @@ The Linux DEB is stamped `package-manager`; direct tar and DMG packages are stam
 - Secret impact: no private signing material is introduced. Artifact manifests contain public release metadata and hashes only.
 - Compatibility: the direct package default is stable. Linux DEB installs remain package-manager-owned. Existing WPF appcast behavior is unchanged; Avalonia uses `appcast-v2.xml`.
 - Recovery: interrupted or invalid downloads are deleted. Invalid distribution policy fails before network access. A missing or invalid manifest fails release validation.
+- Windows install recovery: every destination file that already exists is copied to an isolated rollback directory before replacement. A failed or cancelled transaction restores prior files in reverse order and removes files newly introduced by the failed update. Incomplete rollback is surfaced as a distinct aggregate failure; it is never reported as success.
 
 ## Automated evidence
 
@@ -45,6 +48,8 @@ The Linux DEB is stamped `package-manager`; direct tar and DMG packages are stam
 - artifact mutation detection after manifest generation;
 - target-native dependency checks on matching CI runners;
 - solution-wide NuGet vulnerability enumeration.
+- real application-XAML loading on Windows, Ubuntu, and macOS CI runners;
+- successful Windows file replacement plus injected mid-transaction failure restoration.
 
 Physical clean-machine installation, signed macOS notarization, and target update handoff remain explicit M7 acceptance gates.
 
@@ -55,3 +60,5 @@ Version tags run a separate self-contained native packaging matrix after the bui
 The final publication job downloads only those retained native outputs, rebuilds and validates one aggregate manifest, and uses pinned NetSparkle AppCast Generator 2.9.0 to sign each direct payload, `appcast-v2.xml`, and the manifest. The signing tool receives only a protected key-directory path; private key contents are not placed in process arguments. The final job verifies both metadata signatures before uploading any Avalonia asset to the GitHub release.
 
 Release payload preparation removes only debug-symbol files below the resolved generated publish directory and rejects stale updater build/RID subtrees. This keeps direct artifacts within the existing 128 MiB client limit without increasing the download memory/denial-of-service boundary.
+
+Windows tag publication retains two Authenticode-signed ZIPs. The self-contained ZIP is the single appcast-qualified update payload. The smaller framework-dependent `fast` ZIP is recorded as `manual-download` in the signed aggregate manifest and requires a preinstalled .NET 9 desktop runtime; it is not a second update candidate or a privileged installer.

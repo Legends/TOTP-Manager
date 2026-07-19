@@ -69,6 +69,30 @@ Copy-Item -Path (Join-Path $resolvedPublish "*") -Destination $macOS -Recurse
     -DistributionMode direct `
     -Channel $releaseChannel
 
+$iconSource = Join-Path $resolvedPublish "Assets/Icons/app-1024.png"
+if (-not (Test-Path -LiteralPath $iconSource -PathType Leaf)) {
+    throw "The published macOS application icon is missing."
+}
+$iconSet = Join-Path $resolvedOutput "TOTPManager.iconset"
+New-Item -ItemType Directory -Path $iconSet | Out-Null
+foreach ($icon in @(
+    @{ Name = "icon_16x16.png"; Size = 16 },
+    @{ Name = "icon_16x16@2x.png"; Size = 32 },
+    @{ Name = "icon_32x32.png"; Size = 32 },
+    @{ Name = "icon_32x32@2x.png"; Size = 64 },
+    @{ Name = "icon_128x128.png"; Size = 128 },
+    @{ Name = "icon_128x128@2x.png"; Size = 256 },
+    @{ Name = "icon_256x256.png"; Size = 256 },
+    @{ Name = "icon_256x256@2x.png"; Size = 512 },
+    @{ Name = "icon_512x512.png"; Size = 512 },
+    @{ Name = "icon_512x512@2x.png"; Size = 1024 })) {
+    & sips -z $icon.Size $icon.Size $iconSource --out (Join-Path $iconSet $icon.Name) | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Could not render a macOS icon size." }
+}
+$bundleIcon = Join-Path $resources "TOTPManager.icns"
+& iconutil -c icns $iconSet -o $bundleIcon
+if ($LASTEXITCODE -ne 0) { throw "Could not create the macOS icon resource." }
+
 $plist = @"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -79,6 +103,7 @@ $plist = @"
   <key>CFBundleExecutable</key><string>TOTP.UI.Avalonia.Desktop</string>
   <key>CFBundleIdentifier</key><string>io.github.legends.totpmanager</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>CFBundleIconFile</key><string>TOTPManager</string>
   <key>CFBundleName</key><string>TOTP Manager</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$baseVersion</string>

@@ -20,4 +20,8 @@
     <PackageReference Include="Syncfusion.Tools.WPF" Version="30.1.41" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="TOTP.Tests" />
+  </ItemGroup>
+
 </Project>

@@ -28,6 +28,16 @@ function Get-ArtifactTarget {
     param([string]$FileName)
 
     switch -Regex ($FileName) {
+        '^TOTP-Manager-windows-x64-fast-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.zip$' {
+            return [ordered]@{
+                operatingSystem = "windows"
+                architecture = "x64"
+                format = "zip"
+                ownership = "application"
+                updatePolicy = "manual-download"
+                releaseVersion = $Matches.version
+            }
+        }
         '^TOTP-Manager-windows-x64-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.zip$' {
             return [ordered]@{
                 operatingSystem = "windows"

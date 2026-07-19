@@ -2,7 +2,8 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:automation="using:Avalonia.Automation"
-    xmlns:controls="using:TOTP.Avalonia.Shared.Controls">
+    xmlns:controls="using:TOTP.Avalonia.Shared.Controls"
+    xmlns:styles="using:TOTP.Avalonia.Shared.Styles">
     <Styles.Resources>
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
@@ -57,7 +58,7 @@
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
                     <BoxShadows x:Key="ElevationCard">0 2 8 0 #33000000</BoxShadows>
                 </ResourceDictionary>
-                <ResourceDictionary x:Key="HighContrast">
+                <ResourceDictionary x:Key="{x:Static styles:AvaloniaThemeVariants.HighContrast}">
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#000000" />
                     <SolidColorBrush x:Key="BrushSurface" Color="#000000" />
                     <SolidColorBrush x:Key="BrushSurfaceAlternate" Color="#000000" />

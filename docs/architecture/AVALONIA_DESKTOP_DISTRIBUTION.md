@@ -4,11 +4,13 @@
 
 | Target | Initial artifact | Install/update ownership |
 | --- | --- | --- |
-| Windows x64 | Signed ZIP/in-place helper | TOTP Manager updater after repeated Ed25519 verification |
+| Windows x64 | Signed self-contained ZIP plus signed fast framework-dependent ZIP | TOTP Manager updater uses the self-contained ZIP after repeated Ed25519 verification; the fast ZIP is a manual initial-download option |
 | macOS 14+ ARM64 | Developer ID signed and notarized DMG | User installs the app bundle; replacement must use a future signed/notarized target adapter or an explicit manual download |
 | Ubuntu 24.04 x64 | Self-contained tar.gz and DEB | Portable extraction or Debian package manager; no in-place app updater claims support |
 
 macOS x64 remains outside the initial support policy because the aligned OpenCV native runtime failed the retained Intel probe. Linux AppImage and macOS PKG are not initial formats. AppImage needs a maintained D-Bus, desktop integration, and update policy; PKG adds privileged installation machinery without a current product need.
+
+The initial Windows release deliberately has no privileged MSI/EXE setup bootstrapper. Both ZIPs are extract-and-run packages: the fast artifact requires the .NET 9 desktop runtime, while the self-contained artifact carries the runtime and is the only Windows entry in `appcast-v2.xml`. Both application and updater executables are Authenticode-signed. The fast artifact remains in the signed aggregate manifest with `manual-download` policy so it cannot become a duplicate update candidate.
 
 ## macOS release procedure
 
@@ -53,6 +55,8 @@ Publish the x64 host self-contained on Ubuntu 24.04, then run:
 
 The DEB depends on `libsecret-tools` so the Secret Service capability has a concrete client. If the desktop has no session D-Bus or supported secret collection, the app reports that capability as misconfigured/unavailable and continues with master-password authorization.
 
+The DEB installs the application mark in the hicolor icon theme and references its reverse-DNS icon name from the desktop entry. The macOS packager derives a complete `.icns` iconset from the published 1024-pixel application asset and records it in `Info.plist` before code signing.
+
 Package assembly stamps the DEB with `AutoUpdate:DistributionMode=package-manager`, so the application cannot replace package-manager-owned files. The portable tarball remains `direct`; it may consume only a matching signed `appcast-v2.xml` entry.
 
 ## Release guardrails
@@ -66,6 +70,7 @@ Package assembly stamps the DEB with `AutoUpdate:DistributionMode=package-manage
 - Direct-update artifacts above 128 MiB are rejected rather than expanding the client's bounded download policy.
 - No package may contain authorization envelopes, vaults, logs, user preferences, private keys, certificates, or notarization credentials.
 - Physical acceptance uses the exact retained candidate artifact, not a local development build.
+- Headless CI loads the real application XAML on every supported runner; this catches resource/theme construction failures but does not replace interactive accessibility or rendering checks.
 
 ## Authoritative platform references
 

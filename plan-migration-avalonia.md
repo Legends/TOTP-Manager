@@ -724,18 +724,18 @@ The UI must not treat every failure as equivalent to “not supported.”
 - [x] macOS build and portable tests.
 - [x] Linux build and portable tests.
 - [x] Platform integration tests on matching runners.
-- [ ] Avalonia UI smoke tests.
+- [x] Avalonia UI smoke tests load the real application XAML on Windows, macOS, and Linux runners.
 - [x] Native dependency validation.
 - [x] Artifact manifest generation.
 - [x] SBOM/dependency audit where appropriate. A blocking structured NuGet vulnerability audit is retained; formal SBOM publication remains a release-pipeline follow-up if required by the distribution channel.
 
 ## Windows artifacts
 
-- [ ] Fast installer artifact.
+- [x] Fast framework-dependent ZIP artifact retained as the non-privileged initial-download option; the self-contained ZIP remains the update payload.
 - [x] Signed self-contained ZIP artifact retained for the Avalonia direct/update path.
 - [x] Code signing is mandatory in the Avalonia tag job.
 - [x] Appcast generation.
-- [ ] Upgrade and rollback test.
+- [x] Transactional file-upgrade and failure rollback regression tests; physical signed install/relaunch remains an acceptance gate.
 
 ## macOS artifacts
 
@@ -754,7 +754,7 @@ Select a narrow initial set, for example:
 - [x] Tarball selected for broad direct distribution; AppImage is deferred with rationale.
 - [x] DEB for Debian/Ubuntu users.
 - [x] RPM and Snap deferred until demand and maintained release policy justify them.
-- [ ] Desktop file is packaged; target-appropriate application icons still require final assets.
+- [x] Desktop file and target-appropriate application icons are packaged.
 - [x] Package permissions.
 - [x] Update behavior compatible with package ownership.
 
