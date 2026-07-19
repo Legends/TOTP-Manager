@@ -8,4 +8,5 @@ public sealed record ConfirmationDialogRequest(
     NotificationSeverity Severity,
     string ConfirmText,
     string CancelText,
-    bool ShowCancel = true);
+    bool ShowCancel = true,
+    bool IsDestructive = false);

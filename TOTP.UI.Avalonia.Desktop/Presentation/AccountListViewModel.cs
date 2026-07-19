@@ -639,7 +639,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                     selected.AccountName),
                 NotificationSeverity.Warning,
                 _localization.GetString(AvaloniaStringKeys.Delete),
-                _localization.GetString(AvaloniaStringKeys.Cancel)));
+                _localization.GetString(AvaloniaStringKeys.Cancel),
+                IsDestructive: true));
         }
         catch (Exception)
         {
@@ -706,6 +707,11 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private void ApplyFilter()
     {
         Accounts = AccountListFilter.Apply(_allAccounts, SearchText);
+        if (SelectedAccount is not null
+            && !Accounts.Any(account => account.Id == SelectedAccount.Id))
+        {
+            SelectedAccount = null;
+        }
     }
 
     private async Task RunCodeCountdownAsync(Guid accountId, CancellationTokenSource lifetime)

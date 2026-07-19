@@ -60,7 +60,8 @@ public sealed class AccountListViewModelTests
         sut.SearchText = "does-not-match";
         sut.SearchText = string.Empty;
 
-        Assert.False(sut.SelectedAccount.IsRecentlyAdded);
+        Assert.Null(sut.SelectedAccount);
+        Assert.False(sut.Accounts.Single(account => account.Id == importedId).IsRecentlyAdded);
     }
 
     [Fact]
@@ -175,6 +176,43 @@ public sealed class AccountListViewModelTests
 
         sut.SearchText = string.Empty;
         Assert.Equal(3, sut.Accounts.Count);
+    }
+
+    [Fact]
+    public async Task SearchText_WhenSelectedAccountIsFilteredOut_ClearsSelectionAndGeneratedCode()
+    {
+        var selectedId = Guid.NewGuid();
+        IReadOnlyList<Account> accounts =
+        [
+            new(selectedId, "GitHub", ValidSecret, "alice@example.test"),
+            new(Guid.NewGuid(), "Microsoft", ValidSecret, "bob@example.test")
+        ];
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok(accounts));
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(selectedId))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 30, 30)));
+        using var sut = new AccountListViewModel(
+            manager.Object,
+            totp.Object,
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization());
+        await sut.LoadAsync();
+        sut.EnableAutomaticCodeGenerationOnSelection();
+        sut.SelectedAccount = sut.Accounts.Single(account => account.Id == selectedId);
+        await WaitUntilAsync(() => sut.GeneratedCode == "123456");
+
+        sut.SearchText = "Microsoft";
+
+        Assert.Null(sut.SelectedAccount);
+        Assert.False(sut.HasSelectedAccount);
+        Assert.Empty(sut.GeneratedCode);
+        Assert.Equal(0, sut.RemainingSeconds);
+        Assert.Equal(0, sut.PeriodSeconds);
     }
 
     [Fact]

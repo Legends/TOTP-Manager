@@ -50,4 +50,18 @@ public sealed class ConfirmationDialogViewModelTests
 
         Assert.False(sut.ShowCancel);
     }
+
+    [Fact]
+    public void Constructor_WhenActionIsDestructive_ExposesDestructivePresentationState()
+    {
+        var sut = new ConfirmationDialogViewModel(new ConfirmationDialogRequest(
+            "Delete account",
+            "Example account will be permanently removed.",
+            NotificationSeverity.Warning,
+            "Delete",
+            "Cancel",
+            IsDestructive: true));
+
+        Assert.True(sut.IsDestructive);
+    }
 }

@@ -16,6 +16,8 @@ public partial class MainWindow : Window
 {
     private const double MaximumScreenHeightRatio = 0.75;
     private const double DefaultPageHeight = 520;
+    private const double StandardMinimumHeight = 200;
+    private const double CompactAccountPageMinimumHeight = 120;
     private static readonly TimeSpan HeightAnimationDuration = TimeSpan.FromMilliseconds(220);
     private bool _initialized;
     private bool _fitScheduled;
@@ -195,7 +197,10 @@ public partial class MainWindow : Window
         if (_observedViewModel is { IsAccountListVisible: true })
             ScheduleAccountPageFit();
         else
+        {
+            MinHeight = Math.Min(StandardMinimumHeight, MaxHeight);
             StartHeightAnimation(Math.Min(MaxHeight, DefaultPageHeight));
+        }
     }
 
     private void AccountListPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -227,6 +232,7 @@ public partial class MainWindow : Window
     {
         if (_observedViewModel is not { IsAccountListVisible: true }) return;
         ApplyScreenHeightLimit();
+        MinHeight = Math.Min(CompactAccountPageMinimumHeight, MaxHeight);
         UpdateLayout();
 
         var descendants = this.GetVisualDescendants().ToArray();

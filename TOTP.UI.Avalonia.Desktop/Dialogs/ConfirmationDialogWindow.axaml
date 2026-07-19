@@ -6,7 +6,7 @@
     xmlns:shared="using:TOTP.Avalonia.Shared.Controls"
     x:DataType="dialogs:ConfirmationDialogViewModel"
     Classes="dialog"
-    Title="{Binding Title}">
+    Title="{DynamicResource AppTitle}">
     <StackPanel Classes="dialog-content" Spacing="20">
         <TextBlock
             Classes="heading"
@@ -24,7 +24,8 @@
                     IsCancel="True"
                     IsVisible="{Binding ShowCancel}" />
             <Button
-                Classes="primary"
+                Classes.danger="{Binding IsDestructive}"
+                Classes.primary="{Binding !IsDestructive}"
                 Command="{Binding ConfirmCommand}"
                 Content="{Binding ConfirmText}"
                 IsDefault="True" />
