@@ -153,6 +153,60 @@ public sealed class AccountListViewModelTests
     }
 
     [Fact]
+    public async Task SelectedAccount_WhenAutoGenerateEnabled_GeneratesCodeImmediately()
+    {
+        var accountId = Guid.NewGuid();
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(accountId))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("654321", 24, 30)));
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            totp.Object,
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization());
+        sut.EnableAutomaticCodeGenerationOnSelection();
+
+        sut.SelectedAccount = new AccountListItemViewModel(accountId, "Issuer", "account");
+        await WaitUntilAsync(() => sut.GeneratedCode == "654321");
+
+        Assert.Equal(24, sut.RemainingSeconds);
+        totp.Verify(value => value.GenerateAsync(accountId), Times.Once);
+    }
+
+    [Fact]
+    public async Task SelectedAccount_WhenChangedDuringGeneration_ShowsOnlyLatestAccountCode()
+    {
+        var firstId = Guid.NewGuid();
+        var secondId = Guid.NewGuid();
+        var firstResult = new TaskCompletionSource<Result<TotpGenerationResult>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(firstId)).Returns(firstResult.Task);
+        totp.Setup(value => value.GenerateAsync(secondId))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("222222", 20, 30)));
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            totp.Object,
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization());
+        sut.EnableAutomaticCodeGenerationOnSelection();
+
+        sut.SelectedAccount = new AccountListItemViewModel(firstId, "First", "account");
+        sut.SelectedAccount = new AccountListItemViewModel(secondId, "Second", "account");
+        firstResult.SetResult(Result.Ok(new TotpGenerationResult("111111", 25, 30)));
+        await WaitUntilAsync(() => sut.GeneratedCode == "222222");
+
+        Assert.DoesNotContain("111111", sut.GeneratedCode, StringComparison.Ordinal);
+        totp.Verify(value => value.GenerateAsync(secondId), Times.Once);
+    }
+
+    [Fact]
     public async Task GenerateCodeAsync_WhenServiceFails_DoesNotExposeFailureDetail()
     {
         var totp = new Mock<IAccountTotpService>();

@@ -25,11 +25,47 @@ public sealed class MainWindowSmokeTests
             Assert.Single(window.GetVisualDescendants().OfType<BusyOverlay>());
             Assert.True(window.GetVisualDescendants().OfType<Button>().Count() >= 5);
             Assert.True(window.GetVisualDescendants().OfType<Border>().Count() >= 5);
-            Assert.Single(window.GetVisualDescendants().OfType<ScrollViewer>());
+            Assert.NotEmpty(window.GetVisualDescendants().OfType<ScrollViewer>());
+            Assert.Equal(320, window.Width);
+            Assert.Equal(520, window.Height);
+            Assert.Equal(300, window.MinWidth);
         }
         finally
         {
             window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void DarkVariant_UsesEstablishedWpfVisualIdentity()
+    {
+        var application = Assert.IsType<App>(Application.Current);
+        application.RequestedThemeVariant = ThemeVariant.Dark;
+        var window = new MainWindow();
+
+        try
+        {
+            window.Show();
+
+            Assert.True(window.TryFindResource(
+                "BrushWindowBackground",
+                ThemeVariant.Dark,
+                out var background));
+            Assert.Equal(
+                Color.Parse("#0C1C33"),
+                Assert.IsType<SolidColorBrush>(background).Color);
+            Assert.True(window.TryFindResource(
+                "BrushAccent",
+                ThemeVariant.Dark,
+                out var accent));
+            Assert.Equal(
+                Color.Parse("#7D7FF4"),
+                Assert.IsType<SolidColorBrush>(accent).Color);
+        }
+        finally
+        {
+            window.Close();
+            application.RequestedThemeVariant = ThemeVariant.Dark;
         }
     }
 
@@ -58,7 +94,7 @@ public sealed class MainWindowSmokeTests
         finally
         {
             window.Close();
-            application.RequestedThemeVariant = ThemeVariant.Default;
+            application.RequestedThemeVariant = ThemeVariant.Dark;
         }
     }
 }

@@ -51,6 +51,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private string _editorAccountName = string.Empty;
     private string _editorSecret = string.Empty;
     private string _editorMessage = string.Empty;
+    private bool _autoGenerateCodeOnSelection;
 
     public AccountListViewModel(
         IAccountManager accountManager,
@@ -123,8 +124,13 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             _generateQrCommand.NotifyCanExecuteChanged();
             _beginEditCommand.NotifyCanExecuteChanged();
             _deleteAccountCommand.NotifyCanExecuteChanged();
+            if (_autoGenerateCodeOnSelection && _selectedAccount is not null)
+                _generateCommand.Execute(null);
         }
     }
+
+    public void EnableAutomaticCodeGenerationOnSelection() =>
+        _autoGenerateCodeOnSelection = true;
 
     public string GeneratedCode
     {
@@ -296,14 +302,17 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     public async Task GenerateCodeAsync()
     {
-        if (_selectedAccount is null || _isGenerating) return;
+        var requestedAccount = _selectedAccount;
+        if (requestedAccount is null || _isGenerating) return;
 
         _isGenerating = true;
         _generateCommand.NotifyCanExecuteChanged();
         ClearGeneratedCode();
         try
         {
-            var result = await _accountTotpService.GenerateAsync(_selectedAccount.Id);
+            var result = await _accountTotpService.GenerateAsync(requestedAccount.Id);
+            if (_selectedAccount?.Id != requestedAccount.Id)
+                return;
             if (result.IsFailed)
             {
                 CodeMessage = "A code could not be generated for this account.";
@@ -317,17 +326,25 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             var codeLifetime = new CancellationTokenSource();
             _codeLifetime = codeLifetime;
             _ = RunCodeCountdownAsync(
-                _selectedAccount.Id,
+                requestedAccount.Id,
                 codeLifetime);
         }
         catch (Exception)
         {
-            CodeMessage = "A code could not be generated safely. Try again.";
+            if (_selectedAccount?.Id == requestedAccount.Id)
+                CodeMessage = "A code could not be generated safely. Try again.";
         }
         finally
         {
             _isGenerating = false;
             _generateCommand.NotifyCanExecuteChanged();
+            if (_autoGenerateCodeOnSelection
+                && _selectedAccount is not null
+                && _selectedAccount.Id != requestedAccount.Id
+                && !HasGeneratedCode)
+            {
+                _generateCommand.Execute(null);
+            }
         }
     }
 

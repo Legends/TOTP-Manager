@@ -58,6 +58,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         PasswordUnlock = passwordUnlock ?? throw new ArgumentNullException(nameof(passwordUnlock));
         PasswordSetup = passwordSetup ?? throw new ArgumentNullException(nameof(passwordSetup));
         AccountList = accountList ?? throw new ArgumentNullException(nameof(accountList));
+        AccountList.EnableAutomaticCodeGenerationOnSelection();
         SettingsPage = settingsPage ?? throw new ArgumentNullException(nameof(settingsPage));
         AuthorizationSettings = authorizationSettings ?? throw new ArgumentNullException(nameof(authorizationSettings));
         NativeFilePicker = nativeFilePicker ?? throw new ArgumentNullException(nameof(nativeFilePicker));
@@ -388,6 +389,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsToolsVisible = page == ShellPage.Tools;
         IsSettingsVisible = page == ShellPage.Settings;
         if (IsSettingsVisible) SettingsPage.Reload();
+        if (IsAccountListVisible && AccountList.SelectedAccount is not null)
+            AccountList.GenerateCommand.Execute(null);
     }
 
     private void EnterAuthorizedShell()

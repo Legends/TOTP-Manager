@@ -18,7 +18,7 @@ public sealed class AvaloniaThemeService(
 
         if (platformSettings is null)
         {
-            applyTheme(ThemeVariant.Default);
+            applyTheme(ThemeVariant.Dark);
             return;
         }
 
@@ -40,6 +40,6 @@ public sealed class AvaloniaThemeService(
     {
         applyTheme(values.ContrastPreference == ColorContrastPreference.High
             ? AvaloniaThemeVariants.HighContrast
-            : ThemeVariant.Default);
+            : ThemeVariant.Dark);
     }
 }

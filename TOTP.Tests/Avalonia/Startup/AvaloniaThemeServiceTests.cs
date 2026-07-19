@@ -21,7 +21,7 @@ public sealed class AvaloniaThemeServiceTests
     }
 
     [Fact]
-    public void ColorChange_ReturnsToSystemFollowingDefaultAndDisposeUnsubscribes()
+    public void ColorChange_ReturnsToProductDarkThemeAndDisposeUnsubscribes()
     {
         var platform = new Mock<IPlatformSettings>();
         platform.Setup(value => value.GetColorValues()).Returns(Colors(ColorContrastPreference.High));
@@ -39,7 +39,7 @@ public sealed class AvaloniaThemeServiceTests
             platform.Object,
             Colors(ColorContrastPreference.High));
 
-        Assert.Equal([AvaloniaThemeVariants.HighContrast, ThemeVariant.Default], applied);
+        Assert.Equal([AvaloniaThemeVariants.HighContrast, ThemeVariant.Dark], applied);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class AvaloniaThemeServiceTests
 
         sut.Start();
 
-        Assert.Same(ThemeVariant.Default, applied);
+        Assert.Same(ThemeVariant.Dark, applied);
     }
 
     private static PlatformColorValues Colors(ColorContrastPreference contrast) =>
