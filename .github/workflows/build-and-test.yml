@@ -911,12 +911,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $releaseId = gh api `
-            "repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" `
-            --jq .id
-          if ([string]::IsNullOrWhiteSpace($releaseId)) {
-            throw "Could not resolve the validated preview draft."
+          $releaseIds = @(gh api `
+            "repos/${{ github.repository }}/releases?per_page=100" `
+            --paginate `
+            --jq '.[] | select(.tag_name == "${{ github.ref_name }}") | .id')
+          if ($releaseIds.Count -ne 1) {
+            throw "Could not resolve exactly one validated preview draft."
           }
+          $releaseId = $releaseIds[0]
           gh api `
             --method PATCH `
             "repos/${{ github.repository }}/releases/$releaseId" `
@@ -1102,12 +1104,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $releaseId = gh api `
-            "repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" `
-            --jq .id
-          if ([string]::IsNullOrWhiteSpace($releaseId)) {
-            throw "Could not resolve the validated draft release."
+          $releaseIds = @(gh api `
+            "repos/${{ github.repository }}/releases?per_page=100" `
+            --paginate `
+            --jq '.[] | select(.tag_name == "${{ github.ref_name }}") | .id')
+          if ($releaseIds.Count -ne 1) {
+            throw "Could not resolve exactly one validated draft release."
           }
+          $releaseId = $releaseIds[0]
           gh api `
             --method PATCH `
             "repos/${{ github.repository }}/releases/$releaseId" `

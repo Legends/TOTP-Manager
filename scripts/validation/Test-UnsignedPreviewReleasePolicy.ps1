@@ -37,7 +37,7 @@ try {
         "TOTP-Manager-windows-x64-2.0.0-rc3.zip",
         "TOTP-Manager-windows-x64-fast-2.0.0-rc3.zip",
         "TOTP-Manager-linux-x64-2.0.0-rc3.tar.gz",
-        "totp-manager_2.0.0~rc3_amd64.deb")
+        "totp-manager_2.0.0-rc3_amd64.deb")
     $artifactPaths = foreach ($name in $artifactNames) {
         $path = Join-Path $artifactRoot $name
         [IO.File]::WriteAllBytes($path, [byte[]](1, 2, 3, 4))
@@ -58,6 +58,7 @@ try {
     $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
     if ($manifest.releaseProfile -ne "unsigned-preview" -or
         @($manifest.artifacts).Count -ne 4 -or
+        @($manifest.artifacts | Where-Object { $_.fileName -match '~' }).Count -ne 0 -or
         @($manifest.artifacts | Where-Object {
             $_.updatePolicy -ne "unsigned-preview-manual-download"
         }).Count -ne 0) {

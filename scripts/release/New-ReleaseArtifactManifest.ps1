@@ -81,7 +81,7 @@ function Get-ArtifactTarget {
                 releaseVersion = $Matches.version
             }
         }
-        '^totp-manager_(?<version>\d+\.\d+\.\d+(?:~rc\d+)?)_amd64\.deb$' {
+        '^totp-manager_(?<version>\d+\.\d+\.\d+(?:(?:~rc|-rc)\d+)?)_amd64\.deb$' {
             return [ordered]@{
                 operatingSystem = "linux"
                 architecture = "x64"

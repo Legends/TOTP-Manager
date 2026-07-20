@@ -130,7 +130,13 @@ Write-Utf8FileWithFinalNewline `
     -Path (Join-Path $debDesktop "io.github.legends.totpmanager.desktop") `
     -Content $desktopEntry
 
-$debPath = Join-Path $resolvedOutput "totp-manager_${debianVersion}_amd64.deb"
+$artifactVersion = if ($releaseCandidateNumber) {
+    "$baseVersion-rc$releaseCandidateNumber"
+}
+else {
+    $baseVersion
+}
+$debPath = Join-Path $resolvedOutput "totp-manager_${artifactVersion}_amd64.deb"
 & dpkg-deb --root-owner-group --build $debRoot $debPath
 if ($LASTEXITCODE -ne 0) { throw "Could not create the DEB package." }
 & dpkg-deb --info $debPath
