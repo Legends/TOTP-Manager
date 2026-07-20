@@ -9,7 +9,10 @@ param(
     [string[]]$ArtifactPath,
 
     [Parameter(Mandatory = $true)]
-    [string]$OutputPath
+    [string]$OutputPath,
+
+    [ValidateSet("signed", "unsigned-preview")]
+    [string]$ReleaseProfile = "signed"
 )
 
 $ErrorActionPreference = "Stop"
@@ -111,6 +114,9 @@ $artifacts = foreach ($path in $ArtifactPath) {
             throw "Artifact names must be unique: $($file.Name)"
         }
         $target = Get-ArtifactTarget $file.Name
+        if ($ReleaseProfile -eq "unsigned-preview") {
+            $target.updatePolicy = "unsigned-preview-manual-download"
+        }
         if ($null -ne $target.releaseVersion -and $target.releaseVersion -cne $ReleaseVersion) {
             throw "Artifact version does not match ReleaseVersion: $($file.Name)"
         }
@@ -137,6 +143,7 @@ $manifest = [ordered]@{
     schemaVersion = 1
     releaseVersion = $ReleaseVersion
     sourceCommit = $SourceCommit.ToLowerInvariant()
+    releaseProfile = $ReleaseProfile
     artifacts = @($artifacts | Sort-Object fileName)
 }
 $json = $manifest | ConvertTo-Json -Depth 5

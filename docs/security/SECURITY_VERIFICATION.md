@@ -35,7 +35,8 @@ Workflow: `.github/workflows/security-audit.yml`
 - `security-audit` workflow passes
 - No High/Critical open CodeQL alerts for touched code
 - No known High/Critical vulnerable dependencies without approved exception
-- When `SIGNING_CERT_BASE64` and `SIGNING_CERT_PASSWORD` are configured, release binary is Authenticode-signed in CI (ephemeral cert file only)
+- Stable Windows releases require `SIGNING_CERT_BASE64` and `SIGNING_CERT_PASSWORD` and are Authenticode-signed in CI using an ephemeral certificate file.
+- Until platform signing credentials are funded, RC tags may publish only explicitly labeled unsigned Windows/Linux development previews. Their package configuration disables automatic updates, their manifest permits only manual preview downloads, and the workflow excludes appcasts, macOS, and legacy WPF assets.
 
 ## Portable Authorization Cutover Evidence
 

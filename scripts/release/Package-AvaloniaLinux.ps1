@@ -8,7 +8,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$ReleaseVersion,
 
-    [switch]$FrameworkDependent
+    [switch]$FrameworkDependent,
+
+    [switch]$DisableUpdates
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,7 +53,8 @@ Copy-Item -Path (Join-Path $resolvedPublish "*") -Destination $portableRoot -Rec
 & (Join-Path $PSScriptRoot "Set-PackageUpdatePolicy.ps1") `
     -PackageDirectory $portableRoot `
     -DistributionMode direct `
-    -Channel $releaseChannel
+    -Channel $releaseChannel `
+    -DisableUpdates:$DisableUpdates
 $portableExecutable = Join-Path $portableRoot "TOTP.UI.Avalonia.Desktop"
 & chmod "+x" $portableExecutable
 if ($LASTEXITCODE -ne 0) { throw "Could not mark the Linux host executable." }
@@ -71,7 +74,8 @@ Copy-Item -Path (Join-Path $resolvedPublish "*") -Destination $debApp -Recurse
 & (Join-Path $PSScriptRoot "Set-PackageUpdatePolicy.ps1") `
     -PackageDirectory $debApp `
     -DistributionMode package-manager `
-    -Channel $releaseChannel
+    -Channel $releaseChannel `
+    -DisableUpdates:$DisableUpdates
 & chmod "+x" (Join-Path $debApp "TOTP.UI.Avalonia.Desktop")
 if ($LASTEXITCODE -ne 0) { throw "Could not mark the packaged Linux host executable." }
 

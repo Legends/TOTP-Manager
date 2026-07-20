@@ -14,6 +14,7 @@ $manifest = Get-Content -LiteralPath $resolvedManifest -Raw | ConvertFrom-Json
 $invalidMetadata = $manifest.schemaVersion -ne 1 -or
     $manifest.releaseVersion -notmatch '^\d+\.\d+\.\d+(?:-rc\d+)?$' -or
     $manifest.sourceCommit -notmatch '^[0-9a-f]{40}$' -or
+    $manifest.releaseProfile -notin @("signed", "unsigned-preview") -or
     @($manifest.artifacts).Count -eq 0
 if ($invalidMetadata) {
     throw "Release artifact manifest metadata is invalid."
@@ -29,6 +30,13 @@ foreach ($artifact in $manifest.artifacts) {
         $artifact.sha256 -notmatch '^[0-9a-f]{64}$' -or
         [string]::IsNullOrWhiteSpace($artifact.ownership) -or
         [string]::IsNullOrWhiteSpace($artifact.updatePolicy)
+    if ($manifest.releaseProfile -eq "unsigned-preview") {
+        $invalidEntry = $invalidEntry -or
+            $artifact.updatePolicy -ne "unsigned-preview-manual-download"
+    }
+    elseif ($artifact.updatePolicy -eq "unsigned-preview-manual-download") {
+        $invalidEntry = $true
+    }
     if ($invalidEntry) {
         throw "Release artifact manifest contains an invalid entry."
     }

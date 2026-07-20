@@ -8,7 +8,9 @@ param(
 
     [Parameter(Mandatory = $true)]
     [ValidateSet("stable", "rc")]
-    [string]$Channel
+    [string]$Channel,
+
+    [switch]$DisableUpdates
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,5 +30,8 @@ if ($invalidConfiguration) {
 
 $settings.AutoUpdate.DistributionMode = $DistributionMode
 $settings.AutoUpdate.Channel = $Channel
+if ($DisableUpdates) {
+    $settings.AutoUpdate.Enabled = $false
+}
 $json = $settings | ConvertTo-Json -Depth 5
 [IO.File]::WriteAllText($settingsPath, "$json`n", [Text.UTF8Encoding]::new($false))
