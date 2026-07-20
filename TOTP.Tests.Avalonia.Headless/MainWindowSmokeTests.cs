@@ -128,6 +128,14 @@ public sealed class MainWindowSmokeTests
     public async Task AccountEditorFlyout_OpenClassSlidesFromRight()
     {
         var transform = new TranslateTransform();
+        var observedOpeningOffset = false;
+        transform.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == TranslateTransform.XProperty && transform.X > 0)
+            {
+                observedOpeningOffset = true;
+            }
+        };
         var flyout = new Border
         {
             Width = 320,
@@ -141,11 +149,9 @@ public sealed class MainWindowSmokeTests
         try
         {
             window.Show();
-            await Task.Delay(30);
-            var openingOffset = transform.X;
-            await Task.Delay(220);
+            await Task.Delay(250);
 
-            Assert.True(openingOffset > 0);
+            Assert.True(observedOpeningOffset);
             Assert.Equal(0, transform.X, precision: 2);
         }
         finally
@@ -158,6 +164,14 @@ public sealed class MainWindowSmokeTests
     public async Task AccountMessageToast_OpenClassFliesInWithoutTakingContentSpace()
     {
         var transform = new TranslateTransform();
+        var observedOpeningOffset = false;
+        transform.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == TranslateTransform.YProperty && transform.Y < 0)
+            {
+                observedOpeningOffset = true;
+            }
+        };
         var toast = new Border
         {
             Width = 240,
@@ -176,11 +190,9 @@ public sealed class MainWindowSmokeTests
         try
         {
             window.Show();
-            await Task.Delay(30);
-            var openingOffset = transform.Y;
-            await Task.Delay(220);
+            await Task.Delay(250);
 
-            Assert.True(openingOffset < 0);
+            Assert.True(observedOpeningOffset);
             Assert.Equal(0, transform.Y, precision: 2);
             Assert.Equal(300, content.Bounds.Height);
             Assert.False(toast.IsHitTestVisible);
