@@ -137,7 +137,8 @@
                                         <Button
                                             Classes="primary wide"
                                             Command="{Binding ConfigureCommand}"
-                                            Content="{DynamicResource CreateVault}" />
+                                            Content="{DynamicResource CreateVault}"
+                                            IsDefault="True" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ContentControl.ContentTemplate>
@@ -397,8 +398,14 @@
                                         <Border.RenderTransform>
                                             <TranslateTransform />
                                         </Border.RenderTransform>
-                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                            <StackPanel Margin="18" Spacing="10">
+                                        <ScrollViewer
+                                            x:Name="AccountEditorScrollViewer"
+                                            HorizontalScrollBarVisibility="Disabled"
+                                            VerticalScrollBarVisibility="Auto">
+                                            <StackPanel
+                                                x:Name="AccountEditorContent"
+                                                Margin="18"
+                                                Spacing="10">
                                                 <Grid ColumnDefinitions="*,Auto">
                                                     <TextBlock
                                                         Grid.Column="0"

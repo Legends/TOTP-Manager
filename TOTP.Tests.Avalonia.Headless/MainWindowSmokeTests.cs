@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Data;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
@@ -8,6 +9,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
+using System.Windows.Input;
 using TOTP.Avalonia.Desktop;
 using TOTP.Avalonia.Shared.Controls;
 using TOTP.Avalonia.Shared.Styles;
@@ -20,6 +22,46 @@ namespace TOTP.Tests.Avalonia.Headless;
 
 public sealed class MainWindowSmokeTests
 {
+    [AvaloniaFact]
+    public void PasswordSetup_EnterFromEitherSecretInputInvokesDefaultAction()
+    {
+        var executionCount = 0;
+        var inputs = new[] { new RevealableSecretInput(), new RevealableSecretInput() };
+        var submit = new Button
+        {
+            IsDefault = true,
+            Command = new TestCommand(() => executionCount++)
+        };
+        var window = new Window
+        {
+            Content = new StackPanel { Children = { inputs[0], inputs[1], submit } }
+        };
+
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+
+            foreach (var input in inputs)
+            {
+                input.ApplyTemplate();
+                var textBox = Assert.Single(input.GetVisualDescendants().OfType<TextBox>());
+                textBox.Focus();
+                window.KeyPress(
+                    Key.Enter,
+                    RawInputModifiers.None,
+                    PhysicalKey.Enter,
+                    null);
+            }
+
+            Assert.Equal(2, executionCount);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     [AvaloniaFact]
     public void AccountList_RightClickOpensContextWithoutChangingSelection()
     {
@@ -117,6 +159,60 @@ public sealed class MainWindowSmokeTests
             Assert.Equal(new Thickness(8, 5), highlight.Padding);
             Assert.True(text.Bounds.X >= 8);
             Assert.True(text.Bounds.Y >= 5);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void AccountRow_RendersIssuerOnlyWhileRetainingAccessibleAccountContext()
+    {
+        var row = new AccountRow { Issuer = "Issuer", AccountName = "account@example.test" };
+        var window = new Window { Content = row };
+
+        try
+        {
+            window.Show();
+            row.ApplyTemplate();
+            window.UpdateLayout();
+
+            var text = Assert.Single(row.GetVisualDescendants().OfType<TextBlock>());
+            Assert.Equal("Issuer", text.Text);
+            Assert.Equal("Issuer, account@example.test", row.AccessibleName);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void AccountList_SelectedRowUsesProductPaletteInsteadOfSystemAccent()
+    {
+        var item = new AccountRow { Issuer = "Issuer", AccountName = "account" };
+        var list = new ListBox
+        {
+            ItemsSource = new[] { item },
+            SelectedItem = item
+        };
+        list.Classes.Add("accounts");
+        var window = new Window { Content = list };
+
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+
+            var container = Assert.Single(
+                list.GetVisualDescendants().OfType<ListBoxItem>());
+            var presenter = Assert.Single(
+                container.GetVisualDescendants().OfType<ContentPresenter>(),
+                candidate => candidate.Name == "PART_ContentPresenter");
+            Assert.Equal(
+                Color.Parse("#1D3366"),
+                Assert.IsType<SolidColorBrush>(presenter.Background).Color);
         }
         finally
         {
@@ -290,6 +386,28 @@ public sealed class MainWindowSmokeTests
     }
 
     [AvaloniaFact]
+    public void ConfirmationDialog_UsesChromelessDistinctDialogSurface()
+    {
+        var application = Assert.IsType<App>(Application.Current);
+        application.RequestedThemeVariant = ThemeVariant.Dark;
+        var window = new ConfirmationDialogWindow();
+
+        try
+        {
+            window.Show();
+
+            Assert.Equal(WindowDecorations.None, window.WindowDecorations);
+            Assert.Equal(
+                Color.Parse("#192B52"),
+                Assert.IsType<SolidColorBrush>(window.Background).Color);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void QrPreviewDialog_EscapeClosesWindow()
     {
         var window = new QrPreviewDialogWindow();
@@ -424,5 +542,18 @@ public sealed class MainWindowSmokeTests
             window.Close();
             application.RequestedThemeVariant = ThemeVariant.Dark;
         }
+    }
+
+    private sealed class TestCommand(Action execute) : ICommand
+    {
+        public event EventHandler? CanExecuteChanged
+        {
+            add { }
+            remove { }
+        }
+
+        public bool CanExecute(object? parameter) => true;
+
+        public void Execute(object? parameter) => execute();
     }
 }

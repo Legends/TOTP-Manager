@@ -5,7 +5,9 @@
     xmlns:dialogs="using:TOTP.Avalonia.Desktop.Presentation.Dialogs"
     xmlns:shared="using:TOTP.Avalonia.Shared.Controls"
     x:DataType="dialogs:ConfirmationDialogViewModel"
+    Background="{DynamicResource BrushDialogSurface}"
     Classes="dialog"
+    WindowDecorations="None"
     Title="{DynamicResource AppTitle}">
     <StackPanel Classes="dialog-content" Spacing="20">
         <TextBlock

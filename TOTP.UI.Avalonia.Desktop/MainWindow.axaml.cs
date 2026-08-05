@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private static readonly TimeSpan HeightAnimationDuration = TimeSpan.FromMilliseconds(220);
     private bool _initialized;
     private bool _fitScheduled;
+    private bool _editorFitScheduled;
     private MainWindowViewModel? _observedViewModel;
     private AccountListViewModel? _observedAccountList;
     private CancellationTokenSource? _heightAnimationLifetime;
@@ -217,9 +218,7 @@ public partial class MainWindow : Window
         {
             if (_observedAccountList?.IsEditorVisible == true)
             {
-                ApplyScreenSizeLimits();
-                MinHeight = Math.Min(AccountEditorMinimumHeight, MaxHeight);
-                StartHeightAnimation(MinHeight);
+                ScheduleAccountEditorFit();
             }
             else
             {
@@ -237,6 +236,50 @@ public partial class MainWindow : Window
         {
             ScheduleAccountPageFit();
         }
+    }
+
+    private void ScheduleAccountEditorFit()
+    {
+        if (_editorFitScheduled) return;
+        _editorFitScheduled = true;
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                _editorFitScheduled = false;
+                FitAccountEditorHeight();
+            },
+            DispatcherPriority.Loaded);
+    }
+
+    private void FitAccountEditorHeight()
+    {
+        if (_observedViewModel is not { IsAccountListVisible: true }
+            || _observedAccountList?.IsEditorVisible != true)
+        {
+            return;
+        }
+
+        ApplyScreenSizeLimits();
+        MinHeight = Math.Min(AccountEditorMinimumHeight, MaxHeight);
+        UpdateLayout();
+
+        var descendants = this.GetVisualDescendants().ToArray();
+        var editorScroller = descendants
+            .OfType<ScrollViewer>()
+            .FirstOrDefault(control => control.Name == "AccountEditorScrollViewer");
+        var editorContent = descendants
+            .OfType<StackPanel>()
+            .FirstOrDefault(control => control.Name == "AccountEditorContent");
+        if (editorScroller is null || editorContent is null) return;
+
+        var availableWidth = Math.Max(0, editorScroller.Bounds.Width);
+        editorContent.Measure(new Size(availableWidth, double.PositiveInfinity));
+        var windowChromeHeight = Math.Max(0, Bounds.Height - editorScroller.Bounds.Height);
+        var targetHeight = Math.Clamp(
+            windowChromeHeight + editorContent.DesiredSize.Height + 2,
+            MinHeight,
+            MaxHeight);
+        StartHeightAnimation(targetHeight);
     }
 
     private void ScheduleAccountPageFit()

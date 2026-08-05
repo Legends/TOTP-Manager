@@ -25,6 +25,8 @@
                     <SolidColorBrush x:Key="BrushSuccess" Color="#137333" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#005FCC" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushDialogSurface" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushRecentAccountHighlight" Color="#66FFD54F" />
                     <BoxShadows x:Key="ElevationCard">0 2 8 0 #1A000000</BoxShadows>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Light">
@@ -45,6 +47,8 @@
                     <SolidColorBrush x:Key="BrushSuccess" Color="#137333" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#005FCC" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushDialogSurface" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushRecentAccountHighlight" Color="#66FFD54F" />
                     <BoxShadows x:Key="ElevationCard">0 2 8 0 #1A000000</BoxShadows>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
@@ -65,6 +69,8 @@
                     <SolidColorBrush x:Key="BrushSuccess" Color="#87CE3E" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#9899FF" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushDialogSurface" Color="#192B52" />
+                    <SolidColorBrush x:Key="BrushRecentAccountHighlight" Color="#66FFD54F" />
                     <BoxShadows x:Key="ElevationCard">0 2 8 0 #40000000</BoxShadows>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="{x:Static styles:AvaloniaThemeVariants.HighContrast}">
@@ -85,6 +91,8 @@
                     <SolidColorBrush x:Key="BrushSuccess" Color="#00FF00" />
                     <SolidColorBrush x:Key="BrushFocus" Color="#00FFFF" />
                     <SolidColorBrush x:Key="BrushQrBackground" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushDialogSurface" Color="#000000" />
+                    <SolidColorBrush x:Key="BrushRecentAccountHighlight" Color="#66FFD54F" />
                     <BoxShadows x:Key="ElevationCard">0 0 0 0 #00000000</BoxShadows>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
@@ -332,6 +340,10 @@
         <Setter Property="Background" Value="{DynamicResource BrushBorder}" />
         <Setter Property="Foreground" Value="{DynamicResource BrushTextHighlight}" />
     </Style>
+    <Style Selector="ListBox.accounts ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushBorder}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextHighlight}" />
+    </Style>
     <Style Selector="Border.account-row-container">
         <Setter Property="Padding" Value="8,5" />
     </Style>
@@ -343,8 +355,8 @@
                 FillMode="Forward"
                 PlaybackBehavior="OnlyIfVisible">
                 <KeyFrame Cue="0%">
-                    <Setter Property="Background" Value="{DynamicResource BrushAccent}" />
-                    <Setter Property="Opacity" Value="0.65" />
+                    <Setter Property="Background" Value="{DynamicResource BrushRecentAccountHighlight}" />
+                    <Setter Property="Opacity" Value="1" />
                 </KeyFrame>
                 <KeyFrame Cue="100%">
                     <Setter Property="Background" Value="Transparent" />
@@ -501,22 +513,13 @@
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Grid
+                <TextBlock
                     automation:AutomationProperties.Name="{TemplateBinding AccessibleName}"
-                    ColumnDefinitions="2*,3*"
-                    MinHeight="{DynamicResource ControlMinimumHeight}">
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        FontWeight="SemiBold"
-                        Text="{TemplateBinding Issuer}"
-                        TextTrimming="CharacterEllipsis" />
-                    <TextBlock
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="{TemplateBinding AccountName}"
-                        TextTrimming="CharacterEllipsis" />
-                </Grid>
+                    MinHeight="{DynamicResource ControlMinimumHeight}"
+                    VerticalAlignment="Center"
+                    FontWeight="SemiBold"
+                    Text="{TemplateBinding Issuer}"
+                    TextTrimming="CharacterEllipsis" />
             </ControlTemplate>
         </Setter>
     </Style>
