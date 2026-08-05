@@ -327,8 +327,12 @@ public sealed class MainWindowSmokeTests
                 settingsTabs.GetVisualDescendants().OfType<TabItem>(),
                 tabItem =>
                 {
+                    Assert.Equal(104, tabItem.MinWidth);
                     Assert.Equal(11, tabItem.FontSize);
                     Assert.Equal(FontWeight.SemiBold, tabItem.FontWeight);
+                    Assert.Equal(
+                        global::Avalonia.Layout.HorizontalAlignment.Center,
+                        tabItem.HorizontalContentAlignment);
                 });
             Assert.True(AssetLoader.Exists(new Uri(
                 "avares://TOTP.UI.Avalonia.Desktop/Assets/flags/en.png")));
@@ -338,16 +342,20 @@ public sealed class MainWindowSmokeTests
                 window.GetVisualDescendants().OfType<ComboBox>(),
                 combo => combo.Width == 64
                     && combo.HorizontalContentAlignment == global::Avalonia.Layout.HorizontalAlignment.Center);
-            Assert.Equal(320, window.Width);
-            Assert.Equal(520, window.Height);
-            Assert.Equal(300, window.MinWidth);
+            Assert.Equal(480, window.Width);
+            Assert.Equal(560, window.Height);
+            Assert.Equal(460, window.MinWidth);
             Assert.Equal(200, window.MinHeight);
             var screen = window.Screens.ScreenFromWindow(window);
             Assert.NotNull(screen);
             Assert.InRange(
+                window.MaxWidth,
+                0,
+                (screen.WorkingArea.Width / screen.Scaling) * 0.92);
+            Assert.InRange(
                 window.MaxHeight,
                 0,
-                (screen.WorkingArea.Height / screen.Scaling) * 0.75);
+                (screen.WorkingArea.Height / screen.Scaling) * 0.90);
             Assert.Equal(WindowStartupLocation.CenterScreen, window.WindowStartupLocation);
         }
         finally

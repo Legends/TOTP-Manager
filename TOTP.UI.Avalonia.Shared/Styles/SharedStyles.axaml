@@ -607,8 +607,10 @@
         <Setter Property="FontSize" Value="11" />
     </Style>
     <Style Selector="Grid.settings-page TabControl.settings-tabs TabItem">
+        <Setter Property="MinWidth" Value="104" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="Padding" Value="7,6" />
     </Style>
     <Style Selector="Grid.settings-page TabControl.settings-tabs TabItem:selected">

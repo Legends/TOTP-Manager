@@ -9,9 +9,9 @@
     xmlns:shared="using:TOTP.Avalonia.Shared.Controls"
     x:DataType="presentation:MainWindowViewModel"
     Title="{DynamicResource AppTitle}"
-    Width="320"
-    Height="520"
-    MinWidth="300"
+    Width="480"
+    Height="560"
+    MinWidth="460"
     MinHeight="200"
     WindowStartupLocation="CenterScreen"
     Icon="/Assets/Icons/app.ico">
@@ -29,9 +29,11 @@
         <Grid Background="{DynamicResource BrushWindowBackground}">
 
             <!-- Locked and first-run presentation mirrors the compact WPF gate. -->
-            <Grid
+            <ScrollViewer
                 Margin="20"
-                IsVisible="{Binding !IsShellVisible}">
+                HorizontalScrollBarVisibility="Disabled"
+                IsVisible="{Binding !IsShellVisible}"
+                VerticalScrollBarVisibility="Auto">
                 <StackPanel
                     Width="280"
                     HorizontalAlignment="Center"
@@ -98,7 +100,8 @@
                                         <Button
                                             Classes="primary wide"
                                             Command="{Binding UnlockCommand}"
-                                            Content="{DynamicResource Unlock}" />
+                                            Content="{DynamicResource Unlock}"
+                                            IsDefault="True" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ContentControl.ContentTemplate>
@@ -141,7 +144,7 @@
                         </ContentControl>
                     </Border>
                 </StackPanel>
-            </Grid>
+            </ScrollViewer>
 
             <!-- Authorized shell follows the compact WPF toolbar/list/code hierarchy. -->
             <Grid

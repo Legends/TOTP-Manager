@@ -14,10 +14,13 @@ namespace TOTP.Avalonia.Desktop;
 
 public partial class MainWindow : Window
 {
-    private const double MaximumScreenHeightRatio = 0.75;
-    private const double DefaultPageHeight = 520;
+    private const double MaximumScreenWidthRatio = 0.92;
+    private const double MaximumScreenHeightRatio = 0.90;
+    private const double DefaultPageHeight = 560;
+    private const double DefaultMinimumWidth = 460;
     private const double StandardMinimumHeight = 200;
     private const double CompactAccountPageMinimumHeight = 120;
+    private const double AccountEditorMinimumHeight = 420;
     private static readonly TimeSpan HeightAnimationDuration = TimeSpan.FromMilliseconds(220);
     private bool _initialized;
     private bool _fitScheduled;
@@ -32,6 +35,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Activated += OnWindowActivated;
     }
 
     protected override void OnOpened(EventArgs e)
@@ -41,7 +45,7 @@ public partial class MainWindow : Window
         if (Clipboard is not null)
             ClipboardAccessor?.Set(Clipboard);
         StorageProviderAccessor?.Set(StorageProvider);
-        ApplyScreenHeightLimit();
+        ApplyScreenSizeLimits();
         if (DataContext is MainWindowViewModel viewModel)
         {
             ObserveViewModel(viewModel);
@@ -55,11 +59,15 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        Activated -= OnWindowActivated;
         ObserveViewModel(null);
         _heightAnimationLifetime?.Cancel();
         WindowCoordinator?.UnregisterMainWindow(this);
         base.OnClosed(e);
     }
+
+    private void OnWindowActivated(object? sender, EventArgs e) =>
+        ApplyScreenSizeLimits();
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {
@@ -205,6 +213,22 @@ public partial class MainWindow : Window
 
     private void AccountListPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(AccountListViewModel.IsEditorVisible))
+        {
+            if (_observedAccountList?.IsEditorVisible == true)
+            {
+                ApplyScreenSizeLimits();
+                MinHeight = Math.Min(AccountEditorMinimumHeight, MaxHeight);
+                StartHeightAnimation(MinHeight);
+            }
+            else
+            {
+                ScheduleAccountPageFit();
+            }
+
+            return;
+        }
+
         if (e.PropertyName is nameof(AccountListViewModel.Accounts)
             or nameof(AccountListViewModel.SelectedAccount)
             or nameof(AccountListViewModel.HasSelectedAccount)
@@ -231,7 +255,7 @@ public partial class MainWindow : Window
     private void FitAccountPageHeight()
     {
         if (_observedViewModel is not { IsAccountListVisible: true }) return;
-        ApplyScreenHeightLimit();
+        ApplyScreenSizeLimits();
         MinHeight = Math.Min(CompactAccountPageMinimumHeight, MaxHeight);
         UpdateLayout();
 
@@ -275,16 +299,29 @@ public partial class MainWindow : Window
         StartHeightAnimation(targetHeight);
     }
 
-    private void ApplyScreenHeightLimit()
+    private void ApplyScreenSizeLimits()
     {
         var screen = Screens.ScreenFromWindow(this);
         if (screen is null) return;
         var scale = screen.Scaling > 0 ? screen.Scaling : 1;
+        var screenWidthLimit = Math.Max(
+            1,
+            (screen.WorkingArea.Width / scale) * MaximumScreenWidthRatio);
         var screenHeightLimit = (screen.WorkingArea.Height / scale) * MaximumScreenHeightRatio;
-        if (MinHeight > screenHeightLimit) MinHeight = screenHeightLimit;
+        MaxWidth = screenWidthLimit;
         MaxHeight = screenHeightLimit;
-        if (Height > MaxHeight) Height = MaxHeight;
+        MinWidth = Math.Min(DefaultMinimumWidth, MaxWidth);
+        MinHeight = Math.Min(GetDesiredMinimumHeight(), MaxHeight);
+        Width = Math.Clamp(Width, MinWidth, MaxWidth);
+        Height = Math.Clamp(Height, MinHeight, MaxHeight);
     }
+
+    private double GetDesiredMinimumHeight() =>
+        _observedViewModel is { IsAccountListVisible: true }
+            ? _observedAccountList?.IsEditorVisible == true
+                ? AccountEditorMinimumHeight
+                : CompactAccountPageMinimumHeight
+            : StandardMinimumHeight;
 
     private void StartHeightAnimation(double targetHeight)
     {
