@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using TOTP.Avalonia.Desktop.Controls;
@@ -16,11 +17,10 @@ public partial class MainWindow : Window
 {
     private const double MaximumScreenWidthRatio = 0.92;
     private const double MaximumScreenHeightRatio = 0.90;
-    private const double DefaultPageHeight = 560;
-    private const double DefaultMinimumWidth = 460;
+    private const double DefaultPageHeight = 540;
+    private const double DefaultMinimumWidth = 360;
     private const double StandardMinimumHeight = 200;
-    private const double CompactAccountPageMinimumHeight = 120;
-    private const double AccountEditorMinimumHeight = 420;
+    private const double AccountPageMinimumHeight = 420;
     private static readonly TimeSpan HeightAnimationDuration = TimeSpan.FromMilliseconds(220);
     private bool _initialized;
     private bool _fitScheduled;
@@ -28,6 +28,9 @@ public partial class MainWindow : Window
     private MainWindowViewModel? _observedViewModel;
     private AccountListViewModel? _observedAccountList;
     private CancellationTokenSource? _heightAnimationLifetime;
+    private SettingsWindow? _settingsWindow;
+    private IDisposable? _settingsWindowRegistration;
+    private bool _allowSettingsWindowClose;
 
     public AvaloniaClipboardAccessor? ClipboardAccessor { get; init; }
     public AvaloniaStorageProviderAccessor? StorageProviderAccessor { get; init; }
@@ -63,12 +66,27 @@ public partial class MainWindow : Window
         Activated -= OnWindowActivated;
         ObserveViewModel(null);
         _heightAnimationLifetime?.Cancel();
+        CloseSettingsWindow();
         WindowCoordinator?.UnregisterMainWindow(this);
         base.OnClosed(e);
     }
 
-    private void OnWindowActivated(object? sender, EventArgs e) =>
+    private void OnWindowActivated(object? sender, EventArgs e)
+    {
         ApplyScreenSizeLimits();
+
+        if (_settingsWindow is not { IsVisible: true }) return;
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                if (_observedViewModel?.IsSettingsVisible == true
+                    && _settingsWindow is { IsVisible: true } settingsWindow)
+                {
+                    settingsWindow.Activate();
+                }
+            },
+            DispatcherPriority.Input);
+    }
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {
@@ -152,37 +170,6 @@ public partial class MainWindow : Window
             DispatcherPriority.Input);
     }
 
-    private void AccountEditorFlyoutPropertyChanged(
-        object? sender,
-        AvaloniaPropertyChangedEventArgs e)
-    {
-        if (e.Property != Visual.IsVisibleProperty
-            || e.NewValue is not true
-            || sender is not Border flyout
-            || flyout.DataContext is not AccountListViewModel accountList
-            || accountList.IsEditingExistingAccount)
-        {
-            return;
-        }
-
-        Dispatcher.UIThread.Post(
-            () =>
-            {
-                if (!flyout.IsVisible
-                    || flyout.DataContext is not AccountListViewModel current
-                    || current.IsEditingExistingAccount)
-                {
-                    return;
-                }
-
-                flyout.GetVisualDescendants()
-                    .OfType<TextBox>()
-                    .FirstOrDefault(control => control.Name == "AccountIssuerBox")
-                    ?.Focus();
-            },
-            DispatcherPriority.Input);
-    }
-
     private void ObserveViewModel(MainWindowViewModel? viewModel)
     {
         if (ReferenceEquals(_observedViewModel, viewModel)) return;
@@ -202,6 +189,26 @@ public partial class MainWindow : Window
 
     private void MainViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MainWindowViewModel.IsSettingsVisible))
+        {
+            SyncSettingsWindow();
+            return;
+        }
+
+        if (e.PropertyName == nameof(MainWindowViewModel.IsPasswordUnlockVisible)
+            && _observedViewModel?.IsPasswordUnlockVisible == true)
+        {
+            ScheduleSecretInputFocus("PasswordUnlockInput");
+            return;
+        }
+
+        if (e.PropertyName == nameof(MainWindowViewModel.IsPasswordSetupVisible)
+            && _observedViewModel?.IsPasswordSetupVisible == true)
+        {
+            ScheduleSecretInputFocus("PasswordSetupInput");
+            return;
+        }
+
         if (e.PropertyName != nameof(MainWindowViewModel.IsAccountListVisible)) return;
         if (_observedViewModel is { IsAccountListVisible: true })
             ScheduleAccountPageFit();
@@ -212,17 +219,76 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ScheduleSecretInputFocus(string controlName)
+    {
+        Dispatcher.UIThread.Post(
+            () => this.GetVisualDescendants()
+                .OfType<TOTP.Avalonia.Shared.Controls.RevealableSecretInput>()
+                .FirstOrDefault(control => control.Name == controlName)
+                ?.FocusInput(),
+            DispatcherPriority.Loaded);
+    }
+
+    private void SyncSettingsWindow()
+    {
+        if (_observedViewModel?.IsSettingsVisible == true)
+        {
+            _settingsWindow ??= CreateSettingsWindow(_observedViewModel);
+            if (_settingsWindow.IsVisible)
+            {
+                _settingsWindow.Activate();
+                return;
+            }
+
+            _settingsWindowRegistration = WindowCoordinator?.RegisterOwnedDialog(_settingsWindow);
+            _settingsWindow.Show(this);
+            _settingsWindow.Activate();
+            return;
+        }
+
+        if (_settingsWindow?.IsVisible == true) _settingsWindow.Hide();
+        _settingsWindowRegistration?.Dispose();
+        _settingsWindowRegistration = null;
+        Activate();
+    }
+
+    private SettingsWindow CreateSettingsWindow(MainWindowViewModel viewModel)
+    {
+        var window = new SettingsWindow { DataContext = viewModel };
+        window.Closing += SettingsWindowClosing;
+        return window;
+    }
+
+    private void SettingsWindowClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (_allowSettingsWindowClose) return;
+        e.Cancel = true;
+        _observedViewModel?.CloseSettingsCommand.Execute(null);
+    }
+
+    private void CloseSettingsWindow()
+    {
+        _settingsWindowRegistration?.Dispose();
+        _settingsWindowRegistration = null;
+        if (_settingsWindow is null) return;
+
+        _allowSettingsWindowClose = true;
+        _settingsWindow.Closing -= SettingsWindowClosing;
+        _settingsWindow.Close();
+        _settingsWindow = null;
+    }
+
     private void AccountListPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(AccountListViewModel.IsEditorVisible))
         {
             if (_observedAccountList?.IsEditorVisible == true)
             {
-                ScheduleAccountEditorFit();
+                ScheduleAccountEditorOpen();
             }
             else
             {
-                ScheduleAccountPageFit();
+                SetAccountEditorPresented(false);
             }
 
             return;
@@ -232,13 +298,15 @@ public partial class MainWindow : Window
             or nameof(AccountListViewModel.SelectedAccount)
             or nameof(AccountListViewModel.HasSelectedAccount)
             or nameof(AccountListViewModel.HasNoAccounts)
-            or nameof(AccountListViewModel.HasNoSearchResults))
+            or nameof(AccountListViewModel.HasNoSearchResults)
+            or nameof(AccountListViewModel.HasGeneratedCode)
+            or nameof(AccountListViewModel.HasCodeMessage))
         {
             ScheduleAccountPageFit();
         }
     }
 
-    private void ScheduleAccountEditorFit()
+    private void ScheduleAccountEditorOpen()
     {
         if (_editorFitScheduled) return;
         _editorFitScheduled = true;
@@ -246,12 +314,12 @@ public partial class MainWindow : Window
             () =>
             {
                 _editorFitScheduled = false;
-                FitAccountEditorHeight();
+                OpenAccountEditor();
             },
             DispatcherPriority.Loaded);
     }
 
-    private void FitAccountEditorHeight()
+    private void OpenAccountEditor()
     {
         if (_observedViewModel is not { IsAccountListVisible: true }
             || _observedAccountList?.IsEditorVisible != true)
@@ -259,28 +327,69 @@ public partial class MainWindow : Window
             return;
         }
 
-        ApplyScreenSizeLimits();
-        MinHeight = Math.Min(AccountEditorMinimumHeight, MaxHeight);
-        UpdateLayout();
-
-        var descendants = this.GetVisualDescendants().ToArray();
-        var editorScroller = descendants
-            .OfType<ScrollViewer>()
-            .FirstOrDefault(control => control.Name == "AccountEditorScrollViewer");
-        var editorContent = descendants
-            .OfType<StackPanel>()
-            .FirstOrDefault(control => control.Name == "AccountEditorContent");
-        if (editorScroller is null || editorContent is null) return;
-
-        var availableWidth = Math.Max(0, editorScroller.Bounds.Width);
-        editorContent.Measure(new Size(availableWidth, double.PositiveInfinity));
-        var windowChromeHeight = Math.Max(0, Bounds.Height - editorScroller.Bounds.Height);
-        var targetHeight = Math.Clamp(
-            windowChromeHeight + editorContent.DesiredSize.Height + 2,
-            MinHeight,
-            MaxHeight);
-        StartHeightAnimation(targetHeight);
+        PrepareAccountEditorForLayout();
+        SetAccountEditorPresented(true);
     }
+
+    private void SetAccountEditorPresented(bool isPresented)
+    {
+        var flyout = FindAccountEditorFlyout();
+        if (flyout is null) return;
+
+        var transform = flyout.RenderTransform as TranslateTransform;
+        if (!isPresented)
+        {
+            flyout.IsVisible = false;
+            flyout.IsEnabled = false;
+            flyout.IsHitTestVisible = false;
+            flyout.Classes.Remove("open");
+            if (transform is not null) transform.X = GetFlyoutWidth(flyout);
+            return;
+        }
+
+        flyout.IsEnabled = true;
+        flyout.IsHitTestVisible = true;
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                if (_observedAccountList?.IsEditorVisible != true
+                    || !flyout.IsVisible)
+                {
+                    return;
+                }
+
+                flyout.Classes.Add("open");
+                Dispatcher.UIThread.Post(
+                    () => flyout.GetVisualDescendants()
+                        .OfType<TextBox>()
+                        .FirstOrDefault(control => control.Name == "AccountIssuerBox")
+                        ?.Focus(),
+                    DispatcherPriority.Input);
+            },
+            DispatcherPriority.Render);
+    }
+
+    private void PrepareAccountEditorForLayout()
+    {
+        var flyout = FindAccountEditorFlyout();
+        if (flyout is null) return;
+
+        flyout.Classes.Remove("open");
+        if (flyout.RenderTransform is TranslateTransform transform)
+            transform.X = GetFlyoutWidth(flyout);
+        flyout.IsEnabled = false;
+        flyout.IsHitTestVisible = false;
+        flyout.IsVisible = true;
+        UpdateLayout();
+    }
+
+    private Border? FindAccountEditorFlyout() =>
+        this.GetVisualDescendants()
+            .OfType<Border>()
+            .FirstOrDefault(control => control.Name == "AccountEditorFlyout");
+
+    private double GetFlyoutWidth(Border flyout) =>
+        flyout.Bounds.Width > 0 ? flyout.Bounds.Width : Math.Max(0, Bounds.Width);
 
     private void ScheduleAccountPageFit()
     {
@@ -297,9 +406,15 @@ public partial class MainWindow : Window
 
     private void FitAccountPageHeight()
     {
-        if (_observedViewModel is not { IsAccountListVisible: true }) return;
+        if (!ShouldFitAccountPage(
+                _observedViewModel is { IsAccountListVisible: true },
+                _observedAccountList?.IsEditorVisible == true))
+        {
+            return;
+        }
+
         ApplyScreenSizeLimits();
-        MinHeight = Math.Min(CompactAccountPageMinimumHeight, MaxHeight);
+        MinHeight = Math.Min(AccountPageMinimumHeight, MaxHeight);
         UpdateLayout();
 
         var descendants = this.GetVisualDescendants().ToArray();
@@ -339,8 +454,13 @@ public partial class MainWindow : Window
             windowChromeHeight + accountContent.DesiredSize.Height + 2,
             MinHeight,
             MaxHeight);
-        StartHeightAnimation(targetHeight);
+        SetHeightImmediately(targetHeight);
     }
+
+    private static bool ShouldFitAccountPage(
+        bool isAccountListVisible,
+        bool isEditorVisible) =>
+        isAccountListVisible && !isEditorVisible;
 
     private void ApplyScreenSizeLimits()
     {
@@ -361,9 +481,7 @@ public partial class MainWindow : Window
 
     private double GetDesiredMinimumHeight() =>
         _observedViewModel is { IsAccountListVisible: true }
-            ? _observedAccountList?.IsEditorVisible == true
-                ? AccountEditorMinimumHeight
-                : CompactAccountPageMinimumHeight
+            ? AccountPageMinimumHeight
             : StandardMinimumHeight;
 
     private void StartHeightAnimation(double targetHeight)
@@ -373,6 +491,21 @@ public partial class MainWindow : Window
         var lifetime = new CancellationTokenSource();
         _heightAnimationLifetime = lifetime;
         _ = AnimateHeightAsync(targetHeight, lifetime);
+    }
+
+    private void SetHeightImmediately(double targetHeight)
+    {
+        targetHeight = Math.Clamp(targetHeight, MinHeight, MaxHeight);
+        _heightAnimationLifetime?.Cancel();
+        var screen = Screens.ScreenFromWindow(this);
+        var screenScale = screen?.Scaling is > 0 ? screen.Scaling : 1;
+        Height = targetHeight;
+        if (screen is null) return;
+
+        Position = new PixelPoint(
+            Position.X,
+            screen.WorkingArea.Y + (int)Math.Round(
+                (screen.WorkingArea.Height - (targetHeight * screenScale)) / 2));
     }
 
     private async Task AnimateHeightAsync(

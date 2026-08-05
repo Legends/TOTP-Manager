@@ -247,7 +247,7 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
-    public async Task AuthorizedNavigation_ExposesExactlyOnePage()
+    public async Task AuthorizedNavigation_PreservesActivePageBehindModalSettingsWindow()
     {
         var coordinator = new Mock<IAvaloniaStartupCoordinator>();
         coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
@@ -298,7 +298,7 @@ public sealed class MainWindowViewModelTests
 
         await sut.ShowSettingsAsync();
         Assert.False(sut.IsAccountListVisible);
-        Assert.False(sut.IsToolsVisible);
+        Assert.True(sut.IsToolsVisible);
         Assert.True(sut.IsSettingsVisible);
         Assert.True(sut.CloseSettingsCommand.CanExecute(null));
         Assert.False(sut.LockCommand.CanExecute(null));

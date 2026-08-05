@@ -1,0 +1,39 @@
+<UserControl
+    x:Class="TOTP.Avalonia.Desktop.Controls.ProductTitleBar"
+    x:Name="Root"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:automation="using:Avalonia.Automation"
+    Height="34">
+    <Border
+        Background="{DynamicResource BrushAccent}"
+        BorderBrush="{DynamicResource BrushFocus}"
+        BorderThickness="0,0,0,1">
+        <Grid ColumnDefinitions="Auto,*,34">
+            <Image
+                Width="18"
+                Height="18"
+                Margin="8,0,7,0"
+                IsVisible="{Binding ShowIcon, ElementName=Root}"
+                Source="/Assets/Icons/app.ico" />
+            <Border
+                Grid.Column="1"
+                Background="Transparent"
+                PointerPressed="MoveWindow">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="13"
+                    FontWeight="SemiBold"
+                    Foreground="{DynamicResource BrushOnAccent}"
+                    Text="{Binding Title, ElementName=Root}"
+                    TextTrimming="CharacterEllipsis" />
+            </Border>
+            <Button
+                Grid.Column="2"
+                automation:AutomationProperties.Name="Close"
+                Classes="titlebar-close"
+                Click="CloseWindow"
+                Content="&#x00D7;" />
+        </Grid>
+    </Border>
+</UserControl>

@@ -11,13 +11,19 @@
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#F5F7FA" />
                     <SolidColorBrush x:Key="BrushSurface" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushSurfaceAlternate" Color="#EEF2F7" />
+                    <SolidColorBrush x:Key="BrushSurfaceHover" Color="#E2E8F0" />
+                    <SolidColorBrush x:Key="BrushSurfacePressed" Color="#CBD5E1" />
                     <SolidColorBrush x:Key="BrushTextPrimary" Color="#111827" />
                     <SolidColorBrush x:Key="BrushTextSecondary" Color="#4B5563" />
                     <SolidColorBrush x:Key="BrushTextBrand" Color="#7A248E" />
                     <SolidColorBrush x:Key="BrushTextSelection" Color="#2856B6" />
                     <SolidColorBrush x:Key="BrushTextHighlight" Color="#137333" />
                     <SolidColorBrush x:Key="BrushBorder" Color="#CBD5E1" />
+                    <SolidColorBrush x:Key="BrushControlBorder" Color="#94A3B8" />
+                    <SolidColorBrush x:Key="BrushControlBorderHover" Color="#64748B" />
                     <SolidColorBrush x:Key="BrushAccent" Color="#2856B6" />
+                    <SolidColorBrush x:Key="BrushAccentHover" Color="#3568CF" />
+                    <SolidColorBrush x:Key="BrushAccentPressed" Color="#21499B" />
                     <SolidColorBrush x:Key="BrushOnAccent" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushDanger" Color="#B42318" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#FFFFFF" />
@@ -33,13 +39,19 @@
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#F5F7FA" />
                     <SolidColorBrush x:Key="BrushSurface" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushSurfaceAlternate" Color="#EEF2F7" />
+                    <SolidColorBrush x:Key="BrushSurfaceHover" Color="#E2E8F0" />
+                    <SolidColorBrush x:Key="BrushSurfacePressed" Color="#CBD5E1" />
                     <SolidColorBrush x:Key="BrushTextPrimary" Color="#111827" />
                     <SolidColorBrush x:Key="BrushTextSecondary" Color="#4B5563" />
                     <SolidColorBrush x:Key="BrushTextBrand" Color="#7A248E" />
                     <SolidColorBrush x:Key="BrushTextSelection" Color="#2856B6" />
                     <SolidColorBrush x:Key="BrushTextHighlight" Color="#137333" />
                     <SolidColorBrush x:Key="BrushBorder" Color="#CBD5E1" />
+                    <SolidColorBrush x:Key="BrushControlBorder" Color="#94A3B8" />
+                    <SolidColorBrush x:Key="BrushControlBorderHover" Color="#64748B" />
                     <SolidColorBrush x:Key="BrushAccent" Color="#2856B6" />
+                    <SolidColorBrush x:Key="BrushAccentHover" Color="#3568CF" />
+                    <SolidColorBrush x:Key="BrushAccentPressed" Color="#21499B" />
                     <SolidColorBrush x:Key="BrushOnAccent" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushDanger" Color="#B42318" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#FFFFFF" />
@@ -55,13 +67,19 @@
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#0C1C33" />
                     <SolidColorBrush x:Key="BrushSurface" Color="#10213F" />
                     <SolidColorBrush x:Key="BrushSurfaceAlternate" Color="#1A2E4E" />
+                    <SolidColorBrush x:Key="BrushSurfaceHover" Color="#243C63" />
+                    <SolidColorBrush x:Key="BrushSurfacePressed" Color="#152744" />
                     <SolidColorBrush x:Key="BrushTextPrimary" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushTextSecondary" Color="#CBDAF3" />
                     <SolidColorBrush x:Key="BrushTextBrand" Color="#AA3ADA" />
                     <SolidColorBrush x:Key="BrushTextSelection" Color="#97B0DF" />
                     <SolidColorBrush x:Key="BrushTextHighlight" Color="#87CE3E" />
                     <SolidColorBrush x:Key="BrushBorder" Color="#1D3366" />
+                    <SolidColorBrush x:Key="BrushControlBorder" Color="#2F5E9E" />
+                    <SolidColorBrush x:Key="BrushControlBorderHover" Color="#4C78B8" />
                     <SolidColorBrush x:Key="BrushAccent" Color="#7D7FF4" />
+                    <SolidColorBrush x:Key="BrushAccentHover" Color="#9193FF" />
+                    <SolidColorBrush x:Key="BrushAccentPressed" Color="#6A6CDF" />
                     <SolidColorBrush x:Key="BrushOnAccent" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushDanger" Color="#EF5350" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#FFFFFF" />
@@ -77,13 +95,19 @@
                     <SolidColorBrush x:Key="BrushWindowBackground" Color="#000000" />
                     <SolidColorBrush x:Key="BrushSurface" Color="#000000" />
                     <SolidColorBrush x:Key="BrushSurfaceAlternate" Color="#000000" />
+                    <SolidColorBrush x:Key="BrushSurfaceHover" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushSurfacePressed" Color="#000000" />
                     <SolidColorBrush x:Key="BrushTextPrimary" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushTextSecondary" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushTextBrand" Color="#FFFF00" />
                     <SolidColorBrush x:Key="BrushTextSelection" Color="#FFFFFF" />
                     <SolidColorBrush x:Key="BrushTextHighlight" Color="#00FF00" />
                     <SolidColorBrush x:Key="BrushBorder" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushControlBorder" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushControlBorderHover" Color="#FFFF00" />
                     <SolidColorBrush x:Key="BrushAccent" Color="#FFFF00" />
+                    <SolidColorBrush x:Key="BrushAccentHover" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushAccentPressed" Color="#FFFF00" />
                     <SolidColorBrush x:Key="BrushOnAccent" Color="#000000" />
                     <SolidColorBrush x:Key="BrushDanger" Color="#FF8080" />
                     <SolidColorBrush x:Key="BrushOnDanger" Color="#000000" />
@@ -154,24 +178,19 @@
     </Style>
     <Style Selector="Border.flyout">
         <Setter Property="Background" Value="{DynamicResource BrushSurface}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
-        <Setter Property="BorderThickness" Value="1,0,0,0" />
-        <Setter Property="BoxShadow" Value="-4 0 12 0 #66000000" />
+        <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style Selector="Border.flyout.open">
         <Style.Animations>
             <Animation
                 Duration="0:0:0.18"
-                Easing="CubicEaseOut"
                 FillMode="Forward"
                 PlaybackBehavior="OnlyIfVisible">
                 <KeyFrame Cue="0%">
-                    <Setter Property="TranslateTransform.X" Value="320" />
-                    <Setter Property="Opacity" Value="0.82" />
+                    <Setter Property="TranslateTransform.X" Value="380" />
                 </KeyFrame>
                 <KeyFrame Cue="100%">
                     <Setter Property="TranslateTransform.X" Value="0" />
-                    <Setter Property="Opacity" Value="1" />
                 </KeyFrame>
             </Animation>
         </Style.Animations>
@@ -214,6 +233,11 @@
     <Style Selector="TextBlock.secondary">
         <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
     </Style>
+    <Style Selector="TextBlock.field-label">
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
     <Style Selector="TextBlock.app-title">
         <Setter Property="FontSize" Value="19" />
         <Setter Property="FontWeight" Value="SemiBold" />
@@ -250,13 +274,29 @@
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
         <Setter Property="Background" Value="{DynamicResource BrushSurfaceAlternate}" />
         <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushControlBorder}" />
         <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Button:pointerover">
+        <Setter Property="Background" Value="{DynamicResource BrushSurfaceHover}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushControlBorderHover}" />
+    </Style>
+    <Style Selector="Button:pressed">
+        <Setter Property="Background" Value="{DynamicResource BrushSurfacePressed}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushControlBorderHover}" />
     </Style>
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="{DynamicResource BrushAccent}" />
         <Setter Property="Foreground" Value="{DynamicResource BrushOnAccent}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
+    </Style>
+    <Style Selector="Button.primary:pointerover">
+        <Setter Property="Background" Value="{DynamicResource BrushAccentHover}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushFocus}" />
+    </Style>
+    <Style Selector="Button.primary:pressed">
+        <Setter Property="Background" Value="{DynamicResource BrushAccentPressed}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushFocus}" />
     </Style>
     <Style Selector="Button.wide">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -278,6 +318,26 @@
     <Style Selector="Button.icon:pointerover">
         <Setter Property="Background" Value="{DynamicResource BrushSurfaceAlternate}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
+    </Style>
+    <Style Selector="Button.titlebar-close">
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="33" />
+        <Setter Property="MinHeight" Value="33" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushOnAccent}" />
+        <Setter Property="FontSize" Value="20" />
+    </Style>
+    <Style Selector="Button.titlebar-close:pointerover">
+        <Setter Property="Background" Value="{DynamicResource BrushDanger}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.titlebar-close:pressed">
+        <Setter Property="Background" Value="#CCB42318" />
+        <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
     <Style Selector="Button.code">
         <Setter Property="MinHeight" Value="34" />
@@ -319,7 +379,7 @@
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
         <Setter Property="Background" Value="{DynamicResource BrushSurface}" />
         <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushControlBorder}" />
     </Style>
     <Style Selector="TextBox.search">
         <Setter Property="MinHeight" Value="30" />
@@ -369,13 +429,13 @@
         <Setter Property="MinHeight" Value="{DynamicResource ControlMinimumHeight}" />
         <Setter Property="Background" Value="{DynamicResource BrushSurface}" />
         <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushControlBorder}" />
     </Style>
     <Style Selector="ComboBox">
         <Setter Property="MinHeight" Value="{DynamicResource ControlMinimumHeight}" />
         <Setter Property="Background" Value="{DynamicResource BrushSurface}" />
         <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushControlBorder}" />
     </Style>
     <Style Selector="Button:focus-visible">
         <Setter Property="BorderBrush" Value="{DynamicResource BrushFocus}" />
@@ -579,6 +639,8 @@
         <Setter Property="CanResize" Value="False" />
         <Setter Property="ShowInTaskbar" Value="False" />
         <Setter Property="WindowStartupLocation" Value="CenterOwner" />
+        <Setter Property="Background" Value="{DynamicResource BrushDialogSurface}" />
+        <Setter Property="WindowDecorations" Value="None" />
     </Style>
     <Style Selector="StackPanel.dialog-content">
         <Setter Property="Margin" Value="24" />

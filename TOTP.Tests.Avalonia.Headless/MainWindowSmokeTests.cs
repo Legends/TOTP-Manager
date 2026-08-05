@@ -23,6 +23,27 @@ namespace TOTP.Tests.Avalonia.Headless;
 public sealed class MainWindowSmokeTests
 {
     [AvaloniaFact]
+    public void RevealableSecretInput_FocusInputFocusesPasswordTextBox()
+    {
+        var input = new RevealableSecretInput();
+        var window = new Window { Content = input };
+
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+
+            input.FocusInput();
+
+            Assert.True(Assert.Single(input.GetVisualDescendants().OfType<TextBox>()).IsFocused);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void PasswordSetup_EnterFromEitherSecretInputInvokesDefaultAction()
     {
         var executionCount = 0;
@@ -221,39 +242,68 @@ public sealed class MainWindowSmokeTests
     }
 
     [AvaloniaFact]
-    public async Task AccountEditorFlyout_OpenClassSlidesFromRight()
+    public async Task AccountEditorFlyout_MatchesWpfFullWidthCollapsedSlideLifecycle()
     {
-        var transform = new TranslateTransform();
-        var observedOpeningOffset = false;
-        transform.PropertyChanged += (_, args) =>
-        {
-            if (args.Property == TranslateTransform.XProperty && transform.X > 0)
-            {
-                observedOpeningOffset = true;
-            }
-        };
+        var transform = new TranslateTransform { X = 380 };
         var flyout = new Border
         {
-            Width = 320,
+            Width = 380,
             Height = 300,
+            IsVisible = false,
             RenderTransform = transform
         };
         flyout.Classes.Add("flyout");
-        flyout.Classes.Add("open");
         var window = new Window { Content = flyout };
 
         try
         {
             window.Show();
+            Assert.False(flyout.IsVisible);
+            Assert.Equal(default, flyout.BorderThickness);
+            Assert.Equal(380, transform.X, precision: 2);
+
+            flyout.IsVisible = true;
+            window.UpdateLayout();
+            Assert.Equal(380, transform.X, precision: 2);
+            flyout.Classes.Add("open");
             await Task.Delay(250);
 
-            Assert.True(observedOpeningOffset);
+            Assert.Equal(0, transform.X, precision: 2);
+
+            flyout.IsVisible = false;
+            flyout.Classes.Remove("open");
+            transform.X = 380;
+            Assert.False(flyout.IsVisible);
+            Assert.Equal(380, transform.X, precision: 2);
+
+            flyout.IsVisible = true;
+            window.UpdateLayout();
+            Assert.Equal(380, transform.X, precision: 2);
+            flyout.Classes.Add("open");
+            await Task.Delay(250);
             Assert.Equal(0, transform.X, precision: 2);
         }
         finally
         {
             window.Close();
         }
+    }
+
+    [Theory]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(false, false, false)]
+    public void AccountPageHeightFit_DoesNotResizeAnOpenEditor(
+        bool isAccountListVisible,
+        bool isEditorVisible,
+        bool expected)
+    {
+        var policy = typeof(MainWindow).GetMethod(
+            "ShouldFitAccountPage",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        Assert.NotNull(policy);
+        Assert.Equal(expected, policy.Invoke(null, [isAccountListVisible, isEditorVisible]));
     }
 
     [AvaloniaFact]
@@ -373,9 +423,11 @@ public sealed class MainWindowSmokeTests
         {
             window.Show();
 
-            Assert.Single(window.GetVisualDescendants().OfType<Image>());
+            Assert.Equal(2, window.GetVisualDescendants().OfType<Image>().Count());
             Assert.Single(window.GetVisualDescendants().OfType<ProgressBar>());
-            Assert.Single(window.GetVisualDescendants().OfType<Button>());
+            Assert.Equal(2, window.GetVisualDescendants().OfType<Button>().Count());
+            Assert.Single(window.GetVisualDescendants().OfType<ProductTitleBar>());
+            Assert.Equal(WindowDecorations.None, window.WindowDecorations);
             Assert.Equal(560, window.Width);
             Assert.Equal(420, window.Height);
         }
@@ -408,6 +460,33 @@ public sealed class MainWindowSmokeTests
     }
 
     [AvaloniaFact]
+    public void ActionDialogs_MatchTitlelessWpfPromptChrome()
+    {
+        Window[] windows =
+        [
+            new ConfirmationDialogWindow(),
+            new PasswordDialogWindow(),
+            new ChoiceDialogWindow()
+        ];
+
+        try
+        {
+            foreach (var window in windows)
+            {
+                window.Show();
+
+                Assert.Equal(WindowDecorations.None, window.WindowDecorations);
+                Assert.Empty(window.GetVisualDescendants().OfType<ProductTitleBar>());
+            }
+        }
+        finally
+        {
+            foreach (var window in windows)
+                window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void QrPreviewDialog_EscapeClosesWindow()
     {
         var window = new QrPreviewDialogWindow();
@@ -432,26 +511,14 @@ public sealed class MainWindowSmokeTests
             window.Show();
 
             Assert.NotNull(window.Icon);
+            Assert.Equal(WindowDecorations.None, window.WindowDecorations);
+            var titleBar = Assert.Single(window.GetVisualDescendants().OfType<ProductTitleBar>());
+            Assert.Equal(window.Title, titleBar.Title);
             Assert.Single(window.GetVisualDescendants().OfType<BusyOverlay>());
             Assert.True(window.GetVisualDescendants().OfType<Button>().Count() >= 5);
             Assert.True(window.GetVisualDescendants().OfType<Border>().Count() >= 5);
             Assert.NotEmpty(window.GetVisualDescendants().OfType<ScrollViewer>());
-            Assert.Single(window.GetVisualDescendants().OfType<TabControl>());
-            Assert.Equal(4, window.GetVisualDescendants().OfType<TabItem>().Count());
-            var settingsTabs = window.GetVisualDescendants()
-                .OfType<TabControl>()
-                .Single(tabControl => tabControl.Classes.Contains("settings-tabs"));
-            Assert.All(
-                settingsTabs.GetVisualDescendants().OfType<TabItem>(),
-                tabItem =>
-                {
-                    Assert.Equal(104, tabItem.MinWidth);
-                    Assert.Equal(11, tabItem.FontSize);
-                    Assert.Equal(FontWeight.SemiBold, tabItem.FontWeight);
-                    Assert.Equal(
-                        global::Avalonia.Layout.HorizontalAlignment.Center,
-                        tabItem.HorizontalContentAlignment);
-                });
+            Assert.Empty(window.GetVisualDescendants().OfType<TabControl>());
             Assert.True(AssetLoader.Exists(new Uri(
                 "avares://TOTP.UI.Avalonia.Desktop/Assets/flags/en.png")));
             Assert.True(AssetLoader.Exists(new Uri(
@@ -460,9 +527,9 @@ public sealed class MainWindowSmokeTests
                 window.GetVisualDescendants().OfType<ComboBox>(),
                 combo => combo.Width == 64
                     && combo.HorizontalContentAlignment == global::Avalonia.Layout.HorizontalAlignment.Center);
-            Assert.Equal(480, window.Width);
-            Assert.Equal(560, window.Height);
-            Assert.Equal(460, window.MinWidth);
+            Assert.Equal(380, window.Width);
+            Assert.Equal(540, window.Height);
+            Assert.Equal(360, window.MinWidth);
             Assert.Equal(200, window.MinHeight);
             var screen = window.Screens.ScreenFromWindow(window);
             Assert.NotNull(screen);
@@ -475,6 +542,44 @@ public sealed class MainWindowSmokeTests
                 0,
                 (screen.WorkingArea.Height / screen.Scaling) * 0.90);
             Assert.Equal(WindowStartupLocation.CenterScreen, window.WindowStartupLocation);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void SettingsWindow_IsOwnedWindowWidthWithSingleRowTabs()
+    {
+        var window = new SettingsWindow();
+
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+
+            Assert.Equal(520, window.Width);
+            Assert.Equal(520, window.MinWidth);
+            Assert.Equal(WindowDecorations.None, window.WindowDecorations);
+            Assert.Empty(window.GetVisualDescendants().OfType<ProductTitleBar>());
+            var settingsTabs = Assert.Single(
+                window.GetVisualDescendants().OfType<TabControl>(),
+                tabControl => tabControl.Classes.Contains("settings-tabs"));
+            var tabs = settingsTabs.GetVisualDescendants().OfType<TabItem>().ToArray();
+            Assert.Equal(4, tabs.Length);
+            Assert.True(tabs.Sum(tab => tab.MinWidth) <= window.Width - 32);
+            Assert.All(
+                tabs,
+                tabItem =>
+                {
+                    Assert.Equal(104, tabItem.MinWidth);
+                    Assert.Equal(11, tabItem.FontSize);
+                    Assert.Equal(FontWeight.SemiBold, tabItem.FontWeight);
+                    Assert.Equal(
+                        global::Avalonia.Layout.HorizontalAlignment.Center,
+                        tabItem.HorizontalContentAlignment);
+                });
         }
         finally
         {

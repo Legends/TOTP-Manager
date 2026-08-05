@@ -51,7 +51,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private bool _isToolsVisible;
     private bool _isSettingsVisible;
     private bool _isSearchVisible;
-    private ShellPage _pageBeforeSettings = ShellPage.Accounts;
     private bool _shutdownPrepared;
     private bool _disposed;
 
@@ -569,15 +568,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     public async Task ShowSettingsAsync()
     {
         if (!IsShellVisible || IsSettingsVisible) return;
-        _pageBeforeSettings = IsToolsVisible ? ShellPage.Tools : ShellPage.Accounts;
-        SetActivePage(ShellPage.Settings);
+        IsSettingsVisible = true;
+        SettingsPage.Reload();
         await AuthorizationSettings.RefreshAsync();
     }
 
     public Task CloseSettingsAsync()
     {
         if (!IsShellVisible || !IsSettingsVisible) return Task.CompletedTask;
-        SetActivePage(_pageBeforeSettings);
+        AuthorizationSettings.ClearSensitiveInputs();
+        IsSettingsVisible = false;
         return Task.CompletedTask;
     }
 
@@ -606,8 +606,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
             AccountList.ClearSensitiveOutput();
         if (IsToolsVisible && page != ShellPage.Tools)
             CameraScanner.Clear();
-        if (IsSettingsVisible && page != ShellPage.Settings)
-            AuthorizationSettings.ClearSensitiveInputs();
         if (page != ShellPage.Accounts)
         {
             IsSearchVisible = false;
@@ -616,8 +614,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
         IsAccountListVisible = page == ShellPage.Accounts;
         IsToolsVisible = page == ShellPage.Tools;
-        IsSettingsVisible = page == ShellPage.Settings;
-        if (IsSettingsVisible) SettingsPage.Reload();
         if (IsAccountListVisible && AccountList.SelectedAccount is not null)
             AccountList.GenerateCommand.Execute(null);
     }

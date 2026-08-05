@@ -5,7 +5,9 @@
     xmlns:dialogs="using:TOTP.Avalonia.Desktop.Presentation.Dialogs"
     xmlns:shared="using:TOTP.Avalonia.Shared.Controls"
     x:DataType="dialogs:ChoiceDialogViewModel"
+    Background="{DynamicResource BrushDialogSurface}"
     Classes="dialog"
+    WindowDecorations="None"
     Title="{Binding Title}">
     <StackPanel Classes="dialog-content" Spacing="20">
         <TextBlock Classes="heading" Text="{Binding Title}" TextWrapping="Wrap" />

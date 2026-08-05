@@ -9,7 +9,7 @@
     Classes="dialog"
     WindowDecorations="None"
     Title="{DynamicResource AppTitle}">
-    <StackPanel Classes="dialog-content" Spacing="20">
+    <StackPanel Classes="dialog-content" Spacing="16">
         <TextBlock
             Classes="heading"
             Text="{Binding Title}"

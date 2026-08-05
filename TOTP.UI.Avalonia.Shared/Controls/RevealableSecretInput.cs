@@ -86,6 +86,12 @@ public sealed class RevealableSecretInput : TemplatedControl
 
     public void Conceal() => IsRevealed = false;
 
+    public void FocusInput()
+    {
+        ApplyTemplate();
+        _textBox?.Focus();
+    }
+
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         DetachRevealHandlers();

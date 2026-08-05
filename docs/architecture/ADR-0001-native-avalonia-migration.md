@@ -89,7 +89,7 @@ This decision must be revisited if the M3 vertical slice cannot demonstrate:
 
 ## References
 
-- [`plan-migration-avalonia.md`](../../plan-migration-avalonia.md)
-- [`plan-migration-x-plat.md`](../../plan-migration-x-plat.md)
+- [`AVALONIA_MIGRATION_PLAN.md`](plans/AVALONIA_MIGRATION_PLAN.md)
+- [`CROSS_PLATFORM_MIGRATION_PLAN.md`](plans/CROSS_PLATFORM_MIGRATION_PLAN.md)
 - [`docs/security/THREAT_MODEL.md`](../security/THREAT_MODEL.md)
 - [`docs/security/SECURITY_VERIFICATION.md`](../security/SECURITY_VERIFICATION.md)

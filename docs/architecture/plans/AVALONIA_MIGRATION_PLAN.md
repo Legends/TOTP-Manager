@@ -10,7 +10,7 @@
 - **Repository strategy:** One repository
 - **Document scope:** Concrete execution plan rather than framework comparison
 
-The broader framework analysis remains in [`plan-migration-x-plat.md`](plan-migration-x-plat.md). This document assumes the Avalonia decision is final and describes how to execute it safely.
+The broader framework analysis remains in [`CROSS_PLATFORM_MIGRATION_PLAN.md`](CROSS_PLATFORM_MIGRATION_PLAN.md). This document assumes the Avalonia decision is final and describes how to execute it safely.
 
 ## Executive decisions
 
