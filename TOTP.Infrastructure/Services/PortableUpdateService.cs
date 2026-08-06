@@ -32,7 +32,9 @@ public sealed class PortableUpdateService(
         if (distributionMode is "package-manager" or "store")
             return Result.Ok(new PortableUpdateCheckResult(PortableUpdateCheckStatus.Disabled));
         if (!string.Equals(distributionMode, "direct", StringComparison.Ordinal))
-            return Result.Fail("The update distribution policy is invalid.");
+            return FailCheck(
+                PortableUpdateErrorCode.ConfigurationInvalid,
+                "The update distribution policy is invalid.");
 
         var appcastText = configuration["AutoUpdate:AppcastUrl"];
         var publicKey = configuration["AutoUpdate:PublicKey"];
@@ -40,7 +42,9 @@ public sealed class PortableUpdateService(
         if (!TryHttpsUri(appcastText, out var appcastUri)
             || string.IsNullOrWhiteSpace(publicKey)
             || channel is not ("stable" or "rc"))
-            return Result.Fail("The signed update feed is not configured safely.");
+            return FailCheck(
+                PortableUpdateErrorCode.ConfigurationInvalid,
+                "The signed update feed is not configured safely.");
 
         byte[]? appcastBytes = null;
         byte[]? signatureBytes = null;
@@ -65,7 +69,9 @@ public sealed class PortableUpdateService(
             if (verified.Status is SignedAppcastCheckStatus.InvalidFormat
                 or SignedAppcastCheckStatus.InvalidSignature)
             {
-                return Result.Fail("The signed update feed was rejected.");
+                return FailCheck(
+                    PortableUpdateErrorCode.FeedVerificationFailed,
+                    "The signed update feed was rejected.");
             }
 
             if (verified.Status == SignedAppcastCheckStatus.NoApplicableUpdate)
@@ -77,7 +83,9 @@ public sealed class PortableUpdateService(
                 || string.IsNullOrWhiteSpace(verified.ArtifactSignature)
                 || !HasValidSignatureShape(verified.ArtifactSignature))
             {
-                return Result.Fail("The signed update offer is incomplete.");
+                return FailCheck(
+                    PortableUpdateErrorCode.OfferIncomplete,
+                    "The signed update offer is incomplete.");
             }
 
             return Result.Ok(new PortableUpdateCheckResult(
@@ -95,7 +103,10 @@ public sealed class PortableUpdateService(
         catch (Exception exception)
         {
             LogFailure("check", exception);
-            return Result.Fail("The update feed could not be checked safely.");
+            return FailCheck(
+                PortableUpdateErrorCode.FeedUnavailable,
+                "The update feed could not be checked safely.",
+                exception);
         }
         finally
         {
@@ -103,6 +114,13 @@ public sealed class PortableUpdateService(
             Clear(signatureBytes);
         }
     }
+
+    private static Result<PortableUpdateCheckResult> FailCheck(
+        PortableUpdateErrorCode code,
+        string message,
+        Exception? exception = null) =>
+        Result.Fail<PortableUpdateCheckResult>(
+            new PortableUpdateError(code, message, exception));
 
     public async Task<Result<PortableUpdatePackage>> DownloadAsync(
         PortableUpdateOffer offer,

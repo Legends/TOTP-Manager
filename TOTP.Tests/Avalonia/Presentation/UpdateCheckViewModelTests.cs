@@ -122,7 +122,9 @@ public sealed class UpdateCheckViewModelTests
     {
         var updates = new Mock<IPortableUpdateService>();
         updates.Setup(value => value.CheckAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Fail<PortableUpdateCheckResult>("signature detail"));
+            .ReturnsAsync(Result.Fail<PortableUpdateCheckResult>(new PortableUpdateError(
+                PortableUpdateErrorCode.FeedVerificationFailed,
+                "signature detail")));
         using var sut = new UpdateCheckViewModel(
             updates.Object,
             Mock.Of<IUpdateInstallerLauncher>(),
@@ -133,6 +135,27 @@ public sealed class UpdateCheckViewModelTests
         Assert.False(sut.HasOffer);
         Assert.Equal(NotificationSeverity.Error, sut.MessageSeverity);
         Assert.DoesNotContain("signature detail", sut.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task CheckAsync_WhenFeedIsUnavailable_DoesNotClaimSignatureVerificationFailed()
+    {
+        var updates = new Mock<IPortableUpdateService>();
+        updates.Setup(value => value.CheckAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Fail<PortableUpdateCheckResult>(new PortableUpdateError(
+                PortableUpdateErrorCode.FeedUnavailable,
+                "transport detail")));
+        using var sut = new UpdateCheckViewModel(
+            updates.Object,
+            Mock.Of<IUpdateInstallerLauncher>(),
+            Localization());
+
+        await sut.CheckAsync();
+
+        Assert.False(sut.HasOffer);
+        Assert.Equal(NotificationSeverity.Error, sut.MessageSeverity);
+        Assert.Equal(AvaloniaStringKeys.UpdateCheckFailed, sut.Message);
+        Assert.DoesNotContain("transport detail", sut.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     private static PortableUpdateOffer CreateOffer() => new(

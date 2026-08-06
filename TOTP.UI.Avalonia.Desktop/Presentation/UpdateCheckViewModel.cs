@@ -137,7 +137,12 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
             var result = await _updates.CheckAsync(operation.Token);
             if (result.IsFailed)
             {
-                SetFailure(AvaloniaStringKeys.UpdateFeedVerificationFailed);
+                var verificationFailed = result.Errors
+                    .OfType<PortableUpdateError>()
+                    .Any(error => error.Code == PortableUpdateErrorCode.FeedVerificationFailed);
+                SetFailure(verificationFailed
+                    ? AvaloniaStringKeys.UpdateFeedVerificationFailed
+                    : AvaloniaStringKeys.UpdateCheckFailed);
                 return;
             }
 

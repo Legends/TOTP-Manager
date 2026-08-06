@@ -39,7 +39,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        Activated += OnWindowActivated;
     }
 
     protected override void OnOpened(EventArgs e)
@@ -63,29 +62,11 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
-        Activated -= OnWindowActivated;
         ObserveViewModel(null);
         _heightAnimationLifetime?.Cancel();
         CloseSettingsWindow();
         WindowCoordinator?.UnregisterMainWindow(this);
         base.OnClosed(e);
-    }
-
-    private void OnWindowActivated(object? sender, EventArgs e)
-    {
-        ApplyScreenSizeLimits();
-
-        if (_settingsWindow is not { IsVisible: true }) return;
-        Dispatcher.UIThread.Post(
-            () =>
-            {
-                if (_observedViewModel?.IsSettingsVisible == true
-                    && _settingsWindow is { IsVisible: true } settingsWindow)
-                {
-                    settingsWindow.Activate();
-                }
-            },
-            DispatcherPriority.Input);
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)
@@ -191,7 +172,11 @@ public partial class MainWindow : Window
     {
         if (e.PropertyName == nameof(MainWindowViewModel.IsSettingsVisible))
         {
+            if (_observedViewModel?.IsSettingsVisible == true)
+                _heightAnimationLifetime?.Cancel();
             SyncSettingsWindow();
+            if (_observedViewModel is { IsSettingsVisible: false, IsAccountListVisible: true })
+                ScheduleAccountPageFit();
             return;
         }
 
@@ -233,22 +218,19 @@ public partial class MainWindow : Window
     {
         if (_observedViewModel?.IsSettingsVisible == true)
         {
-            _settingsWindow ??= CreateSettingsWindow(_observedViewModel);
-            if (_settingsWindow.IsVisible)
+            if (_settingsWindow is { IsVisible: true })
             {
                 _settingsWindow.Activate();
                 return;
             }
 
+            _settingsWindow = CreateSettingsWindow(_observedViewModel);
             _settingsWindowRegistration = WindowCoordinator?.RegisterOwnedDialog(_settingsWindow);
-            _settingsWindow.Show(this);
-            _settingsWindow.Activate();
+            _ = _settingsWindow.ShowDialog(this);
             return;
         }
 
-        if (_settingsWindow?.IsVisible == true) _settingsWindow.Hide();
-        _settingsWindowRegistration?.Dispose();
-        _settingsWindowRegistration = null;
+        CloseSettingsWindow();
         Activate();
     }
 
@@ -263,7 +245,9 @@ public partial class MainWindow : Window
     {
         if (_allowSettingsWindowClose) return;
         e.Cancel = true;
-        _observedViewModel?.CloseSettingsCommand.Execute(null);
+        Dispatcher.UIThread.Post(
+            () => _observedViewModel?.CloseSettingsCommand.Execute(null),
+            DispatcherPriority.Input);
     }
 
     private void CloseSettingsWindow()
@@ -276,6 +260,7 @@ public partial class MainWindow : Window
         _settingsWindow.Closing -= SettingsWindowClosing;
         _settingsWindow.Close();
         _settingsWindow = null;
+        _allowSettingsWindowClose = false;
     }
 
     private void AccountListPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -393,7 +378,7 @@ public partial class MainWindow : Window
 
     private void ScheduleAccountPageFit()
     {
-        if (_fitScheduled) return;
+        if (_fitScheduled || _observedViewModel?.IsSettingsVisible == true) return;
         _fitScheduled = true;
         Dispatcher.UIThread.Post(
             () =>
@@ -406,7 +391,8 @@ public partial class MainWindow : Window
 
     private void FitAccountPageHeight()
     {
-        if (!ShouldFitAccountPage(
+        if (_observedViewModel?.IsSettingsVisible == true
+            || !ShouldFitAccountPage(
                 _observedViewModel is { IsAccountListVisible: true },
                 _observedAccountList?.IsEditorVisible == true))
         {

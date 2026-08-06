@@ -88,6 +88,26 @@ public sealed class PortableUpdateServiceTests
         var result = await sut.CheckAsync(TestContext.Current.CancellationToken);
 
         Assert.True(result.IsFailed);
+        Assert.Equal(
+            PortableUpdateErrorCode.ConfigurationInvalid,
+            Assert.IsType<PortableUpdateError>(Assert.Single(result.Errors)).Code);
+    }
+
+    [Fact]
+    public async Task CheckAsync_WhenFeedIsMissing_ReportsUnavailableInsteadOfVerificationFailure()
+    {
+        using var client = new HttpClient(new StatusHandler(HttpStatusCode.NotFound));
+        var sut = CreateSut(
+            Convert.ToBase64String(new byte[32]),
+            client,
+            Mock.Of<IPlatformApplicationPaths>());
+
+        var result = await sut.CheckAsync(TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            PortableUpdateErrorCode.FeedUnavailable,
+            Assert.IsType<PortableUpdateError>(Assert.Single(result.Errors)).Code);
     }
 
     [Theory]
@@ -256,6 +276,14 @@ public sealed class PortableUpdateServiceTests
             HttpRequestMessage request,
             CancellationToken cancellationToken) =>
             throw new InvalidOperationException("Network must not be reached.");
+    }
+
+    private sealed class StatusHandler(HttpStatusCode statusCode) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(statusCode));
     }
 
     private sealed class TempDir : IDisposable

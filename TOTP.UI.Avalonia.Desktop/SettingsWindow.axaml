@@ -13,6 +13,7 @@
     MinHeight="480"
     CanResize="False"
     ShowInTaskbar="False"
+    Topmost="True"
     WindowDecorations="None"
     WindowStartupLocation="CenterOwner">
 
@@ -178,6 +179,7 @@
                                                 <TextBlock Classes="section-title" Text="{DynamicResource About}" />
                                                 <TextBlock Text="{Binding VersionText}" />
                                                 <Button Command="{Binding OpenLogFolderCommand}" Content="{DynamicResource OpenLogFolder}" />
+                                                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>

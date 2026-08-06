@@ -561,6 +561,7 @@ public sealed class MainWindowSmokeTests
 
             Assert.Equal(520, window.Width);
             Assert.Equal(520, window.MinWidth);
+            Assert.True(window.Topmost);
             Assert.Equal(WindowDecorations.None, window.WindowDecorations);
             Assert.Empty(window.GetVisualDescendants().OfType<ProductTitleBar>());
             var settingsTabs = Assert.Single(
