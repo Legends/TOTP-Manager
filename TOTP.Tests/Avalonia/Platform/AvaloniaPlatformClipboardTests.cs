@@ -9,6 +9,28 @@ namespace TOTP.Tests.Avalonia.Platform;
 
 public sealed class AvaloniaPlatformClipboardTests
 {
+    [Theory]
+    [InlineData(true, false, false, null, true)]
+    [InlineData(false, true, false, null, true)]
+    [InlineData(false, false, true, ":0", true)]
+    [InlineData(false, false, true, "", false)]
+    [InlineData(false, false, true, null, false)]
+    public void OwnershipPolicy_UsesTheActualX11DisplayInsteadOfSessionType(
+        bool isWindows,
+        bool isMacOS,
+        bool isLinux,
+        string? x11Display,
+        bool expected)
+    {
+        Assert.Equal(
+            expected,
+            AvaloniaClipboardOwnershipPolicy.IsSupported(
+                isWindows,
+                isMacOS,
+                isLinux,
+                x11Display));
+    }
+
     [Fact]
     public async Task ClearIfUnchangedAsync_WhenOwnedTransferRemainsCurrent_ClearsClipboard()
     {

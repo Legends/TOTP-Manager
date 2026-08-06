@@ -386,6 +386,11 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             _ = RunCodeCountdownAsync(
                 requestedAccount.Id,
                 codeLifetime);
+            if (_autoGenerateCodeOnSelection
+                && _selectedAccount?.Id == requestedAccount.Id)
+            {
+                await CopyCodeAsync();
+            }
         }
         catch (Exception)
         {

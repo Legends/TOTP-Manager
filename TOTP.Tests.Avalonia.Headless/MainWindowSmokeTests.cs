@@ -575,7 +575,7 @@ public sealed class MainWindowSmokeTests
                 tabItem =>
                 {
                     Assert.Equal(104, tabItem.MinWidth);
-                    Assert.Equal(11, tabItem.FontSize);
+                    Assert.Equal(12, tabItem.FontSize);
                     Assert.Equal(FontWeight.SemiBold, tabItem.FontWeight);
                     Assert.Equal(
                         global::Avalonia.Layout.HorizontalAlignment.Center,

@@ -193,10 +193,11 @@ public sealed class AccountListViewModelTests
         var totp = new Mock<IAccountTotpService>();
         totp.Setup(value => value.GenerateAsync(selectedId))
             .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 30, 30)));
+        var clipboard = SuccessfulClipboard();
         using var sut = new AccountListViewModel(
             manager.Object,
             totp.Object,
-            Mock.Of<IAsyncClipboardService>(),
+            clipboard.Object,
             Mock.Of<IAccountQrCodeService>(),
             Mock.Of<IAvaloniaQrImageFactory>(),
             Mock.Of<IAvaloniaDialogService>(),
@@ -256,16 +257,17 @@ public sealed class AccountListViewModelTests
     }
 
     [Fact]
-    public async Task SelectedAccount_WhenAutoGenerateEnabled_GeneratesCodeImmediately()
+    public async Task SelectedAccount_WhenAutoGenerateEnabled_GeneratesAndCopiesCodeImmediately()
     {
         var accountId = Guid.NewGuid();
         var totp = new Mock<IAccountTotpService>();
         totp.Setup(value => value.GenerateAsync(accountId))
             .ReturnsAsync(Result.Ok(new TotpGenerationResult("654321", 24, 30)));
+        var clipboard = SuccessfulClipboard();
         using var sut = new AccountListViewModel(
             Mock.Of<IAccountManager>(),
             totp.Object,
-            Mock.Of<IAsyncClipboardService>(),
+            clipboard.Object,
             Mock.Of<IAccountQrCodeService>(),
             Mock.Of<IAvaloniaQrImageFactory>(),
             Mock.Of<IAvaloniaDialogService>(),
@@ -277,6 +279,10 @@ public sealed class AccountListViewModelTests
 
         Assert.Equal(24, sut.RemainingSeconds);
         totp.Verify(value => value.GenerateAsync(accountId), Times.Once);
+        clipboard.Verify(value => value.CopyAndScheduleClearAsync(
+            "654321",
+            TimeSpan.FromSeconds(24),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -290,10 +296,11 @@ public sealed class AccountListViewModelTests
         totp.Setup(value => value.GenerateAsync(firstId)).Returns(firstResult.Task);
         totp.Setup(value => value.GenerateAsync(secondId))
             .ReturnsAsync(Result.Ok(new TotpGenerationResult("222222", 20, 30)));
+        var clipboard = SuccessfulClipboard();
         using var sut = new AccountListViewModel(
             Mock.Of<IAccountManager>(),
             totp.Object,
-            Mock.Of<IAsyncClipboardService>(),
+            clipboard.Object,
             Mock.Of<IAccountQrCodeService>(),
             Mock.Of<IAvaloniaQrImageFactory>(),
             Mock.Of<IAvaloniaDialogService>(),
@@ -307,6 +314,14 @@ public sealed class AccountListViewModelTests
 
         Assert.DoesNotContain("111111", sut.GeneratedCode, StringComparison.Ordinal);
         totp.Verify(value => value.GenerateAsync(secondId), Times.Once);
+        clipboard.Verify(value => value.CopyAndScheduleClearAsync(
+            "222222",
+            TimeSpan.FromSeconds(20),
+            It.IsAny<CancellationToken>()), Times.Once);
+        clipboard.Verify(value => value.CopyAndScheduleClearAsync(
+            "111111",
+            It.IsAny<TimeSpan>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -728,6 +743,17 @@ public sealed class AccountListViewModelTests
             dialogs ?? Mock.Of<IAvaloniaDialogService>(),
             Localization(),
             transientMessageDuration: transientMessageDuration);
+
+    private static Mock<IAsyncClipboardService> SuccessfulClipboard()
+    {
+        var clipboard = new Mock<IAsyncClipboardService>();
+        clipboard.Setup(value => value.CopyAndScheduleClearAsync(
+                It.IsAny<string>(),
+                It.IsAny<TimeSpan>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        return clipboard;
+    }
 
     private static IAvaloniaLocalizationService Localization()
     {

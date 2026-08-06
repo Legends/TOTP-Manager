@@ -115,7 +115,7 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IAsyncPlatformClipboard>(provider =>
             new AvaloniaPlatformClipboard(
                 provider.GetRequiredService<AvaloniaClipboardAccessor>(),
-                SupportsClipboardOwnership(),
+                AvaloniaClipboardOwnershipPolicy.ForCurrentProcess(),
                 provider.GetRequiredService<ILogger<AvaloniaPlatformClipboard>>()));
         services.AddSingleton<AsyncClipboardService>();
         services.AddSingleton<IAsyncClipboardService>(provider =>
@@ -154,12 +154,4 @@ public static class AvaloniaCompositionRoot
         return provider;
     }
 
-    private static bool SupportsClipboardOwnership() =>
-        OperatingSystem.IsWindows()
-        || OperatingSystem.IsMacOS()
-        || (OperatingSystem.IsLinux()
-            && string.Equals(
-                Environment.GetEnvironmentVariable("XDG_SESSION_TYPE"),
-                "x11",
-                StringComparison.OrdinalIgnoreCase));
 }
