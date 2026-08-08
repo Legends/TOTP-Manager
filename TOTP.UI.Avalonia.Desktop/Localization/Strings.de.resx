@@ -85,6 +85,10 @@
   <data name="ClearClipboard" xml:space="preserve"><value>Code-Kopieren mit bedingtem automatischem Leeren erlauben</value></data>
   <data name="ClipboardClearSeconds" xml:space="preserve"><value>Maximale Zwischenablage-Dauer in Sekunden</value></data>
   <data name="QrPreviewScale" xml:space="preserve"><value>QR-Vorschau-Skalierung</value></data>
+  <data name="InterfaceScale" xml:space="preserve"><value>Oberflächengröße</value></data>
+  <data name="InterfaceScaleHelp" xml:space="preserve"><value>Die Systemskalierung wird empfohlen. Eine benutzerdefinierte Größe multipliziert die Desktop-Skalierung und wird nach einem Neustart angewendet.</value></data>
+  <data name="SystemInterfaceScale" xml:space="preserve"><value>Systemstandard (empfohlen)</value></data>
+  <data name="InterfaceScaleRestartRequired" xml:space="preserve"><value>Oberflächengröße gespeichert. Starten Sie die Anwendung neu, um sie anzuwenden.</value></data>
   <data name="EncryptExports" xml:space="preserve"><value>Exporte standardmäßig verschlüsseln</value></data>
   <data name="OpenExportAfter" xml:space="preserve"><value>Exportordner nach dem Export öffnen</value></data>
   <data name="HideSecretsDefault" xml:space="preserve"><value>Geheimnisse standardmäßig ausblenden</value></data>

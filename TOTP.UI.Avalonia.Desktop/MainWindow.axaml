@@ -253,11 +253,14 @@
                                 <Grid>
                                     <ScrollViewer
                                         x:Name="AccountPageScrollViewer"
+                                        HorizontalContentAlignment="Stretch"
                                         HorizontalScrollBarVisibility="Disabled"
+                                        VerticalContentAlignment="Top"
                                         VerticalScrollBarVisibility="Disabled">
                                         <StackPanel
                                             x:Name="AccountPageContent"
                                             Margin="10,8,10,12"
+                                            VerticalAlignment="Top"
                                             Spacing="8">
                                             <TextBlock
                                                 Margin="0,28"

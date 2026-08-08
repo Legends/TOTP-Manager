@@ -24,6 +24,7 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
     private bool _clearClipboardEnabled;
     private int _clearClipboardSeconds;
     private decimal _qrPreviewScaleFactor;
+    private InterfaceScaleOption? _selectedInterfaceScale;
     private bool _exportEncrypt;
     private bool _openExportFileAfterExport;
     private bool _hideSecretsByDefault;
@@ -49,6 +50,7 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
         _autoSaveDelay = autoSaveDelay ?? TimeSpan.FromMilliseconds(200);
         Languages = localization?.SupportedLanguages ?? [];
         LogLevels = Enum.GetValues<AppLogLevel>();
+        InterfaceScales = CreateInterfaceScaleOptions();
         _selectedLanguage = localization?.CurrentLanguage;
         _openLogFolderCommand = new AsyncCommand(
             OpenLogFolderAsync,
@@ -66,6 +68,8 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
 
     public IReadOnlyList<LanguageOption> Languages { get; }
     public IReadOnlyList<AppLogLevel> LogLevels { get; }
+    public IReadOnlyList<InterfaceScaleOption> InterfaceScales { get; }
+    public bool IsInterfaceScaleAvailable => OperatingSystem.IsLinux();
     public string VersionText { get; }
     public ICommand OpenLogFolderCommand => _openLogFolderCommand;
 
@@ -140,6 +144,16 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    public InterfaceScaleOption? SelectedInterfaceScale
+    {
+        get => _selectedInterfaceScale;
+        set
+        {
+            if (!SetField(ref _selectedInterfaceScale, value)) return;
+            QueueAutoSave();
+        }
+    }
+
     public bool ExportEncrypt
     {
         get => _exportEncrypt;
@@ -202,6 +216,9 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
             ClearClipboardEnabled = _settingsService.Current.ClearClipboardEnabled;
             ClearClipboardSeconds = _settingsService.Current.ClearClipboardSeconds;
             QrPreviewScaleFactor = (decimal)_settingsService.Current.QrPreviewScaleFactor;
+            SelectedInterfaceScale = InterfaceScales.FirstOrDefault(
+                option => option.Percent == _settingsService.Current.InterfaceScalePercent)
+                ?? InterfaceScales[0];
             ExportEncrypt = _settingsService.Current.ExportEncrypt;
             OpenExportFileAfterExport = _settingsService.Current.OpenExportFileAfterExport;
             HideSecretsByDefault = _settingsService.Current.HideSecretsByDefault;
@@ -219,7 +236,8 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
         if (IdleTimeoutMinutes is < 0 or > 1440
             || ClearClipboardSeconds is < 1 or > 300
             || QrPreviewScaleFactor is < 1.0m or > 6.0m
-            || QrPreviewScaleFactor * 2 != decimal.Truncate(QrPreviewScaleFactor * 2)) return;
+            || QrPreviewScaleFactor * 2 != decimal.Truncate(QrPreviewScaleFactor * 2)
+            || SelectedInterfaceScale is null) return;
 
         CancelAutoSaveDelay();
         if (_isBusy)
@@ -240,6 +258,7 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
             _settingsService.Current.ClearClipboardEnabled = ClearClipboardEnabled;
             _settingsService.Current.ClearClipboardSeconds = ClearClipboardSeconds;
             _settingsService.Current.QrPreviewScaleFactor = (double)QrPreviewScaleFactor;
+            _settingsService.Current.InterfaceScalePercent = SelectedInterfaceScale.Percent;
             _settingsService.Current.ExportEncrypt = ExportEncrypt;
             _settingsService.Current.OpenExportFileAfterExport = OpenExportFileAfterExport;
             _settingsService.Current.HideSecretsByDefault = HideSecretsByDefault;
@@ -249,9 +268,13 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
             var result = await _settingsService.SaveAsync();
             if (result.IsSuccess)
             {
-                Message = Localize(
-                    AvaloniaStringKeys.SettingsSavedAutomatically,
-                    "Settings saved automatically.");
+                Message = previous.InterfaceScalePercent != SelectedInterfaceScale.Percent
+                    ? Localize(
+                        AvaloniaStringKeys.InterfaceScaleRestartRequired,
+                        "Interface size saved. Restart the application to apply it.")
+                    : Localize(
+                        AvaloniaStringKeys.SettingsSavedAutomatically,
+                        "Settings saved automatically.");
                 SettingsSaved?.Invoke(this, EventArgs.Empty);
                 return;
             }
@@ -348,4 +371,18 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
 
     private string Localize(string key, string fallback) =>
         _localization?.GetString(key) ?? fallback;
+
+    private IReadOnlyList<InterfaceScaleOption> CreateInterfaceScaleOptions() =>
+    [
+        new(
+            TOTP.Core.Models.AppSettings.DefaultInterfaceScalePercent,
+            Localize(AvaloniaStringKeys.SystemInterfaceScale, "System default (recommended)")),
+        .. Enumerable.Range(4, 9).Select(index =>
+        {
+            var percent = index * 25;
+            return new InterfaceScaleOption(percent, $"{percent}%");
+        })
+    ];
+
+    public sealed record InterfaceScaleOption(int Percent, string Label);
 }

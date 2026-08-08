@@ -58,6 +58,7 @@ public static class AppPreferencesV1Codec
             || !double.IsFinite(preferences.QrPreviewScaleFactor)
             || preferences.QrPreviewScaleFactor is < 1.0 or > 6.0
             || Math.Abs(preferences.QrPreviewScaleFactor * 2 - Math.Round(preferences.QrPreviewScaleFactor * 2)) > 0.0001
+            || !AppSettings.IsSupportedInterfaceScale(preferences.InterfaceScalePercent)
             || !IsValidCulture(preferences.CultureName))
         {
             return Fail(AppPreferencesErrorCode.InvalidValue, "Preferences contain an invalid value.");

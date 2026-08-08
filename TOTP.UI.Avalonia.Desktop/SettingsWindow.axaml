@@ -154,6 +154,17 @@
                                             <NumericUpDown Maximum="300" Minimum="1" Value="{Binding ClearClipboardSeconds, Mode=TwoWay}" />
                                             <TextBlock Classes="settings-label settings-group-label" Text="{DynamicResource QrPreviewScale}" />
                                             <NumericUpDown Increment="0.5" Maximum="6" Minimum="1" Value="{Binding QrPreviewScaleFactor, Mode=TwoWay}" />
+                                            <StackPanel IsVisible="{Binding IsInterfaceScaleAvailable}" Spacing="8">
+                                                <TextBlock Classes="settings-label settings-group-label" Text="{DynamicResource InterfaceScale}" />
+                                                <ComboBox ItemsSource="{Binding InterfaceScales}" SelectedItem="{Binding SelectedInterfaceScale, Mode=TwoWay}">
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate x:DataType="presentation:SettingsPageViewModel+InterfaceScaleOption">
+                                                            <TextBlock Text="{Binding Label}" />
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
+                                                </ComboBox>
+                                                <TextBlock Classes="secondary" Text="{DynamicResource InterfaceScaleHelp}" TextWrapping="Wrap" />
+                                            </StackPanel>
                                             <CheckBox Content="{DynamicResource EncryptExports}" IsChecked="{Binding ExportEncrypt, Mode=TwoWay}" />
                                             <CheckBox Content="{DynamicResource OpenExportAfter}" IsChecked="{Binding OpenExportFileAfterExport, Mode=TwoWay}" />
                                             <CheckBox Content="{DynamicResource HideSecretsDefault}" IsChecked="{Binding HideSecretsByDefault, Mode=TwoWay}" />

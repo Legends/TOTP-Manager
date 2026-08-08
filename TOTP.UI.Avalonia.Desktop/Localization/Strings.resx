@@ -85,6 +85,10 @@
   <data name="ClearClipboard" xml:space="preserve"><value>Allow code copying with conditional automatic clear</value></data>
   <data name="ClipboardClearSeconds" xml:space="preserve"><value>Maximum clipboard lifetime in seconds</value></data>
   <data name="QrPreviewScale" xml:space="preserve"><value>QR preview scale</value></data>
+  <data name="InterfaceScale" xml:space="preserve"><value>Interface size</value></data>
+  <data name="InterfaceScaleHelp" xml:space="preserve"><value>System scaling is recommended. A custom size multiplies the desktop scale and applies after restart.</value></data>
+  <data name="SystemInterfaceScale" xml:space="preserve"><value>System default (recommended)</value></data>
+  <data name="InterfaceScaleRestartRequired" xml:space="preserve"><value>Interface size saved. Restart the application to apply it.</value></data>
   <data name="EncryptExports" xml:space="preserve"><value>Encrypt exports by default</value></data>
   <data name="OpenExportAfter" xml:space="preserve"><value>Open export location after export</value></data>
   <data name="HideSecretsDefault" xml:space="preserve"><value>Hide secrets by default</value></data>

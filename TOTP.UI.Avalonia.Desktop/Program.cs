@@ -4,6 +4,8 @@ using TOTP.Infrastructure.Services;
 using TOTP.Avalonia.Desktop.Startup;
 using TOTP.Camera.OpenCv;
 using TOTP.Infrastructure.Logging;
+using TOTP.DAL.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 using Serilog;
 using System.Text.Json;
 
@@ -35,6 +37,7 @@ internal static class Program
         {
             var platformServices = DesktopPlatformServiceFactory.Create();
             LoggingConfigurator.SetupEarlyLogger(args, platformServices.ApplicationPaths);
+            ApplyInterfaceScalePreference(platformServices);
             using var instance = new SingleInstanceCoordinator(
                 new NamedMutexInstanceLock(DesktopInstanceIdentity.MutexName),
                 new NamedPipeActivationDispatcher(DesktopInstanceIdentity.PipeName));
@@ -65,5 +68,24 @@ internal static class Program
     {
         return AppBuilder.Configure<App>()
             .UsePlatformDetect();
+    }
+
+    private static void ApplyInterfaceScalePreference(DesktopPlatformServices platformServices)
+    {
+        try
+        {
+            using var preferencesStore = new AppPreferencesStore(
+                platformServices.ApplicationPaths.PreferencesFilePath,
+                NullLogger<AppPreferencesStore>.Instance,
+                platformServices.FileSecurity);
+            if (AvaloniaInterfaceScaleBootstrapper.ApplyFromPreferences(preferencesStore))
+                Log.Information("Applied the saved Avalonia interface-scale preference.");
+        }
+        catch (Exception exception)
+        {
+            Log.Warning(
+                "The saved Avalonia interface scale could not be applied. Using system scaling. Exception type: {ExceptionType}.",
+                exception.GetType().FullName);
+        }
     }
 }

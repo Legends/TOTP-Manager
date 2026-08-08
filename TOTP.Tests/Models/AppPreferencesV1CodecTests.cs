@@ -85,6 +85,22 @@ public sealed class AppPreferencesV1CodecTests
         Assert.Equal(AppPreferencesErrorCode.InvalidValue, ErrorCode(result.Errors));
     }
 
+    [Theory]
+    [InlineData(-25)]
+    [InlineData(25)]
+    [InlineData(110)]
+    [InlineData(325)]
+    public void Serialize_InvalidInterfaceScale_ReturnsTypedFailure(int percent)
+    {
+        var result = AppPreferencesV1Codec.Serialize(CreatePreferences() with
+        {
+            InterfaceScalePercent = percent
+        });
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AppPreferencesErrorCode.InvalidValue, ErrorCode(result.Errors));
+    }
+
     [Fact]
     public void Deserialize_WhenPreferredUnlockMethodIsMissing_DefaultsToPassword()
     {
@@ -107,6 +123,7 @@ public sealed class AppPreferencesV1CodecTests
         ClearClipboardEnabled = true,
         ClearClipboardSeconds = 12,
         QrPreviewScaleFactor = 2.5,
+        InterfaceScalePercent = 175,
         ExportEncrypt = false,
         OpenExportFileAfterExport = false,
         HideSecretsByDefault = false

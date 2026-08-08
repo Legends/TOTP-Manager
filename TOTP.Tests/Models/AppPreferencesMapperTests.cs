@@ -28,6 +28,7 @@ public sealed class AppPreferencesMapperTests
         Assert.False(preferences.ClearClipboardEnabled);
         Assert.Equal(12, preferences.ClearClipboardSeconds);
         Assert.Equal(2.5, preferences.QrPreviewScaleFactor);
+        Assert.Equal(175, preferences.InterfaceScalePercent);
         Assert.False(preferences.ExportEncrypt);
         Assert.False(preferences.OpenExportFileAfterExport);
         Assert.False(preferences.HideSecretsByDefault);
@@ -61,6 +62,7 @@ public sealed class AppPreferencesMapperTests
         Assert.True(settings.ClearClipboardEnabled);
         Assert.Equal(12, settings.ClearClipboardSeconds);
         Assert.Equal(2.5, settings.QrPreviewScaleFactor);
+        Assert.Equal(175, settings.InterfaceScalePercent);
         Assert.False(settings.ExportEncrypt);
         Assert.False(settings.OpenExportFileAfterExport);
         Assert.False(settings.HideSecretsByDefault);
@@ -76,7 +78,8 @@ public sealed class AppPreferencesMapperTests
             PreferredUnlockMethod = (PreferredUnlockMethod)999,
             IdleTimeout = TimeSpan.FromSeconds(30),
             ClearClipboardSeconds = 0,
-            QrPreviewScaleFactor = double.NaN
+            QrPreviewScaleFactor = double.NaN,
+            InterfaceScalePercent = 110
         };
 
         var preferences = AppPreferencesMapper.FromSettings(settings);
@@ -88,6 +91,7 @@ public sealed class AppPreferencesMapperTests
         Assert.Equal(1, preferences.IdleTimeoutMinutes);
         Assert.Equal(AppSettings.DefaultClearClipboardSeconds, preferences.ClearClipboardSeconds);
         Assert.Equal(AppSettings.DefaultQrPreviewScaleFactor, preferences.QrPreviewScaleFactor);
+        Assert.Equal(AppSettings.DefaultInterfaceScalePercent, preferences.InterfaceScalePercent);
         Assert.True(encoded.IsSuccess);
     }
 
@@ -116,6 +120,7 @@ public sealed class AppPreferencesMapperTests
         ClearClipboardEnabled = false,
         ClearClipboardSeconds = 12,
         QrPreviewScaleFactor = 2.5,
+        InterfaceScalePercent = 175,
         ExportEncrypt = false,
         OpenExportFileAfterExport = false,
         HideSecretsByDefault = false

@@ -107,6 +107,9 @@ public sealed class SettingsPageViewModelTests
             HideSecretsByDefault = false,
             MinimumLogLevel = AppLogLevel.Warning
         };
+        sut.SelectedInterfaceScale = Assert.Single(
+            sut.InterfaceScales,
+            option => option.Percent == 175);
 
         await sut.SaveAsync();
 
@@ -116,10 +119,29 @@ public sealed class SettingsPageViewModelTests
         Assert.True(current.ClearClipboardEnabled);
         Assert.Equal(20, current.ClearClipboardSeconds);
         Assert.Equal(2.5, current.QrPreviewScaleFactor);
+        Assert.Equal(175, current.InterfaceScalePercent);
         Assert.True(current.ExportEncrypt);
         Assert.False(current.OpenExportFileAfterExport);
         Assert.False(current.HideSecretsByDefault);
         Assert.Equal(AppLogLevel.Warning, current.MinimumLogLevel);
+    }
+
+
+    [Fact]
+    public async Task SaveAsync_WhenInterfaceScaleChanges_ExplainsRestartRequirement()
+    {
+        var current = new AppSettings();
+        var settings = CreateSettings(current);
+        settings.Setup(value => value.SaveAsync()).ReturnsAsync(Result.Ok());
+        using var sut = new SettingsPageViewModel(settings.Object);
+        sut.SelectedInterfaceScale = Assert.Single(
+            sut.InterfaceScales,
+            option => option.Percent == 200);
+
+        await sut.SaveAsync();
+
+        Assert.Equal(200, current.InterfaceScalePercent);
+        Assert.Contains("restart", sut.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

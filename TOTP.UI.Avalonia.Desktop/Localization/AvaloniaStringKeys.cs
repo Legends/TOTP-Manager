@@ -142,6 +142,10 @@ public static class AvaloniaStringKeys
     public const string ClearClipboard = nameof(ClearClipboard);
     public const string ClipboardClearSeconds = nameof(ClipboardClearSeconds);
     public const string QrPreviewScale = nameof(QrPreviewScale);
+    public const string InterfaceScale = nameof(InterfaceScale);
+    public const string InterfaceScaleHelp = nameof(InterfaceScaleHelp);
+    public const string SystemInterfaceScale = nameof(SystemInterfaceScale);
+    public const string InterfaceScaleRestartRequired = nameof(InterfaceScaleRestartRequired);
     public const string EncryptExports = nameof(EncryptExports);
     public const string OpenExportAfter = nameof(OpenExportAfter);
     public const string HideSecretsDefault = nameof(HideSecretsDefault);
@@ -214,6 +218,7 @@ public static class AvaloniaStringKeys
         QrAccountAdded, QrAccountUpdated, QrAccountKeptBoth, QrAccountDuplicate,
         QrImportCancelled, QrConflictTitle, QrConflictMessage, UpdateExisting, KeepBoth,
         LockOnSessionLock, ClearClipboard, ClipboardClearSeconds, QrPreviewScale,
+        InterfaceScale, InterfaceScaleHelp, SystemInterfaceScale, InterfaceScaleRestartRequired,
         EncryptExports, OpenExportAfter, HideSecretsDefault, LoggingLevel,
         ClipboardCopyDisabled, RevealSecret, RevealSecretHelp, RevealSecretAutomation,
         ImportSkipExisting, ImportReplaceExisting, ImportKeepBoth, NoImportFileSelected,

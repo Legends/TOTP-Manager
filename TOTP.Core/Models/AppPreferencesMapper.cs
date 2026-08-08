@@ -20,6 +20,7 @@ public static class AppPreferencesMapper
             ClearClipboardEnabled = settings.ClearClipboardEnabled,
             ClearClipboardSeconds = settings.ClearClipboardSeconds,
             QrPreviewScaleFactor = settings.QrPreviewScaleFactor,
+            InterfaceScalePercent = settings.InterfaceScalePercent,
             ExportEncrypt = settings.ExportEncrypt,
             OpenExportFileAfterExport = settings.OpenExportFileAfterExport,
             HideSecretsByDefault = settings.HideSecretsByDefault
@@ -43,6 +44,7 @@ public static class AppPreferencesMapper
         settings.ClearClipboardEnabled = normalized.ClearClipboardEnabled;
         settings.ClearClipboardSeconds = normalized.ClearClipboardSeconds;
         settings.QrPreviewScaleFactor = normalized.QrPreviewScaleFactor;
+        settings.InterfaceScalePercent = normalized.InterfaceScalePercent;
         settings.ExportEncrypt = normalized.ExportEncrypt;
         settings.OpenExportFileAfterExport = normalized.OpenExportFileAfterExport;
         settings.HideSecretsByDefault = normalized.HideSecretsByDefault;
@@ -63,7 +65,8 @@ public static class AppPreferencesMapper
         ClearClipboardSeconds = preferences.ClearClipboardSeconds > 0
             ? Math.Clamp(preferences.ClearClipboardSeconds, 1, 300)
             : AppSettings.DefaultClearClipboardSeconds,
-        QrPreviewScaleFactor = NormalizeQrScale(preferences.QrPreviewScaleFactor)
+        QrPreviewScaleFactor = NormalizeQrScale(preferences.QrPreviewScaleFactor),
+        InterfaceScalePercent = NormalizeInterfaceScale(preferences.InterfaceScalePercent)
     };
 
     private static int ToIdleTimeoutMinutes(TimeSpan timeout)
@@ -77,6 +80,13 @@ public static class AppPreferencesMapper
         if (!double.IsFinite(scale) || scale <= 0) scale = AppSettings.DefaultQrPreviewScaleFactor;
         var clamped = Math.Clamp(scale, 1.0, 6.0);
         return Math.Round(clamped * 2, MidpointRounding.AwayFromZero) / 2;
+    }
+
+    private static int NormalizeInterfaceScale(int percent)
+    {
+        return AppSettings.IsSupportedInterfaceScale(percent)
+            ? percent
+            : AppSettings.DefaultInterfaceScalePercent;
     }
 
     private static bool IsValidCulture(string? cultureName)

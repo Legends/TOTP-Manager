@@ -540,7 +540,7 @@ public sealed class MainWindowSmokeTests
             Assert.InRange(
                 window.MaxHeight,
                 0,
-                (screen.WorkingArea.Height / screen.Scaling) * 0.90);
+                (screen.WorkingArea.Height / screen.Scaling) * 0.60);
             Assert.Equal(WindowStartupLocation.CenterScreen, window.WindowStartupLocation);
         }
         finally

@@ -49,7 +49,7 @@ New identities are added directly. An exact issuer/account/secret match is repor
 
 ## M5.5 Settings
 
-The Avalonia Settings surface now edits the complete allowlisted `AppPreferencesV1` projection: culture, logging threshold, idle timeout, session/minimize locks, conditional clipboard policy and maximum lifetime, QR preview scale, encrypted-export defaults, export-location behavior, and secret visibility. Save validates codec bounds before persistence and restores the complete prior projection on expected or exceptional failure rather than partially retaining edited runtime values.
+The Avalonia Settings surface now edits the complete allowlisted `AppPreferencesV1` projection: culture, logging threshold, idle timeout, session/minimize locks, conditional clipboard policy and maximum lifetime, QR preview scale, interface-size override, encrypted-export defaults, export-location behavior, and secret visibility. System DPI scaling remains the default; a bounded accessibility multiplier is applied before Avalonia platform initialization and therefore requires an application restart. Save validates codec bounds before persistence and restores the complete prior projection on expected or exceptional failure rather than partially retaining edited runtime values.
 
 Clipboard policy remains fail-closed: disabling conditional clear disables OTP copy in Avalonia instead of copying without cleanup. When enabled, the scheduled lifetime is the smaller of the code's remaining validity and the configured maximum. QR scale updates the secret-bearing preview only after a successful settings save. Logging-level text explicitly notes that the bootstrap logger applies the new threshold after restart.
 

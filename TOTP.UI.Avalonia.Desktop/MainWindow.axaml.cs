@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using TOTP.Avalonia.Desktop.Controls;
@@ -16,7 +17,7 @@ namespace TOTP.Avalonia.Desktop;
 public partial class MainWindow : Window
 {
     private const double MaximumScreenWidthRatio = 0.92;
-    private const double MaximumScreenHeightRatio = 0.90;
+    private const double MaximumScreenHeightRatio = 0.60;
     private const double DefaultPageHeight = 540;
     private const double DefaultMinimumWidth = 360;
     private const double StandardMinimumHeight = 200;
@@ -31,6 +32,9 @@ public partial class MainWindow : Window
     private SettingsWindow? _settingsWindow;
     private IDisposable? _settingsWindowRegistration;
     private bool _allowSettingsWindowClose;
+    private Screen? _sizeLimitScreen;
+    private PixelRect _sizeLimitWorkingArea;
+    private double _sizeLimitScaling;
 
     public AvaloniaClipboardAccessor? ClipboardAccessor { get; init; }
     public AvaloniaStorageProviderAccessor? StorageProviderAccessor { get; init; }
@@ -39,6 +43,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        PositionChanged += MainWindowPositionChanged;
+        ScalingChanged += MainWindowScalingChanged;
     }
 
     protected override void OnOpened(EventArgs e)
@@ -48,7 +54,8 @@ public partial class MainWindow : Window
         if (Clipboard is not null)
             ClipboardAccessor?.Set(Clipboard);
         StorageProviderAccessor?.Set(StorageProvider);
-        ApplyScreenSizeLimits();
+        Screens.Changed += ScreensChanged;
+        ApplyScreenSizeLimits(force: true);
         if (DataContext is MainWindowViewModel viewModel)
         {
             ObserveViewModel(viewModel);
@@ -64,6 +71,7 @@ public partial class MainWindow : Window
     {
         ObserveViewModel(null);
         _heightAnimationLifetime?.Cancel();
+        Screens.Changed -= ScreensChanged;
         CloseSettingsWindow();
         WindowCoordinator?.UnregisterMainWindow(this);
         base.OnClosed(e);
@@ -448,11 +456,31 @@ public partial class MainWindow : Window
         bool isEditorVisible) =>
         isAccountListVisible && !isEditorVisible;
 
-    private void ApplyScreenSizeLimits()
+    private void MainWindowPositionChanged(object? sender, PixelPointEventArgs e) =>
+        ApplyScreenSizeLimits();
+
+    private void MainWindowScalingChanged(object? sender, EventArgs e) =>
+        ApplyScreenSizeLimits(force: true);
+
+    private void ScreensChanged(object? sender, EventArgs e) =>
+        ApplyScreenSizeLimits(force: true);
+
+    private void ApplyScreenSizeLimits(bool force = false)
     {
         var screen = Screens.ScreenFromWindow(this);
         if (screen is null) return;
         var scale = screen.Scaling > 0 ? screen.Scaling : 1;
+        if (!force
+            && ReferenceEquals(screen, _sizeLimitScreen)
+            && screen.WorkingArea == _sizeLimitWorkingArea
+            && Math.Abs(scale - _sizeLimitScaling) < 0.0001)
+        {
+            return;
+        }
+
+        _sizeLimitScreen = screen;
+        _sizeLimitWorkingArea = screen.WorkingArea;
+        _sizeLimitScaling = scale;
         var screenWidthLimit = Math.Max(
             1,
             (screen.WorkingArea.Width / scale) * MaximumScreenWidthRatio);

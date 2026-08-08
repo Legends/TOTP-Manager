@@ -9,6 +9,7 @@ public sealed class AppSettings : IAppSettings
     public static readonly TimeSpan DefaultIdleTimeout = TimeSpan.FromMinutes(10);
     public const int DefaultClearClipboardSeconds = 15;
     public const double DefaultQrPreviewScaleFactor = 1.5;
+    public const int DefaultInterfaceScalePercent = 0;
 
     public string CultureName { get; set; } = "en";
 
@@ -30,9 +31,15 @@ public sealed class AppSettings : IAppSettings
 
     public double QrPreviewScaleFactor { get; set; } = DefaultQrPreviewScaleFactor;
 
+    public int InterfaceScalePercent { get; set; } = DefaultInterfaceScalePercent;
+
     public bool ExportEncrypt { get; set; } = true;
 
     public bool OpenExportFileAfterExport { get; set; } = true;
 
     public bool HideSecretsByDefault { get; set; } = true;
+
+    public static bool IsSupportedInterfaceScale(int percent) =>
+        percent == DefaultInterfaceScalePercent
+        || percent is >= 100 and <= 300 && percent % 25 == 0;
 }

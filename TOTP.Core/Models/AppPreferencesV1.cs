@@ -44,6 +44,9 @@ public sealed record AppPreferencesV1
     [JsonPropertyName("qrPreviewScaleFactor")]
     public double QrPreviewScaleFactor { get; init; } = 1.5;
 
+    [JsonPropertyName("interfaceScalePercent")]
+    public int InterfaceScalePercent { get; init; }
+
     [JsonPropertyName("exportEncrypt")]
     public bool ExportEncrypt { get; init; } = true;
 

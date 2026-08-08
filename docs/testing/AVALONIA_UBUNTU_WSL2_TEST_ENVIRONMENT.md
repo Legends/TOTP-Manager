@@ -215,13 +215,20 @@ These packages cover WSLg/Avalonia's X11 prerequisites and the native libraries 
 
 ## 3. Install a compatible .NET SDK
 
-The application targets `net9.0`, but that does not require the command-line SDK itself to be version 9. Ubuntu 26.04 development should use the complete .NET 10 SDK from Ubuntu's feed. This matches the newer compiler used successfully by the Windows development environment and can target .NET 9.
+The application targets `net9.0`, but that does not require the command-line SDK itself to be version 9. Ubuntu 26.04 development should use the complete .NET 10 SDK from Ubuntu's feed. This matches the newer compiler used successfully by the Windows development environment and can target .NET 9. Because the application is framework-dependent, the .NET 9 runtime must also be installed to execute the resulting binary; the .NET 10 SDK does not include that older runtime.
 
 If Ubuntu responds with `Command 'dotnet' not found` and suggests `sudo apt install dotnet-host-10.0`, do not use that exact suggestion. `dotnet-host-10.0` is only a host package; install `dotnet-sdk-10.0` instead.
 
+Ubuntu 26.04 supplies .NET 9 through Canonical's .NET backports PPA:
+
 ```bash
 sudo apt update
-sudo apt install -y dotnet-sdk-10.0
+sudo apt install -y software-properties-common
+sudo add-apt-repository -y ppa:dotnet/backports
+sudo apt update
+sudo apt install -y \
+  dotnet-sdk-10.0 \
+  dotnet-runtime-9.0
 ```
 
 Verify:
@@ -230,9 +237,10 @@ Verify:
 dotnet --version
 dotnet --info
 dotnet --list-sdks
+dotnet --list-runtimes
 ```
 
-On Ubuntu 26.04, `dotnet --version` should now begin with `10.` and `dotnet --list-sdks` should include a `10.0.x` entry. An installed `9.0.1xx` SDK may remain side by side, but it must not be the SDK selected for this Avalonia 12.1 build.
+On Ubuntu 26.04, `dotnet --version` should now begin with `10.`, `dotnet --list-sdks` should include a `10.0.x` entry, and `dotnet --list-runtimes` must include `Microsoft.NETCore.App 9.0.x`. An installed `9.0.1xx` SDK may remain side by side, but it must not be the SDK selected for this Avalonia 12.1 build.
 
 The first SDK invocation may print the standard ASP.NET Core HTTPS development-certificate message. TOTP Manager is a desktop application and does not use that certificate; no trust command is required.
 
@@ -384,6 +392,27 @@ Never point these variables at a real home directory or existing application-dat
 
 ## 9. Run the application
 
+For the normal WSLg test loop, use the repository launcher. It applies a
+project-local Avalonia scale of `2` so a WSLg scaling renegotiation does not
+make the application miniature:
+
+```bash
+bash scripts/testing/run-avalonia-wsl.sh
+```
+
+The launcher does not change application code or global WSL configuration.
+Override its scale for a different display when needed:
+
+```bash
+AVALONIA_GLOBAL_SCALE_FACTOR=1.5 \
+  bash scripts/testing/run-avalonia-wsl.sh
+```
+
+To pass additional `dotnet run` options, append them to the command, for
+example `--no-build`.
+
+The original unscaled direct command, without the launcher, is:
+
 ```bash
 dotnet run \
   --project TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj \
@@ -418,7 +447,7 @@ To run the application directly:
 
 ```powershell
 wsl.exe -d Ubuntu --cd /mnt/e/Repos/TOTP-Manager `
-  bash -lc 'dotnet run --project TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj --configuration Debug'
+  bash scripts/testing/run-avalonia-wsl.sh
 ```
 
 Use single quotes around the Bash command so PowerShell does not expand Bash variables.
