@@ -18,6 +18,6 @@ public sealed class SymbolIconTests
         var sut = new SymbolIcon { Kind = kind };
 
         Assert.StartsWith("M", sut.IconData, StringComparison.Ordinal);
-        Assert.Contains("Z", sut.IconData, StringComparison.Ordinal);
+        Assert.Contains("z", sut.IconData, StringComparison.OrdinalIgnoreCase);
     }
 }

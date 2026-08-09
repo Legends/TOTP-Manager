@@ -2,15 +2,23 @@
 
 Use the repository root as the working directory unless stated otherwise.
 
-## Windows host — WPF reference application
+## Windows host — Avalonia desktop application
 
 Run in **Windows PowerShell** from `E:\Repos\TOTP-Manager`:
 
 ```powershell
-.\scripts\dev\Publish-And-Run-Wpf.ps1 -Configuration Release -StopRunningInstance
+.\scripts\dev\Publish-And-Run-AvaloniaWindows.ps1 -Configuration Release -StopRunningInstance
 ```
 
-This publishes and starts the Windows WPF application used as the UI and behavior reference.
+This publishes and starts the Windows version of `TOTP.UI.Avalonia.Desktop`.
+
+## Windows host — WPF parity reference
+
+Only use this command when comparing Avalonia behavior or layout with the legacy WPF application:
+
+```powershell
+.\scripts\dev\Publish-And-Run-Wpf.ps1 -Configuration Release -StopRunningInstance
+```
 
 ## Ubuntu Hyper-V VM — full Linux desktop test
 
