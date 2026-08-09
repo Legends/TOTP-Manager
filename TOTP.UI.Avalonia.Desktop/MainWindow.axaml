@@ -262,47 +262,53 @@
                                             Margin="10,8,10,12"
                                             VerticalAlignment="Top"
                                             Spacing="8">
-                                            <TextBlock
-                                                Margin="0,28"
-                                                HorizontalAlignment="Center"
-                                                Classes="secondary"
-                                                IsVisible="{Binding HasNoAccounts}"
-                                                Text="{DynamicResource NoEntriesYet}" />
-                                            <TextBlock
-                                                Margin="0,28"
-                                                HorizontalAlignment="Center"
-                                                Classes="secondary"
-                                                IsVisible="{Binding HasNoSearchResults}"
-                                                Text="{DynamicResource NoMatchingEntries}" />
-                                            <controls:ContextPreservingAccountListBox
-                                                x:Name="AccountsListBox"
-                                                automation:AutomationProperties.Name="{DynamicResource AccountsList}"
-                                                Classes="accounts"
-                                                ContextAccount="{Binding ContextAccount, Mode=TwoWay}"
-                                                ItemsSource="{Binding Accounts}"
-                                                SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
-                                                ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                                <ListBox.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <VirtualizingStackPanel />
-                                                    </ItemsPanelTemplate>
-                                                </ListBox.ItemsPanel>
-                                                <ListBox.ContextMenu>
-                                                    <ContextMenu>
-                                                        <MenuItem Command="{Binding BeginContextEditCommand}" Header="{DynamicResource EditAccount}" />
-                                                        <MenuItem Command="{Binding DeleteContextAccountCommand}" Header="{DynamicResource DeleteAccount}" />
-                                                    </ContextMenu>
-                                                </ListBox.ContextMenu>
-                                                <ListBox.ItemTemplate>
-                                                    <DataTemplate x:DataType="presentation:AccountListItemViewModel">
-                                                        <Border
-                                                            Classes="account-row-container"
-                                                            Classes.recently-added="{Binding IsRecentlyAdded}">
-                                                            <shared:AccountRow AccountName="{Binding AccountName}" Issuer="{Binding Issuer}" />
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ListBox.ItemTemplate>
-                                            </controls:ContextPreservingAccountListBox>
+                                            <Grid x:Name="AccountListRegion">
+                                                <controls:ContextPreservingAccountListBox
+                                                    x:Name="AccountsListBox"
+                                                    automation:AutomationProperties.Name="{DynamicResource AccountsList}"
+                                                    Classes="accounts"
+                                                    ContextAccount="{Binding ContextAccount, Mode=TwoWay}"
+                                                    ItemsSource="{Binding Accounts}"
+                                                    SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
+                                                    ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                                    <ListBox.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <VirtualizingStackPanel />
+                                                        </ItemsPanelTemplate>
+                                                    </ListBox.ItemsPanel>
+                                                    <ListBox.ContextMenu>
+                                                        <ContextMenu>
+                                                            <MenuItem Command="{Binding BeginContextEditCommand}" Header="{DynamicResource EditAccount}" />
+                                                            <MenuItem Command="{Binding DeleteContextAccountCommand}" Header="{DynamicResource DeleteAccount}" />
+                                                        </ContextMenu>
+                                                    </ListBox.ContextMenu>
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate x:DataType="presentation:AccountListItemViewModel">
+                                                            <Border
+                                                                Classes="account-row-container"
+                                                                Classes.recently-added="{Binding IsRecentlyAdded}">
+                                                                <shared:AccountRow AccountName="{Binding AccountName}" Issuer="{Binding Issuer}" />
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </controls:ContextPreservingAccountListBox>
+                                                <TextBlock
+                                                    Margin="0,28"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Classes="secondary"
+                                                    IsHitTestVisible="False"
+                                                    IsVisible="{Binding HasNoAccounts}"
+                                                    Text="{DynamicResource NoEntriesYet}" />
+                                                <TextBlock
+                                                    Margin="0,28"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Classes="secondary"
+                                                    IsHitTestVisible="False"
+                                                    IsVisible="{Binding HasNoSearchResults}"
+                                                    Text="{DynamicResource NoMatchingEntries}" />
+                                            </Grid>
 
                                             <StackPanel
                                                 HorizontalAlignment="Center"

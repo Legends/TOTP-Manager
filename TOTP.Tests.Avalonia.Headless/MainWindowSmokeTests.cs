@@ -422,6 +422,27 @@ public sealed class MainWindowSmokeTests
     }
 
     [Theory]
+    [InlineData(500, 300, 200)]
+    [InlineData(80, 120, 0)]
+    public void AccountPageFixedHeight_ExcludesTheEntireOverlayListRegion(
+        double contentHeight,
+        double listRegionHeight,
+        double expectedHeight)
+    {
+        var policy = typeof(MainWindow).GetMethod(
+            "CalculateFixedAccountPageHeight",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        Assert.NotNull(policy);
+        Assert.Equal(
+            expectedHeight,
+            Assert.IsType<double>(policy.Invoke(
+                null,
+                [contentHeight, listRegionHeight])),
+            precision: 2);
+    }
+
+    [Theory]
     [InlineData(Key.Delete, KeyModifiers.None, true, false, true)]
     [InlineData(Key.Delete, KeyModifiers.None, true, true, false)]
     [InlineData(Key.Delete, KeyModifiers.None, false, false, false)]

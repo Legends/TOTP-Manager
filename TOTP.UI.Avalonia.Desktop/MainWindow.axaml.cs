@@ -448,10 +448,19 @@ public partial class MainWindow : Window
         var accountList = descendants
             .OfType<ContextPreservingAccountListBox>()
             .FirstOrDefault(control => control.Name == "AccountsListBox");
+        var accountListRegion = descendants
+            .OfType<Grid>()
+            .FirstOrDefault(control => control.Name == "AccountListRegion");
         var accountContent = descendants
             .OfType<StackPanel>()
             .FirstOrDefault(control => control.Name == "AccountPageContent");
-        if (accountScroller is null || accountList is null || accountContent is null) return;
+        if (accountScroller is null
+            || accountList is null
+            || accountListRegion is null
+            || accountContent is null)
+        {
+            return;
+        }
 
         var accountCount = _observedAccountList?.Accounts.Count ?? 0;
         var realizedRowHeight = accountList.GetVisualDescendants()
@@ -465,15 +474,16 @@ public partial class MainWindow : Window
             double.PositiveInfinity);
         accountList.MaxHeight = naturalListHeight;
         accountList.InvalidateMeasure();
+        accountListRegion.InvalidateMeasure();
         accountContent.InvalidateMeasure();
         UpdateLayout();
         var availableWidth = Math.Max(0, accountScroller.Bounds.Width);
         accountContent.Measure(new Size(availableWidth, double.PositiveInfinity));
 
         var windowChromeHeight = Math.Max(0, Bounds.Height - accountScroller.Bounds.Height);
-        var fixedPageHeight = Math.Max(
-            0,
-            accountContent.DesiredSize.Height - accountList.DesiredSize.Height);
+        var fixedPageHeight = CalculateFixedAccountPageHeight(
+            accountContent.DesiredSize.Height,
+            accountListRegion.DesiredSize.Height);
         var availableListHeight = Math.Max(
             0,
             MaxHeight - windowChromeHeight - fixedPageHeight - 2);
@@ -506,6 +516,11 @@ public partial class MainWindow : Window
         var minimumVisibleHeight = Math.Min(naturalHeight, rowHeight + 2);
         return Math.Min(naturalHeight, Math.Max(minimumVisibleHeight, availableHeight));
     }
+
+    private static double CalculateFixedAccountPageHeight(
+        double contentHeight,
+        double listRegionHeight) =>
+        Math.Max(0, contentHeight - listRegionHeight);
 
     private void MainWindowPositionChanged(object? sender, PixelPointEventArgs e) =>
         ApplyScreenSizeLimits();

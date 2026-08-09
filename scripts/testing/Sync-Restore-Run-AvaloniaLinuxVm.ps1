@@ -163,6 +163,7 @@ fi
 exit "$app_exit_code"
 '@
 
+$remoteScript = $remoteScript.Replace("`r`n", "`n").Replace("`r", "`n")
 $encodedScript = [Convert]::ToBase64String(
     [Text.Encoding]::UTF8.GetBytes($remoteScript))
 $encodedMountedRepository = [Convert]::ToBase64String(
