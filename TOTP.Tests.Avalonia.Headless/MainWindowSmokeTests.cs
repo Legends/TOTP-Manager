@@ -421,6 +421,27 @@ public sealed class MainWindowSmokeTests
             precision: 2);
     }
 
+    [Theory]
+    [InlineData(Key.Delete, KeyModifiers.None, true, false, true)]
+    [InlineData(Key.Delete, KeyModifiers.None, true, true, false)]
+    [InlineData(Key.Delete, KeyModifiers.None, false, false, false)]
+    [InlineData(Key.Delete, KeyModifiers.Control, true, false, false)]
+    [InlineData(Key.Back, KeyModifiers.None, true, false, false)]
+    public void AccountDeleteShortcut_RequiresPlainDeleteOutsideTextEditing(
+        Key key,
+        KeyModifiers modifiers,
+        bool canDelete,
+        bool isTextEditing,
+        bool expected)
+    {
+        var policy = typeof(MainWindow).GetMethod(
+            "ShouldHandleAccountDeleteKey",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        Assert.NotNull(policy);
+        Assert.Equal(expected, policy.Invoke(null, [key, modifiers, canDelete, isTextEditing]));
+    }
+
     [AvaloniaFact]
     public async Task AccountMessageToast_OpenClassFliesInWithoutTakingContentSpace()
     {

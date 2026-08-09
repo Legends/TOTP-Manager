@@ -116,6 +116,19 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (DataContext is MainWindowViewModel deleteViewModel
+            && ShouldHandleAccountDeleteKey(
+                e.Key,
+                e.KeyModifiers,
+                deleteViewModel.DeleteAccountCommand.CanExecute(null),
+                IsTextEditingSource(e.Source)))
+        {
+            deleteViewModel.DeleteAccountCommand.Execute(null);
+            e.Handled = true;
+            base.OnKeyDown(e);
+            return;
+        }
+
         if (e.Key == Key.F
             && e.KeyModifiers.HasFlag(KeyModifiers.Control)
             && DataContext is MainWindowViewModel viewModel
@@ -135,6 +148,21 @@ public partial class MainWindow : Window
 
         base.OnKeyDown(e);
     }
+
+    private static bool ShouldHandleAccountDeleteKey(
+        Key key,
+        KeyModifiers modifiers,
+        bool canDeleteSelectedAccount,
+        bool isTextEditingSource) =>
+        key == Key.Delete
+        && modifiers == KeyModifiers.None
+        && canDeleteSelectedAccount
+        && !isTextEditingSource;
+
+    private static bool IsTextEditingSource(object? source) =>
+        source is TextBox
+        || source is Visual visual
+            && visual.GetVisualAncestors().OfType<TextBox>().Any();
 
     private void FocusAccountSearch(object? sender, RoutedEventArgs e) =>
         FocusAccountSearch();
