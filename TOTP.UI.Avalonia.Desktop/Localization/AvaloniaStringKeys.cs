@@ -152,6 +152,7 @@ public static class AvaloniaStringKeys
     public const string LoggingLevel = nameof(LoggingLevel);
     public const string ClipboardCopyDisabled = nameof(ClipboardCopyDisabled);
     public const string RevealSecret = nameof(RevealSecret);
+    public const string ConcealSecret = nameof(ConcealSecret);
     public const string RevealSecretHelp = nameof(RevealSecretHelp);
     public const string RevealSecretAutomation = nameof(RevealSecretAutomation);
     public const string ImportSkipExisting = nameof(ImportSkipExisting);
@@ -220,7 +221,7 @@ public static class AvaloniaStringKeys
         LockOnSessionLock, ClearClipboard, ClipboardClearSeconds, QrPreviewScale,
         InterfaceScale, InterfaceScaleHelp, SystemInterfaceScale, InterfaceScaleRestartRequired,
         EncryptExports, OpenExportAfter, HideSecretsDefault, LoggingLevel,
-        ClipboardCopyDisabled, RevealSecret, RevealSecretHelp, RevealSecretAutomation,
+        ClipboardCopyDisabled, RevealSecret, ConcealSecret, RevealSecretHelp, RevealSecretAutomation,
         ImportSkipExisting, ImportReplaceExisting, ImportKeepBoth, NoImportFileSelected,
         UpdateReadyToCheck, UpdateChecking, UpdateFeedVerificationFailed, UpdateDisabled,
         UpdateNoneAvailable, UpdateAvailable, UpdateResponseIncomplete, UpdateCheckCancelled,

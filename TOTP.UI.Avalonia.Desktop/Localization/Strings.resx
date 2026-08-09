@@ -118,7 +118,7 @@
   <data name="CancelScan" xml:space="preserve"><value>Cancel scan</value></data>
   <data name="SecuritySettings" xml:space="preserve"><value>Security settings</value></data>
   <data name="Security" xml:space="preserve"><value>Security</value></data>
-  <data name="ImportExport" xml:space="preserve"><value>Import / export</value></data>
+  <data name="ImportExport" xml:space="preserve"><value>Import / Export</value></data>
   <data name="Miscellaneous" xml:space="preserve"><value>Miscellaneous</value></data>
   <data name="Language" xml:space="preserve"><value>Language</value></data>
   <data name="IdleTimeout" xml:space="preserve"><value>Idle timeout in minutes (0 disables idle lock)</value></data>
@@ -157,8 +157,9 @@
   <data name="ExistingVaultConflict" xml:space="preserve"><value>Existing vault data was found and was not replaced. Use recovery or migration before creating a new vault.</value></data>
   <data name="VaultConfigured" xml:space="preserve"><value>Your protected vault is ready.</value></data>
   <data name="RevealSecret" xml:space="preserve"><value>Show</value></data>
-  <data name="RevealSecretHelp" xml:space="preserve"><value>The secret is concealed again when the key or pointer is released.</value></data>
-  <data name="RevealSecretAutomation" xml:space="preserve"><value>Hold to reveal secret</value></data>
+  <data name="ConcealSecret" xml:space="preserve"><value>Hide</value></data>
+  <data name="RevealSecretHelp" xml:space="preserve"><value>Select again to conceal the secret.</value></data>
+  <data name="RevealSecretAutomation" xml:space="preserve"><value>Show or hide secret</value></data>
   <data name="ImportSkipExisting" xml:space="preserve"><value>Skip existing accounts</value></data>
   <data name="ImportReplaceExisting" xml:space="preserve"><value>Replace existing accounts</value></data>
   <data name="ImportKeepBoth" xml:space="preserve"><value>Keep both accounts</value></data>

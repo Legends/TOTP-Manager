@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 
@@ -114,70 +113,24 @@ public sealed class RevealableSecretInput : TemplatedControl
     private void AttachRevealHandlers()
     {
         if (_revealButton is null) return;
-
-        _revealButton.AddHandler(
-            InputElement.PointerPressedEvent,
-            OnRevealPointerPressed,
-            RoutingStrategies.Tunnel,
-            handledEventsToo: true);
-        _revealButton.AddHandler(
-            InputElement.PointerReleasedEvent,
-            OnRevealPointerReleased,
-            RoutingStrategies.Tunnel,
-            handledEventsToo: true);
-        _revealButton.PointerCaptureLost += OnRevealPointerCaptureLost;
-        _revealButton.AddHandler(
-            InputElement.KeyDownEvent,
-            OnRevealKeyDown,
-            RoutingStrategies.Tunnel,
-            handledEventsToo: true);
-        _revealButton.AddHandler(
-            InputElement.KeyUpEvent,
-            OnRevealKeyUp,
-            RoutingStrategies.Tunnel,
-            handledEventsToo: true);
-        _revealButton.LostFocus += OnRevealLostFocus;
+        _revealButton.Click += OnRevealClick;
     }
 
     private void DetachRevealHandlers()
     {
         if (_revealButton is null) return;
 
-        _revealButton.RemoveHandler(InputElement.PointerPressedEvent, OnRevealPointerPressed);
-        _revealButton.RemoveHandler(InputElement.PointerReleasedEvent, OnRevealPointerReleased);
-        _revealButton.PointerCaptureLost -= OnRevealPointerCaptureLost;
-        _revealButton.RemoveHandler(InputElement.KeyDownEvent, OnRevealKeyDown);
-        _revealButton.RemoveHandler(InputElement.KeyUpEvent, OnRevealKeyUp);
-        _revealButton.LostFocus -= OnRevealLostFocus;
+        _revealButton.Click -= OnRevealClick;
         _revealButton = null;
     }
 
-    private void OnRevealPointerPressed(object? sender, PointerPressedEventArgs e)
+    private void OnRevealClick(object? sender, RoutedEventArgs e)
     {
-        IsRevealed = true;
+        IsRevealed = !IsRevealed;
+        if (_textBox is null) return;
+        _textBox.Focus();
+        _textBox.CaretIndex = _textBox.Text?.Length ?? 0;
     }
-
-    private void OnRevealPointerReleased(object? sender, PointerReleasedEventArgs e) => Conceal();
-
-    private void OnRevealPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e) => Conceal();
-
-    private void OnRevealKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.Key is not (Key.Space or Key.Enter)) return;
-
-        IsRevealed = true;
-        e.Handled = true;
-    }
-
-    private void OnRevealKeyUp(object? sender, KeyEventArgs e)
-    {
-        if (e.Key is not (Key.Space or Key.Enter)) return;
-
-        Conceal();
-        e.Handled = true;
-    }
-
-    private void OnRevealLostFocus(object? sender, RoutedEventArgs e) => Conceal();
 
     private void OnTextChanged()
     {

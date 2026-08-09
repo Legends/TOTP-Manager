@@ -2,7 +2,7 @@ using Avalonia.Platform.Storage;
 
 namespace TOTP.Avalonia.Desktop.Platform;
 
-public sealed class AvaloniaFilePicker(AvaloniaStorageProviderAccessor accessor) : IAvaloniaFilePicker
+public sealed class AvaloniaFilePicker(AvaloniaWindowCoordinator windowCoordinator) : IAvaloniaFilePicker
 {
     private static readonly FilePickerFileType TotpFiles = new("TOTP files")
     {
@@ -13,8 +13,8 @@ public sealed class AvaloniaFilePicker(AvaloniaStorageProviderAccessor accessor)
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var provider = accessor.Current;
-        if (provider is null || !provider.CanOpen) return null;
+        var provider = windowCoordinator.GetRequiredDialogOwner().StorageProvider;
+        if (!provider.CanOpen) return null;
 
         var files = await provider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
@@ -39,8 +39,8 @@ public sealed class AvaloniaFilePicker(AvaloniaStorageProviderAccessor accessor)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(suggestedFileName);
         cancellationToken.ThrowIfCancellationRequested();
-        var provider = accessor.Current;
-        if (provider is null || !provider.CanSave) return null;
+        var provider = windowCoordinator.GetRequiredDialogOwner().StorageProvider;
+        if (!provider.CanSave) return null;
 
         var file = await provider.SaveFilePickerAsync(new FilePickerSaveOptions
         {

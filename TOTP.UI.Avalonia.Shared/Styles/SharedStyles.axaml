@@ -375,11 +375,15 @@
     </Style>
     <Style Selector="TextBox">
         <Setter Property="MinHeight" Value="{DynamicResource ControlMinimumHeight}" />
-        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
         <Setter Property="Background" Value="{DynamicResource BrushSurface}" />
         <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BrushControlBorder}" />
+    </Style>
+    <Style Selector="TextBox[AcceptsReturn=true]">
+        <Setter Property="VerticalContentAlignment" Value="Top" />
     </Style>
     <Style Selector="TextBox.search">
         <Setter Property="MinHeight" Value="30" />
@@ -541,6 +545,9 @@
                 </Grid>
             </ControlTemplate>
         </Setter>
+    </Style>
+    <Style Selector="controls|RevealableSecretInput:revealed /template/ Button#PART_RevealButton">
+        <Setter Property="Content" Value="{DynamicResource ConcealSecret}" />
     </Style>
     <Style Selector="controls|QrPreview">
         <Setter Property="HorizontalAlignment" Value="Center" />

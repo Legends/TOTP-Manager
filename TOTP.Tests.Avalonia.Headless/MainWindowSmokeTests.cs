@@ -5,6 +5,7 @@ using Avalonia.Data;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Styling;
@@ -36,6 +37,72 @@ public sealed class MainWindowSmokeTests
             input.FocusInput();
 
             Assert.True(Assert.Single(input.GetVisualDescendants().OfType<TextBox>()).IsFocused);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void RevealableSecretInput_ClickTogglesPersistentDisclosure()
+    {
+        var input = new RevealableSecretInput { Text = "test-secret" };
+        var window = new Window { Content = input };
+
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+            var textBox = Assert.Single(input.GetVisualDescendants().OfType<TextBox>());
+            var revealButton = Assert.Single(input.GetVisualDescendants().OfType<Button>());
+
+            revealButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            window.UpdateLayout();
+
+            Assert.True(input.IsRevealed);
+            Assert.Equal('\0', textBox.PasswordChar);
+            Assert.True(textBox.IsFocused);
+
+            revealButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+            Assert.False(input.IsRevealed);
+            Assert.NotEqual('\0', textBox.PasswordChar);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void TextBoxStyles_KeepSingleLineTextCenteredAndMultilineTextTopAligned()
+    {
+        var singleLine = new TextBox { Text = "Letters with descenders: gypq" };
+        var multiline = new TextBox
+        {
+            AcceptsReturn = true,
+            MinHeight = 100,
+            Text = "First line\nSecond line"
+        };
+        var window = new Window
+        {
+            Content = new StackPanel { Children = { singleLine, multiline } }
+        };
+
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+
+            Assert.Equal(new Thickness(12, 6), singleLine.Padding);
+            Assert.Equal(
+                global::Avalonia.Layout.VerticalAlignment.Center,
+                singleLine.VerticalContentAlignment);
+            Assert.True(singleLine.Bounds.Height >= singleLine.MinHeight);
+            Assert.Equal(
+                global::Avalonia.Layout.VerticalAlignment.Top,
+                multiline.VerticalContentAlignment);
         }
         finally
         {

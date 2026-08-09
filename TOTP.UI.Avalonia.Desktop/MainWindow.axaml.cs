@@ -37,7 +37,6 @@ public partial class MainWindow : Window
     private double _sizeLimitScaling;
 
     public AvaloniaClipboardAccessor? ClipboardAccessor { get; init; }
-    public AvaloniaStorageProviderAccessor? StorageProviderAccessor { get; init; }
     public AvaloniaWindowCoordinator? WindowCoordinator { get; init; }
 
     public MainWindow()
@@ -53,7 +52,6 @@ public partial class MainWindow : Window
         WindowCoordinator?.RegisterMainWindow(this);
         if (Clipboard is not null)
             ClipboardAccessor?.Set(Clipboard);
-        StorageProviderAccessor?.Set(StorageProvider);
         Screens.Changed += ScreensChanged;
         ApplyScreenSizeLimits(force: true);
         if (DataContext is MainWindowViewModel viewModel)

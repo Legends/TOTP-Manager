@@ -98,7 +98,6 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IActivationListener>(
             new NamedPipeActivationListener(DesktopInstanceIdentity.PipeName));
         services.AddSingleton<AvaloniaClipboardAccessor>();
-        services.AddSingleton<AvaloniaStorageProviderAccessor>();
         services.AddSingleton<AvaloniaWindowCoordinator>();
         if (languageFlags is null)
             services.AddSingleton<ILanguageFlagProvider, AvaloniaLanguageFlagProvider>();
@@ -140,7 +139,6 @@ public static class AvaloniaCompositionRoot
         {
             DataContext = provider.GetRequiredService<MainWindowViewModel>(),
             ClipboardAccessor = provider.GetRequiredService<AvaloniaClipboardAccessor>(),
-            StorageProviderAccessor = provider.GetRequiredService<AvaloniaStorageProviderAccessor>(),
             WindowCoordinator = provider.GetRequiredService<AvaloniaWindowCoordinator>()
         });
 

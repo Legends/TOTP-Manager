@@ -157,8 +157,9 @@
   <data name="ExistingVaultConflict" xml:space="preserve"><value>Vorhandene Tresordaten wurden gefunden und nicht ersetzt. Verwenden Sie Wiederherstellung oder Migration, bevor Sie einen neuen Tresor erstellen.</value></data>
   <data name="VaultConfigured" xml:space="preserve"><value>Ihr geschützter Tresor ist bereit.</value></data>
   <data name="RevealSecret" xml:space="preserve"><value>Anzeigen</value></data>
-  <data name="RevealSecretHelp" xml:space="preserve"><value>Das Geheimnis wird wieder verborgen, sobald die Taste oder der Mauszeiger losgelassen wird.</value></data>
-  <data name="RevealSecretAutomation" xml:space="preserve"><value>Zum Anzeigen des Geheimnisses gedrückt halten</value></data>
+  <data name="ConcealSecret" xml:space="preserve"><value>Ausblenden</value></data>
+  <data name="RevealSecretHelp" xml:space="preserve"><value>Erneut auswählen, um das Geheimnis auszublenden.</value></data>
+  <data name="RevealSecretAutomation" xml:space="preserve"><value>Geheimnis anzeigen oder ausblenden</value></data>
   <data name="ImportSkipExisting" xml:space="preserve"><value>Vorhandene Konten überspringen</value></data>
   <data name="ImportReplaceExisting" xml:space="preserve"><value>Vorhandene Konten ersetzen</value></data>
   <data name="ImportKeepBoth" xml:space="preserve"><value>Beide Konten behalten</value></data>

@@ -438,7 +438,6 @@
                                                     Text="{DynamicResource Issuer}" />
                                                 <TextBox
                                                     x:Name="AccountIssuerBox"
-                                                    Height="30"
                                                     automation:AutomationProperties.Name="{DynamicResource Issuer}"
                                                     Text="{Binding EditorIssuer, Mode=TwoWay}" />
                                                 <shared:ValidationMessage Severity="Error" Text="{Binding EditorMessage}" />
@@ -456,7 +455,6 @@
                                                     Classes="field-label"
                                                     Text="{DynamicResource AccountName}" />
                                                 <TextBox
-                                                    Height="30"
                                                     automation:AutomationProperties.Name="{DynamicResource AccountName}"
                                                     Text="{Binding EditorAccountName, Mode=TwoWay}" />
                                                 <StackPanel
