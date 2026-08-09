@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using System.Windows.Input;
 using TOTP.Avalonia.Desktop;
@@ -37,6 +38,29 @@ public sealed class MainWindowSmokeTests
             input.FocusInput();
 
             Assert.True(Assert.Single(input.GetVisualDescendants().OfType<TextBox>()).IsFocused);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task PasswordDialog_AutomaticallyFocusesPrimaryPasswordInput()
+    {
+        var window = new PasswordDialogWindow();
+
+        try
+        {
+            window.Show();
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Input);
+
+            var passwordInputs = window.GetVisualDescendants()
+                .OfType<RevealableSecretInput>()
+                .ToArray();
+            Assert.Equal(2, passwordInputs.Length);
+            Assert.True(Assert.Single(
+                passwordInputs[0].GetVisualDescendants().OfType<TextBox>()).IsFocused);
         }
         finally
         {
@@ -373,6 +397,30 @@ public sealed class MainWindowSmokeTests
         Assert.Equal(expected, policy.Invoke(null, [isAccountListVisible, isEditorVisible]));
     }
 
+    [Theory]
+    [InlineData(0, 42, 0, 0)]
+    [InlineData(2, 42, 0, 44)]
+    [InlineData(2, 42, 60, 60)]
+    [InlineData(2, 42, 500, 86)]
+    public void AccountListHeight_PopulatedListNeverCollapsesToZero(
+        int accountCount,
+        double rowHeight,
+        double availableHeight,
+        double expectedHeight)
+    {
+        var policy = typeof(MainWindow).GetMethod(
+            "CalculateAccountListHeight",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        Assert.NotNull(policy);
+        Assert.Equal(
+            expectedHeight,
+            Assert.IsType<double>(policy.Invoke(
+                null,
+                [accountCount, rowHeight, availableHeight])),
+            precision: 2);
+    }
+
     [AvaloniaFact]
     public async Task AccountMessageToast_OpenClassFliesInWithoutTakingContentSpace()
     {
@@ -637,6 +685,16 @@ public sealed class MainWindowSmokeTests
             var tabs = settingsTabs.GetVisualDescendants().OfType<TabItem>().ToArray();
             Assert.Equal(4, tabs.Length);
             Assert.True(tabs.Sum(tab => tab.MinWidth) <= window.Width - 32);
+            Assert.All(
+                tabs,
+                tab => Assert.Equal(tabs[0].Bounds.Width, tab.Bounds.Width, precision: 2));
+            for (var index = 1; index < tabs.Length; index++)
+            {
+                Assert.Equal(
+                    tabs[index - 1].Bounds.Right,
+                    tabs[index].Bounds.Left,
+                    precision: 2);
+            }
             Assert.All(
                 tabs,
                 tabItem =>

@@ -35,6 +35,11 @@
                     ToolTip.Tip="{DynamicResource CloseSettings}" />
             </Grid>
             <TabControl Grid.Row="1" Margin="0,8,0,0" Classes="settings-tabs">
+                <TabControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="1" />
+                    </ItemsPanelTemplate>
+                </TabControl.ItemsPanel>
                 <TabItem Header="{DynamicResource Security}">
                     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                         <ContentControl Margin="4,8" Content="{Binding AuthorizationSettings}">

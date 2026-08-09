@@ -51,6 +51,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private bool _isToolsVisible;
     private bool _isSettingsVisible;
     private bool _isSearchVisible;
+    private bool _accountsChangedWhileSettingsOpen;
     private bool _shutdownPrepared;
     private bool _disposed;
 
@@ -441,7 +442,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     }
 
     private void OnAccountsChanged(object? sender, EventArgs e) =>
-        AccountList.LoadCommand.Execute(null);
+        _accountsChangedWhileSettingsOpen = true;
 
     private void OnSettingsSaved(object? sender, EventArgs e) =>
         AccountList.NotifySettingsChanged();
@@ -573,12 +574,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         await AuthorizationSettings.RefreshAsync();
     }
 
-    public Task CloseSettingsAsync()
+    public async Task CloseSettingsAsync()
     {
-        if (!IsShellVisible || !IsSettingsVisible) return Task.CompletedTask;
+        if (!IsShellVisible || !IsSettingsVisible) return;
         AuthorizationSettings.ClearSensitiveInputs();
+        if (_accountsChangedWhileSettingsOpen)
+        {
+            await AccountList.LoadAsync();
+            _accountsChangedWhileSettingsOpen = false;
+        }
         IsSettingsVisible = false;
-        return Task.CompletedTask;
     }
 
     public Task ToggleSearchAsync()

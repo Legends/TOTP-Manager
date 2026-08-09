@@ -182,7 +182,11 @@ public partial class MainWindow : Window
                 _heightAnimationLifetime?.Cancel();
             SyncSettingsWindow();
             if (_observedViewModel is { IsSettingsVisible: false, IsAccountListVisible: true })
-                ScheduleAccountPageFit();
+            {
+                Dispatcher.UIThread.Post(
+                    ScheduleAccountPageFit,
+                    DispatcherPriority.Background);
+            }
             return;
         }
 
@@ -427,8 +431,14 @@ public partial class MainWindow : Window
             .Select(item => item.Bounds.Height)
             .FirstOrDefault(height => height > 0);
         var rowHeight = realizedRowHeight > 0 ? realizedRowHeight : 42;
-        var naturalListHeight = accountCount == 0 ? 0 : (accountCount * rowHeight) + 2;
+        var naturalListHeight = CalculateAccountListHeight(
+            accountCount,
+            rowHeight,
+            double.PositiveInfinity);
         accountList.MaxHeight = naturalListHeight;
+        accountList.InvalidateMeasure();
+        accountContent.InvalidateMeasure();
+        UpdateLayout();
         var availableWidth = Math.Max(0, accountScroller.Bounds.Width);
         accountContent.Measure(new Size(availableWidth, double.PositiveInfinity));
 
@@ -439,7 +449,10 @@ public partial class MainWindow : Window
         var availableListHeight = Math.Max(
             0,
             MaxHeight - windowChromeHeight - fixedPageHeight - 2);
-        accountList.MaxHeight = Math.Min(naturalListHeight, availableListHeight);
+        accountList.MaxHeight = CalculateAccountListHeight(
+            accountCount,
+            rowHeight,
+            availableListHeight);
         accountContent.Measure(new Size(availableWidth, double.PositiveInfinity));
 
         var targetHeight = Math.Clamp(
@@ -453,6 +466,18 @@ public partial class MainWindow : Window
         bool isAccountListVisible,
         bool isEditorVisible) =>
         isAccountListVisible && !isEditorVisible;
+
+    private static double CalculateAccountListHeight(
+        int accountCount,
+        double rowHeight,
+        double availableHeight)
+    {
+        if (accountCount <= 0) return 0;
+
+        var naturalHeight = (accountCount * rowHeight) + 2;
+        var minimumVisibleHeight = Math.Min(naturalHeight, rowHeight + 2);
+        return Math.Min(naturalHeight, Math.Max(minimumVisibleHeight, availableHeight));
+    }
 
     private void MainWindowPositionChanged(object? sender, PixelPointEventArgs e) =>
         ApplyScreenSizeLimits();

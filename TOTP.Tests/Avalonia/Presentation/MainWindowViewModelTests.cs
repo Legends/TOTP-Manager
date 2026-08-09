@@ -11,11 +11,73 @@ using TOTP.Core.Security.Models;
 using TOTP.Core.Security;
 using TOTP.Core.Enums;
 using TOTP.Avalonia.Desktop.Localization;
+using TOTP.Avalonia.Desktop.Presentation.Dialogs;
+using TOTP.Core.Services.Models;
+using TOTP.Infrastructure.Services;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
 public sealed class MainWindowViewModelTests
 {
+    [Fact]
+    public async Task ClosingSettingsAfterImport_AwaitsAccountListRefresh()
+    {
+        var imported = new Account(Guid.NewGuid(), "Imported issuer", "JBSWY3DPEHPK3PXP", "Imported account");
+        var accountReads = 0;
+        var accounts = new Mock<IAccountManager>();
+        accounts.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(() => Result.Ok<IReadOnlyList<Account>>(
+                ++accountReads < 3 ? [] : [imported]));
+        accounts.Setup(value => value.BackupOtpEntriesStorageFileAsync()).ReturnsAsync(Result.Ok());
+        accounts.Setup(value => value.AddNewAsync(It.IsAny<Account>())).ReturnsAsync(Result.Ok());
+
+        var nativePicker = new Mock<IAvaloniaFilePicker>();
+        nativePicker.Setup(value => value.PickImportFileAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TestStorageFile("backup.json"));
+        var export = new Mock<IExportService>();
+        export.Setup(value => value.ImportFromStreamAsync(
+                It.IsAny<Stream>(), "backup.json", null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(new List<Account> { imported }));
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        dialogs.Setup(value => value.ConfirmAsync(
+                It.IsAny<ConfirmationDialogRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        var validation = new Mock<IPasswordValidationService>();
+        validation.SetupGet(value => value.MinimumLength).Returns(8);
+        var settings = new Mock<ISettingsService>();
+        settings.SetupGet(value => value.Current).Returns(new AppSettings());
+        var filePicker = new NativeFilePickerViewModel(
+            nativePicker.Object,
+            export.Object,
+            accounts.Object,
+            new AccountImportService(accounts.Object),
+            dialogs.Object,
+            validation.Object,
+            Mock.Of<IPlatformFileSecurity>(),
+            settings.Object,
+            Mock.Of<IPlatformFolderLauncher>(),
+            CreateLocalization());
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
+        using var sut = CreateSut(
+            coordinator.Object,
+            Mock.Of<IAuthorizationService>(),
+            accountManager: accounts.Object,
+            nativeFilePicker: filePicker);
+
+        await sut.InitializeAsync();
+        await sut.ShowSettingsAsync();
+        await filePicker.ImportAsync();
+
+        Assert.Empty(sut.AccountList.Accounts);
+
+        await sut.CloseSettingsAsync();
+
+        Assert.Equal(imported.ID, Assert.Single(sut.AccountList.Accounts).Id);
+        Assert.False(sut.IsSettingsVisible);
+    }
+
     [Theory]
     [InlineData(AvaloniaStartupOutcome.ReadyForPasswordSetup, false, "Create a master password")]
     [InlineData(AvaloniaStartupOutcome.ReadyForUnlock, false, "Enter your master password")]
@@ -407,14 +469,16 @@ public sealed class MainWindowViewModelTests
     private static MainWindowViewModel CreateSut(
         IAvaloniaStartupCoordinator coordinator,
         IAuthorizationService authorization,
-        IAvaloniaCameraScannerDialogService? scannerDialogs = null) =>
+        IAvaloniaCameraScannerDialogService? scannerDialogs = null,
+        IAccountManager? accountManager = null,
+        NativeFilePickerViewModel? nativeFilePicker = null) =>
         new(
             coordinator,
             authorization,
             new PasswordUnlockViewModel(authorization),
             CreatePasswordSetup(authorization),
             new AccountListViewModel(
-                Mock.Of<IAccountManager>(),
+                accountManager ?? Mock.Of<IAccountManager>(),
                 Mock.Of<IAccountTotpService>(),
                 Mock.Of<IAsyncClipboardService>(),
                 Mock.Of<IAccountQrCodeService>(),
@@ -423,12 +487,24 @@ public sealed class MainWindowViewModelTests
                 CreateLocalization()),
             CreateSettingsPage(),
             CreateAuthorizationSettings(authorization),
-            CreateFilePicker(),
+            nativeFilePicker ?? CreateFilePicker(),
             CreateCameraScanner(),
             CreateUpdateCheck(),
             CreateDiagnostics(),
             CreateLocalization(),
             scannerDialogs ?? Mock.Of<IAvaloniaCameraScannerDialogService>());
+
+    private sealed class TestStorageFile(string name) : INativeStorageFile
+    {
+        public string Name { get; } = name;
+        public string? LocalPath => null;
+        public Task<Stream> OpenReadAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<Stream>(new MemoryStream());
+        public Task<Stream> OpenWriteAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<Stream>(new MemoryStream());
+        public Task DeleteAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
 
     private static AuthorizationState CreateAuthorizationState(PreferredUnlockMethod preference)
     {
