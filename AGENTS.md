@@ -129,6 +129,15 @@ Releases, auto-update metadata, signatures, and CI behavior are part of the prod
 - Make user-visible failure modes recoverable and explicit.
 - Add tests for failure branches, not only happy paths.
 
+### Localization rules
+
+- Localize every user-visible string. This includes headings, labels, buttons, tooltips, placeholders, validation text, errors, confirmations, empty states, transient progress/status messages, notifications, accessibility names, and platform-specific guidance.
+- Do not hard-code user-visible text in views, view models, code-behind, dialog services, or platform adapters. Resolve it through the localization resources used by that UI project.
+- Add every new localization key to all supported language resources in the same change. Do not assemble a message from localized and hard-coded fragments, because that produces mixed-language UI and makes translation grammatically unsafe.
+- Use stable typed/string-key references rather than duplicating resource-key literals throughout feature code.
+- When behavior selects or composes localized messages, add regression coverage that proves the complete displayed message comes from the active locale. Also keep resource-completeness tests passing.
+- Logs and developer diagnostics are not UI and should remain stable, structured, non-secret-bearing English unless an existing subsystem requires otherwise.
+
 ### Testing rules
 
 - New behavior should come with tests.
@@ -380,6 +389,7 @@ Review the relevant local context first:
 
 - preserve naming and file organization patterns already used nearby
 - prefer extending an existing service/workflow over creating parallel logic
+- route all user-visible text through the relevant localization service/resources and update every supported locale
 - keep code comments sparse and useful
 - avoid speculative refactors unless they directly unblock the change
 

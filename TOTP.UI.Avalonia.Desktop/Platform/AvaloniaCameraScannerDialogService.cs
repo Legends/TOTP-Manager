@@ -20,7 +20,9 @@ public sealed class AvaloniaCameraScannerDialogService(
             var owner = windows.GetRequiredDialogOwner();
             var dialog = new CameraScannerDialogWindow { DataContext = scanner };
             EventHandler? opened = null;
-            opened = (_, _) => scanner.StartCommand.Execute(null);
+            opened = (_, _) => Dispatcher.UIThread.Post(
+                () => scanner.StartCommand.Execute(null),
+                DispatcherPriority.Background);
             scanner.CloseRequested += Close;
             dialog.Opened += opened;
             using var ownership = windows.RegisterOwnedDialog(dialog);

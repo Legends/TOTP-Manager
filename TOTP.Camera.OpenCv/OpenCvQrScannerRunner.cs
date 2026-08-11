@@ -36,12 +36,20 @@ public sealed class OpenCvQrScannerRunner : IQrScannerRunner
             throw new ArgumentOutOfRangeException(nameof(options));
     }
 
+    public Task<QrScannerRunResult> RunAsync(
+        CancellationToken token,
+        Action<byte[]> onPreview,
+        Action onFirstFrame) =>
+        RunAsync(token, onPreview, static () => { }, onFirstFrame);
+
     public async Task<QrScannerRunResult> RunAsync(
         CancellationToken token,
         Action<byte[]> onPreview,
+        Action onCameraOpened,
         Action onFirstFrame)
     {
         ArgumentNullException.ThrowIfNull(onPreview);
+        ArgumentNullException.ThrowIfNull(onCameraOpened);
         ArgumentNullException.ThrowIfNull(onFirstFrame);
         token.ThrowIfCancellationRequested();
 
@@ -50,6 +58,7 @@ public sealed class OpenCvQrScannerRunner : IQrScannerRunner
             return QrScannerRunResult.Failed(Map(open.Failure));
 
         using var session = open.Session;
+        onCameraOpened();
         var firstFrameShown = false;
         var consecutiveReadFailures = 0;
         ulong? previousFingerprint = null;

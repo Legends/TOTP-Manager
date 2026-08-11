@@ -17,6 +17,7 @@
     <Grid RowDefinitions="Auto,*">
         <controls:ProductTitleBar
             ShowIcon="False"
+            TitlePadding="8,0,0,0"
             Title="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}" />
         <Grid Grid.Row="1" Margin="12" RowDefinitions="*,Auto">
             <Border

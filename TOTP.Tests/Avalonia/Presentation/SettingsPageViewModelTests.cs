@@ -89,6 +89,28 @@ public sealed class SettingsPageViewModelTests
     }
 
     [Fact]
+    public void CultureChanged_AfterStoredSettingsLoad_SynchronizesLanguageSelector()
+    {
+        var english = new LanguageOption("en", "English");
+        var german = new LanguageOption("de", "Deutsch");
+        var currentLanguage = english;
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        localization.SetupGet(value => value.SupportedLanguages).Returns([english, german]);
+        localization.SetupGet(value => value.CurrentLanguage)
+            .Returns(() => currentLanguage);
+        using var sut = new SettingsPageViewModel(
+            CreateSettings(new AppSettings { CultureName = "de" }).Object,
+            localization.Object,
+            autoSaveDelay: TimeSpan.Zero);
+
+        currentLanguage = german;
+        localization.Raise(value => value.CultureChanged += null, EventArgs.Empty);
+
+        Assert.Same(german, sut.SelectedLanguage);
+        localization.Verify(value => value.ApplyCulture(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
     public async Task SaveAsync_PersistsCompletePortablePreferenceSet()
     {
         var current = new AppSettings();

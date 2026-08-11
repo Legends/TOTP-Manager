@@ -34,4 +34,11 @@ public interface IQrScannerRunner
         CancellationToken token,
         Action<byte[]> onPreview,
         Action onFirstFrame);
+
+    Task<QrScannerRunResult> RunAsync(
+        CancellationToken token,
+        Action<byte[]> onPreview,
+        Action onCameraOpened,
+        Action onFirstFrame) =>
+        RunAsync(token, onPreview, onFirstFrame);
 }

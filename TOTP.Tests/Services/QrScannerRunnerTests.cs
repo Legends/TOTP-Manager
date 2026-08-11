@@ -35,16 +35,23 @@ public sealed class QrScannerRunnerTests
         var sut = CreateSut(CameraSessionOpenResult.Success(session));
         byte[]? preview = null;
         var firstFrameCalls = 0;
+        var lifecycle = new List<string>();
 
         var result = await sut.RunAsync(
             TestContext.Current.CancellationToken,
             bytes => preview = bytes,
-            () => firstFrameCalls++);
+            () => lifecycle.Add("opened"),
+            () =>
+            {
+                lifecycle.Add("frame");
+                firstFrameCalls++;
+            });
 
         Assert.True(result.IsDecoded);
         Assert.Equal("otpauth://totp/demo?secret=synthetic", result.DecodedText);
         Assert.Equal([1, 2, 3], preview);
         Assert.Equal(1, firstFrameCalls);
+        Assert.Equal(["opened", "frame"], lifecycle);
         Assert.True(session.DisposeCalled);
         CryptographicOperations.ZeroMemory(preview!);
     }

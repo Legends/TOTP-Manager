@@ -28,6 +28,16 @@ public static class AvaloniaStringKeys
     public const string SoftwareUpdates = nameof(SoftwareUpdates);
     public const string ScanQrCamera = nameof(ScanQrCamera);
     public const string CancelScan = nameof(CancelScan);
+    public const string CameraReconnectHint = nameof(CameraReconnectHint);
+    public const string CameraReadyToStart = nameof(CameraReadyToStart);
+    public const string CameraSearching = nameof(CameraSearching);
+    public const string CameraInitializing = nameof(CameraInitializing);
+    public const string CameraActive = nameof(CameraActive);
+    public const string CameraScanCancelled = nameof(CameraScanCancelled);
+    public const string CameraScanFailedSafely = nameof(CameraScanFailedSafely);
+    public const string CameraRuntimeUnavailable = nameof(CameraRuntimeUnavailable);
+    public const string CameraNotFound = nameof(CameraNotFound);
+    public const string CameraStartFailed = nameof(CameraStartFailed);
     public const string SecuritySettings = nameof(SecuritySettings);
     public const string Security = nameof(Security);
     public const string ImportExport = nameof(ImportExport);
@@ -189,7 +199,10 @@ public static class AvaloniaStringKeys
         ImportConflictHandling, ImportAccounts, EncryptedBackup, EncryptedBackupHelp,
         SupportDiagnostics, RefreshSupportInformation,
         DownloadUpdate, InstallUpdate, ReleaseNotes, VerifyAppcast, SoftwareUpdates,
-        ScanQrCamera, CancelScan, SecuritySettings, Security, ImportExport, Miscellaneous,
+        ScanQrCamera, CancelScan, CameraReconnectHint, CameraReadyToStart, CameraSearching,
+        CameraInitializing, CameraActive, CameraScanCancelled,
+        CameraScanFailedSafely, CameraRuntimeUnavailable, CameraNotFound, CameraStartFailed,
+        SecuritySettings, Security, ImportExport, Miscellaneous,
         Language, IdleTimeout,
         IdleTimeoutHelp, LockWhenMinimized, SettingsAutoSaveHint,
         SettingsSavedAutomatically, SettingsSaveFailed, SearchAccounts, NoEntriesYet,

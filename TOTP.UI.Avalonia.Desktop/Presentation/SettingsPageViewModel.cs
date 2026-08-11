@@ -52,6 +52,8 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
         LogLevels = Enum.GetValues<AppLogLevel>();
         InterfaceScales = CreateInterfaceScaleOptions();
         _selectedLanguage = localization?.CurrentLanguage;
+        if (_localization is not null)
+            _localization.CultureChanged += LocalizationCultureChanged;
         _openLogFolderCommand = new AsyncCommand(
             OpenLogFolderAsync,
             () => !_isBusy && _applicationPaths is not null && _folderLauncher is not null);
@@ -303,7 +305,18 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        if (_localization is not null)
+            _localization.CultureChanged -= LocalizationCultureChanged;
         CancelAutoSaveDelay();
+    }
+
+    private void LocalizationCultureChanged(object? sender, EventArgs args)
+    {
+        if (_disposed || _localization is null) return;
+        SetField(
+            ref _selectedLanguage,
+            _localization.CurrentLanguage,
+            nameof(SelectedLanguage));
     }
 
     public async Task OpenLogFolderAsync()

@@ -19,6 +19,7 @@
             <Border
                 Grid.Column="1"
                 Background="Transparent"
+                Padding="{Binding TitlePadding, ElementName=Root}"
                 PointerPressed="MoveWindow">
                 <TextBlock
                     VerticalAlignment="Center"

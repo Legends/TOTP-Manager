@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Avalonia.Media;
 using FluentResults;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,14 +21,17 @@ public sealed class CameraScannerViewModelTests
         runner.Setup(value => value.RunAsync(
                 It.IsAny<CancellationToken>(),
                 It.IsAny<Action<byte[]>>(),
+                It.IsAny<Action>(),
                 It.IsAny<Action>()))
-            .Returns<CancellationToken, Action<byte[]>, Action>((_, onPreview, onFirstFrame) =>
-            {
-                onPreview(encodedFrame);
-                onFirstFrame();
-                return Task.FromResult(QrScannerRunResult.Decoded(
-                    "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP"));
-            });
+            .Returns<CancellationToken, Action<byte[]>, Action, Action>(
+                (_, onPreview, onCameraOpened, onFirstFrame) =>
+                {
+                    onCameraOpened();
+                    onPreview(encodedFrame);
+                    onFirstFrame();
+                    return Task.FromResult(QrScannerRunResult.Decoded(
+                        "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP"));
+                });
         var validator = new Mock<IQrPayloadValidator>();
         validator.Setup(value => value.Validate(It.IsAny<string>()))
             .Returns(new QrPayloadValidationResult(true, "Example", "alice"));
@@ -79,9 +83,8 @@ public sealed class CameraScannerViewModelTests
     }
 
     [Theory]
-    [InlineData(QrScannerFailureKind.PermissionDenied, "permission")]
     [InlineData(QrScannerFailureKind.NativeRuntimeUnavailable, "runtime")]
-    [InlineData(QrScannerFailureKind.DeviceLost, "disconnected")]
+    [InlineData(QrScannerFailureKind.Unexpected, "safely")]
     public async Task StartAsync_WhenRunnerReturnsFailure_ProjectsTypedSafeMessage(
         QrScannerFailureKind failure,
         string expected)
@@ -90,6 +93,7 @@ public sealed class CameraScannerViewModelTests
         runner.Setup(value => value.RunAsync(
                 It.IsAny<CancellationToken>(),
                 It.IsAny<Action<byte[]>>(),
+                It.IsAny<Action>(),
                 It.IsAny<Action>()))
             .ReturnsAsync(QrScannerRunResult.Failed(failure));
         using var sut = CreateSut(runner.Object);
@@ -98,6 +102,168 @@ public sealed class CameraScannerViewModelTests
 
         Assert.Contains(expected, sut.Message, StringComparison.OrdinalIgnoreCase);
         Assert.False(sut.IsScanning);
+        runner.Verify(value => value.RunAsync(
+            It.IsAny<CancellationToken>(),
+            It.IsAny<Action<byte[]>>(),
+            It.IsAny<Action>(),
+            It.IsAny<Action>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartAsync_WhenDisabledCameraBecomesAvailable_ReconnectsWithoutReopeningDialog()
+    {
+        var attempts = 0;
+        var secondAttemptStarted = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var allowSecondAttempt = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var runner = new Mock<IQrScannerRunner>();
+        runner.Setup(value => value.RunAsync(
+                It.IsAny<CancellationToken>(),
+                It.IsAny<Action<byte[]>>(),
+                It.IsAny<Action>(),
+                It.IsAny<Action>()))
+            .Returns<CancellationToken, Action<byte[]>, Action, Action>(
+                async (token, _, onCameraOpened, onFirstFrame) =>
+                {
+                    if (Interlocked.Increment(ref attempts) == 1)
+                        return QrScannerRunResult.Failed(QrScannerFailureKind.NoCamera);
+
+                    onCameraOpened();
+                    secondAttemptStarted.SetResult();
+                    await allowSecondAttempt.Task.WaitAsync(token);
+                    onFirstFrame();
+                    return QrScannerRunResult.Decoded(
+                        "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP");
+                });
+        var validator = new Mock<IQrPayloadValidator>();
+        validator.Setup(value => value.Validate(It.IsAny<string>()))
+            .Returns(new QrPayloadValidationResult(true, "Example", "alice"));
+        var import = new Mock<IQrAccountImportService>();
+        import.Setup(value => value.ImportAsync(
+                It.IsAny<string>(),
+                It.IsAny<Func<QrAccountConflict, CancellationToken, Task<QrAccountConflictDecision>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(new QrAccountImportOutcome(
+                QrAccountImportStatus.DuplicateUnchanged,
+                Guid.NewGuid(),
+                "Example",
+                "alice")));
+        using var sut = CreateSut(
+            runner.Object,
+            validator.Object,
+            importService: import.Object,
+            reconnectDelay: TimeSpan.FromMilliseconds(50));
+        var closeRequested = false;
+        sut.CloseRequested += (_, _) => closeRequested = true;
+
+        var scan = sut.StartAsync();
+
+        Assert.Contains("disabled", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("reconnect automatically", sut.Message, StringComparison.OrdinalIgnoreCase);
+
+        await secondAttemptStarted.Task.WaitAsync(
+            TimeSpan.FromSeconds(2),
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, attempts);
+        Assert.True(sut.IsScanning);
+        Assert.Contains("Camera found", sut.StatusMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Initializing", sut.StatusMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(sut.Message);
+
+        allowSecondAttempt.SetResult();
+        await scan;
+
+        Assert.False(sut.IsScanning);
+        Assert.True(closeRequested);
+        import.Verify(value => value.ImportAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<QrAccountConflict, CancellationToken, Task<QrAccountConflictDecision>>>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartAsync_WhileCameraRemainsUnavailable_DoesNotAlternateStatusText()
+    {
+        var attempts = 0;
+        var thirdAttemptStarted = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var runner = new Mock<IQrScannerRunner>();
+        runner.Setup(value => value.RunAsync(
+                It.IsAny<CancellationToken>(),
+                It.IsAny<Action<byte[]>>(),
+                It.IsAny<Action>(),
+                It.IsAny<Action>()))
+            .Returns<CancellationToken, Action<byte[]>, Action, Action>(
+                async (token, _, _, _) =>
+                {
+                    var attempt = Interlocked.Increment(ref attempts);
+                    if (attempt == 1)
+                        return QrScannerRunResult.Failed(QrScannerFailureKind.NoCamera);
+                    if (attempt == 2)
+                        return QrScannerRunResult.Failed(QrScannerFailureKind.Stalled);
+
+                    thirdAttemptStarted.SetResult();
+                    await Task.Delay(Timeout.InfiniteTimeSpan, token);
+                    return QrScannerRunResult.Failed(QrScannerFailureKind.NoCamera);
+                });
+        using var sut = CreateSut(
+            runner.Object,
+            reconnectDelay: TimeSpan.FromMilliseconds(1));
+        var statuses = new ConcurrentQueue<string>();
+        sut.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(CameraScannerViewModel.StatusMessage))
+                statuses.Enqueue(sut.StatusMessage);
+        };
+
+        var scan = sut.StartAsync();
+        await thirdAttemptStarted.Task.WaitAsync(
+            TimeSpan.FromSeconds(2),
+            TestContext.Current.CancellationToken);
+
+        var observed = statuses.ToArray();
+        Assert.Single(
+            observed,
+            message => message.Contains("Checking", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("disabled", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Duration: < 10 sec.", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("stopped", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(sut.StatusMessage);
+
+        sut.Clear();
+        await scan;
+    }
+
+    [Fact]
+    public async Task StartAsync_WhenGermanIsSelected_LocalizesTheCompleteFailureMessage()
+    {
+        var runner = new Mock<IQrScannerRunner>();
+        runner.Setup(value => value.RunAsync(
+                It.IsAny<CancellationToken>(),
+                It.IsAny<Action<byte[]>>(),
+                It.IsAny<Action>(),
+                It.IsAny<Action>()))
+            .ReturnsAsync(QrScannerRunResult.Failed(QrScannerFailureKind.NativeRuntimeUnavailable));
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        localization.Setup(value => value.GetString(It.IsAny<string>()))
+            .Returns((string key) => key switch
+            {
+                AvaloniaStringKeys.CameraReadyToStart => "Der Kamerazugriff ist bereit.",
+                AvaloniaStringKeys.CameraSearching => "Es wird nach einer Kamera gesucht…",
+                AvaloniaStringKeys.CameraRuntimeUnavailable =>
+                    "Die Kameralaufzeit ist für dieses Paket nicht verfügbar.",
+                _ => key
+            });
+        using var sut = CreateSut(runner.Object, localization: localization.Object);
+
+        await sut.StartAsync();
+
+        Assert.Equal(
+            "Die Kameralaufzeit ist für dieses Paket nicht verfügbar.",
+            sut.Message);
+        Assert.DoesNotContain("camera", sut.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -108,8 +274,9 @@ public sealed class CameraScannerViewModelTests
         runner.Setup(value => value.RunAsync(
                 It.IsAny<CancellationToken>(),
                 It.IsAny<Action<byte[]>>(),
+                It.IsAny<Action>(),
                 It.IsAny<Action>()))
-            .Returns<CancellationToken, Action<byte[]>, Action>(async (token, _, _) =>
+            .Returns<CancellationToken, Action<byte[]>, Action, Action>(async (token, _, _, _) =>
             {
                 started.SetResult();
                 await Task.Delay(Timeout.InfiniteTimeSpan, token);
@@ -131,7 +298,9 @@ public sealed class CameraScannerViewModelTests
         IQrScannerRunner runner,
         IQrPayloadValidator? validator = null,
         IAvaloniaQrImageFactory? imageFactory = null,
-        IQrAccountImportService? importService = null) =>
+        IQrAccountImportService? importService = null,
+        TimeSpan? reconnectDelay = null,
+        IAvaloniaLocalizationService? localization = null) =>
         new(
             runner,
             validator ?? Mock.Of<IQrPayloadValidator>(),
@@ -140,13 +309,34 @@ public sealed class CameraScannerViewModelTests
             NullLogger<CameraScannerViewModel>.Instance,
             importService ?? Mock.Of<IQrAccountImportService>(),
             Mock.Of<IAvaloniaDialogService>(),
-            Localization());
+            localization ?? Localization(),
+            reconnectDelay);
 
     private static IAvaloniaLocalizationService Localization()
     {
         var localization = new Mock<IAvaloniaLocalizationService>();
         localization.Setup(value => value.GetString(It.IsAny<string>()))
-            .Returns((string key) => key);
+            .Returns((string key) => key switch
+            {
+                AvaloniaStringKeys.CameraReconnectHint =>
+                    "If your camera is disabled, turn it on. The scanner will reconnect automatically. (Duration: < 10 sec.)",
+                AvaloniaStringKeys.CameraReadyToStart =>
+                    "Camera access starts only when you choose Scan QR.",
+                AvaloniaStringKeys.CameraSearching => "Checking for an available camera…",
+                AvaloniaStringKeys.CameraInitializing =>
+                    "Camera found. Initializing the video stream…",
+                AvaloniaStringKeys.CameraActive =>
+                    "Camera active. Point it at a TOTP QR code.",
+                AvaloniaStringKeys.CameraScanCancelled => "QR scan cancelled.",
+                AvaloniaStringKeys.CameraScanFailedSafely =>
+                    "The camera scanner failed safely. No account data was changed.",
+                AvaloniaStringKeys.CameraRuntimeUnavailable =>
+                    "The camera runtime is unavailable for this package.",
+                AvaloniaStringKeys.CameraNotFound => "No available camera was found.",
+                AvaloniaStringKeys.CameraStartFailed =>
+                    "The camera scanner could not start safely.",
+                _ => key
+            });
         return localization.Object;
     }
 

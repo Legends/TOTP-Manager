@@ -116,6 +116,16 @@
   <data name="SoftwareUpdates" xml:space="preserve"><value>Softwareupdates</value></data>
   <data name="ScanQrCamera" xml:space="preserve"><value>QR-Code mit Kamera scannen</value></data>
   <data name="CancelScan" xml:space="preserve"><value>Scan abbrechen</value></data>
+  <data name="CameraReconnectHint" xml:space="preserve"><value>Falls Ihre Kamera über einen Datenschutzschalter, eine Tastaturtaste oder eine Systemeinstellung deaktiviert ist, schalten Sie sie ein. Der Scanner stellt die Verbindung automatisch wieder her. (Dauer: &lt; 10 Sek.)</value></data>
+  <data name="CameraReadyToStart" xml:space="preserve"><value>Der Kamerazugriff startet erst, wenn Sie „QR-Code scannen“ auswählen.</value></data>
+  <data name="CameraSearching" xml:space="preserve"><value>Es wird nach einer verfügbaren Kamera gesucht…</value></data>
+  <data name="CameraInitializing" xml:space="preserve"><value>Kamera gefunden. Der Videostream wird initialisiert…</value></data>
+  <data name="CameraActive" xml:space="preserve"><value>Kamera aktiv. Richten Sie sie auf einen TOTP-QR-Code.</value></data>
+  <data name="CameraScanCancelled" xml:space="preserve"><value>Der QR-Scan wurde abgebrochen.</value></data>
+  <data name="CameraScanFailedSafely" xml:space="preserve"><value>Der Kamerascanner wurde sicher beendet. Es wurden keine Kontodaten geändert.</value></data>
+  <data name="CameraRuntimeUnavailable" xml:space="preserve"><value>Die Kameralaufzeit ist für dieses Paket nicht verfügbar.</value></data>
+  <data name="CameraNotFound" xml:space="preserve"><value>Es wurde keine verfügbare Kamera gefunden.</value></data>
+  <data name="CameraStartFailed" xml:space="preserve"><value>Der Kamerascanner konnte nicht sicher gestartet werden.</value></data>
   <data name="SecuritySettings" xml:space="preserve"><value>Sicherheitseinstellungen</value></data>
   <data name="Security" xml:space="preserve"><value>Sicherheit</value></data>
   <data name="ImportExport" xml:space="preserve"><value>Import / Export</value></data>

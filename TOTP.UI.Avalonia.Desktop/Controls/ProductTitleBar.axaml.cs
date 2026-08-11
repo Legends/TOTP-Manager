@@ -13,6 +13,9 @@ public partial class ProductTitleBar : UserControl
     public static readonly StyledProperty<bool> ShowIconProperty =
         AvaloniaProperty.Register<ProductTitleBar, bool>(nameof(ShowIcon), true);
 
+    public static readonly StyledProperty<Thickness> TitlePaddingProperty =
+        AvaloniaProperty.Register<ProductTitleBar, Thickness>(nameof(TitlePadding));
+
     public ProductTitleBar()
     {
         InitializeComponent();
@@ -28,6 +31,12 @@ public partial class ProductTitleBar : UserControl
     {
         get => GetValue(ShowIconProperty);
         set => SetValue(ShowIconProperty, value);
+    }
+
+    public Thickness TitlePadding
+    {
+        get => GetValue(TitlePaddingProperty);
+        set => SetValue(TitlePaddingProperty, value);
     }
 
     private void MoveWindow(object? sender, PointerPressedEventArgs e)

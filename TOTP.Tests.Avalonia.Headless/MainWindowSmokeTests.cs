@@ -582,11 +582,34 @@ public sealed class MainWindowSmokeTests
 
             Assert.Equal(2, window.GetVisualDescendants().OfType<Image>().Count());
             Assert.Single(window.GetVisualDescendants().OfType<ProgressBar>());
-            Assert.Equal(2, window.GetVisualDescendants().OfType<Button>().Count());
+            Assert.Equal(3, window.GetVisualDescendants().OfType<Button>().Count());
             Assert.Single(window.GetVisualDescendants().OfType<ProductTitleBar>());
             Assert.Equal(WindowDecorations.None, window.WindowDecorations);
             Assert.Equal(560, window.Width);
             Assert.Equal(420, window.Height);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void CameraScannerDialog_CancelButtonSizesToLocalizedContent()
+    {
+        var window = new CameraScannerDialogWindow();
+
+        try
+        {
+            window.Show();
+            var cancel = Assert.Single(
+                window.GetVisualDescendants().OfType<Button>(),
+                button => button.IsCancel);
+            cancel.Content = "Scan abbrechen";
+            window.UpdateLayout();
+
+            Assert.True(double.IsNaN(cancel.Width));
+            Assert.True(cancel.Bounds.Width > 100);
         }
         finally
         {
@@ -640,6 +663,26 @@ public sealed class MainWindowSmokeTests
         {
             foreach (var window in windows)
                 window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void QrPreviewDialog_TitleHasLeftPaddingWhenIconIsHidden()
+    {
+        var window = new QrPreviewDialogWindow();
+
+        try
+        {
+            window.Show();
+            var titleBar = Assert.Single(
+                window.GetVisualDescendants().OfType<ProductTitleBar>());
+
+            Assert.False(titleBar.ShowIcon);
+            Assert.Equal(new Thickness(8, 0, 0, 0), titleBar.TitlePadding);
+        }
+        finally
+        {
+            window.Close();
         }
     }
 

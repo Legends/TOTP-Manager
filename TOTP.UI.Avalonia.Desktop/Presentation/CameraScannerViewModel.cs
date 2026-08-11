@@ -22,11 +22,13 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
     private readonly IQrAccountImportService _importService;
     private readonly IAvaloniaDialogService _dialogs;
     private readonly IAvaloniaLocalizationService _localization;
+    private readonly TimeSpan _reconnectDelay;
     private readonly AsyncCommand _startCommand;
     private readonly AsyncCommand _cancelCommand;
     private CancellationTokenSource? _captureLifetime;
     private AvaloniaQrImageHandle? _preview;
-    private string _message = "Camera access starts only when you choose Scan QR.";
+    private string _message;
+    private string _statusMessage = string.Empty;
     private bool _isScanning;
     private bool _disposed;
     private long _generation;
@@ -39,7 +41,8 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         ILogger<CameraScannerViewModel> logger,
         IQrAccountImportService importService,
         IAvaloniaDialogService dialogs,
-        IAvaloniaLocalizationService localization)
+        IAvaloniaLocalizationService localization,
+        TimeSpan? reconnectDelay = null)
     {
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));
         _payloadValidator = payloadValidator ?? throw new ArgumentNullException(nameof(payloadValidator));
@@ -49,6 +52,10 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         _importService = importService ?? throw new ArgumentNullException(nameof(importService));
         _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        _message = _localization.GetString(AvaloniaStringKeys.CameraReadyToStart);
+        _reconnectDelay = reconnectDelay ?? TimeSpan.FromMilliseconds(750);
+        if (_reconnectDelay <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(reconnectDelay));
         _startCommand = new AsyncCommand(StartAsync, () => !_disposed && !IsScanning);
         _cancelCommand = new AsyncCommand(CancelAsync, () => !_disposed);
     }
@@ -67,12 +74,19 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         private set => SetField(ref _message, value);
     }
 
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        private set => SetField(ref _statusMessage, value);
+    }
+
     public bool IsScanning
     {
         get => _isScanning;
         private set
         {
             if (!SetField(ref _isScanning, value)) return;
+            OnPropertyChanged(nameof(IsWaitingForPreview));
             _startCommand.NotifyCanExecuteChanged();
             _cancelCommand.NotifyCanExecuteChanged();
         }
@@ -81,6 +95,8 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
     public IImage? PreviewImage => _preview?.Image;
 
     public bool HasPreview => PreviewImage is not null;
+
+    public bool IsWaitingForPreview => IsScanning && !HasPreview;
 
     public async Task StartAsync()
     {
@@ -92,39 +108,69 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         _captureLifetime = new CancellationTokenSource();
         var token = _captureLifetime.Token;
         IsScanning = true;
-        Message = "Requesting camera access…";
+        Message = string.Empty;
+        StatusMessage = _localization.GetString(AvaloniaStringKeys.CameraSearching);
 
         try
         {
-            var result = await _runner.RunAsync(
-                token,
-                bytes => QueuePreview(bytes, generation),
-                () => QueueUi(generation, () => Message = "Camera active. Point it at a TOTP QR code."));
-
-            if (generation != Volatile.Read(ref _generation) || _disposed) return;
-
-            if (result.IsDecoded)
+            var lastReportedFailure = QrScannerFailureKind.None;
+            var isReconnecting = false;
+            while (!token.IsCancellationRequested)
             {
-                var validation = _payloadValidator.Validate(result.DecodedText!);
-                if (!validation.IsValid)
+                if (!isReconnecting)
+                    StatusMessage = _localization.GetString(AvaloniaStringKeys.CameraSearching);
+                var result = await _runner.RunAsync(
+                    token,
+                    bytes => QueuePreview(bytes, generation),
+                    () => QueueUi(
+                        generation,
+                        () => SetCameraAvailableStatus(
+                            AvaloniaStringKeys.CameraInitializing)),
+                    () => QueueUi(
+                        generation,
+                        () => SetCameraAvailableStatus(
+                            AvaloniaStringKeys.CameraActive)));
+
+                if (generation != Volatile.Read(ref _generation) || _disposed) return;
+
+                if (result.IsDecoded)
                 {
-                    Message = _localization.GetString(AvaloniaStringKeys.QrInvalid);
+                    var validation = _payloadValidator.Validate(result.DecodedText!);
+                    if (!validation.IsValid)
+                    {
+                        Message = _localization.GetString(AvaloniaStringKeys.QrInvalid);
+                    }
+                    else
+                    {
+                        await ImportDecodedAsync(result.DecodedText!, token);
+                    }
+
+                    return;
                 }
-                else
+
+                if (result.Failure != lastReportedFailure)
                 {
-                    await ImportDecodedAsync(result.DecodedText!, token);
+                    _logger.LogWarning(
+                        "Avalonia camera is temporarily unavailable. failure={Failure}",
+                        result.Failure);
+                    lastReportedFailure = result.Failure;
                 }
-            }
-            else
-            {
-                _logger.LogWarning("Avalonia camera scan stopped. failure={Failure}", result.Failure);
                 Message = FailureMessage(result.Failure);
+                ClearPreview();
+                if (!ShouldReconnect(result.Failure)) return;
+
+                isReconnecting = true;
+                StatusMessage = string.Empty;
+                await Task.Delay(_reconnectDelay, token);
             }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
             if (!_disposed && generation == Volatile.Read(ref _generation))
-                Message = "QR scan cancelled.";
+            {
+                StatusMessage = string.Empty;
+                Message = _localization.GetString(AvaloniaStringKeys.CameraScanCancelled);
+            }
         }
         catch (Exception exception)
         {
@@ -132,7 +178,10 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
                 "Avalonia camera scan failed at the platform boundary with exception type {ExceptionType}.",
                 exception.GetType().FullName);
             if (!_disposed && generation == Volatile.Read(ref _generation))
-                Message = "The camera scanner failed safely. No account data was changed.";
+            {
+                StatusMessage = string.Empty;
+                Message = _localization.GetString(AvaloniaStringKeys.CameraScanFailedSafely);
+            }
         }
         finally
         {
@@ -161,7 +210,8 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         _captureLifetime?.Dispose();
         _captureLifetime = null;
         IsScanning = false;
-        Message = "Camera access starts only when you choose Scan QR.";
+        StatusMessage = string.Empty;
+        Message = _localization.GetString(AvaloniaStringKeys.CameraReadyToStart);
         ClearPreview();
     }
 
@@ -194,6 +244,7 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
                     _preview = replacement;
                     OnPropertyChanged(nameof(PreviewImage));
                     OnPropertyChanged(nameof(HasPreview));
+                    OnPropertyChanged(nameof(IsWaitingForPreview));
                     previous?.Dispose();
                 }
                 finally
@@ -218,12 +269,19 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         });
     }
 
+    private void SetCameraAvailableStatus(string statusKey)
+    {
+        Message = string.Empty;
+        StatusMessage = _localization.GetString(statusKey);
+    }
+
     private void ClearPreview()
     {
         var preview = _preview;
         _preview = null;
         OnPropertyChanged(nameof(PreviewImage));
         OnPropertyChanged(nameof(HasPreview));
+        OnPropertyChanged(nameof(IsWaitingForPreview));
         preview?.Dispose();
     }
 
@@ -279,15 +337,27 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private static string FailureMessage(QrScannerFailureKind failure) => failure switch
+    private string FailureMessage(QrScannerFailureKind failure)
     {
-        QrScannerFailureKind.PermissionDenied => "Camera permission was denied. No account data was changed.",
-        QrScannerFailureKind.NativeRuntimeUnavailable => "The camera runtime is unavailable for this package.",
-        QrScannerFailureKind.DeviceLost => "The camera was disconnected or stopped responding.",
-        QrScannerFailureKind.Stalled => "The camera stopped providing new frames.",
-        QrScannerFailureKind.NoCamera => "No available camera was found.",
-        _ => "The camera scanner could not start safely."
-    };
+        if (ShouldReconnect(failure))
+        {
+            return $"{_localization.GetString(AvaloniaStringKeys.CameraNotFound)} "
+                + _localization.GetString(AvaloniaStringKeys.CameraReconnectHint);
+        }
+
+        var key = failure switch
+        {
+            QrScannerFailureKind.NativeRuntimeUnavailable => AvaloniaStringKeys.CameraRuntimeUnavailable,
+            _ => AvaloniaStringKeys.CameraStartFailed
+        };
+        return _localization.GetString(key);
+    }
+
+    private static bool ShouldReconnect(QrScannerFailureKind failure) => failure is
+        QrScannerFailureKind.NoCamera
+        or QrScannerFailureKind.PermissionDenied
+        or QrScannerFailureKind.DeviceLost
+        or QrScannerFailureKind.Stalled;
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
