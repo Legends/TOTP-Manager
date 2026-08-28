@@ -357,7 +357,7 @@ public sealed class MainWindowSmokeTests
             window.UpdateLayout();
             Assert.Equal(380, transform.X, precision: 2);
             flyout.Classes.Add("open");
-            await Task.Delay(250);
+            await WaitUntilAsync(() => Math.Abs(transform.X) < 0.005);
 
             Assert.Equal(0, transform.X, precision: 2);
 
@@ -371,7 +371,7 @@ public sealed class MainWindowSmokeTests
             window.UpdateLayout();
             Assert.Equal(380, transform.X, precision: 2);
             flyout.Classes.Add("open");
-            await Task.Delay(250);
+            await WaitUntilAsync(() => Math.Abs(transform.X) < 0.005);
             Assert.Equal(0, transform.X, precision: 2);
         }
         finally
@@ -553,7 +553,8 @@ public sealed class MainWindowSmokeTests
         try
         {
             window.Show();
-            await Task.Delay(250);
+            await WaitUntilAsync(
+                () => observedOpeningOffset && Math.Abs(transform.Y) < 0.005);
 
             Assert.True(observedOpeningOffset);
             Assert.Equal(0, transform.Y, precision: 2);
@@ -952,5 +953,15 @@ public sealed class MainWindowSmokeTests
         public bool CanExecute(object? parameter) => true;
 
         public void Execute(object? parameter) => execute();
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> predicate)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(
+            TestContext.Current.CancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(3));
+
+        while (!predicate())
+            await Task.Delay(10, timeout.Token);
     }
 }
