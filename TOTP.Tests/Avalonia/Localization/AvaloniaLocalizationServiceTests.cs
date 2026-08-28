@@ -46,4 +46,16 @@ public sealed class AvaloniaLocalizationServiceTests
         Assert.Empty(sut.GetMissingKeys(System.Globalization.CultureInfo.GetCultureInfo("en")));
         Assert.Empty(sut.GetMissingKeys(System.Globalization.CultureInfo.GetCultureInfo("de")));
     }
+
+    [Theory]
+    [InlineData("en", "TOTP Manager")]
+    [InlineData("de", "TOTP Manager")]
+    public void Catalog_AppTitleUsesStableProductName(string cultureName, string expected)
+    {
+        var sut = new AvaloniaStringCatalog();
+
+        Assert.Equal(
+            expected,
+            sut.Get(AvaloniaStringKeys.AppTitle, System.Globalization.CultureInfo.GetCultureInfo(cultureName)));
+    }
 }

@@ -23,34 +23,34 @@ Expected:
 
 A normal live session loses application data after reboot. A persistent live USB retains it.
 
-## 2. Download RC4
+## 2. Download RC6
 
 ```bash
-mkdir -p ~/Downloads/totp-rc4
-cd ~/Downloads/totp-rc4
+mkdir -p ~/Downloads/totp-rc6
+cd ~/Downloads/totp-rc6
 
-BASE_URL="https://github.com/Legends/TOTP-Manager/releases/download/v2.0.0-rc4"
+BASE_URL="https://github.com/Legends/TOTP-Manager/releases/download/v2.0.0-rc6"
 
 wget "$BASE_URL/SHA256SUMS"
-wget "$BASE_URL/totp-manager_2.0.0-rc4_amd64.deb"
+wget "$BASE_URL/totp-manager_2.0.0-rc6_amd64.deb"
 ```
 
 Release page:
 
-[TOTP Manager v2.0.0-rc4](https://github.com/Legends/TOTP-Manager/releases/tag/v2.0.0-rc4)
+[TOTP Manager v2.0.0-rc6](https://github.com/Legends/TOTP-Manager/releases/tag/v2.0.0-rc6)
 
 ## 3. Verify the Download
 
 Verify only the downloaded DEB package:
 
 ```bash
-grep 'totp-manager_2.0.0-rc4_amd64.deb' SHA256SUMS | sha256sum --check
+grep 'totp-manager_2.0.0-rc6_amd64.deb' SHA256SUMS | sha256sum --check
 ```
 
 Expected:
 
 ```text
-totp-manager_2.0.0-rc4_amd64.deb: OK
+totp-manager_2.0.0-rc6_amd64.deb: OK
 ```
 
 The checksum detects download corruption, but this remains an unsigned preview. The checksum is hosted with the same unsigned release.
@@ -59,7 +59,7 @@ The checksum detects download corruption, but this remains an unsigned preview. 
 
 ```bash
 sudo apt update
-sudo apt install ./totp-manager_2.0.0-rc4_amd64.deb
+sudo apt install ./totp-manager_2.0.0-rc6_amd64.deb
 ```
 
 APT should resolve and install the package's declared runtime dependencies, potentially including packages such as `libsecret-tools`, `libgl1`, and GLib runtime libraries.
@@ -273,19 +273,19 @@ On a non-persistent live USB, rebooting normally removes all session data.
 To test without installing the DEB:
 
 ```bash
-cd ~/Downloads/totp-rc4
+cd ~/Downloads/totp-rc6
 
-wget "$BASE_URL/TOTP-Manager-linux-x64-2.0.0-rc4.tar.gz"
+wget "$BASE_URL/TOTP-Manager-linux-x64-2.0.0-rc6.tar.gz"
 
-grep 'TOTP-Manager-linux-x64-2.0.0-rc4.tar.gz' SHA256SUMS \
+grep 'TOTP-Manager-linux-x64-2.0.0-rc6.tar.gz' SHA256SUMS \
   | sha256sum --check
 
-mkdir -p ~/Applications/totp-manager-rc4
+mkdir -p ~/Applications/totp-manager-rc6
 
-tar -xzf TOTP-Manager-linux-x64-2.0.0-rc4.tar.gz \
-  -C ~/Applications/totp-manager-rc4
+tar -xzf TOTP-Manager-linux-x64-2.0.0-rc6.tar.gz \
+  -C ~/Applications/totp-manager-rc6
 
-cd ~/Applications/totp-manager-rc4
+cd ~/Applications/totp-manager-rc6
 ./TOTP.UI.Avalonia.Desktop
 ```
 

@@ -3,7 +3,6 @@ namespace TOTP.Core.Common;
 public static class StringsConstants
 {
     public const string AppSettingsFileName = "appsettings.json";
-    public static readonly string Syncfusion = "syncfusion";
     public const string TokensStorageFilePathConfigKey = "Accounts:StorageFilePath";
     public const string AppDataDirectoryName = "TOTP-Manager";
     public const string TokensStorageFileName = "master.totp";

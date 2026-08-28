@@ -78,6 +78,7 @@ public sealed class PortableUpdateServiceTests
         using var client = new HttpClient(new ThrowingHandler());
         var sut = new PortableUpdateService(
             configuration,
+            VersionProvider(),
             client,
             new SignedAppcastVerifier(),
             new SignedPayloadVerifier(),
@@ -123,6 +124,7 @@ public sealed class PortableUpdateServiceTests
         using var client = new HttpClient(new ThrowingHandler());
         var sut = new PortableUpdateService(
             configuration,
+            VersionProvider(),
             client,
             new SignedAppcastVerifier(),
             new SignedPayloadVerifier(),
@@ -196,6 +198,7 @@ public sealed class PortableUpdateServiceTests
         }).Build();
         return new PortableUpdateService(
             configuration,
+            VersionProvider(),
             client,
             new SignedAppcastVerifier(),
             new SignedPayloadVerifier(),
@@ -203,6 +206,10 @@ public sealed class PortableUpdateServiceTests
             fileSecurity ?? NoOpPlatformFileSecurity.Instance,
             NullLogger<PortableUpdateService>.Instance);
     }
+
+    private static IApplicationVersionProvider VersionProvider() =>
+        Mock.Of<IApplicationVersionProvider>(value =>
+            value.CurrentVersion == new Version(1, 0, 0));
 
     private static SignedFixture CreateSignedFixture(byte[] packageBytes)
     {

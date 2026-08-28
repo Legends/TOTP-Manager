@@ -13,7 +13,7 @@
 ## Standard Rotation Procedure
 1. Acquire/import replacement code-signing certificate (`.pfx`) from approved CA process.
 2. Convert certificate to base64 (local secure workstation):
-   - `pwsh ./TOTP/Properties/Signing/PfxToBase64.ps1 -PfxPath "C:\secure\new-cert.pfx"`
+   - `pwsh ./scripts/release/signing/PfxToBase64.ps1 -PfxPath "C:\secure\new-cert.pfx"`
 3. Update GitHub repository secrets:
    - replace `SIGNING_CERT_BASE64`
    - replace `SIGNING_CERT_PASSWORD`

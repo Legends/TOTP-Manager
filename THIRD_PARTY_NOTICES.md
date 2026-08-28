@@ -10,7 +10,7 @@ Important:
 ## NuGet Dependencies (Runtime)
 
 From the current project files:
-- `TOTP/TOTP.UI.WPF.csproj`
+- `TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj`
 - `TOTP.Core/TOTP.Core.csproj`
 - `TOTP.Infrastructure/TOTP.Infrastructure.csproj`
 - `TOTP.DAL/TOTP.DAL.csproj`
@@ -35,7 +35,6 @@ Components include (non-exhaustive):
 - `QRCoder`
 - `Serilog.*`
 - `SharpVectors`
-- `Syncfusion.*` (commercial licensing applies)
 - `System.Drawing.Common`
 - `ZXing.Net`
 - `NSec.Cryptography`
@@ -57,17 +56,10 @@ From `TOTP.Tests/TOTP.Tests.csproj`:
 
 These are normally non-redistributed (dev/test scope), but still require internal compliance tracking.
 
-## Commercial Components
-
-- `Syncfusion.*` packages are used by the WPF UI.
-- Ensure your team holds valid Syncfusion licensing for build and distribution use cases.
-- Keep proof of entitlement and follow Syncfusion redistribution terms.
-
 ## Asset Provenance
 
 Asset folders requiring provenance verification:
-- `TOTP/Assets/Icons`
-- `TOTP/Assets/backgrounds`
+- `TOTP.UI.Avalonia.Desktop/Assets/Icons`
 
 Action required:
 - For each non-original asset, record source URL, author, and license.

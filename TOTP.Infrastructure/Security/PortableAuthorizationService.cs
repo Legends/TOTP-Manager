@@ -8,7 +8,7 @@ using TOTP.Core.Security.Models;
 namespace TOTP.Infrastructure.Security;
 
 /// <summary>
-/// WPF-facing authorization facade backed exclusively by the portable v2
+/// Desktop-facing authorization facade backed exclusively by the portable v2
 /// envelope and preferences contracts.
 /// </summary>
 public sealed class PortableAuthorizationService : IAuthorizationService

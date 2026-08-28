@@ -1,7 +1,7 @@
 # TOTP Manager Threat Model
 
 ## 1. Scope
-- Product: TOTP Manager (WPF release client and Avalonia cross-platform desktop client)
+- Product: TOTP Manager (Avalonia cross-platform desktop client)
 - In scope:
   - Local secret handling (OTP seeds, export/import files, passwords, keys in memory)
   - Settings and security workflows
@@ -10,7 +10,7 @@
   - Third-party services not controlled by this repository
 
 ## 2. Architecture Summary
-- Clients: WPF Windows application and Avalonia Windows/macOS/Linux desktop application
+- Client: Avalonia Windows/macOS/Linux desktop application
 - Data stores:
   - Plaintext allowlisted non-secret preferences (`preferences.json`)
   - Password-wrapped authorization envelope (`authorization-envelope.bin`)

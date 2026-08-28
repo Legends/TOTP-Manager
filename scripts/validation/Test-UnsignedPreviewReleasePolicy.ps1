@@ -33,6 +33,18 @@ try {
         throw "Unsigned preview package policy did not disable automatic updates."
     }
 
+    & (Join-Path $PSScriptRoot "../release/Set-PackageUpdatePolicy.ps1") `
+        -PackageDirectory $packageRoot `
+        -DistributionMode direct `
+        -Channel stable
+
+    $configured = Get-Content (Join-Path $packageRoot "appsettings.json") -Raw | ConvertFrom-Json
+    if ($configured.AutoUpdate.Enabled -ne $true -or
+        $configured.AutoUpdate.Channel -ne "stable" -or
+        $configured.AutoUpdate.DistributionMode -ne "direct") {
+        throw "Stable direct package policy did not enable automatic updates."
+    }
+
     $artifactNames = @(
         "TOTP-Manager-windows-x64-2.0.0-rc3.zip",
         "TOTP-Manager-windows-x64-fast-2.0.0-rc3.zip",
@@ -65,7 +77,7 @@ try {
         throw "Unsigned preview manifest contains an unsafe update policy."
     }
 
-    Write-Output "Unsigned preview release policy is valid."
+    Write-Output "Package update and unsigned preview release policies are valid."
 }
 finally {
     if (Test-Path -LiteralPath $testRoot) {

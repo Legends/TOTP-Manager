@@ -18,7 +18,7 @@ The native package validator rejects foreign OpenCV runtimes on every target. Li
 
 ## Update selection policy
 
-The portable updater accepts only a signed feed and signed payload over HTTPS. Portable clients require explicit `sparkle:os` and `sparkle:architecture` fields. The closed channel set is `stable` and `rc`: stable clients reject RC entries, while RC clients may select either a newer RC or the stable release. Unknown client or item channels fail closed. Avalonia stable builds reserve numeric revision `65535`; RC numbers are limited to `1..65534`, so the stable release correctly sorts after every RC of the same base version.
+The portable updater accepts only a signed feed and signed payload over HTTPS. Portable clients require explicit `sparkle:os` and `sparkle:architecture` fields. The closed channel set is `stable` and `rc`: stable clients reject RC entries, while RC clients may select either a newer RC or the stable release. Unknown client or item channels fail closed. Avalonia stable file/appcast versions reserve numeric revision `65535`; RC numbers are limited to `1..65534`, so the stable release correctly sorts after every RC of the same base version. Because .NET assembly identity rejects revision `65535`, stable assemblies use revision `0` while the updater obtains its comparison value from the package's `AssemblyFileVersion` metadata.
 
 Distribution ownership is also closed:
 
@@ -34,13 +34,15 @@ The Linux DEB is stamped `package-manager`; direct tar and DMG packages are stam
 - Threat impact: wrong-platform, wrong-channel, substituted, truncated, and package-manager-bypassing updates are rejected before installation. Known vulnerable NuGet graphs fail CI.
 - Data flow: the only new persistent input is non-secret package policy in `appsettings.json`. Update artifacts remain `.part` in a current-user-restricted directory until complete and become `.ready` only after Ed25519 verification.
 - Secret impact: no private signing material is introduced. Artifact manifests contain public release metadata and hashes only.
-- Compatibility: the direct package default is stable. Linux DEB installs remain package-manager-owned. Existing WPF appcast behavior is unchanged; Avalonia uses `appcast-v2.xml`.
+- Compatibility: the direct package default is stable. Linux DEB installs remain package-manager-owned. Avalonia uses the target-qualified `appcast-v2.xml` feed.
+- Version flow: stable package/file metadata uses revision `65535` for update ordering, assembly identity uses the valid revision `0`, and the updater reads the file version through an injected provider. RC file and assembly revisions remain the bounded RC number.
 - Recovery: interrupted or invalid downloads are deleted. Invalid distribution policy fails before network access. A missing or invalid manifest fails release validation.
 - Windows install recovery: every destination file that already exists is copied to an isolated rollback directory before replacement. A failed or cancelled transaction restores prior files in reverse order and removes files newly introduced by the failed update. Incomplete rollback is surfaced as a distinct aggregate failure; it is never reported as success.
 
 ## Automated evidence
 
 - stable/RC channel isolation;
+- stable file-version selection over the lower assembly-identity version;
 - wrong-OS artifact rejection;
 - strict malformed and substituted appcast signature rejection;
 - managed-package no-network behavior;
@@ -57,7 +59,7 @@ Physical clean-machine installation, signed macOS notarization, and target updat
 
 Version tags run a separate self-contained native packaging matrix after the build, Unix integration, and package-probe jobs succeed. Windows release archives cannot be retained without Authenticode credentials. macOS release artifacts cannot be retained without a Developer ID certificate and a complete App Store Connect notarization API-key triplet. Linux direct and DEB artifacts are assembled on Ubuntu 24.04.
 
-The legacy WPF job and native packaging matrix retain signed outputs without writing to GitHub Releases. The final publication job runs only after all four jobs succeed, downloads the complete retained set, rebuilds and validates one aggregate manifest, and uses pinned NetSparkle AppCast Generator 2.9.0 to sign each direct payload, `appcast-v2.xml`, and the manifest. Both clients' embedded public keys must match the CI public key. The signing tool receives only a protected key-directory path; private key contents are not placed in process arguments. The complete asset set is first uploaded to a draft; only a successful upload makes the release visible. Release-candidate tags are explicitly prereleases and never become the latest stable release.
+The native packaging matrix retains signed outputs without writing to GitHub Releases. The final publication job runs only after every native package succeeds, downloads the complete retained set, rebuilds and validates one aggregate manifest, and uses pinned NetSparkle AppCast Generator 2.9.0 to sign each direct payload, `appcast-v2.xml`, and the manifest. The Avalonia client's embedded public key must match the CI public key. The signing tool receives only a protected key-directory path; private key contents are not placed in process arguments. The complete asset set is first uploaded to a draft; only a successful upload makes the release visible. Release-candidate tags are explicitly prereleases and never become the latest stable release.
 
 Release payload preparation removes only debug-symbol files below the resolved generated publish directory and rejects stale updater build/RID subtrees. This keeps direct artifacts within the existing 128 MiB client limit without increasing the download memory/denial-of-service boundary.
 

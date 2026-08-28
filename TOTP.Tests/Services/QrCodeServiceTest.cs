@@ -1,4 +1,3 @@
-using System.Windows.Media.Imaging;
 using TOTP.Infrastructure.Services;
 
 namespace TOTP.Tests.Services;
@@ -6,7 +5,7 @@ namespace TOTP.Tests.Services;
 public class QrCodeServiceTests
 {
     [Fact]
-    public void GenerateQr_ShouldReturnBitmapImage()
+    public void GenerateQr_ShouldReturnPngBytes()
     {
         // Arrange
         var qrCodeService = new QrCodeService();
@@ -18,27 +17,9 @@ public class QrCodeServiceTests
         var uri = qrCodeService.BuildOtpAuthUri(issuer, secret, account);
         byte[] pngBytes = qrCodeService.GenerateQr(uri);
 
-        using MemoryStream ms = new(pngBytes);
-        BitmapImage image = new();
-        image.BeginInit();
-        image.StreamSource = ms;
-        image.CacheOption = BitmapCacheOption.OnLoad;
-        image.EndInit();
-
-        // Force the image to load into memory
-        image.Freeze(); // optional: to make it thread-safe
-
         // Assert
-        Assert.NotNull(image);
-        Assert.True(image.PixelHeight > 0, "Image height is 0");
-        Assert.True(image.PixelWidth > 0, "Image width is 0");
-        Assert.True(image.CanFreeze); // Optional WPF check
+        Assert.True(pngBytes.Length > 8);
+        Assert.Equal(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, pngBytes[..8]);
     }
-
-    //If you want to mock it in other ViewModel tests:
-    // var mock = new Mock<IQrCodeService>();
-    // mock.Setup(x => x.GenerateQr(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-    // .Returns(new BitmapImage()); // or load from embedded resource
-
 
 }

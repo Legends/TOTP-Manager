@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using FluentResults;
@@ -11,6 +10,7 @@ namespace TOTP.Infrastructure.Services;
 
 public sealed class PortableUpdateService(
     IConfiguration configuration,
+    IApplicationVersionProvider applicationVersion,
     HttpClient httpClient,
     ISignedAppcastVerifier appcastVerifier,
     ISignedPayloadVerifier payloadVerifier,
@@ -60,7 +60,7 @@ public sealed class PortableUpdateService(
                 appcastBytes,
                 signature,
                 publicKey,
-                CurrentVersion(),
+                applicationVersion.CurrentVersion,
                 CurrentOperatingSystem(),
                 System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture
                     .ToString().ToLowerInvariant(),
@@ -285,10 +285,6 @@ public sealed class PortableUpdateService(
             ? extension.ToLowerInvariant()
             : ".package";
     }
-
-    private static Version CurrentVersion() =>
-        (Assembly.GetEntryAssembly() ?? typeof(PortableUpdateService).Assembly).GetName().Version
-        ?? new Version(0, 0, 0);
 
     private static string CurrentOperatingSystem() =>
         OperatingSystem.IsWindows() ? "windows" :

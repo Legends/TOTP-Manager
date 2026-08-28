@@ -4,6 +4,10 @@
 - **Date:** 2026-07-16
 - **Decision owners:** TOTP Manager maintainers
 
+## Outcome (2026-08-28)
+
+The side-by-side phase is complete. Avalonia is the sole desktop client on `master`; the legacy WPF project, its release job, and its presentation-only regression tests were retired before `v2.0.0-rc6`. Historical v1 tags and synthetic compatibility fixtures remain the rollback and format-compatibility evidence. The Windows updater helper remains a separate implementation detail of the verified Avalonia update handoff.
+
 ## Context
 
 TOTP Manager is a Windows WPF application with a local encrypted vault, Windows Hello and DPAPI integration, QR workflows, encrypted import/export, and a signed automatic-update feed. The product is intended to support Windows, macOS, and Linux without weakening recovery, storage, authorization, or update verification.
@@ -48,15 +52,15 @@ Store distribution and macOS App Store sandboxing are out of scope for the first
 - Platform secret storage must fail closed; no provider may fall back to plaintext persistence.
 - Update artifacts must remain signed and selected by operating system and architecture.
 - Compatibility fixtures must use synthetic secrets and cover historical WPF formats.
-- WPF remains available as a recovery and rollback path until the Avalonia client passes security, compatibility, and release-parity gates.
+- Historical WPF tags remain available as recovery evidence; current releases contain only the Avalonia client.
 
 ## Delivery consequences
 
 - `TOTP.Core` remains UI-neutral.
 - Portable infrastructure must compile without Windows or WPF assemblies.
 - OS integration belongs behind injected platform contracts.
-- WPF must continue to build and pass regression tests throughout migration.
-- The Avalonia client does not become the default startup or release artifact before feature and security parity.
+- The WPF client was required to build throughout the side-by-side phase and was removed after the Avalonia cutover decision.
+- Avalonia is now the default startup and only release artifact.
 
 ## Alternatives rejected
 

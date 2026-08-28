@@ -7,29 +7,27 @@ M1.4 moves UI-thread scheduling and application termination contracts into `TOTP
 - `IUiScheduler` provides framework-neutral access checks, queued posts, and awaited synchronous/asynchronous invocation.
 - `IApplicationLifetime` provides graceful shutdown and explicit process-exit operations.
 
-The WPF client implements these contracts with `WpfDispatcherService` and `WpfApplicationLifetime`. The Avalonia desktop host implements them with `AvaloniaUiScheduler` and `AvaloniaApplicationLifetime`, registered at its composition root.
+The Avalonia desktop host implements these contracts with `AvaloniaUiScheduler` and `AvaloniaApplicationLifetime`, registered at its composition root. The former WPF adapters were removed with the legacy client before `v2.0.0-rc6`.
 
 ## Scheduling semantics
 
-- `Post` queues work without waiting when a WPF dispatcher is active. It is intended for property-change and UI-refresh notifications.
+- `Post` queues work without waiting on the Avalonia dispatcher. It is intended for property-change and UI-refresh notifications.
 - `InvokeAsync(Action)` schedules synchronous UI work and completes after the action runs.
 - `InvokeAsync(Func<Task>)` schedules asynchronous UI work and unwraps its task so failures and completion propagate to the caller.
 - `CheckAccess` reports whether the caller may touch UI-owned state directly.
-- In a headless/test context without an active WPF application, the WPF adapter executes inline. Reusable workflows do not inspect `Application.Current` themselves.
 - The Avalonia adapter queues posts at its native `Normal` priority and awaited work at `Background` priority, matching the portable contract without exposing Avalonia dispatcher types.
 
 ## Lifetime semantics
 
 - View models and workflows request shutdown only through `IApplicationLifetime`.
-- `WpfApplicationLifetime` marshals graceful shutdown to the WPF dispatcher and ignores duplicate requests after dispatcher shutdown begins.
+- `AvaloniaApplicationLifetime` marshals graceful shutdown to the Avalonia dispatcher and ignores duplicate requests once shutdown begins.
 - `ExitProcess` remains an explicit emergency/final-close operation that flushes Serilog before terminating the process.
-- Direct exit calls that occur before dependency injection exists remain confined to the executable startup and unhandled-exception boundaries in `Program`/`BootLoader`.
+- Direct exit calls that occur before dependency injection exists remain confined to the executable startup and unhandled-exception boundaries in `Program` and `AvaloniaExceptionBoundary`.
 
 ## Migration and compatibility impact
 
-- Dispatcher priorities used by the WPF adapter remain `DataBind` for posted work and `Background` for awaited work.
 - Debounce, QR scanner state delivery, main-view warmup/timer updates, and auto-update UI callbacks retain their prior UI-thread behavior.
-- Auto-update shutdown handoff and main-window close now use the lifetime boundary instead of accessing the WPF application singleton.
+- Auto-update shutdown handoff and main-window close use the lifetime boundary rather than a framework singleton.
 - No vault, settings, backup, export, or update-state formats change.
 
 ## Reliability and security impact

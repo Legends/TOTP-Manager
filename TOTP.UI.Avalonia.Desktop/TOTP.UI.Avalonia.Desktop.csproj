@@ -14,7 +14,7 @@
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
     <DefineConstants>$(DefineConstants);TOTP_PLATFORM_WINDOWS</DefineConstants>
-    <ApplicationIcon>..\TOTP\Assets\Icons\app.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\Icons\app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
@@ -37,9 +37,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="..\TOTP\Assets\Icons\app.ico" Link="Assets\Icons\app.ico" />
-    <AvaloniaResource Include="..\TOTP\Assets\flags\en.png" Link="Assets\flags\en.png" />
-    <AvaloniaResource Include="..\TOTP\Assets\flags\de.png" Link="Assets\flags\de.png" />
+    <AvaloniaResource Include="Assets\Icons\app.ico" />
+    <AvaloniaResource Include="Assets\flags\en.png" />
+    <AvaloniaResource Include="Assets\flags\de.png" />
     <Content Include="Assets\Icons\app-128.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\Icons\app-1024.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />

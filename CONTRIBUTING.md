@@ -79,7 +79,7 @@ The release pipeline currently produces:
 
 - `fast` release artifact: framework-dependent, startup-optimized
 - `portable` release artifact: self-contained single-file
-- GitHub release assets for NetSparkle auto-update (`TOTP.UI.WPF.exe`, `appcast.xml`, `appcast.xml.signature`)
+- Target-qualified Avalonia release assets and the signed `appcast-v2.xml` update feed
 
 ### Solution Structure
 
@@ -89,15 +89,17 @@ The release pipeline currently produces:
   - Concrete implementations (security, crypto orchestration, persistence-facing services)
 - `TOTP.DAL`
   - Data access implementation (`OtpDAL`) and persistence concerns
-- `TOTP` (`TOTP.UI.WPF`)
-  - WPF UI, ViewModels, MVVM commands, composition root/bootstrap
+- `TOTP.UI.Avalonia.Shared`
+  - Portable presentation contracts and shared workflows
+- `TOTP.UI.Avalonia.Desktop`
+  - Avalonia UI, ViewModels, MVVM commands, composition root/bootstrap
 - `TOTP.Tests`
   - Unit tests and regression tests
 
 ### Core vs UI Responsibilities
 
 - `Core`: policy, contracts, domain-safe behavior
-- `UI.WPF`: presentation, bindings, user interaction orchestration only
+- `UI.Avalonia.Desktop`: presentation, bindings, user interaction orchestration only
 - Never place crypto/business decisions directly in code-behind.
 
 ### Interfaces + DI

@@ -852,11 +852,11 @@ Select a narrow initial set, for example:
 
 ### WPF retirement
 
-After Avalonia reaches production:
+Completed on 2026-08-28 before `v2.0.0-rc6`:
 
-- Retire the unpublished WPF implementation after feature parity is approved.
-- Preserve historical fixtures as regression and design evidence.
-- Do not ship development-era legacy readers in the first public release.
+- [x] Retire the unpublished WPF implementation and release job.
+- [x] Preserve historical tags and synthetic fixtures as regression and design evidence.
+- [x] Do not ship development-era legacy readers in the first public release.
 
 ## Testing strategy
 
@@ -915,7 +915,7 @@ Fixtures must never contain real user secrets.
 
 ## Feature-parity checklist
 
-The WPF client cannot be retired until all required items are complete or explicitly deferred:
+The following remains the cross-platform release-readiness checklist after the WPF retirement decision; incomplete target evidence blocks a stable release, not repository cleanup or an explicitly unsigned RC:
 
 | Capability | Windows | macOS | Linux |
 |---|---:|---:|---:|

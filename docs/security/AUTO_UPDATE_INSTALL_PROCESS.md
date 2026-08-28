@@ -1,64 +1,41 @@
 # Auto-Update Install Process
 
-When you click `Install update` in the current custom updater flow, this is what happens:
+The Avalonia desktop client owns update discovery, download progress, release notes, and explicit installation consent. `IPortableUpdateService` accepts only a signed `appcast-v2.xml`, selects an entry matching the current OS, architecture, channel, and distribution ownership, and verifies the downloaded package before it becomes installable.
 
-1. The click lands in `TOTPDownloadProgressWindow.xaml.cs`.
-2. If the download is marked complete and valid, it calls the custom handler from `AutoUpdateService.cs`: `InstallDownloadedUpdateAsync(...)`.
-3. That handler checks the downloaded payload path.
-   It accepts either:
-   - a `.zip` file
-   - a temp directory containing already-extracted update files
-4. It resolves:
-   - the current install directory from the running app assembly location
-   - the current executable path from the running process
-5. It copies the bundled `TOTP.Updater` runtime into a fresh temp directory under `%TEMP%`.
-6. It starts `TOTP.Updater.exe` from that temp runtime and passes:
-   - package path
-   - target install dir
-   - current exe path
-   - current app PID
-   - helper log path
-   - a ready-signal path used to coordinate handoff
-7. The main app waits until the updater window has signaled that it is visible.
-8. Once the updater is visible, the main app closes its progress window and yields control.
+An update check never downloads a package, and a completed download never starts installation without a separate user action.
 
-Then the dedicated updater process takes over:
+## Windows installation handoff
 
-1. It shows its own install progress window and signals readiness.
-2. It requests the parent TOTP process to close.
-3. It stages the update payload:
-   - if the package path is a directory, it copies that directory into staging
-   - if it is a zip file, it expands the zip into staging
-4. It walks every staged file and copies it into the target install directory, creating subfolders as needed.
-   There is retry logic for locked files, and the window updates progress while files are being replaced.
-5. It computes the target exe path inside the install directory.
-6. It starts the updated app from that target location.
-7. It logs progress to `%TEMP%\totp-update-helper.log`.
-8. It removes the temporary staging directory and schedules cleanup of its temp runtime folder.
+The Windows host uses `WindowsUpdateInstallerLauncher` to hand a verified ZIP to the dedicated `TOTP.Updater` helper:
 
-The intended behavior is:
+1. Accept only a regular ZIP package within the portable 128 MiB limit.
+2. Hold the package without write/delete sharing and repeat Ed25519 verification.
+3. Reject reparse points in the bundled updater runtime.
+4. Copy the trusted helper runtime into a fresh current-user `%TEMP%` directory.
+5. Start the helper with arguments supplied through `ProcessStartInfo.ArgumentList`.
+6. Wait for the helper's ready signal before requesting graceful Avalonia shutdown.
 
-- no external installer is launched
-- the installed app folder is updated in place
-- the app is relaunched from the updated install location
-- the updater window is visible before the main app disappears
-- install feedback remains visible after the main app exits
+The helper then:
+
+1. Shows installation progress and signals readiness.
+2. Waits for the parent TOTP process to exit.
+3. Expands the ZIP into an isolated staging directory.
+4. Copies existing destination files into a rollback directory before replacement.
+5. Applies staged files with retry handling for transient file locks.
+6. Restores prior files in reverse order if replacement fails or is cancelled.
+7. Starts the updated Avalonia executable from the target directory after success.
+8. Logs non-secret diagnostics to `%TEMP%\totp-update-helper.log` and cleans temporary staging.
+
+Incomplete rollback is surfaced as a distinct failure and is never reported as a successful update.
 
 Relevant code:
 
-- `TOTP/AutoUpdate/TOTPDownloadProgressWindow.xaml.cs`
-- `TOTP.Updater/Program.cs`
-- `TOTP/Services/AutoUpdateService.cs`
+- `TOTP.Platform.Windows/WindowsUpdateInstallerLauncher.cs`
+- `TOTP.Updater/UpdateInstallerService.cs`
+- `TOTP.Updater/UpdateInstallerViewModel.cs`
 
-## Avalonia Windows handoff
+## Other platforms and package ownership
 
-The Windows Avalonia host uses the same dedicated updater runtime through `WindowsUpdateInstallerLauncher`; it does not call the WPF/NetSparkle service. Its portable update service verifies the signed appcast and downloaded package first. At install time the Windows adapter:
+The client consumes only `appcast-v2.xml`; target and stable/RC channel fields must match. Linux package-manager and future store packages disable application-owned updates. Direct Linux and macOS packages may verify and download matching artifacts but retain a manual platform handoff until a dedicated installer adapter is approved.
 
-1. accepts only a regular ZIP package within the portable 128 MiB limit;
-2. holds the package without write/delete sharing and repeats Ed25519 verification;
-3. rejects reparse points in the bundled updater runtime;
-4. stages the trusted helper into a fresh `%TEMP%` directory;
-5. passes arguments with `ProcessStartInfo.ArgumentList`;
-6. waits for the helper's ready signal before requesting Avalonia shutdown.
-
-The Avalonia host consumes only the separate `appcast-v2.xml` feed. Target fields and the stable/RC channel must match, and the Windows adapter must not consume generic WPF appcast entries. Linux package-manager/store builds disable application-owned updates; direct Linux and macOS packages may verify/download matching artifacts but retain manual platform handoff until a dedicated installer adapter is approved.
+Unsigned RC packages have automatic updates disabled and do not receive an appcast.

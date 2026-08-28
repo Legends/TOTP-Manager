@@ -1,27 +1,27 @@
 # TOTP Manager
 
-[![Platform](https://img.shields.io/badge/platform-Windows_10%2F11-0078D6)](https://github.com/Legends/TOTP-Manager)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-5C6BC0)](https://github.com/Legends/TOTP-Manager)
 [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/download/dotnet/9.0)
 [![Build](https://github.com/Legends/TOTP-Manager/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Legends/TOTP-Manager/actions/workflows/build-and-test.yml)
 [![Security](https://github.com/Legends/TOTP-Manager/actions/workflows/security-audit.yml/badge.svg)](https://github.com/Legends/TOTP-Manager/actions/workflows/security-audit.yml)
 [![Latest Release](https://img.shields.io/github/v/release/Legends/TOTP-Manager?display_name=tag)](https://github.com/Legends/TOTP-Manager/releases/latest)
 [![License](https://img.shields.io/github/license/Legends/TOTP-Manager)](LICENSE.txt)
 
-TOTP Manager is a local-first Windows authenticator for managing and generating time-based one-time passwords. It provides an encrypted desktop vault, optional Windows Hello unlock, QR workflows, protected backup and restore, and signed update metadata without requiring a cloud account.
+TOTP Manager is a local-first desktop authenticator for managing and generating time-based one-time passwords. It provides an encrypted desktop vault, platform quick unlock where supported, QR workflows, protected backup and restore, and signed release metadata without requiring a cloud account.
 
-> **Project status:** Active development. Published versions currently use release-candidate (`-rc`) tags. Keep a tested encrypted backup before upgrading.
+> **Project status:** `v2.0.0` is in release-candidate testing. RC packages are unsigned Windows/Linux previews with automatic updates disabled; use synthetic accounts rather than a production vault. Keep a tested encrypted backup before upgrading.
 
 ## Highlights
 
 - Encrypted local vault protected by a master password
-- Optional Windows Hello unlock, with the master password retained as the recovery method
+- Optional platform quick unlock, with the master password retained as the universal recovery method
 - Manual account entry and `otpauth://` QR-code scanning
 - Rotating TOTP display with click-to-copy and configurable clipboard clearing
-- Automatic locking on idle timeout and Windows session lock
+- Automatic locking on idle timeout and supported desktop session-lock events
 - Encrypted `.totp` import and export with conflict handling
 - Local backup rotation and signed automatic-update metadata
 - English and German user-interface resources
-- Native Windows WPF interface and single-instance behavior
+- Native Avalonia desktop interface and single-instance behavior
 
 TOTP Manager currently supports the standard configuration used by most providers: `SHA1`, 6 digits, and a 30-second period. These parameters are fixed rather than configurable per account.
 
@@ -65,20 +65,22 @@ TOTP Manager currently supports the standard configuration used by most provider
 
 ## Install
 
-TOTP Manager supports 64-bit Windows 10 and Windows 11. Download the latest package from [GitHub Releases](https://github.com/Legends/TOTP-Manager/releases/latest):
+Download the appropriate `v2.0.0-rc6` preview package from [GitHub Releases](https://github.com/Legends/TOTP-Manager/releases/tag/v2.0.0-rc6):
 
-| Package | Runtime requirement | Recommended for |
+| Platform | Package | Installation |
 | --- | --- | --- |
-| `TOTP-Manager-portable.zip` | None; the .NET runtime is included | Most users and portable use |
-| `TOTP-Manager-fast.zip` | [.NET 9 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/9.0) | Smaller installation and faster startup |
+| Windows 10/11 x64 | `TOTP-Manager-windows-x64-2.0.0-rc6.zip` | Extract and start `TOTP.UI.Avalonia.Desktop.exe`; the .NET runtime is included |
+| Windows 10/11 x64 | `TOTP-Manager-windows-x64-fast-2.0.0-rc6.zip` | Extract and start `TOTP.UI.Avalonia.Desktop.exe`; requires the [.NET 9 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) |
+| Ubuntu 24.04 x64 | `totp-manager_2.0.0-rc6_amd64.deb` | Install with `sudo apt install ./totp-manager_2.0.0-rc6_amd64.deb` |
+| Linux x64 portable | `TOTP-Manager-linux-x64-2.0.0-rc6.tar.gz` | Extract and run `TOTP.UI.Avalonia.Desktop`; the .NET runtime is included |
 
-Extract the selected archive to a local folder, start `TOTP.UI.WPF.exe`, and complete the first-run master-password setup. The .NET **SDK** is only required when building the project from source.
+Complete the first-run master-password setup after launch. The .NET **SDK** is required only when building from source.
 
 ## Basic usage
 
 - Add an account manually with its issuer, account label, and Base32 secret, or scan a compatible `otpauth://` QR code with the camera workflow.
 - Select an account to display and copy its current code. Clicking the displayed code copies it again.
-- Search filters the account list by issuer.
+- Search filters the account list by issuer or account name.
 - Edit or delete an account from its context menu; `Ctrl+A` opens account creation and `Ctrl+E` edits the selected account.
 - Generate a QR code for an existing account when transferring it to another compatible authenticator.
 
@@ -107,7 +109,7 @@ To report a suspected vulnerability, follow the private reporting instructions i
 
 ## Data, backup, and recovery
 
-Application data is stored under `%APPDATA%\TOTP-Manager` by default, including the encrypted account vault (`master.totp`) and protected settings (`settings.totp`).
+Application data is stored in the platform application-data directory, including the encrypted account vault and protected authorization/settings data. See [platform application paths](docs/architecture/PLATFORM_APPLICATION_PATHS.md) for the exact Windows, macOS, and Linux locations.
 
 - Create an encrypted `.totp` export for migration and disaster recovery.
 - Store backup files separately from the computer and test the restore procedure periodically.
@@ -133,7 +135,7 @@ git clone https://github.com/Legends/TOTP-Manager.git
 cd TOTP-Manager
 dotnet restore TOTP.sln --configfile NuGet.config
 dotnet build TOTP.sln -c Debug
-dotnet run --project .\TOTP\TOTP.UI.WPF.csproj
+dotnet run --project .\TOTP.UI.Avalonia.Desktop\TOTP.UI.Avalonia.Desktop.csproj
 ```
 
 Run the complete test suite with:
@@ -155,7 +157,8 @@ dotnet test TOTP.sln -c Release --no-build --filter "FullyQualifiedName!~Integra
 | `TOTP.Core` | Domain models, contracts, validation, and security abstractions |
 | `TOTP.Infrastructure` | Security, account, export, settings, logging, and OS-facing implementations |
 | `TOTP.DAL` | Encrypted persistence and filesystem data access |
-| `TOTP` | WPF views, view models, workflows, startup, and dependency composition |
+| `TOTP.UI.Avalonia.Shared` | Portable presentation contracts and shared UI workflows |
+| `TOTP.UI.Avalonia.Desktop` | Avalonia views, view models, startup, platform UI adapters, and assets |
 | `TOTP.Tests` | Unit, regression, integration, and security-adjacent tests |
 | `TOTP.Updater` | Update and installation support UI |
 | `scripts` | Release, security, and local update-testing automation |

@@ -30,8 +30,6 @@ if ($invalidConfiguration) {
 
 $settings.AutoUpdate.DistributionMode = $DistributionMode
 $settings.AutoUpdate.Channel = $Channel
-if ($DisableUpdates) {
-    $settings.AutoUpdate.Enabled = $false
-}
+$settings.AutoUpdate.Enabled = -not [bool]$DisableUpdates
 $json = $settings | ConvertTo-Json -Depth 5
 [IO.File]::WriteAllText($settingsPath, "$json`n", [Text.UTF8Encoding]::new($false))

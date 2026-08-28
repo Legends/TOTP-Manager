@@ -38,7 +38,7 @@ Credentialed tag publication expects these GitHub Actions secrets:
 
 A missing credential fails the tag workflow. It never downgrades a production artifact to unsigned output.
 
-Release-candidate tags are currently a separate, explicitly untrusted preview channel while the project has no platform certificate budget. An `-rcN` tag publishes only the Avalonia Windows x64 ZIPs and Linux x64 tar/DEB packages. Windows executables are unsigned, automatic updates are disabled inside every preview package, no appcast is generated, and no macOS or legacy WPF artifact is included. The GitHub prerelease title and notes identify this state, the aggregate manifest records `releaseProfile=unsigned-preview`, and every entry has `unsigned-preview-manual-download` policy. Stable tags never use this path: they continue to require Authenticode, Developer ID signing/notarization, and signed update metadata.
+Release-candidate tags are currently a separate, explicitly untrusted preview channel while the project has no platform certificate budget. An `-rcN` tag publishes only the Avalonia Windows x64 ZIPs and Linux x64 tar/DEB packages. Windows executables are unsigned, automatic updates are disabled inside every preview package, no appcast is generated, and no macOS artifact is included. The GitHub prerelease title and notes identify this state, the aggregate manifest records `releaseProfile=unsigned-preview`, and every entry has `unsigned-preview-manual-download` policy. Stable tags never use this path: they continue to require Authenticode, Developer ID signing/notarization, and signed update metadata.
 
 The entitlements are limited to the camera capability and the current Microsoft-documented defaults required by a notarized .NET app host. Any removal or addition requires a physical launch/camera/Keychain regression on the signed bundle.
 
@@ -66,7 +66,7 @@ Package assembly stamps the DEB with `AutoUpdate:DistributionMode=package-manage
 - Unsigned CI artifacts are technical evidence unless an RC workflow publishes them as an explicitly labeled development preview. They must never be presented as production or stable releases.
 - Unsigned previews contain no appcast, have automatic updates disabled in package configuration, exclude macOS/WPF, and carry only `unsigned-preview-manual-download` manifest policies.
 - Artifact filenames, appcast target OS/architecture, assembly version, bundle/debian version, and Git tag must agree.
-- macOS and Linux packages do not consume the WPF appcast.
+- macOS and Linux packages consume only matching target-qualified entries from `appcast-v2.xml`.
 - Avalonia direct packages consume `appcast-v2.xml` and require an explicit OS, architecture, and stable/RC channel match.
 - Every release artifact is recorded in a deterministic manifest with its source commit, byte length, SHA-256, ownership, and update policy.
 - The aggregate manifest, every direct payload, and `appcast-v2.xml` are Ed25519-signed with pinned NetSparkle tooling. The client-embedded public key must match the CI public key before publication.

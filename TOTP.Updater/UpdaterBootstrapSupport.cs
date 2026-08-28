@@ -1,29 +1,10 @@
 using System.IO;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using Syncfusion.Licensing;
 
 namespace TOTP.Updater;
 
 internal static class UpdaterBootstrapSupport
 {
-    public static void RegisterSyncfusionLicenseFromEnvironment()
-    {
-        var key = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE");
-        if (string.IsNullOrWhiteSpace(key))
-        {
-            var configuration = new ConfigurationBuilder()
-                .AddUserSecrets(typeof(UpdaterBootstrapSupport).Assembly, optional: true)
-                .Build();
-            key = configuration["syncfusion"];
-        }
-
-        if (!string.IsNullOrWhiteSpace(key))
-        {
-            SyncfusionLicenseProvider.RegisterLicense(key);
-        }
-    }
-
     public static void WriteReadySignal(string? readySignalPath)
     {
         if (string.IsNullOrWhiteSpace(readySignalPath))

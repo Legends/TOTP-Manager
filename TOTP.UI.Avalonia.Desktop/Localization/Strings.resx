@@ -4,7 +4,7 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
-  <data name="AppTitle" xml:space="preserve"><value>TOTP Manager (Avalonia Preview)</value></data>
+  <data name="AppTitle" xml:space="preserve"><value>TOTP Manager</value></data>
   <data name="AppHeading" xml:space="preserve"><value>TOTP Manager</value></data>
   <data name="StartingSafely" xml:space="preserve"><value>Starting TOTP Manager safely…</value></data>
   <data name="Retry" xml:space="preserve"><value>Retry</value></data>

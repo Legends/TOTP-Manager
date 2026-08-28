@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -54,6 +55,9 @@ public static class DependencyInjection
         services.AddSingleton<ISupportDiagnosticsService, SupportDiagnosticsService>();
         services.AddSingleton<ISignedAppcastVerifier, SignedAppcastVerifier>();
         services.AddSingleton<ISignedPayloadVerifier, SignedPayloadVerifier>();
+        services.AddSingleton<IApplicationVersionProvider>(
+            new AssemblyApplicationVersionProvider(
+                Assembly.GetEntryAssembly() ?? typeof(DependencyInjection).Assembly));
         services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(30) });
         services.AddSingleton<IPortableUpdateService, PortableUpdateService>();
         services.AddSingleton<IUpdateInstallerLauncher, UnavailableUpdateInstallerLauncher>();

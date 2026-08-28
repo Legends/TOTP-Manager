@@ -2,7 +2,7 @@
 
 ## Scope
 
-M1.3 separates clipboard policy from WPF access. `ClipboardBackgroundService` owns copy and timed-clear policy through the portable `IClipboardService`; `WpfClipboard` is the Windows presentation adapter behind `IPlatformClipboard`.
+M1.3 separates clipboard policy from desktop-framework access. `ClipboardBackgroundService` owns copy and timed-clear policy through the portable `IClipboardService`; Avalonia platform adapters provide clipboard access behind `IPlatformClipboard`.
 
 ## Security behavior
 
@@ -31,5 +31,5 @@ Platform adapters are boundary components and must translate native clipboard/di
 ## Compatibility
 
 - Default clear duration remains 30 seconds at the service boundary.
-- The WPF account workflow continues to use the configured duration, with its existing 15-second fallback.
+- The Avalonia account workflow uses the configured clear duration.
 - Disabling automatic clear still performs a normal clipboard write and cancels any older pending clear.

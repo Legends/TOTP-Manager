@@ -2,7 +2,7 @@
 
 This file is the working contract for humans and coding agents contributing to `TOTP-Manager`.
 
-It is intentionally opinionated. The repo is security-sensitive, Windows-specific, and already has clear architectural direction. Contributions should reinforce that direction, not dilute it.
+It is intentionally opinionated. The repo is security-sensitive, cross-platform, and already has clear architectural direction. Contributions should reinforce that direction, not dilute it.
 
 ## Mission
 
@@ -42,7 +42,7 @@ Expected posture:
 
 ### 2. Desktop quality matters
 
-This is a Windows WPF app, not a web wrapper. UX should feel stable, native, responsive, and respectful of user attention.
+This is a native Avalonia desktop app, not a web wrapper. UX should feel stable, native, responsive, and respectful of user attention on Windows, macOS, and Linux.
 
 Priorities:
 
@@ -71,8 +71,10 @@ Releases, auto-update metadata, signatures, and CI behavior are part of the prod
   - concrete implementations for logging, crypto orchestration, security, settings, account management, export, QR generation
 - `TOTP.DAL`
   - persistence and filesystem-facing data access
-- `TOTP`
-  - WPF UI, view models, commands, workflows, bootstrap, services, assets
+- `TOTP.UI.Avalonia.Shared`
+  - portable presentation contracts and shared Avalonia-facing workflows
+- `TOTP.UI.Avalonia.Desktop`
+  - Avalonia views, view models, commands, bootstrap, platform UI adapters, and assets
 - `TOTP.Tests`
   - unit, regression, security-adjacent, and integration tests
 - `TOTP.Updater`
@@ -84,10 +86,10 @@ Releases, auto-update metadata, signatures, and CI behavior are part of the prod
 
 ### Platform/runtime
 
-- Windows only
+- Windows, macOS, and Linux desktop targets
 - .NET 9
-- WPF desktop UI
-- CI runs on `windows-latest`
+- Avalonia desktop UI
+- CI runs platform-specific jobs on Windows, macOS, and Linux
 
 ### Key libraries already in play
 
@@ -98,7 +100,7 @@ Releases, auto-update metadata, signatures, and CI behavior are part of the prod
 - `OpenCvSharp`
 - `ZXing.Net`
 - `NetSparkleUpdater`
-- `Syncfusion`
+- `Avalonia`
 - `xUnit v3`
 - `Moq`
 - `AutoFixture.AutoMoq`
@@ -117,9 +119,9 @@ Releases, auto-update metadata, signatures, and CI behavior are part of the prod
 ### Architecture rules
 
 - Keep MVVM boundaries strict.
-- Keep business/security decisions out of WPF code-behind.
+- Keep business/security decisions out of Avalonia code-behind.
 - Prefer interface-driven services and constructor injection.
-- Keep composition rooted in startup/bootstrap, primarily [`TOTP/Startup/BootLoader.cs`](E:/Repos/TOTP-Manager/TOTP/Startup/BootLoader.cs).
+- Keep desktop composition rooted in [`TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs`](E:/Repos/TOTP-Manager/TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs).
 - Do not add service-locator-style resolution inside feature code unless there is already a clear repo pattern and no cleaner seam.
 
 ### Error handling rules
@@ -158,7 +160,7 @@ Owns:
 
 Should not own:
 
-- WPF UI concerns
+- desktop UI concerns
 - filesystem details
 - concrete infrastructure wiring
 
@@ -190,11 +192,11 @@ Should not own:
 - authorization decisions
 - UI messaging
 
-### `TOTP`
+### `TOTP.UI.Avalonia.Desktop`
 
 Owns:
 
-- WPF views
+- Avalonia views
 - view models
 - commands
 - app startup
@@ -269,7 +271,7 @@ dotnet test TOTP.sln -c Release --no-build --filter "FullyQualifiedName!~Integra
 ### Run locally
 
 ```powershell
-dotnet run --project .\TOTP\TOTP.UI.WPF.csproj
+dotnet run --project .\TOTP.UI.Avalonia.Desktop\TOTP.UI.Avalonia.Desktop.csproj
 ```
 
 ### Debug auto-update locally
@@ -281,10 +283,9 @@ Use the scripts under `scripts/release` and the guidance in:
 
 Relevant helpers include:
 
-- `scripts/release/Generate-Appcast.ps1`
-- `scripts/release/Setup-LocalAutoUpdateTest.ps1`
-- `scripts/release/Start-LocalUpdateFeedServer.ps1`
-- `scripts/release/Setup-GitHubAutoUpdate.ps1`
+- `scripts/release/Generate-AvaloniaAppcast.ps1`
+- `scripts/release/Test-AvaloniaAppcast.ps1`
+- `scripts/release/Set-PackageUpdatePolicy.ps1`
 
 ## CI / Release Reality
 
@@ -339,9 +340,9 @@ When touching startup code:
 
 Key files:
 
-- [`TOTP/Program.cs`](E:/Repos/TOTP-Manager/TOTP/Program.cs)
-- [`TOTP/Startup/BootLoader.cs`](E:/Repos/TOTP-Manager/TOTP/Startup/BootLoader.cs)
-- [`TOTP/Infrastructure/Logging/LoggingConfigurator.cs`](E:/Repos/TOTP-Manager/TOTP/Infrastructure/Logging/LoggingConfigurator.cs)
+- [`TOTP.UI.Avalonia.Desktop/Program.cs`](E:/Repos/TOTP-Manager/TOTP.UI.Avalonia.Desktop/Program.cs)
+- [`TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs`](E:/Repos/TOTP-Manager/TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs)
+- [`TOTP.Infrastructure/Logging/LoggingConfigurator.cs`](E:/Repos/TOTP-Manager/TOTP.Infrastructure/Logging/LoggingConfigurator.cs)
 - [`TOTP.Infrastructure/Logging/SensitiveTextRedactor.cs`](E:/Repos/TOTP-Manager/TOTP.Infrastructure/Logging/SensitiveTextRedactor.cs)
 
 ## Security Review Triggers

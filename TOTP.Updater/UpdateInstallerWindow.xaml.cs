@@ -1,8 +1,8 @@
-using Syncfusion.Windows.Shared;
+using System.Windows;
 
 namespace TOTP.Updater;
 
-public partial class UpdateInstallerWindow : ChromelessWindow
+public partial class UpdateInstallerWindow : Window
 {
     private readonly UpdateInstallerViewModel _viewModel;
     private bool _installStarted;

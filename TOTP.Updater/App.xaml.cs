@@ -11,7 +11,6 @@ public partial class App : Application
 
         try
         {
-            UpdaterBootstrapSupport.RegisterSyncfusionLicenseFromEnvironment();
             var arguments = UpdateInstallArguments.Parse(e.Args);
             var window = new UpdateInstallerWindow(arguments);
             MainWindow = window;

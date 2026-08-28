@@ -13,7 +13,7 @@ public sealed class AuthorizationState
     public PreferredUnlockMethod PreferredUnlockMethod { get; private set; } = PreferredUnlockMethod.Password;
 
     /// <summary>
-    /// Transitional projection for the current WPF gate view models.
+    /// Stable projection consumed by desktop authorization view models.
     /// </summary>
     public AuthorizationGateKind ConfiguredGate { get; private set; } = AuthorizationGateKind.None;
 

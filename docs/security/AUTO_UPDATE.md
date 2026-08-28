@@ -1,15 +1,19 @@
 # Automatic Update Setup
 
-This project uses NetSparkle-compatible Ed25519 update signatures. Production Windows and macOS artifacts also require their platform signing/notarization credentials; Ed25519 does not replace platform trust.
+TOTP Manager's direct Avalonia packages use an Ed25519-signed, target-qualified `appcast-v2.xml`. Windows and macOS releases also require platform signing/notarization; Ed25519 package signatures do not replace operating-system trust.
 
-## 1. Separate release feeds
+Linux DEB and future store-managed builds are stamped as externally managed and do not use application-owned updates.
 
-- The WPF Windows client consumes `appcast.xml`.
-- Avalonia direct packages consume `appcast-v2.xml` and require explicit OS, architecture, channel, and package signatures.
-- Linux DEB and future store builds are stamped as externally managed and do not self-update.
+## Trust model
 
-## 2. Generate NetSparkle Ed25519 Keys
-Install tool once:
+- The client accepts only `appcast-v2.xml` entries whose OS, architecture, channel, and package policy match the running package.
+- Every direct payload, the release manifest, and the appcast are signed with the configured NetSparkle Ed25519 key.
+- Stable Windows executables require Authenticode signing. Stable macOS artifacts require Developer ID signing and notarization.
+- Unsigned RC packages disable automatic updates and are distributed only as explicit manual-download previews.
+
+## Generate Ed25519 keys
+
+Install the pinned tool:
 
 ```powershell
 dotnet tool install --global NetSparkleUpdater.Tools.AppCastGenerator --version 2.9.0
@@ -21,113 +25,71 @@ Generate keys:
 netsparkle-generate-appcast --generate-keys
 ```
 
-This creates:
-- public key (place into app config/user-secrets as `AutoUpdate:PublicKey`)
-- private key file (keep private; use only in release pipeline)
+Keep `NetSparkle_Ed25519.pub` and `NetSparkle_Ed25519.priv` together in a protected directory. Commit neither file. The public key configured in `TOTP.UI.Avalonia.Desktop/appsettings.json` must exactly match `NETSPARKLE_PUBLIC_KEY` in CI.
 
-Keep the canonical `NetSparkle_Ed25519.pub` and `NetSparkle_Ed25519.priv` names in one protected directory. Release scripts pass only that directory to the tool; private key contents must not be placed in process arguments.
+## Configure a development feed
 
-## 3. Configure App for Update Checks
-Recommended via user-secrets for local testing:
+Use user-secrets on the Avalonia desktop project:
 
 ```powershell
-dotnet user-secrets set "AutoUpdate:Enabled" "true" --project TOTP/TOTP.UI.WPF.csproj
-dotnet user-secrets set "AutoUpdate:AppcastUrl" "https://example.com/appcast.xml" --project TOTP/TOTP.UI.WPF.csproj
-dotnet user-secrets set "AutoUpdate:PublicKey" "<your-public-key>" --project TOTP/TOTP.UI.WPF.csproj
+dotnet user-secrets set "AutoUpdate:Enabled" "true" --project TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
+dotnet user-secrets set "AutoUpdate:AppcastUrl" "https://example.com/appcast-v2.xml" --project TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
+dotnet user-secrets set "AutoUpdate:PublicKey" "<your-public-key>" --project TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
 ```
 
-## 4. Publish Release + Appcast
-Use helper script:
+Run the client with:
 
 ```powershell
-pwsh ./scripts/release/Generate-Appcast.ps1 `
-  -ReleaseFolder "./publish" `
+dotnet run --project TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
+```
+
+Do not enable application-owned updates in DEB, Microsoft Store, or other externally managed packages.
+
+## Generate and validate the portable appcast
+
+The release workflow first creates and validates `release-artifacts-v2.json`, then runs:
+
+```powershell
+./scripts/release/Generate-AvaloniaAppcast.ps1 `
+  -ManifestPath ./release-assets/release-artifacts-v2.json `
+  -ArtifactDirectory ./release-assets `
   -BaseDownloadUrl "https://github.com/<owner>/<repo>/releases/download/<tag>/" `
   -PrivateKeyPath "C:\secure\NetSparkle_Ed25519.priv" `
-  -PublicKeyPath "C:\secure\NetSparkle_Ed25519.pub"
+  -PublicKeyPath "C:\secure\NetSparkle_Ed25519.pub" `
+  -ExpectedPublicKey "<your-public-key>" `
+  -OutputDirectory ./release-feed
+
+./scripts/release/Test-AvaloniaAppcast.ps1 `
+  -AppcastPath ./release-feed/appcast-v2.xml `
+  -ManifestPath ./release-assets/release-artifacts-v2.json `
+  -BaseDownloadUrl "https://github.com/<owner>/<repo>/releases/download/<tag>/"
 ```
 
-Install flow details:
-- see `docs/security/AUTO_UPDATE_INSTALL_PROCESS.md` for the current in-place update and relaunch process used by the custom NetSparkle UI
+The private key path is supplied to tooling; private key contents must never appear in process arguments or logs.
 
-## 5. Host Files
-Host these over HTTPS:
-- appcast XML
-- release artifact(s) referenced by appcast
+## Required CI secrets
 
-## 5a. Local IIS Test Strategy
-Use this when the GitHub repo or release assets are private and you want to debug NetSparkle locally.
-
-1. Publish two local builds with different versions.
-   First build: install or run the older version that will act as the currently installed app.
-   Second build: generate the package referenced by the appcast with a higher version.
-
-2. Host the update payload and `appcast.xml` from local IIS.
-   Put `appcast.xml`, its `.signature`, and the referenced installer or executable in the same IIS site or virtual directory.
-
-3. Point the app at the local feed via user-secrets.
-
-```powershell
-dotnet user-secrets set "AutoUpdate:Enabled" "true" --project TOTP/TOTP.UI.WPF.csproj
-dotnet user-secrets set "AutoUpdate:AppcastUrl" "http://localhost/appcast.xml" --project TOTP/TOTP.UI.WPF.csproj
-dotnet user-secrets set "AutoUpdate:PublicKey" "<your-public-key>" --project TOTP/TOTP.UI.WPF.csproj
-dotnet user-secrets set "AutoUpdate:CheckOnStartup" "true" --project TOTP/TOTP.UI.WPF.csproj
-dotnet user-secrets set "AutoUpdate:ForceStartupCheck" "true" --project TOTP/TOTP.UI.WPF.csproj
-dotnet user-secrets set "AutoUpdate:InteractiveDebugCheckOnStartup" "true" --project TOTP/TOTP.UI.WPF.csproj
-dotnet user-secrets set "AutoUpdate:CheckIntervalMinutes" "5" --project TOTP/TOTP.UI.WPF.csproj
-```
-
-4. Start the app with verbose logging enabled.
-
-```powershell
-dotnet run --project TOTP/TOTP.UI.WPF.csproj -- --debug
-```
-
-5. Inspect the log file in the published app folder under `Logs\app.log`.
-   Look for:
-   - `appcast fetch status=200`
-   - `update detected`
-   - `user responded to update prompt`
-   - `download had an error`
-
-6. Once local testing is complete, turn off the debug-only settings.
-   `InteractiveDebugCheckOnStartup` should be set back to `false`.
-   `ForceStartupCheck` should be set back to `false` unless you explicitly want to bypass NetSparkle's normal throttling.
-
-## 5b. Common Local Failure Modes
-- The installed app version is not lower than the version in `appcast.xml`.
-- The appcast signature matches an old file but not the currently hosted XML.
-- The enclosure `url` points to GitHub or another location that is still private.
-- NetSparkle skips a startup check because the last successful check was too recent.
-- The app can fetch the appcast but cannot download the referenced installer from IIS.
-
-## 5c. Switching Back To GitHub Hosting
-Once local testing is complete and the GitHub repository/releases are public again:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File D:\Repos\TOTP-Manager\scripts\release\Setup-GitHubAutoUpdate.ps1
-```
-
-That restores the hosted appcast URL, the production NetSparkle public key, disables the local forcing flags, and returns the check interval to a daily cadence.
-
-After switching back:
-- verify `https://github.com/Legends/TOTP-Manager/releases/latest/download/appcast.xml` returns `200`
-- verify the app log shows the GitHub URL as the final appcast URI
-- verify signature validation succeeds with the production public key
-
-## 6. CI Secrets (for automatic appcast publishing)
-Set these repository secrets:
 - `NETSPARKLE_PUBLIC_KEY`
 - `NETSPARKLE_PRIVATE_KEY`
+- `SIGNING_CERT_BASE64`
+- `SIGNING_CERT_PASSWORD`
+- macOS Developer ID/notarization secrets documented by the release workflow
 
-Both secrets are mandatory for a version-tag workflow. The public key must exactly match the key embedded in both desktop clients. The workflow will:
-- generate and verify the legacy WPF `appcast.xml`
-- sign every direct Avalonia payload, `release-artifacts-v2.json`, and `appcast-v2.xml` after all native packaging jobs succeed
-- retain the signed WPF and native packages as workflow artifacts until every packaging job succeeds
-- upload the complete asset set to a draft GitHub release, then make it visible only after every expected file is present
-- publish `-rc<nr>` tags as prereleases that never replace the latest stable release
+Stable tags fail closed when required credentials are absent. RC tags publish only explicitly labeled unsigned Windows/Linux previews with automatic updates disabled.
 
-## 7. Security Notes
-- Ed25519 appcast signatures protect update integrity/authenticity.
-- Keep private key out of repo and only in secure CI secret storage.
-- If key is exposed: rotate immediately and publish new appcast signed with new key.
+## Release behavior
+
+For a stable version tag, CI:
+
+1. Builds and tests all supported projects.
+2. Produces target-qualified Avalonia packages.
+3. Applies platform signatures where required.
+4. Signs every direct payload and the aggregate release manifest.
+5. Generates and verifies `appcast-v2.xml`.
+6. Uploads the complete asset set to a draft and publishes it only after validation succeeds.
+
+See [AUTO_UPDATE_INSTALL_PROCESS.md](AUTO_UPDATE_INSTALL_PROCESS.md) for the verified installation handoff and [SIGNING_KEY_ROTATION.md](SIGNING_KEY_ROTATION.md) for rotation procedures.
+
+## Incident response
+
+If an Ed25519 private key or platform certificate is exposed, stop publishing, revoke/rotate the affected credential, update the embedded trust material through a reviewed release, and document the impact. Never weaken signature verification to recover from a rotation failure.

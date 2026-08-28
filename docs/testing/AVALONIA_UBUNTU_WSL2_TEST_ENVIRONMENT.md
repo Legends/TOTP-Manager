@@ -41,7 +41,7 @@ Use the WSL loop for daily development. Use the retained release candidate in a 
 
 There is no `global.json`. The application targets .NET 9, but the build SDK must also be new enough for Avalonia 12.1's Roslyn-based source generator. Ubuntu 26.04 development should use the full .NET 10 SDK; CI and the Ubuntu 24.04 release baseline use the latest .NET 9 SDK feature band supplied by `actions/setup-dotnet`.
 
-Do not use `dotnet build TOTP.sln` as the primary Linux command. The solution intentionally contains the Windows-only WPF application, updater, Windows adapters, and Windows-targeted test project. Build the Avalonia project and Linux-capable tests explicitly.
+Do not use `dotnet build TOTP.sln` as the primary Linux command. The solution intentionally contains the Windows-only updater, Windows adapters, and Windows-targeted test project. Build the Avalonia project and Linux-capable tests explicitly.
 
 ## 1. Install or verify Ubuntu WSL2
 
@@ -420,7 +420,7 @@ dotnet run \
   --no-build
 ```
 
-The TOTP Manager window should appear through WSLg. The title currently identifies the Avalonia preview.
+The TOTP Manager window should appear through WSLg with the stable product title, `TOTP Manager`.
 
 For the rapid edit/test loop from the Windows-hosted checkout:
 

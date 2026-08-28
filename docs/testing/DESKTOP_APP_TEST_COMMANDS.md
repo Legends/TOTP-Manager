@@ -12,14 +12,6 @@ Run in **Windows PowerShell** from `E:\Repos\TOTP-Manager`:
 
 This publishes and starts the Windows version of `TOTP.UI.Avalonia.Desktop`.
 
-## Windows host — WPF parity reference
-
-Only use this command when comparing Avalonia behavior or layout with the legacy WPF application:
-
-```powershell
-.\scripts\dev\Publish-And-Run-Wpf.ps1 -Configuration Release -StopRunningInstance
-```
-
 ## Ubuntu Hyper-V VM — full Linux desktop test
 
 Run in **Windows PowerShell** from `E:\Repos\TOTP-Manager` while the Ubuntu VM is running and its desktop user is signed in:
