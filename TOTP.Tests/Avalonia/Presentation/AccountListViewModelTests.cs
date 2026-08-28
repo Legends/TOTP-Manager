@@ -1,6 +1,7 @@
 using FluentResults;
 using System.Diagnostics;
 using Moq;
+using Avalonia.Controls;
 using Avalonia.Media;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Models;
@@ -445,6 +446,44 @@ public sealed class AccountListViewModelTests
             TimeSpan.FromSeconds(18),
             It.IsAny<CancellationToken>()), Times.Once);
         Assert.Equal(AvaloniaStringKeys.CodeCopiedWithClear, sut.CodeMessage);
+    }
+
+    [Fact]
+    public async Task CultureChanged_RelocalizesVisibleClipboardStatusMessage()
+    {
+        var id = Guid.NewGuid();
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(id))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 15, 30)));
+        var clipboard = new Mock<IAsyncClipboardService>();
+        clipboard.Setup(value => value.CopyAndScheduleClearAsync(
+                "123456",
+                TimeSpan.FromSeconds(15),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        var localization = new AvaloniaLocalizationService(
+            new ResourceDictionary(),
+            new AvaloniaStringCatalog());
+        localization.ApplyCulture("en");
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            totp.Object,
+            clipboard.Object,
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            localization)
+        {
+            SelectedAccount = new AccountListItemViewModel(id, "Issuer", "account")
+        };
+        await sut.GenerateCodeAsync();
+        await sut.CopyCodeAsync();
+
+        localization.ApplyCulture("de");
+
+        Assert.Equal(
+            "Kopiert. Die Zwischenablage wird in 15 Sekunden geleert, sofern der Code unverändert ist.",
+            sut.CodeMessage);
     }
 
     [Fact]

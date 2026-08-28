@@ -47,6 +47,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private AccountListItemViewModel? _contextAccount;
     private string _generatedCode = string.Empty;
     private string _codeMessage = string.Empty;
+    private string? _codeMessageLocalizationKey;
+    private object[] _codeMessageLocalizationArguments = [];
     private bool _isBusy;
     private bool _isGenerating;
     private int _remainingSeconds;
@@ -109,6 +111,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _deleteContextAccountCommand = new AsyncCommand(
             DeleteContextAccountAsync,
             () => !IsBusy && !IsEditorVisible && ContextAccount is not null);
+        _localization.CultureChanged += LocalizationCultureChanged;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -197,6 +200,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         get => _codeMessage;
         private set
         {
+            _codeMessageLocalizationKey = null;
+            _codeMessageLocalizationArguments = [];
             if (!SetField(ref _codeMessage, value)) return;
             OnPropertyChanged(nameof(HasCodeMessage));
         }
@@ -416,7 +421,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         if (!HasGeneratedCode) return;
         if (_settingsService?.Current.ClearClipboardEnabled == false)
         {
-            CodeMessage = _localization.GetString(AvaloniaStringKeys.ClipboardCopyDisabled);
+            SetLocalizedCodeMessage(AvaloniaStringKeys.ClipboardCopyDisabled);
             return;
         }
 
@@ -426,11 +431,11 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         var result = await _clipboardService.CopyAndScheduleClearAsync(
             GeneratedCode,
             TimeSpan.FromSeconds(clearSeconds));
-        CodeMessage = result.IsSuccess
-            ? string.Format(
-                _localization.GetString(AvaloniaStringKeys.CodeCopiedWithClear),
-                clearSeconds)
-            : _localization.GetString(AvaloniaStringKeys.ClipboardSafeCopyUnavailable);
+        SetLocalizedCodeMessage(
+            result.IsSuccess
+                ? AvaloniaStringKeys.CodeCopiedWithClear
+                : AvaloniaStringKeys.ClipboardSafeCopyUnavailable,
+            result.IsSuccess ? [clearSeconds] : []);
     }
 
     public async Task GenerateQrAsync()
@@ -739,7 +744,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                     || cancellationToken.IsCancellationRequested)
                 {
                     ClearGeneratedCodeWithoutCancellingTimer();
-                    CodeMessage = _localization.GetString(AvaloniaStringKeys.CodeRefreshFailed);
+                    SetLocalizedCodeMessage(AvaloniaStringKeys.CodeRefreshFailed);
                     return;
                 }
 
@@ -779,6 +784,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     public void Dispose()
     {
+        _localization.CultureChanged -= LocalizationCultureChanged;
         CancelTransientMessage();
         ClearRecentHighlight();
         ClearGeneratedCode();
@@ -830,6 +836,21 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _deleteAccountCommand.NotifyCanExecuteChanged();
         _beginContextEditCommand.NotifyCanExecuteChanged();
         _deleteContextAccountCommand.NotifyCanExecuteChanged();
+    }
+
+    private void SetLocalizedCodeMessage(string key, params object[] arguments)
+    {
+        CodeMessage = string.Format(_localization.GetString(key), arguments);
+        _codeMessageLocalizationKey = key;
+        _codeMessageLocalizationArguments = arguments;
+    }
+
+    private void LocalizationCultureChanged(object? sender, EventArgs e)
+    {
+        if (_codeMessageLocalizationKey is not { } key) return;
+
+        var arguments = _codeMessageLocalizationArguments;
+        SetLocalizedCodeMessage(key, arguments);
     }
 
     private void ClearQrImage()
