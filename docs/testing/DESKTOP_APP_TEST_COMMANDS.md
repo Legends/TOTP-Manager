@@ -28,7 +28,22 @@ Run in **Windows PowerShell** from `E:\Repos\TOTP-Manager` while the Ubuntu VM i
 .\scripts\testing\Sync-Restore-Run-AvaloniaLinuxVm.ps1
 ```
 
-This synchronizes the mounted Windows working tree to the VM-local repository, restores the Avalonia project, and starts it in the Ubuntu desktop session.
+This packages the current Windows working tree, transfers it over SSH to the
+VM-local repository, restores the Avalonia project, and starts it in the Ubuntu
+desktop session. Build output, IDE state, Git metadata, and `artifacts` are
+excluded from the transfer. The temporary archive is removed after
+synchronization.
+
+The default VM-local repository is `~/source/TOTP-Manager`. A pre-existing
+shared mount can still be used explicitly when needed:
+
+```powershell
+.\scripts\testing\Sync-Restore-Run-AvaloniaLinuxVm.ps1 `
+    -MountedRepository /mnt/totp-manager
+```
+
+The VM requires `openssh-server`, `rsync`, `tar`, and the .NET 9 SDK. Using an
+SSH key avoids the two password prompts needed for upload and execution.
 
 ## Ubuntu WSL2/WSLg — fast Linux development test
 
