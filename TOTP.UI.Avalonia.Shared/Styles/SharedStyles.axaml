@@ -585,7 +585,7 @@
                     MinHeight="{DynamicResource ControlMinimumHeight}"
                     VerticalAlignment="Center"
                     FontWeight="SemiBold"
-                    Text="{TemplateBinding Issuer}"
+                    Text="{TemplateBinding DisplayText}"
                     TextTrimming="CharacterEllipsis" />
             </ControlTemplate>
         </Setter>

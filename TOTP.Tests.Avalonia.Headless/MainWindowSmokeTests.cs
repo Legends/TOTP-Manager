@@ -279,7 +279,7 @@ public sealed class MainWindowSmokeTests
     }
 
     [AvaloniaFact]
-    public void AccountRow_RendersIssuerOnlyWhileRetainingAccessibleAccountContext()
+    public void AccountRow_RendersIssuerAndAccountNameOnOneLineWithAccessibleContext()
     {
         var row = new AccountRow { Issuer = "Issuer", AccountName = "account@example.test" };
         var window = new Window { Content = row };
@@ -291,7 +291,7 @@ public sealed class MainWindowSmokeTests
             window.UpdateLayout();
 
             var text = Assert.Single(row.GetVisualDescendants().OfType<TextBlock>());
-            Assert.Equal("Issuer", text.Text);
+            Assert.Equal("Issuer : account@example.test", text.Text);
             Assert.Equal("Issuer, account@example.test", row.AccessibleName);
         }
         finally
@@ -395,6 +395,66 @@ public sealed class MainWindowSmokeTests
 
         Assert.NotNull(policy);
         Assert.Equal(expected, policy.Invoke(null, [isAccountListVisible, isEditorVisible]));
+    }
+
+    [Fact]
+    public void AccountPageHeightFit_UsesCompactWindowMinimum()
+    {
+        var policy = typeof(MainWindow).GetMethod(
+            "GetDesiredMinimumHeight",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        Assert.NotNull(policy);
+        Assert.Equal(200, Assert.IsType<double>(policy.Invoke(null, null)));
+    }
+
+    [AvaloniaFact]
+    public void ContentHeightFit_PreservesWindowTopEdge()
+    {
+        var window = new MainWindow();
+
+        try
+        {
+            window.Show();
+            window.Position = new PixelPoint(120, 130);
+            var resize = typeof(MainWindow).GetMethod(
+                "SetHeightImmediately",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            Assert.NotNull(resize);
+            resize.Invoke(window, [250d]);
+
+            Assert.Equal(new PixelPoint(120, 130), window.Position);
+            Assert.Equal(250, window.Height);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Theory]
+    [InlineData(70, 350, 32, 200, 540, 454)]
+    [InlineData(70, 600, 32, 200, 540, 540)]
+    public void AccountEditorHeight_FitsContentAndHonorsScreenCap(
+        double chromeHeight,
+        double contentHeight,
+        double verticalPadding,
+        double minimumHeight,
+        double maximumHeight,
+        double expectedHeight)
+    {
+        var policy = typeof(MainWindow).GetMethod(
+            "CalculateAccountEditorWindowHeight",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        Assert.NotNull(policy);
+        Assert.Equal(
+            expectedHeight,
+            Assert.IsType<double>(policy.Invoke(
+                null,
+                [chromeHeight, contentHeight, verticalPadding, minimumHeight, maximumHeight])),
+            precision: 2);
     }
 
     [Theory]
@@ -587,6 +647,27 @@ public sealed class MainWindowSmokeTests
             Assert.Equal(WindowDecorations.None, window.WindowDecorations);
             Assert.Equal(560, window.Width);
             Assert.Equal(420, window.Height);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void AccountRow_WithoutAccountNameOmitsSeparator()
+    {
+        var row = new AccountRow { Issuer = "Issuer" };
+        var window = new Window { Content = row };
+
+        try
+        {
+            window.Show();
+            row.ApplyTemplate();
+            window.UpdateLayout();
+
+            var text = Assert.Single(row.GetVisualDescendants().OfType<TextBlock>());
+            Assert.Equal("Issuer", text.Text);
         }
         finally
         {

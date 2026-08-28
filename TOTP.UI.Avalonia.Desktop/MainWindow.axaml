@@ -414,10 +414,13 @@
                                         <Border.RenderTransform>
                                             <TranslateTransform X="380" />
                                         </Border.RenderTransform>
-                                        <StackPanel
-                                            x:Name="AccountEditorContent"
-                                            Margin="0,10"
-                                            Spacing="0">
+                                        <ScrollViewer
+                                            HorizontalScrollBarVisibility="Disabled"
+                                            VerticalScrollBarVisibility="Auto">
+                                            <StackPanel
+                                                x:Name="AccountEditorContent"
+                                                Margin="0,10"
+                                                Spacing="0">
                                                 <Grid ColumnDefinitions="*,Auto">
                                                     <TextBlock
                                                         Grid.Column="0"
@@ -471,7 +474,8 @@
                                                     <Button Padding="14,6" Classes="primary" Command="{Binding SaveAccountCommand}" Content="{DynamicResource SaveAccount}" />
                                                     <Button Padding="14,6" Command="{Binding CancelEditCommand}" Content="{DynamicResource CancelEdit}" />
                                                 </StackPanel>
-                                        </StackPanel>
+                                            </StackPanel>
+                                        </ScrollViewer>
                                     </Border>
                                 </Grid>
                             </DataTemplate>

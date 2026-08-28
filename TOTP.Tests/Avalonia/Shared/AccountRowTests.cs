@@ -14,6 +14,7 @@ public sealed class AccountRowTests
         };
 
         Assert.Equal("Example, alice@example.test", sut.AccessibleName);
+        Assert.Equal("Example : alice@example.test", sut.DisplayText);
     }
 
     [Theory]
@@ -32,5 +33,6 @@ public sealed class AccountRowTests
         };
 
         Assert.Equal(expected, sut.AccessibleName);
+        Assert.Equal(expected == "Account" ? string.Empty : expected, sut.DisplayText);
     }
 }

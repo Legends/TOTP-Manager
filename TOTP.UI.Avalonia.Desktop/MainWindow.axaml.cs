@@ -21,7 +21,6 @@ public partial class MainWindow : Window
     private const double DefaultPageHeight = 540;
     private const double DefaultMinimumWidth = 360;
     private const double StandardMinimumHeight = 200;
-    private const double AccountPageMinimumHeight = 420;
     private static readonly TimeSpan HeightAnimationDuration = TimeSpan.FromMilliseconds(220);
     private bool _initialized;
     private bool _fitScheduled;
@@ -312,6 +311,7 @@ public partial class MainWindow : Window
             else
             {
                 SetAccountEditorPresented(false);
+                ScheduleAccountPageFit();
             }
 
             return;
@@ -351,8 +351,44 @@ public partial class MainWindow : Window
         }
 
         PrepareAccountEditorForLayout();
+        FitAccountEditorHeight();
         SetAccountEditorPresented(true);
     }
+
+    private void FitAccountEditorHeight()
+    {
+        var flyout = FindAccountEditorFlyout();
+        var editorContent = this.GetVisualDescendants()
+            .OfType<StackPanel>()
+            .FirstOrDefault(control => control.Name == "AccountEditorContent");
+        if (flyout is null || editorContent is null) return;
+
+        ApplyScreenSizeLimits();
+        MinHeight = Math.Min(StandardMinimumHeight, MaxHeight);
+        var availableWidth = Math.Max(
+            0,
+            flyout.Bounds.Width - flyout.Padding.Left - flyout.Padding.Right);
+        editorContent.Measure(new Size(availableWidth, double.PositiveInfinity));
+        var windowChromeHeight = Math.Max(0, Bounds.Height - flyout.Bounds.Height);
+        var targetHeight = CalculateAccountEditorWindowHeight(
+            windowChromeHeight,
+            editorContent.DesiredSize.Height,
+            flyout.Padding.Top + flyout.Padding.Bottom,
+            MinHeight,
+            MaxHeight);
+        StartHeightAnimation(targetHeight);
+    }
+
+    private static double CalculateAccountEditorWindowHeight(
+        double windowChromeHeight,
+        double editorContentHeight,
+        double editorVerticalPadding,
+        double minimumHeight,
+        double maximumHeight) =>
+        Math.Clamp(
+            windowChromeHeight + editorContentHeight + editorVerticalPadding + 2,
+            minimumHeight,
+            maximumHeight);
 
     private void SetAccountEditorPresented(bool isPresented)
     {
@@ -438,7 +474,7 @@ public partial class MainWindow : Window
         }
 
         ApplyScreenSizeLimits();
-        MinHeight = Math.Min(AccountPageMinimumHeight, MaxHeight);
+        MinHeight = Math.Min(StandardMinimumHeight, MaxHeight);
         UpdateLayout();
 
         var descendants = this.GetVisualDescendants().ToArray();
@@ -559,10 +595,7 @@ public partial class MainWindow : Window
         Height = Math.Clamp(Height, MinHeight, MaxHeight);
     }
 
-    private double GetDesiredMinimumHeight() =>
-        _observedViewModel is { IsAccountListVisible: true }
-            ? AccountPageMinimumHeight
-            : StandardMinimumHeight;
+    private static double GetDesiredMinimumHeight() => StandardMinimumHeight;
 
     private void StartHeightAnimation(double targetHeight)
     {
@@ -577,15 +610,7 @@ public partial class MainWindow : Window
     {
         targetHeight = Math.Clamp(targetHeight, MinHeight, MaxHeight);
         _heightAnimationLifetime?.Cancel();
-        var screen = Screens.ScreenFromWindow(this);
-        var screenScale = screen?.Scaling is > 0 ? screen.Scaling : 1;
         Height = targetHeight;
-        if (screen is null) return;
-
-        Position = new PixelPoint(
-            Position.X,
-            screen.WorkingArea.Y + (int)Math.Round(
-                (screen.WorkingArea.Height - (targetHeight * screenScale)) / 2));
     }
 
     private async Task AnimateHeightAsync(
@@ -593,13 +618,6 @@ public partial class MainWindow : Window
         CancellationTokenSource lifetime)
     {
         var startHeight = Math.Max(MinHeight, Bounds.Height > 0 ? Bounds.Height : Height);
-        var startPosition = Position;
-        var screen = Screens.ScreenFromWindow(this);
-        var screenScale = screen?.Scaling is > 0 ? screen.Scaling : 1;
-        var targetY = screen is null
-            ? startPosition.Y
-            : screen.WorkingArea.Y + (int)Math.Round(
-                (screen.WorkingArea.Height - (targetHeight * screenScale)) / 2);
         if (Math.Abs(startHeight - targetHeight) < 0.5)
         {
             Height = targetHeight;
@@ -619,14 +637,10 @@ public partial class MainWindow : Window
                     1);
                 var eased = 1 - Math.Pow(1 - progress, 3);
                 Height = startHeight + ((targetHeight - startHeight) * eased);
-                Position = new PixelPoint(
-                    startPosition.X,
-                    (int)Math.Round(startPosition.Y + ((targetY - startPosition.Y) * eased)));
                 await Task.Delay(16, lifetime.Token);
             }
 
             Height = targetHeight;
-            Position = new PixelPoint(startPosition.X, targetY);
         }
         catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
         {
