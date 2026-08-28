@@ -442,7 +442,7 @@
                                                         Content="✕" />
                                                 </Grid>
                                                 <TextBlock
-                                                    Margin="0,6,0,2"
+                                                    Margin="0,6,0,6"
                                                     Classes="field-label"
                                                     Text="{DynamicResource Issuer}" />
                                                 <TextBox
@@ -451,7 +451,7 @@
                                                     Text="{Binding EditorIssuer, Mode=TwoWay}" />
                                                 <shared:ValidationMessage Severity="Error" Text="{Binding EditorMessage}" />
                                                 <TextBlock
-                                                    Margin="0,10,0,2"
+                                                    Margin="0,10,0,6"
                                                     Classes="field-label"
                                                     Text="{DynamicResource Secret}" />
                                                 <shared:RevealableSecretInput
@@ -460,7 +460,7 @@
                                                     IsRequired="True"
                                                     Text="{Binding EditorSecret, Mode=TwoWay}" />
                                                 <TextBlock
-                                                    Margin="0,10,0,2"
+                                                    Margin="0,10,0,6"
                                                     Classes="field-label"
                                                     Text="{DynamicResource AccountName}" />
                                                 <TextBox
