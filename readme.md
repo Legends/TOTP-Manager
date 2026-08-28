@@ -65,14 +65,14 @@ TOTP Manager currently supports the standard configuration used by most provider
 
 ## Install
 
-Download the appropriate `v2.0.0-rc6` preview package from [GitHub Releases](https://github.com/Legends/TOTP-Manager/releases/tag/v2.0.0-rc6):
+Download the appropriate `v2.0.0-rc7` preview package from [GitHub Releases](https://github.com/Legends/TOTP-Manager/releases/tag/v2.0.0-rc7):
 
 | Platform | Package | Installation |
 | --- | --- | --- |
-| Windows 10/11 x64 | `TOTP-Manager-windows-x64-2.0.0-rc6.zip` | Extract and start `TOTP.UI.Avalonia.Desktop.exe`; the .NET runtime is included |
-| Windows 10/11 x64 | `TOTP-Manager-windows-x64-fast-2.0.0-rc6.zip` | Extract and start `TOTP.UI.Avalonia.Desktop.exe`; requires the [.NET 9 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) |
-| Ubuntu 24.04 x64 | `totp-manager_2.0.0-rc6_amd64.deb` | Install with `sudo apt install ./totp-manager_2.0.0-rc6_amd64.deb` |
-| Linux x64 portable | `TOTP-Manager-linux-x64-2.0.0-rc6.tar.gz` | Extract and run `TOTP.UI.Avalonia.Desktop`; the .NET runtime is included |
+| Windows 10/11 x64 | `TOTP-Manager-windows-x64-2.0.0-rc7.zip` | Extract and start `TOTP.UI.Avalonia.Desktop.exe`; the .NET runtime is included |
+| Windows 10/11 x64 | `TOTP-Manager-windows-x64-fast-2.0.0-rc7.zip` | Extract and start `TOTP.UI.Avalonia.Desktop.exe`; requires the [.NET 9 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) |
+| Ubuntu 24.04 x64 | `totp-manager_2.0.0-rc7_amd64.deb` | Install with `sudo apt install ./totp-manager_2.0.0-rc7_amd64.deb` |
+| Linux x64 portable | `TOTP-Manager-linux-x64-2.0.0-rc7.tar.gz` | Extract and run `TOTP.UI.Avalonia.Desktop`; the .NET runtime is included |
 
 Complete the first-run master-password setup after launch. The .NET **SDK** is required only when building from source.
 
