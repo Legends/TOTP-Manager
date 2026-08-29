@@ -67,8 +67,10 @@
   <data name="AccountDeleteFailed" xml:space="preserve"><value>The account could not be deleted safely.</value></data>
   <data name="AccountDeleted" xml:space="preserve"><value>Account deleted.</value></data>
   <data name="CodeRefreshFailed" xml:space="preserve"><value>The code expired and could not be refreshed safely.</value></data>
+  <data name="CodeCopied" xml:space="preserve"><value>Copied.</value></data>
   <data name="CodeCopiedWithClear" xml:space="preserve"><value>Copied. Conditional clipboard clear is scheduled in {0} seconds.</value></data>
-  <data name="ClipboardSafeCopyUnavailable" xml:space="preserve"><value>This platform cannot safely copy and conditionally clear the code.</value></data>
+  <data name="CodeCopiedWithoutClear" xml:space="preserve"><value>Copied. Automatic clipboard clearing is unavailable on this platform.</value></data>
+  <data name="ClipboardCopyUnavailable" xml:space="preserve"><value>The code could not be copied to the clipboard.</value></data>
   <data name="CodeRemainingTime" xml:space="preserve"><value>Code validity remaining</value></data>
   <data name="QrInvalid" xml:space="preserve"><value>The QR code is not a valid supported TOTP account.</value></data>
   <data name="QrImportFailed" xml:space="preserve"><value>The QR account could not be imported safely. Existing encrypted data was not changed.</value></data>
@@ -82,18 +84,15 @@
   <data name="UpdateExisting" xml:space="preserve"><value>Update existing</value></data>
   <data name="KeepBoth" xml:space="preserve"><value>Keep both</value></data>
   <data name="LockOnSessionLock" xml:space="preserve"><value>Lock when the operating-system session locks</value></data>
-  <data name="ClearClipboard" xml:space="preserve"><value>Allow code copying with conditional automatic clear</value></data>
+  <data name="ClearClipboard" xml:space="preserve"><value>Automatically clear copied codes</value></data>
   <data name="ClipboardClearSeconds" xml:space="preserve"><value>Maximum clipboard lifetime in seconds</value></data>
   <data name="QrPreviewScale" xml:space="preserve"><value>QR preview scale</value></data>
   <data name="InterfaceScale" xml:space="preserve"><value>Interface size</value></data>
   <data name="InterfaceScaleHelp" xml:space="preserve"><value>System scaling is recommended. A custom size multiplies the desktop scale and applies after restart.</value></data>
   <data name="SystemInterfaceScale" xml:space="preserve"><value>System default (recommended)</value></data>
   <data name="InterfaceScaleRestartRequired" xml:space="preserve"><value>Interface size saved. Restart the application to apply it.</value></data>
-  <data name="EncryptExports" xml:space="preserve"><value>Encrypt exports by default</value></data>
   <data name="OpenExportAfter" xml:space="preserve"><value>Open export location after export</value></data>
-  <data name="HideSecretsDefault" xml:space="preserve"><value>Hide secrets by default</value></data>
   <data name="LoggingLevel" xml:space="preserve"><value>Minimum logging level (applies after restart)</value></data>
-  <data name="ClipboardCopyDisabled" xml:space="preserve"><value>Code copying is disabled by the clipboard safety policy.</value></data>
   <data name="About" xml:space="preserve"><value>About</value></data>
   <data name="Version" xml:space="preserve"><value>Version</value></data>
   <data name="OpenLogFolder" xml:space="preserve"><value>Open log folder</value></data>
@@ -105,7 +104,7 @@
   <data name="ExportEncryptedBackup" xml:space="preserve"><value>Export encrypted backup…</value></data>
   <data name="ImportConflictHandling" xml:space="preserve"><value>Import conflict handling</value></data>
   <data name="ImportAccounts" xml:space="preserve"><value>Import accounts</value></data>
-  <data name="EncryptedBackup" xml:space="preserve"><value>Encrypted backup</value></data>
+  <data name="EncryptedBackup" xml:space="preserve"><value>Export accounts</value></data>
   <data name="EncryptedBackupHelp" xml:space="preserve"><value>Create a portable password-protected backup of all accounts.</value></data>
   <data name="SupportDiagnostics" xml:space="preserve"><value>Support diagnostics</value></data>
   <data name="RefreshSupportInformation" xml:space="preserve"><value>Refresh support information</value></data>

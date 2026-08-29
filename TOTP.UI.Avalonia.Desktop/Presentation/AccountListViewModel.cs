@@ -8,6 +8,7 @@ using TOTP.Avalonia.Desktop.Presentation.Dialogs;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Services.Models;
 using TOTP.Core.Validation;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
@@ -419,23 +420,42 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public async Task CopyCodeAsync()
     {
         if (!HasGeneratedCode) return;
+
         if (_settingsService?.Current.ClearClipboardEnabled == false)
         {
-            SetLocalizedCodeMessage(AvaloniaStringKeys.ClipboardCopyDisabled);
+            var copyResult = await _clipboardService.CopyAsync(GeneratedCode);
+            SetLocalizedCodeMessage(
+                copyResult.IsSuccess
+                    ? AvaloniaStringKeys.CodeCopied
+                    : AvaloniaStringKeys.ClipboardCopyUnavailable);
             return;
         }
 
         var configuredLifetime = _settingsService?.Current.ClearClipboardSeconds
             ?? RemainingSeconds;
         var clearSeconds = Math.Max(1, Math.Min(RemainingSeconds, configuredLifetime));
-        var result = await _clipboardService.CopyAndScheduleClearAsync(
+        var clearResult = await _clipboardService.CopyAndScheduleClearAsync(
             GeneratedCode,
             TimeSpan.FromSeconds(clearSeconds));
-        SetLocalizedCodeMessage(
-            result.IsSuccess
-                ? AvaloniaStringKeys.CodeCopiedWithClear
-                : AvaloniaStringKeys.ClipboardSafeCopyUnavailable,
-            result.IsSuccess ? [clearSeconds] : []);
+        if (clearResult.IsSuccess)
+        {
+            SetLocalizedCodeMessage(AvaloniaStringKeys.CodeCopiedWithClear, [clearSeconds]);
+            return;
+        }
+
+        var requiredCapabilities =
+            ClipboardCapabilities.WriteText | ClipboardCapabilities.ConditionalClear;
+        if ((_clipboardService.Capabilities & requiredCapabilities) == ClipboardCapabilities.WriteText)
+        {
+            var fallbackResult = await _clipboardService.CopyAsync(GeneratedCode);
+            SetLocalizedCodeMessage(
+                fallbackResult.IsSuccess
+                    ? AvaloniaStringKeys.CodeCopiedWithoutClear
+                    : AvaloniaStringKeys.ClipboardCopyUnavailable);
+            return;
+        }
+
+        SetLocalizedCodeMessage(AvaloniaStringKeys.ClipboardCopyUnavailable);
     }
 
     public async Task GenerateQrAsync()

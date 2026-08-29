@@ -134,8 +134,10 @@ public static class AvaloniaStringKeys
     public const string AccountDeleteFailed = nameof(AccountDeleteFailed);
     public const string AccountDeleted = nameof(AccountDeleted);
     public const string CodeRefreshFailed = nameof(CodeRefreshFailed);
+    public const string CodeCopied = nameof(CodeCopied);
     public const string CodeCopiedWithClear = nameof(CodeCopiedWithClear);
-    public const string ClipboardSafeCopyUnavailable = nameof(ClipboardSafeCopyUnavailable);
+    public const string CodeCopiedWithoutClear = nameof(CodeCopiedWithoutClear);
+    public const string ClipboardCopyUnavailable = nameof(ClipboardCopyUnavailable);
     public const string CodeRemainingTime = nameof(CodeRemainingTime);
     public const string QrInvalid = nameof(QrInvalid);
     public const string QrImportFailed = nameof(QrImportFailed);
@@ -156,11 +158,8 @@ public static class AvaloniaStringKeys
     public const string InterfaceScaleHelp = nameof(InterfaceScaleHelp);
     public const string SystemInterfaceScale = nameof(SystemInterfaceScale);
     public const string InterfaceScaleRestartRequired = nameof(InterfaceScaleRestartRequired);
-    public const string EncryptExports = nameof(EncryptExports);
     public const string OpenExportAfter = nameof(OpenExportAfter);
-    public const string HideSecretsDefault = nameof(HideSecretsDefault);
     public const string LoggingLevel = nameof(LoggingLevel);
-    public const string ClipboardCopyDisabled = nameof(ClipboardCopyDisabled);
     public const string RevealSecret = nameof(RevealSecret);
     public const string ConcealSecret = nameof(ConcealSecret);
     public const string RevealSecretHelp = nameof(RevealSecretHelp);
@@ -227,14 +226,14 @@ public static class AvaloniaStringKeys
         AccountName, Secret, SaveAccount, CancelEdit, AccountIssuerRequired,
         AccountSecretInvalid, AccountDuplicate, AccountSaveFailed, AccountSaved,
         AccountEditLoadFailed, AccountDeleteFailed, AccountDeleted, CodeRefreshFailed,
-        CodeCopiedWithClear,
-        ClipboardSafeCopyUnavailable, CodeRemainingTime, QrInvalid, QrImportFailed,
+        CodeCopied, CodeCopiedWithClear, CodeCopiedWithoutClear, ClipboardCopyUnavailable,
+        CodeRemainingTime, QrInvalid, QrImportFailed,
         QrAccountAdded, QrAccountUpdated, QrAccountKeptBoth, QrAccountDuplicate,
         QrImportCancelled, QrConflictTitle, QrConflictMessage, UpdateExisting, KeepBoth,
         LockOnSessionLock, ClearClipboard, ClipboardClearSeconds, QrPreviewScale,
         InterfaceScale, InterfaceScaleHelp, SystemInterfaceScale, InterfaceScaleRestartRequired,
-        EncryptExports, OpenExportAfter, HideSecretsDefault, LoggingLevel,
-        ClipboardCopyDisabled, RevealSecret, ConcealSecret, RevealSecretHelp, RevealSecretAutomation,
+        OpenExportAfter, LoggingLevel,
+        RevealSecret, ConcealSecret, RevealSecretHelp, RevealSecretAutomation,
         ImportSkipExisting, ImportReplaceExisting, ImportKeepBoth, NoImportFileSelected,
         UpdateReadyToCheck, UpdateChecking, UpdateFeedVerificationFailed, UpdateDisabled,
         UpdateNoneAvailable, UpdateAvailable, UpdateResponseIncomplete, UpdateCheckCancelled,

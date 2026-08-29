@@ -179,7 +179,7 @@ Select a synthetic account and copy its TOTP code.
 
 ### On Wayland
 
-- Verify the application reports that safe conditional clipboard clearing is unavailable if the desktop cannot guarantee clipboard ownership
+- Verify the code is copied and the application warns that automatic clipboard clearing is unavailable if the desktop cannot guarantee clipboard ownership
 
 Never copy a real OTP during this test.
 

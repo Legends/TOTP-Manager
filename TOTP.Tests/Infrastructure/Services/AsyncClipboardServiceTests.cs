@@ -10,6 +10,30 @@ namespace TOTP.Tests.Infrastructure.Services;
 public sealed class AsyncClipboardServiceTests
 {
     [Fact]
+    public async Task CopyAsync_WithoutConditionalClear_WritesWithoutSchedulingClear()
+    {
+        var platform = new Mock<IAsyncPlatformClipboard>();
+        platform.SetupGet(value => value.Capabilities).Returns(ClipboardCapabilities.WriteText);
+        platform.Setup(value => value.SetTextAsync("123456", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(new ClipboardWriteReceipt(42)));
+        using var sut = new AsyncClipboardService(
+            platform.Object,
+            Mock.Of<ILogger<AsyncClipboardService>>());
+
+        var result = await sut.CopyAsync(
+            "123456",
+            TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsSuccess);
+        platform.Verify(value => value.SetTextAsync(
+            "123456",
+            It.IsAny<CancellationToken>()), Times.Once);
+        platform.Verify(value => value.ClearIfUnchangedAsync(
+            It.IsAny<ClipboardWriteReceipt>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task CopyAndScheduleClearAsync_ClearsOnlyWithReturnedReceipt()
     {
         var receipt = new ClipboardWriteReceipt(42);

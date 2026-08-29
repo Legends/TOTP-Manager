@@ -18,6 +18,26 @@ public sealed class AsyncClipboardService(
 
     public ClipboardCapabilities Capabilities => platformClipboard.Capabilities;
 
+    public async Task<Result> CopyAsync(
+        string text,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(text)) return Result.Ok();
+        if (!Capabilities.HasFlag(ClipboardCapabilities.WriteText))
+        {
+            return Result.Fail(new AppError(
+                AppErrorCode.ClipboardUnavailable,
+                "The platform clipboard does not support text copying."));
+        }
+
+        var write = await platformClipboard.SetTextAsync(text, cancellationToken);
+        if (write.IsFailed) return Result.Fail(write.Errors);
+
+        CancelScheduledClear();
+        logger.LogInformation("Sensitive clipboard data copied without an automatic clear.");
+        return Result.Ok();
+    }
+
     public async Task<Result> CopyAndScheduleClearAsync(
         string text,
         TimeSpan duration,
@@ -88,6 +108,11 @@ public sealed class AsyncClipboardService(
     }
 
     public void Dispose()
+    {
+        CancelScheduledClear();
+    }
+
+    private void CancelScheduledClear()
     {
         lock (_sync)
         {

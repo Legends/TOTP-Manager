@@ -25,9 +25,7 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
     private int _clearClipboardSeconds;
     private decimal _qrPreviewScaleFactor;
     private InterfaceScaleOption? _selectedInterfaceScale;
-    private bool _exportEncrypt;
     private bool _openExportFileAfterExport;
-    private bool _hideSecretsByDefault;
     private AppLogLevel _minimumLogLevel;
     private bool _isBusy;
     private bool _isReloading;
@@ -156,32 +154,12 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    public bool ExportEncrypt
-    {
-        get => _exportEncrypt;
-        set
-        {
-            if (!SetField(ref _exportEncrypt, value)) return;
-            QueueAutoSave();
-        }
-    }
-
     public bool OpenExportFileAfterExport
     {
         get => _openExportFileAfterExport;
         set
         {
             if (!SetField(ref _openExportFileAfterExport, value)) return;
-            QueueAutoSave();
-        }
-    }
-
-    public bool HideSecretsByDefault
-    {
-        get => _hideSecretsByDefault;
-        set
-        {
-            if (!SetField(ref _hideSecretsByDefault, value)) return;
             QueueAutoSave();
         }
     }
@@ -221,9 +199,7 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
             SelectedInterfaceScale = InterfaceScales.FirstOrDefault(
                 option => option.Percent == _settingsService.Current.InterfaceScalePercent)
                 ?? InterfaceScales[0];
-            ExportEncrypt = _settingsService.Current.ExportEncrypt;
             OpenExportFileAfterExport = _settingsService.Current.OpenExportFileAfterExport;
-            HideSecretsByDefault = _settingsService.Current.HideSecretsByDefault;
             MinimumLogLevel = _settingsService.Current.MinimumLogLevel;
             Message = string.Empty;
         }
@@ -261,9 +237,7 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
             _settingsService.Current.ClearClipboardSeconds = ClearClipboardSeconds;
             _settingsService.Current.QrPreviewScaleFactor = (double)QrPreviewScaleFactor;
             _settingsService.Current.InterfaceScalePercent = SelectedInterfaceScale.Percent;
-            _settingsService.Current.ExportEncrypt = ExportEncrypt;
             _settingsService.Current.OpenExportFileAfterExport = OpenExportFileAfterExport;
-            _settingsService.Current.HideSecretsByDefault = HideSecretsByDefault;
             _settingsService.Current.MinimumLogLevel = MinimumLogLevel;
             if (SelectedLanguage is not null)
                 _settingsService.Current.CultureName = SelectedLanguage.CultureName;

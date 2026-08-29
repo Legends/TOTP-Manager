@@ -58,4 +58,16 @@ public sealed class AvaloniaLocalizationServiceTests
             expected,
             sut.Get(AvaloniaStringKeys.AppTitle, System.Globalization.CultureInfo.GetCultureInfo(cultureName)));
     }
+
+    [Theory]
+    [InlineData("en", "Export accounts")]
+    [InlineData("de", "Konten exportieren")]
+    public void Catalog_ExportSectionUsesAccountFocusedHeading(string cultureName, string expected)
+    {
+        var sut = new AvaloniaStringCatalog();
+
+        Assert.Equal(
+            expected,
+            sut.Get(AvaloniaStringKeys.EncryptedBackup, System.Globalization.CultureInfo.GetCultureInfo(cultureName)));
+    }
 }

@@ -124,9 +124,7 @@ public sealed class SettingsPageViewModelTests
             ClearClipboardEnabled = true,
             ClearClipboardSeconds = 20,
             QrPreviewScaleFactor = 2.5m,
-            ExportEncrypt = true,
             OpenExportFileAfterExport = false,
-            HideSecretsByDefault = false,
             MinimumLogLevel = AppLogLevel.Warning
         };
         sut.SelectedInterfaceScale = Assert.Single(
@@ -142,9 +140,7 @@ public sealed class SettingsPageViewModelTests
         Assert.Equal(20, current.ClearClipboardSeconds);
         Assert.Equal(2.5, current.QrPreviewScaleFactor);
         Assert.Equal(175, current.InterfaceScalePercent);
-        Assert.True(current.ExportEncrypt);
         Assert.False(current.OpenExportFileAfterExport);
-        Assert.False(current.HideSecretsByDefault);
         Assert.Equal(AppLogLevel.Warning, current.MinimumLogLevel);
     }
 
@@ -230,7 +226,7 @@ public sealed class SettingsPageViewModelTests
 
         sut.IdleTimeoutMinutes = 15;
         sut.ClearClipboardSeconds = 20;
-        sut.HideSecretsByDefault = false;
+        sut.OpenExportFileAfterExport = false;
         await saved.Task.WaitAsync(
             TimeSpan.FromSeconds(1),
             TestContext.Current.CancellationToken);
@@ -238,7 +234,7 @@ public sealed class SettingsPageViewModelTests
 
         Assert.Equal(TimeSpan.FromMinutes(15), current.IdleTimeout);
         Assert.Equal(20, current.ClearClipboardSeconds);
-        Assert.False(current.HideSecretsByDefault);
+        Assert.False(current.OpenExportFileAfterExport);
         settings.Verify(value => value.SaveAsync(), Times.Once);
     }
 

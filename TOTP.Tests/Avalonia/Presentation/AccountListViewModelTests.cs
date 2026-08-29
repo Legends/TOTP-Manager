@@ -7,6 +7,7 @@ using TOTP.Core.Models;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Services.Models;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation;
 using TOTP.Avalonia.Desktop.Presentation.Dialogs;
@@ -736,13 +737,17 @@ public sealed class AccountListViewModelTests
     }
 
     [Fact]
-    public async Task CopyCodeAsync_WhenClipboardPolicyIsDisabled_DoesNotCopy()
+    public async Task CopyCodeAsync_WhenAutomaticClearIsDisabled_CopiesWithoutSchedulingClear()
     {
         var id = Guid.NewGuid();
         var totp = new Mock<IAccountTotpService>();
         totp.Setup(value => value.GenerateAsync(id))
             .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 30, 30)));
         var clipboard = new Mock<IAsyncClipboardService>();
+        clipboard.Setup(value => value.CopyAsync(
+                "123456",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
         var settings = new Mock<ISettingsService>();
         settings.SetupGet(value => value.Current).Returns(new AppSettings
         {
@@ -766,7 +771,60 @@ public sealed class AccountListViewModelTests
 
         clipboard.Verify(value => value.CopyAndScheduleClearAsync(
             It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Never);
-        Assert.Equal(AvaloniaStringKeys.ClipboardCopyDisabled, sut.CodeMessage);
+        clipboard.Verify(value => value.CopyAsync(
+            "123456", It.IsAny<CancellationToken>()), Times.Once);
+        Assert.Equal(AvaloniaStringKeys.CodeCopied, sut.CodeMessage);
+    }
+
+    [Fact]
+    public async Task CopyCodeAsync_WhenConditionalClearIsUnavailable_CopiesAndShowsLocalizedWarning()
+    {
+        var id = Guid.NewGuid();
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateAsync(id))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 30, 30)));
+        var clipboard = new Mock<IAsyncClipboardService>();
+        clipboard.SetupGet(value => value.Capabilities).Returns(ClipboardCapabilities.WriteText);
+        clipboard.Setup(value => value.CopyAndScheduleClearAsync(
+                "123456",
+                TimeSpan.FromSeconds(15),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Fail("Conditional clear unavailable."));
+        clipboard.Setup(value => value.CopyAsync(
+                "123456",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        var localization = new AvaloniaLocalizationService(
+            new ResourceDictionary(),
+            new AvaloniaStringCatalog());
+        localization.ApplyCulture("de");
+        var settings = new Mock<ISettingsService>();
+        settings.SetupGet(value => value.Current).Returns(new AppSettings
+        {
+            ClearClipboardEnabled = true,
+            ClearClipboardSeconds = 15
+        });
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            totp.Object,
+            clipboard.Object,
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            localization,
+            settingsService: settings.Object)
+        {
+            SelectedAccount = new AccountListItemViewModel(id, "Issuer", "account")
+        };
+        await sut.GenerateCodeAsync();
+
+        await sut.CopyCodeAsync();
+
+        clipboard.Verify(value => value.CopyAsync(
+            "123456", It.IsAny<CancellationToken>()), Times.Once);
+        Assert.Equal(
+            "Kopiert. Das automatische Leeren der Zwischenablage ist auf dieser Plattform nicht verfügbar.",
+            sut.CodeMessage);
     }
 
     private static AccountListViewModel CreateSut(
