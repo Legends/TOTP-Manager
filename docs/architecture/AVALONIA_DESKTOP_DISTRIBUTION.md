@@ -31,7 +31,7 @@ CI may instead supply the App Store Connect API-key triplet `-NotaryKeyPath`, `-
 
 Credentialed tag publication expects these GitHub Actions secrets:
 
-- Windows: `SIGNING_CERT_BASE64`, `SIGNING_CERT_PASSWORD`;
+- Windows: submitter-only `SIGNPATH_API_TOKEN` secret plus the non-secret `SIGNPATH_ORGANIZATION_ID` variable; each request also requires manual SignPath approval;
 - macOS signing: `MACOS_SIGNING_CERTIFICATE_BASE64`, `MACOS_SIGNING_CERTIFICATE_PASSWORD`, `MACOS_SIGNING_IDENTITY`;
 - macOS notarization: `MACOS_NOTARY_KEY_BASE64`, `MACOS_NOTARY_KEY_ID`, `MACOS_NOTARY_ISSUER_ID`;
 - update feed: `NETSPARKLE_PUBLIC_KEY`, `NETSPARKLE_PRIVATE_KEY`.

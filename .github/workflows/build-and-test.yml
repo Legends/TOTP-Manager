@@ -37,6 +37,10 @@ jobs:
         shell: pwsh
         run: ./scripts/validation/Test-UnsignedPreviewReleasePolicy.ps1
 
+      - name: Validate SignPath Foundation repository readiness
+        shell: pwsh
+        run: ./scripts/validation/Test-SignPathFoundationReadiness.ps1
+
       - name: Audit NuGet dependency graph
         shell: pwsh
         run: |
@@ -366,14 +370,15 @@ jobs:
     needs: [build-test, unix-file-security, avalonia-ui-smoke, m3-package-probe]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ${{ matrix.rid == 'win-x64' && 'windows-2025' || matrix.rid == 'linux-x64' && 'ubuntu-24.04' || 'macos-15' }}
+    permissions:
+      actions: read
+      contents: read
     strategy:
       fail-fast: true
       matrix:
         rid: ${{ fromJSON(contains(github.ref_name, '-rc') && '["win-x64","linux-x64"]' || '["win-x64","linux-x64","osx-arm64"]') }}
 
     env:
-      SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
-      SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
       MACOS_SIGNING_CERTIFICATE_BASE64: ${{ secrets.MACOS_SIGNING_CERTIFICATE_BASE64 }}
       MACOS_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_SIGNING_CERTIFICATE_PASSWORD }}
       MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
@@ -473,18 +478,65 @@ jobs:
             ./scripts/release/Prepare-AvaloniaReleasePayload.ps1 -PublishDirectory release-fast
           }
 
-      - name: Require and apply Windows Authenticode
+      - name: Upload unsigned Windows payload for SignPath
+        id: upload-signpath-artifact
+        if: ${{ matrix.rid == 'win-x64' && !contains(github.ref_name, '-rc') }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: signpath-unsigned-windows-${{ github.sha }}
+          path: |
+            release-publish
+            release-fast
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Submit Windows payload to SignPath
+        if: ${{ matrix.rid == 'win-x64' && !contains(github.ref_name, '-rc') }}
+        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2.3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: totp-manager
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: windows-release-v1
+          github-artifact-id: ${{ steps.upload-signpath-artifact.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signpath-signed
+          parameters: |
+            version: ${{ toJSON(steps.versioning.outputs.release_version) }}
+
+      - name: Validate and apply SignPath result
         if: ${{ matrix.rid == 'win-x64' && !contains(github.ref_name, '-rc') }}
         shell: pwsh
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:SIGNING_CERT_BASE64) -or
-              [string]::IsNullOrWhiteSpace($env:SIGNING_CERT_PASSWORD)) {
-            throw "Windows release signing credentials are required."
+          $signedRoot = (Resolve-Path -LiteralPath signpath-signed).Path
+          foreach ($directoryName in @("release-publish", "release-fast")) {
+            $signedDirectory = Join-Path $signedRoot $directoryName
+            $targetDirectory = (Resolve-Path -LiteralPath $directoryName).Path
+            if (-not (Test-Path -LiteralPath $signedDirectory -PathType Container)) {
+              throw "The SignPath result is missing $directoryName."
+            }
+            Copy-Item -Path (Join-Path $signedDirectory "*") -Destination $targetDirectory -Recurse -Force
           }
-          ./scripts/release/signing/Sign-App.ps1 -ExePath ./release-publish/TOTP.UI.Avalonia.Desktop.exe
-          ./scripts/release/signing/Sign-App.ps1 -ExePath ./release-publish/TOTP.Updater/TOTP.Updater.exe
-          ./scripts/release/signing/Sign-App.ps1 -ExePath ./release-fast/TOTP.UI.Avalonia.Desktop.exe
-          ./scripts/release/signing/Sign-App.ps1 -ExePath ./release-fast/TOTP.Updater/TOTP.Updater.exe
+
+          $firstPartyFiles = @(
+            Get-ChildItem release-publish,release-fast -Recurse -File |
+              Where-Object { $_.Name -match '^TOTP.*\.(exe|dll)$' }
+          )
+          if ($firstPartyFiles.Count -eq 0) {
+            throw "No first-party Windows PE files were found after signing."
+          }
+          foreach ($file in $firstPartyFiles) {
+            $signature = Get-AuthenticodeSignature -LiteralPath $file.FullName
+            if ($signature.Status -ne [System.Management.Automation.SignatureStatus]::Valid) {
+              throw "Invalid Authenticode signature on $($file.Name): $($signature.Status)."
+            }
+            $versionInfo = $file.VersionInfo
+            if ($versionInfo.ProductName -cne "TOTP Manager" -or
+                $versionInfo.ProductVersion -cne "${{ steps.versioning.outputs.release_version }}") {
+              throw "Unexpected product metadata on $($file.Name)."
+            }
+          }
 
       - name: Import macOS Developer ID certificate
         if: ${{ matrix.rid == 'osx-arm64' }}
@@ -686,6 +738,10 @@ jobs:
             - Do not use this preview with a production vault; test with synthetic accounts only.
 
             Verify the downloaded file against `SHA256SUMS` and the source commit recorded in `release-artifacts-unsigned-preview.json`.
+
+            ## Code signing policy
+
+            This preview is intentionally unsigned. See the project [code signing policy](https://github.com/${{ github.repository }}/blob/${{ github.sha }}/CODE_SIGNING_POLICY.md) for the stable-release trust model.
           files: |
             preview-assets/TOTP-Manager-windows-x64-${{ steps.versioning.outputs.release_version }}.zip
             preview-assets/TOTP-Manager-windows-x64-fast-${{ steps.versioning.outputs.release_version }}.zip
@@ -871,6 +927,12 @@ jobs:
           prerelease: ${{ steps.versioning.outputs.prerelease }}
           make_latest: false
           fail_on_unmatched_files: true
+          body: |
+            ## Code signing policy
+
+            Free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+            See the project [code signing policy](https://github.com/${{ github.repository }}/blob/${{ github.sha }}/CODE_SIGNING_POLICY.md) and [privacy policy](https://github.com/${{ github.repository }}/blob/${{ github.sha }}/PRIVACY.md). Windows first-party binaries in this stable release are Authenticode-signed through the manually approved SignPath workflow.
           files: |
             release-assets/TOTP-Manager-windows-x64-${{ steps.versioning.outputs.release_version }}.zip
             release-assets/TOTP-Manager-windows-x64-fast-${{ steps.versioning.outputs.release_version }}.zip

@@ -107,6 +107,16 @@ Appcast signing protects the update feed and is separate from Windows Authentico
 
 To report a suspected vulnerability, follow the private reporting instructions in [SECURITY.md](SECURITY.md). Do not include secrets or exploit details in a public issue.
 
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+- Committer and reviewer: [Legends](https://github.com/Legends)
+- Approver: [Legends](https://github.com/Legends)
+- Privacy: [TOTP Manager privacy policy](PRIVACY.md)
+
+The complete [code signing policy](CODE_SIGNING_POLICY.md) describes the release trust boundary, manual approval, build-origin controls, signed-file scope, and incident response. Release-candidate packages remain explicitly unsigned until the Foundation-backed workflow is operational.
+
 ## Data, backup, and recovery
 
 Application data is stored in the platform application-data directory, including the encrypted account vault and protected authorization/settings data. See [platform application paths](docs/architecture/PLATFORM_APPLICATION_PATHS.md) for the exact Windows, macOS, and Linux locations.

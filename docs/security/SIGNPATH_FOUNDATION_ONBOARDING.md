@@ -1,0 +1,70 @@
+# SignPath Foundation onboarding
+
+## Status
+
+The repository is prepared for a SignPath Foundation application, but certificate issuance and hosted configuration remain external approval steps. Do not describe a release as SignPath-signed until its Authenticode signature has been verified.
+
+Repository evidence:
+
+- OSI-approved project license: [MIT](../../LICENSE.txt)
+- Product and download documentation: [README](../../readme.md)
+- Published release form: Windows x64 ZIP packages on [GitHub Releases](https://github.com/Legends/TOTP-Manager/releases)
+- Code signing policy and roles: [CODE_SIGNING_POLICY.md](../../CODE_SIGNING_POLICY.md)
+- Privacy disclosure: [PRIVACY.md](../../PRIVACY.md)
+- Vulnerability reporting: [SECURITY.md](../../SECURITY.md)
+- Automated build, test, dependency, CodeQL, and secret-scanning workflows under `.github/workflows`
+
+The dependency review deliberately pins `FluentAssertions` to the OSI-approved 7.x line. Version 8 and later use a non-OSI community/commercial license and are not eligible under the Foundation's stated OSS-license condition.
+
+## Maintainer prerequisites
+
+Before applying:
+
+1. Enable multi-factor authentication on the GitHub account and require it for every future maintainer with repository or SignPath access.
+2. Apply and verify the `master` branch protections in [BRANCH_PROTECTION.md](BRANCH_PROTECTION.md). External pull requests must be reviewed, required checks must pass, force pushes and deletion must remain disabled, and release/trust files must remain covered by `CODEOWNERS`.
+3. Review the project-owned raster record in [ASSET_PROVENANCE.md](../assets/ASSET_PROVENANCE.md) whenever an embedded image changes. Unknown earlier icon and flag files have been replaced; do not reintroduce them.
+4. Keep at least one public Windows release in the same ZIP-based form intended for signing, with functionality and installation instructions on its release page.
+5. Read and accept the current [SignPath Foundation conditions](https://signpath.org/terms.html), then submit the [application](https://signpath.org/apply).
+
+Certificate approval is discretionary. Repository preparation cannot guarantee acceptance, particularly while a project has limited verifiable reputation.
+
+## SignPath project configuration
+
+After acceptance, configure the values expected by the release workflow:
+
+| Setting | Value |
+| --- | --- |
+| Repository | `https://github.com/Legends/TOTP-Manager` |
+| Project slug | `totp-manager` |
+| Signing policy slug | `release-signing` |
+| Artifact configuration slug | `windows-release-v1` |
+| GitHub Actions variable | `SIGNPATH_ORGANIZATION_ID` |
+| GitHub Actions secret | `SIGNPATH_API_TOKEN` |
+
+Use the predefined GitHub.com trusted build system, install the SignPath GitHub App if SignPath requests it, and grant it access only to this repository. Give the API token submitter permission only; do not give it approval or project-configuration authority.
+
+Create `windows-release-v1` by uploading a sample of the workflow artifact named `signpath-unsigned-windows-<commit>`. The artifact is a ZIP with `release-publish` and `release-fast` directories. Review the generated configuration so that it:
+
+- signs every first-party `TOTP*.exe` and `TOTP*.dll` under those two directories;
+- does not sign Microsoft, Avalonia, OpenCV, or any other upstream binary;
+- requires `TOTP Manager` for PE product-name metadata;
+- requires the signing-request `version` parameter for product-version metadata; and
+- rejects missing, additional first-party, or structurally unexpected signing targets.
+
+Configure `release-signing` to use the Foundation certificate, GitHub origin verification, and manual approval by the named approver for every request. Do not add a test-signing policy that can publish artifacts under the Foundation certificate without equivalent origin controls.
+
+## First signed-release rehearsal
+
+Use a new stable tag only after SignPath confirms the project configuration. The stable workflow fails closed if the organization ID, API token, approval, returned structure, PE metadata, or Authenticode verification is missing.
+
+Before publishing, verify in the draft release workflow evidence that:
+
+1. all prerequisite build and security jobs passed on GitHub-hosted runners;
+2. the signing request references the expected repository, tag, and commit;
+3. the request received manual approval;
+4. every first-party Windows PE in both packages has a valid Foundation-backed Authenticode signature;
+5. upstream binaries were not re-signed;
+6. artifact manifests and the Ed25519 appcast validate; and
+7. the release page contains a link headed **Code signing policy**.
+
+Retain the signing-request URL and workflow run URL as release evidence. Never copy a SignPath API token, certificate material, or update private key into that evidence.

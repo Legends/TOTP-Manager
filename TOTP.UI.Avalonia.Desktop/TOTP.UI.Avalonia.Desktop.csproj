@@ -78,7 +78,8 @@
           Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <MSBuild Projects="..\TOTP.Updater\TOTP.Updater.csproj"
              Targets="Build"
-             Properties="Configuration=$(Configuration)" />
+             RemoveProperties="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed"
+             Properties="Configuration=$(Configuration);Version=$(Version);InformationalVersion=$(InformationalVersion);IncludeSourceRevisionInInformationalVersion=$(IncludeSourceRevisionInInformationalVersion);FileVersion=$(FileVersion);AssemblyVersion=$(AssemblyVersion)" />
     <ItemGroup>
       <WindowsUpdaterBundleOutput Include="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*"
                                   Exclude="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\ref\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\win-x64\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\publish\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*.pdb" />
@@ -93,7 +94,8 @@
           Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <MSBuild Projects="..\TOTP.Updater\TOTP.Updater.csproj"
              Targets="Build"
-             Properties="Configuration=$(Configuration)" />
+             RemoveProperties="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed"
+             Properties="Configuration=$(Configuration);Version=$(Version);InformationalVersion=$(InformationalVersion);IncludeSourceRevisionInInformationalVersion=$(IncludeSourceRevisionInInformationalVersion);FileVersion=$(FileVersion);AssemblyVersion=$(AssemblyVersion)" />
     <ItemGroup>
       <WindowsUpdaterBundlePublish Include="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*"
                                    Exclude="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\ref\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\win-x64\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\publish\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*.pdb" />

@@ -25,7 +25,7 @@ Modules:
 | DS-08 | Authorization required for sensitive operations | Implemented | Implemented | Implemented | Implemented | Implemented | Recovery-password authority, reviewed quick unlock, lock/session policy, authorized-shell and confirmation boundaries |
 | DS-09 | Security logging without secret leakage | Implemented | Implemented | Implemented | Implemented | Implemented | Structured and rendered redaction plus exception-type-only startup/UI security boundaries |
 | DS-10 | Build/release security gates (SAST/SCA/secrets) | Missing | Missing | Missing | Missing | Implemented | `.github/workflows/security-audit.yml`, `SECURITY_VERIFICATION.md` |
-| DS-11 | Signed release artifacts and key custody | Missing | Missing | Missing | Missing | Implemented | CI publish signs from secrets (`SIGNING_CERT_BASE64` + `SIGNING_CERT_PASSWORD`), repo-local `.pfx` removed, rotation runbook added |
+| DS-11 | Signed release artifacts and key custody | Missing | Missing | Missing | Missing | Implemented | Origin-verified SignPath submission with manual approval; Foundation certificate key is not exported to CI; returned Authenticode signatures and product metadata are verified before packaging |
 | DS-12 | Security tests for critical controls | Implemented | Implemented | Implemented | Implemented | Implemented | Crypto/envelope/store/import/update/logging/clipboard/platform failure and recovery suites |
 
 ## Remaining release risks
@@ -33,4 +33,4 @@ Modules:
 1. Complete independent penetration testing against exact signed release artifacts.
 2. Inspect managed-process memory around string-backed password/secret UI bindings and decide whether a platform-specific secure-input redesign has sufficient benefit.
 3. Complete physical platform, assistive-technology, native-store reset, clipboard-manager, camera, and clean-machine update acceptance.
-4. Verify signing-secret rotation and branch-protection operations outside the repository.
+4. Verify SignPath submitter-token rotation, manual approval, MFA, and branch-protection operations outside the repository.

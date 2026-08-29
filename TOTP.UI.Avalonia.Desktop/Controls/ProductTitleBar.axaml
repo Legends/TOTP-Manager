@@ -33,8 +33,17 @@
                 Grid.Column="2"
                 automation:AutomationProperties.Name="Close"
                 Classes="titlebar-close"
-                Click="CloseWindow"
-                Content="&#x00D7;" />
+                Click="CloseWindow">
+                <Path
+                    Width="12"
+                    Height="13"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Data="M 1,1.5 L 11,11.5 M 11,1.5 L 1,11.5"
+                    Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                    StrokeThickness="2"
+                    Stretch="None" />
+            </Button>
         </Grid>
     </Border>
 </UserControl>

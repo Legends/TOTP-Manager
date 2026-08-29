@@ -1,0 +1,8 @@
+# Security-sensitive release and trust policy
+/.github/workflows/ @Legends
+/scripts/release/ @Legends
+/docs/security/ @Legends
+/CODE_SIGNING_POLICY.md @Legends
+/PRIVACY.md @Legends
+/Directory.Build.props @Legends
+/TOTP.UI.Avalonia.Desktop/appsettings.json @Legends

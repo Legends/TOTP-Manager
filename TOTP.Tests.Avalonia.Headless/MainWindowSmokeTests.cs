@@ -6,11 +6,13 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 using System.Windows.Input;
 using TOTP.Avalonia.Desktop;
 using TOTP.Avalonia.Shared.Controls;
@@ -769,6 +771,40 @@ public sealed class MainWindowSmokeTests
     }
 
     [AvaloniaFact]
+    public void ProductTitleBar_CloseGlyphIsCenteredInItsHoverTarget()
+    {
+        var titleBar = new ProductTitleBar();
+        var window = new Window { Content = titleBar };
+
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+
+            var closeButton = Assert.Single(
+                titleBar.GetVisualDescendants().OfType<Button>(),
+                button => button.Classes.Contains("titlebar-close"));
+
+            Assert.Equal(HorizontalAlignment.Center, closeButton.HorizontalContentAlignment);
+            Assert.Equal(VerticalAlignment.Center, closeButton.VerticalContentAlignment);
+            Assert.Equal(34, closeButton.Bounds.Width);
+            Assert.Equal(33, closeButton.Bounds.Height);
+
+            var glyph = Assert.Single(closeButton.GetVisualDescendants().OfType<AvaloniaPath>());
+            var glyphCenter = glyph.TranslatePoint(
+                new Point(glyph.Bounds.Width / 2, glyph.Bounds.Height / 2),
+                closeButton);
+            Assert.NotNull(glyphCenter);
+            Assert.Equal(closeButton.Bounds.Width / 2, glyphCenter.Value.X, 3);
+            Assert.Equal(closeButton.Bounds.Height / 2, glyphCenter.Value.Y, 3);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void QrPreviewDialog_EscapeClosesWindow()
     {
         var window = new QrPreviewDialogWindow();
@@ -805,10 +841,16 @@ public sealed class MainWindowSmokeTests
                 "avares://TOTP.UI.Avalonia.Desktop/Assets/flags/en.png")));
             Assert.True(AssetLoader.Exists(new Uri(
                 "avares://TOTP.UI.Avalonia.Desktop/Assets/flags/de.png")));
-            Assert.Contains(
+            var languageSelector = Assert.Single(
                 window.GetVisualDescendants().OfType<ComboBox>(),
                 combo => combo.Width == 64
                     && combo.HorizontalContentAlignment == global::Avalonia.Layout.HorizontalAlignment.Center);
+            languageSelector.ItemsSource = new[] { new LanguageOption("en", "English") };
+            languageSelector.SelectedIndex = 0;
+            window.UpdateLayout();
+
+            var languageFlag = Assert.Single(languageSelector.GetVisualDescendants().OfType<Image>());
+            Assert.Equal(new Thickness(8, 0, 0, 0), languageFlag.Margin);
             Assert.Equal(380, window.Width);
             Assert.Equal(540, window.Height);
             Assert.Equal(360, window.MinWidth);

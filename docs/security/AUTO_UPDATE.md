@@ -71,11 +71,11 @@ The private key path is supplied to tooling; private key contents must never app
 
 - `NETSPARKLE_PUBLIC_KEY`
 - `NETSPARKLE_PRIVATE_KEY`
-- `SIGNING_CERT_BASE64`
-- `SIGNING_CERT_PASSWORD`
+- `SIGNPATH_API_TOKEN` (submitter permission only)
+- `SIGNPATH_ORGANIZATION_ID` (GitHub Actions repository variable)
 - macOS Developer ID/notarization secrets documented by the release workflow
 
-Stable tags fail closed when required credentials are absent. RC tags publish only explicitly labeled unsigned Windows/Linux previews with automatic updates disabled.
+The SignPath project, policy, and artifact-configuration slugs are fixed in the workflow and documented in [SIGNPATH_FOUNDATION_ONBOARDING.md](SIGNPATH_FOUNDATION_ONBOARDING.md). Every stable Windows signing request requires separate manual approval in SignPath. Stable tags fail closed when required configuration or approval is absent. RC tags publish only explicitly labeled unsigned Windows/Linux previews with automatic updates disabled.
 
 ## Release behavior
 

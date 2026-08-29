@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <Product>TOTP Manager</Product>
+    <Company>TOTP Manager contributors</Company>
+    <Authors>TOTP Manager contributors</Authors>
+    <Description>Local-first desktop authenticator for time-based one-time passwords.</Description>
+    <Copyright>Copyright © TOTP Manager contributors</Copyright>
+    <RepositoryUrl>https://github.com/Legends/TOTP-Manager</RepositoryUrl>
+  </PropertyGroup>
+</Project>
