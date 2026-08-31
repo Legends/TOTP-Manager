@@ -48,7 +48,7 @@
                             HorizontalScrollBarVisibility="Disabled"
                             VerticalScrollBarVisibility="Auto">
                             <StackPanel Margin="4,8,4,4" Spacing="12">
-                            <ContentControl Content="{Binding AuthorizationSettings}">
+                            <ContentControl x:Name="AuthorizationSettingsHost" Content="{Binding AuthorizationSettings}">
                             <ContentControl.ContentTemplate>
                                 <DataTemplate x:DataType="presentation:AuthorizationSettingsViewModel">
                                     <StackPanel Spacing="12">
@@ -80,7 +80,10 @@
                                                 <TextBlock Classes="section-title" Text="{DynamicResource ChangeMasterPassword}" />
                                                 <shared:RevealableSecretInput AccessibleName="{DynamicResource NewPassword}" PlaceholderText="{DynamicResource NewPassword}" Text="{Binding NewPassword, Mode=TwoWay}" />
                                                 <shared:RevealableSecretInput AccessibleName="{DynamicResource ConfirmPassword}" PlaceholderText="{DynamicResource ConfirmPassword}" Text="{Binding ConfirmPassword, Mode=TwoWay}" />
-                                                <Button Classes="danger" Command="{Binding ChangePasswordCommand}" Content="{DynamicResource ChangeMasterPassword}" />
+                                                <Button
+                                                    x:Name="MasterPasswordChangeButton"
+                                                    Command="{Binding ChangePasswordCommand}"
+                                                    Content="{DynamicResource ChangeMasterPassword}" />
                                             </StackPanel>
                                         </Border>
                                         <Border Classes="panel">
@@ -186,7 +189,11 @@
                                         Grid.Row="0"
                                         HorizontalScrollBarVisibility="Disabled"
                                         VerticalScrollBarVisibility="Auto">
-                                        <Border Margin="4,8,4,4" Classes="panel">
+                                        <Border
+                                            x:Name="MiscellaneousSettingsPanel"
+                                            Margin="4,8,4,4"
+                                            VerticalAlignment="Top"
+                                            Classes="panel">
                                             <StackPanel Spacing="8">
                                             <TextBlock Classes="settings-label" Text="{DynamicResource Language}" />
                                             <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}">

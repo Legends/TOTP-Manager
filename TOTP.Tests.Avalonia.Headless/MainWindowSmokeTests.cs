@@ -7,6 +7,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Styling;
@@ -914,6 +915,35 @@ public sealed class MainWindowSmokeTests
     }
 
     [AvaloniaFact]
+    public void MasterPasswordChange_UsesNeutralActionStyle()
+    {
+        var window = new SettingsWindow();
+
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+
+            var authorizationHost = Assert.Single(
+                window.GetVisualDescendants().OfType<ContentControl>(),
+                control => control.Name == "AuthorizationSettingsHost");
+            var contentTemplate = authorizationHost.ContentTemplate;
+            Assert.NotNull(contentTemplate);
+            var content = Assert.IsAssignableFrom<Control>(contentTemplate.Build(null));
+            var changeButton = Assert.Single(
+                content.GetLogicalDescendants().OfType<Button>(),
+                control => control.Name == "MasterPasswordChangeButton");
+
+            Assert.DoesNotContain("primary", changeButton.Classes);
+            Assert.DoesNotContain("danger", changeButton.Classes);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void MiscellaneousSettingsNotice_IsOutsideScrollableContent()
     {
         var window = new SettingsWindow();
@@ -936,10 +966,15 @@ public sealed class MainWindowSmokeTests
             var scrollViewer = Assert.Single(
                 window.GetVisualDescendants().OfType<ScrollViewer>(),
                 control => control.Name == "MiscellaneousSettingsScroll");
+            var settingsPanel = Assert.Single(
+                window.GetVisualDescendants().OfType<Border>(),
+                control => control.Name == "MiscellaneousSettingsPanel");
             var notice = Assert.Single(
                 window.GetVisualDescendants().OfType<NotificationBanner>(),
                 control => control.Name == "MiscellaneousSettingsNotice");
 
+            Assert.Equal(VerticalAlignment.Top, settingsPanel.VerticalAlignment);
+            Assert.True(settingsPanel.Bounds.Height < scrollViewer.Bounds.Height);
             Assert.Same(scrollViewer.GetVisualParent(), notice.GetVisualParent());
             Assert.DoesNotContain(notice, scrollViewer.GetVisualDescendants());
         }
