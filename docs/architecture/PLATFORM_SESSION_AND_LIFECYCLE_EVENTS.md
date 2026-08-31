@@ -1,6 +1,6 @@
 # Platform session and lifecycle events
 
-M1.6 separates operating-system event delivery from the product decision to lock the vault.
+Operating-system event delivery is separated from the product decision to lock the vault.
 
 ## Portable contract
 

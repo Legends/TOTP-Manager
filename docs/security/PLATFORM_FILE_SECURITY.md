@@ -2,7 +2,7 @@
 
 ## Scope
 
-M1.2 places filesystem permission enforcement behind `IPlatformFileSecurity`. Windows uses protected current-user ACLs. macOS and Linux share a descriptor-based POSIX implementation that enforces the rules below. The Avalonia composition root selects and registers the matching implementation at build time; unsupported build hosts do not receive a permissive fallback.
+Filesystem permission enforcement sits behind `IPlatformFileSecurity`. Windows uses protected current-user ACLs. macOS and Linux share a descriptor-based POSIX implementation that enforces the rules below. The Avalonia composition root selects and registers the matching implementation at build time; unsupported build hosts do not receive a permissive fallback.
 
 ## Windows behavior
 

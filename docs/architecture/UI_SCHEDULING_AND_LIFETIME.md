@@ -2,12 +2,12 @@
 
 ## Scope
 
-M1.4 moves UI-thread scheduling and application termination contracts into `TOTP.Core`:
+UI-thread scheduling and application termination are exposed through contracts in `TOTP.Core`:
 
 - `IUiScheduler` provides framework-neutral access checks, queued posts, and awaited synchronous/asynchronous invocation.
 - `IApplicationLifetime` provides graceful shutdown and explicit process-exit operations.
 
-The Avalonia desktop host implements these contracts with `AvaloniaUiScheduler` and `AvaloniaApplicationLifetime`, registered at its composition root. The former WPF adapters were removed with the legacy client before `v2.0.0-rc6`.
+The Avalonia desktop host implements these contracts with `AvaloniaUiScheduler` and `AvaloniaApplicationLifetime`, registered at its composition root.
 
 ## Scheduling semantics
 
@@ -24,7 +24,7 @@ The Avalonia desktop host implements these contracts with `AvaloniaUiScheduler` 
 - `ExitProcess` remains an explicit emergency/final-close operation that flushes Serilog before terminating the process.
 - Direct exit calls that occur before dependency injection exists remain confined to the executable startup and unhandled-exception boundaries in `Program` and `AvaloniaExceptionBoundary`.
 
-## Migration and compatibility impact
+## Compatibility impact
 
 - Debounce, QR scanner state delivery, main-view warmup/timer updates, and auto-update UI callbacks retain their prior UI-thread behavior.
 - Auto-update shutdown handoff and main-window close use the lifetime boundary rather than a framework singleton.
@@ -32,7 +32,7 @@ The Avalonia desktop host implements these contracts with `AvaloniaUiScheduler` 
 
 ## Reliability and security impact
 
-- Central scheduling makes thread-affinity behavior testable and prevents portable workflows from acquiring hidden WPF dependencies.
+- Central scheduling makes thread-affinity behavior testable and prevents portable workflows from acquiring UI-framework dependencies.
 - Awaited scheduler calls propagate exceptions rather than losing them in fire-and-forget dispatcher work.
 - Central lifetime handling reduces inconsistent shutdown paths that could skip cleanup or logging flushes.
 - These contracts do not authorize feature code to terminate the process; callers still use shutdown only at existing fatal or explicit-close boundaries.

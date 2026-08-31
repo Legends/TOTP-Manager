@@ -64,7 +64,7 @@ Package assembly stamps the DEB with `AutoUpdate:DistributionMode=package-manage
 ## Release guardrails
 
 - Unsigned CI artifacts are technical evidence unless an RC workflow publishes them as an explicitly labeled development preview. They must never be presented as production or stable releases.
-- Unsigned previews contain no appcast, have automatic updates disabled in package configuration, exclude macOS/WPF, and carry only `unsigned-preview-manual-download` manifest policies.
+- Unsigned previews contain no appcast, have automatic updates disabled in package configuration, exclude macOS, and carry only `unsigned-preview-manual-download` manifest policies.
 - Artifact filenames, appcast target OS/architecture, assembly version, bundle/debian version, and Git tag must agree.
 - macOS and Linux packages consume only matching target-qualified entries from `appcast-v2.xml`.
 - Avalonia direct packages consume `appcast-v2.xml` and require an explicit OS, architecture, and stable/RC channel match.

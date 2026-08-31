@@ -78,7 +78,7 @@ The implemented v2 reader accepts 3-10 passes, 65,536-262,144 KiB of memory, and
 
 `IMasterPasswordService.WrapKeyV2Async` creates a complete `PasswordKeyWrapperV2`, including the algorithm/version identifiers, salt, passes, memory cost in KiB, parallelism, nonce, and authenticated ciphertext. `UnwrapKeyV2Async` consumes those persisted values and validates the complete wrapper before starting Argon2id.
 
-The existing tuple-based methods remain only for the unregistered development-era authorization implementation and synthetic historical-fixture tests. They use the development-era empty-AAD construction and are not a fallback for v2. The active WPF authorization flow uses only the v2 wrapper methods.
+The existing tuple-based methods remain only for the unregistered development-era authorization implementation and synthetic historical-fixture tests. They use the development-era empty-AAD construction and are not a fallback for v2. The active authorization flow uses only the v2 wrapper methods.
 
 `AuthorizationEnvelopeV2Codec` is the strict portable codec. It caps payloads at 64 KiB, limits JSON depth, rejects duplicate and unknown properties, validates the complete password wrapper, and rejects unsupported headers before any KDF work. Unsupported optional quick-unlock metadata may be read so password recovery remains possible, but the writer will not create unsupported metadata.
 
@@ -146,7 +146,7 @@ When a platform key is missing, reset, or belongs to another device, the passwor
 
 ## Platform secret-store contract
 
-`IPlatformSecretStore` defines the portable boundary for device-local secret storage used by future quick-unlock adapters. It exposes a stable provider identifier, an explicit availability state, and asynchronous store, retrieve, and delete operations with cancellation. This contract does not itself enable quick unlock and has no WPF or operating-system dependency.
+`IPlatformSecretStore` defines the portable boundary for device-local secret storage used by quick-unlock adapters. It exposes a stable provider identifier, an explicit availability state, and asynchronous store, retrieve, and delete operations with cancellation. This contract does not itself enable quick unlock and has no UI-framework or operating-system dependency.
 
 Contract semantics:
 
@@ -165,7 +165,7 @@ The secret store never holds the master password or OTP seeds. A provider may ho
 
 ## Platform quick-unlock contract
 
-`IPlatformQuickUnlock` is the portable user-verification and key-wrapper boundary. It exposes provider identity, availability, registration, unlock attempts, and idempotent removal without exposing WPF windows, Windows Hello types, CNG handles, Keychain APIs, or Secret Service APIs.
+`IPlatformQuickUnlock` is the portable user-verification and key-wrapper boundary. It exposes provider identity, availability, registration, unlock attempts, and idempotent removal without exposing native windows, Windows Hello types, CNG handles, Keychain APIs, or Secret Service APIs.
 
 Contract semantics:
 
@@ -241,7 +241,7 @@ Temporary password bytes, KEK material, and DEK copies must be cleared or dispos
 - Platform quick-unlock metadata is optional, explicitly typed, and validated against a reviewed provider registry.
 - Enrollment changes only the optional quick-unlock wrapper; the mandatory password wrapper remains intact and independently recoverable.
 - The portable authorization facade preserves the stable result and gate projection API without requiring a legacy authorization-format reader.
-- The app is not publicly released and has no released-user quick-unlock registrations. This step therefore adds no legacy platform-key migration or compatibility fallback.
+- The v2 cutover introduced no legacy platform-key migration or compatibility fallback; historical development registrations remain unsupported.
 
 ## Threat review
 

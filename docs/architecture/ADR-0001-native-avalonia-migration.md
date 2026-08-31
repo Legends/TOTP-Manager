@@ -10,13 +10,13 @@ The side-by-side phase is complete. Avalonia is the sole desktop client on `mast
 
 ## Context
 
-TOTP Manager is a Windows WPF application with a local encrypted vault, Windows Hello and DPAPI integration, QR workflows, encrypted import/export, and a signed automatic-update feed. The product is intended to support Windows, macOS, and Linux without weakening recovery, storage, authorization, or update verification.
+At the time of this decision, TOTP Manager was a Windows WPF application with a local encrypted vault, Windows Hello and DPAPI integration, QR workflows, encrypted import/export, and a signed automatic-update feed. The product needed Windows, macOS, and Linux support without weakening recovery, storage, authorization, or update verification.
 
 The existing domain, security, persistence, and workflow code should remain the source of truth. Rewriting the product or splitting clients into separate repositories would increase compatibility risk around vault formats and security fixes.
 
 The immutable WPF baseline for this migration is tag `v1.0.0` at commit `23395c48832e029051f0a7f6cac21c3b755ec251`.
 
-## Decision
+## Decision at adoption
 
 1. Use native Avalonia UI for the cross-platform desktop client.
 2. Keep WPF and Avalonia in this repository during migration.
@@ -36,7 +36,7 @@ The first desktop validation matrix is:
 - macOS 14 or later, ARM64. M3 excluded macOS x64 from the initial support policy after the version-aligned OpenCvSharp 4.13 x64 package restored and published but failed its first native call on GitHub's current macOS Intel runner; ARM64 passed the identical packaged probe. Intel support may be reconsidered after upstream provides a validated runtime/CI path or the project accepts ownership of a separately maintained native build.
 - Ubuntu 24.04 LTS, x64, as the Linux reference platform. Other distributions remain best-effort until native dependency and packaging tests establish a wider support contract.
 
-These are migration validation targets, not a public support commitment before the M3 technical gate and M8 release-readiness review pass.
+These became the initial validation targets; current distribution status is maintained in [AVALONIA_DESKTOP_DISTRIBUTION.md](AVALONIA_DESKTOP_DISTRIBUTION.md).
 
 The initial direct-distribution packaging direction is:
 
@@ -80,7 +80,7 @@ Rejected for the initial desktop migration because native Avalonia better matche
 
 Rejected because platform paths, file security, authorization persistence, and lifecycle behavior must be isolated and verified before UI parity work.
 
-## Validation gates
+## Historical validation gates
 
 This decision must be revisited if the M3 vertical slice cannot demonstrate:
 
@@ -93,7 +93,7 @@ This decision must be revisited if the M3 vertical slice cannot demonstrate:
 
 ## References
 
-- [`AVALONIA_MIGRATION_PLAN.md`](plans/AVALONIA_MIGRATION_PLAN.md)
-- [`CROSS_PLATFORM_MIGRATION_PLAN.md`](plans/CROSS_PLATFORM_MIGRATION_PLAN.md)
+- [Maintained documentation index](../README.md)
+- [Desktop distribution policy](AVALONIA_DESKTOP_DISTRIBUTION.md)
 - [`docs/security/THREAT_MODEL.md`](../security/THREAT_MODEL.md)
 - [`docs/security/SECURITY_VERIFICATION.md`](../security/SECURITY_VERIFICATION.md)

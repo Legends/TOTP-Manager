@@ -2,7 +2,7 @@
 
 ## Status
 
-M1.1 establishes `IPlatformApplicationPaths` as the source of application filesystem locations. Windows, macOS, and Linux adapters implement the policy below without creating directories or weakening filesystem permissions. The Avalonia composition root selects its concrete adapter at build time for the host operating system and registers it as the single application-wide implementation.
+`IPlatformApplicationPaths` is the source of application filesystem locations. Windows, macOS, and Linux adapters implement the policy below without creating directories or weakening filesystem permissions. The Avalonia composition root selects the host implementation and registers it as the single application-wide instance.
 
 ## Path policy
 
@@ -26,7 +26,7 @@ Relative XDG locations are invalid and must not be accepted as application stora
 
 ## Compatibility and migration
 
-- The Windows adapter deliberately preserves every existing production location. M1.1 does not move or rewrite user data.
+- The Windows adapter deliberately preserves the established production locations and does not move or rewrite user data.
 - Existing configuration overrides for the vault path remain supported and take precedence over adapter defaults.
 - Rotating vault backups remain adjacent to the configured vault on every platform. The platform `BackupDirectory` property is reserved for future backup-policy extraction and must not be presented as the current rotating-backup location.
 - A future Windows-to-portable migration must discover the existing roaming-data files before creating a new layout. It must use atomic copy/verification and leave rollback data intact.
@@ -36,5 +36,5 @@ Relative XDG locations are invalid and must not be accepted as application stora
 
 - This change alters path selection ownership, not encryption or storage formats.
 - Platform adapters must fail closed when a required trusted user directory cannot be resolved. They must never fall back to the current working directory or plaintext storage.
-- Directory creation and permission hardening remain filesystem boundary operations. M1.2 places OS-specific ACL policy behind `IPlatformFileSecurity`; Unix adapters must follow the requirements in `docs/security/PLATFORM_FILE_SECURITY.md`.
+- Directory creation and permission hardening remain filesystem boundary operations. OS-specific ACL policy sits behind `IPlatformFileSecurity`; Unix adapters must follow [the platform file-security policy](../security/PLATFORM_FILE_SECURITY.md).
 - Logs remain outside secret-bearing data files and must continue through the existing redaction pipeline.

@@ -4,7 +4,7 @@ Use the repository root as the working directory unless stated otherwise.
 
 ## Windows host — Avalonia desktop application
 
-Run in **Windows PowerShell** from `E:\Repos\TOTP-Manager`:
+Run in **Windows PowerShell** from the repository root:
 
 ```powershell
 .\scripts\dev\Publish-And-Run-AvaloniaWindows.ps1 -Configuration Release -StopRunningInstance
@@ -14,7 +14,7 @@ This publishes and starts the Windows version of `TOTP.UI.Avalonia.Desktop`.
 
 ## Ubuntu Hyper-V VM — full Linux desktop test
 
-Run in **Windows PowerShell** from `E:\Repos\TOTP-Manager` while the Ubuntu VM is running and its desktop user is signed in:
+Run in **Windows PowerShell** from the repository root while the Ubuntu VM is running and its desktop user is signed in:
 
 ```powershell
 .\scripts\testing\Sync-Restore-Run-AvaloniaLinuxVm.ps1
@@ -42,15 +42,7 @@ SSH key avoids the two password prompts needed for upload and execution.
 Run in the **Ubuntu WSL shell**:
 
 ```bash
-cd /mnt/e/Repos/TOTP-Manager
 ./scripts/testing/run-avalonia-wsl.sh
-```
-
-Alternatively, run the same WSL test directly from **Windows PowerShell** in the repository root:
-
-```powershell
-wsl.exe -d Ubuntu --cd /mnt/e/Repos/TOTP-Manager `
-    bash ./scripts/testing/run-avalonia-wsl.sh
 ```
 
 Use WSL/WSLg for quick development checks. Use the full Hyper-V VM for Linux desktop and end-user acceptance testing.

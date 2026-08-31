@@ -6,7 +6,7 @@ Status values:
 - `Missing`: control not present or not enforceable yet.
 
 Modules:
-- `UI`: `TOTP` (WPF), `TOTP.UI.Avalonia.Desktop`, and `TOTP.UI.Avalonia.Shared`
+- `UI`: `TOTP.UI.Avalonia.Desktop` and `TOTP.UI.Avalonia.Shared`
 - `Core`: `TOTP.Core`
 - `Infra`: `TOTP.Infrastructure`
 - `DAL`: `TOTP.DAL`

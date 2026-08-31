@@ -88,7 +88,24 @@ For a stable version tag, CI:
 5. Generates and verifies `appcast-v2.xml`.
 6. Uploads the complete asset set to a draft and publishes it only after validation succeeds.
 
-See [AUTO_UPDATE_INSTALL_PROCESS.md](AUTO_UPDATE_INSTALL_PROCESS.md) for the verified installation handoff and [SIGNING_KEY_ROTATION.md](SIGNING_KEY_ROTATION.md) for rotation procedures.
+## Verified installation handoff
+
+The desktop client owns update discovery, download progress, release notes, and explicit installation consent. A check never downloads a package, and a completed download never starts installation without a separate user action.
+
+On Windows, `WindowsUpdateInstallerLauncher` hands a verified ZIP to the dedicated `TOTP.Updater` helper:
+
+1. Accept only a regular ZIP within the portable 128 MiB limit.
+2. Hold the package without write/delete sharing and repeat Ed25519 verification.
+3. Reject reparse points in the bundled updater runtime.
+4. Copy the trusted helper runtime into a fresh current-user temporary directory.
+5. Start it with arguments supplied through `ProcessStartInfo.ArgumentList`.
+6. Wait for its ready signal before requesting graceful Avalonia shutdown.
+
+The helper stages the archive, backs up overwritten files, applies replacements with bounded retry handling, rolls back in reverse order on failure or cancellation, and relaunches the updated application after success. Incomplete rollback is a distinct failure and is never reported as success. Non-secret helper diagnostics are written to `%TEMP%\totp-update-helper.log`.
+
+Linux package-manager builds disable application-owned updates. Direct Linux and macOS packages may verify and download matching artifacts but retain a manual platform handoff until a dedicated installer adapter is approved.
+
+See [SIGNING_KEY_ROTATION.md](SIGNING_KEY_ROTATION.md) for rotation procedures.
 
 ## Incident response
 

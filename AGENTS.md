@@ -6,7 +6,7 @@ It is intentionally opinionated. The repo is security-sensitive, cross-platform,
 
 ## Mission
 
-Build a trustworthy Windows desktop TOTP manager that is:
+Build a trustworthy cross-platform desktop TOTP manager that is:
 
 - local-first
 - secure by default
@@ -98,12 +98,10 @@ Releases, auto-update metadata, signatures, and CI behavior are part of the prod
 - `Otp.NET`
 - `QRCoder`
 - `OpenCvSharp`
-- `ZXing.Net`
-- `NetSparkleUpdater`
 - `Avalonia`
 - `xUnit v3`
 - `Moq`
-- `AutoFixture.AutoMoq`
+- `Moq.AutoMock`
 - `FluentAssertions`
 
 ## Non-Negotiable Engineering Rules
@@ -121,7 +119,7 @@ Releases, auto-update metadata, signatures, and CI behavior are part of the prod
 - Keep MVVM boundaries strict.
 - Keep business/security decisions out of Avalonia code-behind.
 - Prefer interface-driven services and constructor injection.
-- Keep desktop composition rooted in [`TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs`](E:/Repos/TOTP-Manager/TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs).
+- Keep desktop composition rooted in `TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs`.
 - Do not add service-locator-style resolution inside feature code unless there is already a clear repo pattern and no cleaner seam.
 
 ### Error handling rules
@@ -276,10 +274,8 @@ dotnet run --project .\TOTP.UI.Avalonia.Desktop\TOTP.UI.Avalonia.Desktop.csproj
 
 ### Debug auto-update locally
 
-Use the scripts under `scripts/release` and the guidance in:
-
-- [`docs/security/AUTO_UPDATE.md`](E:/Repos/TOTP-Manager/docs/security/AUTO_UPDATE.md)
-- [`docs/security/AUTO_UPDATE_INSTALL_PROCESS.md`](E:/Repos/TOTP-Manager/docs/security/AUTO_UPDATE_INSTALL_PROCESS.md)
+Use the scripts under `scripts/release` and the guidance in
+[`docs/security/AUTO_UPDATE.md`](docs/security/AUTO_UPDATE.md).
 
 Relevant helpers include:
 
@@ -340,10 +336,10 @@ When touching startup code:
 
 Key files:
 
-- [`TOTP.UI.Avalonia.Desktop/Program.cs`](E:/Repos/TOTP-Manager/TOTP.UI.Avalonia.Desktop/Program.cs)
-- [`TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs`](E:/Repos/TOTP-Manager/TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs)
-- [`TOTP.Infrastructure/Logging/LoggingConfigurator.cs`](E:/Repos/TOTP-Manager/TOTP.Infrastructure/Logging/LoggingConfigurator.cs)
-- [`TOTP.Infrastructure/Logging/SensitiveTextRedactor.cs`](E:/Repos/TOTP-Manager/TOTP.Infrastructure/Logging/SensitiveTextRedactor.cs)
+- [`TOTP.UI.Avalonia.Desktop/Program.cs`](TOTP.UI.Avalonia.Desktop/Program.cs)
+- [`TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs`](TOTP.UI.Avalonia.Desktop/Startup/AvaloniaCompositionRoot.cs)
+- [`TOTP.Infrastructure/Logging/LoggingConfigurator.cs`](TOTP.Infrastructure/Logging/LoggingConfigurator.cs)
+- [`TOTP.Infrastructure/Logging/SensitiveTextRedactor.cs`](TOTP.Infrastructure/Logging/SensitiveTextRedactor.cs)
 
 ## Security Review Triggers
 
@@ -413,13 +409,14 @@ These are consistent with the current repo direction and should guide future dec
 
 ## Source Documents Worth Reading First
 
-- [`readme.md`](E:/Repos/TOTP-Manager/readme.md)
-- [`CONTRIBUTING.md`](E:/Repos/TOTP-Manager/CONTRIBUTING.md)
-- [`docs/security/THREAT_MODEL.md`](E:/Repos/TOTP-Manager/docs/security/THREAT_MODEL.md)
-- [`docs/security/SECURITY_VERIFICATION.md`](E:/Repos/TOTP-Manager/docs/security/SECURITY_VERIFICATION.md)
-- [`docs/security/PENTEST_PLAN.md`](E:/Repos/TOTP-Manager/docs/security/PENTEST_PLAN.md)
-- [`docs/security/AUTO_UPDATE.md`](E:/Repos/TOTP-Manager/docs/security/AUTO_UPDATE.md)
-- [`docs/security/BRANCH_PROTECTION.md`](E:/Repos/TOTP-Manager/docs/security/BRANCH_PROTECTION.md)
+- [`readme.md`](readme.md)
+- [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- [`docs/README.md`](docs/README.md)
+- [`docs/security/THREAT_MODEL.md`](docs/security/THREAT_MODEL.md)
+- [`docs/security/SECURITY_VERIFICATION.md`](docs/security/SECURITY_VERIFICATION.md)
+- [`docs/security/PENTEST_PLAN.md`](docs/security/PENTEST_PLAN.md)
+- [`docs/security/AUTO_UPDATE.md`](docs/security/AUTO_UPDATE.md)
+- [`docs/security/BRANCH_PROTECTION.md`](docs/security/BRANCH_PROTECTION.md)
 
 ## Bottom Line
 
