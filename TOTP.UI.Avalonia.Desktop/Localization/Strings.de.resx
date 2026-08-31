@@ -96,6 +96,9 @@
   <data name="About" xml:space="preserve"><value>Info</value></data>
   <data name="Version" xml:space="preserve"><value>Version</value></data>
   <data name="OpenLogFolder" xml:space="preserve"><value>Protokollordner öffnen</value></data>
+  <data name="LogFolderOpened" xml:space="preserve"><value>Protokollordner geöffnet.</value></data>
+  <data name="LogFolderOpenFailed" xml:space="preserve"><value>Der Protokollordner konnte nicht geöffnet werden.</value></data>
+  <data name="LogFolderOpenFailedSafely" xml:space="preserve"><value>Der Protokollordner konnte nicht sicher geöffnet werden.</value></data>
   <data name="Lock" xml:space="preserve"><value>Sperren</value></data>
   <data name="Accounts" xml:space="preserve"><value>Konten</value></data>
   <data name="Tools" xml:space="preserve"><value>Werkzeuge</value></data>
@@ -173,6 +176,9 @@
   <data name="ImportReplaceExisting" xml:space="preserve"><value>Vorhandene Konten ersetzen</value></data>
   <data name="ImportKeepBoth" xml:space="preserve"><value>Beide Konten behalten</value></data>
   <data name="NoImportFileSelected" xml:space="preserve"><value>Keine Importdatei ausgewählt.</value></data>
+  <data name="NoExportFileSelected" xml:space="preserve"><value>Keine Exportdatei ausgewählt.</value></data>
+  <data name="ImportCancelled" xml:space="preserve"><value>Import abgebrochen.</value></data>
+  <data name="ExportCancelled" xml:space="preserve"><value>Export abgebrochen.</value></data>
   <data name="UpdateReadyToCheck" xml:space="preserve"><value>Prüfen Sie den konfigurierten signierten Update-Feed, wenn Sie bereit sind.</value></data>
   <data name="UpdateChecking" xml:space="preserve"><value>Der signierte Update-Feed wird geprüft…</value></data>
   <data name="UpdateFeedVerificationFailed" xml:space="preserve"><value>Der signierte Update-Feed konnte nicht verifiziert werden. Es wurde kein Download gestartet.</value></data>

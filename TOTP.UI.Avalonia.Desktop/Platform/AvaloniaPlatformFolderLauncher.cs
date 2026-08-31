@@ -18,8 +18,10 @@ public sealed class AvaloniaPlatformFolderLauncher : IPlatformFolderLauncher
         {
             var startInfo = CreateStartInfo(path);
             using var process = Process.Start(startInfo);
+            if (startInfo.UseShellExecute)
+                return Result.Ok();
+
             if (process is not null
-                && !startInfo.UseShellExecute
                 && !string.Equals(startInfo.FileName, "explorer.exe", StringComparison.OrdinalIgnoreCase))
             {
                 await process.WaitForExitAsync(cancellationToken);

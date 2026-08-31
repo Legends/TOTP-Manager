@@ -54,8 +54,8 @@
                         HorizontalAlignment="Center"
                         Text="{DynamicResource AppHeading}" />
                     <shared:NotificationBanner
-                        Severity="{Binding StatusSeverity}"
-                        Text="{Binding StatusText}" />
+                        Severity="{Binding Notification.Severity}"
+                        Text="{Binding Notification.Text}" />
                     <Button
                         HorizontalAlignment="Center"
                         Command="{Binding InitializeCommand}"
@@ -377,29 +377,17 @@
                                         </StackPanel>
                                     </ScrollViewer>
 
-                                    <Border
+                                    <shared:NotificationBanner
                                         x:Name="AccountMessageToast"
                                         ZIndex="10"
                                         MinWidth="180"
                                         MaxWidth="280"
                                         Margin="10,8"
-                                        Padding="12,8"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Top"
-                                        automation:AutomationProperties.LiveSetting="Polite"
-                                        automation:AutomationProperties.Name="{Binding Message}"
-                                        Classes="account-toast"
-                                        Classes.open="{Binding HasMessage}"
                                         IsHitTestVisible="False"
-                                        IsVisible="{Binding HasMessage}">
-                                        <Border.RenderTransform>
-                                            <TranslateTransform />
-                                        </Border.RenderTransform>
-                                        <TextBlock
-                                            Text="{Binding Message}"
-                                            TextAlignment="Center"
-                                            TextWrapping="Wrap" />
-                                    </Border>
+                                        Severity="{Binding Notification.Severity}"
+                                        Text="{Binding Notification.Text}" />
 
                                     <Border
                                         x:Name="AccountEditorFlyout"

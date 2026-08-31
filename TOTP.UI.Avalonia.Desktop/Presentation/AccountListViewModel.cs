@@ -25,7 +25,6 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly TimeSpan _countdownTickInterval;
     private readonly ISettingsService? _settingsService;
     private readonly IAvaloniaQrPreviewDialogService? _qrPreviewDialogs;
-    private readonly TimeSpan _transientMessageDuration;
     private readonly AsyncCommand _loadCommand;
     private readonly AsyncCommand _generateCommand;
     private readonly AsyncCommand _copyCommand;
@@ -38,11 +37,9 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly AsyncCommand _beginContextEditCommand;
     private readonly AsyncCommand _deleteContextAccountCommand;
     private CancellationTokenSource? _codeLifetime;
-    private CancellationTokenSource? _messageLifetime;
     private CancellationTokenSource? _recentHighlightLifetime;
     private IReadOnlyList<AccountListItemViewModel> _allAccounts = [];
     private IReadOnlyList<AccountListItemViewModel> _accounts = [];
-    private string _message = string.Empty;
     private string _searchText = string.Empty;
     private AccountListItemViewModel? _selectedAccount;
     private AccountListItemViewModel? _contextAccount;
@@ -86,11 +83,10 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _countdownTickInterval = countdownTickInterval ?? TimeSpan.FromSeconds(1);
         _settingsService = settingsService;
         _qrPreviewDialogs = qrPreviewDialogs;
-        _transientMessageDuration = transientMessageDuration ?? TimeSpan.FromSeconds(3);
+        Notification = new NotificationState(transientMessageDuration);
+        Notification.PropertyChanged += NotificationPropertyChanged;
         if (_countdownTickInterval <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(countdownTickInterval));
-        if (_transientMessageDuration <= TimeSpan.Zero)
-            throw new ArgumentOutOfRangeException(nameof(transientMessageDuration));
         _loadCommand = new AsyncCommand(LoadAsync, () => !_isBusy);
         _generateCommand = new AsyncCommand(
             GenerateCodeAsync,
@@ -134,19 +130,9 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public bool HasNoSearchResults =>
         !IsBusy && !HasMessage && _allAccounts.Count > 0 && Accounts.Count == 0;
 
-    public string Message
-    {
-        get => _message;
-        private set
-        {
-            if (!SetField(ref _message, value)) return;
-            OnPropertyChanged(nameof(HasMessage));
-            OnPropertyChanged(nameof(HasNoAccounts));
-            OnPropertyChanged(nameof(HasNoSearchResults));
-        }
-    }
-
-    public bool HasMessage => Message.Length > 0;
+    public NotificationState Notification { get; }
+    public string Message => Notification.Text;
+    public bool HasMessage => Notification.HasMessage;
 
     public AccountListItemViewModel? SelectedAccount
     {
@@ -329,7 +315,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         if (IsBusy) return;
 
         IsBusy = true;
-        Message = string.Empty;
+        ClearNotification();
         try
         {
             var result = await _accountManager.GetAllOtpEntriesSortedAsync();
@@ -337,7 +323,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             {
                 _allAccounts = [];
                 Accounts = [];
-                Message = "Accounts could not be loaded. Your encrypted data was not changed.";
+                ShowError("Accounts could not be loaded. Your encrypted data was not changed.");
                 return;
             }
 
@@ -357,7 +343,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         {
             _allAccounts = [];
             Accounts = [];
-            Message = "Accounts could not be loaded safely. Try again.";
+            ShowError("Accounts could not be loaded safely. Try again.");
         }
         finally
         {
@@ -534,7 +520,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                 : null;
             if (account is null)
             {
-                Message = _localization.GetString(AvaloniaStringKeys.AccountEditLoadFailed);
+                ShowError(_localization.GetString(AvaloniaStringKeys.AccountEditLoadFailed));
                 return;
             }
 
@@ -547,7 +533,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         }
         catch (Exception)
         {
-            Message = _localization.GetString(AvaloniaStringKeys.AccountEditLoadFailed);
+            ShowError(_localization.GetString(AvaloniaStringKeys.AccountEditLoadFailed));
             ClearEditor();
         }
         finally
@@ -674,7 +660,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         }
         catch (Exception)
         {
-            Message = _localization.GetString(AvaloniaStringKeys.AccountDeleteFailed);
+            ShowError(_localization.GetString(AvaloniaStringKeys.AccountDeleteFailed));
             IsBusy = false;
             return;
         }
@@ -692,7 +678,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                 : null;
             if (account is null || (await _accountManager.DeleteAsync(account)).IsFailed)
             {
-                Message = _localization.GetString(AvaloniaStringKeys.AccountDeleteFailed);
+                ShowError(_localization.GetString(AvaloniaStringKeys.AccountDeleteFailed));
                 return;
             }
 
@@ -704,7 +690,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         }
         catch (Exception)
         {
-            Message = _localization.GetString(AvaloniaStringKeys.AccountDeleteFailed);
+            ShowError(_localization.GetString(AvaloniaStringKeys.AccountDeleteFailed));
         }
         finally
         {
@@ -805,7 +791,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public void Dispose()
     {
         _localization.CultureChanged -= LocalizationCultureChanged;
-        CancelTransientMessage();
+        Notification.PropertyChanged -= NotificationPropertyChanged;
+        Notification.Dispose();
         ClearRecentHighlight();
         ClearGeneratedCode();
         ClearQrImage();
@@ -814,14 +801,13 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     public void Clear()
     {
-        CancelTransientMessage();
+        ClearNotification();
         ClearRecentHighlight();
         ContextAccount = null;
         SelectedAccount = null;
         SearchText = string.Empty;
         _allAccounts = [];
         Accounts = [];
-        Message = string.Empty;
         ClearGeneratedCode();
         ClearQrImage();
         ClearEditor();
@@ -884,42 +870,22 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     }
 
     private void ShowTransientMessage(string message)
-    {
-        CancelTransientMessage();
-        Message = message;
-        var lifetime = new CancellationTokenSource();
-        _messageLifetime = lifetime;
-        _ = ClearTransientMessageAsync(message, lifetime);
-    }
+        => Notification.ShowTransient(message, NotificationSeverity.Success);
 
-    private async Task ClearTransientMessageAsync(
-        string expectedMessage,
-        CancellationTokenSource lifetime)
-    {
-        try
-        {
-            await Task.Delay(_transientMessageDuration, lifetime.Token);
-            if (ReferenceEquals(_messageLifetime, lifetime)
-                && string.Equals(Message, expectedMessage, StringComparison.Ordinal))
-            {
-                Message = string.Empty;
-            }
-        }
-        catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
-        {
-        }
-        finally
-        {
-            if (ReferenceEquals(_messageLifetime, lifetime)) _messageLifetime = null;
-            lifetime.Dispose();
-        }
-    }
+    private void ShowError(string message) =>
+        Notification.ShowPersistent(message, NotificationSeverity.Error);
 
-    private void CancelTransientMessage()
+    private void ClearNotification()
+        => Notification.Clear();
+
+    private void NotificationPropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
-        var lifetime = _messageLifetime;
-        _messageLifetime = null;
-        lifetime?.Cancel();
+        if (args.PropertyName is not (nameof(NotificationState.Text)
+            or nameof(NotificationState.HasMessage))) return;
+        OnPropertyChanged(nameof(Message));
+        OnPropertyChanged(nameof(HasMessage));
+        OnPropertyChanged(nameof(HasNoAccounts));
+        OnPropertyChanged(nameof(HasNoSearchResults));
     }
 
     private void StartRecentHighlightLifetime(AccountListItemViewModel? highlightedAccount)

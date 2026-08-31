@@ -12,6 +12,12 @@ namespace TOTP.Tests.Avalonia.Presentation;
 public sealed class SettingsPageViewModelTests
 {
     [Fact]
+    public void TransientNotices_UseOneSecondByDefault()
+    {
+        Assert.Equal(TimeSpan.FromSeconds(1), TransientNotificationDefaults.Duration);
+    }
+
+    [Fact]
     public void Constructor_DoesNotPersistValuesWhileLoading()
     {
         var settings = CreateSettings(new AppSettings());
@@ -40,6 +46,25 @@ public sealed class SettingsPageViewModelTests
         Assert.Equal(TimeSpan.FromMinutes(25), current.IdleTimeout);
         Assert.False(current.LockOnMinimize);
         Assert.Equal("Settings saved automatically.", sut.Message);
+        Assert.Equal(NotificationSeverity.Success, sut.MessageSeverity);
+    }
+
+    [Fact]
+    public async Task SaveAsync_SuccessNoticeClearsAfterConfiguredTransientDuration()
+    {
+        var settings = CreateSettings(new AppSettings());
+        settings.Setup(value => value.SaveAsync()).ReturnsAsync(Result.Ok());
+        using var sut = new SettingsPageViewModel(
+            settings.Object,
+            transientMessageDuration: TimeSpan.FromMilliseconds(20));
+
+        await sut.SaveAsync();
+        Assert.Equal(NotificationSeverity.Success, sut.MessageSeverity);
+        Assert.False(string.IsNullOrWhiteSpace(sut.Message));
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+
+        Assert.Empty(sut.Message);
     }
 
     [Fact]
@@ -64,6 +89,7 @@ public sealed class SettingsPageViewModelTests
         Assert.Equal(TimeSpan.FromMinutes(10), current.IdleTimeout);
         Assert.True(current.LockOnMinimize);
         Assert.DoesNotContain("synthetic", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(NotificationSeverity.Error, sut.MessageSeverity);
     }
 
     [Fact]
@@ -151,7 +177,9 @@ public sealed class SettingsPageViewModelTests
         var current = new AppSettings();
         var settings = CreateSettings(current);
         settings.Setup(value => value.SaveAsync()).ReturnsAsync(Result.Ok());
-        using var sut = new SettingsPageViewModel(settings.Object);
+        using var sut = new SettingsPageViewModel(
+            settings.Object,
+            transientMessageDuration: TimeSpan.FromMilliseconds(20));
         sut.SelectedInterfaceScale = Assert.Single(
             sut.InterfaceScales,
             option => option.Percent == 200);
@@ -159,6 +187,9 @@ public sealed class SettingsPageViewModelTests
         await sut.SaveAsync();
 
         Assert.Equal(200, current.InterfaceScalePercent);
+        Assert.Contains("restart", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(NotificationSeverity.Information, sut.MessageSeverity);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
         Assert.Contains("restart", sut.Message, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -180,9 +211,58 @@ public sealed class SettingsPageViewModelTests
 
         await sut.OpenLogFolderAsync();
 
-        Assert.Contains("opened", sut.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("synthetic", sut.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("opened", sut.LogFolderMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("synthetic", sut.LogFolderMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(sut.Message);
         Assert.False(string.IsNullOrWhiteSpace(sut.VersionText));
+    }
+
+    [Fact]
+    public async Task OpenLogFolderAsync_UsesActiveLocaleForCompleteSuccessNotice()
+    {
+        var paths = new Mock<IPlatformApplicationPaths>();
+        paths.SetupGet(value => value.LogDirectory).Returns(@"C:\synthetic\logs");
+        var launcher = new Mock<IPlatformFolderLauncher>();
+        launcher.Setup(value => value.OpenFolderAsync(
+                @"C:\synthetic\logs",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        localization.Setup(value => value.GetString(AvaloniaStringKeys.LogFolderOpened))
+            .Returns("Protokollordner geöffnet.");
+        using var sut = new SettingsPageViewModel(
+            CreateSettings(new AppSettings()).Object,
+            localization.Object,
+            paths.Object,
+            launcher.Object);
+
+        await sut.OpenLogFolderAsync();
+
+        Assert.Equal("Protokollordner geöffnet.", sut.LogFolderMessage);
+        Assert.Equal(NotificationSeverity.Success, sut.LogFolderMessageSeverity);
+        Assert.Empty(sut.Message);
+    }
+
+    [Fact]
+    public async Task OpenLogFolderAsync_FailureNotice_RemainsScopedToInfoTab()
+    {
+        var paths = new Mock<IPlatformApplicationPaths>();
+        paths.SetupGet(value => value.LogDirectory).Returns(@"C:\synthetic\logs");
+        var launcher = new Mock<IPlatformFolderLauncher>();
+        launcher.Setup(value => value.OpenFolderAsync(
+                @"C:\synthetic\logs",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Fail("synthetic failure"));
+        using var sut = new SettingsPageViewModel(
+            CreateSettings(new AppSettings()).Object,
+            applicationPaths: paths.Object,
+            folderLauncher: launcher.Object);
+
+        await sut.OpenLogFolderAsync();
+
+        Assert.False(string.IsNullOrWhiteSpace(sut.LogFolderMessage));
+        Assert.Equal(NotificationSeverity.Error, sut.LogFolderMessageSeverity);
+        Assert.Empty(sut.Message);
     }
 
     [Fact]

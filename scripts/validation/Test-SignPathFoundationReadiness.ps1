@@ -58,9 +58,9 @@ if (($desktopProject.Split('IncludeSourceRevisionInInformationalVersion=$(Includ
 }
 
 $reviewedAssets = [ordered]@{
-    "TOTP.UI.Avalonia.Desktop/Assets/Icons/app-1024.png" = "49ad29d8b5a28a0529f4128eaa89d8000ee872974930f1c7ab9c66f9c55c4e54"
-    "TOTP.UI.Avalonia.Desktop/Assets/Icons/app-128.png"  = "21cb7e3410deaab80b220ed031f942d0129f48a4eba36886f129252d64312420"
-    "TOTP.UI.Avalonia.Desktop/Assets/Icons/app.ico"      = "b535e5c46ff90a9ebccf0dec0da40abc74dae7ff73de25e50e72f1b3a8c86141"
+    "TOTP.UI.Avalonia.Desktop/Assets/Icons/app-1024.png" = "66748954507b3f9f9cff87dc23c97134c1d7d029e8275de179b9f3872f2d12b4"
+    "TOTP.UI.Avalonia.Desktop/Assets/Icons/app-128.png"  = "26fe7fe9a91c7f2e939c7d794cbade4d1e22090ef3c40a59b8ae9ffb3c9aaf88"
+    "TOTP.UI.Avalonia.Desktop/Assets/Icons/app.ico"      = "7a71a423982499c438177e3b58126f003c3ece9a66cb2b91c07dc50a812ab81e"
     "TOTP.UI.Avalonia.Desktop/Assets/flags/en.png"       = "1c2bcc20e5985e5f03a3a440f198b5d08a4ac609e9cebba00b639b0e50fba8fc"
     "TOTP.UI.Avalonia.Desktop/Assets/flags/de.png"       = "2c8f253f3401d18df0a47bd7906102cf78ea7e4a2caac9e4c6f4efebc906de0a"
 }

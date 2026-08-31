@@ -13,7 +13,7 @@ using TOTP.Core.Services.Models;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
 
-public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
+public sealed class NativeFilePickerViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly IAvaloniaFilePicker _filePicker;
     private readonly IExportService _exportService;
@@ -27,8 +27,8 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
     private readonly IAvaloniaLocalizationService _localization;
     private readonly AsyncCommand _importCommand;
     private readonly AsyncCommand _exportCommand;
-    private string _message = string.Empty;
     private bool _isBusy;
+    private bool _disposed;
     private ImportConflictStrategy _conflictStrategy = ImportConflictStrategy.SkipExisting;
     private ImportStrategyOption? _selectedConflictStrategyOption;
 
@@ -42,7 +42,8 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
         IPlatformFileSecurity fileSecurity,
         ISettingsService settings,
         IPlatformFolderLauncher folderLauncher,
-        IAvaloniaLocalizationService localization)
+        IAvaloniaLocalizationService localization,
+        TimeSpan? transientMessageDuration = null)
     {
         _filePicker = filePicker ?? throw new ArgumentNullException(nameof(filePicker));
         _exportService = exportService ?? throw new ArgumentNullException(nameof(exportService));
@@ -54,6 +55,7 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _folderLauncher = folderLauncher ?? throw new ArgumentNullException(nameof(folderLauncher));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        Notification = new NotificationState(transientMessageDuration);
         ConflictStrategies = CreateConflictStrategies();
         _selectedConflictStrategyOption = ConflictStrategies[0];
         _localization.CultureChanged += LocalizationCultureChanged;
@@ -82,11 +84,9 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
         }
     }
 
-    public string Message
-    {
-        get => _message;
-        private set => SetField(ref _message, value);
-    }
+    public NotificationState Notification { get; }
+    public string Message => Notification.Text;
+    public NotificationSeverity MessageSeverity => Notification.Severity;
 
     public ICommand ImportCommand => _importCommand;
     public ICommand ExportCommand => _exportCommand;
@@ -99,7 +99,9 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
             await using var file = await _filePicker.PickImportFileAsync();
             if (file is null)
             {
-                Message = _localization.GetString(AvaloniaStringKeys.NoImportFileSelected);
+                ShowTransientMessage(
+                    _localization.GetString(AvaloniaStringKeys.NoImportFileSelected),
+                    NotificationSeverity.Information);
                 return;
             }
 
@@ -111,12 +113,25 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
                 ConfirmImportAsync);
             if (importResult.IsFailed)
             {
-                Message = "The import workflow failed safely. No secret details were exposed.";
+                SetMessage(
+                    "The import workflow failed safely. No secret details were exposed.",
+                    NotificationSeverity.Error);
                 return;
             }
 
             var outcome = importResult.Value;
-            Message = OutcomeMessage(outcome);
+            if (outcome.Status == AccountImportStatus.Cancelled)
+            {
+                ShowTransientMessage(OutcomeMessage(outcome), NotificationSeverity.Information);
+            }
+            else
+            {
+                SetMessage(
+                    OutcomeMessage(outcome),
+                    outcome.Status == AccountImportStatus.Completed
+                        ? NotificationSeverity.Success
+                        : NotificationSeverity.Error);
+            }
             if (outcome.Status == AccountImportStatus.Completed
                 && outcome.Added + outcome.Replaced > 0)
                 AccountsChanged?.Invoke(this, EventArgs.Empty);
@@ -131,7 +146,9 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
         }
         catch (Exception)
         {
-            Message = "The import workflow failed safely. No secret details were exposed.";
+            SetMessage(
+                "The import workflow failed safely. No secret details were exposed.",
+                NotificationSeverity.Error);
         }
         finally
         {
@@ -148,7 +165,7 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
             var accounts = await _accountManager.GetAllOtpEntriesSortedAsync();
             if (accounts.IsFailed)
             {
-                Message = "Accounts could not be loaded for export.";
+                SetMessage("Accounts could not be loaded for export.", NotificationSeverity.Error);
                 return;
             }
 
@@ -168,7 +185,9 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
                 MismatchMessage: "The export passwords do not match."));
             if (password is null)
             {
-                Message = "Export cancelled.";
+                ShowTransientMessage(
+                    _localization.GetString(AvaloniaStringKeys.ExportCancelled),
+                    NotificationSeverity.Information);
                 return;
             }
 
@@ -176,7 +195,9 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
             await using var file = await _filePicker.PickEncryptedExportFileAsync(suggestedName);
             if (file is null)
             {
-                Message = "No export file selected.";
+                ShowTransientMessage(
+                    _localization.GetString(AvaloniaStringKeys.NoExportFileSelected),
+                    NotificationSeverity.Information);
                 return;
             }
 
@@ -188,7 +209,9 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
             }
             if (result.IsFailed)
             {
-                Message = "The encrypted backup could not be written completely. Do not use the selected file as a backup.";
+                SetMessage(
+                    "The encrypted backup could not be written completely. Do not use the selected file as a backup.",
+                    NotificationSeverity.Error);
                 return;
             }
 
@@ -200,7 +223,9 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
                 }
                 catch (Exception)
                 {
-                    Message = "The backup is encrypted, but its local file permissions could not be verified.";
+                    SetMessage(
+                        "The backup is encrypted, but its local file permissions could not be verified.",
+                        NotificationSeverity.Warning);
                     return;
                 }
 
@@ -211,11 +236,15 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
                 }
             }
 
-            Message = $"Encrypted backup '{file.Name}' created successfully.";
+            SetMessage(
+                $"Encrypted backup '{file.Name}' created successfully.",
+                NotificationSeverity.Success);
         }
         catch (Exception)
         {
-            Message = "The encrypted export failed safely. Do not use an incomplete output file.";
+            SetMessage(
+                "The encrypted export failed safely. Do not use an incomplete output file.",
+                NotificationSeverity.Error);
         }
         finally
         {
@@ -251,7 +280,9 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
             password = null;
             if (validatedResult is null)
             {
-                Message = "Import cancelled.";
+                ShowTransientMessage(
+                    _localization.GetString(AvaloniaStringKeys.ImportCancelled),
+                    NotificationSeverity.Information);
                 return null;
             }
 
@@ -265,13 +296,15 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
 
         if (result.IsFailed)
         {
-            Message = "The selected import file is invalid, unavailable, or unsupported.";
+            SetMessage(
+                "The selected import file is invalid, unavailable, or unsupported.",
+                NotificationSeverity.Error);
             return null;
         }
 
         if (result.Value.Count == 0)
         {
-            Message = "The selected file contains no accounts.";
+            SetMessage("The selected file contains no accounts.", NotificationSeverity.Warning);
             return null;
         }
 
@@ -296,7 +329,7 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
     {
         if (_isBusy) return false;
         _isBusy = true;
-        Message = string.Empty;
+        Notification.Clear();
         _importCommand.NotifyCanExecuteChanged();
         _exportCommand.NotifyCanExecuteChanged();
         return true;
@@ -326,6 +359,20 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ConflictStrategies));
         SelectedConflictStrategyOption = ConflictStrategies.First(option => option.Strategy == selectedStrategy);
     }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _localization.CultureChanged -= LocalizationCultureChanged;
+        Notification.Dispose();
+    }
+
+    private void SetMessage(string message, NotificationSeverity severity)
+        => Notification.ShowPersistent(message, severity);
+
+    private void ShowTransientMessage(string message, NotificationSeverity severity)
+        => Notification.ShowTransient(message, severity);
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {

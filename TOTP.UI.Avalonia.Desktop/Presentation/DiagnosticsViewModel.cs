@@ -15,8 +15,6 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
     private readonly IPlatformCapabilityReport? _capabilities;
     private readonly AsyncCommand _refreshCommand;
     private string _supportInformation = string.Empty;
-    private string _message = string.Empty;
-    private NotificationSeverity _messageSeverity = NotificationSeverity.Information;
     private bool _isBusy;
 
     public DiagnosticsViewModel(
@@ -27,6 +25,7 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
         _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         _dialogs = dialogs;
         _capabilities = capabilities;
+        Notification = new NotificationState();
         _refreshCommand = new AsyncCommand(RefreshAsync, () => !_isBusy);
     }
 
@@ -38,19 +37,10 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
         private set => SetField(ref _supportInformation, value);
     }
 
-    public string Message
-    {
-        get => _message;
-        private set => SetField(ref _message, value);
-    }
-
-    public NotificationSeverity MessageSeverity
-    {
-        get => _messageSeverity;
-        private set => SetField(ref _messageSeverity, value);
-    }
-
-    public bool HasMessage => Message.Length > 0;
+    public NotificationState Notification { get; }
+    public string Message => Notification.Text;
+    public NotificationSeverity MessageSeverity => Notification.Severity;
+    public bool HasMessage => Notification.HasMessage;
     public ICommand RefreshCommand => _refreshCommand;
 
     public async Task RefreshAsync()
@@ -86,14 +76,16 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
             }
 
             SupportInformation = output.ToString().TrimEnd();
-            Message = "Support information refreshed. It contains no account data or filesystem paths.";
-            MessageSeverity = NotificationSeverity.Success;
+            Notification.ShowPersistent(
+                "Support information refreshed. It contains no account data or filesystem paths.",
+                NotificationSeverity.Success);
         }
         catch (Exception)
         {
             SupportInformation = string.Empty;
-            Message = "Support information could not be collected safely.";
-            MessageSeverity = NotificationSeverity.Error;
+            Notification.ShowPersistent(
+                "Support information could not be collected safely.",
+                NotificationSeverity.Error);
             if (_dialogs is not null)
             {
                 try
@@ -114,7 +106,6 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
         {
             _isBusy = false;
             _refreshCommand.NotifyCanExecuteChanged();
-            OnPropertyChanged(nameof(HasMessage));
         }
 
     }

@@ -96,6 +96,9 @@
   <data name="About" xml:space="preserve"><value>About</value></data>
   <data name="Version" xml:space="preserve"><value>Version</value></data>
   <data name="OpenLogFolder" xml:space="preserve"><value>Open log folder</value></data>
+  <data name="LogFolderOpened" xml:space="preserve"><value>Log folder opened.</value></data>
+  <data name="LogFolderOpenFailed" xml:space="preserve"><value>The log folder could not be opened.</value></data>
+  <data name="LogFolderOpenFailedSafely" xml:space="preserve"><value>The log folder could not be opened safely.</value></data>
   <data name="Lock" xml:space="preserve"><value>Lock</value></data>
   <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
   <data name="Tools" xml:space="preserve"><value>Tools</value></data>
@@ -173,6 +176,9 @@
   <data name="ImportReplaceExisting" xml:space="preserve"><value>Replace existing accounts</value></data>
   <data name="ImportKeepBoth" xml:space="preserve"><value>Keep both accounts</value></data>
   <data name="NoImportFileSelected" xml:space="preserve"><value>No import file selected.</value></data>
+  <data name="NoExportFileSelected" xml:space="preserve"><value>No export file selected.</value></data>
+  <data name="ImportCancelled" xml:space="preserve"><value>Import cancelled.</value></data>
+  <data name="ExportCancelled" xml:space="preserve"><value>Export cancelled.</value></data>
   <data name="UpdateReadyToCheck" xml:space="preserve"><value>Check the configured signed update feed when you are ready.</value></data>
   <data name="UpdateChecking" xml:space="preserve"><value>Checking the signed update feed…</value></data>
   <data name="UpdateFeedVerificationFailed" xml:space="preserve"><value>The signed update feed could not be verified. No download was started.</value></data>

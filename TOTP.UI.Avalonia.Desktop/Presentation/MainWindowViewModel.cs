@@ -37,8 +37,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly AsyncCommand _quickUnlockCommand;
     private readonly AsyncCommand _usePasswordFallbackCommand;
     private readonly CancellationTokenSource _lifetime = new();
-    private string _statusText = "Starting TOTP Manager…";
-    private NotificationSeverity _statusSeverity = NotificationSeverity.Information;
     private bool _isBusy;
     private bool _canRetry;
     private bool _isPasswordUnlockVisible;
@@ -75,6 +73,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
+        Notification = new NotificationState();
+        Notification.ShowPersistent("Starting TOTP Manager…", NotificationSeverity.Information);
         PasswordUnlock = passwordUnlock ?? throw new ArgumentNullException(nameof(passwordUnlock));
         PasswordSetup = passwordSetup ?? throw new ArgumentNullException(nameof(passwordSetup));
         AccountList = accountList ?? throw new ArgumentNullException(nameof(accountList));
@@ -142,16 +142,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    public NotificationState Notification { get; }
+
     public string StatusText
     {
-        get => _statusText;
-        private set => SetField(ref _statusText, value);
+        get => Notification.Text;
+        private set => Notification.ShowPersistent(value, Notification.Severity);
     }
 
     public NotificationSeverity StatusSeverity
     {
-        get => _statusSeverity;
-        private set => SetField(ref _statusSeverity, value);
+        get => Notification.Severity;
+        private set => Notification.ShowPersistent(Notification.Text, value);
     }
 
     public bool IsBusy
@@ -380,6 +382,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
             _sessionLockPolicy.ApplicationLocked -= OnPlatformSessionLocked;
         _lifetime.Cancel();
         _lifetime.Dispose();
+        Notification.Dispose();
+        NativeFilePicker.Dispose();
         CameraScanner.Dispose();
         UpdateCheck.Dispose();
     }

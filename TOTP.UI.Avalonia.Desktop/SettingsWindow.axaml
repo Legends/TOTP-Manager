@@ -41,8 +41,14 @@
                     </ItemsPanelTemplate>
                 </TabControl.ItemsPanel>
                 <TabItem Header="{DynamicResource Security}">
-                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                        <ContentControl Margin="4,8" Content="{Binding AuthorizationSettings}">
+                    <Grid RowDefinitions="*,Auto">
+                        <ScrollViewer
+                            x:Name="SecuritySettingsScroll"
+                            Grid.Row="0"
+                            HorizontalScrollBarVisibility="Disabled"
+                            VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="4,8,4,4" Spacing="12">
+                            <ContentControl Content="{Binding AuthorizationSettings}">
                             <ContentControl.ContentTemplate>
                                 <DataTemplate x:DataType="presentation:AuthorizationSettingsViewModel">
                                     <StackPanel Spacing="12">
@@ -50,7 +56,7 @@
                                             <StackPanel Spacing="8">
                                                 <TextBlock Classes="section-title" Text="{DynamicResource QuickUnlock}" />
                                                 <TextBlock Classes="secondary" Text="{DynamicResource QuickUnlockRecoveryNotice}" TextWrapping="Wrap" />
-                                                <shared:NotificationBanner Severity="{Binding MessageSeverity}" Text="{Binding Message}" />
+                                                <shared:NotificationBanner Severity="{Binding Notification.Severity}" Text="{Binding Notification.Text}" />
                                                 <StackPanel Spacing="6">
                                                     <RadioButton
                                                         Command="{Binding EnableQuickUnlockCommand}"
@@ -88,15 +94,48 @@
                                     </StackPanel>
                                 </DataTemplate>
                             </ContentControl.ContentTemplate>
-                        </ContentControl>
-                    </ScrollViewer>
+                            </ContentControl>
+                            <ContentControl x:Name="SecurityBehaviorSettingsHost" Content="{Binding SettingsPage}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate x:DataType="presentation:SettingsPageViewModel">
+                                        <Border x:Name="SecurityBehaviorSettings" Classes="panel">
+                                            <StackPanel Spacing="8">
+                                                <TextBlock Classes="settings-label" Text="{DynamicResource IdleTimeout}" />
+                                                <NumericUpDown Maximum="1440" Minimum="0" Value="{Binding IdleTimeoutMinutes, Mode=TwoWay}" />
+                                                <CheckBox Content="{DynamicResource LockWhenMinimized}" IsChecked="{Binding LockOnMinimize, Mode=TwoWay}" />
+                                                <CheckBox Content="{DynamicResource LockOnSessionLock}" IsChecked="{Binding LockOnSessionLock, Mode=TwoWay}" />
+                                                <CheckBox Content="{DynamicResource ClearClipboard}" IsChecked="{Binding ClearClipboardEnabled, Mode=TwoWay}" />
+                                                <TextBlock Classes="settings-label settings-group-label" Text="{DynamicResource ClipboardClearSeconds}" />
+                                                <NumericUpDown
+                                                    IsEnabled="{Binding ClearClipboardEnabled}"
+                                                    Maximum="300"
+                                                    Minimum="1"
+                                                    Value="{Binding ClearClipboardSeconds, Mode=TwoWay}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <shared:NotificationBanner
+                            x:Name="SecuritySettingsNotice"
+                            Grid.Row="1"
+                            Margin="4,4,4,8"
+                            Severity="{Binding SettingsPage.SettingsNotification.Severity}"
+                            Text="{Binding SettingsPage.SettingsNotification.Text}" />
+                    </Grid>
                 </TabItem>
                 <TabItem Header="{DynamicResource ImportExport}">
-                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                        <ContentControl Margin="4,8" Content="{Binding NativeFilePicker}">
-                            <ContentControl.ContentTemplate>
-                                <DataTemplate x:DataType="presentation:NativeFilePickerViewModel">
-                                    <StackPanel VerticalAlignment="Top" Spacing="12">
+                    <ContentControl Content="{Binding NativeFilePicker}">
+                        <ContentControl.ContentTemplate>
+                            <DataTemplate x:DataType="presentation:NativeFilePickerViewModel">
+                                <Grid RowDefinitions="*,Auto">
+                                    <ScrollViewer
+                                        Grid.Row="0"
+                                        HorizontalScrollBarVisibility="Disabled"
+                                        VerticalScrollBarVisibility="Auto">
+                                        <StackPanel Margin="4,8,4,4" VerticalAlignment="Top" Spacing="12">
                                         <Border Classes="panel">
                                             <StackPanel Spacing="8">
                                                 <TextBlock Classes="section-title" Text="{DynamicResource ImportAccounts}" />
@@ -125,20 +164,30 @@
                                                     Content="{DynamicResource ExportEncryptedBackup}" />
                                             </StackPanel>
                                         </Border>
-                                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ContentControl.ContentTemplate>
-                        </ContentControl>
-                    </ScrollViewer>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                    <shared:NotificationBanner
+                                        Grid.Row="1"
+                                        Margin="4,4,4,8"
+                                        Severity="{Binding Notification.Severity}"
+                                        Text="{Binding Notification.Text}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ContentControl.ContentTemplate>
+                    </ContentControl>
                 </TabItem>
                 <TabItem Header="{DynamicResource Miscellaneous}">
-                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                        <ContentControl Margin="4,8" Content="{Binding SettingsPage}">
-                            <ContentControl.ContentTemplate>
-                                <DataTemplate x:DataType="presentation:SettingsPageViewModel">
-                                    <Border Classes="panel">
-                                        <StackPanel Spacing="8">
+                    <ContentControl Content="{Binding SettingsPage}">
+                        <ContentControl.ContentTemplate>
+                            <DataTemplate x:DataType="presentation:SettingsPageViewModel">
+                                <Grid RowDefinitions="*,Auto">
+                                    <ScrollViewer
+                                        x:Name="MiscellaneousSettingsScroll"
+                                        Grid.Row="0"
+                                        HorizontalScrollBarVisibility="Disabled"
+                                        VerticalScrollBarVisibility="Auto">
+                                        <Border Margin="4,8,4,4" Classes="panel">
+                                            <StackPanel Spacing="8">
                                             <TextBlock Classes="settings-label" Text="{DynamicResource Language}" />
                                             <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}">
                                                 <ComboBox.ItemTemplate>
@@ -150,17 +199,6 @@
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
-                                            <TextBlock Classes="settings-label" Text="{DynamicResource IdleTimeout}" />
-                                            <NumericUpDown Maximum="1440" Minimum="0" Value="{Binding IdleTimeoutMinutes, Mode=TwoWay}" />
-                                            <CheckBox Content="{DynamicResource LockWhenMinimized}" IsChecked="{Binding LockOnMinimize, Mode=TwoWay}" />
-                                            <CheckBox Content="{DynamicResource LockOnSessionLock}" IsChecked="{Binding LockOnSessionLock, Mode=TwoWay}" />
-                                            <CheckBox Content="{DynamicResource ClearClipboard}" IsChecked="{Binding ClearClipboardEnabled, Mode=TwoWay}" />
-                                            <TextBlock Classes="settings-label settings-group-label" Text="{DynamicResource ClipboardClearSeconds}" />
-                                            <NumericUpDown
-                                                IsEnabled="{Binding ClearClipboardEnabled}"
-                                                Maximum="300"
-                                                Minimum="1"
-                                                Value="{Binding ClearClipboardSeconds, Mode=TwoWay}" />
                                             <TextBlock Classes="settings-label settings-group-label" Text="{DynamicResource QrPreviewScale}" />
                                             <NumericUpDown Increment="0.5" Maximum="6" Minimum="1" Value="{Binding QrPreviewScaleFactor, Mode=TwoWay}" />
                                             <StackPanel IsVisible="{Binding IsInterfaceScaleAvailable}" Spacing="8">
@@ -178,13 +216,19 @@
                                             <TextBlock Classes="settings-label settings-group-label" Text="{DynamicResource LoggingLevel}" />
                                             <ComboBox ItemsSource="{Binding LogLevels}" SelectedItem="{Binding MinimumLogLevel, Mode=TwoWay}" />
                                             <TextBlock Classes="secondary" Text="{DynamicResource SettingsAutoSaveHint}" TextWrapping="Wrap" />
-                                            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ContentControl.ContentTemplate>
-                        </ContentControl>
-                    </ScrollViewer>
+                                            </StackPanel>
+                                        </Border>
+                                    </ScrollViewer>
+                                    <shared:NotificationBanner
+                                        x:Name="MiscellaneousSettingsNotice"
+                                        Grid.Row="1"
+                                        Margin="4,4,4,8"
+                                        Severity="{Binding SettingsNotification.Severity}"
+                                        Text="{Binding SettingsNotification.Text}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ContentControl.ContentTemplate>
+                    </ContentControl>
                 </TabItem>
                 <TabItem Header="{DynamicResource About}">
                     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
@@ -197,7 +241,7 @@
                                                 <TextBlock Classes="section-title" Text="{DynamicResource About}" />
                                                 <TextBlock Text="{Binding VersionText}" />
                                                 <Button Command="{Binding OpenLogFolderCommand}" Content="{DynamicResource OpenLogFolder}" />
-                                                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                                                <shared:NotificationBanner Severity="{Binding LogFolderNotification.Severity}" Text="{Binding LogFolderNotification.Text}" />
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
@@ -209,7 +253,7 @@
                                         <Border Classes="panel">
                                             <StackPanel Spacing="10">
                                                 <TextBlock Classes="section-title" Text="{DynamicResource SoftwareUpdates}" />
-                                                <shared:NotificationBanner Severity="{Binding MessageSeverity}" Text="{Binding Message}" />
+                                                <shared:NotificationBanner Severity="{Binding Notification.Severity}" Text="{Binding Notification.Text}" />
                                                 <ProgressBar
                                                     IsIndeterminate="{Binding IsProgressIndeterminate}"
                                                     IsVisible="{Binding IsDownloadInProgress}"
@@ -243,6 +287,7 @@
                                         <Border Classes="panel">
                                             <StackPanel Spacing="8">
                                                 <TextBlock Classes="section-title" Text="{DynamicResource SupportDiagnostics}" />
+                                                <shared:NotificationBanner Severity="{Binding Notification.Severity}" Text="{Binding Notification.Text}" />
                                                 <Button Command="{Binding RefreshCommand}" Content="{DynamicResource RefreshSupportInformation}" />
                                                 <TextBox AcceptsReturn="True" IsReadOnly="True" MinHeight="100" Text="{Binding SupportInformation}" TextWrapping="Wrap" />
                                             </StackPanel>

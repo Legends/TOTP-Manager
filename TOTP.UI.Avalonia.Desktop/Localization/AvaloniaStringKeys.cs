@@ -168,6 +168,9 @@ public static class AvaloniaStringKeys
     public const string ImportReplaceExisting = nameof(ImportReplaceExisting);
     public const string ImportKeepBoth = nameof(ImportKeepBoth);
     public const string NoImportFileSelected = nameof(NoImportFileSelected);
+    public const string NoExportFileSelected = nameof(NoExportFileSelected);
+    public const string ImportCancelled = nameof(ImportCancelled);
+    public const string ExportCancelled = nameof(ExportCancelled);
     public const string UpdateReadyToCheck = nameof(UpdateReadyToCheck);
     public const string UpdateChecking = nameof(UpdateChecking);
     public const string UpdateFeedVerificationFailed = nameof(UpdateFeedVerificationFailed);
@@ -190,6 +193,9 @@ public static class AvaloniaStringKeys
     public const string About = nameof(About);
     public const string Version = nameof(Version);
     public const string OpenLogFolder = nameof(OpenLogFolder);
+    public const string LogFolderOpened = nameof(LogFolderOpened);
+    public const string LogFolderOpenFailed = nameof(LogFolderOpenFailed);
+    public const string LogFolderOpenFailedSafely = nameof(LogFolderOpenFailedSafely);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -235,12 +241,14 @@ public static class AvaloniaStringKeys
         OpenExportAfter, LoggingLevel,
         RevealSecret, ConcealSecret, RevealSecretHelp, RevealSecretAutomation,
         ImportSkipExisting, ImportReplaceExisting, ImportKeepBoth, NoImportFileSelected,
+        NoExportFileSelected, ImportCancelled, ExportCancelled,
         UpdateReadyToCheck, UpdateChecking, UpdateFeedVerificationFailed, UpdateDisabled,
         UpdateNoneAvailable, UpdateAvailable, UpdateResponseIncomplete, UpdateCheckCancelled,
         UpdateCheckFailed, UpdateDownloading, UpdatePackageVerificationFailed,
         UpdateReadyToInstall, UpdateInstallerUnsupported, UpdateDownloadCancelled,
         UpdateDownloadFailed, UpdateInstallerStartFailed, UpdateInstallerStarted,
         UpdateInstallCancelled, UpdateInstallerFailedSafely,
-        About, Version, OpenLogFolder
+        About, Version, OpenLogFolder, LogFolderOpened, LogFolderOpenFailed,
+        LogFolderOpenFailedSafely
     ];
 }

@@ -31,7 +31,6 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
     private bool _isReloading;
     private bool _saveRequested;
     private bool _disposed;
-    private string _message = string.Empty;
     private LanguageOption? _selectedLanguage;
 
     public SettingsPageViewModel(
@@ -39,13 +38,16 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
         IAvaloniaLocalizationService? localization = null,
         IPlatformApplicationPaths? applicationPaths = null,
         IPlatformFolderLauncher? folderLauncher = null,
-        TimeSpan? autoSaveDelay = null)
+        TimeSpan? autoSaveDelay = null,
+        TimeSpan? transientMessageDuration = null)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _localization = localization;
         _applicationPaths = applicationPaths;
         _folderLauncher = folderLauncher;
         _autoSaveDelay = autoSaveDelay ?? TimeSpan.FromMilliseconds(200);
+        SettingsNotification = new NotificationState(transientMessageDuration);
+        LogFolderNotification = new NotificationState(transientMessageDuration);
         Languages = localization?.SupportedLanguages ?? [];
         LogLevels = Enum.GetValues<AppLogLevel>();
         InterfaceScales = CreateInterfaceScaleOptions();
@@ -72,6 +74,8 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
     public bool IsInterfaceScaleAvailable => OperatingSystem.IsLinux();
     public string VersionText { get; }
     public ICommand OpenLogFolderCommand => _openLogFolderCommand;
+    public NotificationState SettingsNotification { get; }
+    public NotificationState LogFolderNotification { get; }
 
     public LanguageOption? SelectedLanguage
     {
@@ -174,11 +178,10 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    public string Message
-    {
-        get => _message;
-        private set => SetField(ref _message, value);
-    }
+    public string Message => SettingsNotification.Text;
+    public NotificationSeverity MessageSeverity => SettingsNotification.Severity;
+    public string LogFolderMessage => LogFolderNotification.Text;
+    public NotificationSeverity LogFolderMessageSeverity => LogFolderNotification.Severity;
 
     public void Reload()
     {
@@ -201,7 +204,8 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
                 ?? InterfaceScales[0];
             OpenExportFileAfterExport = _settingsService.Current.OpenExportFileAfterExport;
             MinimumLogLevel = _settingsService.Current.MinimumLogLevel;
-            Message = string.Empty;
+            SettingsNotification.Clear();
+            LogFolderNotification.Clear();
         }
         finally
         {
@@ -244,28 +248,41 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
             var result = await _settingsService.SaveAsync();
             if (result.IsSuccess)
             {
-                Message = previous.InterfaceScalePercent != SelectedInterfaceScale.Percent
-                    ? Localize(
-                        AvaloniaStringKeys.InterfaceScaleRestartRequired,
-                        "Interface size saved. Restart the application to apply it.")
-                    : Localize(
-                        AvaloniaStringKeys.SettingsSavedAutomatically,
-                        "Settings saved automatically.");
+                if (previous.InterfaceScalePercent != SelectedInterfaceScale.Percent)
+                {
+                    SetPersistentMessage(
+                        Localize(
+                            AvaloniaStringKeys.InterfaceScaleRestartRequired,
+                            "Interface size saved. Restart the application to apply it."),
+                        NotificationSeverity.Information);
+                }
+                else
+                {
+                    ShowTransientMessage(
+                        Localize(
+                            AvaloniaStringKeys.SettingsSavedAutomatically,
+                            "Settings saved automatically."),
+                        NotificationSeverity.Success);
+                }
                 SettingsSaved?.Invoke(this, EventArgs.Empty);
                 return;
             }
 
             TOTP.Core.Models.AppPreferencesMapper.ApplyTo(previous, _settingsService.Current);
-            Message = Localize(
-                AvaloniaStringKeys.SettingsSaveFailed,
-                "Settings could not be saved. Existing settings remain active.");
+            SetPersistentMessage(
+                Localize(
+                    AvaloniaStringKeys.SettingsSaveFailed,
+                    "Settings could not be saved. Existing settings remain active."),
+                NotificationSeverity.Error);
         }
         catch (Exception)
         {
             TOTP.Core.Models.AppPreferencesMapper.ApplyTo(previous, _settingsService.Current);
-            Message = Localize(
-                AvaloniaStringKeys.SettingsSaveFailed,
-                "Settings could not be saved. Existing settings remain active.");
+            SetPersistentMessage(
+                Localize(
+                    AvaloniaStringKeys.SettingsSaveFailed,
+                    "Settings could not be saved. Existing settings remain active."),
+                NotificationSeverity.Error);
         }
         finally
         {
@@ -282,6 +299,8 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
         if (_localization is not null)
             _localization.CultureChanged -= LocalizationCultureChanged;
         CancelAutoSaveDelay();
+        SettingsNotification.Dispose();
+        LogFolderNotification.Dispose();
     }
 
     private void LocalizationCultureChanged(object? sender, EventArgs args)
@@ -301,13 +320,28 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
         try
         {
             var opened = await _folderLauncher.OpenFolderAsync(_applicationPaths.LogDirectory);
-            Message = opened.IsSuccess
-                ? "Log folder opened."
-                : "The log folder could not be opened.";
+            if (opened.IsSuccess)
+            {
+                ShowTransientLogFolderMessage(
+                    Localize(AvaloniaStringKeys.LogFolderOpened, "Log folder opened."),
+                    NotificationSeverity.Success);
+            }
+            else
+            {
+                SetPersistentLogFolderMessage(
+                    Localize(
+                        AvaloniaStringKeys.LogFolderOpenFailed,
+                        "The log folder could not be opened."),
+                    NotificationSeverity.Error);
+            }
         }
         catch (Exception)
         {
-            Message = "The log folder could not be opened safely.";
+            SetPersistentLogFolderMessage(
+                Localize(
+                    AvaloniaStringKeys.LogFolderOpenFailedSafely,
+                    "The log folder could not be opened safely."),
+                NotificationSeverity.Error);
         }
         finally
         {
@@ -355,6 +389,18 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
         cts.Cancel();
         cts.Dispose();
     }
+
+    private void ShowTransientMessage(string message, NotificationSeverity severity)
+        => SettingsNotification.ShowTransient(message, severity);
+
+    private void SetPersistentMessage(string message, NotificationSeverity severity)
+        => SettingsNotification.ShowPersistent(message, severity);
+
+    private void ShowTransientLogFolderMessage(string message, NotificationSeverity severity)
+        => LogFolderNotification.ShowTransient(message, severity);
+
+    private void SetPersistentLogFolderMessage(string message, NotificationSeverity severity)
+        => LogFolderNotification.ShowPersistent(message, severity);
 
     private string Localize(string key, string fallback) =>
         _localization?.GetString(key) ?? fallback;

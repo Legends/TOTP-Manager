@@ -24,9 +24,7 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
     private bool _isQuickUnlockAvailable;
     private bool _isQuickUnlockEnabled;
     private bool _showQuickUnlockRetry;
-    private string _message = string.Empty;
     private string? _messageKey;
-    private NotificationSeverity _messageSeverity = NotificationSeverity.Information;
     private string _newPassword = string.Empty;
     private string _confirmPassword = string.Empty;
 
@@ -39,6 +37,7 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
         _authorization = authorization ?? throw new ArgumentNullException(nameof(authorization));
         _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        Notification = new NotificationState();
         _localization.CultureChanged += LocalizationCultureChanged;
         _passwordValidation = passwordValidation ?? throw new ArgumentNullException(nameof(passwordValidation));
         _refreshCommand = new AsyncCommand(RefreshAsync, () => !IsBusy);
@@ -64,7 +63,7 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
         set
         {
             if (!SetField(ref _newPassword, value ?? string.Empty)) return;
-            Message = string.Empty;
+            Notification.Clear();
         }
     }
 
@@ -74,7 +73,7 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
         set
         {
             if (!SetField(ref _confirmPassword, value ?? string.Empty)) return;
-            Message = string.Empty;
+            Notification.Clear();
         }
     }
 
@@ -115,17 +114,9 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
         private set => SetField(ref _showQuickUnlockRetry, value);
     }
 
-    public string Message
-    {
-        get => _message;
-        private set => SetField(ref _message, value);
-    }
-
-    public NotificationSeverity MessageSeverity
-    {
-        get => _messageSeverity;
-        private set => SetField(ref _messageSeverity, value);
-    }
+    public NotificationState Notification { get; }
+    public string Message => Notification.Text;
+    public NotificationSeverity MessageSeverity => Notification.Severity;
 
     public async Task RefreshAsync()
     {
@@ -252,10 +243,11 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
 
         if (newPassword.Length < _passwordValidation.MinimumLength)
         {
-            Message = string.Format(
-                _localization.GetString(AvaloniaStringKeys.PasswordMinimumLength),
-                _passwordValidation.MinimumLength);
-            MessageSeverity = NotificationSeverity.Error;
+            Notification.ShowPersistent(
+                string.Format(
+                    _localization.GetString(AvaloniaStringKeys.PasswordMinimumLength),
+                    _passwordValidation.MinimumLength),
+                NotificationSeverity.Error);
             return;
         }
 
@@ -340,14 +332,13 @@ public sealed class AuthorizationSettingsViewModel : INotifyPropertyChanged
     private void SetMessage(string key, NotificationSeverity severity)
     {
         _messageKey = key;
-        Message = _localization.GetString(key);
-        MessageSeverity = severity;
+        Notification.ShowPersistent(_localization.GetString(key), severity);
     }
 
     private void LocalizationCultureChanged(object? sender, EventArgs e)
     {
         if (_messageKey is not null)
-            Message = _localization.GetString(_messageKey);
+            Notification.ShowPersistent(_localization.GetString(_messageKey), Notification.Severity);
     }
 
     private void NotifyCommands()

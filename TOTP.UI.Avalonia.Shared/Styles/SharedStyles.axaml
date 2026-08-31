@@ -195,31 +195,6 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="Border.account-toast">
-        <Setter Property="Background" Value="{DynamicResource BrushSurfaceAlternate}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
-        <Setter Property="BoxShadow" Value="{DynamicResource ElevationCard}" />
-    </Style>
-    <Style Selector="Border.account-toast.open">
-        <Style.Animations>
-            <Animation
-                Duration="0:0:0.18"
-                Easing="CubicEaseOut"
-                FillMode="Forward"
-                PlaybackBehavior="OnlyIfVisible">
-                <KeyFrame Cue="0%">
-                    <Setter Property="TranslateTransform.Y" Value="-18" />
-                    <Setter Property="Opacity" Value="0" />
-                </KeyFrame>
-                <KeyFrame Cue="100%">
-                    <Setter Property="TranslateTransform.Y" Value="0" />
-                    <Setter Property="Opacity" Value="1" />
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
     <Style Selector="TextBlock.title">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}" />
         <Setter Property="FontWeight" Value="SemiBold" />

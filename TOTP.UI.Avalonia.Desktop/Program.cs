@@ -37,6 +37,7 @@ internal static class Program
         {
             var platformServices = DesktopPlatformServiceFactory.Create();
             LoggingConfigurator.SetupEarlyLogger(args, platformServices.ApplicationPaths);
+            ApplyLoggingLevelPreference(platformServices);
             ApplyInterfaceScalePreference(platformServices);
             using var instance = new SingleInstanceCoordinator(
                 new NamedMutexInstanceLock(DesktopInstanceIdentity.MutexName),
@@ -85,6 +86,29 @@ internal static class Program
         {
             Log.Warning(
                 "The saved Avalonia interface scale could not be applied. Using system scaling. Exception type: {ExceptionType}.",
+                exception.GetType().FullName);
+        }
+    }
+
+    private static void ApplyLoggingLevelPreference(DesktopPlatformServices platformServices)
+    {
+        try
+        {
+            using var preferencesStore = new AppPreferencesStore(
+                platformServices.ApplicationPaths.PreferencesFilePath,
+                NullLogger<AppPreferencesStore>.Instance,
+                platformServices.FileSecurity);
+            if (AvaloniaLoggingPreferenceBootstrapper.ApplyFromPreferences(
+                    preferencesStore,
+                    LoggingConfigurator.ManualOverrideLevel))
+            {
+                Log.Information("Applied the saved minimum logging-level preference.");
+            }
+        }
+        catch (Exception exception)
+        {
+            Log.Warning(
+                "The saved minimum logging level could not be applied. Using the active default. Exception type: {ExceptionType}.",
                 exception.GetType().FullName);
         }
     }

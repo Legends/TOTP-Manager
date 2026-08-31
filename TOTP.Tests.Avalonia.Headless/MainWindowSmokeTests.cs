@@ -14,6 +14,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 using System.Windows.Input;
+using FluentResults;
 using TOTP.Avalonia.Desktop;
 using TOTP.Avalonia.Shared.Controls;
 using TOTP.Avalonia.Shared.Styles;
@@ -21,6 +22,9 @@ using TOTP.Avalonia.Desktop.Dialogs;
 using TOTP.Avalonia.Desktop.Localization;
 using TOTP.Avalonia.Desktop.Controls;
 using TOTP.Avalonia.Desktop.Presentation;
+using TOTP.Core.Models;
+using TOTP.Core.Security.Interfaces;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Tests.Avalonia.Headless;
 
@@ -526,42 +530,29 @@ public sealed class MainWindowSmokeTests
     }
 
     [AvaloniaFact]
-    public async Task AccountMessageToast_OpenClassFliesInWithoutTakingContentSpace()
+    public void AccountNotificationBanner_UsesSharedNonInteractiveOverlay()
     {
-        var transform = new TranslateTransform();
-        var observedOpeningOffset = false;
-        transform.PropertyChanged += (_, args) =>
-        {
-            if (args.Property == TranslateTransform.YProperty && transform.Y < 0)
-            {
-                observedOpeningOffset = true;
-            }
-        };
-        var toast = new Border
+        var notification = new NotificationBanner
         {
             Width = 240,
-            Height = 44,
             HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
             VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Top,
             IsHitTestVisible = false,
-            RenderTransform = transform
+            Severity = NotificationSeverity.Success,
+            Text = "Synthetic account saved"
         };
-        toast.Classes.Add("account-toast");
-        toast.Classes.Add("open");
         var content = new Border { Height = 300 };
-        var host = new Grid { Children = { content, toast } };
+        var host = new Grid { Children = { content, notification } };
         var window = new Window { Content = host };
 
         try
         {
             window.Show();
-            await WaitUntilAsync(
-                () => observedOpeningOffset && Math.Abs(transform.Y) < 0.005);
+            window.UpdateLayout();
 
-            Assert.True(observedOpeningOffset);
-            Assert.Equal(0, transform.Y, precision: 2);
             Assert.Equal(300, content.Bounds.Height);
-            Assert.False(toast.IsHitTestVisible);
+            Assert.True(notification.IsVisible);
+            Assert.False(notification.IsHitTestVisible);
         }
         finally
         {
@@ -923,6 +914,82 @@ public sealed class MainWindowSmokeTests
     }
 
     [AvaloniaFact]
+    public void MiscellaneousSettingsNotice_IsOutsideScrollableContent()
+    {
+        var window = new SettingsWindow();
+        using var settingsPage = new SettingsPageViewModel(new TestSettingsService());
+
+        try
+        {
+            window.Show();
+            var settingsTabs = Assert.Single(
+                window.GetVisualDescendants().OfType<TabControl>(),
+                tabControl => tabControl.Classes.Contains("settings-tabs"));
+            var miscellaneousTab = settingsTabs
+                .GetVisualDescendants()
+                .OfType<TabItem>()
+                .ElementAt(2);
+            Assert.IsType<ContentControl>(miscellaneousTab.Content).Content = settingsPage;
+            settingsTabs.SelectedIndex = 2;
+            window.UpdateLayout();
+
+            var scrollViewer = Assert.Single(
+                window.GetVisualDescendants().OfType<ScrollViewer>(),
+                control => control.Name == "MiscellaneousSettingsScroll");
+            var notice = Assert.Single(
+                window.GetVisualDescendants().OfType<NotificationBanner>(),
+                control => control.Name == "MiscellaneousSettingsNotice");
+
+            Assert.Same(scrollViewer.GetVisualParent(), notice.GetVisualParent());
+            Assert.DoesNotContain(notice, scrollViewer.GetVisualDescendants());
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void SecurityBehaviorSettings_AreInsideSecurityTab()
+    {
+        var window = new SettingsWindow();
+        using var settingsPage = new SettingsPageViewModel(new TestSettingsService());
+
+        try
+        {
+            window.Show();
+            var settingsTabs = Assert.Single(
+                window.GetVisualDescendants().OfType<TabControl>(),
+                tabControl => tabControl.Classes.Contains("settings-tabs"));
+            settingsTabs.SelectedIndex = 0;
+            window.UpdateLayout();
+            var settingsHost = Assert.Single(
+                window.GetVisualDescendants().OfType<ContentControl>(),
+                control => control.Name == "SecurityBehaviorSettingsHost");
+            settingsHost.Content = settingsPage;
+            window.UpdateLayout();
+
+            var scrollViewer = Assert.Single(
+                window.GetVisualDescendants().OfType<ScrollViewer>(),
+                control => control.Name == "SecuritySettingsScroll");
+            var behaviorSettings = Assert.Single(
+                window.GetVisualDescendants().OfType<Border>(),
+                control => control.Name == "SecurityBehaviorSettings");
+            var notice = Assert.Single(
+                window.GetVisualDescendants().OfType<NotificationBanner>(),
+                control => control.Name == "SecuritySettingsNotice");
+
+            Assert.Contains(behaviorSettings, scrollViewer.GetVisualDescendants());
+            Assert.Same(scrollViewer.GetVisualParent(), notice.GetVisualParent());
+            Assert.DoesNotContain(notice, scrollViewer.GetVisualDescendants());
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void DarkVariant_UsesEstablishedWpfVisualIdentity()
     {
         var application = Assert.IsType<App>(Application.Current);
@@ -995,6 +1062,16 @@ public sealed class MainWindowSmokeTests
         public bool CanExecute(object? parameter) => true;
 
         public void Execute(object? parameter) => execute();
+    }
+
+    private sealed class TestSettingsService : ISettingsService
+    {
+        public IAppSettings Current { get; } = new AppSettings();
+
+        public Task<Result<IAppSettings>> LoadAsync() =>
+            Task.FromResult(Result.Ok(Current));
+
+        public Task<Result> SaveAsync() => Task.FromResult(Result.Ok());
     }
 
     private static async Task WaitUntilAsync(Func<bool> predicate)

@@ -14,6 +14,53 @@ namespace TOTP.Tests.Avalonia.Presentation;
 public sealed class NativeFilePickerViewModelTests
 {
     [Fact]
+    public async Task ImportAsync_WhenNoFileIsSelected_ShowsOneShortInformationNotice()
+    {
+        var picker = new Mock<IAvaloniaFilePicker>();
+        picker.Setup(value => value.PickImportFileAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((INativeStorageFile?)null);
+        using var sut = Create(
+            picker.Object,
+            Mock.Of<IExportService>(),
+            Mock.Of<IAccountManager>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            transientMessageDuration: TimeSpan.FromMilliseconds(20));
+
+        await sut.ImportAsync();
+
+        Assert.Equal(AvaloniaStringKeys.NoImportFileSelected, sut.Message);
+        Assert.Equal(NotificationSeverity.Information, sut.MessageSeverity);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+        Assert.Empty(sut.Message);
+    }
+
+    [Fact]
+    public async Task ExportEncryptedAsync_WhenPasswordPromptIsCancelled_ShowsOneShortInformationNotice()
+    {
+        var accounts = new Mock<IAccountManager>();
+        accounts.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]));
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        dialogs.Setup(value => value.PromptForPasswordAsync(
+                It.IsAny<PasswordDialogRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+        using var sut = Create(
+            Mock.Of<IAvaloniaFilePicker>(),
+            Mock.Of<IExportService>(),
+            accounts.Object,
+            dialogs.Object,
+            transientMessageDuration: TimeSpan.FromMilliseconds(20));
+
+        await sut.ExportEncryptedAsync();
+
+        Assert.Equal(AvaloniaStringKeys.ExportCancelled, sut.Message);
+        Assert.Equal(NotificationSeverity.Information, sut.MessageSeverity);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+        Assert.Empty(sut.Message);
+    }
+
+    [Fact]
     public async Task ImportAsync_WhenValidatedAndConfirmed_CreatesBackupBeforeAddingAccount()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -185,7 +232,8 @@ public sealed class NativeFilePickerViewModelTests
         IAvaloniaDialogService dialogs,
         IPlatformFileSecurity? security = null,
         ISettingsService? settings = null,
-        IPlatformFolderLauncher? folderLauncher = null)
+        IPlatformFolderLauncher? folderLauncher = null,
+        TimeSpan? transientMessageDuration = null)
     {
         var passwordValidation = new Mock<IPasswordValidationService>();
         passwordValidation.SetupGet(value => value.MinimumLength).Returns(8);
@@ -209,7 +257,8 @@ public sealed class NativeFilePickerViewModelTests
             security ?? Mock.Of<IPlatformFileSecurity>(),
             settings,
             folderLauncher ?? Mock.Of<IPlatformFolderLauncher>(),
-            Localization());
+            Localization(),
+            transientMessageDuration);
     }
 
     private static IAvaloniaLocalizationService Localization()

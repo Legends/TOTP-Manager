@@ -19,12 +19,10 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
     private PortableUpdateOffer? _offer;
     private PortableUpdatePackage? _package;
     private CancellationTokenSource? _operationLifetime;
-    private string _message = string.Empty;
     private string _messageKey = AvaloniaStringKeys.UpdateReadyToCheck;
     private object[] _messageArguments = [];
     private string _version = string.Empty;
     private string _releaseNotes = string.Empty;
-    private NotificationSeverity _messageSeverity = NotificationSeverity.Information;
     private int _progressPercentage;
     private bool _isProgressIndeterminate;
     private bool _isDownloading;
@@ -39,7 +37,8 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
         _updates = updates ?? throw new ArgumentNullException(nameof(updates));
         _installer = installer ?? throw new ArgumentNullException(nameof(installer));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
-        _message = LocalizeMessage();
+        Notification = new NotificationState();
+        Notification.ShowPersistent(LocalizeMessage(), NotificationSeverity.Information);
         _localization.CultureChanged += LocalizationCultureChanged;
         _checkCommand = new AsyncCommand(CheckAsync, () => !_disposed && !IsBusy);
         _downloadCommand = new AsyncCommand(
@@ -60,11 +59,8 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
     public ICommand InstallCommand => _installCommand;
     public ICommand CancelCommand => _cancelCommand;
 
-    public string Message
-    {
-        get => _message;
-        private set => SetField(ref _message, value);
-    }
+    public NotificationState Notification { get; }
+    public string Message => Notification.Text;
 
     public string Version
     {
@@ -87,11 +83,7 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    public NotificationSeverity MessageSeverity
-    {
-        get => _messageSeverity;
-        private set => SetField(ref _messageSeverity, value);
-    }
+    public NotificationSeverity MessageSeverity => Notification.Severity;
 
     public int ProgressPercentage
     {
@@ -270,6 +262,7 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
         _operationLifetime?.Cancel();
         _operationLifetime?.Dispose();
         _operationLifetime = null;
+        Notification.Dispose();
         ResetOffer();
         NotifyCommands();
     }
@@ -314,8 +307,7 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
     {
         _messageKey = key;
         _messageArguments = arguments;
-        Message = LocalizeMessage();
-        MessageSeverity = severity;
+        Notification.ShowPersistent(LocalizeMessage(), severity);
     }
 
     private string LocalizeMessage()
@@ -327,7 +319,7 @@ public sealed class UpdateCheckViewModel : INotifyPropertyChanged, IDisposable
     }
 
     private void LocalizationCultureChanged(object? sender, EventArgs e) =>
-        Message = LocalizeMessage();
+        Notification.ShowPersistent(LocalizeMessage(), Notification.Severity);
 
     private void NotifyCommands()
     {
