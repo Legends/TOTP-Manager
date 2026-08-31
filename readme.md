@@ -12,7 +12,7 @@ TOTP Manager is a local-first desktop authenticator with an encrypted vault, opt
 > **Release status:** `v2.0.0` is in release-candidate testing. RC packages are unsigned Windows/Linux previews with automatic updates disabled. Use synthetic accounts and keep a tested encrypted backup.
 
 <p align="center">
-  <img src="docs/images/readme/app.png" alt="TOTP Manager showing a selected account and its current one-time password" width="760" />
+  <img src="docs/images/readme/app.png" alt="TOTP Manager showing a selected account and its current one-time password" width="560" />
 </p>
 
 ## Features
