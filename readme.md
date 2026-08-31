@@ -51,6 +51,12 @@ The master password is the portable recovery path. Quick unlock is a convenience
 
 Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Never attach real secrets, vaults, backups, or unreviewed logs.
 
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+Stable Windows releases require reviewed Authenticode signing and verification as defined in the [code signing policy](CODE_SIGNING_POLICY.md). Data handling is described in the [TOTP Manager privacy policy](PRIVACY.md).
+
 ## Build
 
 Install the .NET 9 SDK, then run:
