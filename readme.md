@@ -7,7 +7,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/Legends/TOTP-Manager?display_name=tag)](https://github.com/Legends/TOTP-Manager/releases/latest)
 [![License](https://img.shields.io/github/license/Legends/TOTP-Manager)](LICENSE.txt)
 
-TOTP Manager is a local-first desktop authenticator with an encrypted vault, optional platform quick unlock, QR workflows, protected backup and restore, and verified update metadata. It does not require a cloud account.
+TOTP Manager is an open-source, local-first TOTP and 2FA desktop authenticator for Windows, macOS, and Linux. It protects OTP seeds in an encrypted local vault and supports QR workflows, platform quick unlock, and encrypted backup and restore without requiring a cloud account.
 
 > **Release status:** `v2.0.0` is in release-candidate testing. RC packages are unsigned Windows/Linux previews with automatic updates disabled. Use synthetic accounts and keep a tested encrypted backup.
 
