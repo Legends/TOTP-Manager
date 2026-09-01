@@ -35,7 +35,7 @@ if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) {
 if ($StopRunningInstance) {
     Get-Process -Name "TOTP.UI.Avalonia.Desktop" -ErrorAction SilentlyContinue |
         ForEach-Object {
-            Write-Host "Stopping running TOTP Manager Avalonia process $($_.Id)..."
+            Write-Host "Stopping running OTP Harbor Avalonia process $($_.Id)..."
             Stop-Process -Id $_.Id -ErrorAction Stop
             $_.WaitForExit(5000)
         }
@@ -43,7 +43,7 @@ if ($StopRunningInstance) {
 
 $selfContainedValue = if ($SelfContained) { "true" } else { "false" }
 
-Write-Host "Publishing TOTP Manager Avalonia for Windows ($Configuration, $Runtime)..."
+Write-Host "Publishing OTP Harbor Avalonia for Windows ($Configuration, $Runtime)..."
 & dotnet publish $projectPath `
     --configuration $Configuration `
     --runtime $Runtime `

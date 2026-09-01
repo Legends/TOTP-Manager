@@ -36,7 +36,7 @@ Use the exact Developer ID signed, notarized, and stapled DMG candidate.
 3. Create a synthetic vault and enable quick unlock using the recovery password. Confirm the system LocalAuthentication prompt appears and cancellation leaves password recovery available.
 4. Restart and verify quick unlock through Touch ID, Apple Watch, or the macOS password fallback available on that Mac. Delete/reset the Keychain item and confirm safe password fallback.
 5. Deny and then grant camera access in System Settings. Confirm the app distinguishes permission denied from no camera and can scan a synthetic QR after authorization.
-6. Verify timed clipboard clearing preserves a value copied by another application after TOTP Manager's copy.
+6. Verify timed clipboard clearing preserves a value copied by another application after OTP Harbor's copy.
 7. Enable lock-on-session-lock, lock/unlock macOS, and confirm authorization plus every secret-bearing presentation surface is cleared.
 8. Launch a second instance and confirm activation of the existing app without unlocking it.
 9. Move the app between Applications and a user folder and repeat Keychain/relaunch checks to expose signing identity or designated-requirement mistakes.

@@ -24,7 +24,7 @@ public sealed class DiagnosticsViewModelTests
 
         await sut.RefreshAsync();
 
-        Assert.Contains("TOTP Manager 1.2.3", sut.SupportInformation, StringComparison.Ordinal);
+        Assert.Contains("OTP Harbor 1.2.3", sut.SupportInformation, StringComparison.Ordinal);
         Assert.Contains("Platform: Linux", sut.SupportInformation, StringComparison.Ordinal);
         Assert.Contains("Preferences: 12 ms", sut.SupportInformation, StringComparison.Ordinal);
         Assert.DoesNotContain("\\Users\\", sut.SupportInformation, StringComparison.OrdinalIgnoreCase);

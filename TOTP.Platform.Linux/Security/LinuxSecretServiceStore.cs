@@ -49,7 +49,7 @@ public sealed class LinuxSecretServiceStore(
         {
             encoded = EncodeForStandardInput(secret.Span);
             var result = await runtime.RunAsync(
-                ["store", "--label=TOTP Manager device secret", "application", ApplicationAttribute, "reference", secretReference],
+                ["store", "--label=OTP Harbor device secret", "application", ApplicationAttribute, "reference", secretReference],
                 encoded,
                 MaximumEncodedOutputLength,
                 cancellationToken);

@@ -3,7 +3,7 @@ param(
     [string]$Owner = "Legends",
 
     [Parameter(Mandatory = $false)]
-    [string]$Repo = "TOTP-Manager",
+    [string]$Repo = "otp-harbor",
 
     [Parameter(Mandatory = $false)]
     [string]$Branch = "master",

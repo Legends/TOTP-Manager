@@ -8,7 +8,7 @@ Repository evidence:
 
 - OSI-approved project license: [MIT](../../LICENSE.txt)
 - Product and download documentation: [README](../../readme.md)
-- Published release form: Windows x64 ZIP packages on [GitHub Releases](https://github.com/Legends/TOTP-Manager/releases)
+- Published release form: Windows x64 ZIP packages on [GitHub Releases](https://github.com/Legends/otp-harbor/releases)
 - Code signing policy and roles: [CODE_SIGNING_POLICY.md](../../CODE_SIGNING_POLICY.md)
 - Privacy disclosure: [PRIVACY.md](../../PRIVACY.md)
 - Vulnerability reporting: [SECURITY.md](../../SECURITY.md)
@@ -34,12 +34,14 @@ After acceptance, configure the values expected by the release workflow:
 
 | Setting | Value |
 | --- | --- |
-| Repository | `https://github.com/Legends/TOTP-Manager` |
+| Repository | `https://github.com/Legends/otp-harbor` |
 | Project slug | `totp-manager` |
 | Signing policy slug | `release-signing` |
 | Artifact configuration slug | `windows-release-v1` |
 | GitHub Actions variable | `SIGNPATH_ORGANIZATION_ID` |
 | GitHub Actions secret | `SIGNPATH_API_TOKEN` |
+
+The SignPath project slug remains `totp-manager` as an external compatibility identifier after the OTP Harbor rebrand. The GitHub repository URL and required PE product-name metadata use the current brand. First-party assembly names remain `TOTP.*`; changing them is outside the public rebrand and would require a separately reviewed signing-configuration migration.
 
 Use the predefined GitHub.com trusted build system, install the SignPath GitHub App if SignPath requests it, and grant it access only to this repository. Give the API token submitter permission only; do not give it approval or project-configuration authority.
 
@@ -47,7 +49,7 @@ Create `windows-release-v1` by uploading a sample of the workflow artifact named
 
 - signs every first-party `TOTP*.exe` and `TOTP*.dll` under those two directories;
 - does not sign Microsoft, Avalonia, OpenCV, or any other upstream binary;
-- requires `TOTP Manager` for PE product-name metadata;
+- requires `OTP Harbor` for PE product-name metadata;
 - requires the signing-request `version` parameter for product-version metadata; and
 - rejects missing, additional first-party, or structurally unexpected signing targets.
 

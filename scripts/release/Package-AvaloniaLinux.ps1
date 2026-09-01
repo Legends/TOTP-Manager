@@ -47,7 +47,7 @@ else {
     New-Item -ItemType Directory -Path $resolvedOutput | Out-Null
 }
 
-$portableRoot = Join-Path $resolvedOutput "TOTP-Manager-linux-x64-$ReleaseVersion"
+$portableRoot = Join-Path $resolvedOutput "OTP-Harbor-linux-x64-$ReleaseVersion"
 New-Item -ItemType Directory -Path $portableRoot | Out-Null
 Copy-Item -Path (Join-Path $resolvedPublish "*") -Destination $portableRoot -Recurse
 & (Join-Path $PSScriptRoot "Set-PackageUpdatePolicy.ps1") `
@@ -59,7 +59,7 @@ $portableExecutable = Join-Path $portableRoot "TOTP.UI.Avalonia.Desktop"
 & chmod "+x" $portableExecutable
 if ($LASTEXITCODE -ne 0) { throw "Could not mark the Linux host executable." }
 
-$tarPath = Join-Path $resolvedOutput "TOTP-Manager-linux-x64-$ReleaseVersion.tar.gz"
+$tarPath = Join-Path $resolvedOutput "OTP-Harbor-linux-x64-$ReleaseVersion.tar.gz"
 & tar -C $portableRoot -czf $tarPath .
 if ($LASTEXITCODE -ne 0) { throw "Could not create the portable tarball." }
 
@@ -93,7 +93,7 @@ Version: $debianVersion
 Section: utils
 Priority: optional
 Architecture: amd64
-Maintainer: TOTP Manager maintainers
+Maintainer: OTP Harbor maintainers
 Depends: $($dependencies -join ', ')
 Description: Local-first desktop TOTP authenticator
  A local-first Avalonia desktop authenticator with encrypted local storage.
@@ -118,13 +118,13 @@ Copy-Item -LiteralPath $iconSource -Destination (Join-Path $debIcon "io.github.l
 $desktopEntry = @"
 [Desktop Entry]
 Type=Application
-Name=TOTP Manager
+Name=OTP Harbor
 Comment=Local-first desktop TOTP authenticator
 Exec=totp-manager
 Icon=io.github.legends.totpmanager
 Terminal=false
 Categories=Utility;Security;
-StartupWMClass=TOTP Manager
+StartupWMClass=OTP Harbor
 "@
 Write-Utf8FileWithFinalNewline `
     -Path (Join-Path $debDesktop "io.github.legends.totpmanager.desktop") `
@@ -136,7 +136,7 @@ $artifactVersion = if ($releaseCandidateNumber) {
 else {
     $baseVersion
 }
-$debPath = Join-Path $resolvedOutput "totp-manager_${artifactVersion}_amd64.deb"
+$debPath = Join-Path $resolvedOutput "otp-harbor_${artifactVersion}_amd64.deb"
 & dpkg-deb --root-owner-group --build $debRoot $debPath
 if ($LASTEXITCODE -ne 0) { throw "Could not create the DEB package." }
 & dpkg-deb --info $debPath

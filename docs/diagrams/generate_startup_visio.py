@@ -13,11 +13,11 @@ ET.register_namespace("r", "http://schemas.openxmlformats.org/officeDocument/200
 ROOT = Path(__file__).resolve().parents[2]
 OUT = Path(__file__).resolve().parent
 TEMPLATE = Path(__import__("vsdx").__file__).parent / "media" / "media.vsdx"
-VSDX = OUT / "TOTP-Manager-Startup-Decision-Tree.vsdx"
-SVG = OUT / "TOTP-Manager-Startup-Decision-Tree.svg"
+VSDX = OUT / "OTP-Harbor-Startup-Decision-Tree.vsdx"
+SVG = OUT / "OTP-Harbor-Startup-Decision-Tree.svg"
 
 nodes = [
-    ("start", "Start TOTP Manager", 8.5, 21.0, 3.2, 0.7, "start"),
+    ("start", "Start OTP Harbor", 8.5, 21.0, 3.2, 0.7, "start"),
     ("instance", "First app instance?", 8.5, 19.7, 3.0, 1.0, "decision"),
     ("existing", "Activate existing window\nand exit new process", 13.7, 19.7, 3.0, 0.9, "end"),
     ("splash", "Show splash window", 8.5, 18.2, 3.2, 0.8, "process"),
@@ -135,7 +135,7 @@ def build_svg():
     parts = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
              '<rect width="100%" height="100%" fill="#F8FAFC"/>',
              '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#64748B"/></marker></defs>',
-             '<text x="30" y="34" font-family="Segoe UI" font-size="22" font-weight="700" fill="#172033">TOTP Manager — Startup Decision Tree</text>']
+             '<text x="30" y="34" font-family="Segoe UI" font-size="22" font-weight="700" fill="#172033">OTP Harbor — Startup Decision Tree</text>']
     for a, b, label in edges:
         na, nb = by_id[a], by_id[b]; x1,y1=pos(na); x2,y2=pos(nb)
         parts.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>')

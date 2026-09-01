@@ -45,7 +45,7 @@ switch ($RuntimeIdentifier) {
         }
     }
     "osx-arm64" {
-        $appHost = Join-Path $root "TOTP Manager.app/Contents/MacOS/TOTP.UI.Avalonia.Desktop"
+        $appHost = Join-Path $root "OTP Harbor.app/Contents/MacOS/TOTP.UI.Avalonia.Desktop"
         $openCv = Get-ChildItem -LiteralPath $root -File -Recurse -Filter "libOpenCvSharpExtern.dylib" |
             Select-Object -First 1
         if (-not (Test-Path -LiteralPath $appHost -PathType Leaf) -or $null -eq $openCv) {

@@ -25,11 +25,13 @@ A normal live session loses application data after reboot. A persistent live USB
 
 ## 2. Download RC7
 
+RC7 predates the OTP Harbor rebrand. Its release asset, Debian package, launcher, application-data paths, and in-app title therefore retain the former `TOTP Manager` identifiers shown below.
+
 ```bash
 mkdir -p ~/Downloads/totp-rc7
 cd ~/Downloads/totp-rc7
 
-BASE_URL="https://github.com/Legends/TOTP-Manager/releases/download/v2.0.0-rc7"
+BASE_URL="https://github.com/Legends/otp-harbor/releases/download/v2.0.0-rc7"
 
 wget "$BASE_URL/SHA256SUMS"
 wget "$BASE_URL/totp-manager_2.0.0-rc7_amd64.deb"
@@ -37,7 +39,7 @@ wget "$BASE_URL/totp-manager_2.0.0-rc7_amd64.deb"
 
 Release page:
 
-[TOTP Manager v2.0.0-rc7](https://github.com/Legends/TOTP-Manager/releases/tag/v2.0.0-rc7)
+[OTP Harbor v2.0.0-rc7](https://github.com/Legends/otp-harbor/releases/tag/v2.0.0-rc7)
 
 ## 3. Verify the Download
 
@@ -189,7 +191,7 @@ Enable lock-on-session-lock, then lock Ubuntu with `Super+L`.
 
 After returning:
 
-- TOTP Manager should require its master password again
+- The application should require its master password again
 - No previous TOTP, QR code, or camera preview should remain visible
 
 While the application is running, execute:
@@ -233,14 +235,14 @@ After closing the application, confirm no process remains:
 
 ```bash
 pgrep -a -f 'totp-manager|TOTP.UI.Avalonia.Desktop' \
-  || echo "No TOTP Manager process remains"
+  || echo "No application process remains"
 ```
 
 This is especially useful after QR capture testing because it can reveal camera-related shutdown hangs.
 
 ## 12. Test Uninstall Behavior
 
-Close TOTP Manager, then run:
+Close the application, then run:
 
 ```bash
 sudo apt remove totp-manager

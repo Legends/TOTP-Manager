@@ -1,18 +1,20 @@
-# TOTP Manager
+# OTP Harbor
 
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-5C6BC0)](https://github.com/Legends/TOTP-Manager)
+**The local-first desktop authenticator.**
+
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-5C6BC0)](https://github.com/Legends/otp-harbor)
 [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/download/dotnet/9.0)
-[![Build](https://github.com/Legends/TOTP-Manager/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Legends/TOTP-Manager/actions/workflows/build-and-test.yml)
-[![Security](https://github.com/Legends/TOTP-Manager/actions/workflows/security-audit.yml/badge.svg)](https://github.com/Legends/TOTP-Manager/actions/workflows/security-audit.yml)
-[![Latest Release](https://img.shields.io/github/v/release/Legends/TOTP-Manager?display_name=tag)](https://github.com/Legends/TOTP-Manager/releases/latest)
-[![License](https://img.shields.io/github/license/Legends/TOTP-Manager)](LICENSE.txt)
+[![Build](https://github.com/Legends/otp-harbor/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Legends/otp-harbor/actions/workflows/build-and-test.yml)
+[![Security](https://github.com/Legends/otp-harbor/actions/workflows/security-audit.yml/badge.svg)](https://github.com/Legends/otp-harbor/actions/workflows/security-audit.yml)
+[![Latest Release](https://img.shields.io/github/v/release/Legends/otp-harbor?display_name=tag)](https://github.com/Legends/otp-harbor/releases/latest)
+[![License](https://img.shields.io/github/license/Legends/otp-harbor)](LICENSE.txt)
 
-TOTP Manager is an open-source, local-first TOTP and 2FA desktop authenticator for Windows, macOS, and Linux. It protects OTP seeds in an encrypted local vault and supports QR workflows, platform quick unlock, and encrypted backup and restore without requiring a cloud account.
+**OTP Harbor** is an open-source, local-first desktop authenticator for TOTP and 2FA on Windows, macOS, and Linux. It protects OTP seeds in an encrypted local vault and supports QR workflows, platform quick unlock, and encrypted backup and restore without requiring a cloud account.
 
 > **Release status:** `v2.0.0` is in release-candidate testing. RC packages are unsigned Windows/Linux previews with automatic updates disabled. Use synthetic accounts and keep a tested encrypted backup.
 
 <p align="center">
-  <img src="docs/images/readme/app.png" alt="TOTP Manager showing a selected account and its current one-time password" width="460" />
+  <img src="docs/images/readme/app.png" alt="OTP Harbor showing a selected account and its current one-time password" width="460" />
 </p>
 
 ## Features
@@ -29,7 +31,7 @@ Accounts currently use the common TOTP profile: SHA-1, six digits, and a 30-seco
 
 ## Install
 
-Download the current prerelease from [GitHub Releases](https://github.com/Legends/TOTP-Manager/releases). RC artifacts are manual-test packages and are not part of the trusted automatic-update channel.
+Download the current prerelease from [GitHub Releases](https://github.com/Legends/otp-harbor/releases). RC artifacts are manual-test packages and are not part of the trusted automatic-update channel.
 
 | Platform | Package type |
 | --- | --- |
@@ -55,15 +57,15 @@ Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Nev
 
 Free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
 
-Stable Windows releases require reviewed Authenticode signing and verification as defined in the [code signing policy](CODE_SIGNING_POLICY.md). Data handling is described in the [TOTP Manager privacy policy](PRIVACY.md).
+Stable Windows releases require reviewed Authenticode signing and verification as defined in the [code signing policy](CODE_SIGNING_POLICY.md). Data handling is described in the [OTP Harbor privacy policy](PRIVACY.md).
 
 ## Build
 
 Install the .NET 9 SDK, then run:
 
 ```powershell
-git clone https://github.com/Legends/TOTP-Manager.git
-cd TOTP-Manager
+git clone https://github.com/Legends/otp-harbor.git
+cd otp-harbor
 dotnet restore TOTP.sln --configfile NuGet.config
 dotnet build TOTP.sln -c Debug
 dotnet test TOTP.sln -c Debug
@@ -74,4 +76,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for engineering rules and [docs/README.md
 
 ## License
 
-TOTP Manager is distributed under [MIT](LICENSE.txt). Third-party notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+OTP Harbor is distributed under [MIT](LICENSE.txt). Third-party notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

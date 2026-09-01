@@ -26,6 +26,7 @@ Relative XDG locations are invalid and must not be accepted as application stora
 
 ## Compatibility and migration
 
+- OTP Harbor deliberately retains the established `TOTP-Manager` and `totp-manager` application-data directory names. They are compatibility identifiers, not current display branding.
 - The Windows adapter deliberately preserves the established production locations and does not move or rewrite user data.
 - Existing configuration overrides for the vault path remain supported and take precedence over adapter defaults.
 - Rotating vault backups remain adjacent to the configured vault on every platform. The platform `BackupDirectory` property is reserved for future backup-policy extraction and must not be presented as the current rotating-backup location.

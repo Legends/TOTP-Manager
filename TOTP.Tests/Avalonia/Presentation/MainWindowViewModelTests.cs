@@ -14,6 +14,7 @@ using TOTP.Avalonia.Desktop.Localization;
 using TOTP.Avalonia.Desktop.Presentation.Dialogs;
 using TOTP.Core.Services.Models;
 using TOTP.Infrastructure.Services;
+using Avalonia.Controls;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
@@ -79,12 +80,12 @@ public sealed class MainWindowViewModelTests
     }
 
     [Theory]
-    [InlineData(AvaloniaStartupOutcome.ReadyForPasswordSetup, false, "Create a master password")]
-    [InlineData(AvaloniaStartupOutcome.ReadyForUnlock, false, "Enter your master password")]
+    [InlineData(AvaloniaStartupOutcome.ReadyForPasswordSetup, false, "StartupCreateMasterPassword")]
+    [InlineData(AvaloniaStartupOutcome.ReadyForUnlock, false, "StartupEnterMasterPassword")]
     [InlineData(AvaloniaStartupOutcome.ReadyForPasswordFallback, false, "QuickUnlockFallback")]
     [InlineData(AvaloniaStartupOutcome.ReadyUnlocked, false, "VaultUnlocked")]
-    [InlineData(AvaloniaStartupOutcome.PreferencesUnavailable, true, "preferences could not be loaded")]
-    [InlineData(AvaloniaStartupOutcome.UnexpectedFailure, true, "could not start safely")]
+    [InlineData(AvaloniaStartupOutcome.PreferencesUnavailable, true, "StartupPreferencesUnavailable")]
+    [InlineData(AvaloniaStartupOutcome.UnexpectedFailure, true, "StartupFailedSafely")]
     public async Task InitializeAsync_ProjectsSafeRecoverableState(
         AvaloniaStartupOutcome outcome,
         bool canRetry,
@@ -130,6 +131,28 @@ public sealed class MainWindowViewModelTests
         Assert.True(sut.CanRetry);
         Assert.Equal(NotificationSeverity.Error, sut.StatusSeverity);
         Assert.DoesNotContain("sensitive", sut.StatusText, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WhenGermanIsActive_UsesCompleteLocalizedFailureMessage()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.UnexpectedFailure);
+        var localization = new AvaloniaLocalizationService(
+            new ResourceDictionary(),
+            new AvaloniaStringCatalog());
+        localization.ApplyCulture("de");
+        using var sut = CreateSut(
+            coordinator.Object,
+            Mock.Of<IAuthorizationService>(),
+            localization: localization);
+
+        await sut.InitializeAsync();
+
+        Assert.Equal(
+            "OTP Harbor konnte nicht sicher gestartet werden. Ihre verschlüsselten Daten wurden nicht geändert.",
+            sut.StatusText);
     }
 
     [Fact]
@@ -471,7 +494,8 @@ public sealed class MainWindowViewModelTests
         IAuthorizationService authorization,
         IAvaloniaCameraScannerDialogService? scannerDialogs = null,
         IAccountManager? accountManager = null,
-        NativeFilePickerViewModel? nativeFilePicker = null) =>
+        NativeFilePickerViewModel? nativeFilePicker = null,
+        IAvaloniaLocalizationService? localization = null) =>
         new(
             coordinator,
             authorization,
@@ -491,7 +515,7 @@ public sealed class MainWindowViewModelTests
             CreateCameraScanner(),
             CreateUpdateCheck(),
             CreateDiagnostics(),
-            CreateLocalization(),
+            localization ?? CreateLocalization(),
             scannerDialogs ?? Mock.Of<IAvaloniaCameraScannerDialogService>());
 
     private sealed class TestStorageFile(string name) : INativeStorageFile

@@ -4,7 +4,7 @@
 
 | Target | Initial artifact | Install/update ownership |
 | --- | --- | --- |
-| Windows x64 | Signed self-contained ZIP plus signed fast framework-dependent ZIP | TOTP Manager updater uses the self-contained ZIP after repeated Ed25519 verification; the fast ZIP is a manual initial-download option |
+| Windows x64 | Signed self-contained ZIP plus signed fast framework-dependent ZIP | The OTP Harbor updater uses the self-contained ZIP after repeated Ed25519 verification; the fast ZIP is a manual initial-download option |
 | macOS 14+ ARM64 | Developer ID signed and notarized DMG | User installs the app bundle; replacement must use a future signed/notarized target adapter or an explicit manual download |
 | Ubuntu 24.04 x64 | Self-contained tar.gz and DEB | Portable extraction or Debian package manager; no in-place app updater claims support |
 

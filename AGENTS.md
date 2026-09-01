@@ -1,12 +1,12 @@
 # AGENTS.md
 
-This file is the working contract for humans and coding agents contributing to `TOTP-Manager`.
+This file is the working contract for humans and coding agents contributing to `otp-harbor`.
 
 It is intentionally opinionated. The repo is security-sensitive, cross-platform, and already has clear architectural direction. Contributions should reinforce that direction, not dilute it.
 
 ## Mission
 
-Build a trustworthy cross-platform desktop TOTP manager that is:
+Build OTP Harbor as a trustworthy cross-platform desktop TOTP authenticator that is:
 
 - local-first
 - secure by default

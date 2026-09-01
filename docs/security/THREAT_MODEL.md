@@ -1,7 +1,7 @@
-# TOTP Manager Threat Model
+# OTP Harbor threat model
 
 ## 1. Scope
-- Product: TOTP Manager (Avalonia cross-platform desktop client)
+- Product: OTP Harbor (Avalonia cross-platform desktop client)
 - In scope:
   - Local secret handling (OTP seeds, export/import files, passwords, keys in memory)
   - Settings and security workflows

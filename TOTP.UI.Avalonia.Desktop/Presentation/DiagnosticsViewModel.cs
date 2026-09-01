@@ -52,7 +52,7 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
         {
             var snapshot = _diagnostics.Capture();
             var output = new StringBuilder()
-                .AppendLine($"TOTP Manager {snapshot.ApplicationVersion}")
+                .AppendLine($"OTP Harbor {snapshot.ApplicationVersion}")
                 .AppendLine($"Platform: {snapshot.OperatingSystem}")
                 .AppendLine($"Architecture: {snapshot.ProcessArchitecture}")
                 .AppendLine($"Runtime: {snapshot.Framework}")

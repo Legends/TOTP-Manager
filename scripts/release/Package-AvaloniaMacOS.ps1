@@ -57,7 +57,7 @@ $bundleVersion = if ($releaseCandidateNumber) {
 else {
     "$baseVersion.0"
 }
-$appRoot = Join-Path $resolvedOutput "TOTP Manager.app"
+$appRoot = Join-Path $resolvedOutput "OTP Harbor.app"
 $contents = Join-Path $appRoot "Contents"
 $macOS = Join-Path $contents "MacOS"
 $resources = Join-Path $contents "Resources"
@@ -99,12 +99,12 @@ $plist = @"
 <plist version="1.0">
 <dict>
   <key>CFBundleDevelopmentRegion</key><string>en</string>
-  <key>CFBundleDisplayName</key><string>TOTP Manager</string>
+  <key>CFBundleDisplayName</key><string>OTP Harbor</string>
   <key>CFBundleExecutable</key><string>TOTP.UI.Avalonia.Desktop</string>
   <key>CFBundleIdentifier</key><string>io.github.legends.totpmanager</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundleIconFile</key><string>TOTPManager</string>
-  <key>CFBundleName</key><string>TOTP Manager</string>
+  <key>CFBundleName</key><string>OTP Harbor</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$baseVersion</string>
   <key>CFBundleVersion</key><string>$bundleVersion</string>
@@ -155,8 +155,8 @@ if (-not [string]::IsNullOrWhiteSpace($SigningIdentity)) {
     if ($LASTEXITCODE -ne 0) { throw "Application signature verification failed." }
 }
 
-$dmgPath = Join-Path $resolvedOutput "TOTP-Manager-macos-arm64-$ReleaseVersion.dmg"
-& hdiutil create -volname "TOTP Manager" -srcfolder $appRoot -ov -format UDZO $dmgPath
+$dmgPath = Join-Path $resolvedOutput "OTP-Harbor-macos-arm64-$ReleaseVersion.dmg"
+& hdiutil create -volname "OTP Harbor" -srcfolder $appRoot -ov -format UDZO $dmgPath
 if ($LASTEXITCODE -ne 0) { throw "Could not create the DMG." }
 
 if (-not [string]::IsNullOrWhiteSpace($SigningIdentity)) {

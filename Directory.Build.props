@@ -1,10 +1,10 @@
 <Project>
   <PropertyGroup>
-    <Product>TOTP Manager</Product>
-    <Company>TOTP Manager contributors</Company>
-    <Authors>TOTP Manager contributors</Authors>
-    <Description>Local-first desktop authenticator for time-based one-time passwords.</Description>
-    <Copyright>Copyright © TOTP Manager contributors</Copyright>
-    <RepositoryUrl>https://github.com/Legends/TOTP-Manager</RepositoryUrl>
+    <Product>OTP Harbor</Product>
+    <Company>OTP Harbor contributors</Company>
+    <Authors>OTP Harbor contributors</Authors>
+    <Description>Open-source, local-first TOTP and 2FA desktop authenticator.</Description>
+    <Copyright>Copyright © OTP Harbor contributors</Copyright>
+    <RepositoryUrl>https://github.com/Legends/otp-harbor</RepositoryUrl>
   </PropertyGroup>
 </Project>
