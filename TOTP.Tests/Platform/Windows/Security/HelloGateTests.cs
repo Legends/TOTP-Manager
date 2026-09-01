@@ -18,7 +18,7 @@ public sealed class HelloGateTests
         handleProvider.Setup(p => p.GetActiveWindowHandle()).Returns(expectedHandle);
         var requester = new Mock<IHelloVerificationRequester>();
         requester
-            .Setup(r => r.RequestAsync(expectedHandle, "Unlock TOTP Manager Vault", cancellationToken))
+            .Setup(r => r.RequestAsync(expectedHandle, "Unlock OTP Harbor Vault", cancellationToken))
             .ReturnsAsync(UserConsentVerificationResult.Verified);
         var sut = new HelloGate(
             Mock.Of<ILogger<HelloGate>>(),
@@ -29,7 +29,7 @@ public sealed class HelloGateTests
 
         Assert.Equal(AuthorizationResult.Success, result);
         requester.Verify(
-            r => r.RequestAsync(expectedHandle, "Unlock TOTP Manager Vault", cancellationToken),
+            r => r.RequestAsync(expectedHandle, "Unlock OTP Harbor Vault", cancellationToken),
             Times.Once);
     }
 

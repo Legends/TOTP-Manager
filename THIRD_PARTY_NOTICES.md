@@ -1,6 +1,6 @@
 # Third-party notices
 
-TOTP Manager uses third-party packages under licenses compatible with this repository's MIT distribution. Exact versions are declared in the project files and resolved by `dotnet restore`; dependency and vulnerability review runs in CI.
+OTP Harbor uses third-party packages under licenses compatible with this repository's MIT distribution. Exact versions are declared in the project files and resolved by `dotnet restore`; dependency and vulnerability review runs in CI.
 
 ## Runtime dependencies
 

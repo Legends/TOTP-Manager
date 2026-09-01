@@ -26,12 +26,12 @@ desktop session. Build output, IDE state, Git metadata, and `artifacts` are
 excluded from the transfer. The temporary archive is removed after
 synchronization.
 
-The default VM-local repository is `~/source/TOTP-Manager`. A pre-existing
+The default VM-local repository is `~/source/otp-harbor`. A pre-existing
 shared mount can still be used explicitly when needed:
 
 ```powershell
 .\scripts\testing\Sync-Restore-Run-AvaloniaLinuxVm.ps1 `
-    -MountedRepository /mnt/totp-manager
+    -MountedRepository /mnt/otp-harbor
 ```
 
 The VM requires `openssh-server`, `rsync`, `tar`, and the .NET 9 SDK. Using an

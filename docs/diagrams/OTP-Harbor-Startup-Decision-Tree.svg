@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1046" height="1336" viewBox="0 0 1046 1336">
 <rect width="100%" height="100%" fill="#F8FAFC"/>
 <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#64748B"/></marker></defs>
-<text x="30" y="34" font-family="Segoe UI" font-size="22" font-weight="700" fill="#172033">TOTP Manager — Startup Decision Tree</text>
+<text x="30" y="34" font-family="Segoe UI" font-size="22" font-weight="700" fill="#172033">OTP Harbor — Startup Decision Tree</text>
 <line x1="523.0" y1="88.0" x2="523.0" y2="163.40000000000003" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
 <line x1="523.0" y1="163.40000000000003" x2="824.5999999999999" y2="163.40000000000003" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
 <text x="678.8" y="158.40000000000003" font-family="Segoe UI" font-size="11" fill="#475569">No</text>
@@ -41,7 +41,7 @@
 <line x1="523.0" y1="1114.6" x2="523.0" y2="1195.8000000000002" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
 <line x1="523.0" y1="1195.8000000000002" x2="523.0" y2="1265.4" stroke="#64748B" stroke-width="2" marker-end="url(#arrow)"/>
 <rect x="430.2" y="67.7" width="185.60000000000002" height="40.599999999999994" rx="10" fill="#6750A4" stroke="#60708A" stroke-width="2"/>
-<text x="523.0" y="88.0" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="700" fill="#FFFFFF">Start TOTP Manager</text>
+<text x="523.0" y="88.0" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="700" fill="#FFFFFF">Start OTP Harbor</text>
 <polygon points="523.0,134.40000000000003 610.0,163.40000000000003 523.0,192.40000000000003 436.0,163.40000000000003" fill="#FFF1C2" stroke="#60708A" stroke-width="2"/>
 <text x="523.0" y="163.40000000000003" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI" font-size="12" font-weight="400" fill="#3B2F00">First app instance?</text>
 <rect x="737.5999999999999" y="137.30000000000004" width="174.0" height="52.2" rx="10" fill="#334155" stroke="#60708A" stroke-width="2"/>

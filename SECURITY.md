@@ -1,12 +1,12 @@
 # Security Policy
 
-TOTP Manager handles authentication secrets and encrypted backup material. Please report suspected vulnerabilities privately and avoid exposing sensitive details in public issues, discussions, logs, screenshots, or test data.
+OTP Harbor handles authentication secrets and encrypted backup material. Please report suspected vulnerabilities privately and avoid exposing sensitive details in public issues, discussions, logs, screenshots, or test data.
 
 ## Reporting a vulnerability
 
-Use [GitHub's private vulnerability reporting form](https://github.com/Legends/TOTP-Manager/security/advisories/new) when it is available for this repository.
+Use [GitHub's private vulnerability reporting form](https://github.com/Legends/otp-harbor/security/advisories/new) when it is available for this repository.
 
-If private reporting is unavailable, open a minimal [GitHub issue](https://github.com/Legends/TOTP-Manager/issues/new) asking the maintainers to establish a private contact channel. Do **not** include vulnerability details, proof-of-concept code, OTP seeds, passwords, keys, encrypted vaults, or release credentials in that issue.
+If private reporting is unavailable, open a minimal [GitHub issue](https://github.com/Legends/otp-harbor/issues/new) asking the maintainers to establish a private contact channel. Do **not** include vulnerability details, proof-of-concept code, OTP seeds, passwords, keys, encrypted vaults, or release credentials in that issue.
 
 Include the following in the private report when possible:
 

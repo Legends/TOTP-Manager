@@ -1,14 +1,14 @@
-# Contributing to TOTP Manager
+# Contributing to OTP Harbor
 
-TOTP Manager is a security-sensitive .NET 9/Avalonia desktop application. Contributions should be small, testable, local-first, and explicit about failure behavior.
+OTP Harbor is a security-sensitive .NET 9/Avalonia desktop application. Contributions should be small, testable, local-first, and explicit about failure behavior.
 
 ## Setup
 
 Install Git and the .NET 9 SDK. Platform-specific UI or packaging work should also be tested on the affected operating system.
 
 ```powershell
-git clone https://github.com/Legends/TOTP-Manager.git
-cd TOTP-Manager
+git clone https://github.com/Legends/otp-harbor.git
+cd otp-harbor
 dotnet restore TOTP.sln --configfile NuGet.config
 dotnet build TOTP.sln -c Debug
 dotnet test TOTP.sln -c Debug

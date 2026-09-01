@@ -74,7 +74,7 @@ if ($directArtifacts.Count -eq 0) {
 }
 
 $sparkleNamespace = "http://www.andymatuschak.org/xml-namespaces/sparkle"
-[xml]$xml = '<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"><channel><title>TOTP Manager updates</title><link>https://github.com/Legends/TOTP-Manager/releases</link><description>Signed TOTP Manager desktop updates</description></channel></rss>'
+[xml]$xml = '<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"><channel><title>OTP Harbor updates</title><link>https://github.com/Legends/otp-harbor/releases</link><description>Signed OTP Harbor desktop updates</description></channel></rss>'
 $channelNode = $xml.SelectSingleNode("/rss/channel")
 
 foreach ($artifact in $directArtifacts | Sort-Object operatingSystem, architecture, fileName) {
@@ -103,7 +103,7 @@ foreach ($artifact in $directArtifacts | Sort-Object operatingSystem, architectu
 
     $item = $xml.CreateElement("item")
     $title = $xml.CreateElement("title")
-    $title.InnerText = "TOTP Manager $($manifest.releaseVersion) for $($artifact.operatingSystem)-$($artifact.architecture)"
+    $title.InnerText = "OTP Harbor $($manifest.releaseVersion) for $($artifact.operatingSystem)-$($artifact.architecture)"
     [void]$item.AppendChild($title)
     $description = $xml.CreateElement("description")
     $description.InnerText = "See the GitHub release notes for $($manifest.releaseVersion)."

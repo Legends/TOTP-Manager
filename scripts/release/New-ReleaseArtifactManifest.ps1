@@ -31,7 +31,7 @@ function Get-ArtifactTarget {
     param([string]$FileName)
 
     switch -Regex ($FileName) {
-        '^TOTP-Manager-windows-x64-fast-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.zip$' {
+        '^(?:OTP-Harbor|TOTP-Manager)-windows-x64-fast-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.zip$' {
             return [ordered]@{
                 operatingSystem = "windows"
                 architecture = "x64"
@@ -41,7 +41,7 @@ function Get-ArtifactTarget {
                 releaseVersion = $Matches.version
             }
         }
-        '^TOTP-Manager-windows-x64-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.zip$' {
+        '^(?:OTP-Harbor|TOTP-Manager)-windows-x64-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.zip$' {
             return [ordered]@{
                 operatingSystem = "windows"
                 architecture = "x64"
@@ -51,7 +51,7 @@ function Get-ArtifactTarget {
                 releaseVersion = $Matches.version
             }
         }
-        '^TOTP-Manager-(?:fast|portable)\.zip$' {
+        '^(?:OTP-Harbor|TOTP-Manager)-(?:fast|portable)\.zip$' {
             return [ordered]@{
                 operatingSystem = "windows"
                 architecture = "x64"
@@ -61,7 +61,7 @@ function Get-ArtifactTarget {
                 releaseVersion = $null
             }
         }
-        '^TOTP-Manager-macos-arm64-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.dmg$' {
+        '^(?:OTP-Harbor|TOTP-Manager)-macos-arm64-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.dmg$' {
             return [ordered]@{
                 operatingSystem = "macos"
                 architecture = "arm64"
@@ -71,7 +71,7 @@ function Get-ArtifactTarget {
                 releaseVersion = $Matches.version
             }
         }
-        '^TOTP-Manager-linux-x64-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.tar\.gz$' {
+        '^(?:OTP-Harbor|TOTP-Manager)-linux-x64-(?<version>\d+\.\d+\.\d+(?:-rc\d+)?)\.tar\.gz$' {
             return [ordered]@{
                 operatingSystem = "linux"
                 architecture = "x64"
@@ -81,7 +81,7 @@ function Get-ArtifactTarget {
                 releaseVersion = $Matches.version
             }
         }
-        '^totp-manager_(?<version>\d+\.\d+\.\d+(?:(?:~rc|-rc)\d+)?)_amd64\.deb$' {
+        '^(?:otp-harbor|totp-manager)_(?<version>\d+\.\d+\.\d+(?:(?:~rc|-rc)\d+)?)_amd64\.deb$' {
             return [ordered]@{
                 operatingSystem = "linux"
                 architecture = "x64"

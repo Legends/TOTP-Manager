@@ -1,6 +1,6 @@
-# TOTP Manager recovery guide
+# OTP Harbor recovery guide
 
-Use synthetic data when rehearsing these steps. Before changing any application-data file, close every TOTP Manager process and copy the complete data directory to a separate protected location. Never send a vault, authorization envelope, password, OTP seed, exported backup, Keychain item, or TPM material with a support request.
+Use synthetic data when rehearsing these steps. Before changing any application-data file, close every OTP Harbor process and copy the complete data directory to a separate protected location. Never send a vault, authorization envelope, password, OTP seed, exported backup, Keychain item, or TPM material with a support request.
 
 ## Recovery principles
 
@@ -25,12 +25,14 @@ A wrong password, modified file, unsupported format, oversized payload, or faile
 
 Use this only when the current `master.totp` is unreadable and no newer tested encrypted export is available.
 
-1. Close TOTP Manager and make a protected copy of the entire application-data directory.
+1. Close OTP Harbor and make a protected copy of the entire application-data directory.
 2. Locate the vault directory for the platform:
 
    - Windows: `%APPDATA%\TOTP-Manager`
    - macOS: `~/Library/Application Support/TOTP-Manager`
    - Linux: `$XDG_DATA_HOME/totp-manager`, or `~/.local/share/totp-manager` when `XDG_DATA_HOME` is unset
+
+   These legacy directory names are intentionally retained after the OTP Harbor rebrand so existing vaults remain discoverable without migration.
 
 3. Preserve `master.totp`, `authorization-envelope.bin`, and every `master.totp.bak*` file. Do not edit the authorization envelope.
 4. Starting with `master.totp.bak1`, copy one candidate to a temporary file named `master.totp`, preserving the original files outside the directory. On Unix, keep the file readable/writable only by the current user.

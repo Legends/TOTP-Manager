@@ -10,7 +10,7 @@ and starts the Avalonia desktop application in the VM's active desktop session.
 .\scripts\testing\Sync-Restore-Run-AvaloniaLinuxVm.ps1 -VmHost 192.168.1.50
 
 .EXAMPLE
-.\scripts\testing\Sync-Restore-Run-AvaloniaLinuxVm.ps1 -MountedRepository /mnt/totp-manager
+.\scripts\testing\Sync-Restore-Run-AvaloniaLinuxVm.ps1 -MountedRepository /mnt/otp-harbor
 #>
 [CmdletBinding()]
 param(
@@ -20,7 +20,7 @@ param(
     [string]$PreferredNetworkAdapter = "Stable RDP",
     [string]$LocalRepository,
     [string]$MountedRepository,
-    [string]$VmRepository = "~/source/TOTP-Manager",
+    [string]$VmRepository = "~/source/otp-harbor",
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release"
 )
@@ -52,7 +52,7 @@ if (-not $usesMountedRepository) {
 
     if (-not (Test-Path -LiteralPath (
         Join-Path $LocalRepository "TOTP.UI.Avalonia.Desktop\TOTP.UI.Avalonia.Desktop.csproj") -PathType Leaf)) {
-        throw "The local TOTP Manager repository was not found at '$LocalRepository'."
+        throw "The local OTP Harbor repository was not found at '$LocalRepository'."
     }
 
     if (-not (Get-Command scp -ErrorAction SilentlyContinue)) {
@@ -157,7 +157,7 @@ case "$source_mode" in
         ;;
     archive)
         case "$source_root" in
-            /tmp/totp-manager-sync-*.tar.gz) ;;
+            /tmp/otp-harbor-sync-*.tar.gz) ;;
             *) printf 'Refusing to read an unexpected synchronization archive path.\n' >&2; exit 2 ;;
         esac
         if [[ ! -f "$source_root" ]]; then
@@ -166,10 +166,10 @@ case "$source_mode" in
         fi
         archive_path="$source_root"
         mkdir -p -- "$HOME/source"
-        staging_root="$(mktemp -d "$HOME/source/.totp-manager-sync.XXXXXX")"
+        staging_root="$(mktemp -d "$HOME/source/.otp-harbor-sync.XXXXXX")"
         tar -xzf "$source_root" -C "$staging_root"
         if [[ ! -f "$staging_root/TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj" ]]; then
-            printf 'The synchronization archive did not contain the TOTP Manager repository.\n' >&2
+            printf 'The synchronization archive did not contain the OTP Harbor repository.\n' >&2
             exit 2
         fi
         source_root="$staging_root"
@@ -231,7 +231,7 @@ if [[ -z "${XAUTHORITY:-}" && -f "$HOME/.Xauthority" ]]; then
     export XAUTHORITY="$HOME/.Xauthority"
 fi
 
-printf 'Starting TOTP Manager (%s) on display %s...\n' "$configuration" "$DISPLAY"
+printf 'Starting OTP Harbor (%s) on display %s...\n' "$configuration" "$DISPLAY"
 set +e
 dotnet run \
     --project TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj \
@@ -242,7 +242,7 @@ set -e
 
 if (( app_exit_code != 0 )); then
     log_file="${XDG_STATE_HOME:-$HOME/.local/state}/totp-manager/logs/app.log"
-    printf 'TOTP Manager exited with code %s.\n' "$app_exit_code" >&2
+    printf 'OTP Harbor exited with code %s.\n' "$app_exit_code" >&2
     if [[ -f "$log_file" ]]; then
         printf 'Recent redacted application log entries from %s:\n' "$log_file" >&2
         tail -n 25 -- "$log_file" >&2
@@ -270,7 +270,7 @@ try {
     }
     else {
         $sourceMode = "archive"
-        $archiveName = "totp-manager-sync-$([Guid]::NewGuid().ToString('N')).tar.gz"
+        $archiveName = "otp-harbor-sync-$([Guid]::NewGuid().ToString('N')).tar.gz"
         $localArchive = Join-Path ([IO.Path]::GetTempPath()) $archiveName
         $remoteArchive = "/tmp/$archiveName"
 

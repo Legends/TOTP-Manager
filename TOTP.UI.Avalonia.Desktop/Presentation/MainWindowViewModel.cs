@@ -73,8 +73,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         Notification = new NotificationState();
-        Notification.ShowPersistent("Starting TOTP Manager…", NotificationSeverity.Information);
+        Notification.ShowPersistent(
+            _localization.GetString(AvaloniaStringKeys.StartingSafely),
+            NotificationSeverity.Information);
         PasswordUnlock = passwordUnlock ?? throw new ArgumentNullException(nameof(passwordUnlock));
         PasswordSetup = passwordSetup ?? throw new ArgumentNullException(nameof(passwordSetup));
         AccountList = accountList ?? throw new ArgumentNullException(nameof(accountList));
@@ -85,7 +88,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         CameraScanner = cameraScanner ?? throw new ArgumentNullException(nameof(cameraScanner));
         UpdateCheck = updateCheck ?? throw new ArgumentNullException(nameof(updateCheck));
         Diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
-        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _cameraScannerDialogs = cameraScannerDialogs
             ?? throw new ArgumentNullException(nameof(cameraScannerDialogs));
         _settingsService = settingsService;
@@ -323,7 +325,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsToolsVisible = false;
         IsSettingsVisible = false;
         IsSearchVisible = false;
-        StatusText = "Starting TOTP Manager…";
+        StatusText = _localization.GetString(AvaloniaStringKeys.StartingSafely);
         StatusSeverity = NotificationSeverity.Information;
 
         try
@@ -332,17 +334,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
             (StatusText, CanRetry, StatusSeverity) = outcome switch
             {
                 AvaloniaStartupOutcome.ReadyForPasswordSetup =>
-                    ("Create a master password to protect your authenticator.", false, NotificationSeverity.Information),
+                    (_localization.GetString(AvaloniaStringKeys.StartupCreateMasterPassword), false, NotificationSeverity.Information),
                 AvaloniaStartupOutcome.ReadyForUnlock =>
-                    ("Enter your master password to unlock your authenticator.", false, NotificationSeverity.Information),
+                    (_localization.GetString(AvaloniaStringKeys.StartupEnterMasterPassword), false, NotificationSeverity.Information),
                 AvaloniaStartupOutcome.ReadyForPasswordFallback =>
                     (_localization.GetString(AvaloniaStringKeys.QuickUnlockFallback), false, NotificationSeverity.Warning),
                 AvaloniaStartupOutcome.ReadyUnlocked =>
                     (_localization.GetString(AvaloniaStringKeys.VaultUnlocked), false, NotificationSeverity.Success),
                 AvaloniaStartupOutcome.PreferencesUnavailable =>
-                    ("Your preferences could not be loaded. Your encrypted data was not changed.", true, NotificationSeverity.Warning),
+                    (_localization.GetString(AvaloniaStringKeys.StartupPreferencesUnavailable), true, NotificationSeverity.Warning),
                 _ =>
-                    ("TOTP Manager could not start safely. Your encrypted data was not changed.", true, NotificationSeverity.Error)
+                    (_localization.GetString(AvaloniaStringKeys.StartupFailedSafely), true, NotificationSeverity.Error)
             };
             IsPasswordUnlockVisible = outcome is AvaloniaStartupOutcome.ReadyForUnlock
                 or AvaloniaStartupOutcome.ReadyForPasswordFallback;
@@ -352,12 +354,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
         {
-            StatusText = "Startup cancelled.";
+            StatusText = _localization.GetString(AvaloniaStringKeys.StartupCancelled);
             StatusSeverity = NotificationSeverity.Information;
         }
         catch (Exception)
         {
-            StatusText = "TOTP Manager could not start safely. Your encrypted data was not changed.";
+            StatusText = _localization.GetString(AvaloniaStringKeys.StartupFailedSafely);
             StatusSeverity = NotificationSeverity.Error;
             CanRetry = true;
         }
@@ -407,7 +409,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IsPasswordUnlockVisible = false;
         IsQuickUnlockVisible = false;
         IsPasswordSetupVisible = false;
-        StatusText = "TOTP Manager is closing safely.";
+        StatusText = _localization.GetString(AvaloniaStringKeys.ClosingSafely);
         StatusSeverity = NotificationSeverity.Information;
     }
 

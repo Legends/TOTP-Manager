@@ -4,9 +4,15 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
-  <data name="AppTitle" xml:space="preserve"><value>TOTP Manager</value></data>
-  <data name="AppHeading" xml:space="preserve"><value>TOTP Manager</value></data>
-  <data name="StartingSafely" xml:space="preserve"><value>TOTP Manager wird sicher gestartet…</value></data>
+  <data name="AppTitle" xml:space="preserve"><value>OTP Harbor</value></data>
+  <data name="AppHeading" xml:space="preserve"><value>OTP Harbor</value></data>
+  <data name="StartingSafely" xml:space="preserve"><value>OTP Harbor wird sicher gestartet…</value></data>
+  <data name="StartupCreateMasterPassword" xml:space="preserve"><value>Erstellen Sie ein Master-Passwort, um Ihren Authenticator zu schützen.</value></data>
+  <data name="StartupEnterMasterPassword" xml:space="preserve"><value>Geben Sie Ihr Master-Passwort ein, um Ihren Authenticator zu entsperren.</value></data>
+  <data name="StartupPreferencesUnavailable" xml:space="preserve"><value>Ihre Einstellungen konnten nicht geladen werden. Ihre verschlüsselten Daten wurden nicht geändert.</value></data>
+  <data name="StartupFailedSafely" xml:space="preserve"><value>OTP Harbor konnte nicht sicher gestartet werden. Ihre verschlüsselten Daten wurden nicht geändert.</value></data>
+  <data name="StartupCancelled" xml:space="preserve"><value>Der Start wurde abgebrochen.</value></data>
+  <data name="ClosingSafely" xml:space="preserve"><value>OTP Harbor wird sicher beendet.</value></data>
   <data name="Retry" xml:space="preserve"><value>Erneut versuchen</value></data>
   <data name="MasterPassword" xml:space="preserve"><value>Master-Passwort</value></data>
   <data name="MasterPasswordHelp" xml:space="preserve"><value>Zum Entsperren des lokalen Tresors erforderlich.</value></data>

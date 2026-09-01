@@ -24,7 +24,7 @@ else {
 }
 
 if ($RuntimeIdentifier -eq "osx-arm64") {
-    $appRoot = Join-Path $resolvedOutput "TOTP Manager.app"
+    $appRoot = Join-Path $resolvedOutput "OTP Harbor.app"
     $contents = Join-Path $appRoot "Contents"
     $macOs = Join-Path $contents "MacOS"
     $resources = Join-Path $contents "Resources"
@@ -38,11 +38,11 @@ if ($RuntimeIdentifier -eq "osx-arm64") {
 <plist version="1.0">
 <dict>
   <key>CFBundleDevelopmentRegion</key><string>en</string>
-  <key>CFBundleDisplayName</key><string>TOTP Manager</string>
+  <key>CFBundleDisplayName</key><string>OTP Harbor</string>
   <key>CFBundleExecutable</key><string>TOTP.UI.Avalonia.Desktop</string>
   <key>CFBundleIdentifier</key><string>io.github.legends.totpmanager</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
-  <key>CFBundleName</key><string>TOTP Manager</string>
+  <key>CFBundleName</key><string>OTP Harbor</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>2.0.0</string>
   <key>CFBundleVersion</key><string>2.0.0</string>

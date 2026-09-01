@@ -27,19 +27,19 @@ From repository root:
 
 ```powershell
 .\scripts\security\Set-GitHubTokenForCurrentUser.ps1
-.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "master" -RequireLastPushApproval:$false
-.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "release/1.x" -RequireLastPushApproval:$false
+.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "otp-harbor" -Branch "master" -RequireLastPushApproval:$false
+.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "otp-harbor" -Branch "release/1.x" -RequireLastPushApproval:$false
 ```
 
 ## Solo vs Team Mode
 Solo developer (recommended for 1-person repo):
 ```powershell
-.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "master" -RequireLastPushApproval:$false
+.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "otp-harbor" -Branch "master" -RequireLastPushApproval:$false
 ```
 
 Team mode (enforce another reviewer for the latest push):
 ```powershell
-.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "master" -RequireLastPushApproval:$true
+.\scripts\security\Set-BranchProtection.ps1 -Owner "Legends" -Repo "otp-harbor" -Branch "master" -RequireLastPushApproval:$true
 ```
 
 ## Token Storage (Current Windows Account Only)
@@ -51,6 +51,8 @@ Recommended options:
 .\scripts\security\Set-GitHubTokenForCurrentUser.ps1
 ```
 - Storage: `%APPDATA%\TOTP-Manager\github-token.dpapi`
+
+The token secret and DPAPI path retain their legacy names after the OTP Harbor rebrand so existing maintainer credentials continue to resolve. The script's default repository name is `otp-harbor`.
 - Protection: encrypted by Windows DPAPI, bound to the current user profile.
 
 2. SecretStore (optional)
@@ -97,7 +99,7 @@ After running, verify in GitHub:
 If you need to temporarily remove branch protection:
 
 ```powershell
-.\scripts\security\Remove-BranchProtection.ps1 -Owner "Legends" -Repo "TOTP-Manager" -Branch "master"
+.\scripts\security\Remove-BranchProtection.ps1 -Owner "Legends" -Repo "otp-harbor" -Branch "master"
 ```
 
 Use this only for emergency maintenance. Re-enable protections immediately afterward.

@@ -48,8 +48,8 @@ public sealed class AvaloniaLocalizationServiceTests
     }
 
     [Theory]
-    [InlineData("en", "TOTP Manager")]
-    [InlineData("de", "TOTP Manager")]
+    [InlineData("en", "OTP Harbor")]
+    [InlineData("de", "OTP Harbor")]
     public void Catalog_AppTitleUsesStableProductName(string cultureName, string expected)
     {
         var sut = new AvaloniaStringCatalog();

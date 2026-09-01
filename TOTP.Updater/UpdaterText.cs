@@ -6,8 +6,8 @@ public static class UpdaterText
 {
     private static bool IsGerman => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("de", StringComparison.OrdinalIgnoreCase);
 
-    public static string WindowTitle => IsGerman ? "TOTP Manager Updater" : "TOTP Manager Updater";
-    public static string HeaderTitle => IsGerman ? "TOTP Manager Updates" : "TOTP Manager Updates";
+    public static string WindowTitle => "OTP Harbor Updater";
+    public static string HeaderTitle => "OTP Harbor Updates";
     public static string HeaderDescription => IsGerman
         ? "Das signierte Update-Paket wird angewendet und die App neu gestartet."
         : "Applying the signed update package and relaunching the app.";
@@ -17,7 +17,7 @@ public static class UpdaterText
 
     public static string InstallingUpdate => IsGerman ? "Update wird installiert" : "Installing update";
     public static string PreparingUpdater => IsGerman ? "Updater wird vorbereitet..." : "Preparing updater...";
-    public static string ClosingApp => IsGerman ? "TOTP Manager wird geschlossen..." : "Closing TOTP Manager...";
+    public static string ClosingApp => IsGerman ? "OTP Harbor wird geschlossen..." : "Closing OTP Harbor...";
     public static string WaitingForAppClose => IsGerman ? "Warte, bis die App geschlossen ist..." : "Waiting for the app to close...";
     public static string StagingPackage => IsGerman ? "Update-Paket wird vorbereitet..." : "Staging update package...";
     public static string InstallingFiles => IsGerman ? "Dateien werden installiert..." : "Installing files...";

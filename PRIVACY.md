@@ -1,6 +1,6 @@
 # Privacy policy
 
-TOTP Manager is a local-first desktop application. It does not contain telemetry, analytics, advertising, or a project-operated cloud service. Account labels, OTP seeds, generated codes, passwords, vault contents, exports, application logs, and camera frames are not sent to the project maintainers.
+OTP Harbor is a local-first desktop application. It does not contain telemetry, analytics, advertising, or a project-operated cloud service. Account labels, OTP seeds, generated codes, passwords, vault contents, exports, application logs, and camera frames are not sent to the project maintainers.
 
 ## Network activity
 

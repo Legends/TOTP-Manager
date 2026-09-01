@@ -1,8 +1,12 @@
 # Automatic Update Setup
 
-TOTP Manager's direct Avalonia packages use an Ed25519-signed, target-qualified `appcast-v2.xml`. Windows and macOS releases also require platform signing/notarization; Ed25519 package signatures do not replace operating-system trust.
+OTP Harbor's direct Avalonia packages use an Ed25519-signed, target-qualified `appcast-v2.xml`. Windows and macOS releases also require platform signing/notarization; Ed25519 package signatures do not replace operating-system trust.
 
 Linux DEB and future store-managed builds are stamped as externally managed and do not use application-owned updates.
+
+## Brand migration compatibility
+
+The OTP Harbor rebrand changes the GitHub repository URL, product metadata, package display names, and future release-asset names. It does not change the Ed25519 public key, appcast schema, channel policy, verification order, or update-installation trust boundaries. The release-manifest generator accepts both current `OTP-Harbor` and legacy `TOTP-Manager` asset names so previously published artifacts remain verifiable. Existing installations may follow GitHub's repository redirect to the renamed repository, while newly built packages use the canonical `Legends/otp-harbor` feed URL.
 
 ## Trust model
 

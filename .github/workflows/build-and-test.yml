@@ -1,4 +1,4 @@
-﻿name: Build, Test and Publish TOTP Manager App
+name: Build, Test and Publish OTP Harbor App
 
 on:
   push:
@@ -173,7 +173,7 @@ jobs:
           - name: macOS ARM64
             runner: macos-15
             rid: osx-arm64
-            executable: TOTP Manager.app/Contents/MacOS/TOTP.UI.Avalonia.Desktop
+            executable: OTP Harbor.app/Contents/MacOS/TOTP.UI.Avalonia.Desktop
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -216,7 +216,7 @@ jobs:
             -OutputDirectory m3-package
 
           if ($IsMacOS) {
-            plutil -lint "m3-package/TOTP Manager.app/Contents/Info.plist"
+            plutil -lint "m3-package/OTP Harbor.app/Contents/Info.plist"
           }
 
       - name: Execute packaged native-runtime probe
@@ -253,7 +253,7 @@ jobs:
           New-Item -ItemType Directory -Path m7-release | Out-Null
           Compress-Archive `
             -Path m3-package/* `
-            -DestinationPath m7-release/TOTP-Manager-windows-x64-2.0.0.zip
+            -DestinationPath m7-release/OTP-Harbor-windows-x64-2.0.0.zip
 
       - name: Validate Linux distribution packages
         if: ${{ matrix.rid == 'linux-x64' }}
@@ -265,8 +265,8 @@ jobs:
             -ReleaseVersion "2.0.0" `
             -FrameworkDependent
 
-          tar -tzf m6-linux-distribution/TOTP-Manager-linux-x64-2.0.0.tar.gz > /dev/null
-          dpkg-deb --info m6-linux-distribution/totp-manager_2.0.0_amd64.deb
+          tar -tzf m6-linux-distribution/OTP-Harbor-linux-x64-2.0.0.tar.gz > /dev/null
+          dpkg-deb --info m6-linux-distribution/otp-harbor_2.0.0_amd64.deb
 
       - name: Validate unsigned macOS DMG structure
         if: ${{ matrix.rid == 'osx-arm64' }}
@@ -277,8 +277,8 @@ jobs:
             -OutputDirectory m6-macos-distribution `
             -ReleaseVersion "2.0.0"
 
-          plutil -lint "m6-macos-distribution/TOTP Manager.app/Contents/Info.plist"
-          hdiutil verify m6-macos-distribution/TOTP-Manager-macos-arm64-2.0.0.dmg
+          plutil -lint "m6-macos-distribution/OTP Harbor.app/Contents/Info.plist"
+          hdiutil verify m6-macos-distribution/OTP-Harbor-macos-arm64-2.0.0.dmg
 
       - name: Generate and verify target artifact manifest
         shell: pwsh
@@ -286,17 +286,17 @@ jobs:
           New-Item -ItemType Directory -Path m7-release -Force | Out-Null
           $artifactPaths = switch ("${{ matrix.rid }}") {
             "win-x64" {
-              "m7-release/TOTP-Manager-windows-x64-2.0.0.zip"
+              "m7-release/OTP-Harbor-windows-x64-2.0.0.zip"
             }
             "linux-x64" {
-              Copy-Item m6-linux-distribution/TOTP-Manager-linux-x64-2.0.0.tar.gz m7-release/
-              Copy-Item m6-linux-distribution/totp-manager_2.0.0_amd64.deb m7-release/
-              "m7-release/TOTP-Manager-linux-x64-2.0.0.tar.gz"
-              "m7-release/totp-manager_2.0.0_amd64.deb"
+              Copy-Item m6-linux-distribution/OTP-Harbor-linux-x64-2.0.0.tar.gz m7-release/
+              Copy-Item m6-linux-distribution/otp-harbor_2.0.0_amd64.deb m7-release/
+              "m7-release/OTP-Harbor-linux-x64-2.0.0.tar.gz"
+              "m7-release/otp-harbor_2.0.0_amd64.deb"
             }
             "osx-arm64" {
-              Copy-Item m6-macos-distribution/TOTP-Manager-macos-arm64-2.0.0.dmg m7-release/
-              "m7-release/TOTP-Manager-macos-arm64-2.0.0.dmg"
+              Copy-Item m6-macos-distribution/OTP-Harbor-macos-arm64-2.0.0.dmg m7-release/
+              "m7-release/OTP-Harbor-macos-arm64-2.0.0.dmg"
             }
             default { throw "Unsupported release target." }
           }
@@ -532,7 +532,7 @@ jobs:
               throw "Invalid Authenticode signature on $($file.Name): $($signature.Status)."
             }
             $versionInfo = $file.VersionInfo
-            if ($versionInfo.ProductName -cne "TOTP Manager" -or
+            if ($versionInfo.ProductName -cne "OTP Harbor" -or
                 $versionInfo.ProductVersion -cne "${{ steps.versioning.outputs.release_version }}") {
               throw "Unexpected product metadata on $($file.Name)."
             }
@@ -603,10 +603,10 @@ jobs:
                 -DisableUpdates:$disableUpdates
               Compress-Archive `
                 -Path release-publish/* `
-                -DestinationPath "release-assets/TOTP-Manager-windows-x64-${{ steps.versioning.outputs.release_version }}.zip"
+                -DestinationPath "release-assets/OTP-Harbor-windows-x64-${{ steps.versioning.outputs.release_version }}.zip"
               Compress-Archive `
                 -Path release-fast/* `
-                -DestinationPath "release-assets/TOTP-Manager-windows-x64-fast-${{ steps.versioning.outputs.release_version }}.zip"
+                -DestinationPath "release-assets/OTP-Harbor-windows-x64-fast-${{ steps.versioning.outputs.release_version }}.zip"
             }
             "linux-x64" {
               $disableUpdates = "${{ steps.versioning.outputs.channel }}" -eq "rc"
@@ -689,7 +689,7 @@ jobs:
           "release_version=$releaseVersion" >> $env:GITHUB_OUTPUT
 
           $artifactPaths = @(Get-ChildItem preview-assets -File | Where-Object {
-            $_.Name -match '^(TOTP-Manager-(windows-x64(?:-fast)?|linux-x64)-.+\.(zip|tar\.gz)|totp-manager_.+_amd64\.deb)$'
+            $_.Name -match '^(OTP-Harbor-(windows-x64(?:-fast)?|linux-x64)-.+\.(zip|tar\.gz)|otp-harbor_.+_amd64\.deb)$'
           } | Select-Object -ExpandProperty FullName)
           if ($artifactPaths.Count -ne 4) {
             throw "The unsigned preview must contain exactly four Windows/Linux artifacts."
@@ -721,7 +721,7 @@ jobs:
       - name: Upload unsigned preview to a draft
         uses: softprops/action-gh-release@v3.0.1
         with:
-          name: TOTP Manager ${{ steps.versioning.outputs.release_version }} — unsigned preview
+          name: OTP Harbor ${{ steps.versioning.outputs.release_version }} — unsigned preview
           draft: true
           prerelease: true
           make_latest: false
@@ -743,10 +743,10 @@ jobs:
 
             This preview is intentionally unsigned. See the project [code signing policy](https://github.com/${{ github.repository }}/blob/${{ github.sha }}/CODE_SIGNING_POLICY.md) for the stable-release trust model.
           files: |
-            preview-assets/TOTP-Manager-windows-x64-${{ steps.versioning.outputs.release_version }}.zip
-            preview-assets/TOTP-Manager-windows-x64-fast-${{ steps.versioning.outputs.release_version }}.zip
-            preview-assets/TOTP-Manager-linux-x64-${{ steps.versioning.outputs.release_version }}.tar.gz
-            preview-assets/totp-manager_*_amd64.deb
+            preview-assets/OTP-Harbor-windows-x64-${{ steps.versioning.outputs.release_version }}.zip
+            preview-assets/OTP-Harbor-windows-x64-fast-${{ steps.versioning.outputs.release_version }}.zip
+            preview-assets/OTP-Harbor-linux-x64-${{ steps.versioning.outputs.release_version }}.tar.gz
+            preview-assets/otp-harbor_*_amd64.deb
             preview-assets/release-artifacts-unsigned-preview.json
             preview-assets/SHA256SUMS
         env:
@@ -815,7 +815,7 @@ jobs:
           "prerelease=$(if ($rcNumber) { 'true' } else { 'false' })" >> $env:GITHUB_OUTPUT
 
           $artifactPaths = @(Get-ChildItem release-assets -File | Where-Object {
-            $_.Name -match '^(TOTP-Manager-(windows-x64(?:-fast)?|macos-arm64|linux-x64)-.+\.(zip|dmg|tar\.gz)|totp-manager_.+_amd64\.deb)$'
+            $_.Name -match '^(OTP-Harbor-(windows-x64(?:-fast)?|macos-arm64|linux-x64)-.+\.(zip|dmg|tar\.gz)|otp-harbor_.+_amd64\.deb)$'
           } | Select-Object -ExpandProperty FullName)
           if ($artifactPaths.Count -ne 5) {
             throw "The aggregate release must contain exactly five selected artifacts."
@@ -934,11 +934,11 @@ jobs:
 
             See the project [code signing policy](https://github.com/${{ github.repository }}/blob/${{ github.sha }}/CODE_SIGNING_POLICY.md) and [privacy policy](https://github.com/${{ github.repository }}/blob/${{ github.sha }}/PRIVACY.md). Windows first-party binaries in this stable release are Authenticode-signed through the manually approved SignPath workflow.
           files: |
-            release-assets/TOTP-Manager-windows-x64-${{ steps.versioning.outputs.release_version }}.zip
-            release-assets/TOTP-Manager-windows-x64-fast-${{ steps.versioning.outputs.release_version }}.zip
-            release-assets/TOTP-Manager-macos-arm64-${{ steps.versioning.outputs.release_version }}.dmg
-            release-assets/TOTP-Manager-linux-x64-${{ steps.versioning.outputs.release_version }}.tar.gz
-            release-assets/totp-manager_*_amd64.deb
+            release-assets/OTP-Harbor-windows-x64-${{ steps.versioning.outputs.release_version }}.zip
+            release-assets/OTP-Harbor-windows-x64-fast-${{ steps.versioning.outputs.release_version }}.zip
+            release-assets/OTP-Harbor-macos-arm64-${{ steps.versioning.outputs.release_version }}.dmg
+            release-assets/OTP-Harbor-linux-x64-${{ steps.versioning.outputs.release_version }}.tar.gz
+            release-assets/otp-harbor_*_amd64.deb
             release-assets/release-artifacts-v2.json
             release-assets/release-artifacts-v2.json.signature
             release-assets/appcast-v2.xml

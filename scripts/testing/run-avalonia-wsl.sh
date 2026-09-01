@@ -19,7 +19,7 @@ fi
 
 export AVALONIA_GLOBAL_SCALE_FACTOR="$scale_factor"
 
-printf 'Starting TOTP Manager under WSL with Avalonia scale %s.\n' "$scale_factor"
+printf 'Starting OTP Harbor under WSL with Avalonia scale %s.\n' "$scale_factor"
 cd -- "$repository_root"
 exec dotnet run \
     --project TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj \

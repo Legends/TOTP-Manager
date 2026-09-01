@@ -5,6 +5,12 @@ public static class AvaloniaStringKeys
     public const string AppTitle = nameof(AppTitle);
     public const string AppHeading = nameof(AppHeading);
     public const string StartingSafely = nameof(StartingSafely);
+    public const string StartupCreateMasterPassword = nameof(StartupCreateMasterPassword);
+    public const string StartupEnterMasterPassword = nameof(StartupEnterMasterPassword);
+    public const string StartupPreferencesUnavailable = nameof(StartupPreferencesUnavailable);
+    public const string StartupFailedSafely = nameof(StartupFailedSafely);
+    public const string StartupCancelled = nameof(StartupCancelled);
+    public const string ClosingSafely = nameof(ClosingSafely);
     public const string Retry = nameof(Retry);
     public const string MasterPassword = nameof(MasterPassword);
     public const string MasterPasswordHelp = nameof(MasterPasswordHelp);
@@ -199,7 +205,9 @@ public static class AvaloniaStringKeys
 
     public static IReadOnlyList<string> All { get; } =
     [
-        AppTitle, AppHeading, StartingSafely, Retry, MasterPassword, MasterPasswordHelp,
+        AppTitle, AppHeading, StartingSafely, StartupCreateMasterPassword,
+        StartupEnterMasterPassword, StartupPreferencesUnavailable, StartupFailedSafely,
+        StartupCancelled, ClosingSafely, Retry, MasterPassword, MasterPasswordHelp,
         Unlock, Lock, Accounts, Tools, Settings, ChooseImportFile, ExportEncryptedBackup,
         ImportConflictHandling, ImportAccounts, EncryptedBackup, EncryptedBackupHelp,
         SupportDiagnostics, RefreshSupportInformation,

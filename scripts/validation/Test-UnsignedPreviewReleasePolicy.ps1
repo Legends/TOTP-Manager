@@ -46,10 +46,10 @@ try {
     }
 
     $artifactNames = @(
-        "TOTP-Manager-windows-x64-2.0.0-rc3.zip",
-        "TOTP-Manager-windows-x64-fast-2.0.0-rc3.zip",
-        "TOTP-Manager-linux-x64-2.0.0-rc3.tar.gz",
-        "totp-manager_2.0.0-rc3_amd64.deb")
+        "OTP-Harbor-windows-x64-2.0.0-rc3.zip",
+        "OTP-Harbor-windows-x64-fast-2.0.0-rc3.zip",
+        "OTP-Harbor-linux-x64-2.0.0-rc3.tar.gz",
+        "otp-harbor_2.0.0-rc3_amd64.deb")
     $artifactPaths = foreach ($name in $artifactNames) {
         $path = Join-Path $artifactRoot $name
         [IO.File]::WriteAllBytes($path, [byte[]](1, 2, 3, 4))
@@ -76,6 +76,27 @@ try {
         }).Count -ne 0) {
         throw "Unsigned preview manifest contains an unsafe update policy."
     }
+
+    $legacyArtifactRoot = Join-Path $testRoot "legacy-artifacts"
+    New-Item -ItemType Directory -Path $legacyArtifactRoot | Out-Null
+    $legacyArtifactPaths = foreach ($name in @(
+        "TOTP-Manager-windows-x64-2.0.0-rc3.zip",
+        "TOTP-Manager-linux-x64-2.0.0-rc3.tar.gz",
+        "totp-manager_2.0.0-rc3_amd64.deb")) {
+        $path = Join-Path $legacyArtifactRoot $name
+        [IO.File]::WriteAllBytes($path, [byte[]](1, 2, 3, 4))
+        $path
+    }
+    $legacyManifestPath = Join-Path $legacyArtifactRoot "legacy-release-artifacts.json"
+    & (Join-Path $PSScriptRoot "../release/New-ReleaseArtifactManifest.ps1") `
+        -ReleaseVersion "2.0.0-rc3" `
+        -SourceCommit ("b" * 40) `
+        -ArtifactPath $legacyArtifactPaths `
+        -OutputPath $legacyManifestPath `
+        -ReleaseProfile unsigned-preview | Out-Null
+    & (Join-Path $PSScriptRoot "../release/Test-ReleaseArtifactManifest.ps1") `
+        -ManifestPath $legacyManifestPath `
+        -ArtifactDirectory $legacyArtifactRoot | Out-Null
 
     Write-Output "Package update and unsigned preview release policies are valid."
 }

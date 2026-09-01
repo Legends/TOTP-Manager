@@ -75,7 +75,7 @@ public sealed partial class MacOSKeychainNative : IMacOSKeychainNative
     {
         EnsureMacOS();
         using var query = CreateIdentityQuery(secretReference);
-        using var prompt = CreateString("Unlock TOTP Manager");
+        using var prompt = CreateString("Unlock OTP Harbor");
         NativeMethods.CFDictionarySetValue(
             query.Value,
             Symbols.SecurityConstant("kSecReturnData"),

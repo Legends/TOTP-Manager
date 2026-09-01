@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-07-16
-- **Decision owners:** TOTP Manager maintainers
+- **Decision owners:** OTP Harbor maintainers
 
 ## Outcome (2026-08-28)
 
@@ -10,7 +10,7 @@ The side-by-side phase is complete. Avalonia is the sole desktop client on `mast
 
 ## Context
 
-At the time of this decision, TOTP Manager was a Windows WPF application with a local encrypted vault, Windows Hello and DPAPI integration, QR workflows, encrypted import/export, and a signed automatic-update feed. The product needed Windows, macOS, and Linux support without weakening recovery, storage, authorization, or update verification.
+At the time of this decision, OTP Harbor—then named TOTP Manager—was a Windows WPF application with a local encrypted vault, Windows Hello and DPAPI integration, QR workflows, encrypted import/export, and a signed automatic-update feed. The product needed Windows, macOS, and Linux support without weakening recovery, storage, authorization, or update verification.
 
 The existing domain, security, persistence, and workflow code should remain the source of truth. Rewriting the product or splitting clients into separate repositories would increase compatibility risk around vault formats and security fixes.
 
