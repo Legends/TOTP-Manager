@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -13,6 +14,7 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly ISettingsService _settingsService;
     private readonly IAvaloniaLocalizationService? _localization;
+    private readonly AvaloniaStringCatalog _fallbackLocalization = new();
     private readonly IPlatformApplicationPaths? _applicationPaths;
     private readonly IPlatformFolderLauncher? _folderLauncher;
     private readonly AsyncCommand _openLogFolderCommand;
@@ -61,7 +63,7 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
             .InformationalVersion
             ?? typeof(SettingsPageViewModel).Assembly.GetName().Version?.ToString()
-            ?? "unknown";
+            ?? Localize(AvaloniaStringKeys.Unknown);
         Reload();
     }
 
@@ -251,17 +253,13 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
                 if (previous.InterfaceScalePercent != SelectedInterfaceScale.Percent)
                 {
                     SetPersistentMessage(
-                        Localize(
-                            AvaloniaStringKeys.InterfaceScaleRestartRequired,
-                            "Interface size saved. Restart the application to apply it."),
+                        Localize(AvaloniaStringKeys.InterfaceScaleRestartRequired),
                         NotificationSeverity.Information);
                 }
                 else
                 {
                     ShowTransientMessage(
-                        Localize(
-                            AvaloniaStringKeys.SettingsSavedAutomatically,
-                            "Settings saved automatically."),
+                        Localize(AvaloniaStringKeys.SettingsSavedAutomatically),
                         NotificationSeverity.Success);
                 }
                 SettingsSaved?.Invoke(this, EventArgs.Empty);
@@ -270,18 +268,14 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
 
             TOTP.Core.Models.AppPreferencesMapper.ApplyTo(previous, _settingsService.Current);
             SetPersistentMessage(
-                Localize(
-                    AvaloniaStringKeys.SettingsSaveFailed,
-                    "Settings could not be saved. Existing settings remain active."),
+                Localize(AvaloniaStringKeys.SettingsSaveFailed),
                 NotificationSeverity.Error);
         }
         catch (Exception)
         {
             TOTP.Core.Models.AppPreferencesMapper.ApplyTo(previous, _settingsService.Current);
             SetPersistentMessage(
-                Localize(
-                    AvaloniaStringKeys.SettingsSaveFailed,
-                    "Settings could not be saved. Existing settings remain active."),
+                Localize(AvaloniaStringKeys.SettingsSaveFailed),
                 NotificationSeverity.Error);
         }
         finally
@@ -323,24 +317,20 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
             if (opened.IsSuccess)
             {
                 ShowTransientLogFolderMessage(
-                    Localize(AvaloniaStringKeys.LogFolderOpened, "Log folder opened."),
+                    Localize(AvaloniaStringKeys.LogFolderOpened),
                     NotificationSeverity.Success);
             }
             else
             {
                 SetPersistentLogFolderMessage(
-                    Localize(
-                        AvaloniaStringKeys.LogFolderOpenFailed,
-                        "The log folder could not be opened."),
+                    Localize(AvaloniaStringKeys.LogFolderOpenFailed),
                     NotificationSeverity.Error);
             }
         }
         catch (Exception)
         {
             SetPersistentLogFolderMessage(
-                Localize(
-                    AvaloniaStringKeys.LogFolderOpenFailedSafely,
-                    "The log folder could not be opened safely."),
+                Localize(AvaloniaStringKeys.LogFolderOpenFailedSafely),
                 NotificationSeverity.Error);
         }
         finally
@@ -402,14 +392,15 @@ public sealed class SettingsPageViewModel : INotifyPropertyChanged, IDisposable
     private void SetPersistentLogFolderMessage(string message, NotificationSeverity severity)
         => LogFolderNotification.ShowPersistent(message, severity);
 
-    private string Localize(string key, string fallback) =>
-        _localization?.GetString(key) ?? fallback;
+    private string Localize(string key) =>
+        _localization?.GetString(key)
+        ?? _fallbackLocalization.Get(key, CultureInfo.CurrentUICulture);
 
     private IReadOnlyList<InterfaceScaleOption> CreateInterfaceScaleOptions() =>
     [
         new(
             TOTP.Core.Models.AppSettings.DefaultInterfaceScalePercent,
-            Localize(AvaloniaStringKeys.SystemInterfaceScale, "System default (recommended)")),
+            Localize(AvaloniaStringKeys.SystemInterfaceScale)),
         .. Enumerable.Range(4, 9).Select(index =>
         {
             var percent = index * 25;

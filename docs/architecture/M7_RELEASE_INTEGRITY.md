@@ -63,4 +63,4 @@ The native packaging matrix retains signed outputs without writing to GitHub Rel
 
 Release payload preparation removes only debug-symbol files below the resolved generated publish directory and rejects stale updater build/RID subtrees. This keeps direct artifacts within the existing 128 MiB client limit without increasing the download memory/denial-of-service boundary.
 
-Windows tag publication retains two Authenticode-signed ZIPs. The self-contained ZIP is the single appcast-qualified update payload. The smaller framework-dependent `fast` ZIP is recorded as `manual-download` in the signed aggregate manifest and requires a preinstalled .NET 9 desktop runtime; it is not a second update candidate or a privileged installer.
+Windows tag publication retains two Authenticode-signed ZIPs. The self-contained ZIP is the single appcast-qualified update payload. The smaller framework-dependent `fast` ZIP is recorded as `manual-download` in the signed aggregate manifest and requires a preinstalled .NET 10 desktop runtime; it is not a second update candidate or a privileged installer.

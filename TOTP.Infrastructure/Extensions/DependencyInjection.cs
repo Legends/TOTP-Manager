@@ -42,7 +42,7 @@ public static class DependencyInjection
             var fileSecurity = sp.GetRequiredService<IPlatformFileSecurity>();
             return new AppPreferencesStore(applicationPaths.PreferencesFilePath, logger, fileSecurity);
         });
-       
+
         services.AddSingleton<ISettingsService, PortableSettingsService>();
         services.AddSingleton<ITotpGenerator, OtpNetTotpGenerator>();
         services.AddSingleton<IAccountTotpService, AccountTotpService>();

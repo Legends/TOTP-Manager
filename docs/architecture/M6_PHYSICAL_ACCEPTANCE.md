@@ -4,7 +4,7 @@ Automated implementation is not physical acceptance. Record the artifact hash, O
 
 ## Windows 10/11 x64 checklist
 
-Use the exact retained Authenticode-signed self-contained ZIP candidate. The framework-dependent fast ZIP may be checked separately on a machine with the .NET 9 desktop runtime, but it is not the appcast update payload.
+Use the exact retained Authenticode-signed self-contained ZIP candidate. The framework-dependent fast ZIP may be checked separately on a machine with the .NET 10 desktop runtime, but it is not the appcast update payload.
 
 1. Verify the SHA-256 against the signed release manifest and verify Authenticode on both the application and bundled updater.
 2. Extract to a clean user-writable directory and launch. Confirm the taskbar/window icon, startup, single-instance activation, and password setup with synthetic data.

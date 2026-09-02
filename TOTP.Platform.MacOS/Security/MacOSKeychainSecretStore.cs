@@ -152,14 +152,14 @@ public sealed class MacOSKeychainSecretStore(
     private static PlatformSecretStoreErrorCode MapError(
         MacOSKeychainNativeStatus status,
         PlatformSecretStoreErrorCode fallback) => status switch
-    {
-        MacOSKeychainNativeStatus.Cancelled or MacOSKeychainNativeStatus.AccessDenied =>
-            PlatformSecretStoreErrorCode.AccessDenied,
-        MacOSKeychainNativeStatus.NotConfigured or
-            MacOSKeychainNativeStatus.NotSupported or
-            MacOSKeychainNativeStatus.TemporarilyUnavailable => PlatformSecretStoreErrorCode.Unavailable,
-        _ => fallback
-    };
+        {
+            MacOSKeychainNativeStatus.Cancelled or MacOSKeychainNativeStatus.AccessDenied =>
+                PlatformSecretStoreErrorCode.AccessDenied,
+            MacOSKeychainNativeStatus.NotConfigured or
+                MacOSKeychainNativeStatus.NotSupported or
+                MacOSKeychainNativeStatus.TemporarilyUnavailable => PlatformSecretStoreErrorCode.Unavailable,
+            _ => fallback
+        };
 
     private void LogFailure(string operation, Exception exception) =>
         logger.LogWarning(

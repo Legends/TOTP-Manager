@@ -16,7 +16,7 @@ public sealed class AccountQrCodeServiceTests
         var manager = new Mock<IAccountManager>();
         manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
             .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
-                [new Account(id, "Issuer", seed, "account") ]));
+                [new Account(id, "Issuer", seed, "account")]));
         var sourcePng = new byte[] { 137, 80, 78, 71 };
         var qr = new Mock<IQrCodeService>();
         qr.Setup(value => value.BuildOtpAuthUri("Issuer", seed, "account"))
@@ -39,7 +39,7 @@ public sealed class AccountQrCodeServiceTests
         var manager = new Mock<IAccountManager>();
         manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
             .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
-                [new Account(id, "Issuer", "SENSITIVE-SEED", "account") ]));
+                [new Account(id, "Issuer", "SENSITIVE-SEED", "account")]));
         var qr = new Mock<IQrCodeService>();
         qr.Setup(value => value.BuildOtpAuthUri(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Throws(new InvalidOperationException("SENSITIVE-SEED"));

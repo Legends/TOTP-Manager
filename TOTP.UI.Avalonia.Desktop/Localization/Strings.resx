@@ -204,4 +204,80 @@
   <data name="UpdateInstallerStarted" xml:space="preserve"><value>The platform installer was started. Follow its prompts to complete the update.</value></data>
   <data name="UpdateInstallCancelled" xml:space="preserve"><value>Update installation cancelled.</value></data>
   <data name="UpdateInstallerFailedSafely" xml:space="preserve"><value>The platform installer failed to start safely.</value></data>
+  <data name="ImportWorkflowFailed" xml:space="preserve"><value>The import workflow failed safely. No secret details were exposed.</value></data>
+  <data name="ImportConfirmationMessage" xml:space="preserve"><value>Import {0} account(s), including {1} conflict(s), using '{2}'? A recovery backup will be created first.</value></data>
+  <data name="ExportAccountsLoadFailed" xml:space="preserve"><value>Accounts could not be loaded for export.</value></data>
+  <data name="EncryptedExportTitle" xml:space="preserve"><value>Encrypted export</value></data>
+  <data name="ExportPasswordHelp" xml:space="preserve"><value>Create and confirm a password for this portable encrypted backup. This password cannot be recovered.</value></data>
+  <data name="Continue" xml:space="preserve"><value>Continue</value></data>
+  <data name="ExportPasswordRequired" xml:space="preserve"><value>An export password is required.</value></data>
+  <data name="ExportPasswordValidationFailed" xml:space="preserve"><value>The export password could not be validated.</value></data>
+  <data name="PasswordMinimumCharacters" xml:space="preserve"><value>Use at least {0} characters.</value></data>
+  <data name="ExportPasswordConfirmationRequired" xml:space="preserve"><value>Confirm the export password.</value></data>
+  <data name="ExportPasswordsMismatch" xml:space="preserve"><value>The export passwords do not match.</value></data>
+  <data name="EncryptedBackupWriteFailed" xml:space="preserve"><value>The encrypted backup could not be written completely. Do not use the selected file as a backup.</value></data>
+  <data name="BackupPermissionsUnverified" xml:space="preserve"><value>The backup is encrypted, but its local file permissions could not be verified.</value></data>
+  <data name="EncryptedBackupCreated" xml:space="preserve"><value>Encrypted backup '{0}' created successfully.</value></data>
+  <data name="EncryptedExportFailed" xml:space="preserve"><value>The encrypted export failed safely. Do not use an incomplete output file.</value></data>
+  <data name="ImportEncryptedBackupTitle" xml:space="preserve"><value>Import encrypted backup</value></data>
+  <data name="ImportPasswordPrompt" xml:space="preserve"><value>Enter the password used when this backup was created.</value></data>
+  <data name="UnlockBackup" xml:space="preserve"><value>Unlock backup</value></data>
+  <data name="ImportPasswordRequired" xml:space="preserve"><value>The import password is required.</value></data>
+  <data name="BackupValidationFailed" xml:space="preserve"><value>The backup could not be validated safely.</value></data>
+  <data name="BackupWrongPasswordOrModified" xml:space="preserve"><value>The password is incorrect or the backup was modified.</value></data>
+  <data name="BackupInvalidOrUnavailable" xml:space="preserve"><value>The backup is invalid or unavailable.</value></data>
+  <data name="ImportFileInvalid" xml:space="preserve"><value>The selected import file is invalid, unavailable, or unsupported.</value></data>
+  <data name="ImportFileEmpty" xml:space="preserve"><value>The selected file contains no accounts.</value></data>
+  <data name="ImportOutcomeComplete" xml:space="preserve"><value>Import complete: {0} added, {1} replaced, {2} skipped, {3} failed.</value></data>
+  <data name="ImportCancelledNoChanges" xml:space="preserve"><value>Import cancelled. No data was changed.</value></data>
+  <data name="ImportInvalidTargets" xml:space="preserve"><value>The import contains invalid or excessive account data. No data was changed.</value></data>
+  <data name="ImportExistingAccountsUnavailable" xml:space="preserve"><value>Existing accounts could not be loaded. No data was changed.</value></data>
+  <data name="ImportRecoveryBackupFailed" xml:space="preserve"><value>A recovery backup could not be created. Import was stopped before changing data.</value></data>
+  <data name="ImportOutcomeFailed" xml:space="preserve"><value>The import workflow could not be completed safely.</value></data>
+  <data name="AccountsLoadFailed" xml:space="preserve"><value>Accounts could not be loaded. Your encrypted data was not changed.</value></data>
+  <data name="AccountsLoadFailedSafely" xml:space="preserve"><value>Accounts could not be loaded safely. Try again.</value></data>
+  <data name="CodeGenerationFailed" xml:space="preserve"><value>A code could not be generated for this account.</value></data>
+  <data name="CodeGenerationFailedSafely" xml:space="preserve"><value>A code could not be generated safely. Try again.</value></data>
+  <data name="QrGenerationFailed" xml:space="preserve"><value>A QR code could not be generated for this account.</value></data>
+  <data name="QrDisplayFailed" xml:space="preserve"><value>A QR code could not be displayed safely.</value></data>
+  <data name="QrPreviewUnavailable" xml:space="preserve"><value>A QR code preview is not available on this platform.</value></data>
+  <data name="QrPreviewDisplayFailed" xml:space="preserve"><value>The enlarged QR code could not be displayed safely.</value></data>
+  <data name="UnlockTooManyAttempts" xml:space="preserve"><value>Too many attempts. Wait before trying again.</value></data>
+  <data name="UnlockRejected" xml:space="preserve"><value>The master password could not unlock this vault.</value></data>
+  <data name="UnlockFailedSafely" xml:space="preserve"><value>The vault could not be unlocked safely. Try again.</value></data>
+  <data name="TotpFiles" xml:space="preserve"><value>TOTP files</value></data>
+  <data name="SelectTotpImportFile" xml:space="preserve"><value>Select TOTP import file</value></data>
+  <data name="ExportEncryptedTotpBackup" xml:space="preserve"><value>Export encrypted TOTP backup</value></data>
+  <data name="EncryptedTotpBackupFile" xml:space="preserve"><value>Encrypted TOTP backup</value></data>
+  <data name="DiagnosticPlatform" xml:space="preserve"><value>Platform: {0}</value></data>
+  <data name="DiagnosticArchitecture" xml:space="preserve"><value>Architecture: {0}</value></data>
+  <data name="DiagnosticRuntime" xml:space="preserve"><value>Runtime: {0}</value></data>
+  <data name="DiagnosticLogDirectoryConfigured" xml:space="preserve"><value>Log directory configured: {0}</value></data>
+  <data name="Yes" xml:space="preserve"><value>yes</value></data>
+  <data name="No" xml:space="preserve"><value>no</value></data>
+  <data name="DiagnosticStartupStages" xml:space="preserve"><value>Startup stages:</value></data>
+  <data name="DiagnosticStageLine" xml:space="preserve"><value>- {0}: {1} ms ({2})</value></data>
+  <data name="DiagnosticPlatformCapabilities" xml:space="preserve"><value>Platform capabilities:</value></data>
+  <data name="DiagnosticCapabilityLine" xml:space="preserve"><value>- {0}: {1}</value></data>
+  <data name="DiagnosticSucceeded" xml:space="preserve"><value>ok</value></data>
+  <data name="DiagnosticFailed" xml:space="preserve"><value>failed</value></data>
+  <data name="DiagnosticRefreshSuccess" xml:space="preserve"><value>Support information refreshed. It contains no account data or filesystem paths.</value></data>
+  <data name="DiagnosticRefreshFailed" xml:space="preserve"><value>Support information could not be collected safely.</value></data>
+  <data name="DiagnosticUnavailableTitle" xml:space="preserve"><value>Support diagnostics unavailable</value></data>
+  <data name="DiagnosticUnavailableMessage" xml:space="preserve"><value>Support information could not be collected. You can close this message and continue using the application.</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="CapabilitySessionLock" xml:space="preserve"><value>Session lock detection</value></data>
+  <data name="CapabilityClipboardWrite" xml:space="preserve"><value>Clipboard write</value></data>
+  <data name="CapabilityConditionalClipboardClear" xml:space="preserve"><value>Conditional clipboard clear</value></data>
+  <data name="CapabilityUpdateInstallation" xml:space="preserve"><value>Update installation</value></data>
+  <data name="CapabilityQuickUnlock" xml:space="preserve"><value>Platform quick unlock</value></data>
+  <data name="CapabilityDeviceSecretStore" xml:space="preserve"><value>Device secret store</value></data>
+  <data name="CapabilityCamera" xml:space="preserve"><value>Camera</value></data>
+  <data name="CapabilitySupported" xml:space="preserve"><value>supported</value></data>
+  <data name="CapabilityPermanentlyUnavailable" xml:space="preserve"><value>permanently unavailable</value></data>
+  <data name="CapabilityTemporarilyUnavailable" xml:space="preserve"><value>temporarily unavailable</value></data>
+  <data name="CapabilityMisconfigured" xml:space="preserve"><value>misconfigured</value></data>
+  <data name="CapabilityPermissionDenied" xml:space="preserve"><value>permission denied</value></data>
+  <data name="CapabilityFailed" xml:space="preserve"><value>failed</value></data>
+  <data name="Unknown" xml:space="preserve"><value>unknown</value></data>
 </root>

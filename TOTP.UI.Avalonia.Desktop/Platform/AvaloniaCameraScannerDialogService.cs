@@ -5,7 +5,8 @@ using TOTP.Avalonia.Desktop.Presentation;
 namespace TOTP.Avalonia.Desktop.Platform;
 
 public sealed class AvaloniaCameraScannerDialogService(
-    AvaloniaWindowCoordinator windows) : IAvaloniaCameraScannerDialogService
+    AvaloniaWindowCoordinator windows,
+    AvaloniaActivityMonitor activityMonitor) : IAvaloniaCameraScannerDialogService
 {
     private readonly SemaphoreSlim _dialogGate = new(1, 1);
 
@@ -26,6 +27,7 @@ public sealed class AvaloniaCameraScannerDialogService(
             scanner.CloseRequested += Close;
             dialog.Opened += opened;
             using var ownership = windows.RegisterOwnedDialog(dialog);
+            using var activity = activityMonitor.Attach(dialog);
             using var cancellation = cancellationToken.Register(
                 () => Dispatcher.UIThread.Post(dialog.Close));
 

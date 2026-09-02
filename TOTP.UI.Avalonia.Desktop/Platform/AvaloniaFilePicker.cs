@@ -1,14 +1,12 @@
 using Avalonia.Platform.Storage;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Avalonia.Desktop.Platform;
 
-public sealed class AvaloniaFilePicker(AvaloniaWindowCoordinator windowCoordinator) : IAvaloniaFilePicker
+public sealed class AvaloniaFilePicker(
+    AvaloniaWindowCoordinator windowCoordinator,
+    IAvaloniaLocalizationService localization) : IAvaloniaFilePicker
 {
-    private static readonly FilePickerFileType TotpFiles = new("TOTP files")
-    {
-        Patterns = ["*.totp", "*.json", "*.txt", "*.csv"]
-    };
-
     public async Task<INativeStorageFile?> PickImportFileAsync(
         CancellationToken cancellationToken = default)
     {
@@ -18,13 +16,13 @@ public sealed class AvaloniaFilePicker(AvaloniaWindowCoordinator windowCoordinat
 
         var files = await provider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select TOTP import file",
+            Title = localization.GetString(AvaloniaStringKeys.SelectTotpImportFile),
             AllowMultiple = false,
             FileTypeFilter =
             [
-                new FilePickerFileType("TOTP files")
+                new FilePickerFileType(localization.GetString(AvaloniaStringKeys.TotpFiles))
                 {
-                    Patterns = TotpFiles.Patterns
+                    Patterns = ["*.totp", "*.json", "*.txt", "*.csv"]
                 }
             ]
         });
@@ -44,13 +42,13 @@ public sealed class AvaloniaFilePicker(AvaloniaWindowCoordinator windowCoordinat
 
         var file = await provider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Export encrypted TOTP backup",
+            Title = localization.GetString(AvaloniaStringKeys.ExportEncryptedTotpBackup),
             SuggestedFileName = Path.GetFileNameWithoutExtension(suggestedFileName),
             DefaultExtension = "totp",
             ShowOverwritePrompt = true,
             FileTypeChoices =
             [
-                new FilePickerFileType("Encrypted TOTP backup")
+                new FilePickerFileType(localization.GetString(AvaloniaStringKeys.EncryptedTotpBackupFile))
                 {
                     Patterns = ["*.totp"]
                 }

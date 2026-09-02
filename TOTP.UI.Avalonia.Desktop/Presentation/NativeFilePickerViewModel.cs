@@ -114,7 +114,7 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged, IDisposa
             if (importResult.IsFailed)
             {
                 SetMessage(
-                    "The import workflow failed safely. No secret details were exposed.",
+                    Localized(AvaloniaStringKeys.ImportWorkflowFailed),
                     NotificationSeverity.Error);
                 return;
             }
@@ -138,16 +138,20 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged, IDisposa
 
             Task<bool> ConfirmImportAsync(AccountImportPreview preview, CancellationToken token) =>
                 _dialogs.ConfirmAsync(new ConfirmationDialogRequest(
-                    "Import accounts",
-                    $"Import {preview.TotalCount} account(s), including {preview.ConflictCount} conflict(s), using '{StrategyLabel(preview.ConflictStrategy)}'? A recovery backup will be created first.",
+                    Localized(AvaloniaStringKeys.ImportAccounts),
+                    Localized(
+                        AvaloniaStringKeys.ImportConfirmationMessage,
+                        preview.TotalCount,
+                        preview.ConflictCount,
+                        StrategyLabel(preview.ConflictStrategy)),
                     NotificationSeverity.Warning,
-                    "Import",
-                    "Cancel"), token);
+                    Localized(AvaloniaStringKeys.ImportAccounts),
+                    Localized(AvaloniaStringKeys.Cancel)), token);
         }
         catch (Exception)
         {
             SetMessage(
-                "The import workflow failed safely. No secret details were exposed.",
+                Localized(AvaloniaStringKeys.ImportWorkflowFailed),
                 NotificationSeverity.Error);
         }
         finally
@@ -165,24 +169,29 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged, IDisposa
             var accounts = await _accountManager.GetAllOtpEntriesSortedAsync();
             if (accounts.IsFailed)
             {
-                SetMessage("Accounts could not be loaded for export.", NotificationSeverity.Error);
+                SetMessage(
+                    Localized(AvaloniaStringKeys.ExportAccountsLoadFailed),
+                    NotificationSeverity.Error);
                 return;
             }
 
             password = await _dialogs.PromptForPasswordAsync(new PasswordDialogRequest(
-                "Encrypted export",
-                "Create and confirm a password for this portable encrypted backup. This password cannot be recovered.",
-                "Continue",
-                "Cancel",
-                "An export password is required.",
-                "The export password could not be validated.",
+                Localized(AvaloniaStringKeys.EncryptedExportTitle),
+                Localized(AvaloniaStringKeys.ExportPasswordHelp),
+                Localized(AvaloniaStringKeys.Continue),
+                Localized(AvaloniaStringKeys.Cancel),
+                Localized(AvaloniaStringKeys.ExportPasswordRequired),
+                Localized(AvaloniaStringKeys.ExportPasswordValidationFailed),
                 (candidate, _) => Task.FromResult<string?>(
                     _passwordValidation.IsValidNew(candidate)
                         ? null
-                        : $"Use at least {_passwordValidation.MinimumLength} characters."),
+                        : Localized(
+                            AvaloniaStringKeys.PasswordMinimumCharacters,
+                            _passwordValidation.MinimumLength)),
                 RequireConfirmation: true,
-                ConfirmationRequiredMessage: "Confirm the export password.",
-                MismatchMessage: "The export passwords do not match."));
+                ConfirmationRequiredMessage: Localized(
+                    AvaloniaStringKeys.ExportPasswordConfirmationRequired),
+                MismatchMessage: Localized(AvaloniaStringKeys.ExportPasswordsMismatch)));
             if (password is null)
             {
                 ShowTransientMessage(
@@ -210,7 +219,7 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged, IDisposa
             if (result.IsFailed)
             {
                 SetMessage(
-                    "The encrypted backup could not be written completely. Do not use the selected file as a backup.",
+                    Localized(AvaloniaStringKeys.EncryptedBackupWriteFailed),
                     NotificationSeverity.Error);
                 return;
             }
@@ -224,7 +233,7 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged, IDisposa
                 catch (Exception)
                 {
                     SetMessage(
-                        "The backup is encrypted, but its local file permissions could not be verified.",
+                        Localized(AvaloniaStringKeys.BackupPermissionsUnverified),
                         NotificationSeverity.Warning);
                     return;
                 }
@@ -237,13 +246,13 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged, IDisposa
             }
 
             SetMessage(
-                $"Encrypted backup '{file.Name}' created successfully.",
+                Localized(AvaloniaStringKeys.EncryptedBackupCreated, file.Name),
                 NotificationSeverity.Success);
         }
         catch (Exception)
         {
             SetMessage(
-                "The encrypted export failed safely. Do not use an incomplete output file.",
+                Localized(AvaloniaStringKeys.EncryptedExportFailed),
                 NotificationSeverity.Error);
         }
         finally
@@ -260,21 +269,21 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged, IDisposa
         {
             Result<List<Account>>? validatedResult = null;
             var password = await _dialogs.PromptForPasswordAsync(new PasswordDialogRequest(
-                "Import encrypted backup",
-                "Enter the password used when this backup was created.",
-                "Unlock backup",
-                "Cancel",
-                "The import password is required.",
-                "The backup could not be validated safely.",
+                Localized(AvaloniaStringKeys.ImportEncryptedBackupTitle),
+                Localized(AvaloniaStringKeys.ImportPasswordPrompt),
+                Localized(AvaloniaStringKeys.UnlockBackup),
+                Localized(AvaloniaStringKeys.Cancel),
+                Localized(AvaloniaStringKeys.ImportPasswordRequired),
+                Localized(AvaloniaStringKeys.BackupValidationFailed),
                 async (candidate, token) =>
                 {
                     await using var stream = await file.OpenReadAsync(token);
                     validatedResult = await _exportService.ImportFromStreamAsync(
                         stream, file.Name, candidate, token);
                     return validatedResult.GetErrorCode() == AppErrorCode.ImportWrongPasswordOrTampered
-                        ? "The password is incorrect or the backup was modified."
+                        ? Localized(AvaloniaStringKeys.BackupWrongPasswordOrModified)
                         : validatedResult.IsFailed
-                            ? "The backup is invalid or unavailable."
+                            ? Localized(AvaloniaStringKeys.BackupInvalidOrUnavailable)
                             : null;
                 }));
             password = null;
@@ -297,33 +306,45 @@ public sealed class NativeFilePickerViewModel : INotifyPropertyChanged, IDisposa
         if (result.IsFailed)
         {
             SetMessage(
-                "The selected import file is invalid, unavailable, or unsupported.",
+                Localized(AvaloniaStringKeys.ImportFileInvalid),
                 NotificationSeverity.Error);
             return null;
         }
 
         if (result.Value.Count == 0)
         {
-            SetMessage("The selected file contains no accounts.", NotificationSeverity.Warning);
+            SetMessage(
+                Localized(AvaloniaStringKeys.ImportFileEmpty),
+                NotificationSeverity.Warning);
             return null;
         }
 
         return result.Value;
     }
 
-    private static string OutcomeMessage(AccountImportOutcome outcome) => outcome.Status switch
+    private string OutcomeMessage(AccountImportOutcome outcome) => outcome.Status switch
     {
         AccountImportStatus.Completed =>
-            $"Import complete: {outcome.Added} added, {outcome.Replaced} replaced, {outcome.Skipped} skipped, {outcome.Failed} failed.",
-        AccountImportStatus.Cancelled => "Import cancelled. No data was changed.",
+            Localized(
+                AvaloniaStringKeys.ImportOutcomeComplete,
+                outcome.Added,
+                outcome.Replaced,
+                outcome.Skipped,
+                outcome.Failed),
+        AccountImportStatus.Cancelled => Localized(AvaloniaStringKeys.ImportCancelledNoChanges),
         AccountImportStatus.InvalidTargets =>
-            "The import contains invalid or excessive account data. No data was changed.",
+            Localized(AvaloniaStringKeys.ImportInvalidTargets),
         AccountImportStatus.ExistingAccountsUnavailable =>
-            "Existing accounts could not be loaded. No data was changed.",
+            Localized(AvaloniaStringKeys.ImportExistingAccountsUnavailable),
         AccountImportStatus.RecoveryBackupFailed =>
-            "A recovery backup could not be created. Import was stopped before changing data.",
-        _ => "The import workflow could not be completed safely."
+            Localized(AvaloniaStringKeys.ImportRecoveryBackupFailed),
+        _ => Localized(AvaloniaStringKeys.ImportOutcomeFailed)
     };
+
+    private string Localized(string key, params object[] arguments) =>
+        arguments.Length == 0
+            ? _localization.GetString(key)
+            : string.Format(_localization.GetString(key), arguments);
 
     private bool BeginOperation()
     {

@@ -4,6 +4,7 @@ using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Services.Models;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Avalonia.Desktop.Platform;
 
@@ -13,7 +14,8 @@ public sealed class AvaloniaPlatformCapabilityReport(
     IPlatformSessionEventSource sessionEvents,
     IAsyncPlatformClipboard clipboard,
     IEnumerable<ICameraAccessProbe> cameraProbes,
-    IUpdateInstallerLauncher installer) : IPlatformCapabilityReport
+    IUpdateInstallerLauncher installer,
+    IAvaloniaLocalizationService localization) : IPlatformCapabilityReport
 {
     public async Task<IReadOnlyList<PlatformCapability>> CaptureAsync(
         CancellationToken cancellationToken = default)
@@ -21,19 +23,19 @@ public sealed class AvaloniaPlatformCapabilityReport(
         var capabilities = new List<PlatformCapability>
         {
             await CaptureQuickUnlockAsync(cancellationToken),
-            new("Session lock detection", sessionEvents is IPlatformCapabilityStatusProvider sessionCapability
+            new(localization.GetString(AvaloniaStringKeys.CapabilitySessionLock), sessionEvents is IPlatformCapabilityStatusProvider sessionCapability
                 ? sessionCapability.CapabilityStatus
                 : sessionEvents.IsSupported
                     ? PlatformCapabilityStatus.Supported
                     : PlatformCapabilityStatus.PermanentlyUnavailable),
-            new("Clipboard write", HasClipboard(ClipboardCapabilities.WriteText)
+            new(localization.GetString(AvaloniaStringKeys.CapabilityClipboardWrite), HasClipboard(ClipboardCapabilities.WriteText)
                 ? PlatformCapabilityStatus.Supported
                 : PlatformCapabilityStatus.TemporarilyUnavailable),
-            new("Conditional clipboard clear", HasClipboard(ClipboardCapabilities.ConditionalClear)
+            new(localization.GetString(AvaloniaStringKeys.CapabilityConditionalClipboardClear), HasClipboard(ClipboardCapabilities.ConditionalClear)
                 ? PlatformCapabilityStatus.Supported
                 : PlatformCapabilityStatus.PermanentlyUnavailable),
             CaptureCamera(),
-            new("Update installation", installer.IsSupported
+            new(localization.GetString(AvaloniaStringKeys.CapabilityUpdateInstallation), installer.IsSupported
                 ? PlatformCapabilityStatus.Supported
                 : PlatformCapabilityStatus.PermanentlyUnavailable)
         };
@@ -48,7 +50,7 @@ public sealed class AvaloniaPlatformCapabilityReport(
         try
         {
             var availability = await quickUnlock.GetAvailabilityAsync(cancellationToken);
-            return new PlatformCapability("Platform quick unlock", availability switch
+            return new PlatformCapability(localization.GetString(AvaloniaStringKeys.CapabilityQuickUnlock), availability switch
             {
                 PlatformQuickUnlockAvailability.Available => PlatformCapabilityStatus.Supported,
                 PlatformQuickUnlockAvailability.NotSupported => PlatformCapabilityStatus.PermanentlyUnavailable,
@@ -64,18 +66,20 @@ public sealed class AvaloniaPlatformCapabilityReport(
         }
         catch
         {
-            return new PlatformCapability("Platform quick unlock", PlatformCapabilityStatus.Failed);
+            return new PlatformCapability(
+                localization.GetString(AvaloniaStringKeys.CapabilityQuickUnlock),
+                PlatformCapabilityStatus.Failed);
         }
     }
 
-    private static async Task<PlatformCapability> CaptureSecretStoreAsync(
+    private async Task<PlatformCapability> CaptureSecretStoreAsync(
         IPlatformSecretStore store,
         CancellationToken cancellationToken)
     {
         try
         {
             var availability = await store.GetAvailabilityAsync(cancellationToken);
-            return new PlatformCapability("Device secret store", availability switch
+            return new PlatformCapability(localization.GetString(AvaloniaStringKeys.CapabilityDeviceSecretStore), availability switch
             {
                 PlatformSecretStoreAvailability.Available => PlatformCapabilityStatus.Supported,
                 PlatformSecretStoreAvailability.NotSupported => PlatformCapabilityStatus.PermanentlyUnavailable,
@@ -91,7 +95,9 @@ public sealed class AvaloniaPlatformCapabilityReport(
         }
         catch
         {
-            return new PlatformCapability("Device secret store", PlatformCapabilityStatus.Failed);
+            return new PlatformCapability(
+                localization.GetString(AvaloniaStringKeys.CapabilityDeviceSecretStore),
+                PlatformCapabilityStatus.Failed);
         }
     }
 
@@ -99,10 +105,12 @@ public sealed class AvaloniaPlatformCapabilityReport(
     {
         var probe = cameraProbes.FirstOrDefault();
         if (probe is null)
-            return new PlatformCapability("Camera", PlatformCapabilityStatus.Supported);
+            return new PlatformCapability(
+                localization.GetString(AvaloniaStringKeys.CapabilityCamera),
+                PlatformCapabilityStatus.Supported);
         try
         {
-            return new PlatformCapability("Camera", probe.Probe() switch
+            return new PlatformCapability(localization.GetString(AvaloniaStringKeys.CapabilityCamera), probe.Probe() switch
             {
                 CameraAccessStatus.Ready => PlatformCapabilityStatus.Supported,
                 CameraAccessStatus.PermissionDenied => PlatformCapabilityStatus.PermissionDenied,
@@ -112,7 +120,9 @@ public sealed class AvaloniaPlatformCapabilityReport(
         }
         catch
         {
-            return new PlatformCapability("Camera", PlatformCapabilityStatus.Failed);
+            return new PlatformCapability(
+                localization.GetString(AvaloniaStringKeys.CapabilityCamera),
+                PlatformCapabilityStatus.Failed);
         }
     }
 

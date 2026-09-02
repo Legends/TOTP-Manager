@@ -123,6 +123,10 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<IAvaloniaStartupCoordinator, AvaloniaStartupCoordinator>();
         services.AddSingleton<AvaloniaExceptionBoundary>();
         services.AddSingleton<SessionLockPolicyBackgroundService>();
+        services.AddSingleton<IdleMonitoringBackgroundService>();
+        services.AddSingleton<IActivityHeartbeat>(provider =>
+            provider.GetRequiredService<IdleMonitoringBackgroundService>());
+        services.AddSingleton<AvaloniaActivityMonitor>();
         services.AddSingleton<ICameraSessionFactory, OpenCvCameraSessionFactory>();
         services.AddSingleton<IQrScannerRunner, OpenCvQrScannerRunner>();
         services.AddSingleton<PasswordUnlockViewModel>();
@@ -139,7 +143,8 @@ public static class AvaloniaCompositionRoot
         {
             DataContext = provider.GetRequiredService<MainWindowViewModel>(),
             ClipboardAccessor = provider.GetRequiredService<AvaloniaClipboardAccessor>(),
-            WindowCoordinator = provider.GetRequiredService<AvaloniaWindowCoordinator>()
+            WindowCoordinator = provider.GetRequiredService<AvaloniaWindowCoordinator>(),
+            ActivityMonitor = provider.GetRequiredService<AvaloniaActivityMonitor>()
         });
 
         var provider = services.BuildServiceProvider(new ServiceProviderOptions

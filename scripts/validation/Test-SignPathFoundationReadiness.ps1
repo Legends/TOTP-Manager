@@ -18,9 +18,9 @@ $readme = Read-RepositoryFile "readme.md"
 $policy = Read-RepositoryFile "CODE_SIGNING_POLICY.md"
 $privacy = Read-RepositoryFile "PRIVACY.md"
 $workflow = Read-RepositoryFile ".github/workflows/build-and-test.yml"
+$signedPayloadValidation = Read-RepositoryFile "scripts/release/Apply-SignPathSignedPayload.ps1"
 $codeOwners = Read-RepositoryFile ".github/CODEOWNERS"
 $buildMetadata = Read-RepositoryFile "Directory.Build.props"
-$testProject = Read-RepositoryFile "TOTP.Tests/TOTP.Tests.csproj"
 $desktopProject = Read-RepositoryFile "TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj"
 $assetProvenance = Read-RepositoryFile "docs/assets/ASSET_PROVENANCE.md"
 
@@ -48,9 +48,6 @@ if (-not $codeOwners.Contains("/.github/workflows/ @Legends", [StringComparison]
 }
 if (-not $buildMetadata.Contains("<Product>OTP Harbor</Product>", [StringComparison]::Ordinal)) {
     throw "First-party PE product metadata is not centrally defined."
-}
-if ($testProject -notmatch '<PackageReference Include="FluentAssertions" Version="7\.[^"]+"') {
-    throw "FluentAssertions must remain on the OSI-approved 7.x line."
 }
 if (($desktopProject.Split('IncludeSourceRevisionInInformationalVersion=$(IncludeSourceRevisionInInformationalVersion)').Count - 1) -lt 2 -or
     ($desktopProject.Split('RemoveProperties="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed"').Count - 1) -lt 2) {
@@ -83,12 +80,15 @@ $requiredWorkflowText = @(
     "signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627",
     "signing-policy-slug: release-signing",
     "artifact-configuration-slug: windows-release-v1",
-    "Get-AuthenticodeSignature"
+    "SignPath Windows rehearsal (no release)"
 )
 foreach ($requiredText in $requiredWorkflowText) {
     if (-not $workflow.Contains($requiredText, [StringComparison]::Ordinal)) {
         throw "The release workflow is missing the SignPath control: $requiredText"
     }
+}
+if (-not $signedPayloadValidation.Contains("Get-AuthenticodeSignature", [StringComparison]::Ordinal)) {
+    throw "The signed-payload validation script does not verify Authenticode signatures."
 }
 if ($workflow -match 'SIGNING_CERT_(BASE64|PASSWORD)') {
     throw "The hosted release workflow must not accept exportable Windows certificate material."

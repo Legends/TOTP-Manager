@@ -1,21 +1,18 @@
-# Platform session and lifecycle events
+# Platform session events
 
 Operating-system event delivery is separated from the product decision to lock the vault.
 
 ## Portable contract
 
-`TOTP.Core.Platform` defines two independently managed event sources:
+`TOTP.Core.Platform` defines `IPlatformSessionEventSource`, which publishes `Active`, `Locked`, `Disconnected`, or `Unknown` session state.
 
-- `IPlatformSessionEventSource` publishes `Active`, `Locked`, `Disconnected`, or `Unknown` session state.
-- `IPlatformLifecycleEventSource` publishes `Suspending` and `Resumed` lifecycle state.
-
-Consumers call `Start` and `Stop` for the source they use. `IsSupported` lets a host explicitly report that reliable delivery is unavailable. Event sources report platform facts only; they do not read settings or modify authorization state.
+Consumers call `Start` and `Stop` explicitly. `IsSupported` lets a host report that reliable delivery is unavailable. Event sources report platform facts only; they do not read settings or modify authorization state. A previous unused suspend/resume abstraction was removed rather than retained without an active lock policy.
 
 ## Windows adapter
 
-`WindowsPlatformEventSource` is the Windows implementation. It maps `SystemEvents.SessionSwitch` into the portable session states and `SystemEvents.PowerModeChanged` into lifecycle states. Session and lifecycle subscriptions are independent and idempotent.
+`WindowsSessionEventSource` maps `SystemEvents.SessionSwitch` into the portable session states. Subscription is idempotent.
 
-The existing Windows behavior is preserved exactly: only `SessionLock` maps to `Locked`. Disconnect and suspend are observable but do not implicitly lock the application.
+Only `SessionLock` maps to `Locked`. Disconnect is observable but does not implicitly lock the application.
 
 ## Product lock policy
 
@@ -28,15 +25,13 @@ Expected event-source failures remain startup failures so the host does not sile
 
 ## Equivalent platform semantics
 
-Future adapters should use these mappings:
+Current adapters use these mappings where the platform can report them reliably:
 
 | Portable state | macOS | Linux |
 | --- | --- | --- |
-| `Locked` | screen/session locked notification | login1 `Lock` signal or desktop lock notification |
-| `Active` | screen/session unlocked notification | login1 `Unlock` signal or desktop unlock notification |
-| `Disconnected` | user session logout or fast-user-switch loss where reliably available | login1 session removal or inactive/disconnected session |
-| `Suspending` | workspace will-sleep notification | login1 `PrepareForSleep(true)` |
-| `Resumed` | workspace did-wake notification | login1 `PrepareForSleep(false)` |
+| `Locked` | polled screen-lock state | recognized ScreenSaver `ActiveChanged(true)` signal |
+| `Active` | polled screen-unlock state | recognized ScreenSaver `ActiveChanged(false)` signal |
+| `Disconnected` | not emitted by the current adapter | not emitted by the current adapter |
 
 An adapter must report `IsSupported == false` when its desktop/session environment cannot provide reliable events. It must not infer a lock event solely from application focus loss.
 
@@ -45,4 +40,4 @@ An adapter must report `IsSupported == false` when its desktop/session environme
 - Threat impact: session-lock enforcement remains enabled by default and is no longer coupled to Windows event argument types.
 - Data flow: OS event -> platform adapter -> portable state -> lock policy -> authorization lock. No seed, password, or derived-key data crosses the event boundary.
 - Compatibility: no settings or storage formats change. Windows `SessionLock` behavior and the `LockOnSessionLock` preference retain their existing meaning.
-- Test evidence: policy tests cover enabled, disabled, irrelevant-state, failure, and subscription-lifetime branches. Windows mapping tests cover lock, unlock, connection, disconnection, suspend, resume, and ignored events.
+- Test evidence: policy tests cover enabled, disabled, irrelevant-state, failure, and subscription-lifetime branches. Platform tests cover supported lock/unlock and ignored or unavailable states.

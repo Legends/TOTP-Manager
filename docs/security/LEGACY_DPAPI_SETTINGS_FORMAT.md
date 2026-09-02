@@ -165,8 +165,8 @@ Do not log decrypted JSON, Base64 authorization fields, DPAPI blobs, key identif
 ## Historical implementation and retained evidence
 
 - `TOTP.DAL/Services/AppSettingsDAL.cs` (removed)
-- `TOTP.Core/Models/AppSettings.cs`
-- `TOTP.Core/Security/Models/AuthorizationProfile.cs`
+- `TOTP.Core/Models/AppSettings.cs` (current non-secret settings shape; no legacy authorization member)
+- `TOTP.Core/Security/Models/AuthorizationProfile.cs` (removed; represented only by synthetic fixture DTOs in tests)
 - `TOTP.Infrastructure/Security/MasterPasswordService.cs`
 - `TOTP.Platform.Windows/Security/HelloGate.cs`
 - `TOTP.Platform.Windows/WindowsFileSecurity.cs`

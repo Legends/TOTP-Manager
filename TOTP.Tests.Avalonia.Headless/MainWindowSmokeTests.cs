@@ -248,7 +248,9 @@ public sealed class MainWindowSmokeTests
             window.UpdateLayout();
 
             list.SelectedItem = accounts[^1];
-            await Task.Delay(80);
+            await Dispatcher.UIThread.InvokeAsync(
+                static () => { },
+                DispatcherPriority.Loaded);
             window.UpdateLayout();
 
             Assert.Contains(

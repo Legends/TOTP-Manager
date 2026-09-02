@@ -323,7 +323,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             {
                 _allAccounts = [];
                 Accounts = [];
-                ShowError("Accounts could not be loaded. Your encrypted data was not changed.");
+                ShowError(_localization.GetString(AvaloniaStringKeys.AccountsLoadFailed));
                 return;
             }
 
@@ -343,7 +343,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         {
             _allAccounts = [];
             Accounts = [];
-            ShowError("Accounts could not be loaded safely. Try again.");
+            ShowError(_localization.GetString(AvaloniaStringKeys.AccountsLoadFailedSafely));
         }
         finally
         {
@@ -366,7 +366,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                 return;
             if (result.IsFailed)
             {
-                CodeMessage = "A code could not be generated for this account.";
+                SetLocalizedCodeMessage(AvaloniaStringKeys.CodeGenerationFailed);
                 return;
             }
 
@@ -387,7 +387,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         catch (Exception)
         {
             if (_selectedAccount?.Id == requestedAccount.Id)
-                CodeMessage = "A code could not be generated safely. Try again.";
+                SetLocalizedCodeMessage(AvaloniaStringKeys.CodeGenerationFailedSafely);
         }
         finally
         {
@@ -452,7 +452,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         var result = await _accountQrCodeService.GenerateAsync(_selectedAccount.Id);
         if (result.IsFailed)
         {
-            CodeMessage = "A QR code could not be generated for this account.";
+            SetLocalizedCodeMessage(AvaloniaStringKeys.QrGenerationFailed);
             return;
         }
 
@@ -466,7 +466,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         }
         catch (Exception)
         {
-            CodeMessage = "A QR code could not be displayed safely.";
+            SetLocalizedCodeMessage(AvaloniaStringKeys.QrDisplayFailed);
         }
         finally
         {
@@ -480,7 +480,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         if (image is null) return;
         if (_qrPreviewDialogs is null)
         {
-            CodeMessage = "A QR code preview is not available on this platform.";
+            SetLocalizedCodeMessage(AvaloniaStringKeys.QrPreviewUnavailable);
             return;
         }
 
@@ -491,7 +491,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         catch (Exception)
         {
             if (ReferenceEquals(QrImage, image))
-                CodeMessage = "The enlarged QR code could not be displayed safely.";
+                SetLocalizedCodeMessage(AvaloniaStringKeys.QrPreviewDisplayFailed);
         }
     }
 

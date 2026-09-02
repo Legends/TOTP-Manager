@@ -1,5 +1,4 @@
 using TOTP.Core.Enums;
-using TOTP.Core.Security.Models;
 
 namespace TOTP.Core.Security.Interfaces;
 
@@ -8,7 +7,6 @@ public interface IAppSettings
     string CultureName { get; set; }
     AppLogLevel MinimumLogLevel { get; set; }
     PreferredUnlockMethod PreferredUnlockMethod { get; set; }
-    AuthorizationProfile Authorization { get; set; }
     TimeSpan IdleTimeout { get; set; }
     bool LockOnSessionLock { get; set; }
     bool LockOnMinimize { get; set; }

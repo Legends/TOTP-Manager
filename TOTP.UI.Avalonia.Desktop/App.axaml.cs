@@ -15,6 +15,7 @@ public partial class App : Application
     private AvaloniaExceptionHooks? _exceptionHooks;
     private AvaloniaThemeService? _themeService;
     private SessionLockPolicyBackgroundService? _sessionLockPolicy;
+    private IdleMonitoringBackgroundService? _idleLockPolicy;
 
     public override void Initialize()
     {
@@ -33,17 +34,26 @@ public partial class App : Application
                 _services.GetRequiredService<AvaloniaExceptionBoundary>());
             _sessionLockPolicy = _services.GetRequiredService<SessionLockPolicyBackgroundService>();
             _sessionLockPolicy.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+            _idleLockPolicy = _services.GetRequiredService<IdleMonitoringBackgroundService>();
+            _idleLockPolicy.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
             desktop.Exit += (_, _) =>
             {
                 try
                 {
-                    _sessionLockPolicy.StopAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    _idleLockPolicy.StopAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 finally
                 {
-                    _exceptionHooks.Dispose();
-                    _themeService.Dispose();
-                    _services.Dispose();
+                    try
+                    {
+                        _sessionLockPolicy.StopAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    }
+                    finally
+                    {
+                        _exceptionHooks.Dispose();
+                        _themeService.Dispose();
+                        _services.Dispose();
+                    }
                 }
             };
             var mainWindow = _services.GetRequiredService<MainWindow>();

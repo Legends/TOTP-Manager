@@ -1,6 +1,5 @@
 using TOTP.Core.Enums;
 using TOTP.Core.Security.Interfaces;
-using TOTP.Core.Security.Models;
 
 namespace TOTP.Core.Models;
 
@@ -16,8 +15,6 @@ public sealed class AppSettings : IAppSettings
     public AppLogLevel MinimumLogLevel { get; set; } = AppLogLevel.Information;
 
     public PreferredUnlockMethod PreferredUnlockMethod { get; set; } = PreferredUnlockMethod.Password;
-
-    public AuthorizationProfile Authorization { get; set; } = new();
 
     public TimeSpan IdleTimeout { get; set; } = DefaultIdleTimeout;
 

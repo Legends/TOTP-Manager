@@ -61,7 +61,7 @@ public static class LoggingConfigurator
         }
 
         Directory.CreateDirectory(applicationPaths.LogDirectory);
-        
+
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(LogSwitchService.SharedSwitch)
             .Enrich.FromLogContext()

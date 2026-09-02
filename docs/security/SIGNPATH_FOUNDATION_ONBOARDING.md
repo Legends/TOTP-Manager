@@ -14,8 +14,6 @@ Repository evidence:
 - Vulnerability reporting: [SECURITY.md](../../SECURITY.md)
 - Automated build, test, dependency, CodeQL, and secret-scanning workflows under `.github/workflows`
 
-The dependency review deliberately pins `FluentAssertions` to the OSI-approved 7.x line. Version 8 and later use a non-OSI community/commercial license and are not eligible under the Foundation's stated OSS-license condition.
-
 ## Maintainer prerequisites
 
 Before applying:
@@ -57,7 +55,11 @@ Configure `release-signing` to use the Foundation certificate, GitHub origin ver
 
 ## First signed-release rehearsal
 
-Use a new stable tag only after SignPath confirms the project configuration. The stable workflow fails closed if the organization ID, API token, approval, returned structure, PE metadata, or Authenticode verification is missing.
+After SignPath confirms the project configuration, run **Build, Test and Publish OTP Harbor App** manually from `master` with `signpath_rehearsal` enabled. Set `rehearsal_version` to the intended three-part release version. This path builds both Windows variants, submits the bounded payload through the normal release signing policy, validates every returned first-party signature and product-version field, and retains the signed result for one day. It does not create a tag, GitHub Release, package manifest, or update feed.
+
+Approve the rehearsal request in SignPath exactly as a release request. Origin verification and the `release-signing` policy must restrict the request to reviewed `master` or `release/*` sources. A successful rehearsal proves integration for that commit but does not authorize later binaries automatically.
+
+Create the immutable stable tag only after the rehearsal and the remaining release gates pass. The stable workflow fails closed if the organization ID, API token, approval, returned structure, PE metadata, or Authenticode verification is missing.
 
 Before publishing, verify in the draft release workflow evidence that:
 

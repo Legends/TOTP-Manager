@@ -2,9 +2,10 @@
 
 Portable workflows describe user intent without depending on Avalonia types:
 
-- `IMessageService` and `INotificationUiClient` use portable severity and request models.
-- `IFileDialogService` receives structured filters.
-- Password prompts, QR previews, and scanner workflows expose no native window or image types.
+- `NotificationSeverity` is the portable severity vocabulary shared by banners and dialog requests.
+- Presentation view models own `NotificationState`; they do not call a global notification service.
+- Desktop adapters implement `IAvaloniaDialogService`, `IAvaloniaFilePicker`, and the owned QR/scanner dialog contracts.
+- Password prompts, QR previews, and scanner workflows do not expose native window types outside the desktop project.
 
 The Avalonia desktop project owns dialogs, window ownership, native file pickers, bitmap conversion, and UI-thread dispatch. QR data crosses portable boundaries only in owned encoded buffers; each temporary buffer and decoded bitmap is cleared or disposed when replaced, hidden, closed, locked, or disposed.
 

@@ -446,7 +446,9 @@ public sealed class AccountListViewModelTests
             "123456",
             TimeSpan.FromSeconds(18),
             It.IsAny<CancellationToken>()), Times.Once);
-        Assert.Equal(AvaloniaStringKeys.CodeCopiedWithClear, sut.CodeMessage);
+        Assert.Equal(
+            "Copied. Conditional clipboard clear is scheduled in 18 seconds.",
+            sut.CodeMessage);
     }
 
     [Fact]
@@ -555,7 +557,7 @@ public sealed class AccountListViewModelTests
         Assert.Equal("alice@example.test", created.AccountName);
         Assert.Equal(ValidSecret, created.Secret);
         Assert.False(sut.IsEditorVisible);
-        Assert.Equal(AvaloniaStringKeys.AccountSaved, sut.Message);
+        Assert.Equal("Account saved.", sut.Message);
     }
 
     [Fact]
@@ -574,7 +576,9 @@ public sealed class AccountListViewModelTests
         await sut.SaveAccountAsync();
 
         manager.Verify(value => value.AddNewAsync(It.IsAny<Account>()), Times.Never);
-        Assert.Equal(AvaloniaStringKeys.AccountDuplicate, sut.EditorMessage);
+        Assert.Equal(
+            "An account with the same issuer and account name already exists.",
+            sut.EditorMessage);
         Assert.Equal(string.Empty, sut.EditorSecret);
     }
 
@@ -658,7 +662,7 @@ public sealed class AccountListViewModelTests
 
         manager.Verify(value => value.DeleteAsync(account), Times.Once);
         Assert.Empty(sut.Accounts);
-        Assert.Equal(AvaloniaStringKeys.AccountDeleted, sut.Message);
+        Assert.Equal("Account deleted.", sut.Message);
         await WaitUntilAsync(() => !sut.HasMessage);
         Assert.Empty(sut.Message);
     }
@@ -773,7 +777,7 @@ public sealed class AccountListViewModelTests
             It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Never);
         clipboard.Verify(value => value.CopyAsync(
             "123456", It.IsAny<CancellationToken>()), Times.Once);
-        Assert.Equal(AvaloniaStringKeys.CodeCopied, sut.CodeMessage);
+        Assert.Equal("Copied.", sut.CodeMessage);
     }
 
     [Fact]
@@ -854,10 +858,11 @@ public sealed class AccountListViewModelTests
 
     private static IAvaloniaLocalizationService Localization()
     {
-        var localization = new Mock<IAvaloniaLocalizationService>();
-        localization.Setup(value => value.GetString(It.IsAny<string>()))
-            .Returns((string key) => key);
-        return localization.Object;
+        var localization = new AvaloniaLocalizationService(
+            new ResourceDictionary(),
+            new AvaloniaStringCatalog());
+        localization.ApplyCulture("en");
+        return localization;
     }
 
     private static async Task WaitUntilAsync(Func<bool> predicate)

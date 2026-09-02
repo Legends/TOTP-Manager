@@ -55,7 +55,7 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
 
     public void LogFailure(Exception exception)
     {
-        Log($"updater failed: {exception}");
+        Log($"updater failed; exceptionType={exception.GetType().FullName}");
     }
 
     private static InstallerProgressState CreateState(
@@ -109,7 +109,7 @@ internal sealed class UpdateInstallerService(UpdateInstallArguments arguments)
             }
             catch (Exception ex)
             {
-                Log($"failed to kill lingering process {process.Id}: {ex.Message}");
+                Log($"failed to kill lingering process; pid={process.Id} exceptionType={ex.GetType().FullName}");
             }
             finally
             {

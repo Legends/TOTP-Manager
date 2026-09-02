@@ -19,12 +19,7 @@ OTP Harbor uses third-party packages under licenses compatible with this reposit
 - xUnit and runner packages — Apache-2.0
 - Microsoft.NET.Test.Sdk — MIT
 - Moq — BSD-3-Clause
-- Moq.AutoMock — MIT
-- coverlet.collector — MIT
-- FluentAssertions 7.x — Apache-2.0
 - Avalonia.Headless.XUnit — MIT
-
-FluentAssertions must remain on the Apache-2.0-licensed 7.x line unless a later license is explicitly reviewed and accepted.
 
 ## Assets
 

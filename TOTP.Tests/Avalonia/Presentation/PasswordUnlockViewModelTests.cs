@@ -2,6 +2,8 @@ using Moq;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Avalonia.Desktop.Presentation;
+using Avalonia.Controls;
+using TOTP.Avalonia.Desktop.Localization;
 
 namespace TOTP.Tests.Avalonia.Presentation;
 
@@ -15,7 +17,7 @@ public sealed class PasswordUnlockViewModelTests
         var authorization = new Mock<IAuthorizationService>();
         authorization.Setup(service => service.TryUnlockWithPasswordAsync("synthetic password"))
             .Returns(completion.Task);
-        var sut = new PasswordUnlockViewModel(authorization.Object)
+        var sut = new PasswordUnlockViewModel(authorization.Object, CreateLocalization("en"))
         {
             Password = "synthetic password"
         };
@@ -45,7 +47,10 @@ public sealed class PasswordUnlockViewModelTests
         var authorization = new Mock<IAuthorizationService>();
         authorization.Setup(service => service.TryUnlockWithPasswordAsync(It.IsAny<string>()))
             .ReturnsAsync(result);
-        var sut = new PasswordUnlockViewModel(authorization.Object) { Password = "wrong" };
+        var sut = new PasswordUnlockViewModel(
+            authorization.Object,
+            CreateLocalization("en"))
+        { Password = "wrong" };
 
         await sut.UnlockAsync();
 
@@ -59,11 +64,41 @@ public sealed class PasswordUnlockViewModelTests
         var authorization = new Mock<IAuthorizationService>();
         authorization.Setup(service => service.TryUnlockWithPasswordAsync(It.IsAny<string>()))
             .ThrowsAsync(new InvalidOperationException("sensitive synthetic detail"));
-        var sut = new PasswordUnlockViewModel(authorization.Object) { Password = "synthetic" };
+        var sut = new PasswordUnlockViewModel(
+            authorization.Object,
+            CreateLocalization("en"))
+        { Password = "synthetic" };
 
         await sut.UnlockAsync();
 
         Assert.True(sut.HasMessage);
         Assert.DoesNotContain("sensitive", sut.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task UnlockAsync_WhenGermanIsActive_ShowsCompleteGermanFailure()
+    {
+        var authorization = new Mock<IAuthorizationService>();
+        authorization.Setup(service => service.TryUnlockWithPasswordAsync(It.IsAny<string>()))
+            .ReturnsAsync(AuthorizationResult.InvalidCredentials);
+        var sut = new PasswordUnlockViewModel(
+            authorization.Object,
+            CreateLocalization("de"))
+        { Password = "falsch" };
+
+        await sut.UnlockAsync();
+
+        Assert.Equal(
+            "Der Tresor konnte mit diesem Master-Passwort nicht entsperrt werden.",
+            sut.Message);
+    }
+
+    private static IAvaloniaLocalizationService CreateLocalization(string culture)
+    {
+        var localization = new AvaloniaLocalizationService(
+            new ResourceDictionary(),
+            new AvaloniaStringCatalog());
+        localization.ApplyCulture(culture);
+        return localization;
     }
 }

@@ -11,23 +11,33 @@ public sealed class SessionLockPolicyBackgroundService(
     ISettingsService settingsService,
     ILogger<SessionLockPolicyBackgroundService> logger) : BackgroundService
 {
+    private int _isStarted;
+
     public event EventHandler? ApplicationLocked;
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    public override async Task StartAsync(CancellationToken cancellationToken)
     {
+        if (Interlocked.Exchange(ref _isStarted, 1) != 0)
+        {
+            return;
+        }
+
         sessionEvents.SessionChanged += OnSessionChanged;
         try
         {
             sessionEvents.Start();
+            await base.StartAsync(cancellationToken);
         }
         catch
         {
             sessionEvents.SessionChanged -= OnSessionChanged;
+            Interlocked.Exchange(ref _isStarted, 0);
             throw;
         }
-
-        return Task.Delay(Timeout.Infinite, stoppingToken);
     }
+
+    protected override Task ExecuteAsync(CancellationToken stoppingToken) =>
+        Task.Delay(Timeout.Infinite, stoppingToken);
 
     private void OnSessionChanged(object? sender, PlatformSessionChangedEventArgs args)
     {
@@ -52,6 +62,11 @@ public sealed class SessionLockPolicyBackgroundService(
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
+        if (Interlocked.Exchange(ref _isStarted, 0) == 0)
+        {
+            return;
+        }
+
         try
         {
             sessionEvents.Stop();

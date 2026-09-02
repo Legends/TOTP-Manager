@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Security.Cryptography;
 using System.Text.Json;
-using TOTP.Core.Models;
-using TOTP.Core.Security.Models;
 using TOTP.Infrastructure.Security;
 using TOTP.Tests.Common;
 
@@ -52,12 +50,12 @@ public sealed class LegacySettingsFixtureTests
             var salt = authorization.GetProperty("PasswordSalt").GetBytesFromBase64();
             var expectedHash = authorization.GetProperty("PasswordHash").GetBytesFromBase64();
 
-            using var pbkdf2 = new Rfc2898DeriveBytes(
+            var actualHash = Rfc2898DeriveBytes.Pbkdf2(
                 SyntheticPassword,
                 salt,
                 200_000,
-                HashAlgorithmName.SHA256);
-            var actualHash = pbkdf2.GetBytes(expectedHash.Length);
+                HashAlgorithmName.SHA256,
+                expectedHash.Length);
 
             Assert.True(CryptographicOperations.FixedTimeEquals(expectedHash, actualHash), entry.Id);
             CryptographicOperations.ZeroMemory(actualHash);
@@ -71,7 +69,7 @@ public sealed class LegacySettingsFixtureTests
 
         foreach (var entry in LoadManifest().Where(entry => entry.AuthorizationKind.StartsWith("Argon2id", StringComparison.Ordinal)))
         {
-            var settings = JsonSerializer.Deserialize<AppSettings>(await File.ReadAllBytesAsync(
+            var settings = JsonSerializer.Deserialize<LegacyAppSettings>(await File.ReadAllBytesAsync(
                 FixturePath(entry),
                 TestContext.Current.CancellationToken));
             Assert.NotNull(settings);
@@ -116,4 +114,18 @@ public sealed class LegacySettingsFixtureTests
         string RootKind,
         string AuthorizationKind,
         string HistoricalReaderOutcome);
+
+    private sealed record LegacyAppSettings
+    {
+        public required LegacyAuthorizationData Authorization { get; init; }
+    }
+
+    private sealed record LegacyAuthorizationData
+    {
+        public byte[]? PasswordSalt { get; init; }
+        public int ArgonIterations { get; init; }
+        public int ArgonMemorySize { get; init; }
+        public byte[]? PasswordWrappedDek { get; init; }
+        public byte[]? DekNonce { get; init; }
+    }
 }

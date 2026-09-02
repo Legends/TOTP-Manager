@@ -526,33 +526,6 @@
     <Style Selector="controls|RevealableSecretInput:revealed /template/ Button#PART_RevealButton">
         <Setter Property="Content" Value="{DynamicResource ConcealSecret}" />
     </Style>
-    <Style Selector="controls|QrPreview">
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="Template">
-            <ControlTemplate>
-                <StackPanel Spacing="8">
-                    <Border
-                        Background="{DynamicResource BrushQrBackground}"
-                        BorderBrush="{DynamicResource BrushBorder}"
-                        BorderThickness="1"
-                        CornerRadius="{DynamicResource RadiusSmall}"
-                        Padding="8">
-                        <Image
-                            automation:AutomationProperties.Name="{TemplateBinding Description}"
-                            Width="240"
-                            Height="240"
-                            Source="{TemplateBinding Source}"
-                            Stretch="Uniform" />
-                    </Border>
-                    <controls:ValidationMessage
-                        MaxWidth="320"
-                        Severity="Warning"
-                        Text="{TemplateBinding PrivacyNotice}"
-                        TextAlignment="Center" />
-                </StackPanel>
-            </ControlTemplate>
-        </Setter>
-    </Style>
     <Style Selector="controls|AccountRow">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="Template">

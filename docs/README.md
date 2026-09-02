@@ -7,7 +7,6 @@ This index lists maintained documentation. Git history preserves completed migra
 - [Recovery guide](RECOVERY.md)
 - [Contribution guide](../CONTRIBUTING.md)
 - [Desktop test commands](testing/DESKTOP_APP_TEST_COMMANDS.md)
-- [Ubuntu live-system acceptance guide](testing/UBUNTU_24_04_LIVE_USB_TEST_GUIDE.md)
 
 ## Architecture
 

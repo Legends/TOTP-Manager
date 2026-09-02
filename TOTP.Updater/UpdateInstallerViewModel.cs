@@ -91,7 +91,7 @@ internal sealed class UpdateInstallerViewModel : INotifyPropertyChanged
             {
                 Title = UpdaterText.UpdateFailedTitle,
                 Status = UpdaterText.UpdateFailedStatus,
-                Detail = ex.Message,
+                Detail = UpdaterText.UpdateFailedDetail,
                 ProgressText = string.Empty,
                 IsIndeterminate = false,
                 ProgressValue = 0,
