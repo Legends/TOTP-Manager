@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>TOTP.Avalonia.Desktop</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <DefineConstants>$(DefineConstants);TOTP_PLATFORM_WINDOWS</DefineConstants>
     <ApplicationIcon>Assets\Icons\app.ico</ApplicationIcon>
   </PropertyGroup>
@@ -26,14 +26,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.7" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.7" />
-    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.11" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -81,8 +81,8 @@
              RemoveProperties="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed"
              Properties="Configuration=$(Configuration);Version=$(Version);InformationalVersion=$(InformationalVersion);IncludeSourceRevisionInInformationalVersion=$(IncludeSourceRevisionInInformationalVersion);FileVersion=$(FileVersion);AssemblyVersion=$(AssemblyVersion)" />
     <ItemGroup>
-      <WindowsUpdaterBundleOutput Include="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*"
-                                  Exclude="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\ref\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\win-x64\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\publish\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*.pdb" />
+      <WindowsUpdaterBundleOutput Include="..\TOTP.Updater\bin\$(Configuration)\net10.0-windows10.0.19041.0\**\*"
+                                  Exclude="..\TOTP.Updater\bin\$(Configuration)\net10.0-windows10.0.19041.0\ref\**\*;..\TOTP.Updater\bin\$(Configuration)\net10.0-windows10.0.19041.0\win-x64\**\*;..\TOTP.Updater\bin\$(Configuration)\net10.0-windows10.0.19041.0\publish\**\*;..\TOTP.Updater\bin\$(Configuration)\net10.0-windows10.0.19041.0\**\*.pdb" />
     </ItemGroup>
     <Copy SourceFiles="@(WindowsUpdaterBundleOutput)"
           DestinationFiles="@(WindowsUpdaterBundleOutput->'$(OutDir)TOTP.Updater\%(RecursiveDir)%(Filename)%(Extension)')"
@@ -97,8 +97,8 @@
              RemoveProperties="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed"
              Properties="Configuration=$(Configuration);Version=$(Version);InformationalVersion=$(InformationalVersion);IncludeSourceRevisionInInformationalVersion=$(IncludeSourceRevisionInInformationalVersion);FileVersion=$(FileVersion);AssemblyVersion=$(AssemblyVersion)" />
     <ItemGroup>
-      <WindowsUpdaterBundlePublish Include="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*"
-                                   Exclude="..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\ref\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\win-x64\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\publish\**\*;..\TOTP.Updater\bin\$(Configuration)\net9.0-windows10.0.19041.0\**\*.pdb" />
+      <WindowsUpdaterBundlePublish Include="..\TOTP.Updater\bin\$(Configuration)\net10.0-windows10.0.19041.0\**\*"
+                                   Exclude="..\TOTP.Updater\bin\$(Configuration)\net10.0-windows10.0.19041.0\ref\**\*;..\TOTP.Updater\bin\$(Configuration)\net10.0-windows10.0.19041.0\win-x64\**\*;..\TOTP.Updater\bin\$(Configuration)\net10.0-windows10.0.19041.0\publish\**\*;..\TOTP.Updater\bin\$(Configuration)\net10.0-windows10.0.19041.0\**\*.pdb" />
     </ItemGroup>
     <Copy SourceFiles="@(WindowsUpdaterBundlePublish)"
           DestinationFiles="@(WindowsUpdaterBundlePublish->'$(PublishDir)TOTP.Updater\%(RecursiveDir)%(Filename)%(Extension)')"

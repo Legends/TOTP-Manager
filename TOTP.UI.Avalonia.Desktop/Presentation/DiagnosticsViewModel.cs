@@ -5,12 +5,15 @@ using System.Windows.Input;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation.Dialogs;
+using TOTP.Avalonia.Desktop.Localization;
+using TOTP.Core.Services.Models;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
 
 public sealed class DiagnosticsViewModel : INotifyPropertyChanged
 {
     private readonly ISupportDiagnosticsService _diagnostics;
+    private readonly IAvaloniaLocalizationService _localization;
     private readonly IAvaloniaDialogService? _dialogs;
     private readonly IPlatformCapabilityReport? _capabilities;
     private readonly AsyncCommand _refreshCommand;
@@ -19,10 +22,12 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
 
     public DiagnosticsViewModel(
         ISupportDiagnosticsService diagnostics,
+        IAvaloniaLocalizationService localization,
         IAvaloniaDialogService? dialogs = null,
         IPlatformCapabilityReport? capabilities = null)
     {
         _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _dialogs = dialogs;
         _capabilities = capabilities;
         Notification = new NotificationState();
@@ -53,48 +58,61 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
             var snapshot = _diagnostics.Capture();
             var output = new StringBuilder()
                 .AppendLine($"OTP Harbor {snapshot.ApplicationVersion}")
-                .AppendLine($"Platform: {snapshot.OperatingSystem}")
-                .AppendLine($"Architecture: {snapshot.ProcessArchitecture}")
-                .AppendLine($"Runtime: {snapshot.Framework}")
-                .AppendLine($"Log directory configured: {(snapshot.LogDirectoryConfigured ? "yes" : "no")}");
+                .AppendLine(Localized(AvaloniaStringKeys.DiagnosticPlatform, snapshot.OperatingSystem))
+                .AppendLine(Localized(AvaloniaStringKeys.DiagnosticArchitecture, snapshot.ProcessArchitecture))
+                .AppendLine(Localized(AvaloniaStringKeys.DiagnosticRuntime, snapshot.Framework))
+                .AppendLine(Localized(
+                    AvaloniaStringKeys.DiagnosticLogDirectoryConfigured,
+                    _localization.GetString(
+                        snapshot.LogDirectoryConfigured ? AvaloniaStringKeys.Yes : AvaloniaStringKeys.No)));
             if (snapshot.StartupRecords.Count > 0)
             {
-                output.AppendLine("Startup stages:");
+                output.AppendLine(_localization.GetString(AvaloniaStringKeys.DiagnosticStartupStages));
                 foreach (var record in snapshot.StartupRecords)
                 {
-                    output.AppendLine(
-                        $"- {record.Stage}: {record.ElapsedMilliseconds} ms ({(record.Succeeded ? "ok" : "failed")})");
+                    output.AppendLine(Localized(
+                        AvaloniaStringKeys.DiagnosticStageLine,
+                        record.Stage,
+                        record.ElapsedMilliseconds,
+                        _localization.GetString(
+                            record.Succeeded
+                                ? AvaloniaStringKeys.DiagnosticSucceeded
+                                : AvaloniaStringKeys.DiagnosticFailed)));
                 }
             }
 
             if (_capabilities is not null)
             {
                 var capabilities = await _capabilities.CaptureAsync();
-                output.AppendLine("Platform capabilities:");
+                output.AppendLine(_localization.GetString(
+                    AvaloniaStringKeys.DiagnosticPlatformCapabilities));
                 foreach (var capability in capabilities)
-                    output.AppendLine($"- {capability.Name}: {capability.Status}");
+                    output.AppendLine(Localized(
+                        AvaloniaStringKeys.DiagnosticCapabilityLine,
+                        capability.Name,
+                        LocalizedCapabilityStatus(capability.Status)));
             }
 
             SupportInformation = output.ToString().TrimEnd();
             Notification.ShowPersistent(
-                "Support information refreshed. It contains no account data or filesystem paths.",
+                _localization.GetString(AvaloniaStringKeys.DiagnosticRefreshSuccess),
                 NotificationSeverity.Success);
         }
         catch (Exception)
         {
             SupportInformation = string.Empty;
             Notification.ShowPersistent(
-                "Support information could not be collected safely.",
+                _localization.GetString(AvaloniaStringKeys.DiagnosticRefreshFailed),
                 NotificationSeverity.Error);
             if (_dialogs is not null)
             {
                 try
                 {
                     await _dialogs.ShowMessageAsync(new MessageDialogRequest(
-                        "Support diagnostics unavailable",
-                        "Support information could not be collected. You can close this message and continue using the application.",
+                        _localization.GetString(AvaloniaStringKeys.DiagnosticUnavailableTitle),
+                        _localization.GetString(AvaloniaStringKeys.DiagnosticUnavailableMessage),
                         NotificationSeverity.Error,
-                        "Close"));
+                        _localization.GetString(AvaloniaStringKeys.Close)));
                 }
                 catch (Exception)
                 {
@@ -109,6 +127,22 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged
         }
 
     }
+
+    private string Localized(string key, params object[] arguments) =>
+        string.Format(_localization.GetString(key), arguments);
+
+    private string LocalizedCapabilityStatus(PlatformCapabilityStatus status) =>
+        _localization.GetString(status switch
+        {
+            PlatformCapabilityStatus.Supported => AvaloniaStringKeys.CapabilitySupported,
+            PlatformCapabilityStatus.PermanentlyUnavailable =>
+                AvaloniaStringKeys.CapabilityPermanentlyUnavailable,
+            PlatformCapabilityStatus.TemporarilyUnavailable =>
+                AvaloniaStringKeys.CapabilityTemporarilyUnavailable,
+            PlatformCapabilityStatus.Misconfigured => AvaloniaStringKeys.CapabilityMisconfigured,
+            PlatformCapabilityStatus.PermissionDenied => AvaloniaStringKeys.CapabilityPermissionDenied,
+            _ => AvaloniaStringKeys.CapabilityFailed
+        });
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {

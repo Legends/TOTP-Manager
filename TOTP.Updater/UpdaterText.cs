@@ -1,38 +1,47 @@
 using System.Globalization;
+using System.Resources;
 
 namespace TOTP.Updater;
 
 public static class UpdaterText
 {
-    private static bool IsGerman => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("de", StringComparison.OrdinalIgnoreCase);
+    private static readonly ResourceManager Resources = new(
+        "TOTP.Updater.Localization.UpdaterStrings",
+        typeof(UpdaterText).Assembly);
 
-    public static string WindowTitle => "OTP Harbor Updater";
-    public static string HeaderTitle => "OTP Harbor Updates";
-    public static string HeaderDescription => IsGerman
-        ? "Das signierte Update-Paket wird angewendet und die App neu gestartet."
-        : "Applying the signed update package and relaunching the app.";
-    public static string CurrentStep => IsGerman ? "Aktueller Schritt" : "Current step";
-    public static string OverallProgress => IsGerman ? "Gesamtfortschritt" : "Overall progress";
-    public static string Close => IsGerman ? "Schliessen" : "Close";
+    public static string WindowTitle => Get(nameof(WindowTitle));
+    public static string HeaderTitle => Get(nameof(HeaderTitle));
+    public static string HeaderDescription => Get(nameof(HeaderDescription));
+    public static string CurrentStep => Get(nameof(CurrentStep));
+    public static string OverallProgress => Get(nameof(OverallProgress));
+    public static string Close => Get(nameof(Close));
 
-    public static string InstallingUpdate => IsGerman ? "Update wird installiert" : "Installing update";
-    public static string PreparingUpdater => IsGerman ? "Updater wird vorbereitet..." : "Preparing updater...";
-    public static string ClosingApp => IsGerman ? "OTP Harbor wird geschlossen..." : "Closing OTP Harbor...";
-    public static string WaitingForAppClose => IsGerman ? "Warte, bis die App geschlossen ist..." : "Waiting for the app to close...";
-    public static string StagingPackage => IsGerman ? "Update-Paket wird vorbereitet..." : "Staging update package...";
-    public static string InstallingFiles => IsGerman ? "Dateien werden installiert..." : "Installing files...";
-    public static string RelaunchingApp => IsGerman ? "App wird neu gestartet..." : "Relaunching app...";
-    public static string FinalizingCopiedFiles => IsGerman ? "Kopierte Dateien werden abgeschlossen" : "Finalizing copied files";
-    public static string Complete100 => IsGerman ? "100% abgeschlossen" : "100% complete";
-    public static string UpdateFailedTitle => IsGerman ? "Update fehlgeschlagen" : "Update failed";
-    public static string UpdateFailedStatus => IsGerman ? "Das Update konnte nicht installiert werden." : "The update could not be installed.";
+    public static string InstallingUpdate => Get(nameof(InstallingUpdate));
+    public static string PreparingUpdater => Get(nameof(PreparingUpdater));
+    public static string ClosingApp => Get(nameof(ClosingApp));
+    public static string WaitingForAppClose => Get(nameof(WaitingForAppClose));
+    public static string StagingPackage => Get(nameof(StagingPackage));
+    public static string InstallingFiles => Get(nameof(InstallingFiles));
+    public static string RelaunchingApp => Get(nameof(RelaunchingApp));
+    public static string FinalizingCopiedFiles => Get(nameof(FinalizingCopiedFiles));
+    public static string Complete100 => Get(nameof(Complete100));
+    public static string UpdateFailedTitle => Get(nameof(UpdateFailedTitle));
+    public static string UpdateFailedStatus => Get(nameof(UpdateFailedStatus));
+    public static string UpdateFailedDetail => Get(nameof(UpdateFailedDetail));
     public static string StartupFailedTitle => WindowTitle;
-    public static string StartupFailedMessageFormat => IsGerman
-        ? "Der Update-Installer konnte nicht gestartet werden.\n\n{0}"
-        : "The update installer could not start.\n\n{0}";
+    public static string StartupFailedMessage => Get(nameof(StartupFailedMessage));
 
-    public static string FilesQueued(int count) => IsGerman ? $"{count} Datei(en) in Warteschlange" : $"{count} file(s) queued";
-    public static string ItemsQueued(int count) => IsGerman ? $"{count} Element(e) in Warteschlange" : $"{count} item(s) queued";
-    public static string FileCountProgress(int copiedFiles, int totalFiles) => IsGerman ? $"{copiedFiles}/{totalFiles} Datei(en)" : $"{copiedFiles}/{totalFiles} file(s)";
-    public static string PercentComplete(int percentage) => IsGerman ? $"{percentage}% abgeschlossen" : $"{percentage}% complete";
+    public static string FilesQueued(int count) => Format(nameof(FilesQueued), count);
+    public static string ItemsQueued(int count) => Format(nameof(ItemsQueued), count);
+    public static string FileCountProgress(int copiedFiles, int totalFiles) =>
+        Format(nameof(FileCountProgress), copiedFiles, totalFiles);
+    public static string PercentComplete(int percentage) => Format(nameof(PercentComplete), percentage);
+
+    private static string Get(string key) =>
+        Resources.GetString(key, CultureInfo.CurrentUICulture)
+        ?? Resources.GetString(key, CultureInfo.GetCultureInfo("en"))
+        ?? key;
+
+    private static string Format(string key, params object[] arguments) =>
+        string.Format(CultureInfo.CurrentUICulture, Get(key), arguments);
 }

@@ -20,6 +20,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private readonly IAvaloniaLocalizationService _localization;
     private readonly ISettingsService? _settingsService;
     private readonly SessionLockPolicyBackgroundService? _sessionLockPolicy;
+    private readonly IdleMonitoringBackgroundService? _idleLockPolicy;
     private readonly IUiScheduler? _uiScheduler;
     private readonly IAvaloniaCameraScannerDialogService _cameraScannerDialogs;
     private readonly AsyncCommand _initializeCommand;
@@ -69,7 +70,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         IAvaloniaCameraScannerDialogService cameraScannerDialogs,
         ISettingsService? settingsService = null,
         SessionLockPolicyBackgroundService? sessionLockPolicy = null,
-        IUiScheduler? uiScheduler = null)
+        IUiScheduler? uiScheduler = null,
+        IdleMonitoringBackgroundService? idleLockPolicy = null)
     {
         _startupCoordinator = startupCoordinator ?? throw new ArgumentNullException(nameof(startupCoordinator));
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
@@ -92,9 +94,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
             ?? throw new ArgumentNullException(nameof(cameraScannerDialogs));
         _settingsService = settingsService;
         _sessionLockPolicy = sessionLockPolicy;
+        _idleLockPolicy = idleLockPolicy;
         _uiScheduler = uiScheduler;
         if (_sessionLockPolicy is not null)
-            _sessionLockPolicy.ApplicationLocked += OnPlatformSessionLocked;
+            _sessionLockPolicy.ApplicationLocked += OnAutomaticLock;
+        if (_idleLockPolicy is not null)
+            _idleLockPolicy.ApplicationLocked += OnAutomaticLock;
         PasswordUnlock.Unlocked += OnUnlocked;
         PasswordSetup.Configured += OnConfigured;
         CameraScanner.AccountImported += OnAccountImported;
@@ -381,7 +386,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         NativeFilePicker.AccountsChanged -= OnAccountsChanged;
         SettingsPage.SettingsSaved -= OnSettingsSaved;
         if (_sessionLockPolicy is not null)
-            _sessionLockPolicy.ApplicationLocked -= OnPlatformSessionLocked;
+            _sessionLockPolicy.ApplicationLocked -= OnAutomaticLock;
+        if (_idleLockPolicy is not null)
+            _idleLockPolicy.ApplicationLocked -= OnAutomaticLock;
         _lifetime.Cancel();
         _lifetime.Dispose();
         Notification.Dispose();
@@ -543,7 +550,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         return LockAsync();
     }
 
-    private void OnPlatformSessionLocked(object? sender, EventArgs args)
+    private void OnAutomaticLock(object? sender, EventArgs args)
     {
         if (_uiScheduler is null)
         {

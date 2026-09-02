@@ -56,33 +56,4 @@ public sealed class AuthorizationStateTests
         Assert.Equal(PreferredUnlockMethod.Password, sut.PreferredUnlockMethod);
         Assert.Equal(AuthorizationGateKind.Password, sut.ConfiguredGate);
     }
-
-    [Theory]
-    [InlineData(AuthorizationGateKind.Password, PreferredUnlockMethod.Password)]
-    [InlineData(AuthorizationGateKind.Hello, PreferredUnlockMethod.PlatformQuickUnlock)]
-    public void SetProfile_DevelopmentAdapter_MapsLegacyGate(
-        AuthorizationGateKind gate,
-        PreferredUnlockMethod expectedPreference)
-    {
-        var sut = new AuthorizationState();
-
-        sut.SetProfile(new AuthorizationProfile { Gate = gate });
-
-        Assert.True(sut.IsConfigured);
-        Assert.Equal(expectedPreference, sut.PreferredUnlockMethod);
-        Assert.Equal(gate, sut.ConfiguredGate);
-    }
-
-    [Fact]
-    public void SetProfile_WithNullProfile_ClearsConfiguration()
-    {
-        var sut = new AuthorizationState();
-        sut.SetConfiguration(isConfigured: true, PreferredUnlockMethod.PlatformQuickUnlock);
-
-        sut.SetProfile(null);
-
-        Assert.False(sut.IsConfigured);
-        Assert.Equal(PreferredUnlockMethod.Password, sut.PreferredUnlockMethod);
-        Assert.Equal(AuthorizationGateKind.None, sut.ConfiguredGate);
-    }
 }

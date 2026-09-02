@@ -8,6 +8,17 @@ on:
   pull_request:
     branches: [master, 'release/1.x']
   workflow_dispatch:
+    inputs:
+      signpath_rehearsal:
+        description: 'Build, submit, and verify a non-published Windows signing rehearsal'
+        required: true
+        default: false
+        type: boolean
+      rehearsal_version:
+        description: 'Three-part product version used for the signing rehearsal'
+        required: true
+        default: '2.0.0'
+        type: string
 
 jobs:
   build-test:
@@ -20,7 +31,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "9.0.x"
+          dotnet-version: "10.0.x"
           cache: true
           cache-dependency-path: |
             **/*.csproj
@@ -98,7 +109,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "9.0.x"
+          dotnet-version: "10.0.x"
           cache: true
           cache-dependency-path: |
             TOTP.Core/TOTP.Core.csproj
@@ -142,7 +153,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "9.0.x"
+          dotnet-version: "10.0.x"
           cache: true
           cache-dependency-path: |
             TOTP.Tests.Avalonia.Headless/TOTP.Tests.Avalonia.Headless.csproj
@@ -181,7 +192,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "9.0.x"
+          dotnet-version: "10.0.x"
           cache: true
           cache-dependency-path: |
             TOTP.Camera.OpenCv/TOTP.Camera.OpenCv.csproj
@@ -365,6 +376,115 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
+  signpath-windows-rehearsal:
+    name: SignPath Windows rehearsal (no release)
+    needs: [build-test, unix-file-security, avalonia-ui-smoke, m3-package-probe]
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.signpath_rehearsal }}
+    runs-on: windows-2025
+    permissions:
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Validate rehearsal source and metadata
+        id: versioning
+        shell: pwsh
+        run: |
+          if ("${{ github.ref }}" -ne "refs/heads/master" -and
+              !"${{ github.ref }}".StartsWith("refs/heads/release/", [StringComparison]::Ordinal)) {
+            throw "Signing rehearsals must run from master or a release/* branch."
+          }
+          $version = "${{ inputs.rehearsal_version }}"
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "The rehearsal version must contain exactly three numeric components."
+          }
+          "release_version=$version" >> $env:GITHUB_OUTPUT
+          "file_version=$version.65534" >> $env:GITHUB_OUTPUT
+          "assembly_version=$version.0" >> $env:GITHUB_OUTPUT
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+          cache: true
+          cache-dependency-path: |
+            TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
+            NuGet.config
+
+      - name: Restore Windows release graph
+        run: >-
+          dotnet restore TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
+          --runtime win-x64
+          --nologo
+          --verbosity minimal
+          --configfile NuGet.config
+
+      - name: Publish Windows rehearsal payloads
+        shell: pwsh
+        run: |
+          $metadata = @(
+            "-p:Version=${{ steps.versioning.outputs.release_version }}",
+            "-p:InformationalVersion=${{ steps.versioning.outputs.release_version }}",
+            "-p:IncludeSourceRevisionInInformationalVersion=false",
+            "-p:FileVersion=${{ steps.versioning.outputs.file_version }}",
+            "-p:AssemblyVersion=${{ steps.versioning.outputs.assembly_version }}")
+          dotnet publish TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj `
+            --configuration Release --runtime win-x64 --self-contained true --no-restore `
+            --nologo --verbosity minimal -p:PublishSingleFile=false -p:PublishTrimmed=false `
+            -p:DebugType=None -p:DebugSymbols=false @metadata --output release-publish
+          dotnet publish TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj `
+            --configuration Release --runtime win-x64 --self-contained false --no-restore `
+            --nologo --verbosity minimal -p:PublishSingleFile=false -p:PublishTrimmed=false `
+            -p:DebugType=None -p:DebugSymbols=false @metadata --output release-fast
+          ./scripts/release/Prepare-AvaloniaReleasePayload.ps1 -PublishDirectory release-publish
+          ./scripts/release/Prepare-AvaloniaReleasePayload.ps1 -PublishDirectory release-fast
+
+      - name: Upload unsigned Windows rehearsal payload
+        id: upload-signpath-rehearsal
+        uses: actions/upload-artifact@v6
+        with:
+          name: signpath-rehearsal-unsigned-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            release-publish
+            release-fast
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Submit rehearsal payload to SignPath
+        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2.3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: totp-manager
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: windows-release-v1
+          github-artifact-id: ${{ steps.upload-signpath-rehearsal.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signpath-signed
+          parameters: |
+            version: ${{ toJSON(steps.versioning.outputs.release_version) }}
+
+      - name: Validate signed rehearsal payload
+        shell: pwsh
+        run: |
+          ./scripts/release/Apply-SignPathSignedPayload.ps1 `
+            -SignedRoot signpath-signed `
+            -TargetDirectory release-publish,release-fast `
+            -ExpectedProductVersion "${{ steps.versioning.outputs.release_version }}"
+
+      - name: Retain signed rehearsal evidence temporarily
+        uses: actions/upload-artifact@v6
+        with:
+          name: signpath-rehearsal-signed-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            release-publish
+            release-fast
+          retention-days: 1
+          if-no-files-found: error
+
   package-avalonia-release:
     name: Package Avalonia release (${{ matrix.rid }})
     needs: [build-test, unix-file-security, avalonia-ui-smoke, m3-package-probe]
@@ -393,7 +513,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "9.0.x"
+          dotnet-version: "10.0.x"
           cache: true
           cache-dependency-path: |
             TOTP.UI.Avalonia.Desktop/TOTP.UI.Avalonia.Desktop.csproj
@@ -509,34 +629,10 @@ jobs:
         if: ${{ matrix.rid == 'win-x64' && !contains(github.ref_name, '-rc') }}
         shell: pwsh
         run: |
-          $signedRoot = (Resolve-Path -LiteralPath signpath-signed).Path
-          foreach ($directoryName in @("release-publish", "release-fast")) {
-            $signedDirectory = Join-Path $signedRoot $directoryName
-            $targetDirectory = (Resolve-Path -LiteralPath $directoryName).Path
-            if (-not (Test-Path -LiteralPath $signedDirectory -PathType Container)) {
-              throw "The SignPath result is missing $directoryName."
-            }
-            Copy-Item -Path (Join-Path $signedDirectory "*") -Destination $targetDirectory -Recurse -Force
-          }
-
-          $firstPartyFiles = @(
-            Get-ChildItem release-publish,release-fast -Recurse -File |
-              Where-Object { $_.Name -match '^TOTP.*\.(exe|dll)$' }
-          )
-          if ($firstPartyFiles.Count -eq 0) {
-            throw "No first-party Windows PE files were found after signing."
-          }
-          foreach ($file in $firstPartyFiles) {
-            $signature = Get-AuthenticodeSignature -LiteralPath $file.FullName
-            if ($signature.Status -ne [System.Management.Automation.SignatureStatus]::Valid) {
-              throw "Invalid Authenticode signature on $($file.Name): $($signature.Status)."
-            }
-            $versionInfo = $file.VersionInfo
-            if ($versionInfo.ProductName -cne "OTP Harbor" -or
-                $versionInfo.ProductVersion -cne "${{ steps.versioning.outputs.release_version }}") {
-              throw "Unexpected product metadata on $($file.Name)."
-            }
-          }
+          ./scripts/release/Apply-SignPathSignedPayload.ps1 `
+            -SignedRoot signpath-signed `
+            -TargetDirectory release-publish,release-fast `
+            -ExpectedProductVersion "${{ steps.versioning.outputs.release_version }}"
 
       - name: Import macOS Developer ID certificate
         if: ${{ matrix.rid == 'osx-arm64' }}
@@ -791,7 +887,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "9.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Download all retained release artifacts
         uses: actions/download-artifact@v6

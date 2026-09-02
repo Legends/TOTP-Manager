@@ -87,7 +87,7 @@ Releases, auto-update metadata, signatures, and CI behavior are part of the prod
 ### Platform/runtime
 
 - Windows, macOS, and Linux desktop targets
-- .NET 9
+- .NET 10
 - Avalonia desktop UI
 - CI runs platform-specific jobs on Windows, macOS, and Linux
 

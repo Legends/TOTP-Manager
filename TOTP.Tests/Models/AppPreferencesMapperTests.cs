@@ -1,6 +1,5 @@
 using TOTP.Core.Enums;
 using TOTP.Core.Models;
-using TOTP.Core.Security.Models;
 
 namespace TOTP.Tests.Models;
 
@@ -9,13 +8,7 @@ public sealed class AppPreferencesMapperTests
     [Fact]
     public void FromSettings_MapsEveryReviewedPreferenceAndNoAuthorization()
     {
-        var authorization = new AuthorizationProfile
-        {
-            Gate = AuthorizationGateKind.Password,
-            PasswordSalt = [1, 2, 3],
-            PasswordWrappedDek = [4, 5, 6]
-        };
-        var settings = CreateSettings(authorization);
+        var settings = CreateSettings();
 
         var preferences = AppPreferencesMapper.FromSettings(settings);
 
@@ -38,21 +31,13 @@ public sealed class AppPreferencesMapperTests
     }
 
     [Fact]
-    public void ApplyTo_MapsEveryPreferenceAndPreservesAuthorizationReference()
+    public void ApplyTo_MapsEveryReviewedPreference()
     {
-        var authorization = new AuthorizationProfile
-        {
-            Gate = AuthorizationGateKind.Hello,
-            HelloKeyId = "synthetic-key",
-            HelloWrappedDek = [1, 2, 3]
-        };
-        var settings = new AppSettings { Authorization = authorization };
+        var settings = new AppSettings();
         var preferences = AppPreferencesV1CodecTests.CreatePreferences();
 
         AppPreferencesMapper.ApplyTo(preferences, settings);
 
-        Assert.Same(authorization, settings.Authorization);
-        Assert.Equal("synthetic-key", settings.Authorization.HelloKeyId);
         Assert.Equal("de-DE", settings.CultureName);
         Assert.Equal(AppLogLevel.Warning, settings.MinimumLogLevel);
         Assert.Equal(PreferredUnlockMethod.PlatformQuickUnlock, settings.PreferredUnlockMethod);
@@ -108,9 +93,8 @@ public sealed class AppPreferencesMapperTests
         Assert.Equal(TimeSpan.Zero, target.IdleTimeout);
     }
 
-    private static AppSettings CreateSettings(AuthorizationProfile authorization) => new()
+    private static AppSettings CreateSettings() => new()
     {
-        Authorization = authorization,
         CultureName = "de-DE",
         MinimumLogLevel = AppLogLevel.Warning,
         PreferredUnlockMethod = PreferredUnlockMethod.PlatformQuickUnlock,

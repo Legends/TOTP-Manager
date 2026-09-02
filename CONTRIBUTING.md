@@ -1,10 +1,10 @@
 # Contributing to OTP Harbor
 
-OTP Harbor is a security-sensitive .NET 9/Avalonia desktop application. Contributions should be small, testable, local-first, and explicit about failure behavior.
+OTP Harbor is a security-sensitive .NET 10/Avalonia desktop application. Contributions should be small, testable, local-first, and explicit about failure behavior.
 
 ## Setup
 
-Install Git and the .NET 9 SDK. Platform-specific UI or packaging work should also be tested on the affected operating system.
+Install Git and the .NET 10 SDK. Platform-specific UI or packaging work should also be tested on the affected operating system.
 
 ```powershell
 git clone https://github.com/Legends/otp-harbor.git

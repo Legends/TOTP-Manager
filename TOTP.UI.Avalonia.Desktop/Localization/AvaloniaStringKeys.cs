@@ -177,6 +177,82 @@ public static class AvaloniaStringKeys
     public const string NoExportFileSelected = nameof(NoExportFileSelected);
     public const string ImportCancelled = nameof(ImportCancelled);
     public const string ExportCancelled = nameof(ExportCancelled);
+    public const string ImportWorkflowFailed = nameof(ImportWorkflowFailed);
+    public const string ImportConfirmationMessage = nameof(ImportConfirmationMessage);
+    public const string ExportAccountsLoadFailed = nameof(ExportAccountsLoadFailed);
+    public const string EncryptedExportTitle = nameof(EncryptedExportTitle);
+    public const string ExportPasswordHelp = nameof(ExportPasswordHelp);
+    public const string Continue = nameof(Continue);
+    public const string ExportPasswordRequired = nameof(ExportPasswordRequired);
+    public const string ExportPasswordValidationFailed = nameof(ExportPasswordValidationFailed);
+    public const string PasswordMinimumCharacters = nameof(PasswordMinimumCharacters);
+    public const string ExportPasswordConfirmationRequired = nameof(ExportPasswordConfirmationRequired);
+    public const string ExportPasswordsMismatch = nameof(ExportPasswordsMismatch);
+    public const string EncryptedBackupWriteFailed = nameof(EncryptedBackupWriteFailed);
+    public const string BackupPermissionsUnverified = nameof(BackupPermissionsUnverified);
+    public const string EncryptedBackupCreated = nameof(EncryptedBackupCreated);
+    public const string EncryptedExportFailed = nameof(EncryptedExportFailed);
+    public const string ImportEncryptedBackupTitle = nameof(ImportEncryptedBackupTitle);
+    public const string ImportPasswordPrompt = nameof(ImportPasswordPrompt);
+    public const string UnlockBackup = nameof(UnlockBackup);
+    public const string ImportPasswordRequired = nameof(ImportPasswordRequired);
+    public const string BackupValidationFailed = nameof(BackupValidationFailed);
+    public const string BackupWrongPasswordOrModified = nameof(BackupWrongPasswordOrModified);
+    public const string BackupInvalidOrUnavailable = nameof(BackupInvalidOrUnavailable);
+    public const string ImportFileInvalid = nameof(ImportFileInvalid);
+    public const string ImportFileEmpty = nameof(ImportFileEmpty);
+    public const string ImportOutcomeComplete = nameof(ImportOutcomeComplete);
+    public const string ImportCancelledNoChanges = nameof(ImportCancelledNoChanges);
+    public const string ImportInvalidTargets = nameof(ImportInvalidTargets);
+    public const string ImportExistingAccountsUnavailable = nameof(ImportExistingAccountsUnavailable);
+    public const string ImportRecoveryBackupFailed = nameof(ImportRecoveryBackupFailed);
+    public const string ImportOutcomeFailed = nameof(ImportOutcomeFailed);
+    public const string AccountsLoadFailed = nameof(AccountsLoadFailed);
+    public const string AccountsLoadFailedSafely = nameof(AccountsLoadFailedSafely);
+    public const string CodeGenerationFailed = nameof(CodeGenerationFailed);
+    public const string CodeGenerationFailedSafely = nameof(CodeGenerationFailedSafely);
+    public const string QrGenerationFailed = nameof(QrGenerationFailed);
+    public const string QrDisplayFailed = nameof(QrDisplayFailed);
+    public const string QrPreviewUnavailable = nameof(QrPreviewUnavailable);
+    public const string QrPreviewDisplayFailed = nameof(QrPreviewDisplayFailed);
+    public const string UnlockTooManyAttempts = nameof(UnlockTooManyAttempts);
+    public const string UnlockRejected = nameof(UnlockRejected);
+    public const string UnlockFailedSafely = nameof(UnlockFailedSafely);
+    public const string TotpFiles = nameof(TotpFiles);
+    public const string SelectTotpImportFile = nameof(SelectTotpImportFile);
+    public const string ExportEncryptedTotpBackup = nameof(ExportEncryptedTotpBackup);
+    public const string EncryptedTotpBackupFile = nameof(EncryptedTotpBackupFile);
+    public const string DiagnosticPlatform = nameof(DiagnosticPlatform);
+    public const string DiagnosticArchitecture = nameof(DiagnosticArchitecture);
+    public const string DiagnosticRuntime = nameof(DiagnosticRuntime);
+    public const string DiagnosticLogDirectoryConfigured = nameof(DiagnosticLogDirectoryConfigured);
+    public const string Yes = nameof(Yes);
+    public const string No = nameof(No);
+    public const string DiagnosticStartupStages = nameof(DiagnosticStartupStages);
+    public const string DiagnosticStageLine = nameof(DiagnosticStageLine);
+    public const string DiagnosticPlatformCapabilities = nameof(DiagnosticPlatformCapabilities);
+    public const string DiagnosticCapabilityLine = nameof(DiagnosticCapabilityLine);
+    public const string DiagnosticSucceeded = nameof(DiagnosticSucceeded);
+    public const string DiagnosticFailed = nameof(DiagnosticFailed);
+    public const string DiagnosticRefreshSuccess = nameof(DiagnosticRefreshSuccess);
+    public const string DiagnosticRefreshFailed = nameof(DiagnosticRefreshFailed);
+    public const string DiagnosticUnavailableTitle = nameof(DiagnosticUnavailableTitle);
+    public const string DiagnosticUnavailableMessage = nameof(DiagnosticUnavailableMessage);
+    public const string Close = nameof(Close);
+    public const string CapabilitySessionLock = nameof(CapabilitySessionLock);
+    public const string CapabilityClipboardWrite = nameof(CapabilityClipboardWrite);
+    public const string CapabilityConditionalClipboardClear = nameof(CapabilityConditionalClipboardClear);
+    public const string CapabilityUpdateInstallation = nameof(CapabilityUpdateInstallation);
+    public const string CapabilityQuickUnlock = nameof(CapabilityQuickUnlock);
+    public const string CapabilityDeviceSecretStore = nameof(CapabilityDeviceSecretStore);
+    public const string CapabilityCamera = nameof(CapabilityCamera);
+    public const string CapabilitySupported = nameof(CapabilitySupported);
+    public const string CapabilityPermanentlyUnavailable = nameof(CapabilityPermanentlyUnavailable);
+    public const string CapabilityTemporarilyUnavailable = nameof(CapabilityTemporarilyUnavailable);
+    public const string CapabilityMisconfigured = nameof(CapabilityMisconfigured);
+    public const string CapabilityPermissionDenied = nameof(CapabilityPermissionDenied);
+    public const string CapabilityFailed = nameof(CapabilityFailed);
+    public const string Unknown = nameof(Unknown);
     public const string UpdateReadyToCheck = nameof(UpdateReadyToCheck);
     public const string UpdateChecking = nameof(UpdateChecking);
     public const string UpdateFeedVerificationFailed = nameof(UpdateFeedVerificationFailed);
@@ -249,7 +325,31 @@ public static class AvaloniaStringKeys
         OpenExportAfter, LoggingLevel,
         RevealSecret, ConcealSecret, RevealSecretHelp, RevealSecretAutomation,
         ImportSkipExisting, ImportReplaceExisting, ImportKeepBoth, NoImportFileSelected,
-        NoExportFileSelected, ImportCancelled, ExportCancelled,
+        NoExportFileSelected, ImportCancelled, ExportCancelled, ImportWorkflowFailed,
+        ImportConfirmationMessage, ExportAccountsLoadFailed, EncryptedExportTitle,
+        ExportPasswordHelp, Continue, ExportPasswordRequired, ExportPasswordValidationFailed,
+        PasswordMinimumCharacters, ExportPasswordConfirmationRequired, ExportPasswordsMismatch,
+        EncryptedBackupWriteFailed, BackupPermissionsUnverified, EncryptedBackupCreated,
+        EncryptedExportFailed, ImportEncryptedBackupTitle, ImportPasswordPrompt, UnlockBackup,
+        ImportPasswordRequired, BackupValidationFailed, BackupWrongPasswordOrModified,
+        BackupInvalidOrUnavailable, ImportFileInvalid, ImportFileEmpty, ImportOutcomeComplete,
+        ImportCancelledNoChanges, ImportInvalidTargets, ImportExistingAccountsUnavailable,
+        ImportRecoveryBackupFailed, ImportOutcomeFailed, AccountsLoadFailed,
+        AccountsLoadFailedSafely, CodeGenerationFailed, CodeGenerationFailedSafely,
+        QrGenerationFailed, QrDisplayFailed, QrPreviewUnavailable, QrPreviewDisplayFailed,
+        UnlockTooManyAttempts, UnlockRejected, UnlockFailedSafely, TotpFiles,
+        SelectTotpImportFile, ExportEncryptedTotpBackup, EncryptedTotpBackupFile,
+        DiagnosticPlatform, DiagnosticArchitecture, DiagnosticRuntime,
+        DiagnosticLogDirectoryConfigured, Yes, No, DiagnosticStartupStages,
+        DiagnosticStageLine, DiagnosticPlatformCapabilities, DiagnosticCapabilityLine,
+        DiagnosticSucceeded, DiagnosticFailed, DiagnosticRefreshSuccess,
+        DiagnosticRefreshFailed, DiagnosticUnavailableTitle, DiagnosticUnavailableMessage,
+        Close, CapabilitySessionLock, CapabilityClipboardWrite,
+        CapabilityConditionalClipboardClear, CapabilityUpdateInstallation,
+        CapabilityQuickUnlock, CapabilityDeviceSecretStore, CapabilityCamera,
+        CapabilitySupported, CapabilityPermanentlyUnavailable,
+        CapabilityTemporarilyUnavailable, CapabilityMisconfigured,
+        CapabilityPermissionDenied, CapabilityFailed, Unknown,
         UpdateReadyToCheck, UpdateChecking, UpdateFeedVerificationFailed, UpdateDisabled,
         UpdateNoneAvailable, UpdateAvailable, UpdateResponseIncomplete, UpdateCheckCancelled,
         UpdateCheckFailed, UpdateDownloading, UpdatePackageVerificationFailed,

@@ -199,6 +199,43 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
+    public async Task IdlePolicy_WhenTimeoutReached_ReturnsAuthorizedShellToLockGate()
+    {
+        var coordinator = new Mock<IAvaloniaStartupCoordinator>();
+        coordinator.Setup(value => value.InitializeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AvaloniaStartupOutcome.ReadyUnlocked);
+        var authorization = new Mock<IAuthorizationService>();
+        var state = CreateAuthorizationState(PreferredUnlockMethod.Password);
+        authorization.SetupGet(value => value.State).Returns(state);
+        authorization.Setup(value => value.Lock()).Callback(state.Lock);
+        var settings = new Mock<ISettingsService>();
+        settings.SetupGet(value => value.Current).Returns(new AppSettings
+        {
+            IdleTimeout = TimeSpan.FromMinutes(10)
+        });
+        var time = new ManualTimeProvider();
+        var idlePolicy = new IdleMonitoringBackgroundService(
+            authorization.Object,
+            settings.Object,
+            NullLogger<IdleMonitoringBackgroundService>.Instance,
+            time);
+        using var sut = CreateSut(
+            coordinator.Object,
+            authorization.Object,
+            idleLockPolicy: idlePolicy);
+        await sut.InitializeAsync();
+
+        idlePolicy.EvaluateIdlePolicy();
+        time.Advance(TimeSpan.FromMinutes(10));
+        idlePolicy.EvaluateIdlePolicy();
+
+        Assert.False(sut.IsShellVisible);
+        Assert.False(sut.IsAccountListVisible);
+        Assert.True(sut.IsPasswordUnlockVisible);
+        authorization.Verify(value => value.Lock(), Times.Once);
+    }
+
+    [Fact]
     public async Task TryQuickUnlockAsync_WhenAuthorized_ReentersShell()
     {
         var coordinator = new Mock<IAvaloniaStartupCoordinator>();
@@ -309,7 +346,7 @@ public sealed class MainWindowViewModelTests
         using var sut = new MainWindowViewModel(
             coordinator.Object,
             authorization.Object,
-            new PasswordUnlockViewModel(authorization.Object),
+            new PasswordUnlockViewModel(authorization.Object, CreateLocalization()),
             CreatePasswordSetup(authorization.Object),
             accounts,
             CreateSettingsPage(),
@@ -343,7 +380,7 @@ public sealed class MainWindowViewModelTests
         var manager = new Mock<IAccountManager>();
         manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
             .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]));
-        var password = new PasswordUnlockViewModel(authorization.Object);
+        var password = new PasswordUnlockViewModel(authorization.Object, CreateLocalization());
         using var accounts = new AccountListViewModel(
             manager.Object,
             Mock.Of<IAccountTotpService>(),
@@ -458,7 +495,7 @@ public sealed class MainWindowViewModelTests
         using var sut = new MainWindowViewModel(
             coordinator.Object,
             authorization.Object,
-            new PasswordUnlockViewModel(authorization.Object),
+            new PasswordUnlockViewModel(authorization.Object, CreateLocalization()),
             CreatePasswordSetup(authorization.Object),
             new AccountListViewModel(
                 Mock.Of<IAccountManager>(),
@@ -495,11 +532,12 @@ public sealed class MainWindowViewModelTests
         IAvaloniaCameraScannerDialogService? scannerDialogs = null,
         IAccountManager? accountManager = null,
         NativeFilePickerViewModel? nativeFilePicker = null,
-        IAvaloniaLocalizationService? localization = null) =>
+        IAvaloniaLocalizationService? localization = null,
+        IdleMonitoringBackgroundService? idleLockPolicy = null) =>
         new(
             coordinator,
             authorization,
-            new PasswordUnlockViewModel(authorization),
+            new PasswordUnlockViewModel(authorization, CreateLocalization()),
             CreatePasswordSetup(authorization),
             new AccountListViewModel(
                 accountManager ?? Mock.Of<IAccountManager>(),
@@ -516,7 +554,8 @@ public sealed class MainWindowViewModelTests
             CreateUpdateCheck(),
             CreateDiagnostics(),
             localization ?? CreateLocalization(),
-            scannerDialogs ?? Mock.Of<IAvaloniaCameraScannerDialogService>());
+            scannerDialogs ?? Mock.Of<IAvaloniaCameraScannerDialogService>(),
+            idleLockPolicy: idleLockPolicy);
 
     private sealed class TestStorageFile(string name) : INativeStorageFile
     {
@@ -528,6 +567,17 @@ public sealed class MainWindowViewModelTests
             Task.FromResult<Stream>(new MemoryStream());
         public Task DeleteAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    private sealed class ManualTimeProvider : TimeProvider
+    {
+        private long _timestamp;
+
+        public override long GetTimestamp() => _timestamp;
+
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+        public void Advance(TimeSpan duration) => _timestamp += duration.Ticks;
     }
 
     private static AuthorizationState CreateAuthorizationState(PreferredUnlockMethod preference)
@@ -594,7 +644,7 @@ public sealed class MainWindowViewModelTests
             CreateLocalization());
 
     private static DiagnosticsViewModel CreateDiagnostics() =>
-        new(Mock.Of<ISupportDiagnosticsService>());
+        new(Mock.Of<ISupportDiagnosticsService>(), CreateLocalization());
 
     private static PasswordSetupViewModel CreatePasswordSetup(IAuthorizationService authorization)
     {

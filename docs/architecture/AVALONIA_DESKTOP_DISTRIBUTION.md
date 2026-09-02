@@ -10,7 +10,7 @@
 
 macOS x64 remains outside the initial support policy because the aligned OpenCV native runtime failed the retained Intel probe. Linux AppImage and macOS PKG are not initial formats. AppImage needs a maintained D-Bus, desktop integration, and update policy; PKG adds privileged installation machinery without a current product need.
 
-The initial Windows release deliberately has no privileged MSI/EXE setup bootstrapper. Both ZIPs are extract-and-run packages: the fast artifact requires the .NET 9 desktop runtime, while the self-contained artifact carries the runtime and is the only Windows entry in `appcast-v2.xml`. Both application and updater executables are Authenticode-signed. The fast artifact remains in the signed aggregate manifest with `manual-download` policy so it cannot become a duplicate update candidate.
+The initial Windows release deliberately has no privileged MSI/EXE setup bootstrapper. Both ZIPs are extract-and-run packages: the fast artifact requires the .NET 10 desktop runtime, while the self-contained artifact carries the runtime and is the only Windows entry in `appcast-v2.xml`. Both application and updater executables are Authenticode-signed. The fast artifact remains in the signed aggregate manifest with `manual-download` policy so it cannot become a duplicate update candidate.
 
 ## macOS release procedure
 
@@ -53,7 +53,7 @@ Publish the x64 host self-contained on Ubuntu 24.04, then run:
   -ReleaseVersion 2.0.0
 ```
 
-`-FrameworkDependent` exists only for CI technical probes and adds the .NET 9 runtime dependency. Public packages should be self-contained so adding an external Microsoft package feed is not silently required.
+`-FrameworkDependent` exists only for CI technical probes and adds the .NET 10 runtime dependency. Public packages should be self-contained so adding an external Microsoft package feed is not silently required.
 
 The DEB depends on `libsecret-tools` so the Secret Service capability has a concrete client. If the desktop has no session D-Bus or supported secret collection, the app reports that capability as misconfigured/unavailable and continues with master-password authorization.
 

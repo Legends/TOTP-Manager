@@ -32,7 +32,7 @@
             IsBusy="{Binding IsBusy}">
         <Grid Background="{DynamicResource BrushWindowBackground}">
 
-            <!-- Locked and first-run presentation mirrors the compact WPF gate. -->
+            <!-- Locked and first-run presentation uses the compact authorization gate. -->
             <ScrollViewer
                 Margin="20"
                 HorizontalScrollBarVisibility="Disabled"
@@ -153,7 +153,7 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Authorized shell follows the compact WPF toolbar/list/code hierarchy. -->
+            <!-- Authorized shell uses the compact toolbar/list/code hierarchy. -->
             <Grid
                 RowDefinitions="Auto,*"
                 IsVisible="{Binding IsShellVisible}">

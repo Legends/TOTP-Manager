@@ -62,15 +62,15 @@ public sealed class AccountRow : TemplatedControl
         var accountName = AccountName.Trim();
         DisplayText = (issuer.Length, accountName.Length) switch
         {
-            (> 0, > 0) => $"{issuer} : {accountName}",
-            (> 0, 0) => issuer,
+            ( > 0, > 0) => $"{issuer} : {accountName}",
+            ( > 0, 0) => issuer,
             (0, > 0) => accountName,
             _ => string.Empty
         };
         AccessibleName = (issuer.Length, accountName.Length) switch
         {
-            (> 0, > 0) => $"{issuer}, {accountName}",
-            (> 0, 0) => issuer,
+            ( > 0, > 0) => $"{issuer}, {accountName}",
+            ( > 0, 0) => issuer,
             (0, > 0) => accountName,
             _ => "Account"
         };

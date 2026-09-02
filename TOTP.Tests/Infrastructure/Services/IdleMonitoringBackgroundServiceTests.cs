@@ -1,4 +1,3 @@
-using FluentResults;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TOTP.Core.Models;
@@ -11,69 +10,94 @@ namespace TOTP.Tests.Infrastructure.Services;
 public sealed class IdleMonitoringBackgroundServiceTests
 {
     [Fact]
-    public async Task ExecuteAsync_WhenUnlockedAndIdleTimeoutReached_CallsLock()
+    public void EvaluateIdlePolicy_WhenUnlockedAndTimeoutReached_LocksAndNotifies()
     {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var state = new AuthorizationState();
-        state.Unlock();
+        var context = CreateContext(TimeSpan.FromMinutes(10));
+        var notifications = 0;
+        context.Service.ApplicationLocked += (_, _) => notifications++;
 
-        var auth = new Mock<IAuthorizationService>();
-        auth.SetupGet(a => a.State).Returns(state);
-        auth.Setup(a => a.Lock()).Callback(state.Lock);
+        context.Service.EvaluateIdlePolicy();
+        context.Time.Advance(TimeSpan.FromMinutes(10));
+        context.Service.EvaluateIdlePolicy();
 
-        var settings = new Mock<ISettingsService>();
-        settings.SetupGet(s => s.Current).Returns(new AppSettings { IdleTimeout = TimeSpan.FromMilliseconds(100) });
-        settings.Setup(s => s.LoadAsync()).ReturnsAsync(Result.Ok<IAppSettings>(settings.Object.Current));
-
-        var logger = new Mock<ILogger<IdleMonitoringBackgroundService>>();
-        var sut = new IdleMonitoringBackgroundService(auth.Object, settings.Object, logger.Object);
-        typeof(IdleMonitoringBackgroundService)
-            .GetField("_wasUnlocked", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
-            .SetValue(sut, true);
-        typeof(IdleMonitoringBackgroundService)
-            .GetField("<LastActivity>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
-            .SetValue(sut, DateTime.UtcNow - TimeSpan.FromMinutes(1));
-
-        await sut.StartAsync(cancellationToken);
-        try
-        {
-            await Task.Delay(TimeSpan.FromSeconds(6), cancellationToken);
-        }
-        finally
-        {
-            await sut.StopAsync(cancellationToken);
-        }
-
-        auth.Verify(a => a.Lock(), Times.AtLeastOnce);
+        context.Authorization.Verify(value => value.Lock(), Times.Once);
+        Assert.Equal(1, notifications);
+        Assert.False(context.State.IsUnlocked);
     }
 
     [Fact]
-    public async Task ExecuteAsync_WhenIdleTimeoutDisabled_DoesNotLock()
+    public void RecordActivity_BeforeTimeout_RestartsIdleWindow()
     {
-        var cancellationToken = TestContext.Current.CancellationToken;
+        var context = CreateContext(TimeSpan.FromMinutes(10));
+
+        context.Service.EvaluateIdlePolicy();
+        context.Time.Advance(TimeSpan.FromMinutes(9));
+        context.Service.RecordActivity();
+        context.Time.Advance(TimeSpan.FromMinutes(9));
+        context.Service.EvaluateIdlePolicy();
+
+        context.Authorization.Verify(value => value.Lock(), Times.Never);
+
+        context.Time.Advance(TimeSpan.FromMinutes(1));
+        context.Service.EvaluateIdlePolicy();
+        context.Authorization.Verify(value => value.Lock(), Times.Once);
+    }
+
+    [Fact]
+    public void EvaluateIdlePolicy_WhenIdleTimeoutDisabled_DoesNotLock()
+    {
+        var context = CreateContext(TimeSpan.Zero);
+
+        context.Service.EvaluateIdlePolicy();
+        context.Time.Advance(TimeSpan.FromDays(1));
+        context.Service.EvaluateIdlePolicy();
+
+        context.Authorization.Verify(value => value.Lock(), Times.Never);
+    }
+
+    private static TestContext CreateContext(TimeSpan timeout)
+    {
         var state = new AuthorizationState();
         state.Unlock();
-
-        var auth = new Mock<IAuthorizationService>();
-        auth.SetupGet(a => a.State).Returns(state);
-
+        var authorization = new Mock<IAuthorizationService>();
+        authorization.SetupGet(value => value.State).Returns(state);
+        authorization.Setup(value => value.Lock()).Callback(state.Lock);
         var settings = new Mock<ISettingsService>();
-        settings.SetupGet(s => s.Current).Returns(new AppSettings { IdleTimeout = TimeSpan.Zero });
-        settings.Setup(s => s.LoadAsync()).ReturnsAsync(Result.Ok<IAppSettings>(settings.Object.Current));
-
-        var logger = new Mock<ILogger<IdleMonitoringBackgroundService>>();
-        var sut = new IdleMonitoringBackgroundService(auth.Object, settings.Object, logger.Object);
-
-        await sut.StartAsync(cancellationToken);
-        try
+        settings.SetupGet(value => value.Current).Returns(new AppSettings
         {
-            await Task.Delay(TimeSpan.FromSeconds(6), cancellationToken);
-        }
-        finally
-        {
-            await sut.StopAsync(cancellationToken);
-        }
-
-        auth.Verify(a => a.Lock(), Times.Never);
+            IdleTimeout = timeout
+        });
+        var time = new ManualTimeProvider(
+            new DateTimeOffset(2026, 9, 2, 12, 0, 0, TimeSpan.Zero));
+        var service = new IdleMonitoringBackgroundService(
+            authorization.Object,
+            settings.Object,
+            Mock.Of<ILogger<IdleMonitoringBackgroundService>>(),
+            time);
+        return new TestContext(service, authorization, state, time);
     }
+
+    private sealed class ManualTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        private DateTimeOffset _utcNow = utcNow;
+        private long _timestamp;
+
+        public override DateTimeOffset GetUtcNow() => _utcNow;
+
+        public override long GetTimestamp() => _timestamp;
+
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+        public void Advance(TimeSpan duration)
+        {
+            _utcNow = _utcNow.Add(duration);
+            _timestamp += duration.Ticks;
+        }
+    }
+
+    private sealed record TestContext(
+        IdleMonitoringBackgroundService Service,
+        Mock<IAuthorizationService> Authorization,
+        AuthorizationState State,
+        ManualTimeProvider Time);
 }

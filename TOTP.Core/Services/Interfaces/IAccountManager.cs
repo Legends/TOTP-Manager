@@ -43,5 +43,5 @@ public interface IAccountManager
     /// <returns>true/false</returns>
     Task<Result> DeleteAsync(Account item);
 
- 
+
 }

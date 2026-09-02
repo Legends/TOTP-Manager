@@ -25,14 +25,4 @@ public static class FluentResultExtensions
 
         return metadataCode == default ? AppErrorCode.Unknown : metadataCode;
     }
-
-    public static string GetTechnicalMessage(this IResultBase result)
-    {
-        if (result.IsSuccess)
-        {
-            return string.Empty;
-        }
-
-        return string.Join("; ", result.Errors.Select(error => error.Message));
-    }
 }

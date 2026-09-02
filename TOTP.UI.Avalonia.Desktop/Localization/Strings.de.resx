@@ -204,4 +204,80 @@
   <data name="UpdateInstallerStarted" xml:space="preserve"><value>Der Plattform-Installer wurde gestartet. Folgen Sie seinen Anweisungen, um das Update abzuschließen.</value></data>
   <data name="UpdateInstallCancelled" xml:space="preserve"><value>Die Update-Installation wurde abgebrochen.</value></data>
   <data name="UpdateInstallerFailedSafely" xml:space="preserve"><value>Der Plattform-Installer konnte nicht sicher gestartet werden.</value></data>
+  <data name="ImportWorkflowFailed" xml:space="preserve"><value>Der Import ist sicher fehlgeschlagen. Es wurden keine geheimen Details offengelegt.</value></data>
+  <data name="ImportConfirmationMessage" xml:space="preserve"><value>{0} Konto/Konten importieren, darunter {1} Konflikt(e), mit der Strategie „{2}“? Zuerst wird eine Wiederherstellungssicherung erstellt.</value></data>
+  <data name="ExportAccountsLoadFailed" xml:space="preserve"><value>Die Konten konnten für den Export nicht geladen werden.</value></data>
+  <data name="EncryptedExportTitle" xml:space="preserve"><value>Verschlüsselter Export</value></data>
+  <data name="ExportPasswordHelp" xml:space="preserve"><value>Erstellen und bestätigen Sie ein Passwort für diese portable verschlüsselte Sicherung. Dieses Passwort kann nicht wiederhergestellt werden.</value></data>
+  <data name="Continue" xml:space="preserve"><value>Weiter</value></data>
+  <data name="ExportPasswordRequired" xml:space="preserve"><value>Ein Exportpasswort ist erforderlich.</value></data>
+  <data name="ExportPasswordValidationFailed" xml:space="preserve"><value>Das Exportpasswort konnte nicht geprüft werden.</value></data>
+  <data name="PasswordMinimumCharacters" xml:space="preserve"><value>Verwenden Sie mindestens {0} Zeichen.</value></data>
+  <data name="ExportPasswordConfirmationRequired" xml:space="preserve"><value>Bestätigen Sie das Exportpasswort.</value></data>
+  <data name="ExportPasswordsMismatch" xml:space="preserve"><value>Die Exportpasswörter stimmen nicht überein.</value></data>
+  <data name="EncryptedBackupWriteFailed" xml:space="preserve"><value>Die verschlüsselte Sicherung konnte nicht vollständig geschrieben werden. Verwenden Sie die ausgewählte Datei nicht als Sicherung.</value></data>
+  <data name="BackupPermissionsUnverified" xml:space="preserve"><value>Die Sicherung ist verschlüsselt, aber ihre lokalen Dateiberechtigungen konnten nicht verifiziert werden.</value></data>
+  <data name="EncryptedBackupCreated" xml:space="preserve"><value>Die verschlüsselte Sicherung „{0}“ wurde erfolgreich erstellt.</value></data>
+  <data name="EncryptedExportFailed" xml:space="preserve"><value>Der verschlüsselte Export ist sicher fehlgeschlagen. Verwenden Sie keine unvollständige Ausgabedatei.</value></data>
+  <data name="ImportEncryptedBackupTitle" xml:space="preserve"><value>Verschlüsselte Sicherung importieren</value></data>
+  <data name="ImportPasswordPrompt" xml:space="preserve"><value>Geben Sie das Passwort ein, mit dem diese Sicherung erstellt wurde.</value></data>
+  <data name="UnlockBackup" xml:space="preserve"><value>Sicherung entsperren</value></data>
+  <data name="ImportPasswordRequired" xml:space="preserve"><value>Das Importpasswort ist erforderlich.</value></data>
+  <data name="BackupValidationFailed" xml:space="preserve"><value>Die Sicherung konnte nicht sicher geprüft werden.</value></data>
+  <data name="BackupWrongPasswordOrModified" xml:space="preserve"><value>Das Passwort ist falsch oder die Sicherung wurde verändert.</value></data>
+  <data name="BackupInvalidOrUnavailable" xml:space="preserve"><value>Die Sicherung ist ungültig oder nicht verfügbar.</value></data>
+  <data name="ImportFileInvalid" xml:space="preserve"><value>Die ausgewählte Importdatei ist ungültig, nicht verfügbar oder wird nicht unterstützt.</value></data>
+  <data name="ImportFileEmpty" xml:space="preserve"><value>Die ausgewählte Datei enthält keine Konten.</value></data>
+  <data name="ImportOutcomeComplete" xml:space="preserve"><value>Import abgeschlossen: {0} hinzugefügt, {1} ersetzt, {2} übersprungen, {3} fehlgeschlagen.</value></data>
+  <data name="ImportCancelledNoChanges" xml:space="preserve"><value>Import abgebrochen. Es wurden keine Daten geändert.</value></data>
+  <data name="ImportInvalidTargets" xml:space="preserve"><value>Der Import enthält ungültige oder übermäßig viele Kontodaten. Es wurden keine Daten geändert.</value></data>
+  <data name="ImportExistingAccountsUnavailable" xml:space="preserve"><value>Vorhandene Konten konnten nicht geladen werden. Es wurden keine Daten geändert.</value></data>
+  <data name="ImportRecoveryBackupFailed" xml:space="preserve"><value>Eine Wiederherstellungssicherung konnte nicht erstellt werden. Der Import wurde vor jeder Datenänderung beendet.</value></data>
+  <data name="ImportOutcomeFailed" xml:space="preserve"><value>Der Import konnte nicht sicher abgeschlossen werden.</value></data>
+  <data name="AccountsLoadFailed" xml:space="preserve"><value>Die Konten konnten nicht geladen werden. Ihre verschlüsselten Daten wurden nicht geändert.</value></data>
+  <data name="AccountsLoadFailedSafely" xml:space="preserve"><value>Die Konten konnten nicht sicher geladen werden. Versuchen Sie es erneut.</value></data>
+  <data name="CodeGenerationFailed" xml:space="preserve"><value>Für dieses Konto konnte kein Code erzeugt werden.</value></data>
+  <data name="CodeGenerationFailedSafely" xml:space="preserve"><value>Ein Code konnte nicht sicher erzeugt werden. Versuchen Sie es erneut.</value></data>
+  <data name="QrGenerationFailed" xml:space="preserve"><value>Für dieses Konto konnte kein QR-Code erzeugt werden.</value></data>
+  <data name="QrDisplayFailed" xml:space="preserve"><value>Ein QR-Code konnte nicht sicher angezeigt werden.</value></data>
+  <data name="QrPreviewUnavailable" xml:space="preserve"><value>Auf dieser Plattform ist keine QR-Code-Vorschau verfügbar.</value></data>
+  <data name="QrPreviewDisplayFailed" xml:space="preserve"><value>Der vergrößerte QR-Code konnte nicht sicher angezeigt werden.</value></data>
+  <data name="UnlockTooManyAttempts" xml:space="preserve"><value>Zu viele Versuche. Warten Sie, bevor Sie es erneut versuchen.</value></data>
+  <data name="UnlockRejected" xml:space="preserve"><value>Der Tresor konnte mit diesem Master-Passwort nicht entsperrt werden.</value></data>
+  <data name="UnlockFailedSafely" xml:space="preserve"><value>Der Tresor konnte nicht sicher entsperrt werden. Versuchen Sie es erneut.</value></data>
+  <data name="TotpFiles" xml:space="preserve"><value>TOTP-Dateien</value></data>
+  <data name="SelectTotpImportFile" xml:space="preserve"><value>TOTP-Importdatei auswählen</value></data>
+  <data name="ExportEncryptedTotpBackup" xml:space="preserve"><value>Verschlüsselte TOTP-Sicherung exportieren</value></data>
+  <data name="EncryptedTotpBackupFile" xml:space="preserve"><value>Verschlüsselte TOTP-Sicherung</value></data>
+  <data name="DiagnosticPlatform" xml:space="preserve"><value>Plattform: {0}</value></data>
+  <data name="DiagnosticArchitecture" xml:space="preserve"><value>Architektur: {0}</value></data>
+  <data name="DiagnosticRuntime" xml:space="preserve"><value>Laufzeit: {0}</value></data>
+  <data name="DiagnosticLogDirectoryConfigured" xml:space="preserve"><value>Protokollordner konfiguriert: {0}</value></data>
+  <data name="Yes" xml:space="preserve"><value>ja</value></data>
+  <data name="No" xml:space="preserve"><value>nein</value></data>
+  <data name="DiagnosticStartupStages" xml:space="preserve"><value>Startphasen:</value></data>
+  <data name="DiagnosticStageLine" xml:space="preserve"><value>- {0}: {1} ms ({2})</value></data>
+  <data name="DiagnosticPlatformCapabilities" xml:space="preserve"><value>Plattformfunktionen:</value></data>
+  <data name="DiagnosticCapabilityLine" xml:space="preserve"><value>- {0}: {1}</value></data>
+  <data name="DiagnosticSucceeded" xml:space="preserve"><value>OK</value></data>
+  <data name="DiagnosticFailed" xml:space="preserve"><value>fehlgeschlagen</value></data>
+  <data name="DiagnosticRefreshSuccess" xml:space="preserve"><value>Supportinformationen aktualisiert. Sie enthalten keine Kontodaten oder Dateisystempfade.</value></data>
+  <data name="DiagnosticRefreshFailed" xml:space="preserve"><value>Supportinformationen konnten nicht sicher erfasst werden.</value></data>
+  <data name="DiagnosticUnavailableTitle" xml:space="preserve"><value>Supportdiagnose nicht verfügbar</value></data>
+  <data name="DiagnosticUnavailableMessage" xml:space="preserve"><value>Supportinformationen konnten nicht erfasst werden. Sie können diese Meldung schließen und die Anwendung weiter verwenden.</value></data>
+  <data name="Close" xml:space="preserve"><value>Schließen</value></data>
+  <data name="CapabilitySessionLock" xml:space="preserve"><value>Sitzungssperre erkennen</value></data>
+  <data name="CapabilityClipboardWrite" xml:space="preserve"><value>In Zwischenablage schreiben</value></data>
+  <data name="CapabilityConditionalClipboardClear" xml:space="preserve"><value>Zwischenablage bedingt löschen</value></data>
+  <data name="CapabilityUpdateInstallation" xml:space="preserve"><value>Updateinstallation</value></data>
+  <data name="CapabilityQuickUnlock" xml:space="preserve"><value>Schnellentsperrung der Plattform</value></data>
+  <data name="CapabilityDeviceSecretStore" xml:space="preserve"><value>Geheimnisspeicher des Geräts</value></data>
+  <data name="CapabilityCamera" xml:space="preserve"><value>Kamera</value></data>
+  <data name="CapabilitySupported" xml:space="preserve"><value>unterstützt</value></data>
+  <data name="CapabilityPermanentlyUnavailable" xml:space="preserve"><value>dauerhaft nicht verfügbar</value></data>
+  <data name="CapabilityTemporarilyUnavailable" xml:space="preserve"><value>vorübergehend nicht verfügbar</value></data>
+  <data name="CapabilityMisconfigured" xml:space="preserve"><value>falsch konfiguriert</value></data>
+  <data name="CapabilityPermissionDenied" xml:space="preserve"><value>Berechtigung verweigert</value></data>
+  <data name="CapabilityFailed" xml:space="preserve"><value>fehlgeschlagen</value></data>
+  <data name="Unknown" xml:space="preserve"><value>unbekannt</value></data>
 </root>

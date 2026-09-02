@@ -86,7 +86,7 @@ else {
     $baseVersion
 }
 $dependencies = @("libsecret-tools", "libgl1", "libglib2.0-0")
-if ($FrameworkDependent) { $dependencies = @("dotnet-runtime-9.0") + $dependencies }
+if ($FrameworkDependent) { $dependencies = @("dotnet-runtime-10.0") + $dependencies }
 $control = @"
 Package: totp-manager
 Version: $debianVersion

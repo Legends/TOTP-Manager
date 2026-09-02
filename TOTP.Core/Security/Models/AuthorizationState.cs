@@ -34,18 +34,6 @@ public sealed class AuthorizationState
         RaiseChanged();
     }
 
-    /// <summary>
-    /// Compatibility adapter for the unpublished development-era profile flow.
-    /// </summary>
-    public void SetProfile(AuthorizationProfile? profile)
-    {
-        var isConfigured = profile?.IsConfigured == true;
-        var preferredUnlockMethod = profile?.Gate == AuthorizationGateKind.Hello
-            ? PreferredUnlockMethod.PlatformQuickUnlock
-            : PreferredUnlockMethod.Password;
-        SetConfiguration(isConfigured, preferredUnlockMethod);
-    }
-
     public void Unlock()
     {
         if (IsUnlocked) return;

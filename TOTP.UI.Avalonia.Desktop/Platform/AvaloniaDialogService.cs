@@ -4,7 +4,9 @@ using TOTP.Avalonia.Desktop.Presentation.Dialogs;
 
 namespace TOTP.Avalonia.Desktop.Platform;
 
-public sealed class AvaloniaDialogService(AvaloniaWindowCoordinator windows) : IAvaloniaDialogService
+public sealed class AvaloniaDialogService(
+    AvaloniaWindowCoordinator windows,
+    AvaloniaActivityMonitor activityMonitor) : IAvaloniaDialogService
 {
     private readonly SemaphoreSlim _dialogGate = new(1, 1);
 
@@ -22,6 +24,7 @@ public sealed class AvaloniaDialogService(AvaloniaWindowCoordinator windows) : I
             var requestedResult = false;
             viewModel.CloseRequested += Close;
             using var ownership = windows.RegisterOwnedDialog(dialog);
+            using var activity = activityMonitor.Attach(dialog);
             using var cancellation = cancellationToken.Register(
                 () => Dispatcher.UIThread.Post(() => dialog.Close(false)));
 
@@ -62,6 +65,7 @@ public sealed class AvaloniaDialogService(AvaloniaWindowCoordinator windows) : I
             string? confirmedPassword = null;
             viewModel.CloseRequested += Close;
             using var ownership = windows.RegisterOwnedDialog(dialog);
+            using var activity = activityMonitor.Attach(dialog);
             using var cancellation = cancellationToken.Register(
                 () => Dispatcher.UIThread.Post(() => dialog.Close(false)));
 
@@ -103,6 +107,7 @@ public sealed class AvaloniaDialogService(AvaloniaWindowCoordinator windows) : I
             var requestedResult = ChoiceDialogResult.Cancel;
             viewModel.CloseRequested += Close;
             using var ownership = windows.RegisterOwnedDialog(dialog);
+            using var activity = activityMonitor.Attach(dialog);
             using var cancellation = cancellationToken.Register(
                 () => Dispatcher.UIThread.Post(() => dialog.Close(ChoiceDialogResult.Cancel)));
             try

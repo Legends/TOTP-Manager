@@ -34,7 +34,7 @@ shared mount can still be used explicitly when needed:
     -MountedRepository /mnt/otp-harbor
 ```
 
-The VM requires `openssh-server`, `rsync`, `tar`, and the .NET 9 SDK. Using an
+The VM requires `openssh-server`, `rsync`, `tar`, and the .NET 10 SDK. Using an
 SSH key avoids the two password prompts needed for upload and execution.
 
 ## Ubuntu WSL2/WSLg — fast Linux development test

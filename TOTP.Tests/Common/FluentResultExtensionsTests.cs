@@ -30,17 +30,4 @@ public sealed class FluentResultExtensionsTests
 
         Assert.Equal(AppErrorCode.ImportInvalidPayload, result.GetErrorCode());
     }
-
-    [Fact]
-    public void GetTechnicalMessage_JoinsErrorsOrEmptyWhenSuccess()
-    {
-        Assert.Equal(string.Empty, Result.Ok().GetTechnicalMessage());
-
-        var result = Result.Fail("first").WithError("second");
-        var message = result.GetTechnicalMessage();
-
-        Assert.Contains("first", message);
-        Assert.Contains("second", message);
-        Assert.Contains(";", message);
-    }
 }

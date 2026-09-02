@@ -25,9 +25,11 @@ public partial class App : Application
         catch (Exception ex)
         {
             var logPath = UpdaterBootstrapSupport.TryGetArgumentValue(e.Args, "--logPath");
-            UpdaterBootstrapSupport.WriteBootstrapLog(logPath, $"updater bootstrap failed: {ex}");
+            UpdaterBootstrapSupport.WriteBootstrapLog(
+                logPath,
+                $"updater bootstrap failed; exceptionType={ex.GetType().FullName}");
             MessageBox.Show(
-                string.Format(UpdaterText.StartupFailedMessageFormat, ex.Message).Replace("\n", Environment.NewLine),
+                UpdaterText.StartupFailedMessage,
                 UpdaterText.StartupFailedTitle,
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);

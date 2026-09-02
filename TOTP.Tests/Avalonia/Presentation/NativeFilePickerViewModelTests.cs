@@ -1,5 +1,6 @@
 using FluentResults;
 using Moq;
+using Avalonia.Controls;
 using TOTP.Avalonia.Desktop.Localization;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation;
@@ -28,7 +29,7 @@ public sealed class NativeFilePickerViewModelTests
 
         await sut.ImportAsync();
 
-        Assert.Equal(AvaloniaStringKeys.NoImportFileSelected, sut.Message);
+        Assert.Equal("No import file selected.", sut.Message);
         Assert.Equal(NotificationSeverity.Information, sut.MessageSeverity);
         await Task.Delay(100, TestContext.Current.CancellationToken);
         Assert.Empty(sut.Message);
@@ -54,7 +55,7 @@ public sealed class NativeFilePickerViewModelTests
 
         await sut.ExportEncryptedAsync();
 
-        Assert.Equal(AvaloniaStringKeys.ExportCancelled, sut.Message);
+        Assert.Equal("Export cancelled.", sut.Message);
         Assert.Equal(NotificationSeverity.Information, sut.MessageSeverity);
         await Task.Delay(100, TestContext.Current.CancellationToken);
         Assert.Empty(sut.Message);
@@ -263,10 +264,11 @@ public sealed class NativeFilePickerViewModelTests
 
     private static IAvaloniaLocalizationService Localization()
     {
-        var localization = new Mock<IAvaloniaLocalizationService>();
-        localization.Setup(value => value.GetString(It.IsAny<string>()))
-            .Returns((string key) => key);
-        return localization.Object;
+        var localization = new AvaloniaLocalizationService(
+            new ResourceDictionary(),
+            new AvaloniaStringCatalog());
+        localization.ApplyCulture("en");
+        return localization;
     }
 
     private sealed class TestStorageFile(

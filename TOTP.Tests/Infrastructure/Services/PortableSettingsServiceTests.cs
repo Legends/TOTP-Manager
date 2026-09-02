@@ -25,11 +25,10 @@ public sealed class PortableSettingsServiceTests
         Assert.Same(sut.Current, result.Value);
         Assert.Equal("en", result.Value.CultureName);
         Assert.Equal(PreferredUnlockMethod.Password, result.Value.PreferredUnlockMethod);
-        Assert.False(result.Value.Authorization.IsConfigured);
     }
 
     [Fact]
-    public async Task LoadAsync_AppliesPortablePreferencesWithoutAuthorizationState()
+    public async Task LoadAsync_AppliesPortablePreferences()
     {
         var preferences = new AppPreferencesV1
         {
@@ -66,7 +65,6 @@ public sealed class PortableSettingsServiceTests
         Assert.False(result.Value.ExportEncrypt);
         Assert.False(result.Value.OpenExportFileAfterExport);
         Assert.False(result.Value.HideSecretsByDefault);
-        Assert.False(result.Value.Authorization.IsConfigured);
     }
 
     [Fact]
@@ -125,16 +123,6 @@ public sealed class PortableSettingsServiceTests
         using var sut = CreateSut(store);
         sut.Current.CultureName = "de-DE";
         sut.Current.PreferredUnlockMethod = PreferredUnlockMethod.PlatformQuickUnlock;
-        sut.Current.Authorization = new AuthorizationProfile
-        {
-            Gate = AuthorizationGateKind.Password,
-            PasswordSalt = Enumerable.Repeat((byte)1, 16).ToArray(),
-            PasswordWrappedDek = Enumerable.Repeat((byte)2, 48).ToArray(),
-            DekNonce = Enumerable.Repeat((byte)3, 12).ToArray(),
-            ArgonIterations = 3,
-            ArgonMemorySize = 65536
-        };
-
         var result = await sut.SaveAsync();
 
         Assert.True(result.IsSuccess);

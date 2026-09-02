@@ -31,7 +31,7 @@
             </Border>
             <Button
                 Grid.Column="2"
-                automation:AutomationProperties.Name="Close"
+                automation:AutomationProperties.Name="{DynamicResource Close}"
                 Classes="titlebar-close"
                 Click="CloseWindow">
                 <Path

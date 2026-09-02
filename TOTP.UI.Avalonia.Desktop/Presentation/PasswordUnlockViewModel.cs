@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using TOTP.Avalonia.Desktop.Localization;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 
@@ -9,15 +10,19 @@ namespace TOTP.Avalonia.Desktop.Presentation;
 public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
 {
     private readonly IAuthorizationService _authorizationService;
+    private readonly IAvaloniaLocalizationService _localization;
     private readonly AsyncCommand _unlockCommand;
     private string _password = string.Empty;
     private string _message = string.Empty;
     private bool _isBusy;
 
-    public PasswordUnlockViewModel(IAuthorizationService authorizationService)
+    public PasswordUnlockViewModel(
+        IAuthorizationService authorizationService,
+        IAvaloniaLocalizationService localization)
     {
         _authorizationService = authorizationService
             ?? throw new ArgumentNullException(nameof(authorizationService));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _unlockCommand = new AsyncCommand(UnlockAsync, () => !_isBusy && _password.Length > 0);
     }
 
@@ -78,12 +83,12 @@ public sealed class PasswordUnlockViewModel : INotifyPropertyChanged
             }
 
             Message = result == AuthorizationResult.TooManyAttempts
-                ? "Too many attempts. Wait before trying again."
-                : "The master password could not unlock this vault.";
+                ? _localization.GetString(AvaloniaStringKeys.UnlockTooManyAttempts)
+                : _localization.GetString(AvaloniaStringKeys.UnlockRejected);
         }
         catch (Exception)
         {
-            Message = "The vault could not be unlocked safely. Try again.";
+            Message = _localization.GetString(AvaloniaStringKeys.UnlockFailedSafely);
         }
         finally
         {

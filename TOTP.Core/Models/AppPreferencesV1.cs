@@ -48,11 +48,13 @@ public sealed record AppPreferencesV1
     public int InterfaceScalePercent { get; init; }
 
     [JsonPropertyName("exportEncrypt")]
+    // Retained in the strict version-1 wire contract for existing preference files.
     public bool ExportEncrypt { get; init; } = true;
 
     [JsonPropertyName("openExportFileAfterExport")]
     public bool OpenExportFileAfterExport { get; init; } = true;
 
     [JsonPropertyName("hideSecretsByDefault")]
+    // Retained in the strict version-1 wire contract for existing preference files.
     public bool HideSecretsByDefault { get; init; } = true;
 }

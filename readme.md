@@ -61,7 +61,7 @@ Stable Windows releases require reviewed Authenticode signing and verification a
 
 ## Build
 
-Install the .NET 9 SDK, then run:
+Install the .NET 10 SDK, then run:
 
 ```powershell
 git clone https://github.com/Legends/otp-harbor.git

@@ -6,7 +6,8 @@ using TOTP.Avalonia.Desktop.Presentation.Dialogs;
 namespace TOTP.Avalonia.Desktop.Platform;
 
 public sealed class AvaloniaQrPreviewDialogService(
-    AvaloniaWindowCoordinator windows) : IAvaloniaQrPreviewDialogService
+    AvaloniaWindowCoordinator windows,
+    AvaloniaActivityMonitor activityMonitor) : IAvaloniaQrPreviewDialogService
 {
     private readonly SemaphoreSlim _dialogGate = new(1, 1);
     private readonly object _gate = new();
@@ -42,6 +43,7 @@ public sealed class AvaloniaQrPreviewDialogService(
             };
             lock (_gate) _currentDialog = dialog;
             using var ownership = windows.RegisterOwnedDialog(dialog);
+            using var activity = activityMonitor.Attach(dialog);
             using var cancellation = cancellationToken.Register(Close);
             try
             {

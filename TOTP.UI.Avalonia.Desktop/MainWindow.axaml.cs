@@ -30,6 +30,8 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _heightAnimationLifetime;
     private SettingsWindow? _settingsWindow;
     private IDisposable? _settingsWindowRegistration;
+    private IDisposable? _mainWindowActivityRegistration;
+    private IDisposable? _settingsActivityRegistration;
     private bool _allowSettingsWindowClose;
     private Screen? _sizeLimitScreen;
     private PixelRect _sizeLimitWorkingArea;
@@ -37,6 +39,7 @@ public partial class MainWindow : Window
 
     public AvaloniaClipboardAccessor? ClipboardAccessor { get; init; }
     public AvaloniaWindowCoordinator? WindowCoordinator { get; init; }
+    public AvaloniaActivityMonitor? ActivityMonitor { get; init; }
 
     public MainWindow()
     {
@@ -49,6 +52,7 @@ public partial class MainWindow : Window
     {
         base.OnOpened(e);
         WindowCoordinator?.RegisterMainWindow(this);
+        _mainWindowActivityRegistration = ActivityMonitor?.Attach(this);
         if (Clipboard is not null)
             ClipboardAccessor?.Set(Clipboard);
         Screens.Changed += ScreensChanged;
@@ -67,6 +71,8 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         ObserveViewModel(null);
+        _mainWindowActivityRegistration?.Dispose();
+        _mainWindowActivityRegistration = null;
         _heightAnimationLifetime?.Cancel();
         Screens.Changed -= ScreensChanged;
         CloseSettingsWindow();
@@ -263,6 +269,7 @@ public partial class MainWindow : Window
 
             _settingsWindow = CreateSettingsWindow(_observedViewModel);
             _settingsWindowRegistration = WindowCoordinator?.RegisterOwnedDialog(_settingsWindow);
+            _settingsActivityRegistration = ActivityMonitor?.Attach(_settingsWindow);
             _ = _settingsWindow.ShowDialog(this);
             return;
         }
@@ -291,6 +298,8 @@ public partial class MainWindow : Window
     {
         _settingsWindowRegistration?.Dispose();
         _settingsWindowRegistration = null;
+        _settingsActivityRegistration?.Dispose();
+        _settingsActivityRegistration = null;
         if (_settingsWindow is null) return;
 
         _allowSettingsWindowClose = true;

@@ -95,6 +95,16 @@ Note:
 After running, verify in GitHub:
 `Settings -> Branches -> Branch protection rules` (or Rulesets if your org uses rulesets).
 
+## Release tag protection
+
+Create an active repository ruleset targeting `refs/tags/v*` that restricts tag updates and deletions. Stable and release-candidate tags are immutable release evidence: correct a failed release with a new version or RC number instead of moving an existing tag.
+
+Verify the active ruleset before a stable release:
+
+```powershell
+gh api repos/Legends/otp-harbor/rulesets
+```
+
 ## Disable Branch Protection (Script)
 If you need to temporarily remove branch protection:
 

@@ -12,7 +12,7 @@ public sealed class BusyOverlay : ContentControl
     public static readonly StyledProperty<string> BusyMessageProperty =
         AvaloniaProperty.Register<BusyOverlay, string>(
             nameof(BusyMessage),
-            "Working safely…");
+            string.Empty);
 
     static BusyOverlay()
     {
