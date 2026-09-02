@@ -48,7 +48,7 @@ public sealed class MobileShellViewModelTests
     }
 
     [Fact]
-    public async Task OnEnteredBackground_WhenUnlocked_LocksAndClearsAccountProjection()
+    public async Task OnEnteredBackground_WhenDeviceIsLocked_LocksAndClearsAccountProjection()
     {
         var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user@example.test");
         var context = CreateContext(isConfigured: true, [account]);
@@ -63,12 +63,65 @@ public sealed class MobileShellViewModelTests
         context.Sut.UnlockPassword = "synthetic password";
         await context.Sut.UnlockAsync();
 
-        context.Sut.OnEnteredBackground();
+        context.Sut.OnEnteredBackground(lockImmediately: true);
 
         context.Authorization.Verify(value => value.Lock(), Times.Once);
         Assert.True(context.Sut.IsUnlockVisible);
         Assert.Empty(context.Sut.Accounts);
         Assert.Empty(context.Sut.SelectedCode);
+        Assert.Null(context.Sut.SelectedAccount);
+    }
+
+    [Fact]
+    public async Task OnReturnedToForeground_WithinGracePeriod_RemainsUnlocked()
+    {
+        var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user@example.test");
+        var context = CreateContext(isConfigured: true, [account]);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.AccountTotp
+            .Setup(value => value.GenerateAsync(account.ID))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 20, 30)));
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+
+        Assert.Equal("123456", context.Sut.SelectedCode);
+        context.Sut.OnEnteredBackground(lockImmediately: false);
+        Assert.Empty(context.Sut.SelectedCode);
+        context.Time.Advance(TimeSpan.FromSeconds(29));
+        context.Sut.OnReturnedToForeground();
+
+        context.Authorization.Verify(value => value.Lock(), Times.Never);
+        Assert.True(context.Sut.IsAccountsVisible);
+        Assert.Single(context.Sut.Accounts);
+    }
+
+    [Fact]
+    public async Task OnReturnedToForeground_WhenGracePeriodExpired_LocksAndClearsAccountProjection()
+    {
+        var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user@example.test");
+        var context = CreateContext(isConfigured: true, [account]);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.AccountTotp
+            .Setup(value => value.GenerateAsync(account.ID))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 20, 30)));
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+
+        context.Sut.OnEnteredBackground(lockImmediately: false);
+        context.Time.Advance(TimeSpan.FromSeconds(30));
+        context.Sut.OnReturnedToForeground();
+
+        context.Authorization.Verify(value => value.Lock(), Times.Once);
+        Assert.True(context.Sut.IsUnlockVisible);
+        Assert.Empty(context.Sut.Accounts);
         Assert.Null(context.Sut.SelectedAccount);
     }
 
@@ -185,6 +238,7 @@ public sealed class MobileShellViewModelTests
             .Returns(Path.Combine(Path.GetTempPath(), $"missing-{Guid.NewGuid():N}.bin"));
 
         var strings = new MobileStringCatalog(CultureInfo.GetCultureInfo("en"));
+        var time = new ManualTimeProvider();
         var sut = new MobileShellViewModel(
             authorization.Object,
             passwordValidation.Object,
@@ -193,14 +247,16 @@ public sealed class MobileShellViewModelTests
             clipboard.Object,
             settings.Object,
             paths.Object,
-            strings);
+            strings,
+            time);
         return new TestContext(
             sut,
             state,
             authorization,
             accountManager,
             accountTotp,
-            strings);
+            strings,
+            time);
     }
 
     private sealed record TestContext(
@@ -209,5 +265,16 @@ public sealed class MobileShellViewModelTests
         Mock<IAuthorizationService> Authorization,
         Mock<IAccountManager> AccountManager,
         Mock<IAccountTotpService> AccountTotp,
-        MobileStringCatalog Strings);
+        MobileStringCatalog Strings,
+        ManualTimeProvider Time);
+
+    private sealed class ManualTimeProvider : TimeProvider
+    {
+        private long _timestamp;
+
+        public override long GetTimestamp() => _timestamp;
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+        public void Advance(TimeSpan duration) => _timestamp += duration.Ticks;
+    }
 }

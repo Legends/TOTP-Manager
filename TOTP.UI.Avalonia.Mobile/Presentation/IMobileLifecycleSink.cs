@@ -2,5 +2,6 @@ namespace TOTP.Avalonia.Mobile.Presentation;
 
 public interface IMobileLifecycleSink
 {
-    void OnEnteredBackground();
+    void OnEnteredBackground(bool lockImmediately);
+    void OnReturnedToForeground();
 }

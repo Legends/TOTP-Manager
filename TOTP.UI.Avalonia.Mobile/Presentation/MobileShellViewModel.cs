@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Windows.Input;
+using Avalonia.Threading;
 using TOTP.Avalonia.Mobile.Localization;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
@@ -17,6 +18,8 @@ public sealed class MobileShellViewModel :
     IMobileLifecycleSink,
     IDisposable
 {
+    private static readonly TimeSpan BackgroundLockGracePeriod = TimeSpan.FromSeconds(30);
+
     private readonly IAuthorizationService _authorization;
     private readonly IPasswordValidationService _passwordValidation;
     private readonly IAccountManager _accountManager;
@@ -25,6 +28,7 @@ public sealed class MobileShellViewModel :
     private readonly ISettingsService _settings;
     private readonly IPlatformApplicationPaths _paths;
     private readonly MobileStringCatalog _strings;
+    private readonly TimeProvider _timeProvider;
     private readonly MobileAsyncCommand _initializeCommand;
     private readonly MobileAsyncCommand _configureCommand;
     private readonly MobileAsyncCommand _unlockCommand;
@@ -57,6 +61,8 @@ public sealed class MobileShellViewModel :
     private string _editorAccountName = string.Empty;
     private string _editorSecret = string.Empty;
     private CancellationTokenSource? _codeLifetime;
+    private long? _backgroundedAtTimestamp;
+    private ITimer? _backgroundLockTimer;
     private bool _disposed;
 
     public MobileShellViewModel(
@@ -67,7 +73,8 @@ public sealed class MobileShellViewModel :
         IAsyncClipboardService clipboard,
         ISettingsService settings,
         IPlatformApplicationPaths paths,
-        MobileStringCatalog strings)
+        MobileStringCatalog strings,
+        TimeProvider timeProvider)
     {
         _authorization = authorization ?? throw new ArgumentNullException(nameof(authorization));
         _passwordValidation = passwordValidation
@@ -78,6 +85,7 @@ public sealed class MobileShellViewModel :
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _paths = paths ?? throw new ArgumentNullException(nameof(paths));
         _strings = strings ?? throw new ArgumentNullException(nameof(strings));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
 
         _initializeCommand = new MobileAsyncCommand(InitializeAsync, () => !IsBusy);
         _configureCommand = new MobileAsyncCommand(ConfigureAsync, () => IsSetupVisible && !IsBusy);
@@ -664,15 +672,48 @@ public sealed class MobileShellViewModel :
         }
     }
 
-    public void OnEnteredBackground()
+    public void OnEnteredBackground(bool lockImmediately)
     {
-        if (_authorization.State.IsUnlocked) LockCore();
+        if (!_authorization.State.IsUnlocked || _disposed) return;
+
+        CancelCodeRefresh();
+        if (lockImmediately)
+        {
+            LockCore();
+            return;
+        }
+
+        CancelBackgroundLockTimer();
+        _backgroundedAtTimestamp = _timeProvider.GetTimestamp();
+        _backgroundLockTimer = _timeProvider.CreateTimer(
+            static state => ((MobileShellViewModel)state!).PostBackgroundLockCheck(),
+            this,
+            BackgroundLockGracePeriod,
+            Timeout.InfiniteTimeSpan);
+    }
+
+    public void OnReturnedToForeground()
+    {
+        if (_disposed || !_backgroundedAtTimestamp.HasValue) return;
+
+        var elapsed = _timeProvider.GetElapsedTime(_backgroundedAtTimestamp.Value);
+        _backgroundedAtTimestamp = null;
+        CancelBackgroundLockTimer();
+        if (elapsed >= BackgroundLockGracePeriod)
+        {
+            LockCore();
+            return;
+        }
+
+        if (_authorization.State.IsUnlocked)
+            StartCodeRefresh(SelectedAccount);
     }
 
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
+        CancelBackgroundLockTimer();
         CancelCodeRefresh();
         ClearEditor();
         Accounts.Clear();
@@ -767,6 +808,8 @@ public sealed class MobileShellViewModel :
     private void LockCore()
     {
         if (_disposed) return;
+        _backgroundedAtTimestamp = null;
+        CancelBackgroundLockTimer();
         _authorization.Lock();
         CancelCodeRefresh();
         ClearEditor();
@@ -790,6 +833,25 @@ public sealed class MobileShellViewModel :
         lifetime?.Cancel();
         SelectedCode = string.Empty;
         RemainingSeconds = 0;
+    }
+
+    private void PostBackgroundLockCheck()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_disposed || !_backgroundedAtTimestamp.HasValue) return;
+            if (_timeProvider.GetElapsedTime(_backgroundedAtTimestamp.Value)
+                >= BackgroundLockGracePeriod)
+            {
+                LockCore();
+            }
+        });
+    }
+
+    private void CancelBackgroundLockTimer()
+    {
+        _backgroundLockTimer?.Dispose();
+        _backgroundLockTimer = null;
     }
 
     private void ClearEditor()

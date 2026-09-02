@@ -26,6 +26,7 @@ internal static class AndroidCompositionRoot
 
         services.AddSingleton(context);
         services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IPlatformApplicationPaths>(paths);
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Warning));
         services.AddSingleton<IPlatformQuickUnlock, UnavailablePlatformQuickUnlock>();

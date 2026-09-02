@@ -36,9 +36,14 @@ public class OtpHarborApplication : AvaloniaAndroidApplication<MobileApp>
         });
     }
 
-    public void NotifyEnteredBackground()
+    public void NotifyEnteredBackground(bool lockImmediately)
     {
-        _services?.GetService<IMobileLifecycleSink>()?.OnEnteredBackground();
+        _services?.GetService<IMobileLifecycleSink>()?.OnEnteredBackground(lockImmediately);
+    }
+
+    public void NotifyReturnedToForeground()
+    {
+        _services?.GetService<IMobileLifecycleSink>()?.OnReturnedToForeground();
     }
 
     public override void OnTerminate()

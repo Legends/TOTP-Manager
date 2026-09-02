@@ -12,8 +12,8 @@ The current Android application provides:
 - account listing, manual creation, editing, and deletion
 - TOTP generation and countdown display
 - conditional clipboard clearing without retaining the copied code as adapter state
-- automatic locking and clearing of the in-memory account projection when the app enters the
-  background
+- a 30-second background grace period for normal app switching, with immediate code removal and
+  immediate locking on device lock
 - English and German localization
 - private Android application storage with verified owner-only Unix permissions
 - disabled Android backup and cleartext network traffic
@@ -71,7 +71,11 @@ before the first store publication because a published application ID is effecti
 - **Data-flow impact:** the existing authorization, encryption, vault, account, settings, TOTP, and
   clipboard services now process production data on Android. Files stay below the private app data
   root. Copied codes enter the system clipboard, are marked sensitive on Android 13 and newer, and
-  are conditionally cleared according to the existing setting.
+  are conditionally cleared according to the existing setting. A normal app switch retains the
+  in-memory vault key for no more than the 30-second grace period while immediately removing the
+  displayed code. The foreground transition re-evaluates the deadline using monotonic time because
+  Android may suspend background execution. Device lock, explicit lock, and process termination do
+  not receive this grace period.
 - **Compatibility impact:** the Android projects remain outside `TOTP.sln`. The infrastructure
   dependency on `NSec.Cryptography` was upgraded from 25.4.0 to 26.4.0 for current Android native
   runtime and 16 KB page-size support; vault formats and cryptographic algorithms were not changed.
@@ -80,7 +84,25 @@ before the first store publication because a published application ID is effecti
 - **Recovery impact:** password unlock remains the only Android recovery and authorization method in
   this slice. Android backup is intentionally unavailable; deleting app data deletes the local
   vault. Users must not treat this development build as the sole copy of an authenticator account.
-- **Test evidence:** localized resource completeness and mobile startup, locking, account projection,
-  and account validation behavior have automated coverage. Debug and Release Android builds plus
+- **Test evidence:** localized resource completeness and mobile startup, immediate device locking,
+  background grace-period expiry, account projection, and account validation behavior have
+  automated coverage. Debug and Release Android builds plus
   desktop regression tests must remain green. Private storage, NSec runtime behavior, lifecycle
-  transitions, and clipboard clearing still require physical-device verification.
+  transitions, and clipboard clearing have initial physical-device evidence and still require a
+  broader supported-device matrix before release.
+
+## Physical-device evidence
+
+An Android 16 ARM64 device was used for the first development-MVP verification on 2026-09-02:
+
+- password setup, unlock, process restart, and encrypted account persistence succeeded
+- owner-only `0700` directory and `0600` vault-file permissions were confirmed without reading file
+  contents
+- a public test seed produced the same TOTP as an independent Otp.NET calculation
+- conditional clipboard clearing succeeded after 15 seconds
+- a 10-second app switch preserved the session, a 35-second switch locked it, and device locking
+  caused an immediate app lock
+- the app remained free of Android crash-buffer entries throughout the completed workflow
+
+This evidence applies to the development APK and does not replace release-signing, biometric,
+camera, import/export, upgrade, or broader device-matrix verification.
