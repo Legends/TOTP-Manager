@@ -49,7 +49,8 @@ To install on one USB-connected, authorized Android device and launch the app:
 ```
 
 The script performs an in-place development APK install and does not clear app data. USB debugging
-must be enabled and the computer must be authorized on the device.
+must be enabled and the computer must be authorized on the device. Development APKs embed their
+managed assemblies and therefore do not depend on IDE-specific Android Fast Deployment state.
 
 ## Branch and merge policy
 

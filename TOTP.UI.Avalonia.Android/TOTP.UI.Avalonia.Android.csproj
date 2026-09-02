@@ -12,6 +12,7 @@
     <ApplicationDisplayVersion>0.1.0-dev</ApplicationDisplayVersion>
     <AndroidPackageFormats Condition="'$(Configuration)' == 'Debug'">apk</AndroidPackageFormats>
     <AndroidPackageFormats Condition="'$(Configuration)' == 'Release'">aab;apk</AndroidPackageFormats>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\TOTP.Core\totp-sign-key.snk</AssemblyOriginatorKeyFile>
