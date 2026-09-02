@@ -1,0 +1,24 @@
+<UserControl
+    x:Class="TOTP.Avalonia.Mobile.Views.MainView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:TOTP.Avalonia.Shared.Controls"
+    Background="{DynamicResource BrushWindowBackground}">
+    <Grid Margin="24">
+        <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="16">
+            <controls:SymbolIcon
+                HorizontalAlignment="Center"
+                Foreground="{DynamicResource BrushAccent}"
+                IconSize="64"
+                Kind="Lock" />
+            <TextBlock
+                Foreground="{DynamicResource BrushTextPrimary}"
+                FontSize="28"
+                FontWeight="SemiBold"
+                Text="OTP Harbor" />
+        </StackPanel>
+    </Grid>
+</UserControl>
