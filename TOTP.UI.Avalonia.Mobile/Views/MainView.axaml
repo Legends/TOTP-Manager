@@ -2,23 +2,286 @@
     x:Class="TOTP.Avalonia.Mobile.Views.MainView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:automation="using:Avalonia.Automation"
     xmlns:controls="using:TOTP.Avalonia.Shared.Controls"
+    xmlns:vm="using:TOTP.Avalonia.Mobile.Presentation"
+    x:DataType="vm:MobileShellViewModel"
     Background="{DynamicResource BrushWindowBackground}">
-    <Grid Margin="24">
-        <StackPanel
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Spacing="16">
-            <controls:SymbolIcon
-                HorizontalAlignment="Center"
-                Foreground="{DynamicResource BrushAccent}"
-                IconSize="64"
-                Kind="Lock" />
-            <TextBlock
-                Foreground="{DynamicResource BrushTextPrimary}"
-                FontSize="28"
-                FontWeight="SemiBold"
-                Text="OTP Harbor" />
-        </StackPanel>
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Border
+            Grid.Row="0"
+            Background="{DynamicResource BrushSurface}"
+            BorderBrush="{DynamicResource BrushBorder}"
+            BorderThickness="0,0,0,1"
+            Padding="20,14">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <controls:SymbolIcon
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Foreground="{DynamicResource BrushAccent}"
+                    IconSize="32"
+                    Kind="Lock" />
+                <TextBlock
+                    Grid.Column="1"
+                    Margin="12,0,0,0"
+                    VerticalAlignment="Center"
+                    Foreground="{DynamicResource BrushTextPrimary}"
+                    FontSize="24"
+                    FontWeight="SemiBold"
+                    Text="OTP Harbor" />
+                <Button
+                    Grid.Column="2"
+                    automation:AutomationProperties.Name="{Binding LockText}"
+                    Classes="secondary"
+                    Command="{Binding LockCommand}"
+                    Content="{Binding LockText}"
+                    IsVisible="{Binding IsAccountsVisible}" />
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1">
+            <Grid
+                MaxWidth="720"
+                Margin="20"
+                HorizontalAlignment="Stretch">
+                <StackPanel
+                    HorizontalAlignment="Stretch"
+                    IsVisible="{Binding IsStartingVisible}"
+                    Spacing="18"
+                    VerticalAlignment="Center">
+                    <ProgressBar IsIndeterminate="True" />
+                    <TextBlock
+                        Foreground="{DynamicResource BrushTextSecondary}"
+                        Text="{Binding StartingText}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                    <Button
+                        Classes="wide primary"
+                        Command="{Binding InitializeCommand}"
+                        Content="{Binding RetryText}"
+                        IsVisible="{Binding CanRetry}" />
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Stretch"
+                    IsVisible="{Binding IsSetupVisible}"
+                    Spacing="14">
+                    <TextBlock
+                        FontSize="26"
+                        FontWeight="SemiBold"
+                        Text="{Binding SetupTitle}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Foreground="{DynamicResource BrushTextSecondary}"
+                        Text="{Binding SetupDescription}"
+                        TextWrapping="Wrap" />
+                    <TextBox
+                        automation:AutomationProperties.Name="{Binding MasterPasswordText}"
+                        PasswordChar="●"
+                        PlaceholderText="{Binding MasterPasswordText}"
+                        Text="{Binding SetupPassword, Mode=TwoWay}" />
+                    <TextBox
+                        automation:AutomationProperties.Name="{Binding ConfirmPasswordText}"
+                        PasswordChar="●"
+                        PlaceholderText="{Binding ConfirmPasswordText}"
+                        Text="{Binding SetupConfirmation, Mode=TwoWay}" />
+                    <Button
+                        Classes="wide primary"
+                        Command="{Binding ConfigureCommand}"
+                        Content="{Binding CreateVaultText}" />
+                </StackPanel>
+
+                <StackPanel
+                    HorizontalAlignment="Stretch"
+                    IsVisible="{Binding IsUnlockVisible}"
+                    Spacing="14">
+                    <TextBlock
+                        FontSize="26"
+                        FontWeight="SemiBold"
+                        Text="{Binding UnlockTitle}" />
+                    <TextBlock
+                        Foreground="{DynamicResource BrushTextSecondary}"
+                        Text="{Binding UnlockDescription}"
+                        TextWrapping="Wrap" />
+                    <TextBox
+                        automation:AutomationProperties.Name="{Binding MasterPasswordText}"
+                        PasswordChar="●"
+                        PlaceholderText="{Binding MasterPasswordText}"
+                        Text="{Binding UnlockPassword, Mode=TwoWay}" />
+                    <Button
+                        Classes="wide primary"
+                        Command="{Binding UnlockCommand}"
+                        Content="{Binding UnlockText}" />
+                </StackPanel>
+
+                <Grid IsVisible="{Binding IsAccountsVisible}">
+                    <StackPanel
+                        HorizontalAlignment="Stretch"
+                        IsVisible="{Binding IsAccountListVisible}"
+                        Spacing="14">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                FontSize="26"
+                                FontWeight="SemiBold"
+                                Text="{Binding AccountsTitle}" />
+                            <Button
+                                Grid.Column="1"
+                                Classes="primary"
+                                Command="{Binding BeginAddCommand}"
+                                Content="{Binding AddAccountText}" />
+                        </Grid>
+
+                        <TextBlock
+                            Foreground="{DynamicResource BrushTextSecondary}"
+                            IsVisible="{Binding HasNoAccounts}"
+                            Text="{Binding NoAccountsText}"
+                            TextWrapping="Wrap" />
+
+                        <ListBox
+                            MaxHeight="360"
+                            IsVisible="{Binding HasAccounts}"
+                            ItemsSource="{Binding Accounts}"
+                            SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:MobileAccountItem">
+                                    <StackPanel Margin="8,6" Spacing="3">
+                                        <TextBlock
+                                            FontSize="17"
+                                            FontWeight="SemiBold"
+                                            Text="{Binding Issuer}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Foreground="{DynamicResource BrushTextSecondary}"
+                                            IsVisible="{Binding HasAccountName}"
+                                            Text="{Binding AccountName}"
+                                            TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <TextBlock
+                            Foreground="{DynamicResource BrushTextSecondary}"
+                            IsVisible="{Binding HasNoSelectedAccount}"
+                            Text="{Binding SelectAccountText}"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap" />
+
+                        <Border
+                            Classes="card"
+                            IsVisible="{Binding HasSelectedAccount}"
+                            Padding="18">
+                            <StackPanel Spacing="14">
+                                <TextBlock
+                                    FontSize="20"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding SelectedAccount.DisplayName}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    Foreground="{DynamicResource BrushTextSelection}"
+                                    FontFamily="Consolas"
+                                    FontSize="38"
+                                    FontWeight="Bold"
+                                    Text="{Binding SelectedCode}" />
+                                <ProgressBar
+                                    Maximum="{Binding PeriodSeconds}"
+                                    Value="{Binding RemainingSeconds}" />
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    Foreground="{DynamicResource BrushTextSecondary}"
+                                    Text="{Binding RemainingSeconds}" />
+                                <Button
+                                    Classes="wide primary"
+                                    Command="{Binding CopyCodeCommand}"
+                                    Content="{Binding CopyCodeText}" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                    <Button
+                                        Grid.Column="0"
+                                        Classes="wide secondary"
+                                        Command="{Binding BeginEditCommand}"
+                                        Content="{Binding EditAccountText}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Classes="wide danger"
+                                        Command="{Binding BeginDeleteCommand}"
+                                        Content="{Binding DeleteAccountText}" />
+                                </Grid>
+                                <Border
+                                    Background="{DynamicResource BrushSurfaceAlternate}"
+                                    CornerRadius="8"
+                                    IsVisible="{Binding IsDeleteConfirmationVisible}"
+                                    Padding="16">
+                                    <StackPanel Spacing="12">
+                                        <TextBlock
+                                            FontSize="18"
+                                            FontWeight="SemiBold"
+                                            Text="{Binding DeleteConfirmTitle}" />
+                                        <TextBlock
+                                            Text="{Binding DeletePrompt}"
+                                            TextWrapping="Wrap" />
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                            <Button
+                                                Grid.Column="0"
+                                                Classes="wide secondary"
+                                                Command="{Binding CancelDeleteCommand}"
+                                                Content="{Binding CancelText}" />
+                                            <Button
+                                                Grid.Column="1"
+                                                Classes="wide danger"
+                                                Command="{Binding ConfirmDeleteCommand}"
+                                                Content="{Binding DeleteText}" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel
+                        HorizontalAlignment="Stretch"
+                        IsVisible="{Binding IsEditorVisible}"
+                        Spacing="14">
+                        <TextBlock
+                            FontSize="26"
+                            FontWeight="SemiBold"
+                            Text="{Binding EditorTitle}" />
+                        <TextBox
+                            automation:AutomationProperties.Name="{Binding IssuerText}"
+                            PlaceholderText="{Binding IssuerText}"
+                            Text="{Binding EditorIssuer, Mode=TwoWay}" />
+                        <TextBox
+                            automation:AutomationProperties.Name="{Binding AccountNameText}"
+                            PlaceholderText="{Binding AccountNameText}"
+                            Text="{Binding EditorAccountName, Mode=TwoWay}" />
+                        <TextBox
+                            automation:AutomationProperties.Name="{Binding EditorSecretPlaceholder}"
+                            PasswordChar="●"
+                            PlaceholderText="{Binding EditorSecretPlaceholder}"
+                            Text="{Binding EditorSecret, Mode=TwoWay}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button
+                                Grid.Column="0"
+                                Classes="wide secondary"
+                                Command="{Binding CancelEditCommand}"
+                                Content="{Binding CancelText}" />
+                            <Button
+                                Grid.Column="1"
+                                Classes="wide primary"
+                                Command="{Binding SaveAccountCommand}"
+                                Content="{Binding SaveText}" />
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+
+        <controls:NotificationBanner
+            Grid.Row="2"
+            Margin="20,8,20,20"
+            Severity="{Binding NotificationSeverity}"
+            Text="{Binding NotificationText}" />
     </Grid>
 </UserControl>

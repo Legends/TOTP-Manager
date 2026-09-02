@@ -3,6 +3,8 @@
           android:installLocation="internalOnly">
   <application
       android:allowBackup="false"
+      android:fullBackupContent="false"
+      android:icon="@drawable/app_icon"
       android:label="OTP Harbor"
       android:supportsRtl="true"
       android:usesCleartextTraffic="false" />

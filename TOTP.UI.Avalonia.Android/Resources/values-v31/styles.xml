@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="OtpHarborTheme" parent="@style/Theme.AppCompat.NoActionBar">
+    <item name="android:windowActionBar">false</item>
+    <item name="android:windowLightStatusBar">false</item>
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowSplashScreenAnimatedIcon">@drawable/app_icon</item>
+    <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+    <item name="android:windowSplashScreenAnimationDuration">300</item>
+    <item name="postSplashScreenTheme">@style/OtpHarborTheme.Main</item>
+  </style>
+  <style name="OtpHarborTheme.Main" parent="@style/OtpHarborTheme">
+    <item name="android:windowBackground">@color/splash_background</item>
+  </style>
+</resources>

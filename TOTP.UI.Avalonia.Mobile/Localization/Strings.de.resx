@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Starting" xml:space="preserve"><value>OTP Harbor wird sicher gestartet…</value></data>
+  <data name="StartupFailed" xml:space="preserve"><value>OTP Harbor konnte nicht sicher gestartet werden. Ihre verschlüsselten Daten wurden nicht verändert.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Erneut versuchen</value></data>
+  <data name="SetupTitle" xml:space="preserve"><value>Authenticator schützen</value></data>
+  <data name="SetupDescription" xml:space="preserve"><value>Erstellen Sie ein Masterpasswort. Es bleibt die Wiederherstellungsmethode für Ihren verschlüsselten lokalen Tresor.</value></data>
+  <data name="MasterPassword" xml:space="preserve"><value>Masterpasswort</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Masterpasswort bestätigen</value></data>
+  <data name="CreateVault" xml:space="preserve"><value>Verschlüsselten Tresor erstellen</value></data>
+  <data name="PasswordRequired" xml:space="preserve"><value>Geben Sie Ihr Masterpasswort ein.</value></data>
+  <data name="PasswordMinimumLength" xml:space="preserve"><value>Das Masterpasswort muss mindestens {0} Zeichen enthalten.</value></data>
+  <data name="PasswordMismatch" xml:space="preserve"><value>Die Passwörter stimmen nicht überein.</value></data>
+  <data name="SetupFailed" xml:space="preserve"><value>Der verschlüsselte Tresor konnte nicht eingerichtet werden.</value></data>
+  <data name="ExistingVaultConflict" xml:space="preserve"><value>Vorhandene verschlüsselte Daten benötigen ihr ursprüngliches Masterpasswort.</value></data>
+  <data name="UnlockTitle" xml:space="preserve"><value>OTP Harbor entsperren</value></data>
+  <data name="UnlockDescription" xml:space="preserve"><value>Geben Sie Ihr Masterpasswort ein, um den verschlüsselten lokalen Tresor zu öffnen.</value></data>
+  <data name="Unlock" xml:space="preserve"><value>Entsperren</value></data>
+  <data name="UnlockRejected" xml:space="preserve"><value>Das Masterpasswort wurde nicht akzeptiert.</value></data>
+  <data name="UnlockFailed" xml:space="preserve"><value>Der Tresor konnte nicht sicher entsperrt werden.</value></data>
+  <data name="AccountsTitle" xml:space="preserve"><value>Konten</value></data>
+  <data name="NoAccounts" xml:space="preserve"><value>Noch keine Konten vorhanden. Fügen Sie Ihr erstes TOTP-Konto hinzu.</value></data>
+  <data name="SelectAccount" xml:space="preserve"><value>Wählen Sie ein Konto aus, um einen Code zu erzeugen.</value></data>
+  <data name="AddAccount" xml:space="preserve"><value>Konto hinzufügen</value></data>
+  <data name="EditAccount" xml:space="preserve"><value>Bearbeiten</value></data>
+  <data name="DeleteAccount" xml:space="preserve"><value>Löschen</value></data>
+  <data name="Lock" xml:space="preserve"><value>Sperren</value></data>
+  <data name="Issuer" xml:space="preserve"><value>Anbieter</value></data>
+  <data name="AccountName" xml:space="preserve"><value>Kontoname (optional)</value></data>
+  <data name="Secret" xml:space="preserve"><value>Base32-Geheimnis</value></data>
+  <data name="SecretOptionalOnEdit" xml:space="preserve"><value>Neues Base32-Geheimnis (leer lassen, um das aktuelle beizubehalten)</value></data>
+  <data name="Save" xml:space="preserve"><value>Speichern</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="IssuerRequired" xml:space="preserve"><value>Geben Sie einen Anbieter ein.</value></data>
+  <data name="SecretRequired" xml:space="preserve"><value>Geben Sie das Kontogeheimnis ein.</value></data>
+  <data name="SecretInvalid" xml:space="preserve"><value>Das Kontogeheimnis enthält keine gültigen Base32-Daten.</value></data>
+  <data name="DuplicateAccount" xml:space="preserve"><value>Ein Konto mit diesem Anbieter und Kontonamen ist bereits vorhanden.</value></data>
+  <data name="AccountSaved" xml:space="preserve"><value>Konto gespeichert.</value></data>
+  <data name="AccountSaveFailed" xml:space="preserve"><value>Das Konto konnte nicht gespeichert werden.</value></data>
+  <data name="DeleteAccountPrompt" xml:space="preserve"><value>{0} löschen? Dies kann nicht rückgängig gemacht werden.</value></data>
+  <data name="Delete" xml:space="preserve"><value>Endgültig löschen</value></data>
+  <data name="AccountDeleted" xml:space="preserve"><value>Konto gelöscht.</value></data>
+  <data name="AccountDeleteFailed" xml:space="preserve"><value>Das Konto konnte nicht gelöscht werden.</value></data>
+  <data name="CodeUnavailable" xml:space="preserve"><value>Für dieses Konto konnte kein Code erzeugt werden.</value></data>
+  <data name="CopyCode" xml:space="preserve"><value>Code kopieren</value></data>
+  <data name="CodeCopied" xml:space="preserve"><value>Code kopiert.</value></data>
+  <data name="CodeCopiedWithClear" xml:space="preserve"><value>Code kopiert. Die Zwischenablage wird planmäßig in {0} Sekunden geleert.</value></data>
+  <data name="CodeCopyFailed" xml:space="preserve"><value>Der Code konnte nicht sicher kopiert werden.</value></data>
+  <data name="LoadingAccountsFailed" xml:space="preserve"><value>Ihre verschlüsselten Konten konnten nicht geladen werden.</value></data>
+  <data name="EditorAddTitle" xml:space="preserve"><value>TOTP-Konto hinzufügen</value></data>
+  <data name="EditorEditTitle" xml:space="preserve"><value>TOTP-Konto bearbeiten</value></data>
+  <data name="DeleteConfirmTitle" xml:space="preserve"><value>Löschen bestätigen</value></data>
+</root>

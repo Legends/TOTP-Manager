@@ -32,6 +32,7 @@
     <ProjectReference Include="..\TOTP.Platform.MacOS\TOTP.Platform.MacOS.csproj" />
     <ProjectReference Include="..\TOTP.Platform.Windows\TOTP.Platform.Windows.csproj" />
     <ProjectReference Include="..\TOTP.UI.Avalonia.Desktop\TOTP.UI.Avalonia.Desktop.csproj" />
+    <ProjectReference Include="..\TOTP.UI.Avalonia.Mobile\TOTP.UI.Avalonia.Mobile.csproj" />
     <ProjectReference Include="..\TOTP.Updater\TOTP.Updater.csproj" />
   </ItemGroup>
 

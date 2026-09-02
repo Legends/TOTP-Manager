@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Starting" xml:space="preserve"><value>Starting OTP Harbor safely…</value></data>
+  <data name="StartupFailed" xml:space="preserve"><value>OTP Harbor could not start safely. Your encrypted data was not changed.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="SetupTitle" xml:space="preserve"><value>Protect your authenticator</value></data>
+  <data name="SetupDescription" xml:space="preserve"><value>Create a master password. It remains the recovery method for your encrypted local vault.</value></data>
+  <data name="MasterPassword" xml:space="preserve"><value>Master password</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Confirm master password</value></data>
+  <data name="CreateVault" xml:space="preserve"><value>Create encrypted vault</value></data>
+  <data name="PasswordRequired" xml:space="preserve"><value>Enter your master password.</value></data>
+  <data name="PasswordMinimumLength" xml:space="preserve"><value>The master password must contain at least {0} characters.</value></data>
+  <data name="PasswordMismatch" xml:space="preserve"><value>The passwords do not match.</value></data>
+  <data name="SetupFailed" xml:space="preserve"><value>The encrypted vault could not be configured.</value></data>
+  <data name="ExistingVaultConflict" xml:space="preserve"><value>Existing encrypted data requires its original master password.</value></data>
+  <data name="UnlockTitle" xml:space="preserve"><value>Unlock OTP Harbor</value></data>
+  <data name="UnlockDescription" xml:space="preserve"><value>Enter your master password to open the encrypted local vault.</value></data>
+  <data name="Unlock" xml:space="preserve"><value>Unlock</value></data>
+  <data name="UnlockRejected" xml:space="preserve"><value>The master password was not accepted.</value></data>
+  <data name="UnlockFailed" xml:space="preserve"><value>The vault could not be unlocked safely.</value></data>
+  <data name="AccountsTitle" xml:space="preserve"><value>Accounts</value></data>
+  <data name="NoAccounts" xml:space="preserve"><value>No accounts yet. Add your first TOTP account.</value></data>
+  <data name="SelectAccount" xml:space="preserve"><value>Select an account to generate a code.</value></data>
+  <data name="AddAccount" xml:space="preserve"><value>Add account</value></data>
+  <data name="EditAccount" xml:space="preserve"><value>Edit</value></data>
+  <data name="DeleteAccount" xml:space="preserve"><value>Delete</value></data>
+  <data name="Lock" xml:space="preserve"><value>Lock</value></data>
+  <data name="Issuer" xml:space="preserve"><value>Issuer</value></data>
+  <data name="AccountName" xml:space="preserve"><value>Account name (optional)</value></data>
+  <data name="Secret" xml:space="preserve"><value>Base32 secret</value></data>
+  <data name="SecretOptionalOnEdit" xml:space="preserve"><value>New Base32 secret (leave empty to keep the current secret)</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="IssuerRequired" xml:space="preserve"><value>Enter an issuer.</value></data>
+  <data name="SecretRequired" xml:space="preserve"><value>Enter the account secret.</value></data>
+  <data name="SecretInvalid" xml:space="preserve"><value>The account secret is not valid Base32 data.</value></data>
+  <data name="DuplicateAccount" xml:space="preserve"><value>An account with this issuer and account name already exists.</value></data>
+  <data name="AccountSaved" xml:space="preserve"><value>Account saved.</value></data>
+  <data name="AccountSaveFailed" xml:space="preserve"><value>The account could not be saved.</value></data>
+  <data name="DeleteAccountPrompt" xml:space="preserve"><value>Delete {0}? This cannot be undone.</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete permanently</value></data>
+  <data name="AccountDeleted" xml:space="preserve"><value>Account deleted.</value></data>
+  <data name="AccountDeleteFailed" xml:space="preserve"><value>The account could not be deleted.</value></data>
+  <data name="CodeUnavailable" xml:space="preserve"><value>A code could not be generated for this account.</value></data>
+  <data name="CopyCode" xml:space="preserve"><value>Copy code</value></data>
+  <data name="CodeCopied" xml:space="preserve"><value>Code copied.</value></data>
+  <data name="CodeCopiedWithClear" xml:space="preserve"><value>Code copied. Clipboard clearing is scheduled in {0} seconds.</value></data>
+  <data name="CodeCopyFailed" xml:space="preserve"><value>The code could not be copied safely.</value></data>
+  <data name="LoadingAccountsFailed" xml:space="preserve"><value>Your encrypted accounts could not be loaded.</value></data>
+  <data name="EditorAddTitle" xml:space="preserve"><value>Add TOTP account</value></data>
+  <data name="EditorEditTitle" xml:space="preserve"><value>Edit TOTP account</value></data>
+  <data name="DeleteConfirmTitle" xml:space="preserve"><value>Confirm deletion</value></data>
+</root>

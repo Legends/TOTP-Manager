@@ -19,9 +19,22 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Android" Version="12.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.11" />
+    <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.15" />
   </ItemGroup>
 
   <ItemGroup>
+    <AndroidResource Include="..\TOTP.UI.Avalonia.Desktop\Assets\Icons\app-1024.png">
+      <Link>Resources\drawable\app_icon.png</Link>
+      <LogicalName>drawable\app_icon.png</LogicalName>
+    </AndroidResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TOTP.Infrastructure\TOTP.Infrastructure.csproj" />
+    <ProjectReference Include="..\TOTP.Platform.Android\TOTP.Platform.Android.csproj" />
     <ProjectReference Include="..\TOTP.UI.Avalonia.Mobile\TOTP.UI.Avalonia.Mobile.csproj" />
   </ItemGroup>
 

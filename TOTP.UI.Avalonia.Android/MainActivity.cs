@@ -8,6 +8,8 @@ namespace TOTP.Avalonia.Android;
 
 [Activity(
     Label = "OTP Harbor",
+    Theme = "@style/OtpHarborTheme",
+    Icon = "@drawable/app_icon",
     MainLauncher = true,
     Exported = true,
     ConfigurationChanges = ConfigChanges.Orientation
@@ -20,5 +22,12 @@ public class MainActivity : AvaloniaMainActivity
     {
         Window?.SetFlags(WindowManagerFlags.Secure, WindowManagerFlags.Secure);
         base.OnCreate(savedInstanceState);
+    }
+
+    protected override void OnStop()
+    {
+        if (!IsChangingConfigurations && Application is OtpHarborApplication host)
+            host.NotifyEnteredBackground();
+        base.OnStop();
     }
 }
