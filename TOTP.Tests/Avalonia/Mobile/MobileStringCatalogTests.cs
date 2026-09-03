@@ -27,4 +27,16 @@ public sealed class MobileStringCatalogTests
         Assert.Contains("Masterpasswort", message, StringComparison.Ordinal);
         Assert.DoesNotContain("encrypted local vault", message, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void Get_BiometricRecoveryMessage_UsesOnlyActiveGermanLocale()
+    {
+        var catalog = new MobileStringCatalog(CultureInfo.GetCultureInfo("de"));
+
+        var message = catalog.Get(MobileStringKeys.BiometricRecoveryRequired);
+
+        Assert.Contains("Masterpasswort", message, StringComparison.Ordinal);
+        Assert.Contains("biometrischen Zugriff", message, StringComparison.Ordinal);
+        Assert.DoesNotContain("recovery", message, StringComparison.OrdinalIgnoreCase);
+    }
 }

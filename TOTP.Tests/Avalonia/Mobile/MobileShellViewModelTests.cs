@@ -126,6 +126,40 @@ public sealed class MobileShellViewModelTests
     }
 
     [Fact]
+    public async Task OnReturnedToForeground_WhenGracePeriodExpiresWithBiometrics_AutomaticallyUnlocks()
+    {
+        var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user@example.test");
+        var context = CreateContext(
+            isConfigured: true,
+            accounts: [account],
+            biometricAvailable: true,
+            preferredUnlockMethod: TOTP.Core.Enums.PreferredUnlockMethod.PlatformQuickUnlock);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithHelloAsync())
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.AccountTotp
+            .Setup(value => value.GenerateAsync(account.ID))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 20, 30)));
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+
+        context.Sut.OnEnteredBackground(lockImmediately: false);
+        context.Time.Advance(TimeSpan.FromSeconds(30));
+        context.Sut.OnReturnedToForeground();
+
+        context.Authorization.Verify(value => value.Lock(), Times.Once);
+        context.Authorization.Verify(value => value.TryUnlockWithHelloAsync(), Times.Once);
+        Assert.True(context.Sut.IsAccountsVisible);
+        Assert.Single(context.Sut.Accounts);
+    }
+
+    [Fact]
     public async Task UnlockAsync_ProjectsNoSecretIntoMobileAccountRows()
     {
         var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user@example.test");
@@ -146,6 +180,116 @@ public sealed class MobileShellViewModelTests
         Assert.DoesNotContain(
             typeof(MobileAccountItem).GetProperties(),
             property => property.Name.Contains("Secret", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WithConfiguredBiometrics_OffersBiometricUnlockAndPasswordFallback()
+    {
+        var context = CreateContext(
+            isConfigured: true,
+            biometricAvailable: true,
+            preferredUnlockMethod: TOTP.Core.Enums.PreferredUnlockMethod.PlatformQuickUnlock);
+
+        await context.Sut.InitializeAsync();
+
+        Assert.True(context.Sut.IsBiometricUnlockVisible);
+        Assert.True(context.Sut.IsUnlockVisible);
+        Assert.False(context.Sut.UnlockCommand.CanExecute(null));
+        Assert.True(context.Sut.BiometricUnlockCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task OnReturnedToForeground_WithConfiguredBiometrics_AutomaticallyPromptsAndUnlocks()
+    {
+        var context = CreateContext(
+            isConfigured: true,
+            biometricAvailable: true,
+            preferredUnlockMethod: TOTP.Core.Enums.PreferredUnlockMethod.PlatformQuickUnlock);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithHelloAsync())
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+
+        context.Sut.OnReturnedToForeground();
+        await context.Sut.InitializeAsync();
+
+        Assert.True(context.Sut.IsAccountsVisible);
+        context.Authorization.Verify(value => value.TryUnlockWithHelloAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task OnReturnedToForeground_WhenAutomaticBiometricPromptIsCancelled_KeepsPasswordFallback()
+    {
+        var context = CreateContext(
+            isConfigured: true,
+            biometricAvailable: true,
+            preferredUnlockMethod: TOTP.Core.Enums.PreferredUnlockMethod.PlatformQuickUnlock);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithHelloAsync())
+            .ReturnsAsync(AuthorizationResult.Cancelled);
+
+        context.Sut.OnReturnedToForeground();
+        await context.Sut.InitializeAsync();
+
+        Assert.True(context.Sut.IsUnlockVisible);
+        Assert.True(context.Sut.IsBiometricUnlockVisible);
+        Assert.Empty(context.Sut.NotificationText);
+        context.Authorization.Verify(value => value.TryUnlockWithHelloAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task BiometricUnlockAsync_WhenSuccessful_OpensEncryptedAccounts()
+    {
+        var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user@example.test");
+        var context = CreateContext(
+            isConfigured: true,
+            accounts: [account],
+            biometricAvailable: true,
+            preferredUnlockMethod: TOTP.Core.Enums.PreferredUnlockMethod.PlatformQuickUnlock);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithHelloAsync())
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.AccountTotp
+            .Setup(value => value.GenerateAsync(account.ID))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 20, 30)));
+        await context.Sut.InitializeAsync();
+
+        await context.Sut.BiometricUnlockAsync();
+
+        Assert.True(context.Sut.IsAccountsVisible);
+        Assert.Single(context.Sut.Accounts);
+        context.Authorization.Verify(value => value.TryUnlockWithHelloAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task EnableBiometricAsync_RequiresRecoveryPasswordAndClearsIt()
+    {
+        var context = CreateContext(isConfigured: true, biometricAvailable: true);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.Authorization
+            .Setup(value => value.ConfigureHelloAsync("recovery-password"))
+            .Callback(() => context.State.SetConfiguration(
+                true,
+                TOTP.Core.Enums.PreferredUnlockMethod.PlatformQuickUnlock))
+            .ReturnsAsync(AuthorizationResult.Success);
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+        await context.Sut.BeginBiometricEnrollmentAsync();
+        context.Sut.BiometricRecoveryPassword = "recovery-password";
+
+        await context.Sut.EnableBiometricAsync();
+
+        Assert.True(context.Sut.IsBiometricEnabled);
+        Assert.False(context.Sut.IsBiometricEnrollmentVisible);
+        Assert.Empty(context.Sut.BiometricRecoveryPassword);
+        Assert.Equal(
+            context.Strings.Get(MobileStringKeys.BiometricEnabled),
+            context.Sut.NotificationText);
     }
 
     [Fact]
@@ -206,14 +350,19 @@ public sealed class MobileShellViewModelTests
 
     private static TestContext CreateContext(
         bool isConfigured,
-        IReadOnlyList<Account>? accounts = null)
+        IReadOnlyList<Account>? accounts = null,
+        bool biometricAvailable = false,
+        TOTP.Core.Enums.PreferredUnlockMethod preferredUnlockMethod =
+            TOTP.Core.Enums.PreferredUnlockMethod.Password)
     {
         accounts ??= [];
         var state = new AuthorizationState();
-        state.SetConfiguration(isConfigured, TOTP.Core.Enums.PreferredUnlockMethod.Password);
+        state.SetConfiguration(isConfigured, preferredUnlockMethod);
         var authorization = new Mock<IAuthorizationService>();
         authorization.SetupGet(value => value.State).Returns(state);
         authorization.Setup(value => value.InitializeAsync()).Returns(Task.CompletedTask);
+        authorization.Setup(value => value.IsHelloAvailableAsync())
+            .ReturnsAsync(biometricAvailable);
 
         var passwordValidation = new Mock<IPasswordValidationService>();
         passwordValidation.SetupGet(value => value.MinimumLength).Returns(8);

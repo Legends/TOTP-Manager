@@ -112,6 +112,11 @@
                         Classes="wide primary"
                         Command="{Binding UnlockCommand}"
                         Content="{Binding UnlockText}" />
+                    <Button
+                        Classes="wide secondary"
+                        Command="{Binding BiometricUnlockCommand}"
+                        Content="{Binding BiometricUnlockText}"
+                        IsVisible="{Binding IsBiometricUnlockVisible}" />
                 </StackPanel>
 
                 <Grid IsVisible="{Binding IsAccountsVisible}">
@@ -132,6 +137,58 @@
                                 Command="{Binding BeginAddCommand}"
                                 Content="{Binding AddAccountText}" />
                         </Grid>
+
+                        <Border
+                            Classes="card"
+                            IsVisible="{Binding IsBiometricSetupAvailable}"
+                            Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock
+                                    FontSize="18"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding BiometricSetupTitle}" />
+                                <TextBlock
+                                    Foreground="{DynamicResource BrushTextSecondary}"
+                                    Text="{Binding BiometricSetupDescription}"
+                                    TextWrapping="Wrap" />
+                                <Button
+                                    Classes="wide secondary"
+                                    Command="{Binding BeginBiometricEnrollmentCommand}"
+                                    Content="{Binding BiometricEnableText}"
+                                    IsVisible="{Binding IsBiometricEnrollmentStartVisible}" />
+                                <StackPanel
+                                    IsVisible="{Binding IsBiometricEnrollmentVisible}"
+                                    Spacing="10">
+                                    <TextBox
+                                        automation:AutomationProperties.Name="{Binding MasterPasswordText}"
+                                        PasswordChar="●"
+                                        PlaceholderText="{Binding MasterPasswordText}"
+                                        Text="{Binding BiometricRecoveryPassword, Mode=TwoWay}" />
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                        <Button
+                                            Grid.Column="0"
+                                            Classes="wide secondary"
+                                            Command="{Binding CancelBiometricEnrollmentCommand}"
+                                            Content="{Binding CancelText}" />
+                                        <Button
+                                            Grid.Column="1"
+                                            Classes="wide primary"
+                                            Command="{Binding EnableBiometricCommand}"
+                                            Content="{Binding BiometricEnableText}" />
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            Classes="card"
+                            IsVisible="{Binding IsBiometricEnabled}"
+                            Padding="16">
+                            <TextBlock
+                                Foreground="{DynamicResource BrushTextSecondary}"
+                                Text="{Binding BiometricEnabledText}"
+                                TextWrapping="Wrap" />
+                        </Border>
 
                         <TextBlock
                             Foreground="{DynamicResource BrushTextSecondary}"

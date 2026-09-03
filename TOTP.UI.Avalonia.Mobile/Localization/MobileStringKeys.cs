@@ -52,6 +52,19 @@ public static class MobileStringKeys
     public const string EditorAddTitle = nameof(EditorAddTitle);
     public const string EditorEditTitle = nameof(EditorEditTitle);
     public const string DeleteConfirmTitle = nameof(DeleteConfirmTitle);
+    public const string BiometricPromptTitle = nameof(BiometricPromptTitle);
+    public const string BiometricPromptSubtitle = nameof(BiometricPromptSubtitle);
+    public const string BiometricUsePassword = nameof(BiometricUsePassword);
+    public const string BiometricUnlock = nameof(BiometricUnlock);
+    public const string BiometricSetupTitle = nameof(BiometricSetupTitle);
+    public const string BiometricSetupDescription = nameof(BiometricSetupDescription);
+    public const string BiometricEnable = nameof(BiometricEnable);
+    public const string BiometricEnabled = nameof(BiometricEnabled);
+    public const string BiometricEnableFailed = nameof(BiometricEnableFailed);
+    public const string BiometricUnlockFailed = nameof(BiometricUnlockFailed);
+    public const string BiometricRecoveryRequired = nameof(BiometricRecoveryRequired);
+    public const string BiometricRetriesExhausted = nameof(BiometricRetriesExhausted);
+    public const string BiometricDisabledByPolicy = nameof(BiometricDisabledByPolicy);
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -104,6 +117,19 @@ public static class MobileStringKeys
         LoadingAccountsFailed,
         EditorAddTitle,
         EditorEditTitle,
-        DeleteConfirmTitle
+        DeleteConfirmTitle,
+        BiometricPromptTitle,
+        BiometricPromptSubtitle,
+        BiometricUsePassword,
+        BiometricUnlock,
+        BiometricSetupTitle,
+        BiometricSetupDescription,
+        BiometricEnable,
+        BiometricEnabled,
+        BiometricEnableFailed,
+        BiometricUnlockFailed,
+        BiometricRecoveryRequired,
+        BiometricRetriesExhausted,
+        BiometricDisabledByPolicy
     ];
 }

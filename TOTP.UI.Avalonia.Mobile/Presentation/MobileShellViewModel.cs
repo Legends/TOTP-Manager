@@ -32,6 +32,10 @@ public sealed class MobileShellViewModel :
     private readonly MobileAsyncCommand _initializeCommand;
     private readonly MobileAsyncCommand _configureCommand;
     private readonly MobileAsyncCommand _unlockCommand;
+    private readonly MobileAsyncCommand _biometricUnlockCommand;
+    private readonly MobileAsyncCommand _beginBiometricEnrollmentCommand;
+    private readonly MobileAsyncCommand _enableBiometricCommand;
+    private readonly MobileAsyncCommand _cancelBiometricEnrollmentCommand;
     private readonly MobileAsyncCommand _lockCommand;
     private readonly MobileAsyncCommand _beginAddCommand;
     private readonly MobileAsyncCommand _beginEditCommand;
@@ -50,6 +54,10 @@ public sealed class MobileShellViewModel :
     private string _setupPassword = string.Empty;
     private string _setupConfirmation = string.Empty;
     private string _unlockPassword = string.Empty;
+    private bool _isBiometricAvailable;
+    private bool _isBiometricEnabled;
+    private bool _isBiometricEnrollmentVisible;
+    private string _biometricRecoveryPassword = string.Empty;
     private MobileAccountItem? _selectedAccount;
     private string _selectedCode = string.Empty;
     private int _remainingSeconds;
@@ -63,6 +71,7 @@ public sealed class MobileShellViewModel :
     private CancellationTokenSource? _codeLifetime;
     private long? _backgroundedAtTimestamp;
     private ITimer? _backgroundLockTimer;
+    private bool _automaticBiometricUnlockPending;
     private bool _disposed;
 
     public MobileShellViewModel(
@@ -92,6 +101,20 @@ public sealed class MobileShellViewModel :
         _unlockCommand = new MobileAsyncCommand(
             UnlockAsync,
             () => IsUnlockVisible && !IsBusy && UnlockPassword.Length > 0);
+        _biometricUnlockCommand = new MobileAsyncCommand(
+            BiometricUnlockAsync,
+            () => IsBiometricUnlockVisible && !IsBusy);
+        _beginBiometricEnrollmentCommand = new MobileAsyncCommand(
+            BeginBiometricEnrollmentAsync,
+            () => IsBiometricSetupAvailable && !IsBusy);
+        _enableBiometricCommand = new MobileAsyncCommand(
+            EnableBiometricAsync,
+            () => IsBiometricEnrollmentVisible
+                && !IsBusy
+                && BiometricRecoveryPassword.Length > 0);
+        _cancelBiometricEnrollmentCommand = new MobileAsyncCommand(
+            CancelBiometricEnrollmentAsync,
+            () => IsBiometricEnrollmentVisible && !IsBusy);
         _lockCommand = new MobileAsyncCommand(LockAsync, () => IsAccountsVisible && !IsBusy);
         _beginAddCommand = new MobileAsyncCommand(BeginAddAsync, CanEditAccounts);
         _beginEditCommand = new MobileAsyncCommand(
@@ -124,6 +147,10 @@ public sealed class MobileShellViewModel :
     public ICommand InitializeCommand => _initializeCommand;
     public ICommand ConfigureCommand => _configureCommand;
     public ICommand UnlockCommand => _unlockCommand;
+    public ICommand BiometricUnlockCommand => _biometricUnlockCommand;
+    public ICommand BeginBiometricEnrollmentCommand => _beginBiometricEnrollmentCommand;
+    public ICommand EnableBiometricCommand => _enableBiometricCommand;
+    public ICommand CancelBiometricEnrollmentCommand => _cancelBiometricEnrollmentCommand;
     public ICommand LockCommand => _lockCommand;
     public ICommand BeginAddCommand => _beginAddCommand;
     public ICommand BeginEditCommand => _beginEditCommand;
@@ -144,6 +171,12 @@ public sealed class MobileShellViewModel :
     public bool HasSelectedAccount => SelectedAccount is not null;
     public bool HasNoSelectedAccount => !HasSelectedAccount;
     public bool CanRetry => _startupFailed && !IsBusy;
+    public bool IsBiometricUnlockVisible =>
+        IsUnlockVisible && IsBiometricEnabled && IsBiometricAvailable;
+    public bool IsBiometricSetupAvailable =>
+        IsAccountListVisible && IsBiometricAvailable && !IsBiometricEnabled;
+    public bool IsBiometricEnrollmentStartVisible =>
+        IsBiometricSetupAvailable && !IsBiometricEnrollmentVisible;
 
     public bool IsBusy
     {
@@ -196,6 +229,53 @@ public sealed class MobileShellViewModel :
             if (!SetField(ref _unlockPassword, value ?? string.Empty)) return;
             ClearErrorNotification();
             _unlockCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    public bool IsBiometricAvailable
+    {
+        get => _isBiometricAvailable;
+        private set
+        {
+            if (!SetField(ref _isBiometricAvailable, value)) return;
+            OnPropertyChanged(nameof(IsBiometricSetupAvailable));
+            OnPropertyChanged(nameof(IsBiometricEnrollmentStartVisible));
+            NotifyCommands();
+        }
+    }
+
+    public bool IsBiometricEnabled
+    {
+        get => _isBiometricEnabled;
+        private set
+        {
+            if (!SetField(ref _isBiometricEnabled, value)) return;
+            OnPropertyChanged(nameof(IsBiometricUnlockVisible));
+            OnPropertyChanged(nameof(IsBiometricSetupAvailable));
+            OnPropertyChanged(nameof(IsBiometricEnrollmentStartVisible));
+            NotifyCommands();
+        }
+    }
+
+    public bool IsBiometricEnrollmentVisible
+    {
+        get => _isBiometricEnrollmentVisible;
+        private set
+        {
+            if (!SetField(ref _isBiometricEnrollmentVisible, value)) return;
+            OnPropertyChanged(nameof(IsBiometricEnrollmentStartVisible));
+            NotifyCommands();
+        }
+    }
+
+    public string BiometricRecoveryPassword
+    {
+        get => _biometricRecoveryPassword;
+        set
+        {
+            if (!SetField(ref _biometricRecoveryPassword, value ?? string.Empty)) return;
+            ClearErrorNotification();
+            _enableBiometricCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -324,6 +404,11 @@ public sealed class MobileShellViewModel :
     public string CopyCodeText => Get(MobileStringKeys.CopyCode);
     public string DeleteConfirmTitle => Get(MobileStringKeys.DeleteConfirmTitle);
     public string DeleteText => Get(MobileStringKeys.Delete);
+    public string BiometricUnlockText => Get(MobileStringKeys.BiometricUnlock);
+    public string BiometricSetupTitle => Get(MobileStringKeys.BiometricSetupTitle);
+    public string BiometricSetupDescription => Get(MobileStringKeys.BiometricSetupDescription);
+    public string BiometricEnableText => Get(MobileStringKeys.BiometricEnable);
+    public string BiometricEnabledText => Get(MobileStringKeys.BiometricEnabled);
 
     public async Task InitializeAsync()
     {
@@ -343,6 +428,9 @@ public sealed class MobileShellViewModel :
             }
 
             await _authorization.InitializeAsync();
+            IsBiometricAvailable = await _authorization.IsHelloAvailableAsync();
+            IsBiometricEnabled = _authorization.State.ConfiguredGate
+                == AuthorizationGateKind.Hello;
             if (!_authorization.State.IsConfigured
                 && File.Exists(_paths.AuthorizationEnvelopeFilePath))
             {
@@ -362,6 +450,7 @@ public sealed class MobileShellViewModel :
         finally
         {
             IsBusy = false;
+            TryStartAutomaticBiometricUnlock();
         }
     }
 
@@ -454,6 +543,109 @@ public sealed class MobileShellViewModel :
             password = string.Empty;
             IsBusy = false;
         }
+    }
+
+    public async Task BiometricUnlockAsync()
+    {
+        if (!IsBiometricUnlockVisible || IsBusy) return;
+
+        IsBusy = true;
+        ClearNotification();
+        try
+        {
+            var result = await _authorization.TryUnlockWithHelloAsync();
+            if (result == AuthorizationResult.Success)
+            {
+                ClearNotification();
+                SetScreen(MobileScreen.Accounts);
+                await LoadAccountsAsync();
+                return;
+            }
+
+            if (result == AuthorizationResult.Cancelled) return;
+            SetError(result switch
+            {
+                AuthorizationResult.PasswordRequired =>
+                    MobileStringKeys.BiometricRecoveryRequired,
+                AuthorizationResult.TooManyAttempts =>
+                    MobileStringKeys.BiometricRetriesExhausted,
+                AuthorizationResult.DisabledByPolicy =>
+                    MobileStringKeys.BiometricDisabledByPolicy,
+                _ => MobileStringKeys.BiometricUnlockFailed
+            });
+        }
+        catch (Exception)
+        {
+            SetError(MobileStringKeys.BiometricUnlockFailed);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    public Task BeginBiometricEnrollmentAsync()
+    {
+        if (!IsBiometricSetupAvailable || IsBusy) return Task.CompletedTask;
+        BiometricRecoveryPassword = string.Empty;
+        IsBiometricEnrollmentVisible = true;
+        ClearNotification();
+        return Task.CompletedTask;
+    }
+
+    public async Task EnableBiometricAsync()
+    {
+        if (!IsBiometricEnrollmentVisible
+            || IsBusy
+            || BiometricRecoveryPassword.Length == 0)
+        {
+            return;
+        }
+
+        var recoveryPassword = BiometricRecoveryPassword;
+        BiometricRecoveryPassword = string.Empty;
+        IsBusy = true;
+        try
+        {
+            var result = await _authorization.ConfigureHelloAsync(recoveryPassword);
+            if (result == AuthorizationResult.Cancelled) return;
+            if (result != AuthorizationResult.Success)
+            {
+                SetError(result switch
+                {
+                    AuthorizationResult.InvalidCredentials => MobileStringKeys.UnlockRejected,
+                    AuthorizationResult.DisabledByPolicy =>
+                        MobileStringKeys.BiometricDisabledByPolicy,
+                    AuthorizationResult.TooManyAttempts =>
+                        MobileStringKeys.BiometricRetriesExhausted,
+                    _ => MobileStringKeys.BiometricEnableFailed
+                });
+                return;
+            }
+
+            IsBiometricEnabled = true;
+            IsBiometricEnrollmentVisible = false;
+            BiometricRecoveryPassword = string.Empty;
+            SetSuccess(MobileStringKeys.BiometricEnabled);
+        }
+        catch (Exception)
+        {
+            SetError(MobileStringKeys.BiometricEnableFailed);
+        }
+        finally
+        {
+            recoveryPassword = string.Empty;
+            IsBusy = false;
+        }
+    }
+
+    public Task CancelBiometricEnrollmentAsync()
+    {
+        if (IsBusy) return Task.CompletedTask;
+        BiometricRecoveryPassword = string.Empty;
+        IsBiometricEnrollmentVisible = false;
+        ClearNotification();
+        return Task.CompletedTask;
     }
 
     public Task LockAsync()
@@ -694,7 +886,12 @@ public sealed class MobileShellViewModel :
 
     public void OnReturnedToForeground()
     {
-        if (_disposed || !_backgroundedAtTimestamp.HasValue) return;
+        if (_disposed) return;
+        if (!_backgroundedAtTimestamp.HasValue)
+        {
+            RequestAutomaticBiometricUnlock();
+            return;
+        }
 
         var elapsed = _timeProvider.GetElapsedTime(_backgroundedAtTimestamp.Value);
         _backgroundedAtTimestamp = null;
@@ -702,6 +899,7 @@ public sealed class MobileShellViewModel :
         if (elapsed >= BackgroundLockGracePeriod)
         {
             LockCore();
+            RequestAutomaticBiometricUnlock();
             return;
         }
 
@@ -820,10 +1018,32 @@ public sealed class MobileShellViewModel :
         OnPropertyChanged(nameof(HasAccounts));
         OnPropertyChanged(nameof(HasNoAccounts));
         UnlockPassword = string.Empty;
+        BiometricRecoveryPassword = string.Empty;
+        IsBiometricEnrollmentVisible = false;
         ClearNotification();
         SetScreen(_authorization.State.IsConfigured
             ? MobileScreen.Unlock
             : MobileScreen.Setup);
+    }
+
+    private void RequestAutomaticBiometricUnlock()
+    {
+        _automaticBiometricUnlockPending = true;
+        TryStartAutomaticBiometricUnlock();
+    }
+
+    private void TryStartAutomaticBiometricUnlock()
+    {
+        if (!_automaticBiometricUnlockPending
+            || !IsBiometricUnlockVisible
+            || IsBusy
+            || _disposed)
+        {
+            return;
+        }
+
+        _automaticBiometricUnlockPending = false;
+        _ = BiometricUnlockAsync();
     }
 
     private void CancelCodeRefresh()
@@ -884,6 +1104,9 @@ public sealed class MobileShellViewModel :
         OnPropertyChanged(nameof(IsUnlockVisible));
         OnPropertyChanged(nameof(IsAccountsVisible));
         OnPropertyChanged(nameof(IsAccountListVisible));
+        OnPropertyChanged(nameof(IsBiometricUnlockVisible));
+        OnPropertyChanged(nameof(IsBiometricSetupAvailable));
+        OnPropertyChanged(nameof(IsBiometricEnrollmentStartVisible));
         NotifyCommands();
     }
 
@@ -917,6 +1140,10 @@ public sealed class MobileShellViewModel :
         _initializeCommand.NotifyCanExecuteChanged();
         _configureCommand.NotifyCanExecuteChanged();
         _unlockCommand.NotifyCanExecuteChanged();
+        _biometricUnlockCommand.NotifyCanExecuteChanged();
+        _beginBiometricEnrollmentCommand.NotifyCanExecuteChanged();
+        _enableBiometricCommand.NotifyCanExecuteChanged();
+        _cancelBiometricEnrollmentCommand.NotifyCanExecuteChanged();
         _lockCommand.NotifyCanExecuteChanged();
         _beginAddCommand.NotifyCanExecuteChanged();
         _beginEditCommand.NotifyCanExecuteChanged();

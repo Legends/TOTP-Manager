@@ -54,4 +54,17 @@
   <data name="EditorAddTitle" xml:space="preserve"><value>TOTP-Konto hinzufügen</value></data>
   <data name="EditorEditTitle" xml:space="preserve"><value>TOTP-Konto bearbeiten</value></data>
   <data name="DeleteConfirmTitle" xml:space="preserve"><value>Löschen bestätigen</value></data>
+  <data name="BiometricPromptTitle" xml:space="preserve"><value>OTP Harbor entsperren</value></data>
+  <data name="BiometricPromptSubtitle" xml:space="preserve"><value>Bestätigen Sie Ihre Identität mit starker Biometrie.</value></data>
+  <data name="BiometricUsePassword" xml:space="preserve"><value>Masterpasswort verwenden</value></data>
+  <data name="BiometricUnlock" xml:space="preserve"><value>Biometrisch entsperren</value></data>
+  <data name="BiometricSetupTitle" xml:space="preserve"><value>Biometrische Entsperrung</value></data>
+  <data name="BiometricSetupDescription" xml:space="preserve"><value>Verwenden Sie starke Biometrie zum schnellen Entsperren. Bestätigen Sie die Einrichtung mit Ihrem Masterpasswort, das Ihre Wiederherstellungsmethode bleibt.</value></data>
+  <data name="BiometricEnable" xml:space="preserve"><value>Biometrische Entsperrung aktivieren</value></data>
+  <data name="BiometricEnabled" xml:space="preserve"><value>Die biometrische Entsperrung ist aktiviert. Ihr Masterpasswort bleibt zur Wiederherstellung verfügbar.</value></data>
+  <data name="BiometricEnableFailed" xml:space="preserve"><value>Die biometrische Entsperrung konnte nicht sicher aktiviert werden.</value></data>
+  <data name="BiometricUnlockFailed" xml:space="preserve"><value>Die biometrische Prüfung hat den Tresor nicht entsperrt.</value></data>
+  <data name="BiometricRecoveryRequired" xml:space="preserve"><value>Entsperren Sie mit Ihrem Masterpasswort, um den biometrischen Zugriff wiederherzustellen.</value></data>
+  <data name="BiometricRetriesExhausted" xml:space="preserve"><value>Der biometrische Zugriff ist vorübergehend gesperrt. Verwenden Sie Ihr Masterpasswort oder versuchen Sie es später erneut.</value></data>
+  <data name="BiometricDisabledByPolicy" xml:space="preserve"><value>Der biometrische Zugriff ist aufgrund der Gerätesicherheitsrichtlinie nicht verfügbar.</value></data>
 </root>

@@ -54,4 +54,17 @@
   <data name="EditorAddTitle" xml:space="preserve"><value>Add TOTP account</value></data>
   <data name="EditorEditTitle" xml:space="preserve"><value>Edit TOTP account</value></data>
   <data name="DeleteConfirmTitle" xml:space="preserve"><value>Confirm deletion</value></data>
+  <data name="BiometricPromptTitle" xml:space="preserve"><value>Unlock OTP Harbor</value></data>
+  <data name="BiometricPromptSubtitle" xml:space="preserve"><value>Confirm your identity using strong biometrics.</value></data>
+  <data name="BiometricUsePassword" xml:space="preserve"><value>Use master password</value></data>
+  <data name="BiometricUnlock" xml:space="preserve"><value>Unlock with biometrics</value></data>
+  <data name="BiometricSetupTitle" xml:space="preserve"><value>Biometric unlock</value></data>
+  <data name="BiometricSetupDescription" xml:space="preserve"><value>Use strong biometrics for quick unlock. Confirm setup with your master password, which remains your recovery method.</value></data>
+  <data name="BiometricEnable" xml:space="preserve"><value>Enable biometric unlock</value></data>
+  <data name="BiometricEnabled" xml:space="preserve"><value>Biometric unlock is enabled. Your master password remains available for recovery.</value></data>
+  <data name="BiometricEnableFailed" xml:space="preserve"><value>Biometric unlock could not be enabled safely.</value></data>
+  <data name="BiometricUnlockFailed" xml:space="preserve"><value>Biometric verification did not unlock the vault.</value></data>
+  <data name="BiometricRecoveryRequired" xml:space="preserve"><value>Use your master password to unlock and restore biometric access.</value></data>
+  <data name="BiometricRetriesExhausted" xml:space="preserve"><value>Biometric access is temporarily locked. Use your master password or try again later.</value></data>
+  <data name="BiometricDisabledByPolicy" xml:space="preserve"><value>Biometric access is unavailable because of the device security policy.</value></data>
 </root>

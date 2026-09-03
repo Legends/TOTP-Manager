@@ -7,7 +7,6 @@ using TOTP.Avalonia.Mobile.Presentation;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Infrastructure.Extensions;
-using TOTP.Infrastructure.Security;
 using TOTP.Infrastructure.Services;
 using TOTP.Platform.Android;
 
@@ -28,8 +27,12 @@ internal static class AndroidCompositionRoot
         services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IPlatformApplicationPaths>(paths);
-        services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Warning));
-        services.AddSingleton<IPlatformQuickUnlock, UnavailablePlatformQuickUnlock>();
+        services.AddLogging(builder => builder
+            .SetMinimumLevel(LogLevel.Warning)
+            .AddProvider(new AndroidQuickUnlockLogProvider()));
+        services.AddSingleton<AndroidActivityProvider>();
+        services.AddSingleton<IAndroidBiometricPrompt, AndroidBiometricPrompt>();
+        services.AddSingleton<IPlatformQuickUnlock, AndroidPlatformQuickUnlock>();
         services.AddInfrastructure(configuration, paths, fileSecurity);
         services.AddSingleton<IAsyncPlatformClipboard, AndroidPlatformClipboard>();
         services.AddSingleton<AsyncClipboardService>();

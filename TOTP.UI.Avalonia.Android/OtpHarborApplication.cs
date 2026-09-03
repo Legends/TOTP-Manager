@@ -41,6 +41,16 @@ public class OtpHarborApplication : AvaloniaAndroidApplication<MobileApp>
         _services?.GetService<IMobileLifecycleSink>()?.OnEnteredBackground(lockImmediately);
     }
 
+    public void AttachActivity(MainActivity activity)
+    {
+        _services?.GetService<AndroidActivityProvider>()?.Attach(activity);
+    }
+
+    public void DetachActivity(MainActivity activity)
+    {
+        _services?.GetService<AndroidActivityProvider>()?.Detach(activity);
+    }
+
     public void NotifyReturnedToForeground()
     {
         _services?.GetService<IMobileLifecycleSink>()?.OnReturnedToForeground();

@@ -23,6 +23,7 @@ public class MainActivity : AvaloniaMainActivity
     {
         Window?.SetFlags(WindowManagerFlags.Secure, WindowManagerFlags.Secure);
         base.OnCreate(savedInstanceState);
+        if (Application is OtpHarborApplication host) host.AttachActivity(this);
     }
 
     protected override void OnStart()
@@ -37,6 +38,12 @@ public class MainActivity : AvaloniaMainActivity
         if (!IsChangingConfigurations && Application is OtpHarborApplication host)
             host.NotifyEnteredBackground(IsDeviceUnavailable());
         base.OnStop();
+    }
+
+    protected override void OnDestroy()
+    {
+        if (Application is OtpHarborApplication host) host.DetachActivity(this);
+        base.OnDestroy();
     }
 
     private bool IsDeviceUnavailable()

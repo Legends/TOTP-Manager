@@ -14,6 +14,9 @@ The current Android application provides:
 - conditional clipboard clearing without retaining the copied code as adapter state
 - a 30-second background grace period for normal app switching, with immediate code removal and
   immediate locking on device lock
+- optional strong-biometric quick unlock backed by a non-exportable Android Keystore key, with
+  automatic prompting after startup or a background lock, master-password confirmation during
+  enrollment, and password recovery at all times
 - English and German localization
 - private Android application storage with verified owner-only Unix permissions
 - disabled Android backup and cleartext network traffic
@@ -25,7 +28,6 @@ vault and are loaded through the existing authorization-aware services when requ
 This is a development build, not an Android release candidate. The following capabilities are
 deliberately deferred until the base workflow has been verified on physical hardware:
 
-- biometric quick unlock backed by Android Keystore
 - QR scanning and camera permission handling
 - import, export, and Android document-picker integration
 - production signing, Play Store packaging, upgrade policy, and supported Android CI
@@ -67,7 +69,13 @@ before the first store publication because a published application ID is effecti
 ## Security review notes
 
 - **Threat impact:** the host prevents ordinary backup, screenshots, recent-app previews, and
-  cleartext network traffic. It does not claim to resist a rooted or otherwise compromised device.
+  cleartext network traffic. Biometric quick unlock accepts only Android's strong-biometric class;
+  it does not accept the device PIN as a substitute. Its non-exportable AES-256 key is usable only
+  for one second after successful strong-biometric authentication and is invalidated when biometric
+  enrollment changes. That minimal time window is an Android-documented compatibility path for
+  devices whose KeyMint implementation rejects an authentication-per-use `CryptoObject`. Code
+  executing as the app's UID during that second shares the authorization window; the app does not
+  claim to resist a rooted, injected, or otherwise compromised process or device.
 - **Data-flow impact:** the existing authorization, encryption, vault, account, settings, TOTP, and
   clipboard services now process production data on Android. Files stay below the private app data
   root. Copied codes enter the system clipboard, are marked sensitive on Android 13 and newer, and
@@ -75,21 +83,34 @@ before the first store publication because a published application ID is effecti
   in-memory vault key for no more than the 30-second grace period while immediately removing the
   displayed code. The foreground transition re-evaluates the deadline using monotonic time because
   Android may suspend background execution. Device lock, explicit lock, and process termination do
-  not receive this grace period.
+  not receive this grace period. Enabling quick unlock unwraps the vault key only after recovery
+  password verification, then encrypts it with AES-256-GCM inside the authenticated Keystore flow.
+  Unlock first completes a `BIOMETRIC_STRONG` system prompt without a `CryptoObject`; the cipher is
+  created and completed synchronously in the success callback, within the one-second authorization
+  window. The password field remains available if the prompt is cancelled or recovery is required.
+  The envelope stores only the Keystore alias, nonce, authenticated ciphertext, and reviewed
+  provider metadata; it stores neither the biometric nor an exportable platform key.
 - **Compatibility impact:** the Android projects remain outside `TOTP.sln`. The infrastructure
   dependency on `NSec.Cryptography` was upgraded from 25.4.0 to 26.4.0 for current Android native
-  runtime and 16 KB page-size support; vault formats and cryptographic algorithms were not changed.
+  runtime and 16 KB page-size support; the existing version-2 authorization envelope gains an
+  optional, strictly validated Android provider wrapper without changing the password wrapper or
+  encrypted-vault format.
+  Strong-biometric quick unlock currently requires Android 11 (API 30) or newer. Earlier supported
+  Android versions retain password unlock rather than silently accepting a weaker biometric class.
   Desktop and Android vault files are not yet presented as an interchange format because no mobile
   import/export workflow exists.
-- **Recovery impact:** password unlock remains the only Android recovery and authorization method in
-  this slice. Android backup is intentionally unavailable; deleting app data deletes the local
+- **Recovery impact:** the master password remains an independent recovery and authorization method.
+  A missing or invalidated Keystore key falls back to password unlock and never bypasses vault-key
+  verification. Android backup is intentionally unavailable; deleting app data deletes the local
   vault. Users must not treat this development build as the sole copy of an authenticator account.
 - **Test evidence:** localized resource completeness and mobile startup, immediate device locking,
   background grace-period expiry, account projection, and account validation behavior have
   automated coverage. Debug and Release Android builds plus
   desktop regression tests must remain green. Private storage, NSec runtime behavior, lifecycle
   transitions, and clipboard clearing have initial physical-device evidence and still require a
-  broader supported-device matrix before release.
+  broader supported-device matrix before release. Biometric provider metadata, enrollment,
+  automatic-prompt cancellation, recovery fallback, and successful unlock have regression
+  coverage; enrollment-change invalidation still requires physical-device verification.
 
 ## Physical-device evidence
 
@@ -102,7 +123,12 @@ An Android 16 ARM64 device was used for the first development-MVP verification o
 - conditional clipboard clearing succeeded after 15 seconds
 - a 10-second app switch preserved the session, a 35-second switch locked it, and device locking
   caused an immediate app lock
+- on 2026-09-03, a Xiaomi/Poco Android 16 device with a Class 3 fingerprint enrolled the
+  Keystore-backed wrapper, persisted `PlatformQuickUnlock` as the preferred method, and successfully
+  unlocked the existing encrypted vault; the strict authentication-per-use flow returned
+  `UserNotAuthenticatedException`, while Android's one-second time-based flow succeeded
 - the app remained free of Android crash-buffer entries throughout the completed workflow
 
-This evidence applies to the development APK and does not replace release-signing, biometric,
-camera, import/export, upgrade, or broader device-matrix verification.
+This evidence applies to the development APK and does not replace release-signing, biometric
+enrollment-change invalidation, camera, import/export, upgrade, or broader device-matrix
+verification.
