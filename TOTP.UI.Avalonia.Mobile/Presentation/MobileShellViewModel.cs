@@ -1,14 +1,18 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Windows.Input;
+using Avalonia.Media;
 using Avalonia.Threading;
 using TOTP.Avalonia.Mobile.Localization;
+using TOTP.Avalonia.Mobile.Platform;
 using TOTP.Core.Models;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Security.Models;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Services.Models;
 using TOTP.Core.Validation;
 
 namespace TOTP.Avalonia.Mobile.Presentation;
@@ -25,6 +29,13 @@ public sealed class MobileShellViewModel :
     private readonly IAccountManager _accountManager;
     private readonly IAccountTotpService _accountTotp;
     private readonly IAsyncClipboardService _clipboard;
+    private readonly IMobileQrScanner _qrScanner;
+    private readonly IQrAccountImportService _qrImport;
+    private readonly IAccountQrCodeService _accountQrCode;
+    private readonly IMobileQrImageFactory _qrImageFactory;
+    private readonly IMobileDocumentService _documents;
+    private readonly IExportService _exportService;
+    private readonly IAccountImportService _accountImport;
     private readonly ISettingsService _settings;
     private readonly IPlatformApplicationPaths _paths;
     private readonly MobileStringCatalog _strings;
@@ -37,6 +48,8 @@ public sealed class MobileShellViewModel :
     private readonly MobileAsyncCommand _enableBiometricCommand;
     private readonly MobileAsyncCommand _cancelBiometricEnrollmentCommand;
     private readonly MobileAsyncCommand _lockCommand;
+    private readonly MobileAsyncCommand _showAccountsCommand;
+    private readonly MobileAsyncCommand _showSettingsCommand;
     private readonly MobileAsyncCommand _beginAddCommand;
     private readonly MobileAsyncCommand _beginEditCommand;
     private readonly MobileAsyncCommand _saveAccountCommand;
@@ -45,6 +58,16 @@ public sealed class MobileShellViewModel :
     private readonly MobileAsyncCommand _confirmDeleteCommand;
     private readonly MobileAsyncCommand _cancelDeleteCommand;
     private readonly MobileAsyncCommand _copyCodeCommand;
+    private readonly MobileAsyncCommand _scanQrCommand;
+    private readonly MobileAsyncCommand _updateQrConflictCommand;
+    private readonly MobileAsyncCommand _keepBothQrConflictCommand;
+    private readonly MobileAsyncCommand _cancelQrConflictCommand;
+    private readonly MobileAsyncCommand _showQrCommand;
+    private readonly MobileAsyncCommand _dismissQrCommand;
+    private readonly MobileAsyncCommand _exportBackupCommand;
+    private readonly MobileAsyncCommand _importBackupCommand;
+    private readonly MobileAsyncCommand _confirmImportCommand;
+    private readonly MobileAsyncCommand _cancelImportCommand;
 
     private MobileScreen _screen = MobileScreen.Starting;
     private bool _isBusy;
@@ -58,6 +81,9 @@ public sealed class MobileShellViewModel :
     private bool _isBiometricEnabled;
     private bool _isBiometricEnrollmentVisible;
     private string _biometricRecoveryPassword = string.Empty;
+    private bool _isSettingsVisible;
+    private string _searchText = string.Empty;
+    private readonly List<MobileAccountItem> _allAccounts = [];
     private MobileAccountItem? _selectedAccount;
     private string _selectedCode = string.Empty;
     private int _remainingSeconds;
@@ -68,6 +94,17 @@ public sealed class MobileShellViewModel :
     private string _editorIssuer = string.Empty;
     private string _editorAccountName = string.Empty;
     private string _editorSecret = string.Empty;
+    private bool _isQrConflictVisible;
+    private string _qrConflictDisplayName = string.Empty;
+    private TaskCompletionSource<QrAccountConflictDecision>? _qrConflictCompletion;
+    private MobileQrImageHandle? _qrImage;
+    private string _backupPassword = string.Empty;
+    private string _backupPasswordConfirmation = string.Empty;
+    private string _importPassword = string.Empty;
+    private bool _isImportConfirmationVisible;
+    private string _importConfirmationText = string.Empty;
+    private TaskCompletionSource<bool>? _importConfirmationCompletion;
+    private CancellationTokenSource? _sensitiveOperationLifetime;
     private CancellationTokenSource? _codeLifetime;
     private long? _backgroundedAtTimestamp;
     private ITimer? _backgroundLockTimer;
@@ -80,6 +117,13 @@ public sealed class MobileShellViewModel :
         IAccountManager accountManager,
         IAccountTotpService accountTotp,
         IAsyncClipboardService clipboard,
+        IMobileQrScanner qrScanner,
+        IQrAccountImportService qrImport,
+        IAccountQrCodeService accountQrCode,
+        IMobileQrImageFactory qrImageFactory,
+        IMobileDocumentService documents,
+        IExportService exportService,
+        IAccountImportService accountImport,
         ISettingsService settings,
         IPlatformApplicationPaths paths,
         MobileStringCatalog strings,
@@ -91,6 +135,13 @@ public sealed class MobileShellViewModel :
         _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
         _accountTotp = accountTotp ?? throw new ArgumentNullException(nameof(accountTotp));
         _clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
+        _qrScanner = qrScanner ?? throw new ArgumentNullException(nameof(qrScanner));
+        _qrImport = qrImport ?? throw new ArgumentNullException(nameof(qrImport));
+        _accountQrCode = accountQrCode ?? throw new ArgumentNullException(nameof(accountQrCode));
+        _qrImageFactory = qrImageFactory ?? throw new ArgumentNullException(nameof(qrImageFactory));
+        _documents = documents ?? throw new ArgumentNullException(nameof(documents));
+        _exportService = exportService ?? throw new ArgumentNullException(nameof(exportService));
+        _accountImport = accountImport ?? throw new ArgumentNullException(nameof(accountImport));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _paths = paths ?? throw new ArgumentNullException(nameof(paths));
         _strings = strings ?? throw new ArgumentNullException(nameof(strings));
@@ -115,7 +166,13 @@ public sealed class MobileShellViewModel :
         _cancelBiometricEnrollmentCommand = new MobileAsyncCommand(
             CancelBiometricEnrollmentAsync,
             () => IsBiometricEnrollmentVisible && !IsBusy);
-        _lockCommand = new MobileAsyncCommand(LockAsync, () => IsAccountsVisible && !IsBusy);
+        _lockCommand = new MobileAsyncCommand(LockAsync, () => IsAccountsVisible);
+        _showAccountsCommand = new MobileAsyncCommand(
+            ShowAccountsAsync,
+            () => IsAccountsVisible && IsSettingsVisible && !IsBusy);
+        _showSettingsCommand = new MobileAsyncCommand(
+            ShowSettingsAsync,
+            () => IsAccountsVisible && !IsSettingsVisible && !IsEditorVisible && !IsBusy);
         _beginAddCommand = new MobileAsyncCommand(BeginAddAsync, CanEditAccounts);
         _beginEditCommand = new MobileAsyncCommand(
             BeginEditAsync,
@@ -138,6 +195,34 @@ public sealed class MobileShellViewModel :
         _copyCodeCommand = new MobileAsyncCommand(
             CopyCodeAsync,
             () => IsAccountsVisible && !IsBusy && SelectedCode.Length > 0);
+        _scanQrCommand = new MobileAsyncCommand(ScanQrAsync, CanEditAccounts);
+        _updateQrConflictCommand = new MobileAsyncCommand(
+            () => ResolveQrConflictAsync(QrAccountConflictDecision.UpdateExisting),
+            () => IsQrConflictVisible);
+        _keepBothQrConflictCommand = new MobileAsyncCommand(
+            () => ResolveQrConflictAsync(QrAccountConflictDecision.KeepBoth),
+            () => IsQrConflictVisible);
+        _cancelQrConflictCommand = new MobileAsyncCommand(
+            () => ResolveQrConflictAsync(QrAccountConflictDecision.Cancel),
+            () => IsQrConflictVisible);
+        _showQrCommand = new MobileAsyncCommand(
+            ShowQrAsync,
+            () => CanEditAccounts() && SelectedAccount is not null && !HasQrImage);
+        _dismissQrCommand = new MobileAsyncCommand(
+            DismissQrAsync,
+            () => HasQrImage);
+        _exportBackupCommand = new MobileAsyncCommand(
+            ExportBackupAsync,
+            () => IsSettingsVisible && !IsBusy);
+        _importBackupCommand = new MobileAsyncCommand(
+            ImportBackupAsync,
+            () => IsSettingsVisible && !IsBusy);
+        _confirmImportCommand = new MobileAsyncCommand(
+            () => ResolveImportConfirmationAsync(true),
+            () => IsImportConfirmationVisible);
+        _cancelImportCommand = new MobileAsyncCommand(
+            () => ResolveImportConfirmationAsync(false),
+            () => IsImportConfirmationVisible);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -152,6 +237,8 @@ public sealed class MobileShellViewModel :
     public ICommand EnableBiometricCommand => _enableBiometricCommand;
     public ICommand CancelBiometricEnrollmentCommand => _cancelBiometricEnrollmentCommand;
     public ICommand LockCommand => _lockCommand;
+    public ICommand ShowAccountsCommand => _showAccountsCommand;
+    public ICommand ShowSettingsCommand => _showSettingsCommand;
     public ICommand BeginAddCommand => _beginAddCommand;
     public ICommand BeginEditCommand => _beginEditCommand;
     public ICommand SaveAccountCommand => _saveAccountCommand;
@@ -160,21 +247,55 @@ public sealed class MobileShellViewModel :
     public ICommand ConfirmDeleteCommand => _confirmDeleteCommand;
     public ICommand CancelDeleteCommand => _cancelDeleteCommand;
     public ICommand CopyCodeCommand => _copyCodeCommand;
+    public ICommand ScanQrCommand => _scanQrCommand;
+    public ICommand UpdateQrConflictCommand => _updateQrConflictCommand;
+    public ICommand KeepBothQrConflictCommand => _keepBothQrConflictCommand;
+    public ICommand CancelQrConflictCommand => _cancelQrConflictCommand;
+    public ICommand ShowQrCommand => _showQrCommand;
+    public ICommand DismissQrCommand => _dismissQrCommand;
+    public ICommand ExportBackupCommand => _exportBackupCommand;
+    public ICommand ImportBackupCommand => _importBackupCommand;
+    public ICommand ConfirmImportCommand => _confirmImportCommand;
+    public ICommand CancelImportCommand => _cancelImportCommand;
 
     public bool IsStartingVisible => _screen == MobileScreen.Starting;
     public bool IsSetupVisible => _screen == MobileScreen.Setup;
     public bool IsUnlockVisible => _screen == MobileScreen.Unlock;
     public bool IsAccountsVisible => _screen == MobileScreen.Accounts;
-    public bool IsAccountListVisible => IsAccountsVisible && !IsEditorVisible;
+    public bool IsAccountListVisible => IsAccountsVisible && !IsSettingsVisible && !IsEditorVisible;
+    public bool IsSettingsVisible => IsAccountsVisible && _isSettingsVisible;
+    public bool IsBottomNavigationVisible => IsAccountsVisible && !IsEditorVisible;
     public bool HasAccounts => Accounts.Count > 0;
-    public bool HasNoAccounts => !HasAccounts;
+    public bool HasNoAccounts => _allAccounts.Count == 0;
+    public bool HasNoSearchResults => _allAccounts.Count > 0 && Accounts.Count == 0;
+    public IImage? QrImage => _qrImage?.Image;
+    public bool HasQrImage => QrImage is not null;
     public bool HasSelectedAccount => SelectedAccount is not null;
     public bool HasNoSelectedAccount => !HasSelectedAccount;
     public bool CanRetry => _startupFailed && !IsBusy;
     public bool IsBiometricUnlockVisible =>
         IsUnlockVisible && IsBiometricEnabled && IsBiometricAvailable;
     public bool IsBiometricSetupAvailable =>
-        IsAccountListVisible && IsBiometricAvailable && !IsBiometricEnabled;
+        IsSettingsVisible && IsBiometricAvailable && !IsBiometricEnabled;
+    public bool IsBiometricUnavailable => IsSettingsVisible && !IsBiometricAvailable;
+    public bool IsQrConflictVisible
+    {
+        get => _isQrConflictVisible;
+        private set
+        {
+            if (!SetField(ref _isQrConflictVisible, value)) return;
+            NotifyCommands();
+        }
+    }
+    public bool IsImportConfirmationVisible
+    {
+        get => _isImportConfirmationVisible;
+        private set
+        {
+            if (!SetField(ref _isImportConfirmationVisible, value)) return;
+            NotifyCommands();
+        }
+    }
     public bool IsBiometricEnrollmentStartVisible =>
         IsBiometricSetupAvailable && !IsBiometricEnrollmentVisible;
 
@@ -240,6 +361,7 @@ public sealed class MobileShellViewModel :
             if (!SetField(ref _isBiometricAvailable, value)) return;
             OnPropertyChanged(nameof(IsBiometricSetupAvailable));
             OnPropertyChanged(nameof(IsBiometricEnrollmentStartVisible));
+            OnPropertyChanged(nameof(IsBiometricUnavailable));
             NotifyCommands();
         }
     }
@@ -279,12 +401,53 @@ public sealed class MobileShellViewModel :
         }
     }
 
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (!SetField(ref _searchText, value ?? string.Empty)) return;
+            ApplyAccountFilter();
+        }
+    }
+
+    public string BackupPassword
+    {
+        get => _backupPassword;
+        set
+        {
+            if (!SetField(ref _backupPassword, value ?? string.Empty)) return;
+            ClearErrorNotification();
+        }
+    }
+
+    public string BackupPasswordConfirmation
+    {
+        get => _backupPasswordConfirmation;
+        set
+        {
+            if (!SetField(ref _backupPasswordConfirmation, value ?? string.Empty)) return;
+            ClearErrorNotification();
+        }
+    }
+
+    public string ImportPassword
+    {
+        get => _importPassword;
+        set
+        {
+            if (!SetField(ref _importPassword, value ?? string.Empty)) return;
+            ClearErrorNotification();
+        }
+    }
+
     public MobileAccountItem? SelectedAccount
     {
         get => _selectedAccount;
         set
         {
             if (!SetField(ref _selectedAccount, value)) return;
+            ClearQrImage();
             OnPropertyChanged(nameof(HasSelectedAccount));
             OnPropertyChanged(nameof(HasNoSelectedAccount));
             OnPropertyChanged(nameof(DeletePrompt));
@@ -322,6 +485,7 @@ public sealed class MobileShellViewModel :
         {
             if (!SetField(ref _isEditorVisible, value)) return;
             OnPropertyChanged(nameof(IsAccountListVisible));
+            OnPropertyChanged(nameof(IsBottomNavigationVisible));
             OnPropertyChanged(nameof(EditorTitle));
             OnPropertyChanged(nameof(EditorSecretPlaceholder));
             NotifyCommands();
@@ -381,6 +545,7 @@ public sealed class MobileShellViewModel :
         SelectedAccount?.DisplayName ?? string.Empty);
 
     public string StartingText => Get(MobileStringKeys.Starting);
+    public string AppTitle => Get(MobileStringKeys.AppTitle);
     public string RetryText => Get(MobileStringKeys.Retry);
     public string SetupTitle => Get(MobileStringKeys.SetupTitle);
     public string SetupDescription => Get(MobileStringKeys.SetupDescription);
@@ -409,6 +574,35 @@ public sealed class MobileShellViewModel :
     public string BiometricSetupDescription => Get(MobileStringKeys.BiometricSetupDescription);
     public string BiometricEnableText => Get(MobileStringKeys.BiometricEnable);
     public string BiometricEnabledText => Get(MobileStringKeys.BiometricEnabled);
+    public string BiometricUnavailableText => Get(MobileStringKeys.BiometricUnavailable);
+    public string CodesText => Get(MobileStringKeys.Codes);
+    public string SettingsText => Get(MobileStringKeys.Settings);
+    public string SecurityText => Get(MobileStringKeys.Security);
+    public string SearchAccountsText => Get(MobileStringKeys.SearchAccounts);
+    public string NoSearchResultsText => Get(MobileStringKeys.NoSearchResults);
+    public string ScanQrText => Get(MobileStringKeys.ScanQr);
+    public string QrConflictTitle => Get(MobileStringKeys.QrConflictTitle);
+    public string QrConflictPrompt => string.Format(
+        Get(MobileStringKeys.QrConflictPrompt),
+        _qrConflictDisplayName);
+    public string UpdateExistingText => Get(MobileStringKeys.UpdateExisting);
+    public string KeepBothText => Get(MobileStringKeys.KeepBoth);
+    public string ShowQrText => Get(MobileStringKeys.ShowQr);
+    public string DismissQrText => Get(MobileStringKeys.DismissQr);
+    public string QrPrivacyNoticeText => Get(MobileStringKeys.QrPrivacyNotice);
+    public string BackupTitle => Get(MobileStringKeys.BackupTitle);
+    public string BackupDescription => Get(MobileStringKeys.BackupDescription);
+    public string BackupPasswordText => Get(MobileStringKeys.BackupPassword);
+    public string ConfirmBackupPasswordText => Get(MobileStringKeys.ConfirmBackupPassword);
+    public string ExportBackupText => Get(MobileStringKeys.ExportBackup);
+    public string ImportBackupText => Get(MobileStringKeys.ImportBackup);
+    public string ImportConfirmationTitle => Get(MobileStringKeys.ImportConfirmationTitle);
+    public string ImportConfirmationText
+    {
+        get => _importConfirmationText;
+        private set => SetField(ref _importConfirmationText, value);
+    }
+    public string ConfirmImportText => Get(MobileStringKeys.ConfirmImport);
 
     public async Task InitializeAsync()
     {
@@ -654,6 +848,347 @@ public sealed class MobileShellViewModel :
         return Task.CompletedTask;
     }
 
+    public Task ShowAccountsAsync()
+    {
+        if (!IsSettingsVisible || IsBusy) return Task.CompletedTask;
+
+        _isSettingsVisible = false;
+        IsBiometricEnrollmentVisible = false;
+        ClearPasswordInputs();
+        ClearNotification();
+        NotifyUnlockedSectionChanged();
+        StartCodeRefresh(SelectedAccount);
+        return Task.CompletedTask;
+    }
+
+    public Task ShowSettingsAsync()
+    {
+        if (!IsAccountsVisible || IsSettingsVisible || IsEditorVisible || IsBusy)
+            return Task.CompletedTask;
+
+        _isSettingsVisible = true;
+        IsDeleteConfirmationVisible = false;
+        CancelCodeRefresh();
+        ClearQrImage();
+        ClearNotification();
+        NotifyUnlockedSectionChanged();
+        return Task.CompletedTask;
+    }
+
+    public async Task ScanQrAsync()
+    {
+        if (!CanEditAccounts()) return;
+
+        IsBusy = true;
+        ClearNotification();
+        string? payload = null;
+        using var operation = BeginSensitiveOperation();
+        try
+        {
+            var scanned = await _qrScanner.ScanAsync(operation.Token);
+            if (scanned.Status == MobileQrScanStatus.Cancelled) return;
+            if (scanned.Status == MobileQrScanStatus.Unavailable)
+            {
+                SetError(MobileStringKeys.QrScannerUnavailable);
+                return;
+            }
+
+            if (scanned.Status != MobileQrScanStatus.Success
+                || string.IsNullOrWhiteSpace(scanned.Payload))
+            {
+                SetError(MobileStringKeys.QrScanFailed);
+                return;
+            }
+
+            if (!_authorization.State.IsUnlocked || !IsAccountListVisible)
+            {
+                SetError(MobileStringKeys.QrScanRetryAfterUnlock);
+                return;
+            }
+
+            payload = scanned.Payload;
+            var imported = await _qrImport.ImportAsync(
+                payload,
+                ResolveQrConflictAsync,
+                operation.Token);
+            if (imported.IsFailed)
+            {
+                SetError(MobileStringKeys.QrInvalid);
+                return;
+            }
+
+            var outcome = imported.Value;
+            switch (outcome.Status)
+            {
+                case QrAccountImportStatus.Added:
+                    await LoadAccountsAsync(outcome.AccountId);
+                    SetSuccess(MobileStringKeys.QrAccountAdded);
+                    break;
+                case QrAccountImportStatus.Updated:
+                    await LoadAccountsAsync(outcome.AccountId);
+                    SetSuccess(MobileStringKeys.QrAccountUpdated);
+                    break;
+                case QrAccountImportStatus.KeptBoth:
+                    await LoadAccountsAsync(outcome.AccountId);
+                    SetSuccess(MobileStringKeys.QrAccountKeptBoth);
+                    break;
+                case QrAccountImportStatus.DuplicateUnchanged:
+                    await LoadAccountsAsync(outcome.AccountId);
+                    SetNotification(
+                        Get(MobileStringKeys.QrAccountDuplicate),
+                        NotificationSeverity.Information);
+                    break;
+                case QrAccountImportStatus.Cancelled:
+                    SetNotification(
+                        Get(MobileStringKeys.QrImportCancelled),
+                        NotificationSeverity.Information);
+                    break;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception)
+        {
+            SetError(MobileStringKeys.QrScanFailed);
+        }
+        finally
+        {
+            EndSensitiveOperation(operation);
+            payload = null;
+            CompleteQrConflict(QrAccountConflictDecision.Cancel);
+            IsBusy = false;
+            TryStartAutomaticBiometricUnlock();
+        }
+    }
+
+    public async Task ShowQrAsync()
+    {
+        if (!CanEditAccounts() || SelectedAccount is null || HasQrImage) return;
+
+        IsBusy = true;
+        ClearNotification();
+        ClearQrImage();
+        try
+        {
+            var generated = await _accountQrCode.GenerateAsync(SelectedAccount.Id);
+            if (generated.IsFailed)
+            {
+                SetError(MobileStringKeys.QrDisplayFailed);
+                return;
+            }
+
+            using var png = generated.Value;
+            _qrImage = _qrImageFactory.Create(png.Memory);
+            OnPropertyChanged(nameof(QrImage));
+            OnPropertyChanged(nameof(HasQrImage));
+        }
+        catch (Exception)
+        {
+            ClearQrImage();
+            SetError(MobileStringKeys.QrDisplayFailed);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    public Task DismissQrAsync()
+    {
+        ClearQrImage();
+        return Task.CompletedTask;
+    }
+
+    public async Task ExportBackupAsync()
+    {
+        if (!IsSettingsVisible || IsBusy) return;
+
+        var password = BackupPassword;
+        var confirmation = BackupPasswordConfirmation;
+        BackupPassword = string.Empty;
+        BackupPasswordConfirmation = string.Empty;
+        if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(confirmation))
+        {
+            SetError(MobileStringKeys.BackupPasswordRequired);
+            return;
+        }
+
+        if (password.Length < _passwordValidation.MinimumLength)
+        {
+            SetNotification(
+                string.Format(
+                    Get(MobileStringKeys.BackupPasswordMinimumLength),
+                    _passwordValidation.MinimumLength),
+                NotificationSeverity.Error);
+            return;
+        }
+
+        if (!string.Equals(password, confirmation, StringComparison.Ordinal))
+        {
+            SetError(MobileStringKeys.BackupPasswordMismatch);
+            return;
+        }
+
+        IsBusy = true;
+        MobileWritableDocument? document = null;
+        using var operation = BeginSensitiveOperation();
+        try
+        {
+            var accounts = await _accountManager.GetAllOtpEntriesSortedAsync();
+            if (accounts.IsFailed)
+            {
+                SetError(MobileStringKeys.BackupExportFailed);
+                return;
+            }
+
+            document = await _documents.CreateEncryptedBackupAsync(
+                string.Format(
+                    Get(MobileStringKeys.BackupFileName),
+                    _timeProvider.GetUtcNow().ToString("yyyyMMdd", CultureInfo.InvariantCulture)),
+                operation.Token);
+            if (document is null) return;
+            if (!_authorization.State.IsUnlocked || !IsSettingsVisible)
+            {
+                await document.DiscardAsync();
+                SetError(MobileStringKeys.BackupRetryAfterUnlock);
+                return;
+            }
+
+            var exported = await _exportService.ExportToEncryptedStreamAsync(
+                accounts.Value,
+                password,
+                document.Stream,
+                ExportFileFormat.Json,
+                operation.Token);
+            if (exported.IsFailed)
+            {
+                await document.DiscardAsync();
+                SetError(MobileStringKeys.BackupExportFailed);
+                return;
+            }
+
+            SetSuccess(MobileStringKeys.BackupExported);
+        }
+        catch (OperationCanceledException) when (operation.IsCancellationRequested)
+        {
+            if (document is not null) await TryDiscardAsync(document);
+        }
+        catch (Exception)
+        {
+            var cleanupSucceeded = document is null || await TryDiscardAsync(document);
+            SetError(cleanupSucceeded
+                ? MobileStringKeys.BackupExportFailed
+                : MobileStringKeys.BackupExportCleanupFailed);
+        }
+        finally
+        {
+            EndSensitiveOperation(operation);
+            document?.Dispose();
+            password = string.Empty;
+            confirmation = string.Empty;
+            IsBusy = false;
+            TryStartAutomaticBiometricUnlock();
+        }
+    }
+
+    public async Task ImportBackupAsync()
+    {
+        if (!IsSettingsVisible || IsBusy) return;
+
+        var password = ImportPassword;
+        ImportPassword = string.Empty;
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            SetError(MobileStringKeys.BackupPasswordRequired);
+            return;
+        }
+
+        IsBusy = true;
+        using var operation = BeginSensitiveOperation();
+        try
+        {
+            using var document = await _documents.OpenEncryptedBackupAsync(operation.Token);
+            if (document is null) return;
+            if (!_authorization.State.IsUnlocked || !IsSettingsVisible)
+            {
+                SetError(MobileStringKeys.BackupRetryAfterUnlock);
+                return;
+            }
+
+            var decoded = await _exportService.ImportFromEncryptedStreamAsync(
+                password,
+                document.Stream,
+                operation.Token);
+            if (decoded.IsFailed)
+            {
+                SetError(MobileStringKeys.BackupImportRejected);
+                return;
+            }
+
+            var imported = await _accountImport.ImportAsync(
+                decoded.Value,
+                ImportConflictStrategy.SkipExisting,
+                ConfirmImportAsync,
+                operation.Token);
+            if (imported.IsFailed)
+            {
+                SetError(MobileStringKeys.BackupImportFailed);
+                return;
+            }
+
+            var outcome = imported.Value;
+            if (outcome.Status == AccountImportStatus.Cancelled)
+            {
+                SetNotification(
+                    Get(MobileStringKeys.BackupImportCancelled),
+                    NotificationSeverity.Information);
+                return;
+            }
+
+            if (outcome.Status != AccountImportStatus.Completed || outcome.Failed > 0)
+            {
+                SetError(MobileStringKeys.BackupImportFailed);
+                return;
+            }
+
+            await LoadAccountsAsync();
+            SetNotification(
+                string.Format(
+                    Get(MobileStringKeys.BackupImported),
+                    outcome.Added,
+                    outcome.Skipped),
+                NotificationSeverity.Success);
+        }
+        catch (OperationCanceledException) when (operation.IsCancellationRequested)
+        {
+        }
+        catch (Exception)
+        {
+            SetError(MobileStringKeys.BackupImportFailed);
+        }
+        finally
+        {
+            EndSensitiveOperation(operation);
+            password = string.Empty;
+            CompleteImportConfirmation(false);
+            IsBusy = false;
+            TryStartAutomaticBiometricUnlock();
+        }
+    }
+
+    public Task ResolveImportConfirmationAsync(bool confirmed)
+    {
+        CompleteImportConfirmation(confirmed);
+        return Task.CompletedTask;
+    }
+
+    public Task ResolveQrConflictAsync(QrAccountConflictDecision decision)
+    {
+        CompleteQrConflict(decision);
+        return Task.CompletedTask;
+    }
+
     public Task BeginAddAsync()
     {
         if (!CanEditAccounts()) return Task.CompletedTask;
@@ -667,6 +1202,7 @@ public sealed class MobileShellViewModel :
     public Task BeginEditAsync()
     {
         if (!CanEditAccounts() || SelectedAccount is null) return Task.CompletedTask;
+        ClearQrImage();
         _editingAccountId = SelectedAccount.Id;
         EditorIssuer = SelectedAccount.Issuer;
         EditorAccountName = SelectedAccount.AccountName;
@@ -782,6 +1318,7 @@ public sealed class MobileShellViewModel :
     public Task BeginDeleteAsync()
     {
         if (!CanEditAccounts() || SelectedAccount is null) return Task.CompletedTask;
+        ClearQrImage();
         IsDeleteConfirmationVisible = true;
         OnPropertyChanged(nameof(DeletePrompt));
         ClearNotification();
@@ -869,6 +1406,7 @@ public sealed class MobileShellViewModel :
         if (!_authorization.State.IsUnlocked || _disposed) return;
 
         CancelCodeRefresh();
+        ClearQrImage();
         if (lockImmediately)
         {
             LockCore();
@@ -911,11 +1449,16 @@ public sealed class MobileShellViewModel :
     {
         if (_disposed) return;
         _disposed = true;
+        _sensitiveOperationLifetime?.Cancel();
         CancelBackgroundLockTimer();
         CancelCodeRefresh();
+        ClearQrImage();
         ClearEditor();
+        ClearPasswordInputs();
         Accounts.Clear();
         _authorization.Lock();
+        CompleteQrConflict(QrAccountConflictDecision.Cancel);
+        CompleteImportConfirmation(false);
     }
 
     private async Task LoadAccountsAsync(Guid? selectedId = null)
@@ -927,19 +1470,37 @@ public sealed class MobileShellViewModel :
             return;
         }
 
-        Accounts.Clear();
+        _allAccounts.Clear();
         foreach (var account in loaded.Value)
         {
-            Accounts.Add(new MobileAccountItem(
+            _allAccounts.Add(new MobileAccountItem(
                 account.ID,
                 account.Issuer,
                 account.AccountName ?? string.Empty));
         }
 
+        ApplyAccountFilter(selectedId);
+    }
+
+    private void ApplyAccountFilter(Guid? preferredSelection = null)
+    {
+        var selectedId = preferredSelection ?? SelectedAccount?.Id;
+        var query = SearchText.Trim();
+        var matches = query.Length == 0
+            ? _allAccounts
+            : _allAccounts.Where(account =>
+                account.Issuer.Contains(query, StringComparison.CurrentCultureIgnoreCase)
+                || account.AccountName.Contains(query, StringComparison.CurrentCultureIgnoreCase));
+
+        Accounts.Clear();
+        foreach (var account in matches) Accounts.Add(account);
+
         OnPropertyChanged(nameof(HasAccounts));
         OnPropertyChanged(nameof(HasNoAccounts));
+        OnPropertyChanged(nameof(HasNoSearchResults));
         SelectedAccount = selectedId.HasValue
             ? Accounts.FirstOrDefault(account => account.Id == selectedId.Value)
+                ?? Accounts.FirstOrDefault()
             : Accounts.FirstOrDefault();
         NotifyCommands();
     }
@@ -950,7 +1511,7 @@ public sealed class MobileShellViewModel :
         SelectedCode = string.Empty;
         RemainingSeconds = 0;
         PeriodSeconds = 30;
-        if (account is null || !IsAccountsVisible) return;
+        if (account is null || !IsAccountListVisible) return;
 
         var lifetime = new CancellationTokenSource();
         _codeLifetime = lifetime;
@@ -1008,17 +1569,21 @@ public sealed class MobileShellViewModel :
         if (_disposed) return;
         _backgroundedAtTimestamp = null;
         CancelBackgroundLockTimer();
+        _sensitiveOperationLifetime?.Cancel();
         _authorization.Lock();
         CancelCodeRefresh();
         ClearEditor();
         IsEditorVisible = false;
         IsDeleteConfirmationVisible = false;
+        ClearPasswordInputs();
         SelectedAccount = null;
         Accounts.Clear();
+        _allAccounts.Clear();
+        SearchText = string.Empty;
+        _isSettingsVisible = false;
         OnPropertyChanged(nameof(HasAccounts));
         OnPropertyChanged(nameof(HasNoAccounts));
-        UnlockPassword = string.Empty;
-        BiometricRecoveryPassword = string.Empty;
+        OnPropertyChanged(nameof(HasNoSearchResults));
         IsBiometricEnrollmentVisible = false;
         ClearNotification();
         SetScreen(_authorization.State.IsConfigured
@@ -1084,8 +1649,142 @@ public sealed class MobileShellViewModel :
         OnPropertyChanged(nameof(EditorSecretPlaceholder));
     }
 
+    private void ClearPasswordInputs()
+    {
+        SetupPassword = string.Empty;
+        SetupConfirmation = string.Empty;
+        UnlockPassword = string.Empty;
+        BiometricRecoveryPassword = string.Empty;
+        BackupPassword = string.Empty;
+        BackupPasswordConfirmation = string.Empty;
+        ImportPassword = string.Empty;
+    }
+
+    private void ClearQrImage()
+    {
+        var image = _qrImage;
+        _qrImage = null;
+        image?.Dispose();
+        OnPropertyChanged(nameof(QrImage));
+        OnPropertyChanged(nameof(HasQrImage));
+        _showQrCommand?.NotifyCanExecuteChanged();
+        _dismissQrCommand?.NotifyCanExecuteChanged();
+    }
+
     private bool CanEditAccounts() =>
-        IsAccountsVisible && !IsBusy && !IsEditorVisible && !IsDeleteConfirmationVisible;
+        IsAccountListVisible
+        && !IsBusy
+        && !IsDeleteConfirmationVisible
+        && !IsQrConflictVisible;
+
+    private async Task<QrAccountConflictDecision> ResolveQrConflictAsync(
+        QrAccountConflict conflict,
+        CancellationToken cancellationToken)
+    {
+        var completion = new TaskCompletionSource<QrAccountConflictDecision>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        _qrConflictCompletion = completion;
+        _qrConflictDisplayName = string.IsNullOrWhiteSpace(conflict.AccountName)
+            ? conflict.Issuer
+            : $"{conflict.Issuer}: {conflict.AccountName}";
+        OnPropertyChanged(nameof(QrConflictPrompt));
+        IsQrConflictVisible = true;
+
+        using var cancellation = cancellationToken.Register(() =>
+            completion.TrySetCanceled(cancellationToken));
+        try
+        {
+            return await completion.Task;
+        }
+        finally
+        {
+            if (ReferenceEquals(_qrConflictCompletion, completion))
+            {
+                _qrConflictCompletion = null;
+                _qrConflictDisplayName = string.Empty;
+                IsQrConflictVisible = false;
+                OnPropertyChanged(nameof(QrConflictPrompt));
+            }
+        }
+    }
+
+    private void CompleteQrConflict(QrAccountConflictDecision decision) =>
+        _qrConflictCompletion?.TrySetResult(decision);
+
+    private async Task<bool> ConfirmImportAsync(
+        AccountImportPreview preview,
+        CancellationToken cancellationToken)
+    {
+        var completion = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        _importConfirmationCompletion = completion;
+        ImportConfirmationText = string.Format(
+            Get(MobileStringKeys.ImportConfirmation),
+            preview.TotalCount,
+            preview.ConflictCount);
+        IsImportConfirmationVisible = true;
+
+        using var cancellation = cancellationToken.Register(() =>
+            completion.TrySetCanceled(cancellationToken));
+        try
+        {
+            return await completion.Task;
+        }
+        finally
+        {
+            if (ReferenceEquals(_importConfirmationCompletion, completion))
+            {
+                _importConfirmationCompletion = null;
+                ImportConfirmationText = string.Empty;
+                IsImportConfirmationVisible = false;
+            }
+        }
+    }
+
+    private void CompleteImportConfirmation(bool confirmed) =>
+        _importConfirmationCompletion?.TrySetResult(confirmed);
+
+    private static async Task<bool> TryDiscardAsync(MobileWritableDocument document)
+    {
+        try
+        {
+            await document.DiscardAsync();
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    private CancellationTokenSource BeginSensitiveOperation()
+    {
+        var lifetime = new CancellationTokenSource();
+        var previous = Interlocked.Exchange(ref _sensitiveOperationLifetime, lifetime);
+        previous?.Cancel();
+        return lifetime;
+    }
+
+    private void EndSensitiveOperation(CancellationTokenSource lifetime)
+    {
+        if (ReferenceEquals(
+            Interlocked.CompareExchange(ref _sensitiveOperationLifetime, null, lifetime),
+            lifetime))
+        {
+            return;
+        }
+    }
+
+    private void NotifyUnlockedSectionChanged()
+    {
+        OnPropertyChanged(nameof(IsAccountListVisible));
+        OnPropertyChanged(nameof(IsSettingsVisible));
+        OnPropertyChanged(nameof(IsBottomNavigationVisible));
+        OnPropertyChanged(nameof(IsBiometricSetupAvailable));
+        OnPropertyChanged(nameof(IsBiometricEnrollmentStartVisible));
+        OnPropertyChanged(nameof(IsBiometricUnavailable));
+        NotifyCommands();
+    }
 
     private void FailStartup()
     {
@@ -1103,11 +1802,8 @@ public sealed class MobileShellViewModel :
         OnPropertyChanged(nameof(IsSetupVisible));
         OnPropertyChanged(nameof(IsUnlockVisible));
         OnPropertyChanged(nameof(IsAccountsVisible));
-        OnPropertyChanged(nameof(IsAccountListVisible));
+        NotifyUnlockedSectionChanged();
         OnPropertyChanged(nameof(IsBiometricUnlockVisible));
-        OnPropertyChanged(nameof(IsBiometricSetupAvailable));
-        OnPropertyChanged(nameof(IsBiometricEnrollmentStartVisible));
-        NotifyCommands();
     }
 
     private void SetError(string key) =>
@@ -1145,6 +1841,8 @@ public sealed class MobileShellViewModel :
         _enableBiometricCommand.NotifyCanExecuteChanged();
         _cancelBiometricEnrollmentCommand.NotifyCanExecuteChanged();
         _lockCommand.NotifyCanExecuteChanged();
+        _showAccountsCommand.NotifyCanExecuteChanged();
+        _showSettingsCommand.NotifyCanExecuteChanged();
         _beginAddCommand.NotifyCanExecuteChanged();
         _beginEditCommand.NotifyCanExecuteChanged();
         _saveAccountCommand.NotifyCanExecuteChanged();
@@ -1153,6 +1851,16 @@ public sealed class MobileShellViewModel :
         _confirmDeleteCommand.NotifyCanExecuteChanged();
         _cancelDeleteCommand.NotifyCanExecuteChanged();
         _copyCodeCommand.NotifyCanExecuteChanged();
+        _scanQrCommand.NotifyCanExecuteChanged();
+        _updateQrConflictCommand.NotifyCanExecuteChanged();
+        _keepBothQrConflictCommand.NotifyCanExecuteChanged();
+        _cancelQrConflictCommand.NotifyCanExecuteChanged();
+        _showQrCommand.NotifyCanExecuteChanged();
+        _dismissQrCommand.NotifyCanExecuteChanged();
+        _exportBackupCommand.NotifyCanExecuteChanged();
+        _importBackupCommand.NotifyCanExecuteChanged();
+        _confirmImportCommand.NotifyCanExecuteChanged();
+        _cancelImportCommand.NotifyCanExecuteChanged();
     }
 
     private bool SetField<T>(

@@ -2,6 +2,7 @@ namespace TOTP.Avalonia.Mobile.Localization;
 
 public static class MobileStringKeys
 {
+    public const string AppTitle = nameof(AppTitle);
     public const string Starting = nameof(Starting);
     public const string StartupFailed = nameof(StartupFailed);
     public const string Retry = nameof(Retry);
@@ -21,6 +22,50 @@ public static class MobileStringKeys
     public const string UnlockRejected = nameof(UnlockRejected);
     public const string UnlockFailed = nameof(UnlockFailed);
     public const string AccountsTitle = nameof(AccountsTitle);
+    public const string Codes = nameof(Codes);
+    public const string Settings = nameof(Settings);
+    public const string Security = nameof(Security);
+    public const string SearchAccounts = nameof(SearchAccounts);
+    public const string NoSearchResults = nameof(NoSearchResults);
+    public const string ScanQr = nameof(ScanQr);
+    public const string QrScannerUnavailable = nameof(QrScannerUnavailable);
+    public const string QrScanFailed = nameof(QrScanFailed);
+    public const string QrScanRetryAfterUnlock = nameof(QrScanRetryAfterUnlock);
+    public const string QrInvalid = nameof(QrInvalid);
+    public const string QrAccountAdded = nameof(QrAccountAdded);
+    public const string QrAccountUpdated = nameof(QrAccountUpdated);
+    public const string QrAccountKeptBoth = nameof(QrAccountKeptBoth);
+    public const string QrAccountDuplicate = nameof(QrAccountDuplicate);
+    public const string QrImportCancelled = nameof(QrImportCancelled);
+    public const string QrConflictTitle = nameof(QrConflictTitle);
+    public const string QrConflictPrompt = nameof(QrConflictPrompt);
+    public const string UpdateExisting = nameof(UpdateExisting);
+    public const string KeepBoth = nameof(KeepBoth);
+    public const string ShowQr = nameof(ShowQr);
+    public const string DismissQr = nameof(DismissQr);
+    public const string QrPrivacyNotice = nameof(QrPrivacyNotice);
+    public const string QrDisplayFailed = nameof(QrDisplayFailed);
+    public const string BackupTitle = nameof(BackupTitle);
+    public const string BackupDescription = nameof(BackupDescription);
+    public const string BackupPassword = nameof(BackupPassword);
+    public const string ConfirmBackupPassword = nameof(ConfirmBackupPassword);
+    public const string ExportBackup = nameof(ExportBackup);
+    public const string ImportBackup = nameof(ImportBackup);
+    public const string BackupFileName = nameof(BackupFileName);
+    public const string BackupPasswordRequired = nameof(BackupPasswordRequired);
+    public const string BackupPasswordMinimumLength = nameof(BackupPasswordMinimumLength);
+    public const string BackupPasswordMismatch = nameof(BackupPasswordMismatch);
+    public const string BackupExported = nameof(BackupExported);
+    public const string BackupExportFailed = nameof(BackupExportFailed);
+    public const string BackupExportCleanupFailed = nameof(BackupExportCleanupFailed);
+    public const string BackupRetryAfterUnlock = nameof(BackupRetryAfterUnlock);
+    public const string BackupImportRejected = nameof(BackupImportRejected);
+    public const string BackupImportFailed = nameof(BackupImportFailed);
+    public const string BackupImportCancelled = nameof(BackupImportCancelled);
+    public const string BackupImported = nameof(BackupImported);
+    public const string ImportConfirmationTitle = nameof(ImportConfirmationTitle);
+    public const string ImportConfirmation = nameof(ImportConfirmation);
+    public const string ConfirmImport = nameof(ConfirmImport);
     public const string NoAccounts = nameof(NoAccounts);
     public const string SelectAccount = nameof(SelectAccount);
     public const string AddAccount = nameof(AddAccount);
@@ -60,6 +105,7 @@ public static class MobileStringKeys
     public const string BiometricSetupDescription = nameof(BiometricSetupDescription);
     public const string BiometricEnable = nameof(BiometricEnable);
     public const string BiometricEnabled = nameof(BiometricEnabled);
+    public const string BiometricUnavailable = nameof(BiometricUnavailable);
     public const string BiometricEnableFailed = nameof(BiometricEnableFailed);
     public const string BiometricUnlockFailed = nameof(BiometricUnlockFailed);
     public const string BiometricRecoveryRequired = nameof(BiometricRecoveryRequired);
@@ -68,6 +114,7 @@ public static class MobileStringKeys
 
     public static IReadOnlyList<string> All { get; } =
     [
+        AppTitle,
         Starting,
         StartupFailed,
         Retry,
@@ -87,6 +134,50 @@ public static class MobileStringKeys
         UnlockRejected,
         UnlockFailed,
         AccountsTitle,
+        Codes,
+        Settings,
+        Security,
+        SearchAccounts,
+        NoSearchResults,
+        ScanQr,
+        QrScannerUnavailable,
+        QrScanFailed,
+        QrScanRetryAfterUnlock,
+        QrInvalid,
+        QrAccountAdded,
+        QrAccountUpdated,
+        QrAccountKeptBoth,
+        QrAccountDuplicate,
+        QrImportCancelled,
+        QrConflictTitle,
+        QrConflictPrompt,
+        UpdateExisting,
+        KeepBoth,
+        ShowQr,
+        DismissQr,
+        QrPrivacyNotice,
+        QrDisplayFailed,
+        BackupTitle,
+        BackupDescription,
+        BackupPassword,
+        ConfirmBackupPassword,
+        ExportBackup,
+        ImportBackup,
+        BackupFileName,
+        BackupPasswordRequired,
+        BackupPasswordMinimumLength,
+        BackupPasswordMismatch,
+        BackupExported,
+        BackupExportFailed,
+        BackupExportCleanupFailed,
+        BackupRetryAfterUnlock,
+        BackupImportRejected,
+        BackupImportFailed,
+        BackupImportCancelled,
+        BackupImported,
+        ImportConfirmationTitle,
+        ImportConfirmation,
+        ConfirmImport,
         NoAccounts,
         SelectAccount,
         AddAccount,
@@ -126,6 +217,7 @@ public static class MobileStringKeys
         BiometricSetupDescription,
         BiometricEnable,
         BiometricEnabled,
+        BiometricUnavailable,
         BiometricEnableFailed,
         BiometricUnlockFailed,
         BiometricRecoveryRequired,

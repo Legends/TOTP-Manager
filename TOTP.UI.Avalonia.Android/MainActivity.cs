@@ -19,6 +19,8 @@ namespace TOTP.Avalonia.Android;
         | ConfigChanges.KeyboardHidden)]
 public class MainActivity : AvaloniaMainActivity
 {
+    internal event Action<int, Result, Intent?>? ActivityResultReceived;
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         Window?.SetFlags(WindowManagerFlags.Secure, WindowManagerFlags.Secure);
@@ -44,6 +46,12 @@ public class MainActivity : AvaloniaMainActivity
     {
         if (Application is OtpHarborApplication host) host.DetachActivity(this);
         base.OnDestroy();
+    }
+
+    protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
+    {
+        base.OnActivityResult(requestCode, resultCode, data);
+        ActivityResultReceived?.Invoke(requestCode, resultCode, data);
     }
 
     private bool IsDeviceUnavailable()

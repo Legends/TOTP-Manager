@@ -7,7 +7,7 @@
     xmlns:vm="using:TOTP.Avalonia.Mobile.Presentation"
     x:DataType="vm:MobileShellViewModel"
     Background="{DynamicResource BrushWindowBackground}">
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,*,Auto,Auto">
         <Border
             Grid.Row="0"
             Background="{DynamicResource BrushSurface}"
@@ -28,7 +28,7 @@
                     Foreground="{DynamicResource BrushTextPrimary}"
                     FontSize="24"
                     FontWeight="SemiBold"
-                    Text="OTP Harbor" />
+                    Text="{Binding AppTitle}" />
                 <Button
                     Grid.Column="2"
                     automation:AutomationProperties.Name="{Binding LockText}"
@@ -124,7 +124,7 @@
                         HorizontalAlignment="Stretch"
                         IsVisible="{Binding IsAccountListVisible}"
                         Spacing="14">
-                        <Grid ColumnDefinitions="*,Auto">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                             <TextBlock
                                 Grid.Column="0"
                                 VerticalAlignment="Center"
@@ -133,67 +133,59 @@
                                 Text="{Binding AccountsTitle}" />
                             <Button
                                 Grid.Column="1"
+                                Classes="secondary"
+                                Command="{Binding ScanQrCommand}"
+                                Content="{Binding ScanQrText}" />
+                            <Button
+                                Grid.Column="2"
                                 Classes="primary"
                                 Command="{Binding BeginAddCommand}"
                                 Content="{Binding AddAccountText}" />
                         </Grid>
 
+                        <TextBox
+                            automation:AutomationProperties.Name="{Binding SearchAccountsText}"
+                            PlaceholderText="{Binding SearchAccountsText}"
+                            Text="{Binding SearchText, Mode=TwoWay}" />
+
                         <Border
-                            Classes="card"
-                            IsVisible="{Binding IsBiometricSetupAvailable}"
+                            Background="{DynamicResource BrushSurfaceAlternate}"
+                            CornerRadius="8"
+                            IsVisible="{Binding IsQrConflictVisible}"
                             Padding="16">
                             <StackPanel Spacing="12">
                                 <TextBlock
                                     FontSize="18"
                                     FontWeight="SemiBold"
-                                    Text="{Binding BiometricSetupTitle}" />
+                                    Text="{Binding QrConflictTitle}" />
                                 <TextBlock
-                                    Foreground="{DynamicResource BrushTextSecondary}"
-                                    Text="{Binding BiometricSetupDescription}"
+                                    Text="{Binding QrConflictPrompt}"
                                     TextWrapping="Wrap" />
                                 <Button
+                                    Classes="wide primary"
+                                    Command="{Binding UpdateQrConflictCommand}"
+                                    Content="{Binding UpdateExistingText}" />
+                                <Button
                                     Classes="wide secondary"
-                                    Command="{Binding BeginBiometricEnrollmentCommand}"
-                                    Content="{Binding BiometricEnableText}"
-                                    IsVisible="{Binding IsBiometricEnrollmentStartVisible}" />
-                                <StackPanel
-                                    IsVisible="{Binding IsBiometricEnrollmentVisible}"
-                                    Spacing="10">
-                                    <TextBox
-                                        automation:AutomationProperties.Name="{Binding MasterPasswordText}"
-                                        PasswordChar="●"
-                                        PlaceholderText="{Binding MasterPasswordText}"
-                                        Text="{Binding BiometricRecoveryPassword, Mode=TwoWay}" />
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                                        <Button
-                                            Grid.Column="0"
-                                            Classes="wide secondary"
-                                            Command="{Binding CancelBiometricEnrollmentCommand}"
-                                            Content="{Binding CancelText}" />
-                                        <Button
-                                            Grid.Column="1"
-                                            Classes="wide primary"
-                                            Command="{Binding EnableBiometricCommand}"
-                                            Content="{Binding BiometricEnableText}" />
-                                    </Grid>
-                                </StackPanel>
+                                    Command="{Binding KeepBothQrConflictCommand}"
+                                    Content="{Binding KeepBothText}" />
+                                <Button
+                                    Classes="wide secondary"
+                                    Command="{Binding CancelQrConflictCommand}"
+                                    Content="{Binding CancelText}" />
                             </StackPanel>
-                        </Border>
-
-                        <Border
-                            Classes="card"
-                            IsVisible="{Binding IsBiometricEnabled}"
-                            Padding="16">
-                            <TextBlock
-                                Foreground="{DynamicResource BrushTextSecondary}"
-                                Text="{Binding BiometricEnabledText}"
-                                TextWrapping="Wrap" />
                         </Border>
 
                         <TextBlock
                             Foreground="{DynamicResource BrushTextSecondary}"
                             IsVisible="{Binding HasNoAccounts}"
                             Text="{Binding NoAccountsText}"
+                            TextWrapping="Wrap" />
+
+                        <TextBlock
+                            Foreground="{DynamicResource BrushTextSecondary}"
+                            IsVisible="{Binding HasNoSearchResults}"
+                            Text="{Binding NoSearchResultsText}"
                             TextWrapping="Wrap" />
 
                         <ListBox
@@ -254,6 +246,34 @@
                                     Classes="wide primary"
                                     Command="{Binding CopyCodeCommand}"
                                     Content="{Binding CopyCodeText}" />
+                                <Button
+                                    Classes="wide secondary"
+                                    Command="{Binding ShowQrCommand}"
+                                    Content="{Binding ShowQrText}"
+                                    IsVisible="{Binding !HasQrImage}" />
+                                <Border
+                                    Background="White"
+                                    CornerRadius="8"
+                                    IsVisible="{Binding HasQrImage}"
+                                    Padding="16">
+                                    <StackPanel Spacing="12">
+                                        <Image
+                                            Width="240"
+                                            Height="240"
+                                            HorizontalAlignment="Center"
+                                            Source="{Binding QrImage}"
+                                            Stretch="Uniform" />
+                                        <TextBlock
+                                            Foreground="#1A2E4E"
+                                            Text="{Binding QrPrivacyNoticeText}"
+                                            TextAlignment="Center"
+                                            TextWrapping="Wrap" />
+                                        <Button
+                                            Classes="wide secondary"
+                                            Command="{Binding DismissQrCommand}"
+                                            Content="{Binding DismissQrText}" />
+                                    </StackPanel>
+                                </Border>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                     <Button
                                         Grid.Column="0"
@@ -299,6 +319,130 @@
 
                     <StackPanel
                         HorizontalAlignment="Stretch"
+                        IsVisible="{Binding IsSettingsVisible}"
+                        Spacing="14">
+                        <TextBlock
+                            FontSize="26"
+                            FontWeight="SemiBold"
+                            Text="{Binding SettingsText}" />
+                        <Border Classes="card" Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock
+                                    FontSize="18"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding SecurityText}" />
+                                <TextBlock
+                                    FontSize="17"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding BiometricSetupTitle}" />
+                                <TextBlock
+                                    Foreground="{DynamicResource BrushTextSecondary}"
+                                    Text="{Binding BiometricSetupDescription}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Foreground="{DynamicResource BrushTextSecondary}"
+                                    IsVisible="{Binding IsBiometricEnabled}"
+                                    Text="{Binding BiometricEnabledText}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Foreground="{DynamicResource BrushTextSecondary}"
+                                    IsVisible="{Binding IsBiometricUnavailable}"
+                                    Text="{Binding BiometricUnavailableText}"
+                                    TextWrapping="Wrap" />
+                                <Button
+                                    Classes="wide secondary"
+                                    Command="{Binding BeginBiometricEnrollmentCommand}"
+                                    Content="{Binding BiometricEnableText}"
+                                    IsVisible="{Binding IsBiometricEnrollmentStartVisible}" />
+                                <StackPanel
+                                    IsVisible="{Binding IsBiometricEnrollmentVisible}"
+                                    Spacing="10">
+                                    <TextBox
+                                        automation:AutomationProperties.Name="{Binding MasterPasswordText}"
+                                        PasswordChar="●"
+                                        PlaceholderText="{Binding MasterPasswordText}"
+                                        Text="{Binding BiometricRecoveryPassword, Mode=TwoWay}" />
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                        <Button
+                                            Grid.Column="0"
+                                            Classes="wide secondary"
+                                            Command="{Binding CancelBiometricEnrollmentCommand}"
+                                            Content="{Binding CancelText}" />
+                                        <Button
+                                            Grid.Column="1"
+                                            Classes="wide primary"
+                                            Command="{Binding EnableBiometricCommand}"
+                                            Content="{Binding BiometricEnableText}" />
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card" Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock
+                                    FontSize="18"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding BackupTitle}" />
+                                <TextBlock
+                                    Foreground="{DynamicResource BrushTextSecondary}"
+                                    Text="{Binding BackupDescription}"
+                                    TextWrapping="Wrap" />
+                                <TextBox
+                                    automation:AutomationProperties.Name="{Binding BackupPasswordText}"
+                                    PasswordChar="●"
+                                    PlaceholderText="{Binding BackupPasswordText}"
+                                    Text="{Binding BackupPassword, Mode=TwoWay}" />
+                                <TextBox
+                                    automation:AutomationProperties.Name="{Binding ConfirmBackupPasswordText}"
+                                    PasswordChar="●"
+                                    PlaceholderText="{Binding ConfirmBackupPasswordText}"
+                                    Text="{Binding BackupPasswordConfirmation, Mode=TwoWay}" />
+                                <Button
+                                    Classes="wide primary"
+                                    Command="{Binding ExportBackupCommand}"
+                                    Content="{Binding ExportBackupText}" />
+                                <TextBox
+                                    automation:AutomationProperties.Name="{Binding BackupPasswordText}"
+                                    PasswordChar="●"
+                                    PlaceholderText="{Binding BackupPasswordText}"
+                                    Text="{Binding ImportPassword, Mode=TwoWay}" />
+                                <Button
+                                    Classes="wide secondary"
+                                    Command="{Binding ImportBackupCommand}"
+                                    Content="{Binding ImportBackupText}" />
+                                <Border
+                                    Background="{DynamicResource BrushSurfaceAlternate}"
+                                    CornerRadius="8"
+                                    IsVisible="{Binding IsImportConfirmationVisible}"
+                                    Padding="16">
+                                    <StackPanel Spacing="12">
+                                        <TextBlock
+                                            FontSize="17"
+                                            FontWeight="SemiBold"
+                                            Text="{Binding ImportConfirmationTitle}" />
+                                        <TextBlock
+                                            Text="{Binding ImportConfirmationText}"
+                                            TextWrapping="Wrap" />
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                            <Button
+                                                Grid.Column="0"
+                                                Classes="wide secondary"
+                                                Command="{Binding CancelImportCommand}"
+                                                Content="{Binding CancelText}" />
+                                            <Button
+                                                Grid.Column="1"
+                                                Classes="wide primary"
+                                                Command="{Binding ConfirmImportCommand}"
+                                                Content="{Binding ConfirmImportText}" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel
+                        HorizontalAlignment="Stretch"
                         IsVisible="{Binding IsEditorVisible}"
                         Spacing="14">
                         <TextBlock
@@ -335,8 +479,29 @@
             </Grid>
         </ScrollViewer>
 
-        <controls:NotificationBanner
+        <Border
             Grid.Row="2"
+            Background="{DynamicResource BrushSurface}"
+            BorderBrush="{DynamicResource BrushBorder}"
+            BorderThickness="0,1,0,0"
+            IsVisible="{Binding IsBottomNavigationVisible}"
+            Padding="20,10">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button
+                    Grid.Column="0"
+                    Classes="wide secondary"
+                    Command="{Binding ShowAccountsCommand}"
+                    Content="{Binding CodesText}" />
+                <Button
+                    Grid.Column="1"
+                    Classes="wide secondary"
+                    Command="{Binding ShowSettingsCommand}"
+                    Content="{Binding SettingsText}" />
+            </Grid>
+        </Border>
+
+        <controls:NotificationBanner
+            Grid.Row="3"
             Margin="20,8,20,20"
             Severity="{Binding NotificationSeverity}"
             Text="{Binding NotificationText}" />

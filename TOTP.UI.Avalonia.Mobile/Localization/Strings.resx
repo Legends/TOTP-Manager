@@ -4,6 +4,7 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>OTP Harbor</value></data>
   <data name="Starting" xml:space="preserve"><value>Starting OTP Harbor safely…</value></data>
   <data name="StartupFailed" xml:space="preserve"><value>OTP Harbor could not start safely. Your encrypted data was not changed.</value></data>
   <data name="Retry" xml:space="preserve"><value>Retry</value></data>
@@ -23,6 +24,50 @@
   <data name="UnlockRejected" xml:space="preserve"><value>The master password was not accepted.</value></data>
   <data name="UnlockFailed" xml:space="preserve"><value>The vault could not be unlocked safely.</value></data>
   <data name="AccountsTitle" xml:space="preserve"><value>Accounts</value></data>
+  <data name="Codes" xml:space="preserve"><value>Codes</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Security" xml:space="preserve"><value>Security</value></data>
+  <data name="SearchAccounts" xml:space="preserve"><value>Search accounts</value></data>
+  <data name="NoSearchResults" xml:space="preserve"><value>No matching accounts.</value></data>
+  <data name="ScanQr" xml:space="preserve"><value>Scan QR</value></data>
+  <data name="QrScannerUnavailable" xml:space="preserve"><value>QR scanning is unavailable. Add the account manually instead.</value></data>
+  <data name="QrScanFailed" xml:space="preserve"><value>The QR code could not be scanned safely.</value></data>
+  <data name="QrScanRetryAfterUnlock" xml:space="preserve"><value>OTP Harbor locked while scanning. Unlock it and scan the QR code again.</value></data>
+  <data name="QrInvalid" xml:space="preserve"><value>This QR code is not a supported TOTP account.</value></data>
+  <data name="QrAccountAdded" xml:space="preserve"><value>Account added from QR code.</value></data>
+  <data name="QrAccountUpdated" xml:space="preserve"><value>Existing account updated from QR code.</value></data>
+  <data name="QrAccountKeptBoth" xml:space="preserve"><value>Both accounts were kept.</value></data>
+  <data name="QrAccountDuplicate" xml:space="preserve"><value>This account is already present and unchanged.</value></data>
+  <data name="QrImportCancelled" xml:space="preserve"><value>QR import cancelled. No account was changed.</value></data>
+  <data name="QrConflictTitle" xml:space="preserve"><value>Account already exists</value></data>
+  <data name="QrConflictPrompt" xml:space="preserve"><value>{0} already exists with a different secret. Choose how to continue.</value></data>
+  <data name="UpdateExisting" xml:space="preserve"><value>Update existing account</value></data>
+  <data name="KeepBoth" xml:space="preserve"><value>Keep both accounts</value></data>
+  <data name="ShowQr" xml:space="preserve"><value>Show QR code</value></data>
+  <data name="DismissQr" xml:space="preserve"><value>Hide QR code</value></data>
+  <data name="QrPrivacyNotice" xml:space="preserve"><value>This QR code contains the account secret. Share it only with a trusted authenticator.</value></data>
+  <data name="QrDisplayFailed" xml:space="preserve"><value>The account QR code could not be displayed safely.</value></data>
+  <data name="BackupTitle" xml:space="preserve"><value>Encrypted backup</value></data>
+  <data name="BackupDescription" xml:space="preserve"><value>Export or import an encrypted OTP Harbor backup. Existing accounts are kept unchanged during import.</value></data>
+  <data name="BackupPassword" xml:space="preserve"><value>Backup password</value></data>
+  <data name="ConfirmBackupPassword" xml:space="preserve"><value>Confirm backup password</value></data>
+  <data name="ExportBackup" xml:space="preserve"><value>Export encrypted backup</value></data>
+  <data name="ImportBackup" xml:space="preserve"><value>Import encrypted backup</value></data>
+  <data name="BackupFileName" xml:space="preserve"><value>otp-harbor-backup-{0}.totp</value></data>
+  <data name="BackupPasswordRequired" xml:space="preserve"><value>Enter a backup password.</value></data>
+  <data name="BackupPasswordMinimumLength" xml:space="preserve"><value>The backup password must contain at least {0} characters.</value></data>
+  <data name="BackupPasswordMismatch" xml:space="preserve"><value>The backup passwords do not match.</value></data>
+  <data name="BackupExported" xml:space="preserve"><value>Encrypted backup exported.</value></data>
+  <data name="BackupExportFailed" xml:space="preserve"><value>The encrypted backup could not be exported safely.</value></data>
+  <data name="BackupExportCleanupFailed" xml:space="preserve"><value>The export failed and the incomplete destination could not be removed. Delete it from the document provider.</value></data>
+  <data name="BackupRetryAfterUnlock" xml:space="preserve"><value>OTP Harbor locked during document selection. Unlock it and try again.</value></data>
+  <data name="BackupImportRejected" xml:space="preserve"><value>The backup password was incorrect, or the encrypted backup is invalid or damaged.</value></data>
+  <data name="BackupImportFailed" xml:space="preserve"><value>The encrypted backup could not be imported safely. No existing account was overwritten.</value></data>
+  <data name="BackupImportCancelled" xml:space="preserve"><value>Backup import cancelled. No account was changed.</value></data>
+  <data name="BackupImported" xml:space="preserve"><value>Backup imported: {0} added, {1} existing unchanged.</value></data>
+  <data name="ImportConfirmationTitle" xml:space="preserve"><value>Confirm backup import</value></data>
+  <data name="ImportConfirmation" xml:space="preserve"><value>Import {0} accounts? {1} matching existing accounts will remain unchanged. A recovery backup is created before changes.</value></data>
+  <data name="ConfirmImport" xml:space="preserve"><value>Import accounts</value></data>
   <data name="NoAccounts" xml:space="preserve"><value>No accounts yet. Add your first TOTP account.</value></data>
   <data name="SelectAccount" xml:space="preserve"><value>Select an account to generate a code.</value></data>
   <data name="AddAccount" xml:space="preserve"><value>Add account</value></data>
@@ -62,6 +107,7 @@
   <data name="BiometricSetupDescription" xml:space="preserve"><value>Use strong biometrics for quick unlock. Confirm setup with your master password, which remains your recovery method.</value></data>
   <data name="BiometricEnable" xml:space="preserve"><value>Enable biometric unlock</value></data>
   <data name="BiometricEnabled" xml:space="preserve"><value>Biometric unlock is enabled. Your master password remains available for recovery.</value></data>
+  <data name="BiometricUnavailable" xml:space="preserve"><value>Strong biometric unlock is not available on this device.</value></data>
   <data name="BiometricEnableFailed" xml:space="preserve"><value>Biometric unlock could not be enabled safely.</value></data>
   <data name="BiometricUnlockFailed" xml:space="preserve"><value>Biometric verification did not unlock the vault.</value></data>
   <data name="BiometricRecoveryRequired" xml:space="preserve"><value>Use your master password to unlock and restore biometric access.</value></data>

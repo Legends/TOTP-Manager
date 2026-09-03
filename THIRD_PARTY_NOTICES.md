@@ -13,6 +13,7 @@ OTP Harbor uses third-party packages under licenses compatible with this reposit
 - QRCoder — MIT
 - OpenCvSharp and selected native runtimes — Apache-2.0
 - Serilog and its configured enrichers/sinks — Apache-2.0
+- ZXing.Net — Apache-2.0
 
 ## Test dependencies
 

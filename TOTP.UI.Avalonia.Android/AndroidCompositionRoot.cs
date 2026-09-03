@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TOTP.Avalonia.Mobile.Localization;
+using TOTP.Avalonia.Mobile.Platform;
 using TOTP.Avalonia.Mobile.Presentation;
 using TOTP.Core.Security.Interfaces;
 using TOTP.Core.Services.Interfaces;
@@ -32,6 +33,9 @@ internal static class AndroidCompositionRoot
             .AddProvider(new AndroidQuickUnlockLogProvider()));
         services.AddSingleton<AndroidActivityProvider>();
         services.AddSingleton<IAndroidBiometricPrompt, AndroidBiometricPrompt>();
+        services.AddSingleton<IMobileQrScanner, AndroidQrScanner>();
+        services.AddSingleton<IMobileQrImageFactory, MobileQrImageFactory>();
+        services.AddSingleton<IMobileDocumentService, AndroidDocumentService>();
         services.AddSingleton<IPlatformQuickUnlock, AndroidPlatformQuickUnlock>();
         services.AddInfrastructure(configuration, paths, fileSecurity);
         services.AddSingleton<IAsyncPlatformClipboard, AndroidPlatformClipboard>();
