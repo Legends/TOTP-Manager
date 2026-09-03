@@ -23,6 +23,7 @@ public sealed class MobileShellViewModel :
     IDisposable
 {
     private static readonly TimeSpan BackgroundLockGracePeriod = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan CopiedNotificationDuration = TimeSpan.FromSeconds(1);
 
     private readonly IAuthorizationService _authorization;
     private readonly IPasswordValidationService _passwordValidation;
@@ -51,23 +52,21 @@ public sealed class MobileShellViewModel :
     private readonly MobileAsyncCommand _showAccountsCommand;
     private readonly MobileAsyncCommand _showSettingsCommand;
     private readonly MobileAsyncCommand _beginAddCommand;
-    private readonly MobileAsyncCommand _beginEditCommand;
     private readonly MobileAsyncCommand _saveAccountCommand;
     private readonly MobileAsyncCommand _cancelEditCommand;
-    private readonly MobileAsyncCommand _beginDeleteCommand;
     private readonly MobileAsyncCommand _confirmDeleteCommand;
     private readonly MobileAsyncCommand _cancelDeleteCommand;
-    private readonly MobileAsyncCommand _copyCodeCommand;
     private readonly MobileAsyncCommand _scanQrCommand;
     private readonly MobileAsyncCommand _updateQrConflictCommand;
     private readonly MobileAsyncCommand _keepBothQrConflictCommand;
     private readonly MobileAsyncCommand _cancelQrConflictCommand;
-    private readonly MobileAsyncCommand _showQrCommand;
     private readonly MobileAsyncCommand _dismissQrCommand;
     private readonly MobileAsyncCommand _exportBackupCommand;
     private readonly MobileAsyncCommand _importBackupCommand;
     private readonly MobileAsyncCommand _confirmImportCommand;
     private readonly MobileAsyncCommand _cancelImportCommand;
+    private readonly MobileAsyncCommand _selectEnglishLanguageCommand;
+    private readonly MobileAsyncCommand _selectGermanLanguageCommand;
 
     private MobileScreen _screen = MobileScreen.Starting;
     private bool _isBusy;
@@ -85,11 +84,10 @@ public sealed class MobileShellViewModel :
     private string _searchText = string.Empty;
     private readonly List<MobileAccountItem> _allAccounts = [];
     private MobileAccountItem? _selectedAccount;
-    private string _selectedCode = string.Empty;
-    private int _remainingSeconds;
-    private int _periodSeconds = 30;
     private bool _isEditorVisible;
     private bool _isDeleteConfirmationVisible;
+    private Guid? _pendingDeleteAccountId;
+    private string _pendingDeleteDisplayName = string.Empty;
     private Guid? _editingAccountId;
     private string _editorIssuer = string.Empty;
     private string _editorAccountName = string.Empty;
@@ -106,6 +104,7 @@ public sealed class MobileShellViewModel :
     private TaskCompletionSource<bool>? _importConfirmationCompletion;
     private CancellationTokenSource? _sensitiveOperationLifetime;
     private CancellationTokenSource? _codeLifetime;
+    private CancellationTokenSource? _notificationLifetime;
     private long? _backgroundedAtTimestamp;
     private ITimer? _backgroundLockTimer;
     private bool _automaticBiometricUnlockPending;
@@ -174,27 +173,18 @@ public sealed class MobileShellViewModel :
             ShowSettingsAsync,
             () => IsAccountsVisible && !IsSettingsVisible && !IsEditorVisible && !IsBusy);
         _beginAddCommand = new MobileAsyncCommand(BeginAddAsync, CanEditAccounts);
-        _beginEditCommand = new MobileAsyncCommand(
-            BeginEditAsync,
-            () => CanEditAccounts() && SelectedAccount is not null);
         _saveAccountCommand = new MobileAsyncCommand(
             SaveAccountAsync,
             () => IsEditorVisible && !IsBusy);
         _cancelEditCommand = new MobileAsyncCommand(
             CancelEditAsync,
             () => IsEditorVisible && !IsBusy);
-        _beginDeleteCommand = new MobileAsyncCommand(
-            BeginDeleteAsync,
-            () => CanEditAccounts() && SelectedAccount is not null);
         _confirmDeleteCommand = new MobileAsyncCommand(
             ConfirmDeleteAsync,
             () => IsDeleteConfirmationVisible && !IsBusy);
         _cancelDeleteCommand = new MobileAsyncCommand(
             CancelDeleteAsync,
             () => IsDeleteConfirmationVisible && !IsBusy);
-        _copyCodeCommand = new MobileAsyncCommand(
-            CopyCodeAsync,
-            () => IsAccountsVisible && !IsBusy && SelectedCode.Length > 0);
         _scanQrCommand = new MobileAsyncCommand(ScanQrAsync, CanEditAccounts);
         _updateQrConflictCommand = new MobileAsyncCommand(
             () => ResolveQrConflictAsync(QrAccountConflictDecision.UpdateExisting),
@@ -205,9 +195,6 @@ public sealed class MobileShellViewModel :
         _cancelQrConflictCommand = new MobileAsyncCommand(
             () => ResolveQrConflictAsync(QrAccountConflictDecision.Cancel),
             () => IsQrConflictVisible);
-        _showQrCommand = new MobileAsyncCommand(
-            ShowQrAsync,
-            () => CanEditAccounts() && SelectedAccount is not null && !HasQrImage);
         _dismissQrCommand = new MobileAsyncCommand(
             DismissQrAsync,
             () => HasQrImage);
@@ -223,6 +210,12 @@ public sealed class MobileShellViewModel :
         _cancelImportCommand = new MobileAsyncCommand(
             () => ResolveImportConfirmationAsync(false),
             () => IsImportConfirmationVisible);
+        _selectEnglishLanguageCommand = new MobileAsyncCommand(
+            () => SelectLanguageAsync("en"),
+            () => IsSettingsVisible && !IsEnglishLanguageSelected && !IsBusy);
+        _selectGermanLanguageCommand = new MobileAsyncCommand(
+            () => SelectLanguageAsync("de"),
+            () => IsSettingsVisible && !IsGermanLanguageSelected && !IsBusy);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -240,23 +233,21 @@ public sealed class MobileShellViewModel :
     public ICommand ShowAccountsCommand => _showAccountsCommand;
     public ICommand ShowSettingsCommand => _showSettingsCommand;
     public ICommand BeginAddCommand => _beginAddCommand;
-    public ICommand BeginEditCommand => _beginEditCommand;
     public ICommand SaveAccountCommand => _saveAccountCommand;
     public ICommand CancelEditCommand => _cancelEditCommand;
-    public ICommand BeginDeleteCommand => _beginDeleteCommand;
     public ICommand ConfirmDeleteCommand => _confirmDeleteCommand;
     public ICommand CancelDeleteCommand => _cancelDeleteCommand;
-    public ICommand CopyCodeCommand => _copyCodeCommand;
     public ICommand ScanQrCommand => _scanQrCommand;
     public ICommand UpdateQrConflictCommand => _updateQrConflictCommand;
     public ICommand KeepBothQrConflictCommand => _keepBothQrConflictCommand;
     public ICommand CancelQrConflictCommand => _cancelQrConflictCommand;
-    public ICommand ShowQrCommand => _showQrCommand;
     public ICommand DismissQrCommand => _dismissQrCommand;
     public ICommand ExportBackupCommand => _exportBackupCommand;
     public ICommand ImportBackupCommand => _importBackupCommand;
     public ICommand ConfirmImportCommand => _confirmImportCommand;
     public ICommand CancelImportCommand => _cancelImportCommand;
+    public ICommand SelectEnglishLanguageCommand => _selectEnglishLanguageCommand;
+    public ICommand SelectGermanLanguageCommand => _selectGermanLanguageCommand;
 
     public bool IsStartingVisible => _screen == MobileScreen.Starting;
     public bool IsSetupVisible => _screen == MobileScreen.Setup;
@@ -264,14 +255,11 @@ public sealed class MobileShellViewModel :
     public bool IsAccountsVisible => _screen == MobileScreen.Accounts;
     public bool IsAccountListVisible => IsAccountsVisible && !IsSettingsVisible && !IsEditorVisible;
     public bool IsSettingsVisible => IsAccountsVisible && _isSettingsVisible;
-    public bool IsBottomNavigationVisible => IsAccountsVisible && !IsEditorVisible;
     public bool HasAccounts => Accounts.Count > 0;
     public bool HasNoAccounts => _allAccounts.Count == 0;
     public bool HasNoSearchResults => _allAccounts.Count > 0 && Accounts.Count == 0;
     public IImage? QrImage => _qrImage?.Image;
     public bool HasQrImage => QrImage is not null;
-    public bool HasSelectedAccount => SelectedAccount is not null;
-    public bool HasNoSelectedAccount => !HasSelectedAccount;
     public bool CanRetry => _startupFailed && !IsBusy;
     public bool IsBiometricUnlockVisible =>
         IsUnlockVisible && IsBiometricEnabled && IsBiometricAvailable;
@@ -298,6 +286,8 @@ public sealed class MobileShellViewModel :
     }
     public bool IsBiometricEnrollmentStartVisible =>
         IsBiometricSetupAvailable && !IsBiometricEnrollmentVisible;
+    public bool IsEnglishLanguageSelected => _strings.Culture.TwoLetterISOLanguageName == "en";
+    public bool IsGermanLanguageSelected => _strings.Culture.TwoLetterISOLanguageName == "de";
 
     public bool IsBusy
     {
@@ -446,36 +436,11 @@ public sealed class MobileShellViewModel :
         get => _selectedAccount;
         set
         {
+            if (IsDeleteConfirmationVisible && value?.Id != _pendingDeleteAccountId) return;
             if (!SetField(ref _selectedAccount, value)) return;
             ClearQrImage();
-            OnPropertyChanged(nameof(HasSelectedAccount));
-            OnPropertyChanged(nameof(HasNoSelectedAccount));
-            OnPropertyChanged(nameof(DeletePrompt));
             NotifyCommands();
-            StartCodeRefresh(value);
         }
-    }
-
-    public string SelectedCode
-    {
-        get => _selectedCode;
-        private set
-        {
-            if (!SetField(ref _selectedCode, value)) return;
-            _copyCodeCommand.NotifyCanExecuteChanged();
-        }
-    }
-
-    public int RemainingSeconds
-    {
-        get => _remainingSeconds;
-        private set => SetField(ref _remainingSeconds, value);
-    }
-
-    public int PeriodSeconds
-    {
-        get => _periodSeconds;
-        private set => SetField(ref _periodSeconds, value);
     }
 
     public bool IsEditorVisible
@@ -485,7 +450,6 @@ public sealed class MobileShellViewModel :
         {
             if (!SetField(ref _isEditorVisible, value)) return;
             OnPropertyChanged(nameof(IsAccountListVisible));
-            OnPropertyChanged(nameof(IsBottomNavigationVisible));
             OnPropertyChanged(nameof(EditorTitle));
             OnPropertyChanged(nameof(EditorSecretPlaceholder));
             NotifyCommands();
@@ -498,6 +462,12 @@ public sealed class MobileShellViewModel :
         private set
         {
             if (!SetField(ref _isDeleteConfirmationVisible, value)) return;
+            if (!value)
+            {
+                _pendingDeleteAccountId = null;
+                _pendingDeleteDisplayName = string.Empty;
+                OnPropertyChanged(nameof(DeletePrompt));
+            }
             NotifyCommands();
         }
     }
@@ -542,7 +512,7 @@ public sealed class MobileShellViewModel :
 
     public string DeletePrompt => string.Format(
         Get(MobileStringKeys.DeleteAccountPrompt),
-        SelectedAccount?.DisplayName ?? string.Empty);
+        _pendingDeleteDisplayName);
 
     public string StartingText => Get(MobileStringKeys.Starting);
     public string AppTitle => Get(MobileStringKeys.AppTitle);
@@ -557,7 +527,6 @@ public sealed class MobileShellViewModel :
     public string UnlockText => Get(MobileStringKeys.Unlock);
     public string AccountsTitle => Get(MobileStringKeys.AccountsTitle);
     public string NoAccountsText => Get(MobileStringKeys.NoAccounts);
-    public string SelectAccountText => Get(MobileStringKeys.SelectAccount);
     public string AddAccountText => Get(MobileStringKeys.AddAccount);
     public string EditAccountText => Get(MobileStringKeys.EditAccount);
     public string DeleteAccountText => Get(MobileStringKeys.DeleteAccount);
@@ -577,9 +546,13 @@ public sealed class MobileShellViewModel :
     public string BiometricUnavailableText => Get(MobileStringKeys.BiometricUnavailable);
     public string CodesText => Get(MobileStringKeys.Codes);
     public string SettingsText => Get(MobileStringKeys.Settings);
+    public string LanguageText => Get(MobileStringKeys.Language);
+    public string EnglishLanguageText => Get(MobileStringKeys.EnglishLanguage);
+    public string GermanLanguageText => Get(MobileStringKeys.GermanLanguage);
     public string SecurityText => Get(MobileStringKeys.Security);
     public string SearchAccountsText => Get(MobileStringKeys.SearchAccounts);
     public string NoSearchResultsText => Get(MobileStringKeys.NoSearchResults);
+    public string AccountSwipeHintText => Get(MobileStringKeys.AccountSwipeHint);
     public string ScanQrText => Get(MobileStringKeys.ScanQr);
     public string QrConflictTitle => Get(MobileStringKeys.QrConflictTitle);
     public string QrConflictPrompt => string.Format(
@@ -620,6 +593,10 @@ public sealed class MobileShellViewModel :
                 FailStartup();
                 return;
             }
+
+            _strings.ApplyCulture(_settings.Current.CultureName);
+            NotifyLocalizedTextChanged();
+            SetNotification(Get(MobileStringKeys.Starting), NotificationSeverity.Information);
 
             await _authorization.InitializeAsync();
             IsBiometricAvailable = await _authorization.IsHelloAvailableAsync();
@@ -857,7 +834,7 @@ public sealed class MobileShellViewModel :
         ClearPasswordInputs();
         ClearNotification();
         NotifyUnlockedSectionChanged();
-        StartCodeRefresh(SelectedAccount);
+        StartCodeRefresh();
         return Task.CompletedTask;
     }
 
@@ -873,6 +850,48 @@ public sealed class MobileShellViewModel :
         ClearNotification();
         NotifyUnlockedSectionChanged();
         return Task.CompletedTask;
+    }
+
+    public async Task SelectLanguageAsync(string cultureName)
+    {
+        if (!IsSettingsVisible || IsBusy) return;
+
+        var selectedCulture = cultureName.Equals("de", StringComparison.OrdinalIgnoreCase)
+            ? "de"
+            : "en";
+        if (_strings.Culture.TwoLetterISOLanguageName.Equals(
+                selectedCulture,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var previousCulture = _settings.Current.CultureName;
+        IsBusy = true;
+        try
+        {
+            _settings.Current.CultureName = selectedCulture;
+            var saved = await _settings.SaveAsync();
+            if (saved.IsFailed)
+            {
+                _settings.Current.CultureName = previousCulture;
+                SetError(MobileStringKeys.LanguageSaveFailed);
+                return;
+            }
+
+            _strings.ApplyCulture(selectedCulture);
+            NotifyLocalizedTextChanged();
+            ClearNotification();
+        }
+        catch (Exception)
+        {
+            _settings.Current.CultureName = previousCulture;
+            SetError(MobileStringKeys.LanguageSaveFailed);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     public async Task ScanQrAsync()
@@ -992,6 +1011,14 @@ public sealed class MobileShellViewModel :
         {
             IsBusy = false;
         }
+    }
+
+    public Task ShowQrForAccountAsync(MobileAccountItem? account)
+    {
+        if (account is null || !CanEditAccounts() || !TrySelectAccount(account))
+            return Task.CompletedTask;
+
+        return ShowQrAsync();
     }
 
     public Task DismissQrAsync()
@@ -1194,6 +1221,7 @@ public sealed class MobileShellViewModel :
         if (!CanEditAccounts()) return Task.CompletedTask;
         ClearEditor();
         IsDeleteConfirmationVisible = false;
+        CancelCodeRefresh();
         IsEditorVisible = true;
         ClearNotification();
         return Task.CompletedTask;
@@ -1208,9 +1236,18 @@ public sealed class MobileShellViewModel :
         EditorAccountName = SelectedAccount.AccountName;
         EditorSecret = string.Empty;
         IsDeleteConfirmationVisible = false;
+        CancelCodeRefresh();
         IsEditorVisible = true;
         ClearNotification();
         return Task.CompletedTask;
+    }
+
+    public Task BeginEditForAccountAsync(MobileAccountItem? account)
+    {
+        if (account is null || !CanEditAccounts() || !TrySelectAccount(account))
+            return Task.CompletedTask;
+
+        return BeginEditAsync();
     }
 
     public async Task SaveAccountAsync()
@@ -1312,6 +1349,7 @@ public sealed class MobileShellViewModel :
         ClearEditor();
         IsEditorVisible = false;
         ClearNotification();
+        StartCodeRefresh();
         return Task.CompletedTask;
     }
 
@@ -1319,17 +1357,27 @@ public sealed class MobileShellViewModel :
     {
         if (!CanEditAccounts() || SelectedAccount is null) return Task.CompletedTask;
         ClearQrImage();
+        _pendingDeleteAccountId = SelectedAccount.Id;
+        _pendingDeleteDisplayName = SelectedAccount.DisplayName;
         IsDeleteConfirmationVisible = true;
         OnPropertyChanged(nameof(DeletePrompt));
         ClearNotification();
         return Task.CompletedTask;
     }
 
+    public Task BeginDeleteForAccountAsync(MobileAccountItem? account)
+    {
+        if (account is null || !CanEditAccounts() || !TrySelectAccount(account))
+            return Task.CompletedTask;
+
+        return BeginDeleteAsync();
+    }
+
     public async Task ConfirmDeleteAsync()
     {
-        if (!IsDeleteConfirmationVisible || SelectedAccount is null || IsBusy) return;
+        if (!IsDeleteConfirmationVisible || !_pendingDeleteAccountId.HasValue || IsBusy) return;
 
-        var accountId = SelectedAccount.Id;
+        var accountId = _pendingDeleteAccountId.Value;
         IsBusy = true;
         try
         {
@@ -1363,33 +1411,22 @@ public sealed class MobileShellViewModel :
         return Task.CompletedTask;
     }
 
-    public async Task CopyCodeAsync()
+    public async Task CopyAccountCodeAsync(MobileAccountItem? account)
     {
-        if (SelectedCode.Length == 0 || IsBusy) return;
+        if (account is null || !CanEditAccounts() || !TrySelectAccount(account)) return;
 
-        var code = SelectedCode;
+        IsBusy = true;
+        ClearNotification();
+        var code = account.Code;
         try
         {
-            var seconds = Math.Max(1, _settings.Current.ClearClipboardSeconds);
-            var result = _settings.Current.ClearClipboardEnabled
-                ? await _clipboard.CopyAndScheduleClearAsync(code, TimeSpan.FromSeconds(seconds))
-                : await _clipboard.CopyAsync(code);
-            if (result.IsFailed)
+            if (code.Length == 0)
             {
-                SetError(MobileStringKeys.CodeCopyFailed);
+                SetError(MobileStringKeys.CodeUnavailable);
                 return;
             }
 
-            if (_settings.Current.ClearClipboardEnabled)
-            {
-                SetNotification(
-                    string.Format(Get(MobileStringKeys.CodeCopiedWithClear), seconds),
-                    NotificationSeverity.Success);
-            }
-            else
-            {
-                SetSuccess(MobileStringKeys.CodeCopied);
-            }
+            await CopyCodeCoreAsync(code);
         }
         catch (Exception)
         {
@@ -1398,6 +1435,7 @@ public sealed class MobileShellViewModel :
         finally
         {
             code = string.Empty;
+            IsBusy = false;
         }
     }
 
@@ -1442,7 +1480,7 @@ public sealed class MobileShellViewModel :
         }
 
         if (_authorization.State.IsUnlocked)
-            StartCodeRefresh(SelectedAccount);
+            StartCodeRefresh();
     }
 
     public void Dispose()
@@ -1450,6 +1488,7 @@ public sealed class MobileShellViewModel :
         if (_disposed) return;
         _disposed = true;
         _sensitiveOperationLifetime?.Cancel();
+        CancelNotificationLifetime();
         CancelBackgroundLockTimer();
         CancelCodeRefresh();
         ClearQrImage();
@@ -1503,49 +1542,96 @@ public sealed class MobileShellViewModel :
                 ?? Accounts.FirstOrDefault()
             : Accounts.FirstOrDefault();
         NotifyCommands();
+        StartCodeRefresh();
     }
 
-    private void StartCodeRefresh(MobileAccountItem? account)
+    private bool TrySelectAccount(MobileAccountItem account)
+    {
+        if (!Accounts.Any(value => value.Id == account.Id)) return false;
+        SelectedAccount = account;
+        return true;
+    }
+
+    private async Task CopyCodeCoreAsync(string code)
+    {
+        try
+        {
+            var seconds = Math.Max(1, _settings.Current.ClearClipboardSeconds);
+            var result = _settings.Current.ClearClipboardEnabled
+                ? await _clipboard.CopyAndScheduleClearAsync(code, TimeSpan.FromSeconds(seconds))
+                : await _clipboard.CopyAsync(code);
+            if (result.IsFailed)
+            {
+                SetError(MobileStringKeys.CodeCopyFailed);
+                return;
+            }
+
+            if (_settings.Current.ClearClipboardEnabled)
+            {
+                SetTransientNotification(
+                    string.Format(Get(MobileStringKeys.CodeCopiedWithClear), seconds),
+                    NotificationSeverity.Success,
+                    CopiedNotificationDuration);
+            }
+            else
+            {
+                SetTransientNotification(
+                    Get(MobileStringKeys.CodeCopied),
+                    NotificationSeverity.Success,
+                    CopiedNotificationDuration);
+            }
+        }
+        catch (Exception)
+        {
+            SetError(MobileStringKeys.CodeCopyFailed);
+        }
+    }
+
+    private void StartCodeRefresh()
     {
         CancelCodeRefresh();
-        SelectedCode = string.Empty;
-        RemainingSeconds = 0;
-        PeriodSeconds = 30;
-        if (account is null || !IsAccountListVisible) return;
+        if (Accounts.Count == 0 || !IsAccountListVisible) return;
 
         var lifetime = new CancellationTokenSource();
         _codeLifetime = lifetime;
-        _ = RunCodeRefreshAsync(account.Id, lifetime);
+        _ = RunCodeRefreshAsync(lifetime);
     }
 
-    private async Task RunCodeRefreshAsync(Guid accountId, CancellationTokenSource lifetime)
+    private async Task RunCodeRefreshAsync(CancellationTokenSource lifetime)
     {
         try
         {
             while (!lifetime.IsCancellationRequested)
             {
-                var generated = await _accountTotp.GenerateAsync(accountId);
-                if (generated.IsFailed
-                    || SelectedAccount?.Id != accountId
-                    || lifetime.IsCancellationRequested)
+                var visibleAccounts = Accounts.ToArray();
+                var secondsUntilRefresh = int.MaxValue;
+                foreach (var account in visibleAccounts)
                 {
-                    SelectedCode = string.Empty;
-                    RemainingSeconds = 0;
-                    SetError(MobileStringKeys.CodeUnavailable);
-                    return;
+                    var generated = await _accountTotp.GenerateAsync(account.Id);
+                    if (lifetime.IsCancellationRequested) return;
+                    if (generated.IsFailed)
+                    {
+                        account.ClearCode();
+                        SetError(MobileStringKeys.CodeUnavailable);
+                        continue;
+                    }
+
+                    var remaining = Math.Max(1, generated.Value.RemainingSeconds);
+                    account.UpdateCode(
+                        generated.Value.Code,
+                        remaining,
+                        generated.Value.PeriodSeconds);
+                    secondsUntilRefresh = Math.Min(secondsUntilRefresh, remaining);
                 }
 
-                SelectedCode = generated.Value.Code;
-                RemainingSeconds = Math.Max(1, generated.Value.RemainingSeconds);
-                PeriodSeconds = Math.Max(RemainingSeconds, generated.Value.PeriodSeconds);
-                while (RemainingSeconds > 1 && !lifetime.IsCancellationRequested)
+                if (secondsUntilRefresh == int.MaxValue) return;
+                for (var second = 0;
+                     second < secondsUntilRefresh && !lifetime.IsCancellationRequested;
+                     second++)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1), lifetime.Token);
-                    RemainingSeconds--;
+                    foreach (var account in visibleAccounts) account.Tick();
                 }
-
-                if (!lifetime.IsCancellationRequested)
-                    await Task.Delay(TimeSpan.FromSeconds(1), lifetime.Token);
             }
         }
         catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
@@ -1553,8 +1639,7 @@ public sealed class MobileShellViewModel :
         }
         catch (Exception)
         {
-            SelectedCode = string.Empty;
-            RemainingSeconds = 0;
+            foreach (var account in Accounts) account.ClearCode();
             SetError(MobileStringKeys.CodeUnavailable);
         }
         finally
@@ -1570,6 +1655,7 @@ public sealed class MobileShellViewModel :
         _backgroundedAtTimestamp = null;
         CancelBackgroundLockTimer();
         _sensitiveOperationLifetime?.Cancel();
+        CancelNotificationLifetime();
         _authorization.Lock();
         CancelCodeRefresh();
         ClearEditor();
@@ -1616,8 +1702,7 @@ public sealed class MobileShellViewModel :
         var lifetime = _codeLifetime;
         _codeLifetime = null;
         lifetime?.Cancel();
-        SelectedCode = string.Empty;
-        RemainingSeconds = 0;
+        foreach (var account in _allAccounts) account.ClearCode();
     }
 
     private void PostBackgroundLockCheck()
@@ -1667,7 +1752,6 @@ public sealed class MobileShellViewModel :
         image?.Dispose();
         OnPropertyChanged(nameof(QrImage));
         OnPropertyChanged(nameof(HasQrImage));
-        _showQrCommand?.NotifyCanExecuteChanged();
         _dismissQrCommand?.NotifyCanExecuteChanged();
     }
 
@@ -1779,10 +1863,17 @@ public sealed class MobileShellViewModel :
     {
         OnPropertyChanged(nameof(IsAccountListVisible));
         OnPropertyChanged(nameof(IsSettingsVisible));
-        OnPropertyChanged(nameof(IsBottomNavigationVisible));
         OnPropertyChanged(nameof(IsBiometricSetupAvailable));
         OnPropertyChanged(nameof(IsBiometricEnrollmentStartVisible));
         OnPropertyChanged(nameof(IsBiometricUnavailable));
+        NotifyCommands();
+    }
+
+    private void NotifyLocalizedTextChanged()
+    {
+        foreach (var propertyName in LocalizedTextProperties)
+            OnPropertyChanged(propertyName);
+
         NotifyCommands();
     }
 
@@ -1814,14 +1905,62 @@ public sealed class MobileShellViewModel :
 
     private void SetNotification(string text, NotificationSeverity severity)
     {
+        CancelNotificationLifetime();
         NotificationSeverity = severity;
         NotificationText = text;
     }
 
+    private void SetTransientNotification(
+        string text,
+        NotificationSeverity severity,
+        TimeSpan duration)
+    {
+        SetNotification(text, severity);
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        var lifetime = new CancellationTokenSource();
+        _notificationLifetime = lifetime;
+        _ = ClearNotificationAfterDelayAsync(text, duration, lifetime);
+    }
+
     private void ClearNotification()
     {
+        CancelNotificationLifetime();
         NotificationText = string.Empty;
         NotificationSeverity = NotificationSeverity.Information;
+    }
+
+    private async Task ClearNotificationAfterDelayAsync(
+        string expectedText,
+        TimeSpan duration,
+        CancellationTokenSource lifetime)
+    {
+        try
+        {
+            await Task.Delay(duration, lifetime.Token);
+            if (ReferenceEquals(_notificationLifetime, lifetime)
+                && string.Equals(NotificationText, expectedText, StringComparison.Ordinal))
+            {
+                NotificationText = string.Empty;
+                NotificationSeverity = NotificationSeverity.Information;
+            }
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            if (ReferenceEquals(_notificationLifetime, lifetime))
+                _notificationLifetime = null;
+            lifetime.Dispose();
+        }
+    }
+
+    private void CancelNotificationLifetime()
+    {
+        var lifetime = _notificationLifetime;
+        _notificationLifetime = null;
+        lifetime?.Cancel();
     }
 
     private void ClearErrorNotification()
@@ -1844,23 +1983,21 @@ public sealed class MobileShellViewModel :
         _showAccountsCommand.NotifyCanExecuteChanged();
         _showSettingsCommand.NotifyCanExecuteChanged();
         _beginAddCommand.NotifyCanExecuteChanged();
-        _beginEditCommand.NotifyCanExecuteChanged();
         _saveAccountCommand.NotifyCanExecuteChanged();
         _cancelEditCommand.NotifyCanExecuteChanged();
-        _beginDeleteCommand.NotifyCanExecuteChanged();
         _confirmDeleteCommand.NotifyCanExecuteChanged();
         _cancelDeleteCommand.NotifyCanExecuteChanged();
-        _copyCodeCommand.NotifyCanExecuteChanged();
         _scanQrCommand.NotifyCanExecuteChanged();
         _updateQrConflictCommand.NotifyCanExecuteChanged();
         _keepBothQrConflictCommand.NotifyCanExecuteChanged();
         _cancelQrConflictCommand.NotifyCanExecuteChanged();
-        _showQrCommand.NotifyCanExecuteChanged();
         _dismissQrCommand.NotifyCanExecuteChanged();
         _exportBackupCommand.NotifyCanExecuteChanged();
         _importBackupCommand.NotifyCanExecuteChanged();
         _confirmImportCommand.NotifyCanExecuteChanged();
         _cancelImportCommand.NotifyCanExecuteChanged();
+        _selectEnglishLanguageCommand.NotifyCanExecuteChanged();
+        _selectGermanLanguageCommand.NotifyCanExecuteChanged();
     }
 
     private bool SetField<T>(
@@ -1876,6 +2013,68 @@ public sealed class MobileShellViewModel :
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    private static readonly string[] LocalizedTextProperties =
+    [
+        nameof(StartingText),
+        nameof(AppTitle),
+        nameof(RetryText),
+        nameof(SetupTitle),
+        nameof(SetupDescription),
+        nameof(MasterPasswordText),
+        nameof(ConfirmPasswordText),
+        nameof(CreateVaultText),
+        nameof(UnlockTitle),
+        nameof(UnlockDescription),
+        nameof(UnlockText),
+        nameof(AccountsTitle),
+        nameof(NoAccountsText),
+        nameof(AddAccountText),
+        nameof(EditAccountText),
+        nameof(DeleteAccountText),
+        nameof(LockText),
+        nameof(IssuerText),
+        nameof(AccountNameText),
+        nameof(SaveText),
+        nameof(CancelText),
+        nameof(CopyCodeText),
+        nameof(DeleteConfirmTitle),
+        nameof(DeleteText),
+        nameof(DeletePrompt),
+        nameof(BiometricUnlockText),
+        nameof(BiometricSetupTitle),
+        nameof(BiometricSetupDescription),
+        nameof(BiometricEnableText),
+        nameof(BiometricEnabledText),
+        nameof(BiometricUnavailableText),
+        nameof(CodesText),
+        nameof(SettingsText),
+        nameof(LanguageText),
+        nameof(EnglishLanguageText),
+        nameof(GermanLanguageText),
+        nameof(SecurityText),
+        nameof(SearchAccountsText),
+        nameof(NoSearchResultsText),
+        nameof(AccountSwipeHintText),
+        nameof(ScanQrText),
+        nameof(QrConflictTitle),
+        nameof(QrConflictPrompt),
+        nameof(UpdateExistingText),
+        nameof(KeepBothText),
+        nameof(ShowQrText),
+        nameof(DismissQrText),
+        nameof(QrPrivacyNoticeText),
+        nameof(BackupTitle),
+        nameof(BackupDescription),
+        nameof(BackupPasswordText),
+        nameof(ConfirmBackupPasswordText),
+        nameof(ExportBackupText),
+        nameof(ImportBackupText),
+        nameof(ImportConfirmationTitle),
+        nameof(ConfirmImportText),
+        nameof(EditorTitle),
+        nameof(EditorSecretPlaceholder)
+    ];
 
     private enum MobileScreen
     {

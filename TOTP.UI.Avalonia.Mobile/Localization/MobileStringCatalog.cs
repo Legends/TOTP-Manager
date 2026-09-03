@@ -25,7 +25,14 @@ public sealed class MobileStringCatalog
             : English;
     }
 
-    public CultureInfo Culture { get; }
+    public CultureInfo Culture { get; private set; }
+
+    public void ApplyCulture(string? cultureName)
+    {
+        Culture = cultureName?.Equals("de", StringComparison.OrdinalIgnoreCase) == true
+            ? CultureInfo.GetCultureInfo("de")
+            : English;
+    }
 
     public string Get(string key)
     {

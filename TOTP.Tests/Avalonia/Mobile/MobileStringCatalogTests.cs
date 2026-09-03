@@ -39,4 +39,15 @@ public sealed class MobileStringCatalogTests
         Assert.Contains("biometrischen Zugriff", message, StringComparison.Ordinal);
         Assert.DoesNotContain("recovery", message, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void ApplyCulture_ChangesTheActiveLocale()
+    {
+        var catalog = new MobileStringCatalog(CultureInfo.GetCultureInfo("en"));
+
+        catalog.ApplyCulture("de");
+
+        Assert.Equal("Löschen", catalog.Get(MobileStringKeys.Delete));
+        Assert.Equal("Einstellungen", catalog.Get(MobileStringKeys.Settings));
+    }
 }

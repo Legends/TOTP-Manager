@@ -50,6 +50,33 @@ public sealed class MobileShellViewModelTests
     }
 
     [Fact]
+    public async Task UnlockAsync_ProjectsCurrentCodeForEveryVisibleAccount()
+    {
+        var first = new Account(Guid.NewGuid(), "First", ValidSecret, "one");
+        var second = new Account(Guid.NewGuid(), "Second", ValidSecret, "two");
+        var context = CreateContext(isConfigured: true, [first, second]);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.AccountTotp
+            .Setup(value => value.GenerateAsync(first.ID))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 20, 30)));
+        context.AccountTotp
+            .Setup(value => value.GenerateAsync(second.ID))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("654321", 20, 30)));
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+
+        await context.Sut.UnlockAsync();
+
+        Assert.Collection(
+            context.Sut.Accounts,
+            account => Assert.Equal("123 456", account.DisplayCode),
+            account => Assert.Equal("654 321", account.DisplayCode));
+    }
+
+    [Fact]
     public async Task OnEnteredBackground_WhenDeviceIsLocked_LocksAndClearsAccountProjection()
     {
         var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user@example.test");
@@ -70,7 +97,6 @@ public sealed class MobileShellViewModelTests
         context.Authorization.Verify(value => value.Lock(), Times.Once);
         Assert.True(context.Sut.IsUnlockVisible);
         Assert.Empty(context.Sut.Accounts);
-        Assert.Empty(context.Sut.SelectedCode);
         Assert.Null(context.Sut.SelectedAccount);
     }
 
@@ -90,9 +116,11 @@ public sealed class MobileShellViewModelTests
         context.Sut.UnlockPassword = "synthetic password";
         await context.Sut.UnlockAsync();
 
-        Assert.Equal("123456", context.Sut.SelectedCode);
+        var projectedAccount = Assert.Single(context.Sut.Accounts);
+        Assert.Equal("123456", projectedAccount.Code);
+        Assert.Equal("123 456", projectedAccount.DisplayCode);
         context.Sut.OnEnteredBackground(lockImmediately: false);
-        Assert.Empty(context.Sut.SelectedCode);
+        Assert.Empty(projectedAccount.Code);
         context.Time.Advance(TimeSpan.FromSeconds(29));
         context.Sut.OnReturnedToForeground();
 
@@ -319,6 +347,52 @@ public sealed class MobileShellViewModelTests
     }
 
     [Fact]
+    public async Task SelectLanguageAsync_ChangesTheVisibleLanguageAndPersistsThePreference()
+    {
+        var context = CreateContext(isConfigured: true);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+        await context.Sut.ShowSettingsAsync();
+
+        await context.Sut.SelectLanguageAsync("de");
+
+        Assert.Equal("de", context.SettingsValue.CultureName);
+        Assert.Equal("Einstellungen", context.Sut.SettingsText);
+        Assert.True(context.Sut.IsGermanLanguageSelected);
+        Assert.False(context.Sut.IsEnglishLanguageSelected);
+        context.Settings.Verify(value => value.SaveAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task SelectLanguageAsync_WhenSavingFails_KeepsTheCurrentLanguage()
+    {
+        var context = CreateContext(isConfigured: true);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.Settings.Setup(value => value.SaveAsync())
+            .ReturnsAsync(Result.Fail("synthetic failure"));
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+        await context.Sut.ShowSettingsAsync();
+
+        await context.Sut.SelectLanguageAsync("de");
+
+        Assert.Equal("en", context.SettingsValue.CultureName);
+        Assert.Equal("Settings", context.Sut.SettingsText);
+        Assert.Equal(
+            "The language preference could not be saved.",
+            context.Sut.NotificationText);
+    }
+
+    [Fact]
     public async Task ShowAccountsAsync_ClearsUnsubmittedSettingsPasswords()
     {
         var context = CreateContext(isConfigured: true, biometricAvailable: true);
@@ -373,6 +447,112 @@ public sealed class MobileShellViewModelTests
         Assert.Empty(context.Sut.Accounts);
         Assert.False(context.Sut.HasNoAccounts);
         Assert.True(context.Sut.HasNoSearchResults);
+    }
+
+    [Fact]
+    public async Task CopyAccountCodeAsync_CopiesCodeDisplayedInAccountRow()
+    {
+        var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user");
+        var context = CreateContext(isConfigured: true, [account]);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.AccountTotp
+            .Setup(value => value.GenerateAsync(account.ID))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 20, 30)));
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+        context.AccountTotp.Invocations.Clear();
+
+        await context.Sut.CopyAccountCodeAsync(Assert.Single(context.Sut.Accounts));
+
+        Assert.Equal(account.ID, context.Sut.SelectedAccount?.Id);
+        context.AccountTotp.Verify(value => value.GenerateAsync(account.ID), Times.Never);
+        context.Clipboard.Verify(value => value.CopyAndScheduleClearAsync(
+            "123456",
+            TimeSpan.FromSeconds(AppSettings.DefaultClearClipboardSeconds)), Times.Once);
+        Assert.Equal(
+            string.Format(
+                context.Strings.Get(MobileStringKeys.CodeCopiedWithClear),
+                AppSettings.DefaultClearClipboardSeconds),
+            context.Sut.NotificationText);
+
+        await Task.Delay(
+            TimeSpan.FromMilliseconds(1100),
+            global::Xunit.TestContext.Current.CancellationToken);
+
+        Assert.Empty(context.Sut.NotificationText);
+        Assert.Equal(NotificationSeverity.Information, context.Sut.NotificationSeverity);
+    }
+
+    [Fact]
+    public async Task SwipeAccountActions_SelectAccountAndOpenEditOrDeleteConfirmation()
+    {
+        var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user");
+        var context = CreateContext(isConfigured: true, [account]);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.AccountTotp
+            .Setup(value => value.GenerateAsync(account.ID))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 20, 30)));
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+        var item = Assert.Single(context.Sut.Accounts);
+
+        await context.Sut.BeginEditForAccountAsync(item);
+
+        Assert.True(context.Sut.IsEditorVisible);
+        Assert.Equal(account.Issuer, context.Sut.EditorIssuer);
+        await context.Sut.CancelEditAsync();
+
+        await context.Sut.BeginDeleteForAccountAsync(item);
+
+        Assert.True(context.Sut.IsDeleteConfirmationVisible);
+        Assert.Equal(account.ID, context.Sut.SelectedAccount?.Id);
+    }
+
+    [Fact]
+    public async Task DeleteConfirmation_KeepsOriginalAccountWhenSelectionChangeIsAttempted()
+    {
+        var first = new Account(Guid.NewGuid(), "First", ValidSecret, "one");
+        var second = new Account(Guid.NewGuid(), "Second", ValidSecret, "two");
+        var context = CreateContext(isConfigured: true, [first, second]);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.AccountTotp
+            .Setup(value => value.GenerateAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 20, 30)));
+        context.AccountManager
+            .Setup(value => value.DeleteAsync(It.Is<Account>(account => account.ID == first.ID)))
+            .ReturnsAsync(Result.Ok());
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+        var firstItem = context.Sut.Accounts.Single(account => account.Id == first.ID);
+        var secondItem = context.Sut.Accounts.Single(account => account.Id == second.ID);
+
+        await context.Sut.BeginDeleteForAccountAsync(firstItem);
+        context.Sut.SelectedAccount = secondItem;
+
+        Assert.Equal(first.ID, context.Sut.SelectedAccount?.Id);
+        Assert.Contains(firstItem.DisplayName, context.Sut.DeletePrompt, StringComparison.Ordinal);
+        Assert.DoesNotContain(secondItem.DisplayName, context.Sut.DeletePrompt, StringComparison.Ordinal);
+
+        await context.Sut.ConfirmDeleteAsync();
+
+        context.AccountManager.Verify(
+            value => value.DeleteAsync(It.Is<Account>(account => account.ID == first.ID)),
+            Times.Once);
+        context.AccountManager.Verify(
+            value => value.DeleteAsync(It.Is<Account>(account => account.ID == second.ID)),
+            Times.Never);
     }
 
     [Fact]
@@ -539,7 +719,6 @@ public sealed class MobileShellViewModelTests
         Assert.True(context.Sut.IsUnlockVisible);
         Assert.False(context.Sut.IsBusy);
         Assert.Empty(context.Sut.Accounts);
-        Assert.Empty(context.Sut.SelectedCode);
         Assert.Null(context.Sut.SelectedAccount);
     }
 
@@ -813,6 +992,12 @@ public sealed class MobileShellViewModelTests
         var clipboard = new Mock<IAsyncClipboardService>();
         clipboard.SetupGet(value => value.Capabilities)
             .Returns(ClipboardCapabilities.WriteText | ClipboardCapabilities.ConditionalClear);
+        clipboard.Setup(value => value.CopyAsync(It.IsAny<string>()))
+            .ReturnsAsync(Result.Ok());
+        clipboard.Setup(value => value.CopyAndScheduleClearAsync(
+                It.IsAny<string>(),
+                It.IsAny<TimeSpan>()))
+            .ReturnsAsync(Result.Ok());
         var qrScanner = new Mock<IMobileQrScanner>();
         var qrImport = new Mock<IQrAccountImportService>();
         var accountQrCode = new Mock<IAccountQrCodeService>();
@@ -821,11 +1006,12 @@ public sealed class MobileShellViewModelTests
         var exportService = new Mock<IExportService>();
         var accountImport = new Mock<IAccountImportService>();
 
-        var settingsValue = new AppSettings();
+        var settingsValue = new AppSettings { CultureName = cultureName };
         var settings = new Mock<ISettingsService>();
         settings.SetupGet(value => value.Current).Returns(settingsValue);
         settings.Setup(value => value.LoadAsync())
             .ReturnsAsync(Result.Ok<IAppSettings>(settingsValue));
+        settings.Setup(value => value.SaveAsync()).ReturnsAsync(Result.Ok());
 
         var paths = new Mock<IPlatformApplicationPaths>();
         paths.SetupGet(value => value.AuthorizationEnvelopeFilePath)
@@ -856,6 +1042,7 @@ public sealed class MobileShellViewModelTests
             authorization,
             accountManager,
             accountTotp,
+            clipboard,
             qrScanner,
             qrImport,
             accountQrCode,
@@ -863,6 +1050,8 @@ public sealed class MobileShellViewModelTests
             documents,
             exportService,
             accountImport,
+            settings,
+            settingsValue,
             strings,
             time);
     }
@@ -873,6 +1062,7 @@ public sealed class MobileShellViewModelTests
         Mock<IAuthorizationService> Authorization,
         Mock<IAccountManager> AccountManager,
         Mock<IAccountTotpService> AccountTotp,
+        Mock<IAsyncClipboardService> Clipboard,
         Mock<IMobileQrScanner> QrScanner,
         Mock<IQrAccountImportService> QrImport,
         Mock<IAccountQrCodeService> AccountQrCode,
@@ -880,6 +1070,8 @@ public sealed class MobileShellViewModelTests
         Mock<IMobileDocumentService> Documents,
         Mock<IExportService> ExportService,
         Mock<IAccountImportService> AccountImport,
+        Mock<ISettingsService> Settings,
+        AppSettings SettingsValue,
         MobileStringCatalog Strings,
         ManualTimeProvider Time);
 

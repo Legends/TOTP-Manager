@@ -24,9 +24,14 @@ public static class MobileStringKeys
     public const string AccountsTitle = nameof(AccountsTitle);
     public const string Codes = nameof(Codes);
     public const string Settings = nameof(Settings);
+    public const string Language = nameof(Language);
+    public const string EnglishLanguage = nameof(EnglishLanguage);
+    public const string GermanLanguage = nameof(GermanLanguage);
+    public const string LanguageSaveFailed = nameof(LanguageSaveFailed);
     public const string Security = nameof(Security);
     public const string SearchAccounts = nameof(SearchAccounts);
     public const string NoSearchResults = nameof(NoSearchResults);
+    public const string AccountSwipeHint = nameof(AccountSwipeHint);
     public const string ScanQr = nameof(ScanQr);
     public const string QrScannerUnavailable = nameof(QrScannerUnavailable);
     public const string QrScanFailed = nameof(QrScanFailed);
@@ -67,7 +72,6 @@ public static class MobileStringKeys
     public const string ImportConfirmation = nameof(ImportConfirmation);
     public const string ConfirmImport = nameof(ConfirmImport);
     public const string NoAccounts = nameof(NoAccounts);
-    public const string SelectAccount = nameof(SelectAccount);
     public const string AddAccount = nameof(AddAccount);
     public const string EditAccount = nameof(EditAccount);
     public const string DeleteAccount = nameof(DeleteAccount);
@@ -136,9 +140,14 @@ public static class MobileStringKeys
         AccountsTitle,
         Codes,
         Settings,
+        Language,
+        EnglishLanguage,
+        GermanLanguage,
+        LanguageSaveFailed,
         Security,
         SearchAccounts,
         NoSearchResults,
+        AccountSwipeHint,
         ScanQr,
         QrScannerUnavailable,
         QrScanFailed,
@@ -179,7 +188,6 @@ public static class MobileStringKeys
         ImportConfirmation,
         ConfirmImport,
         NoAccounts,
-        SelectAccount,
         AddAccount,
         EditAccount,
         DeleteAccount,

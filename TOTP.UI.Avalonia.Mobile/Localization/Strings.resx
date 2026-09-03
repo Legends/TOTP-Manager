@@ -26,9 +26,14 @@
   <data name="AccountsTitle" xml:space="preserve"><value>Accounts</value></data>
   <data name="Codes" xml:space="preserve"><value>Codes</value></data>
   <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="EnglishLanguage" xml:space="preserve"><value>English</value></data>
+  <data name="GermanLanguage" xml:space="preserve"><value>German</value></data>
+  <data name="LanguageSaveFailed" xml:space="preserve"><value>The language preference could not be saved.</value></data>
   <data name="Security" xml:space="preserve"><value>Security</value></data>
   <data name="SearchAccounts" xml:space="preserve"><value>Search accounts</value></data>
   <data name="NoSearchResults" xml:space="preserve"><value>No matching accounts.</value></data>
+  <data name="AccountSwipeHint" xml:space="preserve"><value>Swipe right for QR and edit, or left to delete.</value></data>
   <data name="ScanQr" xml:space="preserve"><value>Scan QR</value></data>
   <data name="QrScannerUnavailable" xml:space="preserve"><value>QR scanning is unavailable. Add the account manually instead.</value></data>
   <data name="QrScanFailed" xml:space="preserve"><value>The QR code could not be scanned safely.</value></data>
@@ -69,7 +74,6 @@
   <data name="ImportConfirmation" xml:space="preserve"><value>Import {0} accounts? {1} matching existing accounts will remain unchanged. A recovery backup is created before changes.</value></data>
   <data name="ConfirmImport" xml:space="preserve"><value>Import accounts</value></data>
   <data name="NoAccounts" xml:space="preserve"><value>No accounts yet. Add your first TOTP account.</value></data>
-  <data name="SelectAccount" xml:space="preserve"><value>Select an account to generate a code.</value></data>
   <data name="AddAccount" xml:space="preserve"><value>Add account</value></data>
   <data name="EditAccount" xml:space="preserve"><value>Edit</value></data>
   <data name="DeleteAccount" xml:space="preserve"><value>Delete</value></data>
@@ -87,7 +91,7 @@
   <data name="AccountSaved" xml:space="preserve"><value>Account saved.</value></data>
   <data name="AccountSaveFailed" xml:space="preserve"><value>The account could not be saved.</value></data>
   <data name="DeleteAccountPrompt" xml:space="preserve"><value>Delete {0}? This cannot be undone.</value></data>
-  <data name="Delete" xml:space="preserve"><value>Delete permanently</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="AccountDeleted" xml:space="preserve"><value>Account deleted.</value></data>
   <data name="AccountDeleteFailed" xml:space="preserve"><value>The account could not be deleted.</value></data>
   <data name="CodeUnavailable" xml:space="preserve"><value>A code could not be generated for this account.</value></data>

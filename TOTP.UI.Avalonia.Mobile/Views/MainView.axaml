@@ -4,10 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:automation="using:Avalonia.Automation"
     xmlns:controls="using:TOTP.Avalonia.Shared.Controls"
+    xmlns:input="using:Avalonia.Input.GestureRecognizers"
     xmlns:vm="using:TOTP.Avalonia.Mobile.Presentation"
+    x:Name="Root"
     x:DataType="vm:MobileShellViewModel"
     Background="{DynamicResource BrushWindowBackground}">
-    <Grid RowDefinitions="Auto,*,Auto,Auto">
+    <Grid RowDefinitions="Auto,*,Auto">
         <Border
             Grid.Row="0"
             Background="{DynamicResource BrushSurface}"
@@ -32,14 +34,23 @@
                 <Button
                     Grid.Column="2"
                     automation:AutomationProperties.Name="{Binding LockText}"
-                    Classes="secondary"
+                    Classes="icon-action"
                     Command="{Binding LockCommand}"
-                    Content="{Binding LockText}"
-                    IsVisible="{Binding IsAccountsVisible}" />
+                    IsVisible="{Binding IsAccountsVisible}"
+                    ToolTip.Tip="{Binding LockText}">
+                    <controls:SymbolIcon IconSize="24" Kind="Lock" />
+                </Button>
             </Grid>
         </Border>
 
-        <ScrollViewer Grid.Row="1">
+        <ScrollViewer
+            Grid.Row="1"
+            Classes.account-list="{Binding IsAccountListVisible}">
+            <ScrollViewer.Styles>
+                <Style Selector="ScrollViewer.account-list">
+                    <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+                </Style>
+            </ScrollViewer.Styles>
             <Grid
                 MaxWidth="720"
                 Margin="20"
@@ -120,11 +131,15 @@
                 </StackPanel>
 
                 <Grid IsVisible="{Binding IsAccountsVisible}">
-                    <StackPanel
+                    <Grid
                         HorizontalAlignment="Stretch"
                         IsVisible="{Binding IsAccountListVisible}"
-                        Spacing="14">
-                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                        RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
+                        <Grid
+                            Grid.Row="0"
+                            Margin="0,0,0,14"
+                            ColumnDefinitions="*,Auto,Auto,Auto"
+                            ColumnSpacing="8">
                             <TextBlock
                                 Grid.Column="0"
                                 VerticalAlignment="Center"
@@ -133,22 +148,44 @@
                                 Text="{Binding AccountsTitle}" />
                             <Button
                                 Grid.Column="1"
-                                Classes="secondary"
+                                automation:AutomationProperties.Name="{Binding ScanQrText}"
+                                Classes="icon-action"
                                 Command="{Binding ScanQrCommand}"
-                                Content="{Binding ScanQrText}" />
+                                ToolTip.Tip="{Binding ScanQrText}">
+                                <controls:SymbolIcon
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    IconSize="24"
+                                    Kind="Camera" />
+                            </Button>
                             <Button
                                 Grid.Column="2"
-                                Classes="primary"
+                                automation:AutomationProperties.Name="{Binding AddAccountText}"
+                                Classes="icon-action"
                                 Command="{Binding BeginAddCommand}"
-                                Content="{Binding AddAccountText}" />
+                                ToolTip.Tip="{Binding AddAccountText}">
+                                <controls:SymbolIcon IconSize="24" Kind="Add" />
+                            </Button>
+                            <Button
+                                Grid.Column="3"
+                                automation:AutomationProperties.Name="{Binding SettingsText}"
+                                Classes="icon-action"
+                                Command="{Binding ShowSettingsCommand}"
+                                ToolTip.Tip="{Binding SettingsText}">
+                                <controls:SymbolIcon IconSize="24" Kind="Settings" />
+                            </Button>
                         </Grid>
 
                         <TextBox
+                            Grid.Row="1"
+                            Margin="0,0,0,14"
                             automation:AutomationProperties.Name="{Binding SearchAccountsText}"
                             PlaceholderText="{Binding SearchAccountsText}"
                             Text="{Binding SearchText, Mode=TwoWay}" />
 
                         <Border
+                            Grid.Row="2"
+                            Margin="0,0,0,14"
                             Background="{DynamicResource BrushSurfaceAlternate}"
                             CornerRadius="8"
                             IsVisible="{Binding IsQrConflictVisible}"
@@ -177,50 +214,150 @@
                         </Border>
 
                         <TextBlock
+                            Grid.Row="3"
                             Foreground="{DynamicResource BrushTextSecondary}"
                             IsVisible="{Binding HasNoAccounts}"
                             Text="{Binding NoAccountsText}"
                             TextWrapping="Wrap" />
 
                         <TextBlock
+                            Grid.Row="3"
                             Foreground="{DynamicResource BrushTextSecondary}"
                             IsVisible="{Binding HasNoSearchResults}"
                             Text="{Binding NoSearchResultsText}"
                             TextWrapping="Wrap" />
 
                         <ListBox
-                            MaxHeight="360"
+                            Grid.Row="3"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Classes="accounts"
+                            IsHitTestVisible="{Binding !IsDeleteConfirmationVisible}"
                             IsVisible="{Binding HasAccounts}"
                             ItemsSource="{Binding Accounts}"
                             SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="vm:MobileAccountItem">
-                                    <StackPanel Margin="8,6" Spacing="3">
-                                        <TextBlock
-                                            FontSize="17"
-                                            FontWeight="SemiBold"
-                                            Text="{Binding Issuer}"
-                                            TextTrimming="CharacterEllipsis" />
-                                        <TextBlock
-                                            Foreground="{DynamicResource BrushTextSecondary}"
-                                            IsVisible="{Binding HasAccountName}"
-                                            Text="{Binding AccountName}"
-                                            TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
+                                    <Border
+                                        BorderBrush="{DynamicResource BrushBorder}"
+                                        BorderThickness="0,0,0,1"
+                                        ClipToBounds="True"
+                                        CornerRadius="0">
+                                        <Grid MinHeight="76">
+                                            <Grid
+                                                Width="120"
+                                                HorizontalAlignment="Left"
+                                                Background="{DynamicResource BrushAccent}"
+                                                ColumnDefinitions="*,*">
+                                                <Button
+                                                    Grid.Column="0"
+                                                    automation:AutomationProperties.Name="{Binding DataContext.ShowQrText, ElementName=Root}"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Click="ShowQrForAccount"
+                                                    CornerRadius="0"
+                                                    ToolTip.Tip="{Binding DataContext.ShowQrText, ElementName=Root}">
+                                                    <controls:SymbolIcon
+                                                        Foreground="White"
+                                                        IconSize="23"
+                                                        Kind="QrCode" />
+                                                </Button>
+                                                <Button
+                                                    Grid.Column="1"
+                                                    automation:AutomationProperties.Name="{Binding DataContext.EditAccountText, ElementName=Root}"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Click="EditAccount"
+                                                    CornerRadius="0"
+                                                    ToolTip.Tip="{Binding DataContext.EditAccountText, ElementName=Root}">
+                                                    <controls:SymbolIcon
+                                                        Foreground="White"
+                                                        IconSize="23"
+                                                        Kind="Edit" />
+                                                </Button>
+                                            </Grid>
+                                            <Border
+                                                Width="60"
+                                                HorizontalAlignment="Right"
+                                                Background="{DynamicResource BrushDanger}"
+                                                IsHitTestVisible="False">
+                                                <controls:SymbolIcon
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Foreground="White"
+                                                    IconSize="24"
+                                                    Kind="Delete" />
+                                            </Border>
+                                            <Border
+                                                Background="{DynamicResource BrushSurface}"
+                                                Padding="16,10"
+                                                Tapped="CopyAccountCode"
+                                                ToolTip.Tip="{Binding DataContext.CopyCodeText, ElementName=Root}"
+                                                SwipeGesture="TrackAccountSwipe"
+                                                SwipeGestureEnded="CompleteAccountSwipe">
+                                                <Border.RenderTransform>
+                                                    <TranslateTransform />
+                                                </Border.RenderTransform>
+                                                <Border.GestureRecognizers>
+                                                    <input:SwipeGestureRecognizer
+                                                        CanHorizontallySwipe="True"
+                                                        IsMouseEnabled="True"
+                                                        Threshold="24" />
+                                                </Border.GestureRecognizers>
+                                                <Grid
+                                                    ColumnDefinitions="*,Auto"
+                                                    RowDefinitions="*,Auto"
+                                                    ColumnSpacing="12">
+                                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="3">
+                                                        <TextBlock
+                                                            FontSize="17"
+                                                            FontWeight="SemiBold"
+                                                            Text="{Binding Issuer}"
+                                                            TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock
+                                                            Foreground="{DynamicResource BrushTextSecondary}"
+                                                            IsVisible="{Binding HasAccountName}"
+                                                            Text="{Binding AccountName}"
+                                                            TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                    <TextBlock
+                                                        Grid.Row="0"
+                                                        Grid.Column="1"
+                                                        VerticalAlignment="Center"
+                                                        Foreground="{DynamicResource BrushTextSelection}"
+                                                        FontFamily="Consolas"
+                                                        FontSize="25"
+                                                        FontWeight="Bold"
+                                                        Text="{Binding DisplayCode}" />
+                                                    <ProgressBar
+                                                        Grid.Row="1"
+                                                        Grid.ColumnSpan="2"
+                                                        Height="3"
+                                                        Margin="0,7,0,0"
+                                                        Maximum="{Binding PeriodSeconds}"
+                                                        Value="{Binding RemainingSeconds}" />
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
 
                         <TextBlock
+                            Grid.Row="4"
+                            Margin="0,14,0,0"
                             Foreground="{DynamicResource BrushTextSecondary}"
-                            IsVisible="{Binding HasNoSelectedAccount}"
-                            Text="{Binding SelectAccountText}"
+                            IsVisible="{Binding HasAccounts}"
+                            Text="{Binding AccountSwipeHintText}"
                             TextAlignment="Center"
                             TextWrapping="Wrap" />
 
                         <Border
+                            Grid.Row="5"
+                            Margin="0,14,0,0"
                             Classes="card"
-                            IsVisible="{Binding HasSelectedAccount}"
+                            IsVisible="{Binding HasQrImage}"
                             Padding="18">
                             <StackPanel Spacing="14">
                                 <TextBlock
@@ -228,29 +365,6 @@
                                     FontWeight="SemiBold"
                                     Text="{Binding SelectedAccount.DisplayName}"
                                     TextTrimming="CharacterEllipsis" />
-                                <TextBlock
-                                    HorizontalAlignment="Center"
-                                    Foreground="{DynamicResource BrushTextSelection}"
-                                    FontFamily="Consolas"
-                                    FontSize="38"
-                                    FontWeight="Bold"
-                                    Text="{Binding SelectedCode}" />
-                                <ProgressBar
-                                    Maximum="{Binding PeriodSeconds}"
-                                    Value="{Binding RemainingSeconds}" />
-                                <TextBlock
-                                    HorizontalAlignment="Center"
-                                    Foreground="{DynamicResource BrushTextSecondary}"
-                                    Text="{Binding RemainingSeconds}" />
-                                <Button
-                                    Classes="wide primary"
-                                    Command="{Binding CopyCodeCommand}"
-                                    Content="{Binding CopyCodeText}" />
-                                <Button
-                                    Classes="wide secondary"
-                                    Command="{Binding ShowQrCommand}"
-                                    Content="{Binding ShowQrText}"
-                                    IsVisible="{Binding !HasQrImage}" />
                                 <Border
                                     Background="White"
                                     CornerRadius="8"
@@ -274,57 +388,52 @@
                                             Content="{Binding DismissQrText}" />
                                     </StackPanel>
                                 </Border>
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                                    <Button
-                                        Grid.Column="0"
-                                        Classes="wide secondary"
-                                        Command="{Binding BeginEditCommand}"
-                                        Content="{Binding EditAccountText}" />
-                                    <Button
-                                        Grid.Column="1"
-                                        Classes="wide danger"
-                                        Command="{Binding BeginDeleteCommand}"
-                                        Content="{Binding DeleteAccountText}" />
-                                </Grid>
-                                <Border
-                                    Background="{DynamicResource BrushSurfaceAlternate}"
-                                    CornerRadius="8"
-                                    IsVisible="{Binding IsDeleteConfirmationVisible}"
-                                    Padding="16">
-                                    <StackPanel Spacing="12">
-                                        <TextBlock
-                                            FontSize="18"
-                                            FontWeight="SemiBold"
-                                            Text="{Binding DeleteConfirmTitle}" />
-                                        <TextBlock
-                                            Text="{Binding DeletePrompt}"
-                                            TextWrapping="Wrap" />
-                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                                            <Button
-                                                Grid.Column="0"
-                                                Classes="wide secondary"
-                                                Command="{Binding CancelDeleteCommand}"
-                                                Content="{Binding CancelText}" />
-                                            <Button
-                                                Grid.Column="1"
-                                                Classes="wide danger"
-                                                Command="{Binding ConfirmDeleteCommand}"
-                                                Content="{Binding DeleteText}" />
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
                             </StackPanel>
                         </Border>
-                    </StackPanel>
+                    </Grid>
 
                     <StackPanel
                         HorizontalAlignment="Stretch"
                         IsVisible="{Binding IsSettingsVisible}"
                         Spacing="14">
-                        <TextBlock
-                            FontSize="26"
-                            FontWeight="SemiBold"
-                            Text="{Binding SettingsText}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                FontSize="26"
+                                FontWeight="SemiBold"
+                                Text="{Binding SettingsText}" />
+                            <Button
+                                Grid.Column="1"
+                                automation:AutomationProperties.Name="{Binding CodesText}"
+                                Classes="icon-action"
+                                Command="{Binding ShowAccountsCommand}"
+                                ToolTip.Tip="{Binding CodesText}">
+                                <controls:SymbolIcon IconSize="24" Kind="Codes" />
+                            </Button>
+                        </Grid>
+                        <Border Classes="card" Padding="16">
+                            <StackPanel Spacing="10">
+                                <TextBlock
+                                    FontSize="18"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding LanguageText}" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                    <Button
+                                        Grid.Column="0"
+                                        Classes="wide language-option"
+                                        Classes.selected="{Binding IsEnglishLanguageSelected}"
+                                        Command="{Binding SelectEnglishLanguageCommand}"
+                                        Content="{Binding EnglishLanguageText}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Classes="wide language-option"
+                                        Classes.selected="{Binding IsGermanLanguageSelected}"
+                                        Command="{Binding SelectGermanLanguageCommand}"
+                                        Content="{Binding GermanLanguageText}" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
                         <Border Classes="card" Padding="16">
                             <StackPanel Spacing="12">
                                 <TextBlock
@@ -479,31 +588,50 @@
             </Grid>
         </ScrollViewer>
 
-        <Border
-            Grid.Row="2"
-            Background="{DynamicResource BrushSurface}"
-            BorderBrush="{DynamicResource BrushBorder}"
-            BorderThickness="0,1,0,0"
-            IsVisible="{Binding IsBottomNavigationVisible}"
-            Padding="20,10">
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button
-                    Grid.Column="0"
-                    Classes="wide secondary"
-                    Command="{Binding ShowAccountsCommand}"
-                    Content="{Binding CodesText}" />
-                <Button
-                    Grid.Column="1"
-                    Classes="wide secondary"
-                    Command="{Binding ShowSettingsCommand}"
-                    Content="{Binding SettingsText}" />
-            </Grid>
-        </Border>
-
         <controls:NotificationBanner
-            Grid.Row="3"
+            Grid.Row="2"
             Margin="20,8,20,20"
             Severity="{Binding NotificationSeverity}"
             Text="{Binding NotificationText}" />
+
+        <Grid
+            Grid.RowSpan="3"
+            Panel.ZIndex="100"
+            Background="#99000000"
+            IsVisible="{Binding IsDeleteConfirmationVisible}">
+            <Border
+                MaxWidth="420"
+                Margin="24"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Center"
+                automation:AutomationProperties.Name="{Binding DeleteConfirmTitle}"
+                Background="{DynamicResource BrushSurface}"
+                BorderBrush="{DynamicResource BrushBorder}"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="22">
+                <StackPanel Spacing="16">
+                    <TextBlock
+                        FontSize="20"
+                        FontWeight="SemiBold"
+                        Text="{Binding DeleteConfirmTitle}" />
+                    <TextBlock
+                        Text="{Binding DeletePrompt}"
+                        TextWrapping="Wrap" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button
+                            Grid.Column="0"
+                            Classes="wide secondary"
+                            Command="{Binding CancelDeleteCommand}"
+                            Content="{Binding CancelText}" />
+                        <Button
+                            Grid.Column="1"
+                            Classes="wide danger"
+                            Command="{Binding ConfirmDeleteCommand}"
+                            Content="{Binding DeleteText}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

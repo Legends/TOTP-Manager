@@ -1,8 +1,8 @@
-# Android development
+# Android development preview
 
-Android development is isolated from the pending desktop `v2.0.0` release on the temporary
-`feature/android-foundation` branch. This is not a permanent platform branch. After the desktop
-release, reviewed Android work should reach `master` through small vertical-slice pull requests.
+Android shares the repository and core security architecture with the desktop application, while
+remaining deliberately outside the desktop solution and release artifacts until production Android
+signing, supported CI, and the upgrade policy are ready.
 
 ## Implemented development MVP
 
@@ -13,7 +13,9 @@ The current Android application provides:
 - account search by issuer or account name
 - offline QR capture through the system camera, explicit conflict handling, and account QR display
 - encrypted backup import and export through Android's system document picker
-- TOTP generation and countdown display
+- current TOTP code and countdown display inside every visible account row
+- tap-to-copy account rows and thresholded swipe actions for QR display, editing, and confirmed
+  deletion
 - conditional clipboard clearing without retaining the copied code as adapter state
 - a 30-second background grace period for normal app switching, with immediate code removal and
   immediate locking on device lock
@@ -26,8 +28,10 @@ The current Android application provides:
 - screenshot and recent-app preview protection through `FLAG_SECURE`
 - a focused two-destination mobile shell: codes and security settings
 
-Account rows contain identifiers and display metadata only. OTP seeds remain in the encrypted
-vault and are loaded through the existing authorization-aware services when required.
+Account rows contain identifiers, display metadata, and short-lived current OTP codes. OTP seeds
+remain in the encrypted vault and are loaded only through the existing authorization-aware TOTP
+service. The presentation projection is cleared immediately on backgrounding, explicit locking,
+device locking, and disposal.
 
 ## Mobile product scope
 
@@ -85,14 +89,12 @@ wireless debugging must be enabled, exactly one device must be connected, and th
 authorized on that device. Development APKs embed their managed assemblies and therefore do not
 depend on IDE-specific Android Fast Deployment state.
 
-## Branch and merge policy
+## Release policy
 
-1. Keep the foundation branch based on `master` while desktop `v2.0.0` is pending.
-2. Do not create production Android artifacts or Play Store credentials on this branch.
-3. After desktop `v2.0.0`, merge reviewed vertical slices rather than maintaining a long-lived
-   Android fork.
-4. Add the Android projects to supported CI only when the platform adapters and device tests are
-   ready to become a maintained product surface.
+1. Do not publish development APKs as production artifacts.
+2. Keep the long-lived Android signing key outside the repository and require reviewed CI access.
+3. Add the Android projects to supported CI before publishing the first `0.1.0-beta` artifact.
+4. Document and test same-key upgrades before inviting public beta users.
 
 The initial Android application ID is `io.github.legends.otpharbor`. It must receive explicit review
 before the first store publication because a published application ID is effectively permanent.
@@ -111,8 +113,10 @@ before the first store publication because a published application ID is effecti
   clipboard services now process production data on Android. Files stay below the private app data
   root. Copied codes enter the system clipboard, are marked sensitive on Android 13 and newer, and
   are conditionally cleared according to the existing setting. A normal app switch retains the
-  in-memory vault key for no more than the 30-second grace period while immediately removing the
-  displayed code. The foreground transition re-evaluates the deadline using monotonic time because
+  in-memory vault key for no more than the 30-second grace period while immediately removing all
+  displayed codes. While foregrounded, the UI holds one current short-lived OTP string per visible
+  account so the primary authenticator list can show and copy codes without a second secret lookup.
+  It never receives the underlying seeds. The foreground transition re-evaluates the deadline using monotonic time because
   Android may suspend background execution. Device lock, explicit lock, and process termination do
   not receive this grace period. Enabling quick unlock unwraps the vault key only after recovery
   password verification, then encrypts it with AES-256-GCM inside the authenticated Keystore flow.
@@ -150,7 +154,9 @@ before the first store publication because a published application ID is effecti
   background grace-period expiry, account projection, and account validation behavior have
   automated coverage. Debug and Release Android builds plus
   desktop regression tests must remain green. Private storage, NSec runtime behavior, lifecycle
-  transitions, and clipboard clearing have initial physical-device evidence and still require a
+  transitions, multi-account code projection, code clearing, and clipboard clearing have automated
+  regression coverage. Private storage and NSec runtime behavior have initial physical-device
+  evidence and still require a
   broader supported-device matrix before release. Biometric provider metadata, enrollment,
   automatic-prompt cancellation, recovery fallback, and successful unlock have regression
   coverage; enrollment-change invalidation still requires physical-device verification.
