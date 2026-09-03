@@ -8,6 +8,8 @@ public static class PlatformQuickUnlockContract
 {
     private const int WindowsRsa2048CiphertextSize = 256;
     private const int MacOSKeychainBindingSize = 32;
+    private const int AndroidAesGcmNonceSize = 12;
+    private const int AndroidAesGcmCiphertextSize = 48;
     private const int MaxKeyReferenceLength = 256;
 
     public const string WindowsHelloTpmProvider = "windows-hello-tpm";
@@ -17,6 +19,11 @@ public static class PlatformQuickUnlockContract
     public const string MacOSKeychainProvider = "macos-keychain-user-presence";
     public const int MacOSKeychainProviderVersion = 1;
     public const string KeychainItemReferenceAlgorithm = "keychain-item-reference-sha256";
+    public const string AndroidKeystoreBiometricProvider = "android-keystore-biometric";
+    public const int AndroidKeystoreBiometricProviderVersion = 1;
+    public const string AndroidAes256GcmAlgorithm = "aes-256-gcm";
+    public const string AndroidAssociatedDataContext =
+        "totp-manager/authorization-envelope/v2/android-keystore-biometric";
 
     public static bool IsSupported(PlatformQuickUnlockWrapperV2? wrapper)
     {
@@ -25,7 +32,9 @@ public static class PlatformQuickUnlockContract
             return false;
         }
 
-        return IsSupportedWindowsWrapper(wrapper) || IsSupportedMacOSWrapper(wrapper);
+        return IsSupportedWindowsWrapper(wrapper)
+            || IsSupportedMacOSWrapper(wrapper)
+            || IsSupportedAndroidWrapper(wrapper);
     }
 
     private static bool IsSupportedWindowsWrapper(PlatformQuickUnlockWrapperV2 wrapper) =>
@@ -52,4 +61,18 @@ public static class PlatformQuickUnlockContract
             StringComparison.Ordinal)
         && wrapper.WrappedKey.Nonce is null
         && wrapper.WrappedKey.Ciphertext is { Length: MacOSKeychainBindingSize };
+
+    private static bool IsSupportedAndroidWrapper(PlatformQuickUnlockWrapperV2 wrapper) =>
+        string.Equals(wrapper.Provider, AndroidKeystoreBiometricProvider, StringComparison.Ordinal)
+        && wrapper.ProviderVersion == AndroidKeystoreBiometricProviderVersion
+        && string.Equals(wrapper.AuthenticationPolicy, UserVerificationRequired, StringComparison.Ordinal)
+        && !string.IsNullOrWhiteSpace(wrapper.KeyReference)
+        && wrapper.KeyReference.Length <= MaxKeyReferenceLength
+        && !wrapper.KeyReference.Any(char.IsControl)
+        && string.Equals(
+            wrapper.WrappedKey.Algorithm,
+            AndroidAes256GcmAlgorithm,
+            StringComparison.Ordinal)
+        && wrapper.WrappedKey.Nonce is { Length: AndroidAesGcmNonceSize }
+        && wrapper.WrappedKey.Ciphertext is { Length: AndroidAesGcmCiphertextSize };
 }

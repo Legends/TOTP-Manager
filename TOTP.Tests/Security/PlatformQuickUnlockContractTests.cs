@@ -91,4 +91,42 @@ public sealed class PlatformQuickUnlockContractTests
             typeof(Task<FluentResults.Result<PlatformQuickUnlockAttempt>>),
             unlockMethod.ReturnType);
     }
+
+    [Fact]
+    public void IsSupported_WithReviewedAndroidWrapper_ReturnsTrue()
+    {
+        var wrapper = CreateAndroidWrapper();
+
+        Assert.True(PlatformQuickUnlockContract.IsSupported(wrapper));
+    }
+
+    [Theory]
+    [InlineData(11, 48)]
+    [InlineData(12, 47)]
+    [InlineData(13, 48)]
+    [InlineData(12, 49)]
+    public void IsSupported_WithInvalidAndroidCryptographicShape_ReturnsFalse(
+        int nonceLength,
+        int ciphertextLength)
+    {
+        var wrapper = CreateAndroidWrapper(nonceLength, ciphertextLength);
+
+        Assert.False(PlatformQuickUnlockContract.IsSupported(wrapper));
+    }
+
+    private static PlatformQuickUnlockWrapperV2 CreateAndroidWrapper(
+        int nonceLength = 12,
+        int ciphertextLength = 48) => new()
+    {
+        Provider = PlatformQuickUnlockContract.AndroidKeystoreBiometricProvider,
+        ProviderVersion = PlatformQuickUnlockContract.AndroidKeystoreBiometricProviderVersion,
+        AuthenticationPolicy = PlatformQuickUnlockContract.UserVerificationRequired,
+        KeyReference = "TOTP_ANDROID_0123456789abcdef0123456789abcdef",
+        WrappedKey = new PlatformWrappedKeyV2
+        {
+            Algorithm = PlatformQuickUnlockContract.AndroidAes256GcmAlgorithm,
+            Nonce = new byte[nonceLength],
+            Ciphertext = new byte[ciphertextLength]
+        }
+    };
 }

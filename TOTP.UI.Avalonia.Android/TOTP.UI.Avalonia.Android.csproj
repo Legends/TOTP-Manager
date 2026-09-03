@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>28</SupportedOSPlatformVersion>
+    <RootNamespace>TOTP.Avalonia.Android</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationId>io.github.legends.otpharbor</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>0.1.0-dev</ApplicationDisplayVersion>
+    <AndroidPackageFormats Condition="'$(Configuration)' == 'Debug'">apk</AndroidPackageFormats>
+    <AndroidPackageFormats Condition="'$(Configuration)' == 'Release'">aab;apk</AndroidPackageFormats>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\TOTP.Core\totp-sign-key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Android" Version="12.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.11" />
+    <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.15" />
+    <PackageReference Include="ZXing.Net" Version="0.16.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidResource Include="..\TOTP.UI.Avalonia.Desktop\Assets\Icons\app-1024.png">
+      <Link>Resources\drawable\app_icon.png</Link>
+      <LogicalName>drawable\app_icon.png</LogicalName>
+    </AndroidResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TOTP.Infrastructure\TOTP.Infrastructure.csproj" />
+    <ProjectReference Include="..\TOTP.Platform.Android\TOTP.Platform.Android.csproj" />
+    <ProjectReference Include="..\TOTP.UI.Avalonia.Mobile\TOTP.UI.Avalonia.Mobile.csproj" />
+  </ItemGroup>
+
+</Project>

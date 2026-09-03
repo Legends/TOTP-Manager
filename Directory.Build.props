@@ -3,7 +3,7 @@
     <Product>OTP Harbor</Product>
     <Company>OTP Harbor contributors</Company>
     <Authors>OTP Harbor contributors</Authors>
-    <Description>Open-source, local-first TOTP and 2FA desktop authenticator.</Description>
+    <Description>Open-source, local-first TOTP and 2FA authenticator.</Description>
     <Copyright>Copyright © OTP Harbor contributors</Copyright>
     <RepositoryUrl>https://github.com/Legends/otp-harbor</RepositoryUrl>
   </PropertyGroup>

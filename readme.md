@@ -1,17 +1,17 @@
 # OTP Harbor
 
-**The local-first desktop authenticator.**
+**The local-first authenticator for desktop, with an Android development preview.**
 
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-5C6BC0)](https://github.com/Legends/otp-harbor)
-[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/download/dotnet/9.0)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Android-5C6BC0)](https://github.com/Legends/otp-harbor)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![Build](https://github.com/Legends/otp-harbor/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Legends/otp-harbor/actions/workflows/build-and-test.yml)
 [![Security](https://github.com/Legends/otp-harbor/actions/workflows/security-audit.yml/badge.svg)](https://github.com/Legends/otp-harbor/actions/workflows/security-audit.yml)
 [![Latest Release](https://img.shields.io/github/v/release/Legends/otp-harbor?display_name=tag)](https://github.com/Legends/otp-harbor/releases/latest)
 [![License](https://img.shields.io/github/license/Legends/otp-harbor)](LICENSE.txt)
 
-**OTP Harbor** is an open-source, local-first desktop authenticator for TOTP and 2FA on Windows, macOS, and Linux. It protects OTP seeds in an encrypted local vault and supports QR workflows, platform quick unlock, and encrypted backup and restore without requiring a cloud account.
+**OTP Harbor** is an open-source, local-first TOTP and 2FA authenticator for Windows, macOS, and Linux, with an Android development preview. It protects OTP seeds in an encrypted local vault and supports QR workflows, platform quick unlock, and encrypted backup and restore without requiring a cloud account.
 
-> **Release status:** `v2.0.0` is in release-candidate testing. RC packages are unsigned Windows/Linux previews with automatic updates disabled. Use synthetic accounts and keep a tested encrypted backup.
+> **Release status:** `v2.0.0` is in release-candidate testing. RC packages are unsigned Windows/Linux previews with automatic updates disabled. Android is source-only until its production signing and upgrade path are established. Use synthetic accounts and keep a tested encrypted backup.
 
 <p align="center">
   <img src="docs/images/readme/app.png" alt="OTP Harbor showing a selected account and its current one-time password" width="460" />
@@ -26,6 +26,8 @@
 - Encrypted `.totp` backup, restore, and conflict handling
 - English and German UI
 - Native Avalonia desktop application for Windows, macOS, and Linux
+- Focused Android app with biometric quick unlock, camera-based QR import, swipe actions, and the
+  same encrypted backup format as desktop
 
 Accounts currently use the common TOTP profile: SHA-1, six digits, and a 30-second period.
 
@@ -38,6 +40,7 @@ Download the current prerelease from [GitHub Releases](https://github.com/Legend
 | Windows 10/11 x64 | Self-contained ZIP or framework-dependent `fast` ZIP |
 | Ubuntu 24.04 x64 | DEB or self-contained tarball |
 | macOS ARM64 | Structural artifacts are built in CI; production distribution still requires signing and notarization |
+| Android 9 or newer | Development source only; a public APK requires production signing and supported Android CI |
 
 After launch, create a master password and add an account manually or scan an `otpauth://` QR code. Treat QR images, OTPs, seeds, exports, and backups as secrets.
 
@@ -71,6 +74,8 @@ dotnet build TOTP.sln -c Debug
 dotnet test TOTP.sln -c Debug
 dotnet run --project .\TOTP.UI.Avalonia.Desktop\TOTP.UI.Avalonia.Desktop.csproj
 ```
+
+The Android development preview is intentionally outside the desktop solution and release artifacts. See the [Android development guide](docs/android/FOUNDATION.md) for its implemented scope, security notes, and explicit build command.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for engineering rules and [docs/README.md](docs/README.md) for the maintained documentation map.
 
