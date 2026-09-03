@@ -26,7 +26,8 @@ $assetProvenance = Read-RepositoryFile "docs/assets/ASSET_PROVENANCE.md"
 
 $requiredReadmeText = @(
     "## Code signing policy",
-    "Free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).",
+    "The previous SignPath Foundation application was not approved at this stage.",
+    "Current GitHub preview builds are unsigned.",
     "[OTP Harbor privacy policy](PRIVACY.md)"
 )
 foreach ($requiredText in $requiredReadmeText) {
@@ -35,7 +36,13 @@ foreach ($requiredText in $requiredReadmeText) {
     }
 }
 
-foreach ($requiredText in @("## Team roles", "## Build and signing controls", "## Privacy")) {
+foreach ($requiredText in @(
+    "The previous SignPath Foundation application was not approved at this stage.",
+    "Current GitHub preview builds are unsigned.",
+    "## Team roles",
+    "## Build and signing controls",
+    "## Privacy"
+)) {
     if (-not $policy.Contains($requiredText, [StringComparison]::Ordinal)) {
         throw "The code signing policy is missing: $requiredText"
     }

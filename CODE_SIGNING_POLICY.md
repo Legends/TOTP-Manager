@@ -1,6 +1,6 @@
 # Code signing policy
 
-Free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+**Windows code-signing status:** The previous SignPath Foundation application was not approved at this stage. A future reapplication is planned after the project has established broader public adoption and independent trust signals. Current GitHub preview builds are unsigned.
 
 This policy applies to Windows Authenticode signatures on stable OTP Harbor release artifacts. Release-candidate packages are explicitly identified as unsigned previews and are not distributed through the automatic-update channel.
 

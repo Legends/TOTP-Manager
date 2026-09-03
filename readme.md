@@ -58,7 +58,7 @@ Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Nev
 
 ## Code signing policy
 
-Free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+**Windows code-signing status:** The previous SignPath Foundation application was not approved at this stage. A future reapplication is planned after the project has established broader public adoption and independent trust signals. Current GitHub preview builds are unsigned.
 
 Stable Windows releases require reviewed Authenticode signing and verification as defined in the [code signing policy](CODE_SIGNING_POLICY.md). Data handling is described in the [OTP Harbor privacy policy](PRIVACY.md).
 
