@@ -27,6 +27,8 @@ public static class MobileStringKeys
     public const string Language = nameof(Language);
     public const string EnglishLanguage = nameof(EnglishLanguage);
     public const string GermanLanguage = nameof(GermanLanguage);
+    public const string FrenchLanguage = nameof(FrenchLanguage);
+    public const string SpanishLanguage = nameof(SpanishLanguage);
     public const string LanguageSaveFailed = nameof(LanguageSaveFailed);
     public const string Security = nameof(Security);
     public const string SearchAccounts = nameof(SearchAccounts);
@@ -143,6 +145,8 @@ public static class MobileStringKeys
         Language,
         EnglishLanguage,
         GermanLanguage,
+        FrenchLanguage,
+        SpanishLanguage,
         LanguageSaveFailed,
         Security,
         SearchAccounts,

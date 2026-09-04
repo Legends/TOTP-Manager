@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://legends.github.io/otp-harbor/sitemap.xml

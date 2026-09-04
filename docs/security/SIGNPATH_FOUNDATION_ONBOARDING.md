@@ -2,7 +2,9 @@
 
 ## Status
 
-The repository is prepared for a SignPath Foundation application, but certificate issuance and hosted configuration remain external approval steps. Do not describe a release as SignPath-signed until its Authenticode signature has been verified.
+The initial SignPath Foundation application was not approved because OTP Harbor did not yet have sufficient independent public visibility and adoption signals. There is no Foundation certificate and no active SignPath-backed production channel. Microsoft Store is now the primary Windows distribution path.
+
+This document is retained only as a future reapplication runbook. Do not configure SignPath credentials, describe a release as SignPath-signed, or activate the direct stable-download workflow unless a later application is approved and the returned Authenticode signatures have been verified.
 
 Repository evidence:
 
@@ -16,13 +18,14 @@ Repository evidence:
 
 ## Maintainer prerequisites
 
-Before applying:
+Before reapplying:
 
 1. Enable multi-factor authentication on the GitHub account and require it for every future maintainer with repository or SignPath access.
 2. Apply and verify the `master` branch protections in [BRANCH_PROTECTION.md](BRANCH_PROTECTION.md). External pull requests must be reviewed, required checks must pass, force pushes and deletion must remain disabled, and release/trust files must remain covered by `CODEOWNERS`.
 3. Review the project-owned raster record in [ASSET_PROVENANCE.md](../assets/ASSET_PROVENANCE.md) whenever an embedded image changes. Unknown earlier icon and flag files have been replaced; do not reintroduce them.
-4. Keep at least one public Windows release in the same ZIP-based form intended for signing, with functionality and installation instructions on its release page.
-5. Read and accept the current [SignPath Foundation conditions](https://signpath.org/terms.html), then submit the [application](https://signpath.org/apply).
+4. Establish credible external trust signals: sustained releases, real Store installs/reviews, independent contributors, stars/forks, and third-party discussion or coverage.
+5. Keep public evidence of supported installation, security reporting, release provenance, and real-world platform testing.
+6. Read and accept the current [SignPath Foundation conditions](https://signpath.org/terms.html), then submit a new [application](https://signpath.org/apply).
 
 Certificate approval is discretionary. Repository preparation cannot guarantee acceptance, particularly while a project has limited verifiable reputation.
 

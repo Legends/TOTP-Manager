@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+using System.Text;
 using TOTP.Core.Common;
 using TOTP.Core.Services.Interfaces;
 
@@ -7,7 +9,8 @@ public sealed class WindowsApplicationPaths : IPlatformApplicationPaths
 {
     public WindowsApplicationPaths(
         string? executableDirectory = null,
-        string? roamingApplicationDataDirectory = null)
+        string? roamingApplicationDataDirectory = null,
+        bool? hasPackageIdentity = null)
     {
         ExecutableDirectory = Path.GetFullPath(executableDirectory ?? ResolveExecutableDirectory());
 
@@ -28,7 +31,9 @@ public sealed class WindowsApplicationPaths : IPlatformApplicationPaths
         AuthorizationEnvelopeFilePath = Path.Combine(ApplicationDataDirectory, StringsConstants.AuthorizationEnvelopeFileName);
         PreferencesFilePath = Path.Combine(ApplicationDataDirectory, StringsConstants.PreferencesFileName);
         BackupDirectory = ApplicationDataDirectory;
-        LogDirectory = Path.Combine(ExecutableDirectory, "Logs");
+        LogDirectory = (hasPackageIdentity ?? WindowsPackageIdentity.HasCurrent())
+            ? Path.Combine(ApplicationDataDirectory, "Logs")
+            : Path.Combine(ExecutableDirectory, "Logs");
         LogFilePath = Path.Combine(LogDirectory, "app.log");
         UpdateStateFilePath = Path.Combine(ApplicationDataDirectory, StringsConstants.AutoUpdateStateFileName);
     }
@@ -47,4 +52,27 @@ public sealed class WindowsApplicationPaths : IPlatformApplicationPaths
     private static string ResolveExecutableDirectory() =>
         Path.GetDirectoryName(Environment.ProcessPath)
         ?? AppDomain.CurrentDomain.BaseDirectory;
+}
+
+internal static class WindowsPackageIdentity
+{
+    private const int ErrorInsufficientBuffer = 122;
+    private const int AppModelErrorNoPackage = 15700;
+
+    public static bool HasCurrent()
+    {
+        var length = 0;
+        var result = GetCurrentPackageFullName(ref length, null);
+        return result switch
+        {
+            ErrorInsufficientBuffer => true,
+            AppModelErrorNoPackage => false,
+            _ => false
+        };
+    }
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetCurrentPackageFullName(
+        ref int packageFullNameLength,
+        StringBuilder? packageFullName);
 }

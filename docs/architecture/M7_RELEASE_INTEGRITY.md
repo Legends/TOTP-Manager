@@ -53,14 +53,14 @@ The Linux DEB is stamped `package-manager`; direct tar and DMG packages are stam
 - real application-XAML loading on Windows, Ubuntu, and macOS CI runners;
 - successful Windows file replacement plus injected mid-transaction failure restoration.
 
-Physical clean-machine installation, signed macOS notarization, and target update handoff remain explicit M7 acceptance gates.
+Physical clean-machine installation, Microsoft Store certification/signature checks, signed macOS notarization, and target update handoff remain explicit M7 acceptance gates.
 
-## Credentialed tag publication
+## Conditional credentialed direct publication
 
-Version tags run a separate self-contained native packaging matrix after the build, Unix integration, and package-probe jobs succeed. Windows stable release archives cannot be retained without a manually approved, GitHub-origin-verified SignPath request and valid returned Authenticode signatures. macOS release artifacts cannot be retained without a Developer ID certificate and a complete App Store Connect notarization API-key triplet. Linux direct and DEB artifacts are assembled on Ubuntu 24.04.
+The direct-publication implementation remains fail-closed but is not the active Windows stable channel. The previous SignPath Foundation application was not approved, so Windows direct stable archives cannot currently pass their Authenticode gate. Microsoft Store packaging is handled separately and becomes distributable only after Store certification and signing. macOS release artifacts still cannot be retained without a Developer ID certificate and a complete App Store Connect notarization API-key triplet. Linux direct and DEB artifacts are assembled on Ubuntu 24.04.
 
 The native packaging matrix retains signed outputs without writing to GitHub Releases. The final publication job runs only after every native package succeeds, downloads the complete retained set, rebuilds and validates one aggregate manifest, and uses pinned NetSparkle AppCast Generator 2.9.0 to sign each direct payload, `appcast-v2.xml`, and the manifest. The Avalonia client's embedded public key must match the CI public key. The signing tool receives only a protected key-directory path; private key contents are not placed in process arguments. The complete asset set is first uploaded to a draft; only a successful upload makes the release visible. Release-candidate tags are explicitly prereleases and never become the latest stable release.
 
 Release payload preparation removes only debug-symbol files below the resolved generated publish directory and rejects stale updater build/RID subtrees. This keeps direct artifacts within the existing 128 MiB client limit without increasing the download memory/denial-of-service boundary.
 
-Windows tag publication retains two Authenticode-signed ZIPs. The self-contained ZIP is the single appcast-qualified update payload. The smaller framework-dependent `fast` ZIP is recorded as `manual-download` in the signed aggregate manifest and requires a preinstalled .NET 10 desktop runtime; it is not a second update candidate or a privileged installer.
+If a future direct Windows signing provider is approved, that conditional tag path may retain two Authenticode-signed ZIPs. The self-contained ZIP would be the single appcast-qualified update payload; the smaller framework-dependent `fast` ZIP would remain `manual-download`. This dormant design does not describe the Microsoft Store package.

@@ -1,0 +1,83 @@
+name: Build Microsoft Store MSIX
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - '.github/workflows/store-msix.yml'
+      - 'packaging/windows-store/**'
+      - 'scripts/release/New-MicrosoftStoreMsix.ps1'
+      - 'scripts/validation/Test-MicrosoftStorePackaging.ps1'
+      - 'TOTP.Platform.Windows/**'
+      - 'TOTP.UI.Avalonia.Desktop/**'
+      - 'TOTP.Updater/**'
+      - 'Directory.Build.props'
+  workflow_dispatch:
+    inputs:
+      identity_name:
+        description: 'Partner Center package identity Name (case-sensitive)'
+        required: true
+        type: string
+      publisher:
+        description: 'Partner Center Publisher ID, for example CN=...'
+        required: true
+        type: string
+      publisher_display_name:
+        description: 'Publisher display name from Partner Center'
+        required: true
+        type: string
+      version:
+        description: 'Four-part Store version; fourth component must be 0'
+        required: true
+        default: '2.0.0.0'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-latest
+    env:
+      STORE_IDENTITY_NAME: ${{ inputs.identity_name || 'io.github.Legends.OtpHarbor' }}
+      STORE_PUBLISHER: ${{ inputs.publisher || 'CN=OTP Harbor CI' }}
+      STORE_PUBLISHER_DISPLAY_NAME: ${{ inputs.publisher_display_name || 'OTP Harbor contributors' }}
+      STORE_VERSION: ${{ inputs.version || '2.0.0.0' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.sln
+            NuGet.config
+
+      - name: Validate Store packaging controls
+        shell: pwsh
+        run: ./scripts/validation/Test-MicrosoftStorePackaging.ps1
+
+      - name: Build unsigned Partner Center MSIX
+        shell: pwsh
+        run: |
+          ./scripts/release/New-MicrosoftStoreMsix.ps1 `
+            -IdentityName $env:STORE_IDENTITY_NAME `
+            -Publisher $env:STORE_PUBLISHER `
+            -PublisherDisplayName $env:STORE_PUBLISHER_DISPLAY_NAME `
+            -Version $env:STORE_VERSION
+
+      - name: Upload Partner Center submission artifact
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: otp-harbor-microsoft-store-${{ inputs.version }}
+          path: |
+            artifacts/store/*.msix
+            artifacts/store/SHA256SUMS
+            artifacts/store/store-package.json
+          if-no-files-found: error
+          retention-days: 14

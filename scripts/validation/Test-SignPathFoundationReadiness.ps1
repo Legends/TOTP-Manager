@@ -26,7 +26,8 @@ $assetProvenance = Read-RepositoryFile "docs/assets/ASSET_PROVENANCE.md"
 
 $requiredReadmeText = @(
     "## Code signing policy",
-    "Free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).",
+    "The previous SignPath Foundation application was not approved at this stage.",
+    "Current GitHub preview builds are unsigned.",
     "[OTP Harbor privacy policy](PRIVACY.md)"
 )
 foreach ($requiredText in $requiredReadmeText) {
@@ -35,7 +36,13 @@ foreach ($requiredText in $requiredReadmeText) {
     }
 }
 
-foreach ($requiredText in @("## Team roles", "## Build and signing controls", "## Privacy")) {
+foreach ($requiredText in @(
+    "The previous SignPath Foundation application was not approved at this stage.",
+    "Current GitHub preview builds are unsigned.",
+    "## Team roles",
+    "## Build and signing controls",
+    "## Privacy"
+)) {
     if (-not $policy.Contains($requiredText, [StringComparison]::Ordinal)) {
         throw "The code signing policy is missing: $requiredText"
     }
@@ -60,7 +67,10 @@ $reviewedAssets = [ordered]@{
     "TOTP.UI.Avalonia.Desktop/Assets/Icons/app.ico"      = "7a71a423982499c438177e3b58126f003c3ece9a66cb2b91c07dc50a812ab81e"
     "TOTP.UI.Avalonia.Desktop/Assets/flags/en.png"       = "1c2bcc20e5985e5f03a3a440f198b5d08a4ac609e9cebba00b639b0e50fba8fc"
     "TOTP.UI.Avalonia.Desktop/Assets/flags/de.png"       = "2c8f253f3401d18df0a47bd7906102cf78ea7e4a2caac9e4c6f4efebc906de0a"
+    "TOTP.UI.Avalonia.Desktop/Assets/flags/fr.png"       = "b962887c6a6317b8e60a1c0b33ae5fed16b453a83e9026043480ccfd3cc3a340"
+    "TOTP.UI.Avalonia.Desktop/Assets/flags/es.png"       = "d45958f491e9cf1d10c0e6de74970c5fed11e826e702c14c9009197842e6d1bd"
     "docs/images/readme/app.png"                         = "2b784669224c991eb4524eb0ab03b13ae3011605d308d3a2ef6bb8795771eeda"
+    "docs/images/social/otp-harbor-social-preview.png"   = "e2df57730fb5e4f46c77091a4066946c2c148a56e65058650340892aa74e138e"
 }
 foreach ($entry in $reviewedAssets.GetEnumerator()) {
     $assetPath = Join-Path $repositoryRoot $entry.Key
@@ -94,4 +104,4 @@ if ($workflow -match 'SIGNING_CERT_(BASE64|PASSWORD)') {
     throw "The hosted release workflow must not accept exportable Windows certificate material."
 }
 
-Write-Output "SignPath Foundation repository-readiness controls are present."
+Write-Output "Code-signing disclosure and dormant SignPath fail-closed controls are present."

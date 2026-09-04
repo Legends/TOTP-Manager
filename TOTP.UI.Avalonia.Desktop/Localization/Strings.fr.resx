@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>OTP Harbor</value></data>
+  <data name="AppHeading" xml:space="preserve"><value>OTP Harbor</value></data>
+  <data name="StartingSafely" xml:space="preserve"><value>Démarrage sécurisé d’OTP Harbor…</value></data>
+  <data name="StartupCreateMasterPassword" xml:space="preserve"><value>Créez un mot de passe principal pour protéger votre authentificateur.</value></data>
+  <data name="StartupEnterMasterPassword" xml:space="preserve"><value>Saisissez votre mot de passe principal pour déverrouiller votre authentificateur.</value></data>
+  <data name="StartupPreferencesUnavailable" xml:space="preserve"><value>Vos préférences n’ont pas pu être chargées. Vos données chiffrées n’ont pas été modifiées.</value></data>
+  <data name="StartupFailedSafely" xml:space="preserve"><value>OTP Harbor n’a pas pu démarrer de manière sécurisée. Vos données chiffrées n’ont pas été modifiées.</value></data>
+  <data name="StartupCancelled" xml:space="preserve"><value>Démarrage annulé.</value></data>
+  <data name="ClosingSafely" xml:space="preserve"><value>OTP Harbor se ferme de manière sécurisée.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Réessayer</value></data>
+  <data name="MasterPassword" xml:space="preserve"><value>Mot de passe principal</value></data>
+  <data name="MasterPasswordHelp" xml:space="preserve"><value>Requis pour déverrouiller le coffre-fort local.</value></data>
+  <data name="Unlock" xml:space="preserve"><value>Déverrouiller</value></data>
+  <data name="VaultUnlocked" xml:space="preserve"><value>Coffre-fort déverrouillé.</value></data>
+  <data name="QuickUnlockFallback" xml:space="preserve"><value>Le déverrouillage rapide n’a pas abouti. Saisissez votre mot de passe principal pour récupérer l’accès.</value></data>
+  <data name="UnlockWithQuickUnlock" xml:space="preserve"><value>Déverrouiller avec le déverrouillage rapide</value></data>
+  <data name="UseMasterPassword" xml:space="preserve"><value>Utiliser le mot de passe principal</value></data>
+  <data name="VaultLockedQuickUnlock" xml:space="preserve"><value>Coffre-fort verrouillé. Utilisez le déverrouillage rapide ou votre mot de passe principal pour continuer.</value></data>
+  <data name="VaultLockedPassword" xml:space="preserve"><value>Coffre-fort verrouillé. Saisissez votre mot de passe principal pour continuer.</value></data>
+  <data name="QuickUnlockCancelled" xml:space="preserve"><value>Le déverrouillage rapide a été annulé. Votre coffre-fort reste verrouillé.</value></data>
+  <data name="QuickUnlockFailed" xml:space="preserve"><value>Le déverrouillage rapide n’a pas pu aboutir. Utilisez votre mot de passe principal pour récupérer l’accès.</value></data>
+  <data name="QuickUnlock" xml:space="preserve"><value>Déverrouillage rapide</value></data>
+  <data name="QuickUnlockRecoveryNotice" xml:space="preserve"><value>Le déverrouillage rapide est facultatif. Votre mot de passe principal reste la méthode de récupération et est requis pour activer ou modifier les paramètres de sécurité.</value></data>
+  <data name="QuickUnlockAvailable" xml:space="preserve"><value>Le déverrouillage rapide est disponible sur ce système.</value></data>
+  <data name="QuickUnlockUnavailable" xml:space="preserve"><value>Le déverrouillage rapide n’est pas disponible sur ce système. Le déverrouillage par mot de passe principal reste disponible.</value></data>
+  <data name="EnableQuickUnlock" xml:space="preserve"><value>Activer le déverrouillage rapide</value></data>
+  <data name="QuickUnlockAtStartup" xml:space="preserve"><value>Déverrouillage rapide au démarrage</value></data>
+  <data name="QuickUnlockRecoveryPrompt" xml:space="preserve"><value>Saisissez votre mot de passe principal pour vérifier l’accès de récupération avant d’activer le déverrouillage rapide de la plateforme.</value></data>
+  <data name="QuickUnlockEnrollmentCancelled" xml:space="preserve"><value>Le déverrouillage rapide n’a pas été activé. Le déverrouillage par mot de passe principal reste inchangé.</value></data>
+  <data name="QuickUnlockEnrollmentFailed" xml:space="preserve"><value>Le déverrouillage rapide n’a pas pu être activé. Le déverrouillage par mot de passe principal reste disponible.</value></data>
+  <data name="QuickUnlockEnabled" xml:space="preserve"><value>Le déverrouillage rapide est activé. Conservez votre mot de passe principal pour la récupération.</value></data>
+  <data name="UsePasswordAtStartup" xml:space="preserve"><value>Utiliser le mot de passe au démarrage</value></data>
+  <data name="PasswordPreferencePrompt" xml:space="preserve"><value>Vérifiez votre mot de passe principal avant de modifier la méthode de déverrouillage préférée au démarrage.</value></data>
+  <data name="PasswordPreferenceUnchanged" xml:space="preserve"><value>La méthode de déverrouillage au démarrage n’a pas été modifiée.</value></data>
+  <data name="PasswordPreferenceFailed" xml:space="preserve"><value>La méthode de déverrouillage au démarrage n’a pas pu être modifiée de manière sécurisée.</value></data>
+  <data name="PasswordPreferred" xml:space="preserve"><value>Le mot de passe principal sera demandé au démarrage. L’inscription au déverrouillage rapide existante est conservée.</value></data>
+  <data name="PasswordVerificationFailed" xml:space="preserve"><value>Le mot de passe principal n’a pas pu être vérifié.</value></data>
+  <data name="Enable" xml:space="preserve"><value>Activer</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Confirmer</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Actualiser</value></data>
+  <data name="ChangeMasterPassword" xml:space="preserve"><value>Modifier le mot de passe principal</value></data>
+  <data name="CurrentPasswordPrompt" xml:space="preserve"><value>Saisissez votre mot de passe principal actuel pour autoriser son remplacement.</value></data>
+  <data name="PasswordChangeCancelled" xml:space="preserve"><value>Le mot de passe principal n’a pas été modifié.</value></data>
+  <data name="PasswordChangeFailed" xml:space="preserve"><value>Le mot de passe principal n’a pas pu être modifié de manière sécurisée. L’accès de récupération existant reste actif.</value></data>
+  <data name="PasswordChanged" xml:space="preserve"><value>Mot de passe principal modifié. La récupération par déverrouillage rapide reste disponible.</value></data>
+  <data name="RecoveryAndCompatibility" xml:space="preserve"><value>Récupération et compatibilité</value></data>
+  <data name="PortableEnvelopeStatus" xml:space="preserve"><value>Votre mot de passe principal protège l’enveloppe d’autorisation portable version 2 et reste la méthode de récupération sur chaque système pris en charge.</value></data>
+  <data name="AutomaticRollbackStatus" xml:space="preserve"><value>Les modifications d’autorisation sont vérifiées avant activation. Si un remplacement atomique échoue, l’enveloppe précédemment vérifiée est restaurée automatiquement.</value></data>
+  <data name="LegacyMigrationStatus" xml:space="preserve"><value>Les formats d’autorisation de développement ne sont pas importés automatiquement. Les données chiffrées existantes du coffre-fort ne sont jamais remplacées ; utilisez les éléments de récupération correspondants ou une procédure de migration explicitement vérifiée.</value></data>
+  <data name="AddAccount" xml:space="preserve"><value>Ajouter un compte</value></data>
+  <data name="EditAccount" xml:space="preserve"><value>Modifier le compte</value></data>
+  <data name="DeleteAccount" xml:space="preserve"><value>Supprimer le compte</value></data>
+  <data name="DeleteAccountPrompt" xml:space="preserve"><value>{0} ({1})
+L’entrée de compte chiffrée sera supprimée définitivement. Cette action est irréversible.</value></data>
+  <data name="Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="Issuer" xml:space="preserve"><value>Émetteur</value></data>
+  <data name="AccountName" xml:space="preserve"><value>Nom du compte</value></data>
+  <data name="Secret" xml:space="preserve"><value>Secret Base32</value></data>
+  <data name="SaveAccount" xml:space="preserve"><value>Enregistrer le compte</value></data>
+  <data name="CancelEdit" xml:space="preserve"><value>Annuler la modification</value></data>
+  <data name="AccountIssuerRequired" xml:space="preserve"><value>L’émetteur est requis.</value></data>
+  <data name="AccountSecretInvalid" xml:space="preserve"><value>Saisissez un secret Base32 valide.</value></data>
+  <data name="AccountDuplicate" xml:space="preserve"><value>Un compte avec le même émetteur et le même nom existe déjà.</value></data>
+  <data name="AccountSaveFailed" xml:space="preserve"><value>Le compte n’a pas pu être enregistré de manière sécurisée. Les données chiffrées existantes n’ont pas été modifiées.</value></data>
+  <data name="AccountSaved" xml:space="preserve"><value>Compte enregistré.</value></data>
+  <data name="AccountEditLoadFailed" xml:space="preserve"><value>Le compte sélectionné n’a pas pu être ouvert pour modification.</value></data>
+  <data name="AccountDeleteFailed" xml:space="preserve"><value>Le compte n’a pas pu être supprimé de manière sécurisée.</value></data>
+  <data name="AccountDeleted" xml:space="preserve"><value>Compte supprimé.</value></data>
+  <data name="CodeRefreshFailed" xml:space="preserve"><value>Le code a expiré et n’a pas pu être actualisé de manière sécurisée.</value></data>
+  <data name="CodeCopied" xml:space="preserve"><value>Copié.</value></data>
+  <data name="CodeCopiedWithClear" xml:space="preserve"><value>Copié. L’effacement conditionnel du presse-papiers est prévu dans {0} secondes.</value></data>
+  <data name="CodeCopiedWithoutClear" xml:space="preserve"><value>Copié. L’effacement automatique du presse-papiers n’est pas disponible sur cette plateforme.</value></data>
+  <data name="ClipboardCopyUnavailable" xml:space="preserve"><value>Le code n’a pas pu être copié dans le presse-papiers.</value></data>
+  <data name="CodeRemainingTime" xml:space="preserve"><value>Durée de validité restante du code</value></data>
+  <data name="QrInvalid" xml:space="preserve"><value>Le code QR ne correspond pas à un compte TOTP pris en charge.</value></data>
+  <data name="QrImportFailed" xml:space="preserve"><value>Le compte QR n’a pas pu être importé de manière sécurisée. Les données chiffrées existantes n’ont pas été modifiées.</value></data>
+  <data name="QrAccountAdded" xml:space="preserve"><value>Compte QR ajouté.</value></data>
+  <data name="QrAccountUpdated" xml:space="preserve"><value>Compte existant mis à jour à partir du code QR.</value></data>
+  <data name="QrAccountKeptBoth" xml:space="preserve"><value>Compte QR ajouté à côté du compte existant.</value></data>
+  <data name="QrAccountDuplicate" xml:space="preserve"><value>Ce compte QR existe déjà et n’a pas été modifié.</value></data>
+  <data name="QrImportCancelled" xml:space="preserve"><value>Importation du compte QR annulée.</value></data>
+  <data name="QrConflictTitle" xml:space="preserve"><value>Le compte existe déjà</value></data>
+  <data name="QrConflictMessage" xml:space="preserve"><value>{0} ({1}) existe déjà avec un autre secret. Le mettre à jour, conserver les deux comptes ou annuler ?</value></data>
+  <data name="UpdateExisting" xml:space="preserve"><value>Mettre à jour l’existant</value></data>
+  <data name="KeepBoth" xml:space="preserve"><value>Conserver les deux</value></data>
+  <data name="LockOnSessionLock" xml:space="preserve"><value>Verrouiller lorsque la session du système d’exploitation est verrouillée</value></data>
+  <data name="ClearClipboard" xml:space="preserve"><value>Effacer automatiquement les codes copiés</value></data>
+  <data name="ClipboardClearSeconds" xml:space="preserve"><value>Durée maximale dans le presse-papiers en secondes</value></data>
+  <data name="QrPreviewScale" xml:space="preserve"><value>Échelle de l’aperçu QR</value></data>
+  <data name="InterfaceScale" xml:space="preserve"><value>Taille de l’interface</value></data>
+  <data name="InterfaceScaleHelp" xml:space="preserve"><value>La mise à l’échelle du système est recommandée. Une taille personnalisée multiplie l’échelle du bureau et s’applique après redémarrage.</value></data>
+  <data name="SystemInterfaceScale" xml:space="preserve"><value>Valeur système (recommandée)</value></data>
+  <data name="InterfaceScaleRestartRequired" xml:space="preserve"><value>Taille de l’interface enregistrée. Redémarrez l’application pour l’appliquer.</value></data>
+  <data name="OpenExportAfter" xml:space="preserve"><value>Ouvrir l’emplacement d’exportation après l’exportation</value></data>
+  <data name="LoggingLevel" xml:space="preserve"><value>Niveau minimal de journalisation (appliqué après redémarrage)</value></data>
+  <data name="About" xml:space="preserve"><value>À propos</value></data>
+  <data name="Version" xml:space="preserve"><value>Version</value></data>
+  <data name="OpenLogFolder" xml:space="preserve"><value>Ouvrir le dossier des journaux</value></data>
+  <data name="LogFolderOpened" xml:space="preserve"><value>Dossier des journaux ouvert.</value></data>
+  <data name="LogFolderOpenFailed" xml:space="preserve"><value>Le dossier des journaux n’a pas pu être ouvert.</value></data>
+  <data name="LogFolderOpenFailedSafely" xml:space="preserve"><value>Le dossier des journaux n’a pas pu être ouvert de manière sécurisée.</value></data>
+  <data name="Lock" xml:space="preserve"><value>Verrouiller</value></data>
+  <data name="Accounts" xml:space="preserve"><value>Comptes</value></data>
+  <data name="Tools" xml:space="preserve"><value>Outils</value></data>
+  <data name="Settings" xml:space="preserve"><value>Paramètres</value></data>
+  <data name="ChooseImportFile" xml:space="preserve"><value>Choisir le fichier d’importation…</value></data>
+  <data name="ExportEncryptedBackup" xml:space="preserve"><value>Exporter une sauvegarde chiffrée…</value></data>
+  <data name="ImportConflictHandling" xml:space="preserve"><value>Gestion des conflits d’importation</value></data>
+  <data name="ImportAccounts" xml:space="preserve"><value>Importer des comptes</value></data>
+  <data name="EncryptedBackup" xml:space="preserve"><value>Exporter les comptes</value></data>
+  <data name="EncryptedBackupHelp" xml:space="preserve"><value>Créer une sauvegarde portable protégée par mot de passe de tous les comptes.</value></data>
+  <data name="SupportDiagnostics" xml:space="preserve"><value>Diagnostics d’assistance</value></data>
+  <data name="RefreshSupportInformation" xml:space="preserve"><value>Actualiser les informations d’assistance</value></data>
+  <data name="DownloadUpdate" xml:space="preserve"><value>Télécharger la mise à jour</value></data>
+  <data name="InstallUpdate" xml:space="preserve"><value>Installer la mise à jour</value></data>
+  <data name="ReleaseNotes" xml:space="preserve"><value>Notes de version</value></data>
+  <data name="VerifyAppcast" xml:space="preserve"><value>Rechercher les mises à jour</value></data>
+  <data name="SoftwareUpdates" xml:space="preserve"><value>Mises à jour logicielles</value></data>
+  <data name="ScanQrCamera" xml:space="preserve"><value>Scanner un QR avec la caméra</value></data>
+  <data name="CancelScan" xml:space="preserve"><value>Annuler le scan</value></data>
+  <data name="CameraReconnectHint" xml:space="preserve"><value>Si votre caméra est désactivée par un commutateur de confidentialité, une touche du clavier ou un paramètre système, activez-la. Le scanner se reconnectera automatiquement. (Durée : &lt; 10 s.)</value></data>
+  <data name="CameraReadyToStart" xml:space="preserve"><value>L’accès à la caméra ne démarre que lorsque vous choisissez Scanner un QR.</value></data>
+  <data name="CameraSearching" xml:space="preserve"><value>Recherche d’une caméra disponible…</value></data>
+  <data name="CameraInitializing" xml:space="preserve"><value>Caméra trouvée. Initialisation du flux vidéo…</value></data>
+  <data name="CameraActive" xml:space="preserve"><value>Caméra active. Pointez-la vers un code QR TOTP.</value></data>
+  <data name="CameraScanCancelled" xml:space="preserve"><value>Scan QR annulé.</value></data>
+  <data name="CameraScanFailedSafely" xml:space="preserve"><value>Le scanner de la caméra a échoué de manière sécurisée. Aucune donnée de compte n’a été modifiée.</value></data>
+  <data name="CameraRuntimeUnavailable" xml:space="preserve"><value>Le composant d’exécution de la caméra n’est pas disponible pour ce paquet.</value></data>
+  <data name="CameraNotFound" xml:space="preserve"><value>Aucune caméra disponible n’a été trouvée.</value></data>
+  <data name="CameraStartFailed" xml:space="preserve"><value>Le scanner de la caméra n’a pas pu démarrer de manière sécurisée.</value></data>
+  <data name="SecuritySettings" xml:space="preserve"><value>Paramètres de sécurité</value></data>
+  <data name="Security" xml:space="preserve"><value>Sécurité</value></data>
+  <data name="ImportExport" xml:space="preserve"><value>Importation / Exportation</value></data>
+  <data name="Miscellaneous" xml:space="preserve"><value>Divers</value></data>
+  <data name="Language" xml:space="preserve"><value>Langue</value></data>
+  <data name="EnglishLanguage" xml:space="preserve"><value>Anglais</value></data>
+  <data name="GermanLanguage" xml:space="preserve"><value>Allemand</value></data>
+  <data name="FrenchLanguage" xml:space="preserve"><value>Français</value></data>
+  <data name="SpanishLanguage" xml:space="preserve"><value>Espagnol</value></data>
+  <data name="IdleTimeout" xml:space="preserve"><value>Délai d’inactivité en minutes (0 désactive le verrouillage)</value></data>
+  <data name="IdleTimeoutHelp" xml:space="preserve"><value>Saisissez zéro pour désactiver le verrouillage en cas d’inactivité.</value></data>
+  <data name="LockWhenMinimized" xml:space="preserve"><value>Verrouiller lorsque l’application est réduite</value></data>
+  <data name="SettingsAutoSaveHint" xml:space="preserve"><value>Les modifications sont enregistrées automatiquement.</value></data>
+  <data name="SettingsSavedAutomatically" xml:space="preserve"><value>Paramètres enregistrés automatiquement.</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>Les paramètres n’ont pas pu être enregistrés. Les paramètres existants restent actifs.</value></data>
+  <data name="SearchAccounts" xml:space="preserve"><value>Rechercher un émetteur ou un compte</value></data>
+  <data name="NoEntriesYet" xml:space="preserve"><value>Aucune entrée pour le moment.</value></data>
+  <data name="NoMatchingEntries" xml:space="preserve"><value>Aucune entrée correspondante.</value></data>
+  <data name="CloseSettings" xml:space="preserve"><value>Fermer les paramètres</value></data>
+  <data name="GenerateCode" xml:space="preserve"><value>Générer un code</value></data>
+  <data name="ShowQrCode" xml:space="preserve"><value>Afficher le code QR</value></data>
+  <data name="CopyTimedClear" xml:space="preserve"><value>Copier avec effacement différé</value></data>
+  <data name="Password" xml:space="preserve"><value>Mot de passe</value></data>
+  <data name="PasswordAuthorizationHelp" xml:space="preserve"><value>Requis pour autoriser cette action.</value></data>
+  <data name="ValidatingSecurely" xml:space="preserve"><value>Validation sécurisée…</value></data>
+  <data name="NavAccounts" xml:space="preserve"><value>Ouvrir la page des comptes</value></data>
+  <data name="NavTools" xml:space="preserve"><value>Ouvrir la page des outils</value></data>
+  <data name="NavSettings" xml:space="preserve"><value>Ouvrir la page des paramètres</value></data>
+  <data name="AccountsList" xml:space="preserve"><value>Comptes</value></data>
+  <data name="GeneratedCode" xml:space="preserve"><value>Code à usage unique généré</value></data>
+  <data name="GeneratedQr" xml:space="preserve"><value>Code QR de compte généré</value></data>
+  <data name="QrPrivacyNotice" xml:space="preserve"><value>Ce code QR contient le secret du compte. Gardez-le confidentiel.</value></data>
+  <data name="CameraPreview" xml:space="preserve"><value>Aperçu en direct de la caméra</value></data>
+  <data name="CreatePasswordHeading" xml:space="preserve"><value>Créez votre mot de passe principal</value></data>
+  <data name="PasswordSetupHelp" xml:space="preserve"><value>Ce mot de passe protège votre coffre-fort local et est requis pour la récupération.</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>Nouveau mot de passe principal</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Confirmer le mot de passe principal</value></data>
+  <data name="CreateVault" xml:space="preserve"><value>Créer un coffre-fort protégé</value></data>
+  <data name="PasswordRequired" xml:space="preserve"><value>Saisissez et confirmez un mot de passe principal.</value></data>
+  <data name="PasswordMinimumLength" xml:space="preserve"><value>Le mot de passe principal doit contenir au moins {0} caractères.</value></data>
+  <data name="PasswordMismatch" xml:space="preserve"><value>La confirmation du mot de passe ne correspond pas.</value></data>
+  <data name="PasswordSetupFailed" xml:space="preserve"><value>Le coffre-fort protégé n’a pas pu être créé de manière sécurisée. Aucune donnée existante n’a été remplacée.</value></data>
+  <data name="ExistingVaultConflict" xml:space="preserve"><value>Des données de coffre-fort existantes ont été trouvées et n’ont pas été remplacées. Utilisez la récupération ou la migration avant de créer un nouveau coffre-fort.</value></data>
+  <data name="VaultConfigured" xml:space="preserve"><value>Votre coffre-fort protégé est prêt.</value></data>
+  <data name="RevealSecret" xml:space="preserve"><value>Afficher</value></data>
+  <data name="ConcealSecret" xml:space="preserve"><value>Masquer</value></data>
+  <data name="RevealSecretHelp" xml:space="preserve"><value>Sélectionnez à nouveau pour masquer le secret.</value></data>
+  <data name="RevealSecretAutomation" xml:space="preserve"><value>Afficher ou masquer le secret</value></data>
+  <data name="ImportSkipExisting" xml:space="preserve"><value>Ignorer les comptes existants</value></data>
+  <data name="ImportReplaceExisting" xml:space="preserve"><value>Remplacer les comptes existants</value></data>
+  <data name="ImportKeepBoth" xml:space="preserve"><value>Conserver les deux comptes</value></data>
+  <data name="NoImportFileSelected" xml:space="preserve"><value>Aucun fichier d’importation sélectionné.</value></data>
+  <data name="NoExportFileSelected" xml:space="preserve"><value>Aucun fichier d’exportation sélectionné.</value></data>
+  <data name="ImportCancelled" xml:space="preserve"><value>Importation annulée.</value></data>
+  <data name="ExportCancelled" xml:space="preserve"><value>Exportation annulée.</value></data>
+  <data name="UpdateReadyToCheck" xml:space="preserve"><value>Vérifiez le flux de mise à jour signé configuré lorsque vous êtes prêt.</value></data>
+  <data name="UpdateChecking" xml:space="preserve"><value>Vérification du flux de mise à jour signé…</value></data>
+  <data name="UpdateFeedVerificationFailed" xml:space="preserve"><value>Le flux de mise à jour signé n’a pas pu être vérifié. Aucun téléchargement n’a démarré.</value></data>
+  <data name="UpdateDisabled" xml:space="preserve"><value>Les mises à jour automatiques sont désactivées ou non configurées pour ce paquet.</value></data>
+  <data name="UpdateNoneAvailable" xml:space="preserve"><value>Aucune mise à jour signée applicable n’est disponible.</value></data>
+  <data name="UpdateAvailable" xml:space="preserve"><value>La mise à jour signée {0} est disponible. Le téléchargement ne démarre que lorsque vous choisissez Télécharger.</value></data>
+  <data name="UpdateResponseIncomplete" xml:space="preserve"><value>La réponse de mise à jour était incomplète. Aucun téléchargement n’a démarré.</value></data>
+  <data name="UpdateCheckCancelled" xml:space="preserve"><value>Recherche de mise à jour annulée.</value></data>
+  <data name="UpdateCheckFailed" xml:space="preserve"><value>La recherche de mise à jour a échoué de manière sécurisée. Aucun téléchargement n’a démarré.</value></data>
+  <data name="UpdateDownloading" xml:space="preserve"><value>Téléchargement et vérification du paquet de mise à jour signé…</value></data>
+  <data name="UpdatePackageVerificationFailed" xml:space="preserve"><value>Le téléchargement ou la vérification de signature du paquet de mise à jour a échoué ; il ne peut pas être installé.</value></data>
+  <data name="UpdateReadyToInstall" xml:space="preserve"><value>Le paquet de mise à jour signé est vérifié et prêt à être installé.</value></data>
+  <data name="UpdateInstallerUnsupported" xml:space="preserve"><value>Le paquet de mise à jour signé est vérifié, mais ce paquet de bureau ne dispose d’aucun adaptateur d’installation pris en charge.</value></data>
+  <data name="UpdateDownloadCancelled" xml:space="preserve"><value>Téléchargement de la mise à jour annulé. Le paquet partiel a été supprimé.</value></data>
+  <data name="UpdateDownloadFailed" xml:space="preserve"><value>Le téléchargement de la mise à jour a échoué de manière sécurisée. Un paquet incomplet ne peut pas être installé.</value></data>
+  <data name="UpdateInstallerStartFailed" xml:space="preserve"><value>La mise à jour vérifiée est prête, mais l’installateur de la plateforme n’a pas pu démarrer.</value></data>
+  <data name="UpdateInstallerStarted" xml:space="preserve"><value>L’installateur de la plateforme a démarré. Suivez ses instructions pour terminer la mise à jour.</value></data>
+  <data name="UpdateInstallCancelled" xml:space="preserve"><value>Installation de la mise à jour annulée.</value></data>
+  <data name="UpdateInstallerFailedSafely" xml:space="preserve"><value>L’installateur de la plateforme n’a pas pu démarrer de manière sécurisée.</value></data>
+  <data name="ImportWorkflowFailed" xml:space="preserve"><value>Le processus d’importation a échoué de manière sécurisée. Aucun détail secret n’a été exposé.</value></data>
+  <data name="ImportConfirmationMessage" xml:space="preserve"><value>Importer {0} compte(s), dont {1} conflit(s), avec « {2} » ? Une sauvegarde de récupération sera créée d’abord.</value></data>
+  <data name="ExportAccountsLoadFailed" xml:space="preserve"><value>Les comptes n’ont pas pu être chargés pour l’exportation.</value></data>
+  <data name="EncryptedExportTitle" xml:space="preserve"><value>Exportation chiffrée</value></data>
+  <data name="ExportPasswordHelp" xml:space="preserve"><value>Créez et confirmez un mot de passe pour cette sauvegarde chiffrée portable. Ce mot de passe ne peut pas être récupéré.</value></data>
+  <data name="Continue" xml:space="preserve"><value>Continuer</value></data>
+  <data name="ExportPasswordRequired" xml:space="preserve"><value>Un mot de passe d’exportation est requis.</value></data>
+  <data name="ExportPasswordValidationFailed" xml:space="preserve"><value>Le mot de passe d’exportation n’a pas pu être validé.</value></data>
+  <data name="PasswordMinimumCharacters" xml:space="preserve"><value>Utilisez au moins {0} caractères.</value></data>
+  <data name="ExportPasswordConfirmationRequired" xml:space="preserve"><value>Confirmez le mot de passe d’exportation.</value></data>
+  <data name="ExportPasswordsMismatch" xml:space="preserve"><value>Les mots de passe d’exportation ne correspondent pas.</value></data>
+  <data name="EncryptedBackupWriteFailed" xml:space="preserve"><value>La sauvegarde chiffrée n’a pas pu être écrite entièrement. N’utilisez pas le fichier sélectionné comme sauvegarde.</value></data>
+  <data name="BackupPermissionsUnverified" xml:space="preserve"><value>La sauvegarde est chiffrée, mais ses autorisations de fichier locales n’ont pas pu être vérifiées.</value></data>
+  <data name="EncryptedBackupCreated" xml:space="preserve"><value>Sauvegarde chiffrée « {0} » créée avec succès.</value></data>
+  <data name="EncryptedExportFailed" xml:space="preserve"><value>L’exportation chiffrée a échoué de manière sécurisée. N’utilisez pas un fichier de sortie incomplet.</value></data>
+  <data name="ImportEncryptedBackupTitle" xml:space="preserve"><value>Importer une sauvegarde chiffrée</value></data>
+  <data name="ImportPasswordPrompt" xml:space="preserve"><value>Saisissez le mot de passe utilisé lors de la création de cette sauvegarde.</value></data>
+  <data name="UnlockBackup" xml:space="preserve"><value>Déverrouiller la sauvegarde</value></data>
+  <data name="ImportPasswordRequired" xml:space="preserve"><value>Le mot de passe d’importation est requis.</value></data>
+  <data name="BackupValidationFailed" xml:space="preserve"><value>La sauvegarde n’a pas pu être validée de manière sécurisée.</value></data>
+  <data name="BackupWrongPasswordOrModified" xml:space="preserve"><value>Le mot de passe est incorrect ou la sauvegarde a été modifiée.</value></data>
+  <data name="BackupInvalidOrUnavailable" xml:space="preserve"><value>La sauvegarde est invalide ou indisponible.</value></data>
+  <data name="ImportFileInvalid" xml:space="preserve"><value>Le fichier d’importation sélectionné est invalide, indisponible ou non pris en charge.</value></data>
+  <data name="ImportFileEmpty" xml:space="preserve"><value>Le fichier sélectionné ne contient aucun compte.</value></data>
+  <data name="ImportOutcomeComplete" xml:space="preserve"><value>Importation terminée : {0} ajouté(s), {1} remplacé(s), {2} ignoré(s), {3} échoué(s).</value></data>
+  <data name="ImportCancelledNoChanges" xml:space="preserve"><value>Importation annulée. Aucune donnée n’a été modifiée.</value></data>
+  <data name="ImportInvalidTargets" xml:space="preserve"><value>L’importation contient des données de compte invalides ou excessives. Aucune donnée n’a été modifiée.</value></data>
+  <data name="ImportExistingAccountsUnavailable" xml:space="preserve"><value>Les comptes existants n’ont pas pu être chargés. Aucune donnée n’a été modifiée.</value></data>
+  <data name="ImportRecoveryBackupFailed" xml:space="preserve"><value>Une sauvegarde de récupération n’a pas pu être créée. L’importation a été arrêtée avant toute modification des données.</value></data>
+  <data name="ImportOutcomeFailed" xml:space="preserve"><value>Le processus d’importation n’a pas pu être terminé de manière sécurisée.</value></data>
+  <data name="AccountsLoadFailed" xml:space="preserve"><value>Les comptes n’ont pas pu être chargés. Vos données chiffrées n’ont pas été modifiées.</value></data>
+  <data name="AccountsLoadFailedSafely" xml:space="preserve"><value>Les comptes n’ont pas pu être chargés de manière sécurisée. Réessayez.</value></data>
+  <data name="CodeGenerationFailed" xml:space="preserve"><value>Impossible de générer un code pour ce compte.</value></data>
+  <data name="CodeGenerationFailedSafely" xml:space="preserve"><value>Impossible de générer un code de manière sécurisée. Réessayez.</value></data>
+  <data name="QrGenerationFailed" xml:space="preserve"><value>Impossible de générer un code QR pour ce compte.</value></data>
+  <data name="QrDisplayFailed" xml:space="preserve"><value>Le code QR n’a pas pu être affiché de manière sécurisée.</value></data>
+  <data name="QrPreviewUnavailable" xml:space="preserve"><value>L’aperçu du code QR n’est pas disponible sur cette plateforme.</value></data>
+  <data name="QrPreviewDisplayFailed" xml:space="preserve"><value>Le code QR agrandi n’a pas pu être affiché de manière sécurisée.</value></data>
+  <data name="UnlockTooManyAttempts" xml:space="preserve"><value>Trop de tentatives. Attendez avant de réessayer.</value></data>
+  <data name="UnlockRejected" xml:space="preserve"><value>Le mot de passe principal n’a pas pu déverrouiller ce coffre-fort.</value></data>
+  <data name="UnlockFailedSafely" xml:space="preserve"><value>Le coffre-fort n’a pas pu être déverrouillé de manière sécurisée. Réessayez.</value></data>
+  <data name="TotpFiles" xml:space="preserve"><value>Fichiers TOTP</value></data>
+  <data name="SelectTotpImportFile" xml:space="preserve"><value>Sélectionner le fichier TOTP à importer</value></data>
+  <data name="ExportEncryptedTotpBackup" xml:space="preserve"><value>Exporter une sauvegarde TOTP chiffrée</value></data>
+  <data name="EncryptedTotpBackupFile" xml:space="preserve"><value>Sauvegarde TOTP chiffrée</value></data>
+  <data name="DiagnosticPlatform" xml:space="preserve"><value>Plateforme : {0}</value></data>
+  <data name="DiagnosticArchitecture" xml:space="preserve"><value>Architecture : {0}</value></data>
+  <data name="DiagnosticRuntime" xml:space="preserve"><value>Environnement d’exécution : {0}</value></data>
+  <data name="DiagnosticLogDirectoryConfigured" xml:space="preserve"><value>Dossier des journaux configuré : {0}</value></data>
+  <data name="Yes" xml:space="preserve"><value>oui</value></data>
+  <data name="No" xml:space="preserve"><value>non</value></data>
+  <data name="DiagnosticStartupStages" xml:space="preserve"><value>Étapes du démarrage :</value></data>
+  <data name="DiagnosticStageLine" xml:space="preserve"><value>- {0} : {1} ms ({2})</value></data>
+  <data name="DiagnosticPlatformCapabilities" xml:space="preserve"><value>Capacités de la plateforme :</value></data>
+  <data name="DiagnosticCapabilityLine" xml:space="preserve"><value>- {0} : {1}</value></data>
+  <data name="DiagnosticSucceeded" xml:space="preserve"><value>ok</value></data>
+  <data name="DiagnosticFailed" xml:space="preserve"><value>échec</value></data>
+  <data name="DiagnosticRefreshSuccess" xml:space="preserve"><value>Informations d’assistance actualisées. Elles ne contiennent aucune donnée de compte ni aucun chemin de fichier.</value></data>
+  <data name="DiagnosticRefreshFailed" xml:space="preserve"><value>Les informations d’assistance n’ont pas pu être collectées de manière sécurisée.</value></data>
+  <data name="DiagnosticUnavailableTitle" xml:space="preserve"><value>Diagnostics d’assistance indisponibles</value></data>
+  <data name="DiagnosticUnavailableMessage" xml:space="preserve"><value>Les informations d’assistance n’ont pas pu être collectées. Vous pouvez fermer ce message et continuer à utiliser l’application.</value></data>
+  <data name="Close" xml:space="preserve"><value>Fermer</value></data>
+  <data name="CapabilitySessionLock" xml:space="preserve"><value>Détection du verrouillage de session</value></data>
+  <data name="CapabilityClipboardWrite" xml:space="preserve"><value>Écriture dans le presse-papiers</value></data>
+  <data name="CapabilityConditionalClipboardClear" xml:space="preserve"><value>Effacement conditionnel du presse-papiers</value></data>
+  <data name="CapabilityUpdateInstallation" xml:space="preserve"><value>Installation des mises à jour</value></data>
+  <data name="CapabilityQuickUnlock" xml:space="preserve"><value>Déverrouillage rapide de la plateforme</value></data>
+  <data name="CapabilityDeviceSecretStore" xml:space="preserve"><value>Stockage des secrets de l’appareil</value></data>
+  <data name="CapabilityCamera" xml:space="preserve"><value>Caméra</value></data>
+  <data name="CapabilitySupported" xml:space="preserve"><value>pris en charge</value></data>
+  <data name="CapabilityPermanentlyUnavailable" xml:space="preserve"><value>indisponible définitivement</value></data>
+  <data name="CapabilityTemporarilyUnavailable" xml:space="preserve"><value>indisponible temporairement</value></data>
+  <data name="CapabilityMisconfigured" xml:space="preserve"><value>mal configuré</value></data>
+  <data name="CapabilityPermissionDenied" xml:space="preserve"><value>autorisation refusée</value></data>
+  <data name="CapabilityFailed" xml:space="preserve"><value>échec</value></data>
+  <data name="Unknown" xml:space="preserve"><value>inconnu</value></data>
+</root>

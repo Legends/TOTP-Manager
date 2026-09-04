@@ -15,7 +15,7 @@ public sealed class AvaloniaLanguageFlagProvider : ILanguageFlagProvider, IDispo
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         var normalizedCulture = cultureName.ToLowerInvariant();
-        if (normalizedCulture is not ("en" or "de"))
+        if (normalizedCulture is not ("en" or "de" or "fr" or "es"))
             throw new ArgumentOutOfRangeException(
                 nameof(cultureName),
                 "Only supported language flags may be loaded.");

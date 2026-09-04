@@ -2,14 +2,21 @@
 
 ## Scope
 
-Windows stable releases use a SignPath Foundation certificate through SignPath's hosted service. The project does not receive or rotate that certificate's private key. CI stores only:
+The primary Windows channel is Microsoft Store. The Store signs accepted MSIX packages; repository CI does not hold a Windows certificate or Partner Center publishing credential. The unsigned MSIX workflow produces a short-lived submission artifact that a maintainer uploads manually after verifying its source commit and SHA-256 metadata.
 
-- `SIGNPATH_API_TOKEN`, a signing-request submitter credential; and
-- `SIGNPATH_ORGANIZATION_ID`, a non-secret repository variable.
+The previous SignPath Foundation application was not approved. The SignPath sections below are conditional response procedures for a future approved integration; `SIGNPATH_API_TOKEN` and `SIGNPATH_ORGANIZATION_ID` must not be configured unless that integration has been explicitly approved. The separate NetSparkle Ed25519 update key and Apple Developer ID/notarization credentials follow their own provider and release procedures.
 
-The separate NetSparkle Ed25519 update key and Apple Developer ID/notarization credentials follow their own provider and release procedures.
+## Microsoft Store account incident
 
-## SignPath API-token rotation
+After suspected Partner Center or Microsoft-account compromise:
+
+1. Pause Store submissions and publishing without distributing the unsigned MSIX elsewhere.
+2. Revoke affected sessions and credentials, enforce multi-factor authentication, and review account users and submission history.
+3. Compare every affected Store submission with its GitHub workflow commit and `store-package.json` hash.
+4. Contact Microsoft support and withdraw or replace a pending submission if provenance cannot be established.
+5. Resume only after a controlled private-package install passes the physical acceptance checklist.
+
+## Conditional SignPath API-token rotation
 
 Rotate the submitter token immediately after suspected exposure, maintainer offboarding, or an unexpected signing request, and at the cadence required by SignPath:
 
@@ -21,7 +28,7 @@ Rotate the submitter token immediately after suspected exposure, maintainer offb
 6. Perform a controlled signing rehearsal and confirm that manual approval, repository origin, commit, metadata, and Authenticode verification all match the request.
 7. Record the rotation and evidence without recording the token.
 
-## Certificate or service incident
+## Conditional SignPath certificate or service incident
 
 If a Foundation certificate, SignPath organization, artifact configuration, or signing policy may be compromised:
 
@@ -32,7 +39,7 @@ If a Foundation certificate, SignPath organization, artifact configuration, or s
 5. Identify every affected release and publish a security notice when users may be impacted.
 6. Re-sign or replace trusted artifacts only through a newly verified policy and certificate path.
 
-## Verification checklist
+## Conditional SignPath verification checklist
 
 - The SignPath request identifies the expected repository, tag, commit, artifact configuration, and GitHub-hosted workflow.
 - A named approver manually approved the request.

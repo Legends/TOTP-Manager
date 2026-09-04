@@ -31,4 +31,39 @@ public sealed class UpdaterTextTests
             CultureInfo.CurrentUICulture = previousUiCulture;
         }
     }
+
+    [Theory]
+    [InlineData(
+        "fr-FR",
+        "Application du paquet de mise à jour signé et redémarrage de l’application.",
+        "3 fichier(s) en attente",
+        "Fermer")]
+    [InlineData(
+        "es-ES",
+        "Aplicando el paquete de actualización firmado y reiniciando la aplicación.",
+        "3 archivo(s) en espera",
+        "Cerrar")]
+    public void AdditionalCulture_UsesCompleteLocalizedUpdaterMessages(
+        string cultureName,
+        string expectedDescription,
+        string expectedFilesQueued,
+        string expectedClose)
+    {
+        var previousCulture = CultureInfo.CurrentCulture;
+        var previousUiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureName);
+
+            Assert.Equal(expectedDescription, TOTP.Updater.UpdaterText.HeaderDescription);
+            Assert.Equal(expectedFilesQueued, TOTP.Updater.UpdaterText.FilesQueued(3));
+            Assert.Equal(expectedClose, TOTP.Updater.UpdaterText.Close);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+            CultureInfo.CurrentUICulture = previousUiCulture;
+        }
+    }
 }

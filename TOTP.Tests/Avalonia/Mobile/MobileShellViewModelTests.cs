@@ -368,6 +368,36 @@ public sealed class MobileShellViewModelTests
         context.Settings.Verify(value => value.SaveAsync(), Times.Once);
     }
 
+    [Theory]
+    [InlineData("fr", "Paramètres", true, false)]
+    [InlineData("es", "Configuración", false, true)]
+    public async Task SelectLanguageAsync_SupportsAdditionalLanguages(
+        string cultureName,
+        string expectedSettings,
+        bool expectedFrenchSelection,
+        bool expectedSpanishSelection)
+    {
+        var context = CreateContext(isConfigured: true);
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+        await context.Sut.ShowSettingsAsync();
+
+        await context.Sut.SelectLanguageAsync(cultureName);
+
+        Assert.Equal(cultureName, context.SettingsValue.CultureName);
+        Assert.Equal(expectedSettings, context.Sut.SettingsText);
+        Assert.Equal(expectedFrenchSelection, context.Sut.IsFrenchLanguageSelected);
+        Assert.Equal(expectedSpanishSelection, context.Sut.IsSpanishLanguageSelected);
+        Assert.False(context.Sut.IsEnglishLanguageSelected);
+        Assert.False(context.Sut.IsGermanLanguageSelected);
+        context.Settings.Verify(value => value.SaveAsync(), Times.Once);
+    }
+
     [Fact]
     public async Task SelectLanguageAsync_WhenSavingFails_KeepsTheCurrentLanguage()
     {

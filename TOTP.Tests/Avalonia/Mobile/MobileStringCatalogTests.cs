@@ -8,6 +8,8 @@ public sealed class MobileStringCatalogTests
     [Theory]
     [InlineData("en")]
     [InlineData("de")]
+    [InlineData("fr")]
+    [InlineData("es")]
     public void GetMissingKeys_ForSupportedCulture_ReturnsNone(string cultureName)
     {
         var catalog = new MobileStringCatalog(CultureInfo.GetCultureInfo(cultureName));
@@ -49,5 +51,21 @@ public sealed class MobileStringCatalogTests
 
         Assert.Equal("Löschen", catalog.Get(MobileStringKeys.Delete));
         Assert.Equal("Einstellungen", catalog.Get(MobileStringKeys.Settings));
+    }
+
+    [Theory]
+    [InlineData("fr-FR", "Paramètres", "Utilisez votre mot de passe principal pour déverrouiller le coffre et rétablir l’accès biométrique.")]
+    [InlineData("es-ES", "Configuración", "Use su contraseña maestra para desbloquear y restaurar el acceso biométrico.")]
+    public void ApplyCulture_ForAdditionalLanguage_UsesOnlyTheSelectedLocale(
+        string cultureName,
+        string expectedSettings,
+        string expectedRecoveryMessage)
+    {
+        var catalog = new MobileStringCatalog(CultureInfo.GetCultureInfo("en"));
+
+        catalog.ApplyCulture(CultureInfo.GetCultureInfo(cultureName).TwoLetterISOLanguageName);
+
+        Assert.Equal(expectedSettings, catalog.Get(MobileStringKeys.Settings));
+        Assert.Equal(expectedRecoveryMessage, catalog.Get(MobileStringKeys.BiometricRecoveryRequired));
     }
 }

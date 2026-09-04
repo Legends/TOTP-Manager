@@ -139,6 +139,10 @@
   <data name="ImportExport" xml:space="preserve"><value>Import / Export</value></data>
   <data name="Miscellaneous" xml:space="preserve"><value>Miscellaneous</value></data>
   <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="EnglishLanguage" xml:space="preserve"><value>English</value></data>
+  <data name="GermanLanguage" xml:space="preserve"><value>German</value></data>
+  <data name="FrenchLanguage" xml:space="preserve"><value>French</value></data>
+  <data name="SpanishLanguage" xml:space="preserve"><value>Spanish</value></data>
   <data name="IdleTimeout" xml:space="preserve"><value>Idle timeout in minutes (0 disables idle lock)</value></data>
   <data name="IdleTimeoutHelp" xml:space="preserve"><value>Enter zero to disable idle locking.</value></data>
   <data name="LockWhenMinimized" xml:space="preserve"><value>Lock when minimized</value></data>

@@ -8,6 +8,8 @@ This index lists maintained documentation. Git history preserves completed migra
 - [Contribution guide](../CONTRIBUTING.md)
 - [Desktop test commands](testing/DESKTOP_APP_TEST_COMMANDS.md)
 - [Android development preview](android/FOUNDATION.md)
+- [Microsoft Store release](release/MICROSOFT_STORE.md)
+- [Community platform testing](testing/COMMUNITY_PLATFORM_TESTING.md)
 
 ## Architecture
 
