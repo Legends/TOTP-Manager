@@ -18,12 +18,21 @@ $styles = Read-RequiredFile 'site/styles.css'
 $robots = Read-RequiredFile 'site/robots.txt'
 $sitemap = Read-RequiredFile 'site/sitemap.xml'
 Read-RequiredFile 'docs/images/readme/app.png' | Out-Null
-Read-RequiredFile 'docs/images/social/otp-harbor-social-preview.png' | Out-Null
 Read-RequiredFile 'TOTP.UI.Avalonia.Desktop/Assets/Icons/app-1024.png' | Out-Null
+
+$socialPreviewPath = Join-Path $repositoryRoot 'docs/images/social/otp-harbor-social-preview.jpg'
+if (-not (Test-Path -LiteralPath $socialPreviewPath -PathType Leaf)) {
+    throw 'The optimized social-preview image is missing.'
+}
+if ((Get-Item -LiteralPath $socialPreviewPath).Length -ge 1MB) {
+    throw 'The social-preview image must remain smaller than 1 MB for GitHub upload.'
+}
 
 foreach ($requiredText in @(
     '<title>OTP Harbor — Local-first TOTP authenticator</title>',
+    '<meta name="google-site-verification" content="I36j8PWZYmhKsRKKNVM-fmcGW7wXbJ10fmbOe_4Az0U">',
     '<link rel="canonical" href="https://legends.github.io/otp-harbor/">',
+    '<meta property="og:image" content="https://legends.github.io/otp-harbor/assets/social-preview.jpg">',
     'type="application/ld+json"',
     '"@type": "SoftwareApplication"',
     'Microsoft Store is the planned primary Windows channel',

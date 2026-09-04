@@ -70,7 +70,7 @@ $reviewedAssets = [ordered]@{
     "TOTP.UI.Avalonia.Desktop/Assets/flags/fr.png"       = "b962887c6a6317b8e60a1c0b33ae5fed16b453a83e9026043480ccfd3cc3a340"
     "TOTP.UI.Avalonia.Desktop/Assets/flags/es.png"       = "d45958f491e9cf1d10c0e6de74970c5fed11e826e702c14c9009197842e6d1bd"
     "docs/images/readme/app.png"                         = "2b784669224c991eb4524eb0ab03b13ae3011605d308d3a2ef6bb8795771eeda"
-    "docs/images/social/otp-harbor-social-preview.png"   = "e2df57730fb5e4f46c77091a4066946c2c148a56e65058650340892aa74e138e"
+    "docs/images/social/otp-harbor-social-preview.jpg"   = "2ca1ebc4d4dabbb5f8061013432c4d3dc5708efa03ab746b20e4e83686de6725"
 }
 foreach ($entry in $reviewedAssets.GetEnumerator()) {
     $assetPath = Join-Path $repositoryRoot $entry.Key

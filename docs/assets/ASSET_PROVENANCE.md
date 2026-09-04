@@ -27,7 +27,7 @@ The generated image was visually reviewed for prohibited text, third-party brand
 
 ## Social preview
 
-`docs/images/social/otp-harbor-social-preview.png` was generated specifically for the project on 2026-09-03 with OpenAI's built-in image-generation tool. The reviewed OTP Harbor icon and synthetic-account application screenshot were supplied as visual references. The output was checked for exact product spelling, synthetic-only account data, third-party branding, and the required 2:1 social-preview ratio.
+`docs/images/social/otp-harbor-social-preview.jpg` was generated specifically for the project on 2026-09-03 with OpenAI's built-in image-generation tool. The reviewed OTP Harbor icon and synthetic-account application screenshot were supplied as visual references. The output was checked for exact product spelling, synthetic-only account data, third-party branding, and the required 2:1 social-preview ratio. On 2026-09-04, the reviewed image was re-encoded as a 92-quality JPEG without resizing or content changes so it remains below GitHub's 1 MB social-preview upload limit.
 
 Final generation prompt:
 
@@ -45,6 +45,6 @@ Final generation prompt:
 | `TOTP.UI.Avalonia.Desktop/Assets/flags/fr.png` | `b962887c6a6317b8e60a1c0b33ae5fed16b453a83e9026043480ccfd3cc3a340` |
 | `TOTP.UI.Avalonia.Desktop/Assets/flags/es.png` | `d45958f491e9cf1d10c0e6de74970c5fed11e826e702c14c9009197842e6d1bd` |
 | `docs/images/readme/app.png` | `2b784669224c991eb4524eb0ab03b13ae3011605d308d3a2ef6bb8795771eeda` |
-| `docs/images/social/otp-harbor-social-preview.png` | `e2df57730fb5e4f46c77091a4066946c2c148a56e65058650340892aa74e138e` |
+| `docs/images/social/otp-harbor-social-preview.jpg` | `2ca1ebc4d4dabbb5f8061013432c4d3dc5708efa03ab746b20e4e83686de6725` |
 
 Any replacement requires a new provenance record, license review, updated hashes, and visual/build validation.
