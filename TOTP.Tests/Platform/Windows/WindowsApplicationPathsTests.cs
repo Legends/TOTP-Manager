@@ -11,7 +11,7 @@ public sealed class WindowsApplicationPathsTests
         var executableDirectory = Path.GetFullPath(Path.Combine("test", "application"));
         var roamingDirectory = Path.GetFullPath(Path.Combine("test", "roaming"));
 
-        var sut = new WindowsApplicationPaths(executableDirectory, roamingDirectory);
+        var sut = new WindowsApplicationPaths(executableDirectory, roamingDirectory, hasPackageIdentity: false);
 
         var appDataDirectory = Path.Combine(roamingDirectory, StringsConstants.AppDataDirectoryName);
         Assert.Equal(executableDirectory, sut.ExecutableDirectory);
@@ -24,6 +24,25 @@ public sealed class WindowsApplicationPathsTests
         Assert.Equal(Path.Combine(executableDirectory, "Logs"), sut.LogDirectory);
         Assert.Equal(Path.Combine(executableDirectory, "Logs", "app.log"), sut.LogFilePath);
         Assert.Equal(Path.Combine(appDataDirectory, "autoupdate-state.json"), sut.UpdateStateFilePath);
+    }
+
+    [Fact]
+    public void Constructor_WithPackageIdentity_StoresLogsInWritableApplicationData()
+    {
+        var executableDirectory = Path.GetFullPath(Path.Combine("test", "application"));
+        var roamingDirectory = Path.GetFullPath(Path.Combine("test", "roaming"));
+
+        var sut = new WindowsApplicationPaths(
+            executableDirectory,
+            roamingDirectory,
+            hasPackageIdentity: true);
+
+        var expectedLogDirectory = Path.Combine(
+            roamingDirectory,
+            StringsConstants.AppDataDirectoryName,
+            "Logs");
+        Assert.Equal(expectedLogDirectory, sut.LogDirectory);
+        Assert.Equal(Path.Combine(expectedLogDirectory, "app.log"), sut.LogFilePath);
     }
 
     [Fact]

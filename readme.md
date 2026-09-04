@@ -11,7 +11,7 @@
 
 **OTP Harbor** is an open-source, local-first TOTP and 2FA authenticator for Windows, macOS, and Linux, with an Android development preview. It protects OTP seeds in an encrypted local vault and supports QR workflows, platform quick unlock, and encrypted backup and restore without requiring a cloud account.
 
-> **Release status:** `v2.0.0` is in release-candidate testing. RC packages are unsigned Windows/Linux previews with automatic updates disabled. Android is source-only until its production signing and upgrade path are established. Use synthetic accounts and keep a tested encrypted backup.
+> **Release status:** `v2.0.0` is in release-candidate testing. The first stable Windows release is being prepared for Microsoft Store certification. Current GitHub Windows/Linux RC packages are unsigned manual previews with automatic updates disabled. Android is source-only until its production signing and upgrade path are established. Use synthetic accounts and keep a tested encrypted backup.
 
 <p align="center">
   <img src="docs/images/readme/app.png" alt="OTP Harbor showing a selected account and its current one-time password" width="460" />
@@ -24,25 +24,29 @@
 - Account creation, editing, search, deletion, and QR import/export
 - Automatic clipboard clearing and idle/session locking
 - Encrypted `.totp` backup, restore, and conflict handling
-- English and German UI
+- English, German, French, and Spanish UI
 - Native Avalonia desktop application for Windows, macOS, and Linux
 - Focused Android app with biometric quick unlock, camera-based QR import, swipe actions, and the
   same encrypted backup format as desktop
 
 Accounts currently use the common TOTP profile: SHA-1, six digits, and a 30-second period.
 
-## Install
+## Distribution
 
-Download the current prerelease from [GitHub Releases](https://github.com/Legends/otp-harbor/releases). RC artifacts are manual-test packages and are not part of the trusted automatic-update channel.
+**Microsoft Store is the primary Windows distribution channel.** The Store listing is not public yet; the submission package and certification checklist are being prepared. Microsoft will sign the MSIX after successful certification and manage Store updates.
+
+[GitHub Releases](https://github.com/Legends/otp-harbor/releases) remains the secondary channel for source-oriented users and explicit manual previews. Current RC artifacts are not part of a trusted automatic-update channel.
 
 | Platform | Package type |
 | --- | --- |
-| Windows 10/11 x64 | Self-contained ZIP or framework-dependent `fast` ZIP |
+| Windows 10/11 x64 | Microsoft Store MSIX after certification; unsigned GitHub ZIPs are manual RC previews |
 | Ubuntu 24.04 x64 | DEB or self-contained tarball |
 | macOS ARM64 | Structural artifacts are built in CI; production distribution still requires signing and notarization |
 | Android 9 or newer | Development source only; a public APK requires production signing and supported Android CI |
 
 After launch, create a master password and add an account manually or scan an `otpauth://` QR code. Treat QR images, OTPs, seeds, exports, and backups as secrets.
+
+Maintainers can follow the [Microsoft Store release guide](docs/release/MICROSOFT_STORE.md). The unsigned MSIX produced by the repository is exclusively a Partner Center submission input and must never be sideloaded or attached to a GitHub Release.
 
 ## Security and recovery
 
@@ -58,9 +62,9 @@ Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Nev
 
 ## Code signing policy
 
-**Windows code-signing status:** The previous SignPath Foundation application was not approved at this stage. A future reapplication is planned after the project has established broader public adoption and independent trust signals. Current GitHub preview builds are unsigned.
+**Windows code-signing status:** The previous SignPath Foundation application was not approved at this stage. A future reapplication may be considered after the project has established broader public adoption and independent trust signals. Current GitHub preview builds are unsigned. Microsoft Store is the planned primary Windows channel; Microsoft signs an accepted Store package during certification.
 
-Stable Windows releases require reviewed Authenticode signing and verification as defined in the [code signing policy](CODE_SIGNING_POLICY.md). Data handling is described in the [OTP Harbor privacy policy](PRIVACY.md).
+The Store and optional future direct-download trust models are defined in the [code signing policy](CODE_SIGNING_POLICY.md). Data handling is described in the [OTP Harbor privacy policy](PRIVACY.md).
 
 ## Build
 

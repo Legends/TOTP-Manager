@@ -4,13 +4,15 @@
 
 | Target | Initial artifact | Install/update ownership |
 | --- | --- | --- |
-| Windows x64 | Signed self-contained ZIP plus signed fast framework-dependent ZIP | The OTP Harbor updater uses the self-contained ZIP after repeated Ed25519 verification; the fast ZIP is a manual initial-download option |
+| Windows x64 | Microsoft Store MSIX after certification | Microsoft Store signs the accepted package and owns update delivery; GitHub ZIPs remain explicit unsigned manual previews |
 | macOS 14+ ARM64 | Developer ID signed and notarized DMG | User installs the app bundle; replacement must use a future signed/notarized target adapter or an explicit manual download |
 | Ubuntu 24.04 x64 | Self-contained tar.gz and DEB | Portable extraction or Debian package manager; no in-place app updater claims support |
 
 macOS x64 remains outside the initial support policy because the aligned OpenCV native runtime failed the retained Intel probe. Linux AppImage and macOS PKG are not initial formats. AppImage needs a maintained D-Bus, desktop integration, and update policy; PKG adds privileged installation machinery without a current product need.
 
-The initial Windows release deliberately has no privileged MSI/EXE setup bootstrapper. Both ZIPs are extract-and-run packages: the fast artifact requires the .NET 10 desktop runtime, while the self-contained artifact carries the runtime and is the only Windows entry in `appcast-v2.xml`. Both application and updater executables are Authenticode-signed. The fast artifact remains in the signed aggregate manifest with `manual-download` policy so it cannot become a duplicate update candidate.
+The initial stable Windows release is being prepared as a self-contained MSIX for Microsoft Store. Repository CI creates the unsigned Partner Center submission input with package identity values supplied by the reserved Store product. It sets `DistributionMode=store`, disables application-owned updates, and removes the standalone updater. Microsoft signs the package after successful certification. The unsigned MSIX must never be sideloaded or attached to a GitHub Release.
+
+The direct ZIP/update implementation is retained as a conditional future channel. Current GitHub ZIPs are explicitly unsigned RC previews with automatic updates disabled; they are not production packages.
 
 ## macOS release procedure
 
@@ -29,16 +31,16 @@ The notary profile must be created outside the repository with `xcrun notarytool
 
 CI may instead supply the App Store Connect API-key triplet `-NotaryKeyPath`, `-NotaryKeyId`, and `-NotaryIssuerId`. The private key is materialized only in the runner's temporary directory and only its path is passed to `notarytool`; profile and API-key modes are mutually exclusive.
 
-Credentialed tag publication expects these GitHub Actions secrets:
+Conditional direct-download tag publication expects these GitHub Actions secrets only after the relevant provider integration is approved:
 
-- Windows: submitter-only `SIGNPATH_API_TOKEN` secret plus the non-secret `SIGNPATH_ORGANIZATION_ID` variable; each request also requires manual SignPath approval;
+- Windows: an approved Authenticode provider configuration. There is currently no SignPath Foundation certificate or active Windows direct-publication configuration;
 - macOS signing: `MACOS_SIGNING_CERTIFICATE_BASE64`, `MACOS_SIGNING_CERTIFICATE_PASSWORD`, `MACOS_SIGNING_IDENTITY`;
 - macOS notarization: `MACOS_NOTARY_KEY_BASE64`, `MACOS_NOTARY_KEY_ID`, `MACOS_NOTARY_ISSUER_ID`;
 - update feed: `NETSPARKLE_PUBLIC_KEY`, `NETSPARKLE_PRIVATE_KEY`.
 
-A missing credential fails the tag workflow. It never downgrades a production artifact to unsigned output.
+A missing credential fails the conditional direct tag workflow. It never downgrades a production artifact to unsigned output. Store packaging uses its separate Partner Center-only workflow and no repository certificate secret.
 
-Release-candidate tags are currently a separate, explicitly untrusted preview channel while the project has no platform certificate budget. An `-rcN` tag publishes only the Avalonia Windows x64 ZIPs and Linux x64 tar/DEB packages. Windows executables are unsigned, automatic updates are disabled inside every preview package, no appcast is generated, and no macOS artifact is included. The GitHub prerelease title and notes identify this state, the aggregate manifest records `releaseProfile=unsigned-preview`, and every entry has `unsigned-preview-manual-download` policy. Stable tags never use this path: they continue to require Authenticode, Developer ID signing/notarization, and signed update metadata.
+Release-candidate tags are a separate, explicitly untrusted preview channel. An `-rcN` tag publishes only the Avalonia Windows x64 ZIPs and Linux x64 tar/DEB packages. Windows executables are unsigned, automatic updates are disabled inside every preview package, no appcast is generated, and no macOS artifact is included. The GitHub prerelease title and notes identify this state, the aggregate manifest records `releaseProfile=unsigned-preview`, and every entry has `unsigned-preview-manual-download` policy. A Store-certified stable Windows package never uses this path.
 
 The entitlements are limited to the camera capability and the current Microsoft-documented defaults required by a notarized .NET app host. Any removal or addition requires a physical launch/camera/Keychain regression on the signed bundle.
 

@@ -2,7 +2,7 @@
 
 OTP Harbor's direct Avalonia packages use an Ed25519-signed, target-qualified `appcast-v2.xml`. Windows and macOS releases also require platform signing/notarization; Ed25519 package signatures do not replace operating-system trust.
 
-Linux DEB and future store-managed builds are stamped as externally managed and do not use application-owned updates.
+Linux DEB and Microsoft Store builds are stamped as externally managed and do not use application-owned updates. Microsoft Store is the primary Windows distribution channel; Store certification supplies the package signature and the Store owns update delivery.
 
 ## Brand migration compatibility
 
@@ -12,7 +12,8 @@ The OTP Harbor rebrand changes the GitHub repository URL, product metadata, pack
 
 - The client accepts only `appcast-v2.xml` entries whose OS, architecture, channel, and package policy match the running package.
 - Every direct payload, the release manifest, and the appcast are signed with the configured NetSparkle Ed25519 key.
-- Stable Windows executables require Authenticode signing. Stable macOS artifacts require Developer ID signing and notarization.
+- Microsoft Store Windows packages require successful Store certification and a Store signature. Any future stable direct-download Windows executable requires independently verified Authenticode signing.
+- Stable macOS artifacts require Developer ID signing and notarization.
 - Unsigned RC packages disable automatic updates and are distributed only as explicit manual-download previews.
 
 ## Generate Ed25519 keys
@@ -75,15 +76,13 @@ The private key path is supplied to tooling; private key contents must never app
 
 - `NETSPARKLE_PUBLIC_KEY`
 - `NETSPARKLE_PRIVATE_KEY`
-- `SIGNPATH_API_TOKEN` (submitter permission only)
-- `SIGNPATH_ORGANIZATION_ID` (GitHub Actions repository variable)
 - macOS Developer ID/notarization secrets documented by the release workflow
 
-The SignPath project, policy, and artifact-configuration slugs are fixed in the workflow and documented in [SIGNPATH_FOUNDATION_ONBOARDING.md](SIGNPATH_FOUNDATION_ONBOARDING.md). Every stable Windows signing request requires separate manual approval in SignPath. Stable tags fail closed when required configuration or approval is absent. RC tags publish only explicitly labeled unsigned Windows/Linux previews with automatic updates disabled.
+The active Store packaging workflow requires no certificate secret and produces an unsigned Partner Center input that must never be directly distributed. The optional direct-download workflow retains dormant SignPath controls documented in [SIGNPATH_FOUNDATION_ONBOARDING.md](SIGNPATH_FOUNDATION_ONBOARDING.md), but there is no Foundation certificate or active SignPath production configuration. That path fails closed without an approved provider configuration. RC tags publish only explicitly labeled unsigned Windows/Linux previews with automatic updates disabled.
 
 ## Release behavior
 
-For a stable version tag, CI:
+For a future signed direct-download stable tag, CI:
 
 1. Builds and tests all supported projects.
 2. Produces target-qualified Avalonia packages.
