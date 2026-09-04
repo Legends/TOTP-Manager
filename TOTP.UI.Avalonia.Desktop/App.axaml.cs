@@ -14,8 +14,7 @@ public partial class App : Application
     private ServiceProvider? _services;
     private AvaloniaExceptionHooks? _exceptionHooks;
     private AvaloniaThemeService? _themeService;
-    private SessionLockPolicyBackgroundService? _sessionLockPolicy;
-    private IdleMonitoringBackgroundService? _idleLockPolicy;
+    private AvaloniaBackgroundServiceCoordinator? _backgroundServices;
 
     public override void Initialize()
     {
@@ -32,28 +31,19 @@ public partial class App : Application
             _exceptionHooks = new AvaloniaExceptionHooks(
                 global::Avalonia.Threading.Dispatcher.UIThread,
                 _services.GetRequiredService<AvaloniaExceptionBoundary>());
-            _sessionLockPolicy = _services.GetRequiredService<SessionLockPolicyBackgroundService>();
-            _sessionLockPolicy.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
-            _idleLockPolicy = _services.GetRequiredService<IdleMonitoringBackgroundService>();
-            _idleLockPolicy.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+            _backgroundServices = _services.GetRequiredService<AvaloniaBackgroundServiceCoordinator>();
+            _backgroundServices.Start();
             desktop.Exit += (_, _) =>
             {
                 try
                 {
-                    _idleLockPolicy.StopAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    _backgroundServices.Stop();
                 }
                 finally
                 {
-                    try
-                    {
-                        _sessionLockPolicy.StopAsync(CancellationToken.None).GetAwaiter().GetResult();
-                    }
-                    finally
-                    {
-                        _exceptionHooks.Dispose();
-                        _themeService.Dispose();
-                        _services.Dispose();
-                    }
+                    _exceptionHooks.Dispose();
+                    _themeService.Dispose();
+                    _services.Dispose();
                 }
             };
             var mainWindow = _services.GetRequiredService<MainWindow>();

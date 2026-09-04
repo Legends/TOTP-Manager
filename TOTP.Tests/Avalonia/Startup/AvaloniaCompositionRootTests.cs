@@ -1,4 +1,5 @@
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -22,7 +23,8 @@ public sealed class AvaloniaCompositionRootTests
     [Fact]
     public void Build_RegistersAvaloniaPlatformContracts()
     {
-        var desktopLifetime = new Mock<IClassicDesktopStyleApplicationLifetime>().Object;
+        var desktopLifetimeMock = new Mock<IClassicDesktopStyleApplicationLifetime>();
+        var desktopLifetime = desktopLifetimeMock.Object;
         var languageFlags = new Mock<ILanguageFlagProvider>().Object;
 
         using var services = AvaloniaCompositionRoot.Build(desktopLifetime, languageFlags);
@@ -94,5 +96,9 @@ public sealed class AvaloniaCompositionRootTests
         Assert.Same(
             services.GetRequiredService<IdleMonitoringBackgroundService>(),
             services.GetRequiredService<IActivityHeartbeat>());
+        Assert.NotNull(services.GetRequiredService<AvaloniaBackgroundServiceCoordinator>());
+        desktopLifetimeMock.VerifySet(
+            value => value.ShutdownMode = ShutdownMode.OnMainWindowClose,
+            Times.Once);
     }
 }
