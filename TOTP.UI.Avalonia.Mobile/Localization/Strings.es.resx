@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>OTP Harbor</value></data>
+  <data name="Starting" xml:space="preserve"><value>Iniciando OTP Harbor de forma segura…</value></data>
+  <data name="StartupFailed" xml:space="preserve"><value>OTP Harbor no pudo iniciarse de forma segura. Sus datos cifrados no se modificaron.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Reintentar</value></data>
+  <data name="SetupTitle" xml:space="preserve"><value>Proteja su autenticador</value></data>
+  <data name="SetupDescription" xml:space="preserve"><value>Cree una contraseña maestra. Seguirá siendo el método de recuperación de su almacén local cifrado.</value></data>
+  <data name="MasterPassword" xml:space="preserve"><value>Contraseña maestra</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Confirmar contraseña maestra</value></data>
+  <data name="CreateVault" xml:space="preserve"><value>Crear almacén cifrado</value></data>
+  <data name="PasswordRequired" xml:space="preserve"><value>Introduzca su contraseña maestra.</value></data>
+  <data name="PasswordMinimumLength" xml:space="preserve"><value>La contraseña maestra debe contener al menos {0} caracteres.</value></data>
+  <data name="PasswordMismatch" xml:space="preserve"><value>Las contraseñas no coinciden.</value></data>
+  <data name="SetupFailed" xml:space="preserve"><value>No se pudo configurar el almacén cifrado.</value></data>
+  <data name="ExistingVaultConflict" xml:space="preserve"><value>Los datos cifrados existentes requieren su contraseña maestra original.</value></data>
+  <data name="UnlockTitle" xml:space="preserve"><value>Desbloquear OTP Harbor</value></data>
+  <data name="UnlockDescription" xml:space="preserve"><value>Introduzca su contraseña maestra para abrir el almacén local cifrado.</value></data>
+  <data name="Unlock" xml:space="preserve"><value>Desbloquear</value></data>
+  <data name="UnlockRejected" xml:space="preserve"><value>La contraseña maestra no fue aceptada.</value></data>
+  <data name="UnlockFailed" xml:space="preserve"><value>No se pudo desbloquear el almacén de forma segura.</value></data>
+  <data name="AccountsTitle" xml:space="preserve"><value>Cuentas</value></data>
+  <data name="Codes" xml:space="preserve"><value>Códigos</value></data>
+  <data name="Settings" xml:space="preserve"><value>Configuración</value></data>
+  <data name="Language" xml:space="preserve"><value>Idioma</value></data>
+  <data name="EnglishLanguage" xml:space="preserve"><value>Inglés</value></data>
+  <data name="GermanLanguage" xml:space="preserve"><value>Alemán</value></data>
+  <data name="FrenchLanguage" xml:space="preserve"><value>Francés</value></data>
+  <data name="SpanishLanguage" xml:space="preserve"><value>Español</value></data>
+  <data name="LanguageSaveFailed" xml:space="preserve"><value>No se pudo guardar la preferencia de idioma.</value></data>
+  <data name="Security" xml:space="preserve"><value>Seguridad</value></data>
+  <data name="SearchAccounts" xml:space="preserve"><value>Buscar cuentas</value></data>
+  <data name="NoSearchResults" xml:space="preserve"><value>No hay cuentas coincidentes.</value></data>
+  <data name="AccountSwipeHint" xml:space="preserve"><value>Deslice a la derecha para QR y editar, o a la izquierda para eliminar.</value></data>
+  <data name="ScanQr" xml:space="preserve"><value>Escanear QR</value></data>
+  <data name="QrScannerUnavailable" xml:space="preserve"><value>El escaneo QR no está disponible. Añada la cuenta manualmente.</value></data>
+  <data name="QrScanFailed" xml:space="preserve"><value>No se pudo escanear el código QR de forma segura.</value></data>
+  <data name="QrScanRetryAfterUnlock" xml:space="preserve"><value>OTP Harbor se bloqueó durante el escaneo. Desbloquéelo y vuelva a escanear el código QR.</value></data>
+  <data name="QrInvalid" xml:space="preserve"><value>Este código QR no contiene una cuenta TOTP compatible.</value></data>
+  <data name="QrAccountAdded" xml:space="preserve"><value>Cuenta añadida desde el código QR.</value></data>
+  <data name="QrAccountUpdated" xml:space="preserve"><value>Cuenta existente actualizada desde el código QR.</value></data>
+  <data name="QrAccountKeptBoth" xml:space="preserve"><value>Se conservaron ambas cuentas.</value></data>
+  <data name="QrAccountDuplicate" xml:space="preserve"><value>Esta cuenta ya existe y no ha cambiado.</value></data>
+  <data name="QrImportCancelled" xml:space="preserve"><value>Importación QR cancelada. No se modificó ninguna cuenta.</value></data>
+  <data name="QrConflictTitle" xml:space="preserve"><value>La cuenta ya existe</value></data>
+  <data name="QrConflictPrompt" xml:space="preserve"><value>{0} ya existe con otro secreto. Elija cómo continuar.</value></data>
+  <data name="UpdateExisting" xml:space="preserve"><value>Actualizar la cuenta existente</value></data>
+  <data name="KeepBoth" xml:space="preserve"><value>Conservar ambas cuentas</value></data>
+  <data name="ShowQr" xml:space="preserve"><value>Mostrar código QR</value></data>
+  <data name="DismissQr" xml:space="preserve"><value>Ocultar código QR</value></data>
+  <data name="QrPrivacyNotice" xml:space="preserve"><value>Este código QR contiene el secreto de la cuenta. Compártalo únicamente con un autenticador de confianza.</value></data>
+  <data name="QrDisplayFailed" xml:space="preserve"><value>No se pudo mostrar el código QR de la cuenta de forma segura.</value></data>
+  <data name="BackupTitle" xml:space="preserve"><value>Copia de seguridad cifrada</value></data>
+  <data name="BackupDescription" xml:space="preserve"><value>Exporte o importe una copia de seguridad cifrada de OTP Harbor. Las cuentas existentes se mantienen sin cambios durante la importación.</value></data>
+  <data name="BackupPassword" xml:space="preserve"><value>Contraseña de la copia de seguridad</value></data>
+  <data name="ConfirmBackupPassword" xml:space="preserve"><value>Confirmar contraseña de la copia de seguridad</value></data>
+  <data name="ExportBackup" xml:space="preserve"><value>Exportar copia de seguridad cifrada</value></data>
+  <data name="ImportBackup" xml:space="preserve"><value>Importar copia de seguridad cifrada</value></data>
+  <data name="BackupFileName" xml:space="preserve"><value>otp-harbor-backup-{0}.totp</value></data>
+  <data name="BackupPasswordRequired" xml:space="preserve"><value>Introduzca una contraseña para la copia de seguridad.</value></data>
+  <data name="BackupPasswordMinimumLength" xml:space="preserve"><value>La contraseña de la copia de seguridad debe contener al menos {0} caracteres.</value></data>
+  <data name="BackupPasswordMismatch" xml:space="preserve"><value>Las contraseñas de la copia de seguridad no coinciden.</value></data>
+  <data name="BackupExported" xml:space="preserve"><value>Copia de seguridad cifrada exportada.</value></data>
+  <data name="BackupExportFailed" xml:space="preserve"><value>No se pudo exportar la copia de seguridad cifrada de forma segura.</value></data>
+  <data name="BackupExportCleanupFailed" xml:space="preserve"><value>La exportación falló y no se pudo eliminar el destino incompleto. Elimínelo desde el proveedor de documentos.</value></data>
+  <data name="BackupRetryAfterUnlock" xml:space="preserve"><value>OTP Harbor se bloqueó durante la selección del documento. Desbloquéelo e inténtelo de nuevo.</value></data>
+  <data name="BackupImportRejected" xml:space="preserve"><value>La contraseña de la copia de seguridad era incorrecta, o la copia cifrada no es válida o está dañada.</value></data>
+  <data name="BackupImportFailed" xml:space="preserve"><value>No se pudo importar la copia de seguridad cifrada de forma segura. No se sobrescribió ninguna cuenta existente.</value></data>
+  <data name="BackupImportCancelled" xml:space="preserve"><value>Importación de copia de seguridad cancelada. No se modificó ninguna cuenta.</value></data>
+  <data name="BackupImported" xml:space="preserve"><value>Copia de seguridad importada: {0} añadida(s), {1} existente(s) sin cambios.</value></data>
+  <data name="ImportConfirmationTitle" xml:space="preserve"><value>Confirmar importación de la copia</value></data>
+  <data name="ImportConfirmation" xml:space="preserve"><value>¿Importar {0} cuentas? Las {1} cuentas existentes coincidentes permanecerán sin cambios. Se crea una copia de recuperación antes de aplicar cambios.</value></data>
+  <data name="ConfirmImport" xml:space="preserve"><value>Importar cuentas</value></data>
+  <data name="NoAccounts" xml:space="preserve"><value>Todavía no hay cuentas. Añada su primera cuenta TOTP.</value></data>
+  <data name="AddAccount" xml:space="preserve"><value>Añadir cuenta</value></data>
+  <data name="EditAccount" xml:space="preserve"><value>Editar</value></data>
+  <data name="DeleteAccount" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Lock" xml:space="preserve"><value>Bloquear</value></data>
+  <data name="Issuer" xml:space="preserve"><value>Emisor</value></data>
+  <data name="AccountName" xml:space="preserve"><value>Nombre de la cuenta (opcional)</value></data>
+  <data name="Secret" xml:space="preserve"><value>Secreto Base32</value></data>
+  <data name="SecretOptionalOnEdit" xml:space="preserve"><value>Nuevo secreto Base32 (déjelo vacío para conservar el actual)</value></data>
+  <data name="Save" xml:space="preserve"><value>Guardar</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="IssuerRequired" xml:space="preserve"><value>Introduzca un emisor.</value></data>
+  <data name="SecretRequired" xml:space="preserve"><value>Introduzca el secreto de la cuenta.</value></data>
+  <data name="SecretInvalid" xml:space="preserve"><value>El secreto de la cuenta no contiene datos Base32 válidos.</value></data>
+  <data name="DuplicateAccount" xml:space="preserve"><value>Ya existe una cuenta con este emisor y nombre.</value></data>
+  <data name="AccountSaved" xml:space="preserve"><value>Cuenta guardada.</value></data>
+  <data name="AccountSaveFailed" xml:space="preserve"><value>No se pudo guardar la cuenta.</value></data>
+  <data name="DeleteAccountPrompt" xml:space="preserve"><value>¿Eliminar {0}? Esta acción no se puede deshacer.</value></data>
+  <data name="Delete" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="AccountDeleted" xml:space="preserve"><value>Cuenta eliminada.</value></data>
+  <data name="AccountDeleteFailed" xml:space="preserve"><value>No se pudo eliminar la cuenta.</value></data>
+  <data name="CodeUnavailable" xml:space="preserve"><value>No se pudo generar un código para esta cuenta.</value></data>
+  <data name="CopyCode" xml:space="preserve"><value>Copiar código</value></data>
+  <data name="CodeCopied" xml:space="preserve"><value>Código copiado.</value></data>
+  <data name="CodeCopiedWithClear" xml:space="preserve"><value>Código copiado. El borrado del portapapeles está programado en {0} segundos.</value></data>
+  <data name="CodeCopyFailed" xml:space="preserve"><value>No se pudo copiar el código de forma segura.</value></data>
+  <data name="LoadingAccountsFailed" xml:space="preserve"><value>No se pudieron cargar sus cuentas cifradas.</value></data>
+  <data name="EditorAddTitle" xml:space="preserve"><value>Añadir cuenta TOTP</value></data>
+  <data name="EditorEditTitle" xml:space="preserve"><value>Editar cuenta TOTP</value></data>
+  <data name="DeleteConfirmTitle" xml:space="preserve"><value>Confirmar eliminación</value></data>
+  <data name="BiometricPromptTitle" xml:space="preserve"><value>Desbloquear OTP Harbor</value></data>
+  <data name="BiometricPromptSubtitle" xml:space="preserve"><value>Confirme su identidad mediante biometría fuerte.</value></data>
+  <data name="BiometricUsePassword" xml:space="preserve"><value>Usar contraseña maestra</value></data>
+  <data name="BiometricUnlock" xml:space="preserve"><value>Desbloquear con biometría</value></data>
+  <data name="BiometricSetupTitle" xml:space="preserve"><value>Desbloqueo biométrico</value></data>
+  <data name="BiometricSetupDescription" xml:space="preserve"><value>Use biometría fuerte para desbloquear rápidamente. Confirme la configuración con su contraseña maestra, que seguirá siendo su método de recuperación.</value></data>
+  <data name="BiometricEnable" xml:space="preserve"><value>Activar desbloqueo biométrico</value></data>
+  <data name="BiometricEnabled" xml:space="preserve"><value>El desbloqueo biométrico está activado. Su contraseña maestra sigue disponible para la recuperación.</value></data>
+  <data name="BiometricUnavailable" xml:space="preserve"><value>El desbloqueo mediante biometría fuerte no está disponible en este dispositivo.</value></data>
+  <data name="BiometricEnableFailed" xml:space="preserve"><value>No se pudo activar el desbloqueo biométrico de forma segura.</value></data>
+  <data name="BiometricUnlockFailed" xml:space="preserve"><value>La verificación biométrica no desbloqueó el almacén.</value></data>
+  <data name="BiometricRecoveryRequired" xml:space="preserve"><value>Use su contraseña maestra para desbloquear y restaurar el acceso biométrico.</value></data>
+  <data name="BiometricRetriesExhausted" xml:space="preserve"><value>El acceso biométrico está bloqueado temporalmente. Use su contraseña maestra o inténtelo de nuevo más tarde.</value></data>
+  <data name="BiometricDisabledByPolicy" xml:space="preserve"><value>El acceso biométrico no está disponible debido a la política de seguridad del dispositivo.</value></data>
+</root>

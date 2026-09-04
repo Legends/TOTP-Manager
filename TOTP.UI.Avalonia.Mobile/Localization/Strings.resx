@@ -29,6 +29,8 @@
   <data name="Language" xml:space="preserve"><value>Language</value></data>
   <data name="EnglishLanguage" xml:space="preserve"><value>English</value></data>
   <data name="GermanLanguage" xml:space="preserve"><value>German</value></data>
+  <data name="FrenchLanguage" xml:space="preserve"><value>French</value></data>
+  <data name="SpanishLanguage" xml:space="preserve"><value>Spanish</value></data>
   <data name="LanguageSaveFailed" xml:space="preserve"><value>The language preference could not be saved.</value></data>
   <data name="Security" xml:space="preserve"><value>Security</value></data>
   <data name="SearchAccounts" xml:space="preserve"><value>Search accounts</value></data>

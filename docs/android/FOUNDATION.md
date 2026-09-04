@@ -22,7 +22,7 @@ The current Android application provides:
 - optional strong-biometric quick unlock backed by a non-exportable Android Keystore key, with
   automatic prompting after startup or a background lock, master-password confirmation during
   enrollment, and password recovery at all times
-- English and German localization
+- English, German, French, and Spanish localization with resource-completeness and placeholder checks
 - private Android application storage with verified owner-only Unix permissions
 - disabled Android backup and cleartext network traffic
 - screenshot and recent-app preview protection through `FLAG_SECURE`

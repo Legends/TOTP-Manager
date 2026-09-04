@@ -14,9 +14,13 @@ public sealed class AvaloniaStringCatalog
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(culture);
-        var supportedCulture = culture.TwoLetterISOLanguageName.Equals("de", StringComparison.OrdinalIgnoreCase)
-            ? CultureInfo.GetCultureInfo("de")
-            : English;
+        var supportedCulture = culture.TwoLetterISOLanguageName.ToLowerInvariant() switch
+        {
+            "de" => CultureInfo.GetCultureInfo("de"),
+            "fr" => CultureInfo.GetCultureInfo("fr"),
+            "es" => CultureInfo.GetCultureInfo("es"),
+            _ => English
+        };
         return _resources.GetString(key, supportedCulture)
             ?? _resources.GetString(key, English)
             ?? key;

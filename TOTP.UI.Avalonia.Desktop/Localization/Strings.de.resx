@@ -139,6 +139,10 @@
   <data name="ImportExport" xml:space="preserve"><value>Import / Export</value></data>
   <data name="Miscellaneous" xml:space="preserve"><value>Sonstiges</value></data>
   <data name="Language" xml:space="preserve"><value>Sprache</value></data>
+  <data name="EnglishLanguage" xml:space="preserve"><value>Englisch</value></data>
+  <data name="GermanLanguage" xml:space="preserve"><value>Deutsch</value></data>
+  <data name="FrenchLanguage" xml:space="preserve"><value>Französisch</value></data>
+  <data name="SpanishLanguage" xml:space="preserve"><value>Spanisch</value></data>
   <data name="IdleTimeout" xml:space="preserve"><value>Leerlaufzeit in Minuten (0 deaktiviert die Sperre)</value></data>
   <data name="IdleTimeoutHelp" xml:space="preserve"><value>Null eingeben, um die Leerlaufsperre zu deaktivieren.</value></data>
   <data name="LockWhenMinimized" xml:space="preserve"><value>Beim Minimieren sperren</value></data>

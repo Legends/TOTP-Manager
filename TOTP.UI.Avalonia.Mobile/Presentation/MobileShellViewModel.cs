@@ -67,6 +67,8 @@ public sealed class MobileShellViewModel :
     private readonly MobileAsyncCommand _cancelImportCommand;
     private readonly MobileAsyncCommand _selectEnglishLanguageCommand;
     private readonly MobileAsyncCommand _selectGermanLanguageCommand;
+    private readonly MobileAsyncCommand _selectFrenchLanguageCommand;
+    private readonly MobileAsyncCommand _selectSpanishLanguageCommand;
 
     private MobileScreen _screen = MobileScreen.Starting;
     private bool _isBusy;
@@ -216,6 +218,12 @@ public sealed class MobileShellViewModel :
         _selectGermanLanguageCommand = new MobileAsyncCommand(
             () => SelectLanguageAsync("de"),
             () => IsSettingsVisible && !IsGermanLanguageSelected && !IsBusy);
+        _selectFrenchLanguageCommand = new MobileAsyncCommand(
+            () => SelectLanguageAsync("fr"),
+            () => IsSettingsVisible && !IsFrenchLanguageSelected && !IsBusy);
+        _selectSpanishLanguageCommand = new MobileAsyncCommand(
+            () => SelectLanguageAsync("es"),
+            () => IsSettingsVisible && !IsSpanishLanguageSelected && !IsBusy);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -248,6 +256,8 @@ public sealed class MobileShellViewModel :
     public ICommand CancelImportCommand => _cancelImportCommand;
     public ICommand SelectEnglishLanguageCommand => _selectEnglishLanguageCommand;
     public ICommand SelectGermanLanguageCommand => _selectGermanLanguageCommand;
+    public ICommand SelectFrenchLanguageCommand => _selectFrenchLanguageCommand;
+    public ICommand SelectSpanishLanguageCommand => _selectSpanishLanguageCommand;
 
     public bool IsStartingVisible => _screen == MobileScreen.Starting;
     public bool IsSetupVisible => _screen == MobileScreen.Setup;
@@ -288,6 +298,8 @@ public sealed class MobileShellViewModel :
         IsBiometricSetupAvailable && !IsBiometricEnrollmentVisible;
     public bool IsEnglishLanguageSelected => _strings.Culture.TwoLetterISOLanguageName == "en";
     public bool IsGermanLanguageSelected => _strings.Culture.TwoLetterISOLanguageName == "de";
+    public bool IsFrenchLanguageSelected => _strings.Culture.TwoLetterISOLanguageName == "fr";
+    public bool IsSpanishLanguageSelected => _strings.Culture.TwoLetterISOLanguageName == "es";
 
     public bool IsBusy
     {
@@ -549,6 +561,8 @@ public sealed class MobileShellViewModel :
     public string LanguageText => Get(MobileStringKeys.Language);
     public string EnglishLanguageText => Get(MobileStringKeys.EnglishLanguage);
     public string GermanLanguageText => Get(MobileStringKeys.GermanLanguage);
+    public string FrenchLanguageText => Get(MobileStringKeys.FrenchLanguage);
+    public string SpanishLanguageText => Get(MobileStringKeys.SpanishLanguage);
     public string SecurityText => Get(MobileStringKeys.Security);
     public string SearchAccountsText => Get(MobileStringKeys.SearchAccounts);
     public string NoSearchResultsText => Get(MobileStringKeys.NoSearchResults);
@@ -856,9 +870,13 @@ public sealed class MobileShellViewModel :
     {
         if (!IsSettingsVisible || IsBusy) return;
 
-        var selectedCulture = cultureName.Equals("de", StringComparison.OrdinalIgnoreCase)
-            ? "de"
-            : "en";
+        var selectedCulture = cultureName.ToLowerInvariant() switch
+        {
+            "de" => "de",
+            "fr" => "fr",
+            "es" => "es",
+            _ => "en"
+        };
         if (_strings.Culture.TwoLetterISOLanguageName.Equals(
                 selectedCulture,
                 StringComparison.OrdinalIgnoreCase))
@@ -1998,6 +2016,8 @@ public sealed class MobileShellViewModel :
         _cancelImportCommand.NotifyCanExecuteChanged();
         _selectEnglishLanguageCommand.NotifyCanExecuteChanged();
         _selectGermanLanguageCommand.NotifyCanExecuteChanged();
+        _selectFrenchLanguageCommand.NotifyCanExecuteChanged();
+        _selectSpanishLanguageCommand.NotifyCanExecuteChanged();
     }
 
     private bool SetField<T>(
@@ -2052,6 +2072,8 @@ public sealed class MobileShellViewModel :
         nameof(LanguageText),
         nameof(EnglishLanguageText),
         nameof(GermanLanguageText),
+        nameof(FrenchLanguageText),
+        nameof(SpanishLanguageText),
         nameof(SecurityText),
         nameof(SearchAccountsText),
         nameof(NoSearchResultsText),

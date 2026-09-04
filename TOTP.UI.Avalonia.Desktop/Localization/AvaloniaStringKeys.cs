@@ -49,6 +49,10 @@ public static class AvaloniaStringKeys
     public const string ImportExport = nameof(ImportExport);
     public const string Miscellaneous = nameof(Miscellaneous);
     public const string Language = nameof(Language);
+    public const string EnglishLanguage = nameof(EnglishLanguage);
+    public const string GermanLanguage = nameof(GermanLanguage);
+    public const string FrenchLanguage = nameof(FrenchLanguage);
+    public const string SpanishLanguage = nameof(SpanishLanguage);
     public const string IdleTimeout = nameof(IdleTimeout);
     public const string IdleTimeoutHelp = nameof(IdleTimeoutHelp);
     public const string LockWhenMinimized = nameof(LockWhenMinimized);
@@ -292,7 +296,7 @@ public static class AvaloniaStringKeys
         CameraInitializing, CameraActive, CameraScanCancelled,
         CameraScanFailedSafely, CameraRuntimeUnavailable, CameraNotFound, CameraStartFailed,
         SecuritySettings, Security, ImportExport, Miscellaneous,
-        Language, IdleTimeout,
+        Language, EnglishLanguage, GermanLanguage, FrenchLanguage, SpanishLanguage, IdleTimeout,
         IdleTimeoutHelp, LockWhenMinimized, SettingsAutoSaveHint,
         SettingsSavedAutomatically, SettingsSaveFailed, SearchAccounts, NoEntriesYet,
         NoMatchingEntries, CloseSettings, GenerateCode,

@@ -7,6 +7,8 @@ public sealed class AvaloniaLocalizationService : IAvaloniaLocalizationService
 {
     private readonly LanguageOption _english;
     private readonly LanguageOption _german;
+    private readonly LanguageOption _french;
+    private readonly LanguageOption _spanish;
     private readonly IResourceDictionary _resources;
     private readonly AvaloniaStringCatalog _catalog;
 
@@ -17,15 +19,31 @@ public sealed class AvaloniaLocalizationService : IAvaloniaLocalizationService
     {
         _resources = resources ?? throw new ArgumentNullException(nameof(resources));
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
-        _english = new LanguageOption("en", "English")
+        _english = new LanguageOption(
+            "en",
+            _catalog.Get(AvaloniaStringKeys.EnglishLanguage, CultureInfo.GetCultureInfo("en")))
         {
             Icon = flags?.GetFlag("en")
         };
-        _german = new LanguageOption("de", "Deutsch")
+        _german = new LanguageOption(
+            "de",
+            _catalog.Get(AvaloniaStringKeys.GermanLanguage, CultureInfo.GetCultureInfo("de")))
         {
             Icon = flags?.GetFlag("de")
         };
-        SupportedLanguages = [_english, _german];
+        _french = new LanguageOption(
+            "fr",
+            _catalog.Get(AvaloniaStringKeys.FrenchLanguage, CultureInfo.GetCultureInfo("fr")))
+        {
+            Icon = flags?.GetFlag("fr")
+        };
+        _spanish = new LanguageOption(
+            "es",
+            _catalog.Get(AvaloniaStringKeys.SpanishLanguage, CultureInfo.GetCultureInfo("es")))
+        {
+            Icon = flags?.GetFlag("es")
+        };
+        SupportedLanguages = [_english, _german, _french, _spanish];
         CurrentLanguage = _english;
     }
 
@@ -38,9 +56,13 @@ public sealed class AvaloniaLocalizationService : IAvaloniaLocalizationService
     public void ApplyCulture(string cultureName)
     {
         var requested = GetSafeCulture(cultureName);
-        CurrentLanguage = requested.TwoLetterISOLanguageName.Equals("de", StringComparison.OrdinalIgnoreCase)
-            ? _german
-            : _english;
+        CurrentLanguage = requested.TwoLetterISOLanguageName.ToLowerInvariant() switch
+        {
+            "de" => _german,
+            "fr" => _french,
+            "es" => _spanish,
+            _ => _english
+        };
         var resourceCulture = CultureInfo.GetCultureInfo(CurrentLanguage.CultureName);
         foreach (var key in AvaloniaStringKeys.All)
             _resources[key] = _catalog.Get(key, resourceCulture);

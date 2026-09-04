@@ -418,7 +418,7 @@
                                     FontSize="18"
                                     FontWeight="SemiBold"
                                     Text="{Binding LanguageText}" />
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
                                     <Button
                                         Grid.Column="0"
                                         Classes="wide language-option"
@@ -431,6 +431,20 @@
                                         Classes.selected="{Binding IsGermanLanguageSelected}"
                                         Command="{Binding SelectGermanLanguageCommand}"
                                         Content="{Binding GermanLanguageText}" />
+                                    <Button
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        Classes="wide language-option"
+                                        Classes.selected="{Binding IsFrenchLanguageSelected}"
+                                        Command="{Binding SelectFrenchLanguageCommand}"
+                                        Content="{Binding FrenchLanguageText}" />
+                                    <Button
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Classes="wide language-option"
+                                        Classes.selected="{Binding IsSpanishLanguageSelected}"
+                                        Command="{Binding SelectSpanishLanguageCommand}"
+                                        Content="{Binding SpanishLanguageText}" />
                                 </Grid>
                             </StackPanel>
                         </Border>

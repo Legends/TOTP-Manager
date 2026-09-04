@@ -18,20 +18,14 @@ public sealed class MobileStringCatalog
     public MobileStringCatalog(CultureInfo requestedCulture)
     {
         ArgumentNullException.ThrowIfNull(requestedCulture);
-        Culture = requestedCulture.TwoLetterISOLanguageName.Equals(
-            "de",
-            StringComparison.OrdinalIgnoreCase)
-            ? CultureInfo.GetCultureInfo("de")
-            : English;
+        Culture = ResolveCulture(requestedCulture.TwoLetterISOLanguageName);
     }
 
     public CultureInfo Culture { get; private set; }
 
     public void ApplyCulture(string? cultureName)
     {
-        Culture = cultureName?.Equals("de", StringComparison.OrdinalIgnoreCase) == true
-            ? CultureInfo.GetCultureInfo("de")
-            : English;
+        Culture = ResolveCulture(cultureName);
     }
 
     public string Get(string key)
@@ -59,4 +53,13 @@ public sealed class MobileStringCatalog
                 || string.IsNullOrWhiteSpace(value))
             .ToArray();
     }
+
+    private static CultureInfo ResolveCulture(string? cultureName) =>
+        cultureName?.ToLowerInvariant() switch
+        {
+            "de" => CultureInfo.GetCultureInfo("de"),
+            "fr" => CultureInfo.GetCultureInfo("fr"),
+            "es" => CultureInfo.GetCultureInfo("es"),
+            _ => English
+        };
 }
