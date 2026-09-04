@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose a focused improvement and explain its trust impact.
+title: "feature: "
+labels: [enhancement, triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem should OTP Harbor solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Keep the proposal focused and local-first.
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security, privacy, and recovery impact
+      description: Explain any effect on secrets, authorization, storage, import/export, logging, updates, or recovery.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Scope
+      options:
+        - All platforms
+        - Windows
+        - macOS
+        - Linux
+        - Android
+        - Documentation or release engineering
+    validations:
+      required: true

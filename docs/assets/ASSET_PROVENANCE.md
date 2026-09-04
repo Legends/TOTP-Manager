@@ -1,6 +1,6 @@
 # Project asset provenance
 
-This record covers every raster image embedded by `TOTP.UI.Avalonia.Desktop` and the README screenshot. The files are project-owned outputs and are distributed under the repository's [MIT license](../../LICENSE.txt). No downloaded raster artwork is included.
+This record covers every raster image embedded by `TOTP.UI.Avalonia.Desktop` and the public repository artwork. The files are project-owned outputs and are distributed under the repository's [MIT license](../../LICENSE.txt). No downloaded raster artwork is included.
 
 ## Application icon
 
@@ -14,14 +14,24 @@ The generated image was visually reviewed for prohibited text, third-party brand
 
 ## Language flags
 
-`en.png` and `de.png` were rendered inside the project workspace on 2026-08-29 from geometric primitives. They do not derive from downloaded image files:
+`en.png` and `de.png` were rendered inside the project workspace on 2026-08-29 from geometric primitives. `fr.png` and `es.png` were rendered on 2026-09-03 by [`Generate-AdditionalLanguageFlags.ps1`](../../scripts/assets/Generate-AdditionalLanguageFlags.ps1), also from geometric primitives. They do not derive from downloaded image files:
 
 - `en.png` is a project-rendered representation of the public-domain United States flag design, used for the English locale.
 - `de.png` is a project-rendered representation of the public-domain German federal flag design, used for the German locale.
+- `fr.png` is a project-rendered representation of the public-domain French flag design, used for the French locale.
+- `es.png` is a project-rendered language indicator based on the public-domain Spanish flag layout, used for the Spanish locale.
 
 ## README screenshot
 
 `docs/images/readme/app.png` is based on a maintainer-provided screenshot of the application populated only with synthetic sample accounts. On 2026-09-01, OpenAI's built-in image-editing tool replaced the former window title with the exact text `OTP Harbor` for the public rebrand. The edit prompt required every other UI element, sample value, color, and layout relationship to remain unchanged. The resulting image was visually reviewed before inclusion.
+
+## Social preview
+
+`docs/images/social/otp-harbor-social-preview.png` was generated specifically for the project on 2026-09-03 with OpenAI's built-in image-generation tool. The reviewed OTP Harbor icon and synthetic-account application screenshot were supplied as visual references. The output was checked for exact product spelling, synthetic-only account data, third-party branding, and the required 2:1 social-preview ratio.
+
+Final generation prompt:
+
+> Use case: GitHub social media preview. Create a professional, minimal 2:1 launch banner for the open-source app OTP Harbor. Preserve the supplied official OTP Harbor icon and the supplied authentic application screenshot; do not redesign, distort, or invent interface content. Use the app's deep navy background with restrained violet and cyan accents. Place the exact title “OTP Harbor” and the exact tagline “Local-first authentication. Your secrets stay yours.” in clear, highly legible typography. Balance the brand mark, product text, and a clean framed view of the app. Include no additional logos, badges, claims, ratings, people, devices, decorative clutter, or watermark.
 
 ## Reviewed file hashes
 
@@ -32,6 +42,9 @@ The generated image was visually reviewed for prohibited text, third-party brand
 | `TOTP.UI.Avalonia.Desktop/Assets/Icons/app.ico` | `7a71a423982499c438177e3b58126f003c3ece9a66cb2b91c07dc50a812ab81e` |
 | `TOTP.UI.Avalonia.Desktop/Assets/flags/en.png` | `1c2bcc20e5985e5f03a3a440f198b5d08a4ac609e9cebba00b639b0e50fba8fc` |
 | `TOTP.UI.Avalonia.Desktop/Assets/flags/de.png` | `2c8f253f3401d18df0a47bd7906102cf78ea7e4a2caac9e4c6f4efebc906de0a` |
+| `TOTP.UI.Avalonia.Desktop/Assets/flags/fr.png` | `b962887c6a6317b8e60a1c0b33ae5fed16b453a83e9026043480ccfd3cc3a340` |
+| `TOTP.UI.Avalonia.Desktop/Assets/flags/es.png` | `d45958f491e9cf1d10c0e6de74970c5fed11e826e702c14c9009197842e6d1bd` |
 | `docs/images/readme/app.png` | `2b784669224c991eb4524eb0ab03b13ae3011605d308d3a2ef6bb8795771eeda` |
+| `docs/images/social/otp-harbor-social-preview.png` | `e2df57730fb5e4f46c77091a4066946c2c148a56e65058650340892aa74e138e` |
 
 Any replacement requires a new provenance record, license review, updated hashes, and visual/build validation.

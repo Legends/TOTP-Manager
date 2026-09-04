@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Legends/otp-harbor/security/policy
+    about: Report vulnerabilities privately. Never open a public security issue.
+  - name: Questions and ideas
+    url: https://github.com/Legends/otp-harbor/discussions
+    about: Ask usage questions or discuss an idea before filing an issue.

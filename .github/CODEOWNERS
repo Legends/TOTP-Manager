@@ -1,6 +1,14 @@
 # Security-sensitive release and trust policy
 /.github/workflows/ @Legends
+/.github/ISSUE_TEMPLATE/ @Legends
+/.github/pull_request_template.md @Legends
+/packaging/windows-store/ @Legends
+/site/ @Legends
 /scripts/release/ @Legends
+/scripts/validation/Test-MicrosoftStorePackaging.ps1 @Legends
+/scripts/validation/Test-LocalizationResources.ps1 @Legends
+/scripts/validation/Test-PublicWebsite.ps1 @Legends
+/docs/release/MICROSOFT_STORE.md @Legends
 /docs/security/ @Legends
 /CODE_SIGNING_POLICY.md @Legends
 /PRIVACY.md @Legends

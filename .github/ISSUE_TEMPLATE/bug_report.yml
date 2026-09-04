@@ -1,0 +1,59 @@
+name: Bug report
+description: Report a reproducible OTP Harbor problem without sharing secrets.
+title: "bug: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve OTP Harbor. Never attach real OTP seeds, QR codes, passwords, vaults, backups, codes, or unreviewed logs. Report security vulnerabilities privately through the repository Security policy instead.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Windows 10/11
+        - macOS ARM64
+        - Linux x64
+        - Android 9+
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: OTP Harbor version or commit
+      placeholder: v2.0.0-rc10 or full commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Use only synthetic test accounts and sanitized paths.
+      placeholder: |
+        1. Start the app…
+        2. Create a synthetic account…
+        3. Observe…
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Secret-safety confirmation
+      options:
+        - label: I used only synthetic accounts and removed all secrets and personal data.
+          required: true
+        - label: This is not a security vulnerability requiring private disclosure.
+          required: true
