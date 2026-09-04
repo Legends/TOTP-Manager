@@ -38,6 +38,7 @@ public static class AvaloniaCompositionRoot
         ILanguageFlagProvider? languageFlags = null)
     {
         ArgumentNullException.ThrowIfNull(desktopLifetime);
+        desktopLifetime.ShutdownMode = ShutdownMode.OnMainWindowClose;
 
         var services = new ServiceCollection();
         var platformServices = DesktopPlatformServiceFactory.Create();
@@ -124,6 +125,12 @@ public static class AvaloniaCompositionRoot
         services.AddSingleton<AvaloniaExceptionBoundary>();
         services.AddSingleton<SessionLockPolicyBackgroundService>();
         services.AddSingleton<IdleMonitoringBackgroundService>();
+        services.AddSingleton(provider => new AvaloniaBackgroundServiceCoordinator(
+            [
+                provider.GetRequiredService<SessionLockPolicyBackgroundService>(),
+                provider.GetRequiredService<IdleMonitoringBackgroundService>()
+            ],
+            provider.GetRequiredService<ILogger<AvaloniaBackgroundServiceCoordinator>>()));
         services.AddSingleton<IActivityHeartbeat>(provider =>
             provider.GetRequiredService<IdleMonitoringBackgroundService>());
         services.AddSingleton<AvaloniaActivityMonitor>();
