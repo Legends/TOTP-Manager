@@ -79,7 +79,7 @@ dotnet test TOTP.sln -c Debug
 dotnet run --project .\TOTP.UI.Avalonia.Desktop\TOTP.UI.Avalonia.Desktop.csproj
 ```
 
-The Android development preview is intentionally outside the desktop solution and release artifacts. See the [Android development guide](docs/android/FOUNDATION.md) for its implemented scope, security notes, and explicit build command.
+The Android development preview is intentionally outside the desktop solution and release artifacts. Open the dedicated [Android solution](TOTP.Android.sln) in Visual Studio, or see the [Android development guide](docs/android/FOUNDATION.md) for its implemented scope, security notes, and build commands.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for engineering rules and [docs/README.md](docs/README.md) for the maintained documentation map.
 

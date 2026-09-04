@@ -68,10 +68,19 @@ capabilities are deliberately deferred until their security and platform adapter
 
 ## Build and install
 
-The Android project is deliberately not included in `TOTP.sln` yet, so existing desktop CI and the
-pending `v2.0.0` release remain unchanged.
+The Android projects are deliberately not included in the desktop `TOTP.sln`, so existing desktop CI
+and the pending `v2.0.0` release remain unchanged. Use the dedicated `TOTP.Android.sln` to open the
+Android app, mobile UI, Android adapters, and their shared Core/Infrastructure dependencies together
+in Visual Studio.
 
-Build explicitly:
+Build the Android solution explicitly:
+
+```powershell
+dotnet restore .\TOTP.Android.sln --configfile .\NuGet.config
+dotnet build .\TOTP.Android.sln -c Debug
+```
+
+Or build the application project directly:
 
 ```powershell
 dotnet restore .\TOTP.UI.Avalonia.Android\TOTP.UI.Avalonia.Android.csproj --configfile .\NuGet.config
