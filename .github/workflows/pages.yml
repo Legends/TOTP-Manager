@@ -6,7 +6,7 @@ on:
     paths:
       - 'site/**'
       - 'docs/images/readme/app.png'
-      - 'docs/images/social/otp-harbor-social-preview.png'
+      - 'docs/images/social/otp-harbor-social-preview.jpg'
       - 'TOTP.UI.Avalonia.Desktop/Assets/Icons/app-1024.png'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
           mkdir -p _site/assets
           cp site/index.html site/styles.css site/robots.txt site/sitemap.xml _site/
           cp docs/images/readme/app.png _site/assets/app.png
-          cp docs/images/social/otp-harbor-social-preview.png _site/assets/social-preview.png
+          cp docs/images/social/otp-harbor-social-preview.jpg _site/assets/social-preview.jpg
           cp TOTP.UI.Avalonia.Desktop/Assets/Icons/app-1024.png _site/assets/app-icon.png
 
       - name: Configure GitHub Pages
