@@ -632,8 +632,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
         IsAccountListVisible = page == ShellPage.Accounts;
         IsToolsVisible = page == ShellPage.Tools;
-        if (IsAccountListVisible && AccountList.SelectedAccount is not null)
-            AccountList.GenerateCommand.Execute(null);
+        if (IsAccountListVisible)
+            AccountList.ResumeRowCodeGeneration();
     }
 
     private void EnterAuthorizedShell()

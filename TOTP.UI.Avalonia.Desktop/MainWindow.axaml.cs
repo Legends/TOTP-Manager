@@ -331,7 +331,6 @@ public partial class MainWindow : Window
             or nameof(AccountListViewModel.HasSelectedAccount)
             or nameof(AccountListViewModel.HasNoAccounts)
             or nameof(AccountListViewModel.HasNoSearchResults)
-            or nameof(AccountListViewModel.HasGeneratedCode)
             or nameof(AccountListViewModel.HasCodeMessage))
         {
             ScheduleAccountPageFit();

@@ -28,6 +28,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly AsyncCommand _loadCommand;
     private readonly AsyncCommand _generateCommand;
     private readonly AsyncCommand _copyCommand;
+    private readonly AsyncCommand<AccountListItemViewModel> _copyAccountCodeCommand;
     private readonly AsyncCommand _generateQrCommand;
     private readonly AsyncCommand _beginAddCommand;
     private readonly AsyncCommand _beginEditCommand;
@@ -36,7 +37,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly AsyncCommand _deleteAccountCommand;
     private readonly AsyncCommand _beginContextEditCommand;
     private readonly AsyncCommand _deleteContextAccountCommand;
-    private CancellationTokenSource? _codeLifetime;
+    private CancellationTokenSource? _rowCodeLifetime;
     private CancellationTokenSource? _recentHighlightLifetime;
     private IReadOnlyList<AccountListItemViewModel> _allAccounts = [];
     private IReadOnlyList<AccountListItemViewModel> _accounts = [];
@@ -92,6 +93,9 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             GenerateCodeAsync,
             () => !_isGenerating && _selectedAccount is not null);
         _copyCommand = new AsyncCommand(CopyCodeAsync, () => HasGeneratedCode);
+        _copyAccountCodeCommand = new AsyncCommand<AccountListItemViewModel>(
+            CopyAccountCodeAsync,
+            _ => true);
         _generateQrCommand = new AsyncCommand(GenerateQrAsync, () => _selectedAccount is not null);
         _beginAddCommand = new AsyncCommand(BeginAddAsync, () => !IsBusy && !IsEditorVisible);
         _beginEditCommand = new AsyncCommand(
@@ -140,7 +144,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         set
         {
             if (!SetField(ref _selectedAccount, value)) return;
-            ClearGeneratedCode();
+            ClearSelectedCodeProjection();
             ClearQrImage();
             _generateCommand.NotifyCanExecuteChanged();
             _generateQrCommand.NotifyCanExecuteChanged();
@@ -153,7 +157,14 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     }
 
     public void EnableAutomaticCodeGenerationOnSelection() =>
+        EnableAutomaticRowCodeGeneration();
+
+    private void EnableAutomaticRowCodeGeneration()
+    {
         _autoGenerateCodeOnSelection = true;
+        if (_allAccounts.Count > 0)
+            StartRowCodeLifetime(refreshImmediately: true);
+    }
 
     public bool HasSelectedAccount => SelectedAccount is not null;
 
@@ -239,6 +250,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     public ICommand CopyCommand => _copyCommand;
 
+    public ICommand CopyAccountCodeCommand => _copyAccountCodeCommand;
+
     public ICommand GenerateQrCommand => _generateQrCommand;
 
     public ICommand BeginAddCommand => _beginAddCommand;
@@ -315,6 +328,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         if (IsBusy) return;
 
         IsBusy = true;
+        StopAndClearRowCodes();
         ClearNotification();
         try
         {
@@ -333,11 +347,14 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                     account.ID,
                     account.Issuer,
                     account.AccountName ?? string.Empty,
-                    account.ID == recentlyAddedAccountId))
+                    account.ID == recentlyAddedAccountId,
+                    _copyAccountCodeCommand))
                 .ToArray();
             ApplyFilter();
             StartRecentHighlightLifetime(
                 _allAccounts.FirstOrDefault(account => account.IsRecentlyAdded));
+            if (_autoGenerateCodeOnSelection)
+                StartRowCodeLifetime(refreshImmediately: true);
         }
         catch (Exception)
         {
@@ -356,9 +373,17 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         var requestedAccount = _selectedAccount;
         if (requestedAccount is null || _isGenerating) return;
 
+        if (requestedAccount.HasCode)
+        {
+            ProjectSelectedCode(requestedAccount);
+            if (_autoGenerateCodeOnSelection)
+                await CopyAccountCodeAsync(requestedAccount);
+            return;
+        }
+
         _isGenerating = true;
         _generateCommand.NotifyCanExecuteChanged();
-        ClearGeneratedCode();
+        ClearSelectedCodeProjection();
         try
         {
             var result = await _accountTotpService.GenerateAsync(requestedAccount.Id);
@@ -370,18 +395,16 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                 return;
             }
 
-            GeneratedCode = result.Value.Code;
-            RemainingSeconds = Math.Max(1, result.Value.RemainingSeconds);
-            PeriodSeconds = Math.Max(RemainingSeconds, result.Value.PeriodSeconds);
-            var codeLifetime = new CancellationTokenSource();
-            _codeLifetime = codeLifetime;
-            _ = RunCodeCountdownAsync(
-                requestedAccount.Id,
-                codeLifetime);
+            requestedAccount.UpdateCode(
+                result.Value.Code,
+                result.Value.RemainingSeconds,
+                result.Value.PeriodSeconds);
+            ProjectSelectedCode(requestedAccount);
+            StartRowCodeLifetime(refreshImmediately: false);
             if (_autoGenerateCodeOnSelection
                 && _selectedAccount?.Id == requestedAccount.Id)
             {
-                await CopyCodeAsync();
+                await CopyAccountCodeAsync(requestedAccount);
             }
         }
         catch (Exception)
@@ -405,11 +428,22 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     public async Task CopyCodeAsync()
     {
-        if (!HasGeneratedCode) return;
+        if (_selectedAccount is not { HasCode: true } account) return;
+        await CopyAccountCodeAsync(account);
+    }
+
+    public async Task CopyAccountCodeAsync(AccountListItemViewModel account)
+    {
+        ArgumentNullException.ThrowIfNull(account);
+        if (!account.HasCode || !_allAccounts.Contains(account) && !ReferenceEquals(account, _selectedAccount))
+            return;
+
+        var code = account.Code;
+        var remainingSeconds = Math.Max(1, account.RemainingSeconds);
 
         if (_settingsService?.Current.ClearClipboardEnabled == false)
         {
-            var copyResult = await _clipboardService.CopyAsync(GeneratedCode);
+            var copyResult = await _clipboardService.CopyAsync(code);
             SetLocalizedCodeMessage(
                 copyResult.IsSuccess
                     ? AvaloniaStringKeys.CodeCopied
@@ -418,10 +452,10 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         }
 
         var configuredLifetime = _settingsService?.Current.ClearClipboardSeconds
-            ?? RemainingSeconds;
-        var clearSeconds = Math.Max(1, Math.Min(RemainingSeconds, configuredLifetime));
+            ?? remainingSeconds;
+        var clearSeconds = Math.Max(1, Math.Min(remainingSeconds, configuredLifetime));
         var clearResult = await _clipboardService.CopyAndScheduleClearAsync(
-            GeneratedCode,
+            code,
             TimeSpan.FromSeconds(clearSeconds));
         if (clearResult.IsSuccess)
         {
@@ -433,7 +467,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             ClipboardCapabilities.WriteText | ClipboardCapabilities.ConditionalClear;
         if ((_clipboardService.Capabilities & requiredCapabilities) == ClipboardCapabilities.WriteText)
         {
-            var fallbackResult = await _clipboardService.CopyAsync(GeneratedCode);
+            var fallbackResult = await _clipboardService.CopyAsync(code);
             SetLocalizedCodeMessage(
                 fallbackResult.IsSuccess
                     ? AvaloniaStringKeys.CodeCopiedWithoutClear
@@ -730,33 +764,49 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private async Task RunCodeCountdownAsync(Guid accountId, CancellationTokenSource lifetime)
+    public void ResumeRowCodeGeneration()
+    {
+        if (_autoGenerateCodeOnSelection && _allAccounts.Count > 0)
+            StartRowCodeLifetime(refreshImmediately: true);
+    }
+
+    private void StartRowCodeLifetime(bool refreshImmediately)
+    {
+        var previousLifetime = _rowCodeLifetime;
+        _rowCodeLifetime = null;
+        previousLifetime?.Cancel();
+        previousLifetime?.Dispose();
+
+        var lifetime = new CancellationTokenSource();
+        _rowCodeLifetime = lifetime;
+        _ = RunRowCodeLifetimeAsync(lifetime, refreshImmediately);
+    }
+
+    private async Task RunRowCodeLifetimeAsync(
+        CancellationTokenSource lifetime,
+        bool refreshImmediately)
     {
         var cancellationToken = lifetime.Token;
         try
         {
+            if (refreshImmediately)
+                await RefreshAccountRowsAsync(GetTrackedAccounts(), cancellationToken);
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(_countdownTickInterval, cancellationToken);
-                if (RemainingSeconds > 1)
-                {
-                    RemainingSeconds--;
-                    continue;
-                }
+                var accounts = GetTrackedAccounts();
+                foreach (var account in accounts)
+                    account.Tick();
 
-                var refreshed = await _accountTotpService.GenerateAsync(accountId);
-                if (refreshed.IsFailed
-                    || SelectedAccount?.Id != accountId
-                    || cancellationToken.IsCancellationRequested)
-                {
-                    ClearGeneratedCodeWithoutCancellingTimer();
-                    SetLocalizedCodeMessage(AvaloniaStringKeys.CodeRefreshFailed);
-                    return;
-                }
+                if (_selectedAccount is not null)
+                    ProjectSelectedCode(_selectedAccount);
 
-                GeneratedCode = refreshed.Value.Code;
-                RemainingSeconds = Math.Max(1, refreshed.Value.RemainingSeconds);
-                PeriodSeconds = Math.Max(RemainingSeconds, refreshed.Value.PeriodSeconds);
+                var expiredAccounts = accounts
+                    .Where(account => account.RemainingSeconds == 0)
+                    .ToArray();
+                if (expiredAccounts.Length > 0)
+                    await RefreshAccountRowsAsync(expiredAccounts, cancellationToken);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -764,23 +814,80 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         }
         finally
         {
-            if (ReferenceEquals(_codeLifetime, lifetime))
+            if (ReferenceEquals(_rowCodeLifetime, lifetime))
             {
-                _codeLifetime = null;
+                _rowCodeLifetime = null;
                 lifetime.Dispose();
             }
         }
     }
 
-    private void ClearGeneratedCode()
+    private async Task RefreshAccountRowsAsync(
+        IReadOnlyList<AccountListItemViewModel> accounts,
+        CancellationToken cancellationToken)
     {
-        _codeLifetime?.Cancel();
-        _codeLifetime?.Dispose();
-        _codeLifetime = null;
-        ClearGeneratedCodeWithoutCancellingTimer();
+        foreach (var account in accounts)
+            account.ClearCode();
+        if (accounts.Count == 0) return;
+
+        FluentResults.Result<AccountTotpGenerationBatch> refreshed;
+        try
+        {
+            refreshed = await _accountTotpService.GenerateManyAsync(
+                accounts.Select(account => account.Id).ToArray());
+        }
+        catch (Exception)
+        {
+            SetLocalizedCodeMessage(AvaloniaStringKeys.CodeRefreshFailed);
+            return;
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+            return;
+        if (refreshed.IsFailed)
+        {
+            SetLocalizedCodeMessage(AvaloniaStringKeys.CodeRefreshFailed);
+            return;
+        }
+
+        var refreshFailed = refreshed.Value.FailedAccountIds.Count > 0;
+        foreach (var account in accounts)
+        {
+            if (!GetTrackedAccounts().Contains(account)) continue;
+            if (!refreshed.Value.Codes.TryGetValue(account.Id, out var generated))
+            {
+                refreshFailed = true;
+                continue;
+            }
+
+            account.UpdateCode(
+                generated.Code,
+                generated.RemainingSeconds,
+                generated.PeriodSeconds);
+            if (ReferenceEquals(account, _selectedAccount))
+                ProjectSelectedCode(account);
+        }
+
+        if (refreshFailed)
+            SetLocalizedCodeMessage(AvaloniaStringKeys.CodeRefreshFailed);
     }
 
-    private void ClearGeneratedCodeWithoutCancellingTimer()
+    private IReadOnlyList<AccountListItemViewModel> GetTrackedAccounts()
+    {
+        if (_selectedAccount is null || _allAccounts.Contains(_selectedAccount))
+            return _allAccounts;
+
+        return [_selectedAccount];
+    }
+
+    private void ProjectSelectedCode(AccountListItemViewModel account)
+    {
+        GeneratedCode = account.Code;
+        RemainingSeconds = account.RemainingSeconds;
+        PeriodSeconds = account.PeriodSeconds;
+    }
+
+    private void ClearSelectedCodeProjection()
     {
         GeneratedCode = string.Empty;
         RemainingSeconds = 0;
@@ -794,13 +901,14 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         Notification.PropertyChanged -= NotificationPropertyChanged;
         Notification.Dispose();
         ClearRecentHighlight();
-        ClearGeneratedCode();
+        StopAndClearRowCodes();
         ClearQrImage();
         ClearEditor();
     }
 
     public void Clear()
     {
+        StopAndClearRowCodes();
         ClearNotification();
         ClearRecentHighlight();
         ContextAccount = null;
@@ -808,16 +916,26 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         SearchText = string.Empty;
         _allAccounts = [];
         Accounts = [];
-        ClearGeneratedCode();
         ClearQrImage();
         ClearEditor();
     }
 
     public void ClearSensitiveOutput()
     {
-        ClearGeneratedCode();
+        StopAndClearRowCodes();
         ClearQrImage();
         ClearEditor();
+    }
+
+    private void StopAndClearRowCodes()
+    {
+        var lifetime = _rowCodeLifetime;
+        _rowCodeLifetime = null;
+        lifetime?.Cancel();
+        lifetime?.Dispose();
+        foreach (var account in GetTrackedAccounts())
+            account.ClearCode();
+        ClearSelectedCodeProjection();
     }
 
     public void NotifySettingsChanged() => OnPropertyChanged(nameof(QrPreviewSize));

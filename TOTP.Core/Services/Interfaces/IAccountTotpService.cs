@@ -6,4 +6,7 @@ namespace TOTP.Core.Services.Interfaces;
 public interface IAccountTotpService
 {
     Task<Result<TotpGenerationResult>> GenerateAsync(Guid accountId);
+
+    Task<Result<AccountTotpGenerationBatch>> GenerateManyAsync(
+        IReadOnlyCollection<Guid> accountIds);
 }
