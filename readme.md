@@ -31,6 +31,40 @@
 
 Accounts currently use the common TOTP profile: SHA-1, six digits, and a 30-second period.
 
+## Desktop experience
+
+<table>
+  <tr>
+    <td><img src="docs/images/readme/desktop-edit-account.png" alt="OTP Harbor edit-account panel with a masked Base32 secret" /></td>
+    <td><img src="docs/images/readme/desktop-security-settings.png" alt="OTP Harbor security settings with quick unlock and recovery options" /></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Edit accounts without exposing stored secrets</strong></td>
+    <td align="center"><strong>Configure quick unlock and recovery</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/readme/desktop-qr-preview-sanitized.jpg" alt="Sanitized OTP Harbor account QR preview with no scannable payload" /></td>
+    <td><img src="docs/images/readme/desktop-quick-unlock.png" alt="OTP Harbor locked-vault screen offering quick unlock or master-password recovery" /></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Export an account with an explicit secret warning</strong></td>
+    <td align="center"><strong>Unlock quickly with a recovery path</strong></td>
+  </tr>
+</table>
+
+The QR screenshot is intentionally sanitized and contains no scannable account payload.
+
+### Keyboard shortcuts
+
+| Action | Shortcut |
+| --- | --- |
+| Search accounts | <kbd>Ctrl</kbd> + <kbd>F</kbd> |
+| Add an account | <kbd>Ctrl</kbd> + <kbd>A</kbd> |
+| Edit the selected account | <kbd>Ctrl</kbd> + <kbd>E</kbd> |
+| Delete the selected account after confirmation | <kbd>Ctrl</kbd> + <kbd>D</kbd> or <kbd>Delete</kbd> |
+| Lock the vault | <kbd>Ctrl</kbd> + <kbd>L</kbd> |
+| Close the active search, editor, settings view, or QR preview | <kbd>Esc</kbd> |
+
 ## Distribution
 
 **Microsoft Store is the primary Windows distribution channel.** The Store listing is not public yet; the submission package and certification checklist are being prepared. Microsoft will sign the MSIX after successful certification and manage Store updates.
