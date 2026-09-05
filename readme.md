@@ -43,16 +43,16 @@ Accounts currently use the common TOTP profile: SHA-1, six digits, and a 30-seco
     <td align="center"><strong>Configure quick unlock and recovery</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/images/readme/desktop-qr-preview-sanitized.jpg" alt="Sanitized OTP Harbor account QR preview with no scannable payload" /></td>
+    <td><img src="docs/images/readme/desktop-qr-preview-sanitized.png" alt="OTP Harbor account QR preview containing only a synthetic test payload" /></td>
     <td><img src="docs/images/readme/desktop-quick-unlock.png" alt="OTP Harbor locked-vault screen offering quick unlock or master-password recovery" /></td>
   </tr>
   <tr>
-    <td align="center"><strong>Export an account with an explicit secret warning</strong></td>
+    <td align="center"><strong>Export an account via QR code</strong></td>
     <td align="center"><strong>Unlock quickly with a recovery path</strong></td>
   </tr>
 </table>
 
-The QR screenshot is intentionally sanitized and contains no scannable account payload.
+The QR screenshot is intentionally sanitized and contains only a published synthetic test secret. Never use it for a real account.
 
 ### Keyboard shortcuts
 
