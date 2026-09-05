@@ -214,16 +214,16 @@ public sealed class MobileShellViewModel :
             () => IsImportConfirmationVisible);
         _selectEnglishLanguageCommand = new MobileAsyncCommand(
             () => SelectLanguageAsync("en"),
-            () => IsSettingsVisible && !IsEnglishLanguageSelected && !IsBusy);
+            () => IsSettingsVisible && !IsBusy);
         _selectGermanLanguageCommand = new MobileAsyncCommand(
             () => SelectLanguageAsync("de"),
-            () => IsSettingsVisible && !IsGermanLanguageSelected && !IsBusy);
+            () => IsSettingsVisible && !IsBusy);
         _selectFrenchLanguageCommand = new MobileAsyncCommand(
             () => SelectLanguageAsync("fr"),
-            () => IsSettingsVisible && !IsFrenchLanguageSelected && !IsBusy);
+            () => IsSettingsVisible && !IsBusy);
         _selectSpanishLanguageCommand = new MobileAsyncCommand(
             () => SelectLanguageAsync("es"),
-            () => IsSettingsVisible && !IsSpanishLanguageSelected && !IsBusy);
+            () => IsSettingsVisible && !IsBusy);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

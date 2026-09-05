@@ -28,6 +28,10 @@
             <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
             <Setter Property="Foreground" Value="{DynamicResource BrushTextHighlight}" />
         </Style>
+        <Style Selector="Button.language-option.selected:disabled">
+            <Setter Property="Foreground" Value="{DynamicResource BrushTextHighlight}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
         <Style Selector="TextBox">
             <Setter Property="MinHeight" Value="52" />
             <Setter Property="FontSize" Value="16" />
