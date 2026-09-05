@@ -85,6 +85,8 @@
   <data name="QrAccountKeptBoth" xml:space="preserve"><value>Das QR-Konto wurde neben dem vorhandenen Konto hinzugefügt.</value></data>
   <data name="QrAccountDuplicate" xml:space="preserve"><value>Dieses QR-Konto ist bereits vorhanden und wurde nicht geändert.</value></data>
   <data name="QrImportCancelled" xml:space="preserve"><value>Der Import des QR-Kontos wurde abgebrochen.</value></data>
+  <data name="QrBulkImported" xml:space="preserve"><value>QR-Import: {0} importiert, {1} unverändert, {2} fehlgeschlagen.</value></data>
+  <data name="QrBulkImportedMore" xml:space="preserve"><value>QR-Code {0} von {1}: {2} importiert, {3} unverändert, {4} fehlgeschlagen. Scannen Sie den nächsten QR-Code.</value></data>
   <data name="QrConflictTitle" xml:space="preserve"><value>Konto bereits vorhanden</value></data>
   <data name="QrConflictMessage" xml:space="preserve"><value>{0} ({1}) ist bereits mit einem anderen Geheimnis vorhanden. Aktualisieren, beide Konten behalten oder abbrechen?</value></data>
   <data name="UpdateExisting" xml:space="preserve"><value>Vorhandenes aktualisieren</value></data>

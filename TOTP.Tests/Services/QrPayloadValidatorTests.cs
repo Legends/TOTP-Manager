@@ -53,4 +53,31 @@ public sealed class QrPayloadValidatorTests
 
         Assert.False(result.IsValid);
     }
+
+    [Fact]
+    public void Validate_WhenGoogleAuthenticatorMigrationPayloadIsValid_ReturnsSafeDescriptor()
+    {
+        const string payload =
+            "otpauth-migration://offline?data=CioKClRlc3RTZWNyZXQSDUV4YW1wbGU6YWxpY2UaB0V4YW1wbGUgASgBMAIQARgBIAAoKg%3D%3D";
+
+        var result = _sut.Validate(payload);
+
+        Assert.True(result.IsValid);
+        Assert.DoesNotContain("TestSecret", result.ToString(), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("otpauth-migration://offline?data=")]
+    [InlineData("otpauth-migration://offline?data=not-base64")]
+    [InlineData("otpauth-migration://offline?data=Cg%3D%3D")]
+    [InlineData("otpauth-migration://offline?data=CioKClRlc3RTZWNyZXQSDUV4YW1wbGU6YWxpY2UaB0V4YW1wbGUgASgBMAIQAhgBIAAoKg%3D%3D")]
+    public void Validate_WhenGoogleAuthenticatorMigrationPayloadIsMalformedOrUnsupported_FailsClosed(
+        string payload)
+    {
+        var result = _sut.Validate(payload);
+
+        Assert.False(result.IsValid);
+        Assert.Empty(result.Issuer);
+        Assert.Empty(result.AccountName);
+    }
 }

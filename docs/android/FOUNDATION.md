@@ -11,7 +11,7 @@ The current Android application provides:
 - password-based creation and unlocking of the production encrypted vault
 - account listing, manual creation, editing, and deletion
 - account search by issuer or account name
-- offline QR capture through the system camera, explicit conflict handling, and account QR display
+- offline QR capture through the system camera, including Google Authenticator bulk-migration QR codes, explicit conflict handling, and account QR display
 - encrypted backup import and export through Android's system document picker
 - current TOTP code and countdown display inside every visible account row
 - tap-to-copy account rows and thresholded swipe actions for QR display, editing, and confirmed
@@ -137,9 +137,11 @@ before the first store publication because a published application ID is effecti
   QR capture delegates still-image acquisition to the installed system camera and decodes only the
   returned in-memory preview with the embedded ZXing decoder. The release manifest requests neither
   network nor camera permission for this flow, the app does not write a captured image, accepts only
-  QR payloads, and validates the decoded `otpauth://` payload before persistence. Generated account
-  QR images and their sensitive PNG buffers are disposed when hidden, when the selection changes,
-  and whenever the app leaves the foreground.
+  QR payloads, and validates bounded `otpauth://` or Google Authenticator
+  `otpauth-migration://` payloads before persistence. Google migration protobuf bytes are decoded
+  only in memory and cleared after conversion; multi-account writes require a recovery backup.
+  Generated account QR images and their sensitive PNG buffers are disposed when hidden, when the
+  selection changes, and whenever the app leaves the foreground.
   Backup export passes account data directly to the existing encrypted stream format and never
   offers plaintext export. Backup passwords are removed from bound state before document I/O.
   Import decrypts only after document selection, requires an explicit count/conflict confirmation,

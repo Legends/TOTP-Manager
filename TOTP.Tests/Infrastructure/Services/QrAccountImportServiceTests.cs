@@ -1,5 +1,6 @@
 using FluentResults;
 using Moq;
+using System.Text;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Services.Models;
@@ -126,6 +127,138 @@ public sealed class QrAccountImportServiceTests
         accounts.Verify(value => value.GetAllOtpEntriesSortedAsync(), Times.Never);
     }
 
+    [Fact]
+    public async Task ImportAsync_WhenGoogleMigrationContainsMultipleAccounts_BacksUpAndImportsAll()
+    {
+        var accounts = Manager([]);
+        accounts.Setup(value => value.BackupOtpEntriesStorageFileAsync()).ReturnsAsync(Result.Ok());
+        var added = new List<Account>();
+        accounts.Setup(value => value.AddNewAsync(It.IsAny<Account>()))
+            .ReturnsAsync((Account account) =>
+            {
+                added.Add(account);
+                return Result.Ok();
+            });
+        var sut = new QrAccountImportService(accounts.Object);
+        var payload = MigrationPayload(
+            [
+                new MigrationAccount(
+                    Convert.FromHexString("48656C6C6F21DEADBEEF"),
+                    "Example:alice@example.com",
+                    "Example"),
+                new MigrationAccount(
+                    Convert.FromHexString("3132333435363738393031323334353637383930"),
+                    "bob@example.com",
+                    "Work")
+            ],
+            batchSize: 2,
+            batchIndex: 0);
+
+        var result = await sut.ImportAsync(
+            payload,
+            (_, _) => Task.FromResult(QrAccountConflictDecision.Cancel),
+            TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(QrAccountImportStatus.BulkImported, result.Value.Status);
+        Assert.Equal(2, result.Value.TotalCount);
+        Assert.Equal(2, result.Value.ImportedCount);
+        Assert.Equal(0, result.Value.DuplicateCount);
+        Assert.True(result.Value.HasMoreBatches);
+        Assert.Collection(
+            added,
+            account =>
+            {
+                Assert.Equal("Example", account.Issuer);
+                Assert.Equal("alice@example.com", account.AccountName);
+                Assert.Equal("JBSWY3DPEHPK3PXP", account.Secret);
+            },
+            account =>
+            {
+                Assert.Equal("Work", account.Issuer);
+                Assert.Equal("bob@example.com", account.AccountName);
+                Assert.Equal("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", account.Secret);
+            });
+        accounts.Verify(value => value.BackupOtpEntriesStorageFileAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task ImportAsync_WhenGoogleMigrationConflictIsCancelled_PerformsNoWrites()
+    {
+        var existing = Existing("KRUGS4ZANFZSAYJA");
+        var accounts = Manager([existing]);
+        var sut = new QrAccountImportService(accounts.Object);
+        var payload = MigrationPayload(
+            [
+                new MigrationAccount(
+                    Convert.FromHexString("3132333435363738393031323334353637383930"),
+                    "new@example.com",
+                    "Work"),
+                new MigrationAccount(
+                    Convert.FromHexString("48656C6C6F21DEADBEEF"),
+                    "Example:alice",
+                    "Example")
+            ]);
+
+        var result = await sut.ImportAsync(
+            payload,
+            (_, _) => Task.FromResult(QrAccountConflictDecision.Cancel),
+            TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(QrAccountImportStatus.Cancelled, result.Value.Status);
+        accounts.Verify(value => value.BackupOtpEntriesStorageFileAsync(), Times.Never);
+        accounts.Verify(value => value.AddNewAsync(It.IsAny<Account>()), Times.Never);
+        accounts.Verify(value => value.UpdateAsync(It.IsAny<Account>(), It.IsAny<Account>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ImportAsync_WhenGoogleMigrationContainsUnsupportedHotp_FailsBeforeAccountAccess()
+    {
+        var accounts = new Mock<IAccountManager>();
+        var sut = new QrAccountImportService(accounts.Object);
+        var payload = MigrationPayload(
+            [new MigrationAccount(
+                Convert.FromHexString("48656C6C6F21DEADBEEF"),
+                "alice",
+                "Example",
+                Type: 1)]);
+
+        var result = await sut.ImportAsync(
+            payload,
+            (_, _) => Task.FromResult(QrAccountConflictDecision.Cancel),
+            TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsFailed);
+        accounts.Verify(value => value.GetAllOtpEntriesSortedAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task ImportAsync_WhenGoogleMigrationWasAlreadyImported_RemainsIdempotent()
+    {
+        var existing = Existing("JBSWY3DPEHPK3PXP");
+        var accounts = Manager([existing]);
+        var sut = new QrAccountImportService(accounts.Object);
+        var payload = MigrationPayload(
+            [new MigrationAccount(
+                Convert.FromHexString("48656C6C6F21DEADBEEF"),
+                "Example:alice",
+                "Example")]);
+
+        var result = await sut.ImportAsync(
+            payload,
+            (_, _) => Task.FromResult(QrAccountConflictDecision.Cancel),
+            TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(QrAccountImportStatus.BulkImported, result.Value.Status);
+        Assert.Equal(0, result.Value.ImportedCount);
+        Assert.Equal(1, result.Value.DuplicateCount);
+        accounts.Verify(value => value.BackupOtpEntriesStorageFileAsync(), Times.Never);
+        accounts.Verify(value => value.AddNewAsync(It.IsAny<Account>()), Times.Never);
+        accounts.Verify(value => value.UpdateAsync(It.IsAny<Account>(), It.IsAny<Account>()), Times.Never);
+    }
+
     private static Mock<IAccountManager> Manager(IReadOnlyList<Account> existing)
     {
         var accounts = new Mock<IAccountManager>();
@@ -136,4 +269,65 @@ public sealed class QrAccountImportServiceTests
 
     private static Account Existing(string secret) =>
         new(Guid.NewGuid(), "Example", secret, "alice");
+
+    private sealed record MigrationAccount(
+        byte[] Secret,
+        string Name,
+        string Issuer,
+        int Algorithm = 1,
+        int Digits = 1,
+        int Type = 2);
+
+    private static string MigrationPayload(
+        IReadOnlyList<MigrationAccount> entries,
+        int batchSize = 1,
+        int batchIndex = 0,
+        int batchId = 42)
+    {
+        var payload = new List<byte>();
+        foreach (var entry in entries)
+            WriteBytes(payload, 1, EncodeAccount(entry));
+        WriteVarintField(payload, 2, 1);
+        WriteVarintField(payload, 3, batchSize);
+        WriteVarintField(payload, 4, batchIndex);
+        WriteVarintField(payload, 5, batchId);
+        return "otpauth-migration://offline?data="
+               + Uri.EscapeDataString(Convert.ToBase64String(payload.ToArray()));
+    }
+
+    private static byte[] EncodeAccount(MigrationAccount account)
+    {
+        var payload = new List<byte>();
+        WriteBytes(payload, 1, account.Secret);
+        WriteBytes(payload, 2, Encoding.UTF8.GetBytes(account.Name));
+        WriteBytes(payload, 3, Encoding.UTF8.GetBytes(account.Issuer));
+        WriteVarintField(payload, 4, account.Algorithm);
+        WriteVarintField(payload, 5, account.Digits);
+        WriteVarintField(payload, 6, account.Type);
+        return payload.ToArray();
+    }
+
+    private static void WriteBytes(List<byte> target, int field, byte[] value)
+    {
+        WriteVarint(target, (ulong)((field << 3) | 2));
+        WriteVarint(target, (ulong)value.Length);
+        target.AddRange(value);
+    }
+
+    private static void WriteVarintField(List<byte> target, int field, int value)
+    {
+        WriteVarint(target, (ulong)(field << 3));
+        WriteVarint(target, (ulong)value);
+    }
+
+    private static void WriteVarint(List<byte> target, ulong value)
+    {
+        while (value >= 0x80)
+        {
+            target.Add((byte)(value | 0x80));
+            value >>= 7;
+        }
+
+        target.Add((byte)value);
+    }
 }

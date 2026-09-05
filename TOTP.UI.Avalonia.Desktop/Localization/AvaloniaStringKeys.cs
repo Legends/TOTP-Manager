@@ -156,6 +156,8 @@ public static class AvaloniaStringKeys
     public const string QrAccountKeptBoth = nameof(QrAccountKeptBoth);
     public const string QrAccountDuplicate = nameof(QrAccountDuplicate);
     public const string QrImportCancelled = nameof(QrImportCancelled);
+    public const string QrBulkImported = nameof(QrBulkImported);
+    public const string QrBulkImportedMore = nameof(QrBulkImportedMore);
     public const string QrConflictTitle = nameof(QrConflictTitle);
     public const string QrConflictMessage = nameof(QrConflictMessage);
     public const string UpdateExisting = nameof(UpdateExisting);
@@ -323,7 +325,8 @@ public static class AvaloniaStringKeys
         CodeCopied, CodeCopiedWithClear, CodeCopiedWithoutClear, ClipboardCopyUnavailable,
         CodeRemainingTime, QrInvalid, QrImportFailed,
         QrAccountAdded, QrAccountUpdated, QrAccountKeptBoth, QrAccountDuplicate,
-        QrImportCancelled, QrConflictTitle, QrConflictMessage, UpdateExisting, KeepBoth,
+        QrImportCancelled, QrBulkImported, QrBulkImportedMore,
+        QrConflictTitle, QrConflictMessage, UpdateExisting, KeepBoth,
         LockOnSessionLock, ClearClipboard, ClipboardClearSeconds, QrPreviewScale,
         InterfaceScale, InterfaceScaleHelp, SystemInterfaceScale, InterfaceScaleRestartRequired,
         OpenExportAfter, LoggingLevel,

@@ -980,6 +980,15 @@ public sealed class MobileShellViewModel :
                         Get(MobileStringKeys.QrImportCancelled),
                         NotificationSeverity.Information);
                     break;
+                case QrAccountImportStatus.BulkImported:
+                    if (outcome.ImportedCount > 0)
+                        await LoadAccountsAsync(outcome.AccountId);
+                    SetNotification(
+                        FormatBulkImportMessage(outcome),
+                        outcome.FailedCount > 0
+                            ? NotificationSeverity.Warning
+                            : NotificationSeverity.Success);
+                    break;
             }
         }
         catch (OperationCanceledException)
@@ -997,6 +1006,26 @@ public sealed class MobileShellViewModel :
             IsBusy = false;
             TryStartAutomaticBiometricUnlock();
         }
+    }
+
+    private string FormatBulkImportMessage(QrAccountImportOutcome outcome)
+    {
+        if (outcome.HasMoreBatches)
+        {
+            return string.Format(
+                Get(MobileStringKeys.QrBulkImportedMore),
+                outcome.BatchIndex + 1,
+                outcome.BatchSize,
+                outcome.ImportedCount,
+                outcome.DuplicateCount,
+                outcome.FailedCount);
+        }
+
+        return string.Format(
+            Get(MobileStringKeys.QrBulkImported),
+            outcome.ImportedCount,
+            outcome.DuplicateCount,
+            outcome.FailedCount);
     }
 
     public async Task ShowQrAsync()
