@@ -31,6 +31,7 @@ if ((Get-Item -LiteralPath $socialPreviewPath).Length -ge 1MB) {
 foreach ($requiredText in @(
     '<title>OTP Harbor — Local-first TOTP authenticator</title>',
     '<meta name="google-site-verification" content="I36j8PWZYmhKsRKKNVM-fmcGW7wXbJ10fmbOe_4Az0U">',
+    '<meta name="msvalidate.01" content="EAC868BC10B59CB9E6BFF0CE79DEEBAC">',
     '<link rel="canonical" href="https://legends.github.io/otp-harbor/">',
     '<meta property="og:image" content="https://legends.github.io/otp-harbor/assets/social-preview.jpg">',
     'type="application/ld+json"',
