@@ -214,16 +214,16 @@ public sealed class MobileShellViewModel :
             () => IsImportConfirmationVisible);
         _selectEnglishLanguageCommand = new MobileAsyncCommand(
             () => SelectLanguageAsync("en"),
-            () => IsSettingsVisible && !IsEnglishLanguageSelected && !IsBusy);
+            () => IsSettingsVisible && !IsBusy);
         _selectGermanLanguageCommand = new MobileAsyncCommand(
             () => SelectLanguageAsync("de"),
-            () => IsSettingsVisible && !IsGermanLanguageSelected && !IsBusy);
+            () => IsSettingsVisible && !IsBusy);
         _selectFrenchLanguageCommand = new MobileAsyncCommand(
             () => SelectLanguageAsync("fr"),
-            () => IsSettingsVisible && !IsFrenchLanguageSelected && !IsBusy);
+            () => IsSettingsVisible && !IsBusy);
         _selectSpanishLanguageCommand = new MobileAsyncCommand(
             () => SelectLanguageAsync("es"),
-            () => IsSettingsVisible && !IsSpanishLanguageSelected && !IsBusy);
+            () => IsSettingsVisible && !IsBusy);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -1891,6 +1891,13 @@ public sealed class MobileShellViewModel :
     {
         foreach (var propertyName in LocalizedTextProperties)
             OnPropertyChanged(propertyName);
+
+        // Language buttons bind to these computed selection properties. They are
+        // state, not localized text, but must refresh together with the catalog.
+        OnPropertyChanged(nameof(IsEnglishLanguageSelected));
+        OnPropertyChanged(nameof(IsGermanLanguageSelected));
+        OnPropertyChanged(nameof(IsFrenchLanguageSelected));
+        OnPropertyChanged(nameof(IsSpanishLanguageSelected));
 
         NotifyCommands();
     }

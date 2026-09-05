@@ -387,6 +387,13 @@ public sealed class MobileShellViewModelTests
         await context.Sut.UnlockAsync();
         await context.Sut.ShowSettingsAsync();
 
+        var changedProperties = new List<string>();
+        context.Sut.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName is not null)
+                changedProperties.Add(args.PropertyName);
+        };
+
         await context.Sut.SelectLanguageAsync(cultureName);
 
         Assert.Equal(cultureName, context.SettingsValue.CultureName);
@@ -395,6 +402,10 @@ public sealed class MobileShellViewModelTests
         Assert.Equal(expectedSpanishSelection, context.Sut.IsSpanishLanguageSelected);
         Assert.False(context.Sut.IsEnglishLanguageSelected);
         Assert.False(context.Sut.IsGermanLanguageSelected);
+        Assert.Contains(nameof(MobileShellViewModel.IsEnglishLanguageSelected), changedProperties);
+        Assert.Contains(nameof(MobileShellViewModel.IsGermanLanguageSelected), changedProperties);
+        Assert.Contains(nameof(MobileShellViewModel.IsFrenchLanguageSelected), changedProperties);
+        Assert.Contains(nameof(MobileShellViewModel.IsSpanishLanguageSelected), changedProperties);
         context.Settings.Verify(value => value.SaveAsync(), Times.Once);
     }
 
