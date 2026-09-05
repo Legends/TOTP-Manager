@@ -1892,6 +1892,13 @@ public sealed class MobileShellViewModel :
         foreach (var propertyName in LocalizedTextProperties)
             OnPropertyChanged(propertyName);
 
+        // Language buttons bind to these computed selection properties. They are
+        // state, not localized text, but must refresh together with the catalog.
+        OnPropertyChanged(nameof(IsEnglishLanguageSelected));
+        OnPropertyChanged(nameof(IsGermanLanguageSelected));
+        OnPropertyChanged(nameof(IsFrenchLanguageSelected));
+        OnPropertyChanged(nameof(IsSpanishLanguageSelected));
+
         NotifyCommands();
     }
 
