@@ -86,6 +86,8 @@ L’entrée de compte chiffrée sera supprimée définitivement. Cette action es
   <data name="QrAccountKeptBoth" xml:space="preserve"><value>Compte QR ajouté à côté du compte existant.</value></data>
   <data name="QrAccountDuplicate" xml:space="preserve"><value>Ce compte QR existe déjà et n’a pas été modifié.</value></data>
   <data name="QrImportCancelled" xml:space="preserve"><value>Importation du compte QR annulée.</value></data>
+  <data name="QrBulkImported" xml:space="preserve"><value>Importation QR : {0} importé(s), {1} inchangé(s), {2} échec(s).</value></data>
+  <data name="QrBulkImportedMore" xml:space="preserve"><value>QR code {0} sur {1} : {2} importé(s), {3} inchangé(s), {4} échec(s). Scannez le QR code suivant.</value></data>
   <data name="QrConflictTitle" xml:space="preserve"><value>Le compte existe déjà</value></data>
   <data name="QrConflictMessage" xml:space="preserve"><value>{0} ({1}) existe déjà avec un autre secret. Le mettre à jour, conserver les deux comptes ou annuler ?</value></data>
   <data name="UpdateExisting" xml:space="preserve"><value>Mettre à jour l’existant</value></data>

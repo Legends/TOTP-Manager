@@ -70,6 +70,57 @@ public sealed class CameraScannerViewModelTests
     }
 
     [Fact]
+    public async Task StartAsync_WhenBulkMigrationIsImported_ShowsLocalizedBatchProgress()
+    {
+        const string payload = "otpauth-migration://offline?data=synthetic";
+        var runner = new Mock<IQrScannerRunner>();
+        runner.Setup(value => value.RunAsync(
+                It.IsAny<CancellationToken>(),
+                It.IsAny<Action<byte[]>>(),
+                It.IsAny<Action>(),
+                It.IsAny<Action>()))
+            .ReturnsAsync(QrScannerRunResult.Decoded(payload));
+        var validator = new Mock<IQrPayloadValidator>();
+        validator.Setup(value => value.Validate(payload))
+            .Returns(new QrPayloadValidationResult(true, "Example", "alice"));
+        var importedId = Guid.NewGuid();
+        var import = new Mock<IQrAccountImportService>();
+        import.Setup(value => value.ImportAsync(
+                payload,
+                It.IsAny<Func<QrAccountConflict, CancellationToken, Task<QrAccountConflictDecision>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(new QrAccountImportOutcome(
+                QrAccountImportStatus.BulkImported,
+                importedId,
+                "Example",
+                "alice",
+                TotalCount: 4,
+                AddedCount: 2,
+                UpdatedCount: 1,
+                DuplicateCount: 1,
+                BatchIndex: 0,
+                BatchSize: 2)));
+        var localization = new Mock<IAvaloniaLocalizationService>();
+        localization.Setup(value => value.GetString(It.IsAny<string>()))
+            .Returns((string key) => key == AvaloniaStringKeys.QrBulkImportedMore
+                ? "QR {0}/{1}: {2} imported, {3} unchanged, {4} failed. Continue."
+                : key);
+        using var sut = CreateSut(
+            runner.Object,
+            validator.Object,
+            importService: import.Object,
+            localization: localization.Object);
+        AccountImportedEventArgs? importedEvent = null;
+        sut.AccountImported += (_, args) => importedEvent = args;
+
+        await sut.StartAsync();
+
+        Assert.Equal("QR 1/2: 3 imported, 1 unchanged, 0 failed. Continue.", sut.Message);
+        Assert.Equal(importedId, importedEvent!.AccountId);
+        Assert.DoesNotContain("synthetic", sut.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task CancelAsync_WhenScannerIsIdle_RequestsDialogClose()
     {
         using var sut = CreateSut(Mock.Of<IQrScannerRunner>());

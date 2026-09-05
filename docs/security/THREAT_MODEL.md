@@ -55,6 +55,7 @@
 
 ## 5. Attack Surfaces
 - Import file parsing (`.totp`, `.json`, `.txt`, `.csv`)
+- QR parsing (`otpauth://` and bounded Google Authenticator `otpauth-migration://` payloads)
 - Export path handling
 - Password prompt and validation flows
 - Authorization-envelope and preferences file replacement

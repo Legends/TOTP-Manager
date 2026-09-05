@@ -294,17 +294,20 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
             return;
         }
 
-        Message = _localization.GetString(imported.Value.Status switch
-        {
-            QrAccountImportStatus.Added => AvaloniaStringKeys.QrAccountAdded,
-            QrAccountImportStatus.Updated => AvaloniaStringKeys.QrAccountUpdated,
-            QrAccountImportStatus.KeptBoth => AvaloniaStringKeys.QrAccountKeptBoth,
-            QrAccountImportStatus.DuplicateUnchanged => AvaloniaStringKeys.QrAccountDuplicate,
-            _ => AvaloniaStringKeys.QrImportCancelled
-        });
+        Message = imported.Value.Status == QrAccountImportStatus.BulkImported
+            ? FormatBulkImportMessage(imported.Value)
+            : _localization.GetString(imported.Value.Status switch
+            {
+                QrAccountImportStatus.Added => AvaloniaStringKeys.QrAccountAdded,
+                QrAccountImportStatus.Updated => AvaloniaStringKeys.QrAccountUpdated,
+                QrAccountImportStatus.KeptBoth => AvaloniaStringKeys.QrAccountKeptBoth,
+                QrAccountImportStatus.DuplicateUnchanged => AvaloniaStringKeys.QrAccountDuplicate,
+                _ => AvaloniaStringKeys.QrImportCancelled
+            });
         if (imported.Value.Status is QrAccountImportStatus.Added
             or QrAccountImportStatus.Updated
-            or QrAccountImportStatus.KeptBoth)
+            or QrAccountImportStatus.KeptBoth
+            or QrAccountImportStatus.BulkImported)
         {
             AccountImported?.Invoke(this, new AccountImportedEventArgs(
                 imported.Value.AccountId,
@@ -335,6 +338,26 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
                 _ => QrAccountConflictDecision.Cancel
             };
         }
+    }
+
+    private string FormatBulkImportMessage(QrAccountImportOutcome outcome)
+    {
+        if (outcome.HasMoreBatches)
+        {
+            return string.Format(
+                _localization.GetString(AvaloniaStringKeys.QrBulkImportedMore),
+                outcome.BatchIndex + 1,
+                outcome.BatchSize,
+                outcome.ImportedCount,
+                outcome.DuplicateCount,
+                outcome.FailedCount);
+        }
+
+        return string.Format(
+            _localization.GetString(AvaloniaStringKeys.QrBulkImported),
+            outcome.ImportedCount,
+            outcome.DuplicateCount,
+            outcome.FailedCount);
     }
 
     private string FailureMessage(QrScannerFailureKind failure)

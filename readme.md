@@ -21,7 +21,7 @@
 
 - AES-256-GCM encrypted local vault with Argon2id password derivation
 - Windows Hello and macOS quick unlock with master-password recovery
-- Account creation, editing, search, deletion, and QR import/export
+- Account creation, editing, search, deletion, QR import/export, and Google Authenticator bulk migration
 - Automatic clipboard clearing and idle/session locking
 - Encrypted `.totp` backup, restore, and conflict handling
 - English, German, French, and Spanish UI
@@ -78,7 +78,7 @@ The QR screenshot is intentionally sanitized and contains only a published synth
 | macOS ARM64 | Structural artifacts are built in CI; production distribution still requires signing and notarization |
 | Android 9 or newer | Development source only; a public APK requires production signing and supported Android CI |
 
-After launch, create a master password and add an account manually or scan an `otpauth://` QR code. Treat QR images, OTPs, seeds, exports, and backups as secrets.
+After launch, create a master password and add an account manually, scan an `otpauth://` QR code, or scan each QR code from a Google Authenticator bulk export in sequence. Treat QR images, OTPs, seeds, exports, and backups as secrets.
 
 Maintainers can follow the [Microsoft Store release guide](docs/release/MICROSOFT_STORE.md). The unsigned MSIX produced by the repository is exclusively a Partner Center submission input and must never be sideloaded or attached to a GitHub Release.
 

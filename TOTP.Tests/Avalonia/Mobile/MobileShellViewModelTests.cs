@@ -655,6 +655,50 @@ public sealed class MobileShellViewModelTests
     }
 
     [Fact]
+    public async Task ScanQrAsync_WhenBulkMigrationIsImported_ShowsLocalizedBatchProgress()
+    {
+        const string payload = "otpauth-migration://offline?data=synthetic";
+        var importedId = Guid.NewGuid();
+        var context = CreateContext(isConfigured: true, cultureName: "de");
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.QrScanner.Setup(value => value.ScanAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MobileQrScanResult.Successful(payload));
+        context.QrImport.Setup(value => value.ImportAsync(
+                payload,
+                It.IsAny<Func<QrAccountConflict, CancellationToken, Task<QrAccountConflictDecision>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok(new QrAccountImportOutcome(
+                QrAccountImportStatus.BulkImported,
+                importedId,
+                "Example",
+                "user",
+                TotalCount: 3,
+                AddedCount: 2,
+                DuplicateCount: 1,
+                BatchIndex: 0,
+                BatchSize: 2)));
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+
+        await context.Sut.ScanQrAsync();
+
+        Assert.Equal(
+            string.Format(
+                context.Strings.Get(MobileStringKeys.QrBulkImportedMore),
+                1,
+                2,
+                2,
+                1,
+                0),
+            context.Sut.NotificationText);
+        Assert.DoesNotContain("Scan the next", context.Sut.NotificationText, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task ScanQrAsync_WhenAccountConflicts_UsesLocalizedExplicitDecision()
     {
         const string payload =
