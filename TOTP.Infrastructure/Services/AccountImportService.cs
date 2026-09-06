@@ -80,7 +80,12 @@ public sealed class AccountImportService(IAccountManager accountManager) : IAcco
             Result write;
             if (match is not null && strategy == ImportConflictStrategy.ReplaceExisting)
             {
-                var replacement = new Account(match.ID, incoming.Issuer, incoming.Secret, incoming.AccountName);
+                var replacement = new Account(
+                    match.ID,
+                    incoming.Issuer,
+                    incoming.Secret,
+                    incoming.AccountName,
+                    incoming.PeriodSeconds);
                 write = await accountManager.UpdateAsync(match, replacement);
                 if (write.IsSuccess)
                 {
@@ -96,7 +101,8 @@ public sealed class AccountImportService(IAccountManager accountManager) : IAcco
                         working.Any(value => value.ID == incoming.ID) ? Guid.NewGuid() : incoming.ID,
                         incoming.Issuer,
                         incoming.Secret,
-                        incoming.AccountName)
+                        incoming.AccountName,
+                        incoming.PeriodSeconds)
                     : CreateKeepBoth(incoming, working);
                 write = await accountManager.AddNewAsync(added);
                 if (write.IsSuccess)
@@ -129,7 +135,8 @@ public sealed class AccountImportService(IAccountManager accountManager) : IAcco
             if (string.IsNullOrWhiteSpace(issuer)
                 || issuer.Length > 256
                 || (accountName?.Length ?? 0) > 256
-                || !SecretValidation.IsValidBase32Secret(account.Secret))
+                || !SecretValidation.IsValidBase32Secret(account.Secret)
+                || !TotpPeriodPolicy.IsSupported(account.PeriodSeconds))
             {
                 validated.Clear();
                 return false;
@@ -139,7 +146,8 @@ public sealed class AccountImportService(IAccountManager accountManager) : IAcco
                 account.ID == Guid.Empty ? Guid.NewGuid() : account.ID,
                 issuer,
                 SecretValidation.NormalizeBase32Secret(account.Secret),
-                string.IsNullOrWhiteSpace(accountName) ? null : accountName));
+                string.IsNullOrWhiteSpace(accountName) ? null : accountName,
+                account.PeriodSeconds));
         }
 
         return true;
@@ -163,7 +171,8 @@ public sealed class AccountImportService(IAccountManager accountManager) : IAcco
         && string.Equals(
             SecretValidation.NormalizeBase32Secret(left.Secret),
             SecretValidation.NormalizeBase32Secret(right.Secret),
-            StringComparison.Ordinal);
+            StringComparison.Ordinal)
+        && left.PeriodSeconds == right.PeriodSeconds;
 
     private static Account CreateKeepBoth(Account incoming, IReadOnlyCollection<Account> accounts)
     {
@@ -179,6 +188,11 @@ public sealed class AccountImportService(IAccountManager accountManager) : IAcco
             string.Equals(account.Issuer, issuer, StringComparison.OrdinalIgnoreCase)
             && string.Equals(account.AccountName, incoming.AccountName, StringComparison.OrdinalIgnoreCase)));
 
-        return new Account(Guid.NewGuid(), issuer, incoming.Secret, incoming.AccountName);
+        return new Account(
+            Guid.NewGuid(),
+            issuer,
+            incoming.Secret,
+            incoming.AccountName,
+            incoming.PeriodSeconds);
     }
 }

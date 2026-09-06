@@ -61,7 +61,9 @@ namespace TOTP.Infrastructure.Parser
 
             var issuer = issuerParam ?? issuerFromPath;
             var digits = int.TryParse(digitsStr, out var d) ? d : 6;
-            var period = int.TryParse(periodStr, out var p) ? p : 30;
+            var period = TotpPeriodPolicy.DefaultSeconds;
+            if (periodStr is not null && !int.TryParse(periodStr, out period))
+                throw new ArgumentException("Invalid 'period' parameter.");
 
             return new TOTPData
             {

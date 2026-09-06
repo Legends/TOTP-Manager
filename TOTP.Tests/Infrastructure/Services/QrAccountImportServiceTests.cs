@@ -39,7 +39,59 @@ public sealed class QrAccountImportServiceTests
         Assert.Equal("Example", added.Issuer);
         Assert.Equal("alice", added.AccountName);
         Assert.Equal("JBSWY3DPEHPK3PXP", added.Secret);
+        Assert.Equal(30, added.PeriodSeconds);
         resolver.Verify(value => value(It.IsAny<QrAccountConflict>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ImportAsync_WhenCustomPeriodIsSupported_PreservesPeriod()
+    {
+        var accounts = Manager([]);
+        Account? added = null;
+        accounts.Setup(value => value.AddNewAsync(It.IsAny<Account>()))
+            .ReturnsAsync((Account account) =>
+            {
+                added = account;
+                return Result.Ok();
+            });
+        var sut = new QrAccountImportService(accounts.Object);
+
+        var result = await sut.ImportAsync(
+            Payload + "&period=60",
+            (_, _) => Task.FromResult(QrAccountConflictDecision.Cancel),
+            TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(60, added!.PeriodSeconds);
+    }
+
+    [Fact]
+    public async Task ImportAsync_WhenOnlyPeriodDiffers_RequiresConflictDecisionAndUpdatesPeriod()
+    {
+        var existing = new Account(
+            Guid.NewGuid(),
+            "Example",
+            "JBSWY3DPEHPK3PXP",
+            "alice",
+            30);
+        var accounts = Manager([existing]);
+        Account? updated = null;
+        accounts.Setup(value => value.UpdateAsync(existing, It.IsAny<Account>()))
+            .ReturnsAsync((Account _, Account account) =>
+            {
+                updated = account;
+                return Result.Ok();
+            });
+        var sut = new QrAccountImportService(accounts.Object);
+
+        var result = await sut.ImportAsync(
+            Payload + "&period=60",
+            (_, _) => Task.FromResult(QrAccountConflictDecision.UpdateExisting),
+            TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(QrAccountImportStatus.Updated, result.Value.Status);
+        Assert.Equal(60, updated!.PeriodSeconds);
     }
 
     [Fact]

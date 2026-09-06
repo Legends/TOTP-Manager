@@ -1,22 +1,29 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using TOTP.Core.Validation;
 
 namespace TOTP.Avalonia.Mobile.Presentation;
 
 public sealed class MobileAccountItem(
     Guid id,
     string issuer,
-    string accountName) : INotifyPropertyChanged
+    string accountName,
+    int configuredPeriodSeconds = TotpPeriodPolicy.DefaultSeconds,
+    string customPeriodLabel = "") : INotifyPropertyChanged
 {
     private string _code = string.Empty;
     private int _remainingSeconds;
-    private int _periodSeconds = 30;
+    private int _periodSeconds = configuredPeriodSeconds;
+    private string _customPeriodLabel = customPeriodLabel;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public Guid Id { get; } = id;
     public string Issuer { get; } = issuer;
     public string AccountName { get; } = accountName;
+    public int ConfiguredPeriodSeconds { get; } = configuredPeriodSeconds;
+    public bool HasCustomPeriod => ConfiguredPeriodSeconds != TotpPeriodPolicy.DefaultSeconds;
+    public string CustomPeriodLabel => _customPeriodLabel;
     public bool HasAccountName => AccountName.Length > 0;
     public string Code => _code;
     public string DisplayCode => FormatCode(_code);
@@ -42,11 +49,18 @@ public sealed class MobileAccountItem(
         OnPropertyChanged(nameof(RemainingSeconds));
     }
 
+    internal void UpdateCustomPeriodLabel(string label)
+    {
+        if (_customPeriodLabel == label) return;
+        _customPeriodLabel = label;
+        OnPropertyChanged(nameof(CustomPeriodLabel));
+    }
+
     internal void ClearCode()
     {
         _code = string.Empty;
         _remainingSeconds = 0;
-        _periodSeconds = 30;
+        _periodSeconds = ConfiguredPeriodSeconds;
         NotifyCodeChanged();
     }
 

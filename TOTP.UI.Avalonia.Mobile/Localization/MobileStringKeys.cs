@@ -46,6 +46,7 @@ public static class MobileStringKeys
     public const string QrImportCancelled = nameof(QrImportCancelled);
     public const string QrBulkImported = nameof(QrBulkImported);
     public const string QrBulkImportedMore = nameof(QrBulkImportedMore);
+    public const string QrMigrationConfirmation = nameof(QrMigrationConfirmation);
     public const string QrConflictTitle = nameof(QrConflictTitle);
     public const string QrConflictPrompt = nameof(QrConflictPrompt);
     public const string UpdateExisting = nameof(UpdateExisting);
@@ -84,6 +85,11 @@ public static class MobileStringKeys
     public const string AccountName = nameof(AccountName);
     public const string Secret = nameof(Secret);
     public const string SecretOptionalOnEdit = nameof(SecretOptionalOnEdit);
+    public const string AdvancedOptions = nameof(AdvancedOptions);
+    public const string TotpPeriod = nameof(TotpPeriod);
+    public const string TotpPeriodHelp = nameof(TotpPeriodHelp);
+    public const string TotpPeriodInvalid = nameof(TotpPeriodInvalid);
+    public const string CustomPeriodFormat = nameof(CustomPeriodFormat);
     public const string Save = nameof(Save);
     public const string Cancel = nameof(Cancel);
     public const string IssuerRequired = nameof(IssuerRequired);
@@ -166,6 +172,7 @@ public static class MobileStringKeys
         QrImportCancelled,
         QrBulkImported,
         QrBulkImportedMore,
+        QrMigrationConfirmation,
         QrConflictTitle,
         QrConflictPrompt,
         UpdateExisting,
@@ -204,6 +211,11 @@ public static class MobileStringKeys
         AccountName,
         Secret,
         SecretOptionalOnEdit,
+        AdvancedOptions,
+        TotpPeriod,
+        TotpPeriodHelp,
+        TotpPeriodInvalid,
+        CustomPeriodFormat,
         Save,
         Cancel,
         IssuerRequired,

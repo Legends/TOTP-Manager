@@ -45,15 +45,23 @@ public sealed class OtpauthParserTests
     }
 
     [Fact]
-    public void Parse_WhenDigitsAndPeriodInvalid_UsesDefaults()
+    public void Parse_WhenDigitsInvalidAndPeriodMissing_UsesDefaults()
     {
-        var uri = "otpauth://totp/John?secret=JBSWY3DPEHPK3PXP&digits=abc&period=xyz";
+        var uri = "otpauth://totp/John?secret=JBSWY3DPEHPK3PXP&digits=abc";
 
         var parsed = OtpauthParser.Parse(uri);
 
         Assert.Equal(6, parsed.Digits);
         Assert.Equal(30, parsed.Period);
         Assert.Equal("SHA1", parsed.Algorithm);
+    }
+
+    [Fact]
+    public void Parse_WhenPeriodIsMalformed_ThrowsArgumentException()
+    {
+        var uri = "otpauth://totp/John?secret=JBSWY3DPEHPK3PXP&period=xyz";
+
+        Assert.Throws<ArgumentException>(() => OtpauthParser.Parse(uri));
     }
 
     [Theory]

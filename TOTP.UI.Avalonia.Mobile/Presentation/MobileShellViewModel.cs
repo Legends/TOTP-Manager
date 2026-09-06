@@ -31,6 +31,7 @@ public sealed class MobileShellViewModel :
     private readonly IAccountTotpService _accountTotp;
     private readonly IAsyncClipboardService _clipboard;
     private readonly IMobileQrScanner _qrScanner;
+    private readonly IQrPayloadValidator _qrPayloadValidator;
     private readonly IQrAccountImportService _qrImport;
     private readonly IAccountQrCodeService _accountQrCode;
     private readonly IMobileQrImageFactory _qrImageFactory;
@@ -94,6 +95,8 @@ public sealed class MobileShellViewModel :
     private string _editorIssuer = string.Empty;
     private string _editorAccountName = string.Empty;
     private string _editorSecret = string.Empty;
+    private int _editorPeriodSeconds = TotpPeriodPolicy.DefaultSeconds;
+    private bool _isAdvancedOptionsExpanded;
     private bool _isQrConflictVisible;
     private string _qrConflictDisplayName = string.Empty;
     private TaskCompletionSource<QrAccountConflictDecision>? _qrConflictCompletion;
@@ -119,6 +122,7 @@ public sealed class MobileShellViewModel :
         IAccountTotpService accountTotp,
         IAsyncClipboardService clipboard,
         IMobileQrScanner qrScanner,
+        IQrPayloadValidator qrPayloadValidator,
         IQrAccountImportService qrImport,
         IAccountQrCodeService accountQrCode,
         IMobileQrImageFactory qrImageFactory,
@@ -137,6 +141,8 @@ public sealed class MobileShellViewModel :
         _accountTotp = accountTotp ?? throw new ArgumentNullException(nameof(accountTotp));
         _clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
         _qrScanner = qrScanner ?? throw new ArgumentNullException(nameof(qrScanner));
+        _qrPayloadValidator = qrPayloadValidator
+            ?? throw new ArgumentNullException(nameof(qrPayloadValidator));
         _qrImport = qrImport ?? throw new ArgumentNullException(nameof(qrImport));
         _accountQrCode = accountQrCode ?? throw new ArgumentNullException(nameof(accountQrCode));
         _qrImageFactory = qrImageFactory ?? throw new ArgumentNullException(nameof(qrImageFactory));
@@ -514,6 +520,22 @@ public sealed class MobileShellViewModel :
         }
     }
 
+    public int EditorPeriodSeconds
+    {
+        get => _editorPeriodSeconds;
+        set
+        {
+            if (!SetField(ref _editorPeriodSeconds, value)) return;
+            ClearErrorNotification();
+        }
+    }
+
+    public bool IsAdvancedOptionsExpanded
+    {
+        get => _isAdvancedOptionsExpanded;
+        set => SetField(ref _isAdvancedOptionsExpanded, value);
+    }
+
     public string EditorTitle => Get(_editingAccountId.HasValue
         ? MobileStringKeys.EditorEditTitle
         : MobileStringKeys.EditorAddTitle);
@@ -545,6 +567,9 @@ public sealed class MobileShellViewModel :
     public string LockText => Get(MobileStringKeys.Lock);
     public string IssuerText => Get(MobileStringKeys.Issuer);
     public string AccountNameText => Get(MobileStringKeys.AccountName);
+    public string AdvancedOptionsText => Get(MobileStringKeys.AdvancedOptions);
+    public string TotpPeriodText => Get(MobileStringKeys.TotpPeriod);
+    public string TotpPeriodHelpText => Get(MobileStringKeys.TotpPeriodHelp);
     public string SaveText => Get(MobileStringKeys.Save);
     public string CancelText => Get(MobileStringKeys.Cancel);
     public string CopyCodeText => Get(MobileStringKeys.CopyCode);
@@ -944,6 +969,22 @@ public sealed class MobileShellViewModel :
             }
 
             payload = scanned.Payload;
+            var validation = _qrPayloadValidator.Validate(payload);
+            if (!validation.IsValid)
+            {
+                SetError(MobileStringKeys.QrInvalid);
+                return;
+            }
+
+            if (validation.Kind == QrPayloadKind.GoogleAuthenticatorMigration
+                && !await ConfirmQrMigrationAsync(validation.AccountCount, operation.Token))
+            {
+                SetNotification(
+                    Get(MobileStringKeys.QrImportCancelled),
+                    NotificationSeverity.Information);
+                return;
+            }
+
             var imported = await _qrImport.ImportAsync(
                 payload,
                 ResolveQrConflictAsync,
@@ -1003,6 +1044,7 @@ public sealed class MobileShellViewModel :
             EndSensitiveOperation(operation);
             payload = null;
             CompleteQrConflict(QrAccountConflictDecision.Cancel);
+            CompleteImportConfirmation(false);
             IsBusy = false;
             TryStartAutomaticBiometricUnlock();
         }
@@ -1282,6 +1324,7 @@ public sealed class MobileShellViewModel :
         EditorIssuer = SelectedAccount.Issuer;
         EditorAccountName = SelectedAccount.AccountName;
         EditorSecret = string.Empty;
+        EditorPeriodSeconds = SelectedAccount.ConfiguredPeriodSeconds;
         IsDeleteConfirmationVisible = false;
         CancelCodeRefresh();
         IsEditorVisible = true;
@@ -1345,6 +1388,11 @@ public sealed class MobileShellViewModel :
                 SetError(MobileStringKeys.SecretInvalid);
                 return;
             }
+            if (!TotpPeriodPolicy.IsSupported(EditorPeriodSeconds))
+            {
+                SetError(MobileStringKeys.TotpPeriodInvalid);
+                return;
+            }
 
             if (loaded.Value.Any(account =>
                     account.ID != _editingAccountId
@@ -1362,7 +1410,8 @@ public sealed class MobileShellViewModel :
                 _editingAccountId ?? Guid.NewGuid(),
                 issuer,
                 secret,
-                accountName.Length == 0 ? null : accountName);
+                accountName.Length == 0 ? null : accountName,
+                EditorPeriodSeconds);
             var saved = existing is null
                 ? await _accountManager.AddNewAsync(updated)
                 : await _accountManager.UpdateAsync(existing, updated);
@@ -1562,7 +1611,9 @@ public sealed class MobileShellViewModel :
             _allAccounts.Add(new MobileAccountItem(
                 account.ID,
                 account.Issuer,
-                account.AccountName ?? string.Empty));
+                account.AccountName ?? string.Empty,
+                account.PeriodSeconds,
+                FormatCustomPeriod(account.PeriodSeconds)));
         }
 
         ApplyAccountFilter(selectedId);
@@ -1777,6 +1828,8 @@ public sealed class MobileShellViewModel :
         EditorIssuer = string.Empty;
         EditorAccountName = string.Empty;
         EditorSecret = string.Empty;
+        EditorPeriodSeconds = TotpPeriodPolicy.DefaultSeconds;
+        IsAdvancedOptionsExpanded = false;
         OnPropertyChanged(nameof(EditorTitle));
         OnPropertyChanged(nameof(EditorSecretPlaceholder));
     }
@@ -1842,17 +1895,33 @@ public sealed class MobileShellViewModel :
     private void CompleteQrConflict(QrAccountConflictDecision decision) =>
         _qrConflictCompletion?.TrySetResult(decision);
 
-    private async Task<bool> ConfirmImportAsync(
+    private Task<bool> ConfirmImportAsync(
         AccountImportPreview preview,
+        CancellationToken cancellationToken)
+        => ShowImportConfirmationAsync(
+            string.Format(
+                Get(MobileStringKeys.ImportConfirmation),
+                preview.TotalCount,
+                preview.ConflictCount),
+            cancellationToken);
+
+    private Task<bool> ConfirmQrMigrationAsync(
+        int accountCount,
+        CancellationToken cancellationToken)
+        => ShowImportConfirmationAsync(
+            string.Format(
+                Get(MobileStringKeys.QrMigrationConfirmation),
+                accountCount),
+            cancellationToken);
+
+    private async Task<bool> ShowImportConfirmationAsync(
+        string message,
         CancellationToken cancellationToken)
     {
         var completion = new TaskCompletionSource<bool>(
             TaskCreationOptions.RunContinuationsAsynchronously);
         _importConfirmationCompletion = completion;
-        ImportConfirmationText = string.Format(
-            Get(MobileStringKeys.ImportConfirmation),
-            preview.TotalCount,
-            preview.ConflictCount);
+        ImportConfirmationText = message;
         IsImportConfirmationVisible = true;
 
         using var cancellation = cancellationToken.Register(() =>
@@ -1921,6 +1990,9 @@ public sealed class MobileShellViewModel :
         foreach (var propertyName in LocalizedTextProperties)
             OnPropertyChanged(propertyName);
 
+        foreach (var account in _allAccounts)
+            account.UpdateCustomPeriodLabel(FormatCustomPeriod(account.ConfiguredPeriodSeconds));
+
         // Language buttons bind to these computed selection properties. They are
         // state, not localized text, but must refresh together with the catalog.
         OnPropertyChanged(nameof(IsEnglishLanguageSelected));
@@ -1930,6 +2002,10 @@ public sealed class MobileShellViewModel :
 
         NotifyCommands();
     }
+
+    private string FormatCustomPeriod(int periodSeconds) => string.Format(
+        Get(MobileStringKeys.CustomPeriodFormat),
+        periodSeconds);
 
     private void FailStartup()
     {
@@ -2091,6 +2167,9 @@ public sealed class MobileShellViewModel :
         nameof(LockText),
         nameof(IssuerText),
         nameof(AccountNameText),
+        nameof(AdvancedOptionsText),
+        nameof(TotpPeriodText),
+        nameof(TotpPeriodHelpText),
         nameof(SaveText),
         nameof(CancelText),
         nameof(CopyCodeText),

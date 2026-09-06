@@ -33,6 +33,9 @@ public static class AvaloniaStringKeys
     public const string VerifyAppcast = nameof(VerifyAppcast);
     public const string SoftwareUpdates = nameof(SoftwareUpdates);
     public const string ScanQrCamera = nameof(ScanQrCamera);
+    public const string QrScannerSupportedFormats = nameof(QrScannerSupportedFormats);
+    public const string QrMigrationConfirmationTitle = nameof(QrMigrationConfirmationTitle);
+    public const string QrMigrationConfirmationMessage = nameof(QrMigrationConfirmationMessage);
     public const string CancelScan = nameof(CancelScan);
     public const string CameraReconnectHint = nameof(CameraReconnectHint);
     public const string CameraReadyToStart = nameof(CameraReadyToStart);
@@ -75,6 +78,7 @@ public static class AvaloniaStringKeys
     public const string AccountsList = nameof(AccountsList);
     public const string GeneratedCode = nameof(GeneratedCode);
     public const string GeneratedQr = nameof(GeneratedQr);
+    public const string GeneratedQrTitleFormat = nameof(GeneratedQrTitleFormat);
     public const string QrPrivacyNotice = nameof(QrPrivacyNotice);
     public const string CameraPreview = nameof(CameraPreview);
     public const string CreatePasswordHeading = nameof(CreatePasswordHeading);
@@ -133,6 +137,11 @@ public static class AvaloniaStringKeys
     public const string Issuer = nameof(Issuer);
     public const string AccountName = nameof(AccountName);
     public const string Secret = nameof(Secret);
+    public const string AdvancedOptions = nameof(AdvancedOptions);
+    public const string TotpPeriod = nameof(TotpPeriod);
+    public const string TotpPeriodHelp = nameof(TotpPeriodHelp);
+    public const string TotpPeriodInvalid = nameof(TotpPeriodInvalid);
+    public const string CustomPeriodFormat = nameof(CustomPeriodFormat);
     public const string SaveAccount = nameof(SaveAccount);
     public const string CancelEdit = nameof(CancelEdit);
     public const string AccountIssuerRequired = nameof(AccountIssuerRequired);
@@ -294,7 +303,9 @@ public static class AvaloniaStringKeys
         ImportConflictHandling, ImportAccounts, EncryptedBackup, EncryptedBackupHelp,
         SupportDiagnostics, RefreshSupportInformation,
         DownloadUpdate, InstallUpdate, ReleaseNotes, VerifyAppcast, SoftwareUpdates,
-        ScanQrCamera, CancelScan, CameraReconnectHint, CameraReadyToStart, CameraSearching,
+        ScanQrCamera, QrScannerSupportedFormats,
+        QrMigrationConfirmationTitle, QrMigrationConfirmationMessage,
+        CancelScan, CameraReconnectHint, CameraReadyToStart, CameraSearching,
         CameraInitializing, CameraActive, CameraScanCancelled,
         CameraScanFailedSafely, CameraRuntimeUnavailable, CameraNotFound, CameraStartFailed,
         SecuritySettings, Security, ImportExport, Miscellaneous,
@@ -304,7 +315,8 @@ public static class AvaloniaStringKeys
         NoMatchingEntries, CloseSettings, GenerateCode,
         ShowQrCode, CopyTimedClear, Password, PasswordAuthorizationHelp,
         ValidatingSecurely, NavAccounts, NavTools, NavSettings, AccountsList,
-        GeneratedCode, GeneratedQr, QrPrivacyNotice, CameraPreview, CreatePasswordHeading,
+        GeneratedCode, GeneratedQr, GeneratedQrTitleFormat, QrPrivacyNotice, CameraPreview,
+        CreatePasswordHeading,
         PasswordSetupHelp, NewPassword, ConfirmPassword, CreateVault, PasswordRequired,
         PasswordMinimumLength, PasswordMismatch, PasswordSetupFailed, ExistingVaultConflict,
         VaultConfigured, VaultUnlocked, QuickUnlockFallback, UnlockWithQuickUnlock,
@@ -319,7 +331,8 @@ public static class AvaloniaStringKeys
         PasswordChangeFailed, PasswordChanged, RecoveryAndCompatibility,
         PortableEnvelopeStatus, AutomaticRollbackStatus, LegacyMigrationStatus,
         AddAccount, EditAccount, DeleteAccount, DeleteAccountPrompt, Delete, Issuer,
-        AccountName, Secret, SaveAccount, CancelEdit, AccountIssuerRequired,
+        AccountName, Secret, AdvancedOptions, TotpPeriod, TotpPeriodHelp,
+        TotpPeriodInvalid, CustomPeriodFormat, SaveAccount, CancelEdit, AccountIssuerRequired,
         AccountSecretInvalid, AccountDuplicate, AccountSaveFailed, AccountSaved,
         AccountEditLoadFailed, AccountDeleteFailed, AccountDeleted, CodeRefreshFailed,
         CodeCopied, CodeCopiedWithClear, CodeCopiedWithoutClear, ClipboardCopyUnavailable,

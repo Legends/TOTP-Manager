@@ -35,8 +35,8 @@
   <data name="Security" xml:space="preserve"><value>Seguridad</value></data>
   <data name="SearchAccounts" xml:space="preserve"><value>Buscar cuentas</value></data>
   <data name="NoSearchResults" xml:space="preserve"><value>No hay cuentas coincidentes.</value></data>
-  <data name="AccountSwipeHint" xml:space="preserve"><value>Deslice a la derecha para QR y editar, o a la izquierda para eliminar.</value></data>
-  <data name="ScanQr" xml:space="preserve"><value>Escanear QR</value></data>
+  <data name="AccountSwipeHint" xml:space="preserve"><value>Deslice a la derecha para QR y editar, o a la izquierda para eliminar. La cámara también importa exportaciones de Google Authenticator.</value></data>
+  <data name="ScanQr" xml:space="preserve"><value>Escanear QR de cuenta o Google Authenticator</value></data>
   <data name="QrScannerUnavailable" xml:space="preserve"><value>El escaneo QR no está disponible. Añada la cuenta manualmente.</value></data>
   <data name="QrScanFailed" xml:space="preserve"><value>No se pudo escanear el código QR de forma segura.</value></data>
   <data name="QrScanRetryAfterUnlock" xml:space="preserve"><value>OTP Harbor se bloqueó durante el escaneo. Desbloquéelo y vuelva a escanear el código QR.</value></data>
@@ -48,6 +48,7 @@
   <data name="QrImportCancelled" xml:space="preserve"><value>Importación QR cancelada. No se modificó ninguna cuenta.</value></data>
   <data name="QrBulkImported" xml:space="preserve"><value>Importación QR: {0} importadas, {1} sin cambios, {2} con error.</value></data>
   <data name="QrBulkImportedMore" xml:space="preserve"><value>QR {0} de {1}: {2} importadas, {3} sin cambios, {4} con error. Escanee el siguiente código QR.</value></data>
+  <data name="QrMigrationConfirmation" xml:space="preserve"><value>Se ha detectado una exportación de Google Authenticator. Cuentas encontradas: {0}. ¿Importarlas?</value></data>
   <data name="QrConflictTitle" xml:space="preserve"><value>La cuenta ya existe</value></data>
   <data name="QrConflictPrompt" xml:space="preserve"><value>{0} ya existe con otro secreto. Elija cómo continuar.</value></data>
   <data name="UpdateExisting" xml:space="preserve"><value>Actualizar la cuenta existente</value></data>
@@ -77,7 +78,7 @@
   <data name="ImportConfirmationTitle" xml:space="preserve"><value>Confirmar importación de la copia</value></data>
   <data name="ImportConfirmation" xml:space="preserve"><value>¿Importar {0} cuentas? Las {1} cuentas existentes coincidentes permanecerán sin cambios. Se crea una copia de recuperación antes de aplicar cambios.</value></data>
   <data name="ConfirmImport" xml:space="preserve"><value>Importar cuentas</value></data>
-  <data name="NoAccounts" xml:space="preserve"><value>Todavía no hay cuentas. Añada su primera cuenta TOTP.</value></data>
+  <data name="NoAccounts" xml:space="preserve"><value>Todavía no hay cuentas. Añada una manualmente o escanee el QR de una cuenta o exportación de Google Authenticator.</value></data>
   <data name="AddAccount" xml:space="preserve"><value>Añadir cuenta</value></data>
   <data name="EditAccount" xml:space="preserve"><value>Editar</value></data>
   <data name="DeleteAccount" xml:space="preserve"><value>Eliminar</value></data>
@@ -86,6 +87,11 @@
   <data name="AccountName" xml:space="preserve"><value>Nombre de la cuenta (opcional)</value></data>
   <data name="Secret" xml:space="preserve"><value>Secreto Base32</value></data>
   <data name="SecretOptionalOnEdit" xml:space="preserve"><value>Nuevo secreto Base32 (déjelo vacío para conservar el actual)</value></data>
+  <data name="AdvancedOptions" xml:space="preserve"><value>Opciones avanzadas</value></data>
+  <data name="TotpPeriod" xml:space="preserve"><value>Período del código en segundos</value></data>
+  <data name="TotpPeriodHelp" xml:space="preserve"><value>Mantén 30 segundos salvo que el proveedor requiera explícitamente otro período.</value></data>
+  <data name="TotpPeriodInvalid" xml:space="preserve"><value>Introduce un período entre 5 y 300 segundos.</value></data>
+  <data name="CustomPeriodFormat" xml:space="preserve"><value>{0} s</value></data>
   <data name="Save" xml:space="preserve"><value>Guardar</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
   <data name="IssuerRequired" xml:space="preserve"><value>Introduzca un emisor.</value></data>

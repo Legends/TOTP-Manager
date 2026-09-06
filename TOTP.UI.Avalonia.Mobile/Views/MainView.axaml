@@ -319,6 +319,10 @@
                                                             IsVisible="{Binding HasAccountName}"
                                                             Text="{Binding AccountName}"
                                                             TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock
+                                                            Foreground="{DynamicResource BrushTextSecondary}"
+                                                            IsVisible="{Binding HasCustomPeriod}"
+                                                            Text="{Binding CustomPeriodLabel}" />
                                                     </StackPanel>
                                                     <TextBlock
                                                         Grid.Row="0"
@@ -533,33 +537,6 @@
                                     Classes="wide secondary"
                                     Command="{Binding ImportBackupCommand}"
                                     Content="{Binding ImportBackupText}" />
-                                <Border
-                                    Background="{DynamicResource BrushSurfaceAlternate}"
-                                    CornerRadius="8"
-                                    IsVisible="{Binding IsImportConfirmationVisible}"
-                                    Padding="16">
-                                    <StackPanel Spacing="12">
-                                        <TextBlock
-                                            FontSize="17"
-                                            FontWeight="SemiBold"
-                                            Text="{Binding ImportConfirmationTitle}" />
-                                        <TextBlock
-                                            Text="{Binding ImportConfirmationText}"
-                                            TextWrapping="Wrap" />
-                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                                            <Button
-                                                Grid.Column="0"
-                                                Classes="wide secondary"
-                                                Command="{Binding CancelImportCommand}"
-                                                Content="{Binding CancelText}" />
-                                            <Button
-                                                Grid.Column="1"
-                                                Classes="wide primary"
-                                                Command="{Binding ConfirmImportCommand}"
-                                                Content="{Binding ConfirmImportText}" />
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -585,6 +562,25 @@
                             PasswordChar="●"
                             PlaceholderText="{Binding EditorSecretPlaceholder}"
                             Text="{Binding EditorSecret, Mode=TwoWay}" />
+                        <Expander
+                            Header="{Binding AdvancedOptionsText}"
+                            IsExpanded="{Binding IsAdvancedOptionsExpanded, Mode=TwoWay}">
+                            <StackPanel Spacing="6">
+                                <TextBlock
+                                    Classes="field-label"
+                                    Text="{Binding TotpPeriodText}" />
+                                <NumericUpDown
+                                    automation:AutomationProperties.Name="{Binding TotpPeriodText}"
+                                    Increment="1"
+                                    Maximum="300"
+                                    Minimum="5"
+                                    Value="{Binding EditorPeriodSeconds, Mode=TwoWay}" />
+                                <TextBlock
+                                    Foreground="{DynamicResource BrushTextSecondary}"
+                                    Text="{Binding TotpPeriodHelpText}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Expander>
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                             <Button
                                 Grid.Column="0"
@@ -603,14 +599,58 @@
         </ScrollViewer>
 
         <controls:NotificationBanner
-            Grid.Row="2"
+            Grid.RowSpan="3"
             Margin="20,8,20,20"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Bottom"
+            IsHitTestVisible="False"
+            ZIndex="50"
             Severity="{Binding NotificationSeverity}"
             Text="{Binding NotificationText}" />
 
         <Grid
             Grid.RowSpan="3"
             Panel.ZIndex="100"
+            Background="#99000000"
+            IsVisible="{Binding IsImportConfirmationVisible}">
+            <Border
+                MaxWidth="420"
+                Margin="24"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Center"
+                automation:AutomationProperties.Name="{Binding ImportConfirmationTitle}"
+                Background="{DynamicResource BrushSurface}"
+                BorderBrush="{DynamicResource BrushBorder}"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="22">
+                <StackPanel Spacing="16">
+                    <TextBlock
+                        FontSize="20"
+                        FontWeight="SemiBold"
+                        Text="{Binding ImportConfirmationTitle}" />
+                    <TextBlock
+                        Text="{Binding ImportConfirmationText}"
+                        TextWrapping="Wrap" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button
+                            Grid.Column="0"
+                            Classes="wide secondary"
+                            Command="{Binding CancelImportCommand}"
+                            Content="{Binding CancelText}" />
+                        <Button
+                            Grid.Column="1"
+                            Classes="wide primary"
+                            Command="{Binding ConfirmImportCommand}"
+                            Content="{Binding ConfirmImportText}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid
+            Grid.RowSpan="3"
+            Panel.ZIndex="101"
             Background="#99000000"
             IsVisible="{Binding IsDeleteConfirmationVisible}">
             <Border

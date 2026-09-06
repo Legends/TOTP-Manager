@@ -1,4 +1,5 @@
 using TOTP.Infrastructure.Services;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Tests.Services;
 
@@ -42,7 +43,8 @@ public sealed class QrPayloadValidatorTests
     [Theory]
     [InlineData("SHA256", 6, 30)]
     [InlineData("SHA1", 8, 30)]
-    [InlineData("SHA1", 6, 60)]
+    [InlineData("SHA1", 6, 4)]
+    [InlineData("SHA1", 6, 301)]
     public void Validate_WhenTotpParametersCannotBePersisted_FailsClosed(
         string algorithm,
         int digits,
@@ -54,6 +56,18 @@ public sealed class QrPayloadValidatorTests
         Assert.False(result.IsValid);
     }
 
+    [Theory]
+    [InlineData(5)]
+    [InlineData(60)]
+    [InlineData(300)]
+    public void Validate_WhenTotpPeriodIsSupported_ReturnsValidDescriptor(int period)
+    {
+        var result = _sut.Validate(
+            $"otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&period={period}");
+
+        Assert.True(result.IsValid);
+    }
+
     [Fact]
     public void Validate_WhenGoogleAuthenticatorMigrationPayloadIsValid_ReturnsSafeDescriptor()
     {
@@ -63,6 +77,8 @@ public sealed class QrPayloadValidatorTests
         var result = _sut.Validate(payload);
 
         Assert.True(result.IsValid);
+        Assert.Equal(QrPayloadKind.GoogleAuthenticatorMigration, result.Kind);
+        Assert.Equal(1, result.AccountCount);
         Assert.DoesNotContain("TestSecret", result.ToString(), StringComparison.Ordinal);
     }
 

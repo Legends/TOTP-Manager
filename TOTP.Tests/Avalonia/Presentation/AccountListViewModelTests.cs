@@ -111,6 +111,87 @@ public sealed class AccountListViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_WhenAutomaticGenerationIsEnabled_ProjectsCodeIntoEveryRow()
+    {
+        var firstId = Guid.NewGuid();
+        var secondId = Guid.NewGuid();
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
+            [
+                new(firstId, "First", ValidSecret, "alice"),
+                new(secondId, "Second", ValidSecret, "bob")
+            ]));
+        var totp = new Mock<IAccountTotpService>();
+        totp.Setup(value => value.GenerateManyAsync(It.IsAny<IReadOnlyCollection<Guid>>()))
+            .ReturnsAsync(Result.Ok(new AccountTotpGenerationBatch(
+                new Dictionary<Guid, TotpGenerationResult>
+                {
+                    [firstId] = new("111111", 25, 30),
+                    [secondId] = new("222222", 25, 30)
+                },
+                new HashSet<Guid>())));
+        using var sut = new AccountListViewModel(
+            manager.Object,
+            totp.Object,
+            Mock.Of<IAsyncClipboardService>(),
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization());
+        sut.EnableAutomaticCodeGenerationOnSelection();
+
+        await sut.LoadAsync();
+        await WaitUntilAsync(() => sut.Accounts.All(account => account.HasCode));
+
+        Assert.Collection(
+            sut.Accounts,
+            first => Assert.Equal("111 111", first.DisplayCode),
+            second => Assert.Equal("222 222", second.DisplayCode));
+        Assert.All(sut.Accounts, account => Assert.Equal(30, account.PeriodSeconds));
+        totp.Verify(value => value.GenerateManyAsync(
+            It.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 2)), Times.Once);
+
+        sut.ClearSensitiveOutput();
+
+        Assert.All(sut.Accounts, account => Assert.False(account.HasCode));
+    }
+
+    [Fact]
+    public async Task CopyAccountCodeAsync_CopiesRequestedRowWithoutChangingSelection()
+    {
+        var firstId = Guid.NewGuid();
+        var secondId = Guid.NewGuid();
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
+            [
+                new(firstId, "First", ValidSecret, "alice"),
+                new(secondId, "Second", ValidSecret, "bob")
+            ]));
+        var clipboard = SuccessfulClipboard();
+        using var sut = new AccountListViewModel(
+            manager.Object,
+            Mock.Of<IAccountTotpService>(),
+            clipboard.Object,
+            Mock.Of<IAccountQrCodeService>(),
+            Mock.Of<IAvaloniaQrImageFactory>(),
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization());
+        await sut.LoadAsync();
+        sut.SelectedAccount = sut.Accounts[0];
+        sut.Accounts[1].UpdateCode("222222", 12, 30);
+
+        await sut.CopyAccountCodeAsync(sut.Accounts[1]);
+
+        Assert.Equal(firstId, sut.SelectedAccount.Id);
+        clipboard.Verify(value => value.CopyAndScheduleClearAsync(
+            "222222",
+            TimeSpan.FromSeconds(12),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task TenThousandAccountProjectionAndFiltering_RemainsWithinDesktopBudget()
     {
         var accounts = Enumerable.Range(1, 10_000)
@@ -410,6 +491,7 @@ public sealed class AccountListViewModelTests
 
         Assert.Single(sut.Accounts);
         Assert.NotNull(sut.SelectedAccount);
+        Assert.All(sut.Accounts, account => Assert.False(account.HasCode));
         Assert.Empty(sut.GeneratedCode);
         Assert.Empty(sut.CodeMessage);
     }
@@ -521,10 +603,49 @@ public sealed class AccountListViewModelTests
         Assert.False(sut.HasQrImage);
         previewDialogs.Verify(value => value.ShowAsync(
             image.Object,
+            "Issuer · account — QR code",
             384,
             It.IsAny<CancellationToken>()), Times.Once);
         previewDialogs.Verify(value => value.Close(), Times.AtLeastOnce);
         lifetime.Verify(value => value.Dispose(), Times.Once);
+    }
+
+    [Fact]
+    public async Task GenerateContextQrAsync_UsesRightClickedAccountInsteadOfSelection()
+    {
+        var selectedId = Guid.NewGuid();
+        var contextId = Guid.NewGuid();
+        var image = Mock.Of<IImage>();
+        var imageFactory = new Mock<IAvaloniaQrImageFactory>();
+        imageFactory.Setup(value => value.Create(It.IsAny<ReadOnlyMemory<byte>>()))
+            .Returns(new AvaloniaQrImageHandle(image, Mock.Of<IDisposable>()));
+        var previewDialogs = new Mock<IAvaloniaQrPreviewDialogService>();
+        var qr = new Mock<IAccountQrCodeService>();
+        qr.Setup(value => value.GenerateAsync(contextId))
+            .ReturnsAsync(() => Result.Ok(SensitiveBuffer.CopyFrom([137, 80, 78, 71])));
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            Mock.Of<IAccountTotpService>(),
+            Mock.Of<IAsyncClipboardService>(),
+            qr.Object,
+            imageFactory.Object,
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization(),
+            qrPreviewDialogs: previewDialogs.Object)
+        {
+            SelectedAccount = new AccountListItemViewModel(selectedId, "Selected", "account"),
+            ContextAccount = new AccountListItemViewModel(contextId, "Context", "account")
+        };
+
+        await sut.GenerateContextQrAsync();
+
+        qr.Verify(value => value.GenerateAsync(contextId), Times.Once);
+        qr.Verify(value => value.GenerateAsync(selectedId), Times.Never);
+        previewDialogs.Verify(value => value.ShowAsync(
+            image,
+            "Context · account — QR code",
+            384,
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -556,8 +677,76 @@ public sealed class AccountListViewModelTests
         Assert.Equal("GitHub", created.Issuer);
         Assert.Equal("alice@example.test", created.AccountName);
         Assert.Equal(ValidSecret, created.Secret);
+        Assert.Equal(30, created.PeriodSeconds);
         Assert.False(sut.IsEditorVisible);
         Assert.Equal("Account saved.", sut.Message);
+    }
+
+    [Fact]
+    public async Task SaveAccountAsync_WithCustomPeriod_PersistsPeriodAndProjectsItsBadge()
+    {
+        var manager = new Mock<IAccountManager>();
+        Account? created = null;
+        manager.SetupSequence(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]))
+            .ReturnsAsync(() => Result.Ok<IReadOnlyList<Account>>(
+                created is null ? [] : [created]));
+        manager.Setup(value => value.AddNewAsync(It.IsAny<Account>()))
+            .Callback<Account>(account => created = account)
+            .ReturnsAsync(Result.Ok());
+        var sut = CreateSut(manager.Object);
+        await sut.BeginAddAsync();
+        sut.EditorIssuer = "Example";
+        sut.EditorSecret = ValidSecret;
+        sut.EditorPeriodSeconds = 60;
+
+        await sut.SaveAccountAsync();
+
+        Assert.NotNull(created);
+        Assert.Equal(60, created.PeriodSeconds);
+        var row = Assert.Single(sut.Accounts);
+        Assert.True(row.HasCustomPeriod);
+        Assert.Equal("60 s", row.CustomPeriodLabel);
+    }
+
+    [Fact]
+    public async Task SaveAccountAsync_WithUnsupportedPeriod_DoesNotWrite()
+    {
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]));
+        var sut = CreateSut(manager.Object);
+        await sut.BeginAddAsync();
+        sut.EditorIssuer = "Example";
+        sut.EditorSecret = ValidSecret;
+        sut.EditorPeriodSeconds = 301;
+
+        await sut.SaveAccountAsync();
+
+        manager.Verify(value => value.AddNewAsync(It.IsAny<Account>()), Times.Never);
+        Assert.Equal("Enter a code period between 5 and 300 seconds.", sut.EditorMessage);
+        Assert.Equal(string.Empty, sut.EditorSecret);
+    }
+
+    [Fact]
+    public async Task AdvancedOptions_AfterClosingEditor_StartsCollapsedForNextAction()
+    {
+        var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "alice");
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([account]));
+        var sut = CreateSut(manager.Object);
+
+        await sut.BeginAddAsync();
+        Assert.False(sut.IsAdvancedOptionsExpanded);
+        sut.IsAdvancedOptionsExpanded = true;
+        await sut.CancelEditAsync();
+
+        await sut.LoadAsync();
+        sut.SelectedAccount = Assert.Single(sut.Accounts);
+        await sut.BeginEditAsync();
+
+        Assert.False(sut.IsAdvancedOptionsExpanded);
     }
 
     [Fact]
@@ -715,9 +904,16 @@ public sealed class AccountListViewModelTests
     {
         var id = Guid.NewGuid();
         var totp = new Mock<IAccountTotpService>();
-        totp.SetupSequence(value => value.GenerateAsync(id))
-            .ReturnsAsync(Result.Ok(new TotpGenerationResult("111111", 1, 30)))
-            .ReturnsAsync(Result.Ok(new TotpGenerationResult("222222", 30, 30)));
+        totp.Setup(value => value.GenerateAsync(id))
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("111111", 1, 30)));
+        totp.Setup(value => value.GenerateManyAsync(
+                It.Is<IReadOnlyCollection<Guid>>(ids => ids.Single() == id)))
+            .ReturnsAsync(Result.Ok(new AccountTotpGenerationBatch(
+                new Dictionary<Guid, TotpGenerationResult>
+                {
+                    [id] = new("222222", 30, 30)
+                },
+                new HashSet<Guid>())));
         using var sut = new AccountListViewModel(
             Mock.Of<IAccountManager>(),
             totp.Object,
@@ -737,7 +933,9 @@ public sealed class AccountListViewModelTests
         Assert.InRange(sut.RemainingSeconds, 1, 30);
         Assert.Equal(30, sut.PeriodSeconds);
         Assert.Empty(sut.CodeMessage);
-        totp.Verify(value => value.GenerateAsync(id), Times.Exactly(2));
+        totp.Verify(value => value.GenerateAsync(id), Times.Once);
+        totp.Verify(value => value.GenerateManyAsync(
+            It.Is<IReadOnlyCollection<Guid>>(ids => ids.Single() == id)), Times.Once);
     }
 
     [Fact]

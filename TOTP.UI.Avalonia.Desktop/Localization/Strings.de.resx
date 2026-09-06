@@ -62,6 +62,11 @@
   <data name="Issuer" xml:space="preserve"><value>Anbieter</value></data>
   <data name="AccountName" xml:space="preserve"><value>Kontoname</value></data>
   <data name="Secret" xml:space="preserve"><value>Base32-Geheimnis</value></data>
+  <data name="AdvancedOptions" xml:space="preserve"><value>Erweiterte Optionen</value></data>
+  <data name="TotpPeriod" xml:space="preserve"><value>Code-Periode in Sekunden</value></data>
+  <data name="TotpPeriodHelp" xml:space="preserve"><value>Behalten Sie 30 Sekunden bei, sofern der Anbieter nicht ausdrücklich eine andere Periode verlangt.</value></data>
+  <data name="TotpPeriodInvalid" xml:space="preserve"><value>Geben Sie eine Code-Periode zwischen 5 und 300 Sekunden ein.</value></data>
+  <data name="CustomPeriodFormat" xml:space="preserve"><value>{0} s</value></data>
   <data name="SaveAccount" xml:space="preserve"><value>Konto speichern</value></data>
   <data name="CancelEdit" xml:space="preserve"><value>Bearbeitung abbrechen</value></data>
   <data name="AccountIssuerRequired" xml:space="preserve"><value>Der Anbieter ist erforderlich.</value></data>
@@ -125,12 +130,15 @@
   <data name="VerifyAppcast" xml:space="preserve"><value>Nach Updates suchen</value></data>
   <data name="SoftwareUpdates" xml:space="preserve"><value>Softwareupdates</value></data>
   <data name="ScanQrCamera" xml:space="preserve"><value>QR-Code mit Kamera scannen</value></data>
+  <data name="QrScannerSupportedFormats" xml:space="preserve"><value>Scannen Sie einen Konto-QR-Code oder einen Export-QR-Code aus Google Authenticator.</value></data>
+  <data name="QrMigrationConfirmationTitle" xml:space="preserve"><value>Aus Google Authenticator importieren</value></data>
+  <data name="QrMigrationConfirmationMessage" xml:space="preserve"><value>Google-Authenticator-Export erkannt. Gefundene Konten: {0}. Jetzt importieren?</value></data>
   <data name="CancelScan" xml:space="preserve"><value>Scan abbrechen</value></data>
   <data name="CameraReconnectHint" xml:space="preserve"><value>Falls Ihre Kamera über einen Datenschutzschalter, eine Tastaturtaste oder eine Systemeinstellung deaktiviert ist, schalten Sie sie ein. Der Scanner stellt die Verbindung automatisch wieder her. (Dauer: &lt; 10 Sek.)</value></data>
   <data name="CameraReadyToStart" xml:space="preserve"><value>Der Kamerazugriff startet erst, wenn Sie „QR-Code scannen“ auswählen.</value></data>
   <data name="CameraSearching" xml:space="preserve"><value>Es wird nach einer verfügbaren Kamera gesucht…</value></data>
   <data name="CameraInitializing" xml:space="preserve"><value>Kamera gefunden. Der Videostream wird initialisiert…</value></data>
-  <data name="CameraActive" xml:space="preserve"><value>Kamera aktiv. Richten Sie sie auf einen TOTP-QR-Code.</value></data>
+  <data name="CameraActive" xml:space="preserve"><value>Kamera aktiv. Richten Sie sie auf einen Konto- oder Google-Authenticator-Export-QR-Code.</value></data>
   <data name="CameraScanCancelled" xml:space="preserve"><value>Der QR-Scan wurde abgebrochen.</value></data>
   <data name="CameraScanFailedSafely" xml:space="preserve"><value>Der Kamerascanner wurde sicher beendet. Es wurden keine Kontodaten geändert.</value></data>
   <data name="CameraRuntimeUnavailable" xml:space="preserve"><value>Die Kameralaufzeit ist für dieses Paket nicht verfügbar.</value></data>
@@ -167,6 +175,7 @@
   <data name="AccountsList" xml:space="preserve"><value>Konten</value></data>
   <data name="GeneratedCode" xml:space="preserve"><value>Erzeugter Einmalcode</value></data>
   <data name="GeneratedQr" xml:space="preserve"><value>Erzeugter Konto-QR-Code</value></data>
+  <data name="GeneratedQrTitleFormat" xml:space="preserve"><value>{0} · {1} — QR-Code</value></data>
   <data name="QrPrivacyNotice" xml:space="preserve"><value>Dieser QR-Code enthält das Kontogeheimnis. Halten Sie ihn privat.</value></data>
   <data name="CameraPreview" xml:space="preserve"><value>Live-Kameravorschau</value></data>
   <data name="CreatePasswordHeading" xml:space="preserve"><value>Master-Passwort erstellen</value></data>

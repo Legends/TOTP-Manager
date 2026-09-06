@@ -61,7 +61,12 @@ public sealed class QrAccountImportService(IAccountManager accounts) : IQrAccoun
                 (account.AccountName ?? string.Empty).Trim(),
                 accountName,
                 StringComparison.OrdinalIgnoreCase));
-        var incoming = new Account(Guid.NewGuid(), issuer, parsed.SecretBase32, EmptyToNull(accountName));
+        var incoming = new Account(
+            Guid.NewGuid(),
+            issuer,
+            parsed.SecretBase32,
+            EmptyToNull(accountName),
+            parsed.Period);
         if (existing is null)
         {
             var added = await accounts.AddNewAsync(incoming);
@@ -77,7 +82,8 @@ public sealed class QrAccountImportService(IAccountManager accounts) : IQrAccoun
         if (string.Equals(
             NormalizeSecret(existing.Secret),
             NormalizeSecret(incoming.Secret),
-            StringComparison.Ordinal))
+            StringComparison.Ordinal)
+            && existing.PeriodSeconds == incoming.PeriodSeconds)
         {
             return Result.Ok(new QrAccountImportOutcome(
                 QrAccountImportStatus.DuplicateUnchanged,
@@ -104,7 +110,12 @@ public sealed class QrAccountImportService(IAccountManager accounts) : IQrAccoun
         Guid affectedAccountId;
         if (decision == QrAccountConflictDecision.UpdateExisting)
         {
-            var updated = new Account(existing.ID, issuer, incoming.Secret, EmptyToNull(accountName));
+            var updated = new Account(
+                existing.ID,
+                issuer,
+                incoming.Secret,
+                EmptyToNull(accountName),
+                incoming.PeriodSeconds);
             saved = await accounts.UpdateAsync(existing, updated);
             status = QrAccountImportStatus.Updated;
             affectedAccountId = existing.ID;
@@ -157,7 +168,8 @@ public sealed class QrAccountImportService(IAccountManager accounts) : IQrAccoun
                 Guid.NewGuid(),
                 issuer,
                 parsed.SecretBase32,
-                EmptyToNull(accountName));
+                EmptyToNull(accountName),
+                TotpPeriodPolicy.DefaultSeconds);
             var identityMatches = working.Where(account => IdentityMatches(incoming, account)).ToArray();
             if (identityMatches.Length == 0)
             {
@@ -169,7 +181,8 @@ public sealed class QrAccountImportService(IAccountManager accounts) : IQrAccoun
             if (identityMatches.Any(existing => string.Equals(
                 NormalizeSecret(existing.Secret),
                 NormalizeSecret(incoming.Secret),
-                StringComparison.Ordinal)))
+                StringComparison.Ordinal)
+                && existing.PeriodSeconds == incoming.PeriodSeconds))
             {
                 duplicateCount++;
                 continue;
@@ -199,7 +212,8 @@ public sealed class QrAccountImportService(IAccountManager accounts) : IQrAccoun
                     existing.ID,
                     incoming.Issuer,
                     incoming.Secret,
-                    incoming.AccountName);
+                    incoming.AccountName,
+                    incoming.PeriodSeconds);
                 writes.Add(new PlannedWrite(PlannedWriteKind.Update, updated, existing));
                 working.Remove(existing);
                 working.Add(updated);

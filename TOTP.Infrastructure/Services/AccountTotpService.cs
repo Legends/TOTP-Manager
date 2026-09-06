@@ -23,11 +23,54 @@ public sealed class AccountTotpService(
 
         try
         {
-            return Result.Ok(totpGenerator.Generate(account.Secret));
+            return Result.Ok(totpGenerator.Generate(account.Secret, account.PeriodSeconds));
         }
-        catch (FormatException)
+        catch (Exception exception) when (
+            exception is FormatException or ArgumentOutOfRangeException)
         {
             return Result.Fail<TotpGenerationResult>("The selected account seed is invalid.");
         }
+    }
+
+    public async Task<Result<AccountTotpGenerationBatch>> GenerateManyAsync(
+        IReadOnlyCollection<Guid> accountIds)
+    {
+        ArgumentNullException.ThrowIfNull(accountIds);
+
+        var requestedIds = accountIds
+            .Where(accountId => accountId != Guid.Empty)
+            .ToHashSet();
+        if (requestedIds.Count == 0)
+        {
+            return Result.Ok(new AccountTotpGenerationBatch(
+                new Dictionary<Guid, TotpGenerationResult>(),
+                new HashSet<Guid>()));
+        }
+
+        var accounts = await accountManager.GetAllOtpEntriesSortedAsync();
+        if (accounts.IsFailed)
+            return Result.Fail<AccountTotpGenerationBatch>(accounts.Errors);
+
+        var codes = new Dictionary<Guid, TotpGenerationResult>(requestedIds.Count);
+        var failedAccountIds = new HashSet<Guid>(requestedIds);
+        foreach (var account in accounts.Value)
+        {
+            if (!requestedIds.Contains(account.ID)) continue;
+
+            try
+            {
+                codes[account.ID] = totpGenerator.Generate(
+                    account.Secret,
+                    account.PeriodSeconds);
+                failedAccountIds.Remove(account.ID);
+            }
+            catch (Exception exception) when (
+                exception is FormatException or ArgumentOutOfRangeException)
+            {
+                // Invalid seed details must not cross the infrastructure boundary.
+            }
+        }
+
+        return Result.Ok(new AccountTotpGenerationBatch(codes, failedAccountIds));
     }
 }

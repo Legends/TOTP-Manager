@@ -31,6 +31,12 @@
 
 Accounts currently use the common TOTP profile: SHA-1, six digits, and a 30-second period.
 
+### Import from Google Authenticator
+
+OTP Harbor recognizes both normal `otpauth://` account QR codes and Google Authenticator transfer QR codes. In Google Authenticator, start **Transfer accounts** / **Export accounts**, select the accounts, then scan every generated QR code with OTP Harbor's camera action. OTP Harbor shows the number of detected accounts and asks for confirmation before changing the vault; multi-part exports prompt you to scan the next QR code.
+
+Treat migration QR codes as secrets: anyone who captures one can recreate the exported accounts. After importing, verify several generated codes and create a fresh encrypted OTP Harbor backup.
+
 ## Desktop experience
 
 <table>

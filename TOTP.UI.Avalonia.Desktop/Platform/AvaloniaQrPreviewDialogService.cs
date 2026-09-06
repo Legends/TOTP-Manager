@@ -15,10 +15,12 @@ public sealed class AvaloniaQrPreviewDialogService(
 
     public async Task ShowAsync(
         IImage image,
+        string title,
         double requestedImageSize,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(image);
+        ArgumentException.ThrowIfNullOrWhiteSpace(title);
         await _dialogGate.WaitAsync(cancellationToken);
         try
         {
@@ -37,7 +39,7 @@ public sealed class AvaloniaQrPreviewDialogService(
             var imageSize = Math.Clamp(requestedImageSize, 256, maximumImageSize);
             var dialog = new QrPreviewDialogWindow
             {
-                DataContext = new QrPreviewDialogViewModel(image),
+                DataContext = new QrPreviewDialogViewModel(title, image),
                 Width = imageSize + 48,
                 Height = imageSize + 120
             };

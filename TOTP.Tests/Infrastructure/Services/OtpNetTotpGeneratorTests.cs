@@ -23,4 +23,29 @@ public sealed class OtpNetTotpGeneratorTests
 
         Assert.Throws<FormatException>(() => sut.Generate("not valid base32!"));
     }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(60)]
+    [InlineData(300)]
+    public void Generate_WithSupportedCustomPeriod_ReturnsMatchingTiming(int periodSeconds)
+    {
+        var sut = new OtpNetTotpGenerator();
+
+        var result = sut.Generate("JBSWY3DPEHPK3PXP", periodSeconds);
+
+        Assert.Equal(periodSeconds, result.PeriodSeconds);
+        Assert.InRange(result.RemainingSeconds, 1, periodSeconds);
+    }
+
+    [Theory]
+    [InlineData(4)]
+    [InlineData(301)]
+    public void Generate_WithUnsupportedPeriod_ThrowsArgumentOutOfRangeException(int periodSeconds)
+    {
+        var sut = new OtpNetTotpGenerator();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            sut.Generate("JBSWY3DPEHPK3PXP", periodSeconds));
+    }
 }

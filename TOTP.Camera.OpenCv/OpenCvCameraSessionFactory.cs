@@ -77,10 +77,10 @@ public sealed class OpenCvCameraSessionFactory(ICameraAccessProbe? accessProbe =
 
     private static void ConfigureCapture(VideoCapture capture)
     {
-        capture.Set(VideoCaptureProperties.FrameWidth, 640);
-        capture.Set(VideoCaptureProperties.FrameHeight, 480);
-        capture.Set(VideoCaptureProperties.Fps, 30);
         TrySet(capture, VideoCaptureProperties.FourCC, FourCC.MJPG);
+        TrySet(capture, VideoCaptureProperties.FrameWidth, 1280);
+        TrySet(capture, VideoCaptureProperties.FrameHeight, 720);
+        TrySet(capture, VideoCaptureProperties.Fps, 30);
         TrySet(capture, VideoCaptureProperties.BufferSize, 1);
     }
 

@@ -63,6 +63,11 @@ La entrada cifrada de la cuenta se eliminará permanentemente. Esta acción no s
   <data name="Issuer" xml:space="preserve"><value>Emisor</value></data>
   <data name="AccountName" xml:space="preserve"><value>Nombre de la cuenta</value></data>
   <data name="Secret" xml:space="preserve"><value>Secreto Base32</value></data>
+  <data name="AdvancedOptions" xml:space="preserve"><value>Opciones avanzadas</value></data>
+  <data name="TotpPeriod" xml:space="preserve"><value>Período del código en segundos</value></data>
+  <data name="TotpPeriodHelp" xml:space="preserve"><value>Mantén 30 segundos salvo que el proveedor requiera explícitamente otro período.</value></data>
+  <data name="TotpPeriodInvalid" xml:space="preserve"><value>Introduce un período entre 5 y 300 segundos.</value></data>
+  <data name="CustomPeriodFormat" xml:space="preserve"><value>{0} s</value></data>
   <data name="SaveAccount" xml:space="preserve"><value>Guardar cuenta</value></data>
   <data name="CancelEdit" xml:space="preserve"><value>Cancelar edición</value></data>
   <data name="AccountIssuerRequired" xml:space="preserve"><value>El emisor es obligatorio.</value></data>
@@ -126,12 +131,15 @@ La entrada cifrada de la cuenta se eliminará permanentemente. Esta acción no s
   <data name="VerifyAppcast" xml:space="preserve"><value>Buscar actualizaciones</value></data>
   <data name="SoftwareUpdates" xml:space="preserve"><value>Actualizaciones de software</value></data>
   <data name="ScanQrCamera" xml:space="preserve"><value>Escanear QR con la cámara</value></data>
+  <data name="QrScannerSupportedFormats" xml:space="preserve"><value>Escanee el QR de una cuenta o un QR de exportación de Google Authenticator.</value></data>
+  <data name="QrMigrationConfirmationTitle" xml:space="preserve"><value>Importar desde Google Authenticator</value></data>
+  <data name="QrMigrationConfirmationMessage" xml:space="preserve"><value>Se ha detectado una exportación de Google Authenticator. Cuentas encontradas: {0}. ¿Importarlas?</value></data>
   <data name="CancelScan" xml:space="preserve"><value>Cancelar escaneo</value></data>
   <data name="CameraReconnectHint" xml:space="preserve"><value>Si la cámara está desactivada mediante un interruptor de privacidad, una tecla o un ajuste del sistema, actívala. El escáner volverá a conectarse automáticamente. (Duración: &lt; 10 s).</value></data>
   <data name="CameraReadyToStart" xml:space="preserve"><value>El acceso a la cámara solo comienza cuando eliges Escanear QR.</value></data>
   <data name="CameraSearching" xml:space="preserve"><value>Buscando una cámara disponible…</value></data>
   <data name="CameraInitializing" xml:space="preserve"><value>Cámara encontrada. Inicializando el flujo de vídeo…</value></data>
-  <data name="CameraActive" xml:space="preserve"><value>Cámara activa. Apunta a un código QR TOTP.</value></data>
+  <data name="CameraActive" xml:space="preserve"><value>Cámara activa. Apunta al QR de una cuenta o exportación de Google Authenticator.</value></data>
   <data name="CameraScanCancelled" xml:space="preserve"><value>Escaneo QR cancelado.</value></data>
   <data name="CameraScanFailedSafely" xml:space="preserve"><value>El escáner de la cámara falló de forma segura. No se modificaron datos de cuentas.</value></data>
   <data name="CameraRuntimeUnavailable" xml:space="preserve"><value>El entorno de ejecución de la cámara no está disponible para este paquete.</value></data>
@@ -168,6 +176,7 @@ La entrada cifrada de la cuenta se eliminará permanentemente. Esta acción no s
   <data name="AccountsList" xml:space="preserve"><value>Cuentas</value></data>
   <data name="GeneratedCode" xml:space="preserve"><value>Código de un solo uso generado</value></data>
   <data name="GeneratedQr" xml:space="preserve"><value>Código QR de cuenta generado</value></data>
+  <data name="GeneratedQrTitleFormat" xml:space="preserve"><value>{0} · {1} — código QR</value></data>
   <data name="QrPrivacyNotice" xml:space="preserve"><value>Este código QR contiene el secreto de la cuenta. Mantenlo en privado.</value></data>
   <data name="CameraPreview" xml:space="preserve"><value>Vista previa de la cámara en directo</value></data>
   <data name="CreatePasswordHeading" xml:space="preserve"><value>Crea tu contraseña maestra</value></data>
