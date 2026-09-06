@@ -142,7 +142,7 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
                     }
                     else
                     {
-                        await ImportDecodedAsync(result.DecodedText!, token);
+                        await ImportDecodedAsync(result.DecodedText!, validation, token);
                     }
 
                     return;
@@ -285,8 +285,30 @@ public sealed class CameraScannerViewModel : INotifyPropertyChanged, IDisposable
         preview?.Dispose();
     }
 
-    private async Task ImportDecodedAsync(string payload, CancellationToken cancellationToken)
+    private async Task ImportDecodedAsync(
+        string payload,
+        QrPayloadValidationResult validation,
+        CancellationToken cancellationToken)
     {
+        if (validation.Kind == QrPayloadKind.GoogleAuthenticatorMigration)
+        {
+            var confirmed = await _dialogs.ConfirmAsync(new ConfirmationDialogRequest(
+                _localization.GetString(AvaloniaStringKeys.QrMigrationConfirmationTitle),
+                string.Format(
+                    _localization.GetString(AvaloniaStringKeys.QrMigrationConfirmationMessage),
+                    validation.AccountCount),
+                NotificationSeverity.Information,
+                _localization.GetString(AvaloniaStringKeys.ImportAccounts),
+                _localization.GetString(AvaloniaStringKeys.Cancel)),
+                cancellationToken);
+            if (!confirmed)
+            {
+                Message = _localization.GetString(AvaloniaStringKeys.QrImportCancelled);
+                CloseRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+        }
+
         var imported = await _importService.ImportAsync(payload, ResolveConflictAsync, cancellationToken);
         if (imported.IsFailed)
         {

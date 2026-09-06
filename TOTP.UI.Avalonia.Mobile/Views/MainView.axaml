@@ -533,33 +533,6 @@
                                     Classes="wide secondary"
                                     Command="{Binding ImportBackupCommand}"
                                     Content="{Binding ImportBackupText}" />
-                                <Border
-                                    Background="{DynamicResource BrushSurfaceAlternate}"
-                                    CornerRadius="8"
-                                    IsVisible="{Binding IsImportConfirmationVisible}"
-                                    Padding="16">
-                                    <StackPanel Spacing="12">
-                                        <TextBlock
-                                            FontSize="17"
-                                            FontWeight="SemiBold"
-                                            Text="{Binding ImportConfirmationTitle}" />
-                                        <TextBlock
-                                            Text="{Binding ImportConfirmationText}"
-                                            TextWrapping="Wrap" />
-                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                                            <Button
-                                                Grid.Column="0"
-                                                Classes="wide secondary"
-                                                Command="{Binding CancelImportCommand}"
-                                                Content="{Binding CancelText}" />
-                                            <Button
-                                                Grid.Column="1"
-                                                Classes="wide primary"
-                                                Command="{Binding ConfirmImportCommand}"
-                                                Content="{Binding ConfirmImportText}" />
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -611,6 +584,46 @@
         <Grid
             Grid.RowSpan="3"
             Panel.ZIndex="100"
+            Background="#99000000"
+            IsVisible="{Binding IsImportConfirmationVisible}">
+            <Border
+                MaxWidth="420"
+                Margin="24"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Center"
+                automation:AutomationProperties.Name="{Binding ImportConfirmationTitle}"
+                Background="{DynamicResource BrushSurface}"
+                BorderBrush="{DynamicResource BrushBorder}"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="22">
+                <StackPanel Spacing="16">
+                    <TextBlock
+                        FontSize="20"
+                        FontWeight="SemiBold"
+                        Text="{Binding ImportConfirmationTitle}" />
+                    <TextBlock
+                        Text="{Binding ImportConfirmationText}"
+                        TextWrapping="Wrap" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button
+                            Grid.Column="0"
+                            Classes="wide secondary"
+                            Command="{Binding CancelImportCommand}"
+                            Content="{Binding CancelText}" />
+                        <Button
+                            Grid.Column="1"
+                            Classes="wide primary"
+                            Command="{Binding ConfirmImportCommand}"
+                            Content="{Binding ConfirmImportText}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid
+            Grid.RowSpan="3"
+            Panel.ZIndex="101"
             Background="#99000000"
             IsVisible="{Binding IsDeleteConfirmationVisible}">
             <Border

@@ -161,9 +161,10 @@
                     <Grid ColumnDefinitions="Auto,Auto,Auto,*,64,Auto,Auto">
                         <Button
                             Grid.Column="0"
+                            automation:AutomationProperties.Name="{DynamicResource QrScannerSupportedFormats}"
                             Classes="icon"
                             Command="{Binding ScanQrCommand}"
-                            ToolTip.Tip="{DynamicResource ScanQrCamera}">
+                            ToolTip.Tip="{DynamicResource QrScannerSupportedFormats}">
                             <shared:SymbolIcon Foreground="#E16C6C" IconSize="16" Kind="Camera" />
                         </Button>
                         <Button
@@ -280,6 +281,7 @@
                                                     <ListBox.ContextMenu>
                                                         <ContextMenu>
                                                             <MenuItem Command="{Binding BeginContextEditCommand}" Header="{DynamicResource EditAccount}" />
+                                                            <MenuItem Command="{Binding GenerateContextQrCommand}" Header="{DynamicResource ShowQrCode}" />
                                                             <MenuItem Command="{Binding DeleteContextAccountCommand}" Header="{DynamicResource DeleteAccount}" />
                                                         </ContextMenu>
                                                     </ListBox.ContextMenu>
@@ -289,7 +291,7 @@
                                                                 Classes="account-row-container"
                                                                 Classes.recently-added="{Binding IsRecentlyAdded}">
                                                                 <Grid
-                                                                    ColumnDefinitions="*,Auto,Auto"
+                                                                    ColumnDefinitions="*,Auto"
                                                                     RowDefinitions="Auto,2"
                                                                     ColumnSpacing="6">
                                                                     <shared:AccountRow
@@ -311,17 +313,9 @@
                                                                             <TextBlock Text="{Binding DisplayCode}" />
                                                                         </StackPanel>
                                                                     </Button>
-                                                                    <TextBlock
-                                                                        Grid.Row="0"
-                                                                        Grid.Column="2"
-                                                                        MinWidth="18"
-                                                                        VerticalAlignment="Center"
-                                                                        Classes="countdown"
-                                                                        IsVisible="{Binding HasCode}"
-                                                                        Text="{Binding RemainingSeconds}" />
                                                                     <ProgressBar
                                                                         Grid.Row="1"
-                                                                        Grid.ColumnSpan="3"
+                                                                        Grid.ColumnSpan="2"
                                                                         Height="2"
                                                                         IsHitTestVisible="False"
                                                                         IsVisible="{Binding HasCode}"

@@ -36,6 +36,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private readonly AsyncCommand _cancelEditCommand;
     private readonly AsyncCommand _deleteAccountCommand;
     private readonly AsyncCommand _beginContextEditCommand;
+    private readonly AsyncCommand _generateContextQrCommand;
     private readonly AsyncCommand _deleteContextAccountCommand;
     private CancellationTokenSource? _rowCodeLifetime;
     private CancellationTokenSource? _recentHighlightLifetime;
@@ -108,6 +109,9 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             () => !IsBusy && !IsEditorVisible && SelectedAccount is not null);
         _beginContextEditCommand = new AsyncCommand(
             BeginContextEditAsync,
+            () => !IsBusy && !IsEditorVisible && ContextAccount is not null);
+        _generateContextQrCommand = new AsyncCommand(
+            GenerateContextQrAsync,
             () => !IsBusy && !IsEditorVisible && ContextAccount is not null);
         _deleteContextAccountCommand = new AsyncCommand(
             DeleteContextAccountAsync,
@@ -260,6 +264,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     public ICommand CancelEditCommand => _cancelEditCommand;
     public ICommand DeleteAccountCommand => _deleteAccountCommand;
     public ICommand BeginContextEditCommand => _beginContextEditCommand;
+    public ICommand GenerateContextQrCommand => _generateContextQrCommand;
     public ICommand DeleteContextAccountCommand => _deleteContextAccountCommand;
 
     public AccountListItemViewModel? ContextAccount
@@ -269,6 +274,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         {
             if (!SetField(ref _contextAccount, value)) return;
             _beginContextEditCommand.NotifyCanExecuteChanged();
+            _generateContextQrCommand.NotifyCanExecuteChanged();
             _deleteContextAccountCommand.NotifyCanExecuteChanged();
         }
     }
@@ -478,12 +484,16 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         SetLocalizedCodeMessage(AvaloniaStringKeys.ClipboardCopyUnavailable);
     }
 
-    public async Task GenerateQrAsync()
+    public Task GenerateQrAsync() => GenerateQrAsync(_selectedAccount);
+
+    public Task GenerateContextQrAsync() => GenerateQrAsync(ContextAccount);
+
+    private async Task GenerateQrAsync(AccountListItemViewModel? account)
     {
-        if (_selectedAccount is null) return;
+        if (account is null) return;
 
         ClearQrImage();
-        var result = await _accountQrCodeService.GenerateAsync(_selectedAccount.Id);
+        var result = await _accountQrCodeService.GenerateAsync(account.Id);
         if (result.IsFailed)
         {
             SetLocalizedCodeMessage(AvaloniaStringKeys.QrGenerationFailed);
@@ -959,6 +969,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         _cancelEditCommand.NotifyCanExecuteChanged();
         _deleteAccountCommand.NotifyCanExecuteChanged();
         _beginContextEditCommand.NotifyCanExecuteChanged();
+        _generateContextQrCommand.NotifyCanExecuteChanged();
         _deleteContextAccountCommand.NotifyCanExecuteChanged();
     }
 

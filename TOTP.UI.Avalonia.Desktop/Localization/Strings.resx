@@ -125,12 +125,15 @@
   <data name="VerifyAppcast" xml:space="preserve"><value>Check for updates</value></data>
   <data name="SoftwareUpdates" xml:space="preserve"><value>Software updates</value></data>
   <data name="ScanQrCamera" xml:space="preserve"><value>Scan QR with camera</value></data>
+  <data name="QrScannerSupportedFormats" xml:space="preserve"><value>Scan an account QR code or a Google Authenticator export QR code.</value></data>
+  <data name="QrMigrationConfirmationTitle" xml:space="preserve"><value>Import from Google Authenticator</value></data>
+  <data name="QrMigrationConfirmationMessage" xml:space="preserve"><value>Google Authenticator export detected. Accounts found: {0}. Import them?</value></data>
   <data name="CancelScan" xml:space="preserve"><value>Cancel scan</value></data>
   <data name="CameraReconnectHint" xml:space="preserve"><value>If your camera is disabled by a privacy switch, keyboard key, or system setting, turn it on. The scanner will reconnect automatically. (Duration: &lt; 10 sec.)</value></data>
   <data name="CameraReadyToStart" xml:space="preserve"><value>Camera access starts only when you choose Scan QR.</value></data>
   <data name="CameraSearching" xml:space="preserve"><value>Checking for an available camera…</value></data>
   <data name="CameraInitializing" xml:space="preserve"><value>Camera found. Initializing the video stream…</value></data>
-  <data name="CameraActive" xml:space="preserve"><value>Camera active. Point it at a TOTP QR code.</value></data>
+  <data name="CameraActive" xml:space="preserve"><value>Camera active. Point it at an account or Google Authenticator export QR code.</value></data>
   <data name="CameraScanCancelled" xml:space="preserve"><value>QR scan cancelled.</value></data>
   <data name="CameraScanFailedSafely" xml:space="preserve"><value>The camera scanner failed safely. No account data was changed.</value></data>
   <data name="CameraRuntimeUnavailable" xml:space="preserve"><value>The camera runtime is unavailable for this package.</value></data>

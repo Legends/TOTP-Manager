@@ -35,8 +35,8 @@
   <data name="Security" xml:space="preserve"><value>Sicherheit</value></data>
   <data name="SearchAccounts" xml:space="preserve"><value>Konten durchsuchen</value></data>
   <data name="NoSearchResults" xml:space="preserve"><value>Keine passenden Konten.</value></data>
-  <data name="AccountSwipeHint" xml:space="preserve"><value>Nach rechts wischen für QR und Bearbeiten, nach links zum Löschen.</value></data>
-  <data name="ScanQr" xml:space="preserve"><value>QR scannen</value></data>
+  <data name="AccountSwipeHint" xml:space="preserve"><value>Nach rechts wischen für QR und Bearbeiten, nach links zum Löschen. Die Kamera importiert auch Google-Authenticator-Exporte.</value></data>
+  <data name="ScanQr" xml:space="preserve"><value>Konto- oder Google-Authenticator-QR scannen</value></data>
   <data name="QrScannerUnavailable" xml:space="preserve"><value>Das QR-Scannen ist nicht verfügbar. Fügen Sie das Konto stattdessen manuell hinzu.</value></data>
   <data name="QrScanFailed" xml:space="preserve"><value>Der QR-Code konnte nicht sicher gescannt werden.</value></data>
   <data name="QrScanRetryAfterUnlock" xml:space="preserve"><value>OTP Harbor wurde während des Scannens gesperrt. Entsperren Sie die App und scannen Sie den QR-Code erneut.</value></data>
@@ -48,6 +48,7 @@
   <data name="QrImportCancelled" xml:space="preserve"><value>QR-Import abgebrochen. Es wurde kein Konto geändert.</value></data>
   <data name="QrBulkImported" xml:space="preserve"><value>QR-Import: {0} importiert, {1} unverändert, {2} fehlgeschlagen.</value></data>
   <data name="QrBulkImportedMore" xml:space="preserve"><value>QR-Code {0} von {1}: {2} importiert, {3} unverändert, {4} fehlgeschlagen. Scannen Sie den nächsten QR-Code.</value></data>
+  <data name="QrMigrationConfirmation" xml:space="preserve"><value>Google-Authenticator-Export erkannt. Gefundene Konten: {0}. Jetzt importieren?</value></data>
   <data name="QrConflictTitle" xml:space="preserve"><value>Konto bereits vorhanden</value></data>
   <data name="QrConflictPrompt" xml:space="preserve"><value>{0} ist bereits mit einem anderen Geheimnis vorhanden. Wählen Sie, wie Sie fortfahren möchten.</value></data>
   <data name="UpdateExisting" xml:space="preserve"><value>Vorhandenes Konto aktualisieren</value></data>
@@ -77,7 +78,7 @@
   <data name="ImportConfirmationTitle" xml:space="preserve"><value>Backup-Import bestätigen</value></data>
   <data name="ImportConfirmation" xml:space="preserve"><value>{0} Konten importieren? {1} passende vorhandene Konten bleiben unverändert. Vor Änderungen wird ein Wiederherstellungs-Backup erstellt.</value></data>
   <data name="ConfirmImport" xml:space="preserve"><value>Konten importieren</value></data>
-  <data name="NoAccounts" xml:space="preserve"><value>Noch keine Konten vorhanden. Fügen Sie Ihr erstes TOTP-Konto hinzu.</value></data>
+  <data name="NoAccounts" xml:space="preserve"><value>Noch keine Konten vorhanden. Fügen Sie eines manuell hinzu oder scannen Sie einen Konto- oder Google-Authenticator-Export-QR-Code.</value></data>
   <data name="AddAccount" xml:space="preserve"><value>Konto hinzufügen</value></data>
   <data name="EditAccount" xml:space="preserve"><value>Bearbeiten</value></data>
   <data name="DeleteAccount" xml:space="preserve"><value>Löschen</value></data>

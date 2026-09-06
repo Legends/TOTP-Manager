@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TOTP.Avalonia.Desktop.Platform;
 using TOTP.Avalonia.Desktop.Presentation;
+using TOTP.Avalonia.Desktop.Presentation.Dialogs;
 using TOTP.Core.Services.Interfaces;
 using TOTP.Core.Services.Models;
 using TOTP.Avalonia.Desktop.Localization;
@@ -82,7 +83,12 @@ public sealed class CameraScannerViewModelTests
             .ReturnsAsync(QrScannerRunResult.Decoded(payload));
         var validator = new Mock<IQrPayloadValidator>();
         validator.Setup(value => value.Validate(payload))
-            .Returns(new QrPayloadValidationResult(true, "Example", "alice"));
+            .Returns(new QrPayloadValidationResult(
+                true,
+                "Example",
+                "alice",
+                QrPayloadKind.GoogleAuthenticatorMigration,
+                4));
         var importedId = Guid.NewGuid();
         var import = new Mock<IQrAccountImportService>();
         import.Setup(value => value.ImportAsync(
@@ -104,12 +110,20 @@ public sealed class CameraScannerViewModelTests
         localization.Setup(value => value.GetString(It.IsAny<string>()))
             .Returns((string key) => key == AvaloniaStringKeys.QrBulkImportedMore
                 ? "QR {0}/{1}: {2} imported, {3} unchanged, {4} failed. Continue."
+                : key == AvaloniaStringKeys.QrMigrationConfirmationMessage
+                    ? "Accounts found: {0}. Import them?"
                 : key);
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        dialogs.Setup(value => value.ConfirmAsync(
+                It.IsAny<ConfirmationDialogRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
         using var sut = CreateSut(
             runner.Object,
             validator.Object,
             importService: import.Object,
-            localization: localization.Object);
+            localization: localization.Object,
+            dialogs: dialogs.Object);
         AccountImportedEventArgs? importedEvent = null;
         sut.AccountImported += (_, args) => importedEvent = args;
 
@@ -118,6 +132,53 @@ public sealed class CameraScannerViewModelTests
         Assert.Equal("QR 1/2: 3 imported, 1 unchanged, 0 failed. Continue.", sut.Message);
         Assert.Equal(importedId, importedEvent!.AccountId);
         Assert.DoesNotContain("synthetic", sut.Message, StringComparison.Ordinal);
+        dialogs.Verify(value => value.ConfirmAsync(
+            It.Is<ConfirmationDialogRequest>(request =>
+                request.Message == "Accounts found: 4. Import them?"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartAsync_WhenBulkMigrationIsDeclined_DoesNotImportAccounts()
+    {
+        const string payload = "otpauth-migration://offline?data=synthetic";
+        var runner = new Mock<IQrScannerRunner>();
+        runner.Setup(value => value.RunAsync(
+                It.IsAny<CancellationToken>(),
+                It.IsAny<Action<byte[]>>(),
+                It.IsAny<Action>(),
+                It.IsAny<Action>()))
+            .ReturnsAsync(QrScannerRunResult.Decoded(payload));
+        var validator = new Mock<IQrPayloadValidator>();
+        validator.Setup(value => value.Validate(payload))
+            .Returns(new QrPayloadValidationResult(
+                true,
+                "Example",
+                "alice",
+                QrPayloadKind.GoogleAuthenticatorMigration,
+                2));
+        var import = new Mock<IQrAccountImportService>();
+        var dialogs = new Mock<IAvaloniaDialogService>();
+        dialogs.Setup(value => value.ConfirmAsync(
+                It.IsAny<ConfirmationDialogRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        using var sut = CreateSut(
+            runner.Object,
+            validator.Object,
+            importService: import.Object,
+            dialogs: dialogs.Object);
+        var closeRequested = false;
+        sut.CloseRequested += (_, _) => closeRequested = true;
+
+        await sut.StartAsync();
+
+        Assert.Equal(AvaloniaStringKeys.QrImportCancelled, sut.Message);
+        Assert.True(closeRequested);
+        import.Verify(value => value.ImportAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<QrAccountConflict, CancellationToken, Task<QrAccountConflictDecision>>>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -351,7 +412,8 @@ public sealed class CameraScannerViewModelTests
         IAvaloniaQrImageFactory? imageFactory = null,
         IQrAccountImportService? importService = null,
         TimeSpan? reconnectDelay = null,
-        IAvaloniaLocalizationService? localization = null) =>
+        IAvaloniaLocalizationService? localization = null,
+        IAvaloniaDialogService? dialogs = null) =>
         new(
             runner,
             validator ?? Mock.Of<IQrPayloadValidator>(),
@@ -359,7 +421,7 @@ public sealed class CameraScannerViewModelTests
             new ImmediateUiScheduler(),
             NullLogger<CameraScannerViewModel>.Instance,
             importService ?? Mock.Of<IQrAccountImportService>(),
-            Mock.Of<IAvaloniaDialogService>(),
+            dialogs ?? Mock.Of<IAvaloniaDialogService>(),
             localization ?? Localization(),
             reconnectDelay);
 

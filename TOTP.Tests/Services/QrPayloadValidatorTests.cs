@@ -1,4 +1,5 @@
 using TOTP.Infrastructure.Services;
+using TOTP.Core.Services.Interfaces;
 
 namespace TOTP.Tests.Services;
 
@@ -63,6 +64,8 @@ public sealed class QrPayloadValidatorTests
         var result = _sut.Validate(payload);
 
         Assert.True(result.IsValid);
+        Assert.Equal(QrPayloadKind.GoogleAuthenticatorMigration, result.Kind);
+        Assert.Equal(1, result.AccountCount);
         Assert.DoesNotContain("TestSecret", result.ToString(), StringComparison.Ordinal);
     }
 

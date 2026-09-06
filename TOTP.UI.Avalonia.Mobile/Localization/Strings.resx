@@ -35,8 +35,8 @@
   <data name="Security" xml:space="preserve"><value>Security</value></data>
   <data name="SearchAccounts" xml:space="preserve"><value>Search accounts</value></data>
   <data name="NoSearchResults" xml:space="preserve"><value>No matching accounts.</value></data>
-  <data name="AccountSwipeHint" xml:space="preserve"><value>Swipe right for QR and edit, or left to delete.</value></data>
-  <data name="ScanQr" xml:space="preserve"><value>Scan QR</value></data>
+  <data name="AccountSwipeHint" xml:space="preserve"><value>Swipe right for QR and edit, or left to delete. The camera also imports Google Authenticator exports.</value></data>
+  <data name="ScanQr" xml:space="preserve"><value>Scan account or Google Authenticator QR</value></data>
   <data name="QrScannerUnavailable" xml:space="preserve"><value>QR scanning is unavailable. Add the account manually instead.</value></data>
   <data name="QrScanFailed" xml:space="preserve"><value>The QR code could not be scanned safely.</value></data>
   <data name="QrScanRetryAfterUnlock" xml:space="preserve"><value>OTP Harbor locked while scanning. Unlock it and scan the QR code again.</value></data>
@@ -48,6 +48,7 @@
   <data name="QrImportCancelled" xml:space="preserve"><value>QR import cancelled. No account was changed.</value></data>
   <data name="QrBulkImported" xml:space="preserve"><value>QR import: {0} imported, {1} unchanged, {2} failed.</value></data>
   <data name="QrBulkImportedMore" xml:space="preserve"><value>QR {0} of {1}: {2} imported, {3} unchanged, {4} failed. Scan the next QR code.</value></data>
+  <data name="QrMigrationConfirmation" xml:space="preserve"><value>Google Authenticator export detected. Accounts found: {0}. Import them?</value></data>
   <data name="QrConflictTitle" xml:space="preserve"><value>Account already exists</value></data>
   <data name="QrConflictPrompt" xml:space="preserve"><value>{0} already exists with a different secret. Choose how to continue.</value></data>
   <data name="UpdateExisting" xml:space="preserve"><value>Update existing account</value></data>
@@ -77,7 +78,7 @@
   <data name="ImportConfirmationTitle" xml:space="preserve"><value>Confirm backup import</value></data>
   <data name="ImportConfirmation" xml:space="preserve"><value>Import {0} accounts? {1} matching existing accounts will remain unchanged. A recovery backup is created before changes.</value></data>
   <data name="ConfirmImport" xml:space="preserve"><value>Import accounts</value></data>
-  <data name="NoAccounts" xml:space="preserve"><value>No accounts yet. Add your first TOTP account.</value></data>
+  <data name="NoAccounts" xml:space="preserve"><value>No accounts yet. Add one manually or scan an account or Google Authenticator export QR code.</value></data>
   <data name="AddAccount" xml:space="preserve"><value>Add account</value></data>
   <data name="EditAccount" xml:space="preserve"><value>Edit</value></data>
   <data name="DeleteAccount" xml:space="preserve"><value>Delete</value></data>

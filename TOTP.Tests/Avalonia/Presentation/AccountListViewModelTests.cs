@@ -610,6 +610,43 @@ public sealed class AccountListViewModelTests
     }
 
     [Fact]
+    public async Task GenerateContextQrAsync_UsesRightClickedAccountInsteadOfSelection()
+    {
+        var selectedId = Guid.NewGuid();
+        var contextId = Guid.NewGuid();
+        var image = Mock.Of<IImage>();
+        var imageFactory = new Mock<IAvaloniaQrImageFactory>();
+        imageFactory.Setup(value => value.Create(It.IsAny<ReadOnlyMemory<byte>>()))
+            .Returns(new AvaloniaQrImageHandle(image, Mock.Of<IDisposable>()));
+        var previewDialogs = new Mock<IAvaloniaQrPreviewDialogService>();
+        var qr = new Mock<IAccountQrCodeService>();
+        qr.Setup(value => value.GenerateAsync(contextId))
+            .ReturnsAsync(() => Result.Ok(SensitiveBuffer.CopyFrom([137, 80, 78, 71])));
+        using var sut = new AccountListViewModel(
+            Mock.Of<IAccountManager>(),
+            Mock.Of<IAccountTotpService>(),
+            Mock.Of<IAsyncClipboardService>(),
+            qr.Object,
+            imageFactory.Object,
+            Mock.Of<IAvaloniaDialogService>(),
+            Localization(),
+            qrPreviewDialogs: previewDialogs.Object)
+        {
+            SelectedAccount = new AccountListItemViewModel(selectedId, "Selected", "account"),
+            ContextAccount = new AccountListItemViewModel(contextId, "Context", "account")
+        };
+
+        await sut.GenerateContextQrAsync();
+
+        qr.Verify(value => value.GenerateAsync(contextId), Times.Once);
+        qr.Verify(value => value.GenerateAsync(selectedId), Times.Never);
+        previewDialogs.Verify(value => value.ShowAsync(
+            image,
+            384,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task SaveAccountAsync_CreatesNormalizedAccountAfterClearingBoundSecret()
     {
         var manager = new Mock<IAccountManager>();

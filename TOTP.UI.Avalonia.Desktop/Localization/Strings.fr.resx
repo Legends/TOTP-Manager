@@ -126,12 +126,15 @@ L’entrée de compte chiffrée sera supprimée définitivement. Cette action es
   <data name="VerifyAppcast" xml:space="preserve"><value>Rechercher les mises à jour</value></data>
   <data name="SoftwareUpdates" xml:space="preserve"><value>Mises à jour logicielles</value></data>
   <data name="ScanQrCamera" xml:space="preserve"><value>Scanner un QR avec la caméra</value></data>
+  <data name="QrScannerSupportedFormats" xml:space="preserve"><value>Scannez le QR code d’un compte ou un QR code d’exportation Google Authenticator.</value></data>
+  <data name="QrMigrationConfirmationTitle" xml:space="preserve"><value>Importer depuis Google Authenticator</value></data>
+  <data name="QrMigrationConfirmationMessage" xml:space="preserve"><value>Exportation Google Authenticator détectée. Nombre de comptes : {0}. Les importer ?</value></data>
   <data name="CancelScan" xml:space="preserve"><value>Annuler le scan</value></data>
   <data name="CameraReconnectHint" xml:space="preserve"><value>Si votre caméra est désactivée par un commutateur de confidentialité, une touche du clavier ou un paramètre système, activez-la. Le scanner se reconnectera automatiquement. (Durée : &lt; 10 s.)</value></data>
   <data name="CameraReadyToStart" xml:space="preserve"><value>L’accès à la caméra ne démarre que lorsque vous choisissez Scanner un QR.</value></data>
   <data name="CameraSearching" xml:space="preserve"><value>Recherche d’une caméra disponible…</value></data>
   <data name="CameraInitializing" xml:space="preserve"><value>Caméra trouvée. Initialisation du flux vidéo…</value></data>
-  <data name="CameraActive" xml:space="preserve"><value>Caméra active. Pointez-la vers un code QR TOTP.</value></data>
+  <data name="CameraActive" xml:space="preserve"><value>Caméra active. Pointez-la vers le QR code d’un compte ou d’une exportation Google Authenticator.</value></data>
   <data name="CameraScanCancelled" xml:space="preserve"><value>Scan QR annulé.</value></data>
   <data name="CameraScanFailedSafely" xml:space="preserve"><value>Le scanner de la caméra a échoué de manière sécurisée. Aucune donnée de compte n’a été modifiée.</value></data>
   <data name="CameraRuntimeUnavailable" xml:space="preserve"><value>Le composant d’exécution de la caméra n’est pas disponible pour ce paquet.</value></data>

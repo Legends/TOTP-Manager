@@ -33,6 +33,9 @@ public static class AvaloniaStringKeys
     public const string VerifyAppcast = nameof(VerifyAppcast);
     public const string SoftwareUpdates = nameof(SoftwareUpdates);
     public const string ScanQrCamera = nameof(ScanQrCamera);
+    public const string QrScannerSupportedFormats = nameof(QrScannerSupportedFormats);
+    public const string QrMigrationConfirmationTitle = nameof(QrMigrationConfirmationTitle);
+    public const string QrMigrationConfirmationMessage = nameof(QrMigrationConfirmationMessage);
     public const string CancelScan = nameof(CancelScan);
     public const string CameraReconnectHint = nameof(CameraReconnectHint);
     public const string CameraReadyToStart = nameof(CameraReadyToStart);
@@ -294,7 +297,9 @@ public static class AvaloniaStringKeys
         ImportConflictHandling, ImportAccounts, EncryptedBackup, EncryptedBackupHelp,
         SupportDiagnostics, RefreshSupportInformation,
         DownloadUpdate, InstallUpdate, ReleaseNotes, VerifyAppcast, SoftwareUpdates,
-        ScanQrCamera, CancelScan, CameraReconnectHint, CameraReadyToStart, CameraSearching,
+        ScanQrCamera, QrScannerSupportedFormats,
+        QrMigrationConfirmationTitle, QrMigrationConfirmationMessage,
+        CancelScan, CameraReconnectHint, CameraReadyToStart, CameraSearching,
         CameraInitializing, CameraActive, CameraScanCancelled,
         CameraScanFailedSafely, CameraRuntimeUnavailable, CameraNotFound, CameraStartFailed,
         SecuritySettings, Security, ImportExport, Miscellaneous,

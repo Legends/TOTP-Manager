@@ -19,7 +19,9 @@ public sealed class QrPayloadValidator : IQrPayloadValidator
                 return new QrPayloadValidationResult(
                     true,
                     first.Issuer?.Trim() ?? string.Empty,
-                    first.Label.Trim());
+                    first.Label.Trim(),
+                    QrPayloadKind.GoogleAuthenticatorMigration,
+                    migration.Accounts.Count);
             }
 
             var parsed = OtpauthParser.Parse(decodedPayload);

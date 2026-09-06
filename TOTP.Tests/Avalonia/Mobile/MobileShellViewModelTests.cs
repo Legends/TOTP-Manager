@@ -666,6 +666,13 @@ public sealed class MobileShellViewModelTests
             .ReturnsAsync(AuthorizationResult.Success);
         context.QrScanner.Setup(value => value.ScanAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(MobileQrScanResult.Successful(payload));
+        context.QrPayloadValidator.Setup(value => value.Validate(payload))
+            .Returns(new QrPayloadValidationResult(
+                true,
+                "Example",
+                "user",
+                QrPayloadKind.GoogleAuthenticatorMigration,
+                3));
         context.QrImport.Setup(value => value.ImportAsync(
                 payload,
                 It.IsAny<Func<QrAccountConflict, CancellationToken, Task<QrAccountConflictDecision>>>(),
@@ -684,7 +691,22 @@ public sealed class MobileShellViewModelTests
         context.Sut.UnlockPassword = "synthetic password";
         await context.Sut.UnlockAsync();
 
-        await context.Sut.ScanQrAsync();
+        var scanTask = context.Sut.ScanQrAsync();
+        for (var attempt = 0;
+             attempt < 20 && !context.Sut.IsImportConfirmationVisible;
+             attempt++)
+        {
+            await Task.Delay(10, global::Xunit.TestContext.Current.CancellationToken);
+        }
+
+        Assert.True(context.Sut.IsImportConfirmationVisible);
+        Assert.Equal(
+            string.Format(
+                context.Strings.Get(MobileStringKeys.QrMigrationConfirmation),
+                3),
+            context.Sut.ImportConfirmationText);
+        await context.Sut.ResolveImportConfirmationAsync(true);
+        await scanTask;
 
         Assert.Equal(
             string.Format(
@@ -696,6 +718,49 @@ public sealed class MobileShellViewModelTests
                 0),
             context.Sut.NotificationText);
         Assert.DoesNotContain("Scan the next", context.Sut.NotificationText, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ScanQrAsync_WhenBulkMigrationIsDeclined_DoesNotImportAccounts()
+    {
+        const string payload = "otpauth-migration://offline?data=synthetic";
+        var context = CreateContext(isConfigured: true, cultureName: "de");
+        context.Authorization
+            .Setup(value => value.TryUnlockWithPasswordAsync("synthetic password"))
+            .Callback(context.State.Unlock)
+            .ReturnsAsync(AuthorizationResult.Success);
+        context.QrScanner.Setup(value => value.ScanAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MobileQrScanResult.Successful(payload));
+        context.QrPayloadValidator.Setup(value => value.Validate(payload))
+            .Returns(new QrPayloadValidationResult(
+                true,
+                "Example",
+                "user",
+                QrPayloadKind.GoogleAuthenticatorMigration,
+                2));
+        await context.Sut.InitializeAsync();
+        context.Sut.UnlockPassword = "synthetic password";
+        await context.Sut.UnlockAsync();
+
+        var scanTask = context.Sut.ScanQrAsync();
+        for (var attempt = 0;
+             attempt < 20 && !context.Sut.IsImportConfirmationVisible;
+             attempt++)
+        {
+            await Task.Delay(10, global::Xunit.TestContext.Current.CancellationToken);
+        }
+
+        Assert.True(context.Sut.IsImportConfirmationVisible);
+        await context.Sut.ResolveImportConfirmationAsync(false);
+        await scanTask;
+
+        Assert.Equal(
+            context.Strings.Get(MobileStringKeys.QrImportCancelled),
+            context.Sut.NotificationText);
+        context.QrImport.Verify(value => value.ImportAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<QrAccountConflict, CancellationToken, Task<QrAccountConflictDecision>>>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -1084,6 +1149,9 @@ public sealed class MobileShellViewModelTests
                 It.IsAny<TimeSpan>()))
             .ReturnsAsync(Result.Ok());
         var qrScanner = new Mock<IMobileQrScanner>();
+        var qrPayloadValidator = new Mock<IQrPayloadValidator>();
+        qrPayloadValidator.Setup(value => value.Validate(It.IsAny<string>()))
+            .Returns(new QrPayloadValidationResult(true, string.Empty, string.Empty));
         var qrImport = new Mock<IQrAccountImportService>();
         var accountQrCode = new Mock<IAccountQrCodeService>();
         var qrImageFactory = new Mock<IMobileQrImageFactory>();
@@ -1111,6 +1179,7 @@ public sealed class MobileShellViewModelTests
             accountTotp.Object,
             clipboard.Object,
             qrScanner.Object,
+            qrPayloadValidator.Object,
             qrImport.Object,
             accountQrCode.Object,
             qrImageFactory.Object,
@@ -1129,6 +1198,7 @@ public sealed class MobileShellViewModelTests
             accountTotp,
             clipboard,
             qrScanner,
+            qrPayloadValidator,
             qrImport,
             accountQrCode,
             qrImageFactory,
@@ -1149,6 +1219,7 @@ public sealed class MobileShellViewModelTests
         Mock<IAccountTotpService> AccountTotp,
         Mock<IAsyncClipboardService> Clipboard,
         Mock<IMobileQrScanner> QrScanner,
+        Mock<IQrPayloadValidator> QrPayloadValidator,
         Mock<IQrAccountImportService> QrImport,
         Mock<IAccountQrCodeService> AccountQrCode,
         Mock<IMobileQrImageFactory> QrImageFactory,

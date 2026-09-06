@@ -31,6 +31,7 @@ public sealed class MobileShellViewModel :
     private readonly IAccountTotpService _accountTotp;
     private readonly IAsyncClipboardService _clipboard;
     private readonly IMobileQrScanner _qrScanner;
+    private readonly IQrPayloadValidator _qrPayloadValidator;
     private readonly IQrAccountImportService _qrImport;
     private readonly IAccountQrCodeService _accountQrCode;
     private readonly IMobileQrImageFactory _qrImageFactory;
@@ -119,6 +120,7 @@ public sealed class MobileShellViewModel :
         IAccountTotpService accountTotp,
         IAsyncClipboardService clipboard,
         IMobileQrScanner qrScanner,
+        IQrPayloadValidator qrPayloadValidator,
         IQrAccountImportService qrImport,
         IAccountQrCodeService accountQrCode,
         IMobileQrImageFactory qrImageFactory,
@@ -137,6 +139,8 @@ public sealed class MobileShellViewModel :
         _accountTotp = accountTotp ?? throw new ArgumentNullException(nameof(accountTotp));
         _clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
         _qrScanner = qrScanner ?? throw new ArgumentNullException(nameof(qrScanner));
+        _qrPayloadValidator = qrPayloadValidator
+            ?? throw new ArgumentNullException(nameof(qrPayloadValidator));
         _qrImport = qrImport ?? throw new ArgumentNullException(nameof(qrImport));
         _accountQrCode = accountQrCode ?? throw new ArgumentNullException(nameof(accountQrCode));
         _qrImageFactory = qrImageFactory ?? throw new ArgumentNullException(nameof(qrImageFactory));
@@ -944,6 +948,22 @@ public sealed class MobileShellViewModel :
             }
 
             payload = scanned.Payload;
+            var validation = _qrPayloadValidator.Validate(payload);
+            if (!validation.IsValid)
+            {
+                SetError(MobileStringKeys.QrInvalid);
+                return;
+            }
+
+            if (validation.Kind == QrPayloadKind.GoogleAuthenticatorMigration
+                && !await ConfirmQrMigrationAsync(validation.AccountCount, operation.Token))
+            {
+                SetNotification(
+                    Get(MobileStringKeys.QrImportCancelled),
+                    NotificationSeverity.Information);
+                return;
+            }
+
             var imported = await _qrImport.ImportAsync(
                 payload,
                 ResolveQrConflictAsync,
@@ -1003,6 +1023,7 @@ public sealed class MobileShellViewModel :
             EndSensitiveOperation(operation);
             payload = null;
             CompleteQrConflict(QrAccountConflictDecision.Cancel);
+            CompleteImportConfirmation(false);
             IsBusy = false;
             TryStartAutomaticBiometricUnlock();
         }
@@ -1842,17 +1863,33 @@ public sealed class MobileShellViewModel :
     private void CompleteQrConflict(QrAccountConflictDecision decision) =>
         _qrConflictCompletion?.TrySetResult(decision);
 
-    private async Task<bool> ConfirmImportAsync(
+    private Task<bool> ConfirmImportAsync(
         AccountImportPreview preview,
+        CancellationToken cancellationToken)
+        => ShowImportConfirmationAsync(
+            string.Format(
+                Get(MobileStringKeys.ImportConfirmation),
+                preview.TotalCount,
+                preview.ConflictCount),
+            cancellationToken);
+
+    private Task<bool> ConfirmQrMigrationAsync(
+        int accountCount,
+        CancellationToken cancellationToken)
+        => ShowImportConfirmationAsync(
+            string.Format(
+                Get(MobileStringKeys.QrMigrationConfirmation),
+                accountCount),
+            cancellationToken);
+
+    private async Task<bool> ShowImportConfirmationAsync(
+        string message,
         CancellationToken cancellationToken)
     {
         var completion = new TaskCompletionSource<bool>(
             TaskCreationOptions.RunContinuationsAsynchronously);
         _importConfirmationCompletion = completion;
-        ImportConfirmationText = string.Format(
-            Get(MobileStringKeys.ImportConfirmation),
-            preview.TotalCount,
-            preview.ConflictCount);
+        ImportConfirmationText = message;
         IsImportConfirmationVisible = true;
 
         using var cancellation = cancellationToken.Register(() =>

@@ -46,6 +46,7 @@ public static class MobileStringKeys
     public const string QrImportCancelled = nameof(QrImportCancelled);
     public const string QrBulkImported = nameof(QrBulkImported);
     public const string QrBulkImportedMore = nameof(QrBulkImportedMore);
+    public const string QrMigrationConfirmation = nameof(QrMigrationConfirmation);
     public const string QrConflictTitle = nameof(QrConflictTitle);
     public const string QrConflictPrompt = nameof(QrConflictPrompt);
     public const string UpdateExisting = nameof(UpdateExisting);
@@ -166,6 +167,7 @@ public static class MobileStringKeys
         QrImportCancelled,
         QrBulkImported,
         QrBulkImportedMore,
+        QrMigrationConfirmation,
         QrConflictTitle,
         QrConflictPrompt,
         UpdateExisting,
