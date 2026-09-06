@@ -62,6 +62,11 @@
   <data name="Issuer" xml:space="preserve"><value>Issuer</value></data>
   <data name="AccountName" xml:space="preserve"><value>Account name</value></data>
   <data name="Secret" xml:space="preserve"><value>Base32 secret</value></data>
+  <data name="AdvancedOptions" xml:space="preserve"><value>Advanced options</value></data>
+  <data name="TotpPeriod" xml:space="preserve"><value>Code period in seconds</value></data>
+  <data name="TotpPeriodHelp" xml:space="preserve"><value>Keep 30 seconds unless the provider explicitly requires a different period.</value></data>
+  <data name="TotpPeriodInvalid" xml:space="preserve"><value>Enter a code period between 5 and 300 seconds.</value></data>
+  <data name="CustomPeriodFormat" xml:space="preserve"><value>{0} s</value></data>
   <data name="SaveAccount" xml:space="preserve"><value>Save account</value></data>
   <data name="CancelEdit" xml:space="preserve"><value>Cancel editing</value></data>
   <data name="AccountIssuerRequired" xml:space="preserve"><value>Issuer is required.</value></data>
@@ -170,6 +175,7 @@
   <data name="AccountsList" xml:space="preserve"><value>Accounts</value></data>
   <data name="GeneratedCode" xml:space="preserve"><value>Generated one-time code</value></data>
   <data name="GeneratedQr" xml:space="preserve"><value>Generated account QR code</value></data>
+  <data name="GeneratedQrTitleFormat" xml:space="preserve"><value>{0} · {1} — QR code</value></data>
   <data name="QrPrivacyNotice" xml:space="preserve"><value>This QR code contains the account secret. Keep it private.</value></data>
   <data name="CameraPreview" xml:space="preserve"><value>Live camera preview</value></data>
   <data name="CreatePasswordHeading" xml:space="preserve"><value>Create your master password</value></data>

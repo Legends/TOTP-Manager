@@ -6,6 +6,7 @@ public interface IAvaloniaQrPreviewDialogService
 {
     Task ShowAsync(
         IImage image,
+        string title,
         double requestedImageSize,
         CancellationToken cancellationToken = default);
 

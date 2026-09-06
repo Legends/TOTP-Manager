@@ -8,5 +8,15 @@
       android:icon="@drawable/app_icon"
       android:label="OTP Harbor"
       android:supportsRtl="true"
-      android:usesCleartextTraffic="false" />
+      android:usesCleartextTraffic="false">
+    <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="${applicationId}.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+      <meta-data
+          android:name="android.support.FILE_PROVIDER_PATHS"
+          android:resource="@xml/qr_capture_paths" />
+    </provider>
+  </application>
 </manifest>

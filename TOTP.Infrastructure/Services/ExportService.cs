@@ -8,6 +8,7 @@ using NSec.Cryptography;
 using TOTP.Core.Common;
 using TOTP.Core.Models;
 using TOTP.Core.Services.Interfaces;
+using TOTP.Core.Validation;
 using TOTP.Infrastructure.Common;
 
 namespace TOTP.Infrastructure.Services;
@@ -405,15 +406,17 @@ public sealed class ExportService : IExportService
             return v;
         }
 
-        var lines = new List<string> { "id,issuer,account_name,secret" };
-        lines.AddRange(accounts.Select(a => $"{a.ID},{Escape(a.Issuer)},{Escape(a.AccountName)},{Escape(a.Secret)}"));
+        var lines = new List<string> { "id,issuer,account_name,secret,period_seconds" };
+        lines.AddRange(accounts.Select(a =>
+            $"{a.ID},{Escape(a.Issuer)},{Escape(a.AccountName)},{Escape(a.Secret)},{a.PeriodSeconds}"));
         return string.Join(Environment.NewLine, lines);
     }
 
     private static string BuildTxt(IEnumerable<Account> accounts)
     {
-        var lines = new List<string> { "issuer|account_name|secret|id" };
-        lines.AddRange(accounts.Select(a => $"{a.Issuer}|{a.AccountName}|{a.Secret}|{a.ID}"));
+        var lines = new List<string> { "issuer|account_name|secret|id|period_seconds" };
+        lines.AddRange(accounts.Select(a =>
+            $"{a.Issuer}|{a.AccountName}|{a.Secret}|{a.ID}|{a.PeriodSeconds}"));
         return string.Join(Environment.NewLine, lines);
     }
 
@@ -423,7 +426,7 @@ public sealed class ExportService : IExportService
         var lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
         foreach (var line in lines)
         {
-            if (line.Equals("issuer|account_name|secret|id", StringComparison.OrdinalIgnoreCase))
+            if (line.StartsWith("issuer|account_name|secret|id", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
@@ -438,7 +441,8 @@ public sealed class ExportService : IExportService
             var accountName = string.IsNullOrWhiteSpace(parts[1]) ? null : parts[1];
             var secret = parts[2];
             var id = parts.Length >= 4 && Guid.TryParse(parts[3], out var parsedId) ? parsedId : Guid.NewGuid();
-            result.Add(new Account(id, issuer, secret, accountName));
+            var periodSeconds = ParsePeriod(parts.Length >= 5 ? parts[4] : null);
+            result.Add(new Account(id, issuer, secret, accountName, periodSeconds));
         }
 
         return result;
@@ -465,11 +469,19 @@ public sealed class ExportService : IExportService
             var issuer = row[1];
             var accountName = string.IsNullOrWhiteSpace(row[2]) ? null : row[2];
             var secret = row[3];
-            result.Add(new Account(id, issuer, secret, accountName));
+            var periodSeconds = ParsePeriod(row.Count >= 5 ? row[4] : null);
+            result.Add(new Account(id, issuer, secret, accountName, periodSeconds));
         }
 
         return result;
     }
+
+    private static int ParsePeriod(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? TotpPeriodPolicy.DefaultSeconds
+            : int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var periodSeconds)
+                ? periodSeconds
+                : 0;
 
     private static List<string> SplitCsvLine(string line)
     {

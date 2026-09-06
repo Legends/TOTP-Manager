@@ -192,14 +192,14 @@ public sealed class MobileShellViewModelTests
     [Fact]
     public async Task UnlockAsync_ProjectsNoSecretIntoMobileAccountRows()
     {
-        var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user@example.test");
+        var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "user@example.test", 60);
         var context = CreateContext(isConfigured: true, [account]);
         context.Authorization
             .Setup(value => value.TryUnlockWithPasswordAsync(It.IsAny<string>()))
             .ReturnsAsync(AuthorizationResult.Success);
         context.AccountTotp
             .Setup(value => value.GenerateAsync(account.ID))
-            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 20, 30)));
+            .ReturnsAsync(Result.Ok(new TotpGenerationResult("123456", 20, 60)));
         await context.Sut.InitializeAsync();
         context.Sut.UnlockPassword = "synthetic password";
 
@@ -207,6 +207,9 @@ public sealed class MobileShellViewModelTests
 
         var projected = Assert.Single(context.Sut.Accounts);
         Assert.Equal(account.ID, projected.Id);
+        Assert.Equal(60, projected.ConfiguredPeriodSeconds);
+        Assert.True(projected.HasCustomPeriod);
+        Assert.Equal("60 s", projected.CustomPeriodLabel);
         Assert.DoesNotContain(
             typeof(MobileAccountItem).GetProperties(),
             property => property.Name.Contains("Secret", StringComparison.OrdinalIgnoreCase));
@@ -1094,6 +1097,7 @@ public sealed class MobileShellViewModelTests
         context.Sut.EditorIssuer = "  Example  ";
         context.Sut.EditorAccountName = " user@example.test ";
         context.Sut.EditorSecret = "JBSW Y3DP EHPK 3PXP";
+        context.Sut.EditorPeriodSeconds = 60;
 
         await context.Sut.SaveAccountAsync();
 
@@ -1101,8 +1105,47 @@ public sealed class MobileShellViewModelTests
         Assert.Equal("Example", persisted.Issuer);
         Assert.Equal("user@example.test", persisted.AccountName);
         Assert.Equal(ValidSecret, persisted.Secret);
+        Assert.Equal(60, persisted.PeriodSeconds);
         Assert.Empty(context.Sut.EditorSecret);
         Assert.False(context.Sut.IsEditorVisible);
+    }
+
+    [Fact]
+    public async Task SaveAccountAsync_WithUnsupportedPeriod_DoesNotPersistAccount()
+    {
+        var context = CreateContext(isConfigured: false);
+        context.Authorization
+            .Setup(value => value.ConfigurePasswordAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(AuthorizationResult.Success);
+        await ConfigureAndBeginAddAsync(context);
+        context.Sut.EditorIssuer = "Example";
+        context.Sut.EditorSecret = ValidSecret;
+        context.Sut.EditorPeriodSeconds = 301;
+
+        await context.Sut.SaveAccountAsync();
+
+        context.AccountManager.Verify(value => value.AddNewAsync(It.IsAny<Account>()), Times.Never);
+        Assert.Equal(
+            context.Strings.Get(MobileStringKeys.TotpPeriodInvalid),
+            context.Sut.NotificationText);
+        Assert.Empty(context.Sut.EditorSecret);
+    }
+
+    [Fact]
+    public async Task AdvancedOptions_AfterCancellingEditor_StartsCollapsedForNextAction()
+    {
+        var context = CreateContext(isConfigured: false);
+        context.Authorization
+            .Setup(value => value.ConfigurePasswordAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(AuthorizationResult.Success);
+        await ConfigureAndBeginAddAsync(context);
+        Assert.False(context.Sut.IsAdvancedOptionsExpanded);
+        context.Sut.IsAdvancedOptionsExpanded = true;
+
+        await context.Sut.CancelEditAsync();
+        await context.Sut.BeginAddAsync();
+
+        Assert.False(context.Sut.IsAdvancedOptionsExpanded);
     }
 
     private static async Task ConfigureAndBeginAddAsync(TestContext context)

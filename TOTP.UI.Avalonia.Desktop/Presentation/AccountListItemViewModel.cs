@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Windows.Input;
+using TOTP.Core.Validation;
 
 namespace TOTP.Avalonia.Desktop.Presentation;
 
@@ -8,12 +9,15 @@ public sealed class AccountListItemViewModel(
     string issuer,
     string accountName,
     bool isRecentlyAdded = false,
-    ICommand? copyCodeCommand = null) : INotifyPropertyChanged
+    ICommand? copyCodeCommand = null,
+    int configuredPeriodSeconds = TotpPeriodPolicy.DefaultSeconds,
+    string customPeriodLabel = "") : INotifyPropertyChanged
 {
     private bool _isRecentlyAdded = isRecentlyAdded;
     private string _code = string.Empty;
     private int _remainingSeconds;
     private int _periodSeconds;
+    private string _customPeriodLabel = customPeriodLabel;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -21,6 +25,9 @@ public sealed class AccountListItemViewModel(
     public string Issuer { get; } = issuer;
     public string AccountName { get; } = accountName;
     public ICommand? CopyCodeCommand { get; } = copyCodeCommand;
+    public int ConfiguredPeriodSeconds { get; } = configuredPeriodSeconds;
+    public bool HasCustomPeriod => ConfiguredPeriodSeconds != TotpPeriodPolicy.DefaultSeconds;
+    public string CustomPeriodLabel => _customPeriodLabel;
 
     public string Code
     {
@@ -77,6 +84,13 @@ public sealed class AccountListItemViewModel(
     }
 
     public void ClearRecentlyAdded() => IsRecentlyAdded = false;
+
+    public void UpdateCustomPeriodLabel(string label)
+    {
+        if (_customPeriodLabel == label) return;
+        _customPeriodLabel = label;
+        OnPropertyChanged(nameof(CustomPeriodLabel));
+    }
 
     public void UpdateCode(string code, int remainingSeconds, int periodSeconds)
     {

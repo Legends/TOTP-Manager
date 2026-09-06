@@ -8,24 +8,28 @@ namespace TOTP.Infrastructure.Services;
 
 public sealed class OtpNetTotpGenerator : ITotpGenerator
 {
-    private const int PeriodSeconds = 30;
-
-    public TotpGenerationResult Generate(string base32Secret)
+    public TotpGenerationResult Generate(
+        string base32Secret,
+        int periodSeconds = TotpPeriodPolicy.DefaultSeconds)
     {
         if (!SecretValidation.IsValidBase32Secret(base32Secret))
         {
             throw new FormatException("Secret is not valid Base32 data.");
+        }
+        if (!TotpPeriodPolicy.IsSupported(periodSeconds))
+        {
+            throw new ArgumentOutOfRangeException(nameof(periodSeconds));
         }
 
         var normalized = SecretValidation.NormalizeBase32Secret(base32Secret);
         var secretBytes = Base32Encoding.ToBytes(normalized);
         try
         {
-            var totp = new Totp(secretBytes, step: PeriodSeconds);
+            var totp = new Totp(secretBytes, step: periodSeconds);
             return new TotpGenerationResult(
                 totp.ComputeTotp(),
                 totp.RemainingSeconds(),
-                PeriodSeconds);
+                periodSeconds);
         }
         finally
         {

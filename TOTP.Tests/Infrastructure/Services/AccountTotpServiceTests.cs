@@ -16,17 +16,18 @@ public sealed class AccountTotpServiceTests
         var manager = new Mock<IAccountManager>();
         manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
             .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
-                [new Account(id, "Issuer", syntheticSeed, "account")]));
+                [new Account(id, "Issuer", syntheticSeed, "account", 60)]));
         var generator = new Mock<ITotpGenerator>();
-        generator.Setup(value => value.Generate(syntheticSeed))
-            .Returns(new TotpGenerationResult("123456", 15, 30));
+        generator.Setup(value => value.Generate(syntheticSeed, 60))
+            .Returns(new TotpGenerationResult("123456", 45, 60));
         var sut = new AccountTotpService(manager.Object, generator.Object);
 
         var result = await sut.GenerateAsync(id);
 
         Assert.True(result.IsSuccess);
         Assert.Equal("123456", result.Value.Code);
-        generator.Verify(value => value.Generate(syntheticSeed), Times.Once);
+        Assert.Equal(60, result.Value.PeriodSeconds);
+        generator.Verify(value => value.Generate(syntheticSeed, 60), Times.Once);
     }
 
     [Fact]
@@ -38,7 +39,7 @@ public sealed class AccountTotpServiceTests
             .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>(
                 [new Account(id, "Issuer", "INVALID-SECRET", "account")]));
         var generator = new Mock<ITotpGenerator>();
-        generator.Setup(value => value.Generate(It.IsAny<string>()))
+        generator.Setup(value => value.Generate(It.IsAny<string>(), It.IsAny<int>()))
             .Throws(new FormatException("INVALID-SECRET"));
         var sut = new AccountTotpService(manager.Object, generator.Object);
 
@@ -63,9 +64,9 @@ public sealed class AccountTotpServiceTests
                 new(invalidId, "Invalid", invalidSeed, "account")
             ]));
         var generator = new Mock<ITotpGenerator>();
-        generator.Setup(value => value.Generate(validSeed))
+        generator.Setup(value => value.Generate(validSeed, 30))
             .Returns(new TotpGenerationResult("123456", 15, 30));
-        generator.Setup(value => value.Generate(invalidSeed))
+        generator.Setup(value => value.Generate(invalidSeed, 30))
             .Throws(new FormatException(invalidSeed));
         var sut = new AccountTotpService(manager.Object, generator.Object);
 

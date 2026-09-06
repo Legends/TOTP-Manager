@@ -59,6 +59,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     private string _editorIssuer = string.Empty;
     private string _editorAccountName = string.Empty;
     private string _editorSecret = string.Empty;
+    private int _editorPeriodSeconds = TotpPeriodPolicy.DefaultSeconds;
+    private bool _isAdvancedOptionsExpanded;
     private string _editorMessage = string.Empty;
     private bool _autoGenerateCodeOnSelection;
 
@@ -354,7 +356,9 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                     account.Issuer,
                     account.AccountName ?? string.Empty,
                     account.ID == recentlyAddedAccountId,
-                    _copyAccountCodeCommand))
+                    _copyAccountCodeCommand,
+                    account.PeriodSeconds,
+                    FormatCustomPeriod(account.PeriodSeconds)))
                 .ToArray();
             ApplyFilter();
             StartRecentHighlightLifetime(
@@ -438,6 +442,22 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         await CopyAccountCodeAsync(account);
     }
 
+    public int EditorPeriodSeconds
+    {
+        get => _editorPeriodSeconds;
+        set
+        {
+            if (!SetField(ref _editorPeriodSeconds, value)) return;
+            EditorMessage = string.Empty;
+        }
+    }
+
+    public bool IsAdvancedOptionsExpanded
+    {
+        get => _isAdvancedOptionsExpanded;
+        set => SetField(ref _isAdvancedOptionsExpanded, value);
+    }
+
     public async Task CopyAccountCodeAsync(AccountListItemViewModel account)
     {
         ArgumentNullException.ThrowIfNull(account);
@@ -492,8 +512,11 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
     {
         if (account is null) return;
 
+        var accountId = account.Id;
+        var issuer = account.Issuer;
+        var accountName = account.AccountName;
         ClearQrImage();
-        var result = await _accountQrCodeService.GenerateAsync(account.Id);
+        var result = await _accountQrCodeService.GenerateAsync(accountId);
         if (result.IsFailed)
         {
             SetLocalizedCodeMessage(AvaloniaStringKeys.QrGenerationFailed);
@@ -506,7 +529,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             _qrImage = _qrImageFactory.Create(sensitivePng.Memory);
             OnPropertyChanged(nameof(QrImage));
             OnPropertyChanged(nameof(HasQrImage));
-            await ShowQrPreviewAsync();
+            await ShowQrPreviewAsync(issuer, accountName);
         }
         catch (Exception)
         {
@@ -518,7 +541,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private async Task ShowQrPreviewAsync()
+    private async Task ShowQrPreviewAsync(string issuer, string accountName)
     {
         var image = QrImage;
         if (image is null) return;
@@ -530,7 +553,11 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
         try
         {
-            await _qrPreviewDialogs.ShowAsync(image, QrPreviewSize);
+            var title = string.Format(
+                _localization.GetString(AvaloniaStringKeys.GeneratedQrTitleFormat),
+                issuer,
+                accountName);
+            await _qrPreviewDialogs.ShowAsync(image, title, QrPreviewSize);
         }
         catch (Exception)
         {
@@ -573,6 +600,7 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             EditorIssuer = account.Issuer;
             EditorAccountName = account.AccountName ?? string.Empty;
             EditorSecret = account.Secret;
+            EditorPeriodSeconds = account.PeriodSeconds;
             IsEditorVisible = true;
         }
         catch (Exception)
@@ -605,6 +633,11 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
             EditorMessage = _localization.GetString(AvaloniaStringKeys.AccountSecretInvalid);
             return;
         }
+        if (!TotpPeriodPolicy.IsSupported(EditorPeriodSeconds))
+        {
+            EditorMessage = _localization.GetString(AvaloniaStringKeys.TotpPeriodInvalid);
+            return;
+        }
 
         IsBusy = true;
         try
@@ -628,7 +661,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
                 _editingAccountId ?? Guid.NewGuid(),
                 issuer,
                 normalizedSecret,
-                accountName.Length == 0 ? null : accountName);
+                accountName.Length == 0 ? null : accountName,
+                EditorPeriodSeconds);
             var saved = _editingAccountId.HasValue
                 ? await UpdateExistingAsync(loaded.Value, updated)
                 : await _accountManager.AddNewAsync(updated);
@@ -957,6 +991,8 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
         EditorIssuer = string.Empty;
         EditorAccountName = string.Empty;
         EditorSecret = string.Empty;
+        EditorPeriodSeconds = TotpPeriodPolicy.DefaultSeconds;
+        IsAdvancedOptionsExpanded = false;
         EditorMessage = string.Empty;
         IsEditorVisible = false;
     }
@@ -982,11 +1018,18 @@ public sealed class AccountListViewModel : INotifyPropertyChanged, IDisposable
 
     private void LocalizationCultureChanged(object? sender, EventArgs e)
     {
+        foreach (var account in _allAccounts)
+            account.UpdateCustomPeriodLabel(FormatCustomPeriod(account.ConfiguredPeriodSeconds));
+
         if (_codeMessageLocalizationKey is not { } key) return;
 
         var arguments = _codeMessageLocalizationArguments;
         SetLocalizedCodeMessage(key, arguments);
     }
+
+    private string FormatCustomPeriod(int periodSeconds) => string.Format(
+        _localization.GetString(AvaloniaStringKeys.CustomPeriodFormat),
+        periodSeconds);
 
     private void ClearQrImage()
     {

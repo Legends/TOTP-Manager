@@ -40,7 +40,7 @@ public sealed class VaultServiceTests
         var sut = new VaultService(security.Object);
         List<Account> input =
         [
-            new(Guid.NewGuid(), "GitHub", "AAAA", "john"),
+            new(Guid.NewGuid(), "GitHub", "AAAA", "john", 60),
             new(Guid.NewGuid(), "Google", "BBBB")
         ];
 
@@ -52,6 +52,7 @@ public sealed class VaultServiceTests
         Assert.Equal(input[0].Issuer, output[0].Issuer);
         Assert.Equal(input[0].Secret, output[0].Secret);
         Assert.Equal(input[0].AccountName, output[0].AccountName);
+        Assert.Equal(60, output[0].PeriodSeconds);
     }
 
     [Fact]

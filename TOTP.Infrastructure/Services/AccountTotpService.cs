@@ -23,9 +23,10 @@ public sealed class AccountTotpService(
 
         try
         {
-            return Result.Ok(totpGenerator.Generate(account.Secret));
+            return Result.Ok(totpGenerator.Generate(account.Secret, account.PeriodSeconds));
         }
-        catch (FormatException)
+        catch (Exception exception) when (
+            exception is FormatException or ArgumentOutOfRangeException)
         {
             return Result.Fail<TotpGenerationResult>("The selected account seed is invalid.");
         }
@@ -58,10 +59,13 @@ public sealed class AccountTotpService(
 
             try
             {
-                codes[account.ID] = totpGenerator.Generate(account.Secret);
+                codes[account.ID] = totpGenerator.Generate(
+                    account.Secret,
+                    account.PeriodSeconds);
                 failedAccountIds.Remove(account.ID);
             }
-            catch (FormatException)
+            catch (Exception exception) when (
+                exception is FormatException or ArgumentOutOfRangeException)
             {
                 // Invalid seed details must not cross the infrastructure boundary.
             }

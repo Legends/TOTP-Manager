@@ -603,6 +603,7 @@ public sealed class AccountListViewModelTests
         Assert.False(sut.HasQrImage);
         previewDialogs.Verify(value => value.ShowAsync(
             image.Object,
+            "Issuer · account — QR code",
             384,
             It.IsAny<CancellationToken>()), Times.Once);
         previewDialogs.Verify(value => value.Close(), Times.AtLeastOnce);
@@ -642,6 +643,7 @@ public sealed class AccountListViewModelTests
         qr.Verify(value => value.GenerateAsync(selectedId), Times.Never);
         previewDialogs.Verify(value => value.ShowAsync(
             image,
+            "Context · account — QR code",
             384,
             It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -675,8 +677,76 @@ public sealed class AccountListViewModelTests
         Assert.Equal("GitHub", created.Issuer);
         Assert.Equal("alice@example.test", created.AccountName);
         Assert.Equal(ValidSecret, created.Secret);
+        Assert.Equal(30, created.PeriodSeconds);
         Assert.False(sut.IsEditorVisible);
         Assert.Equal("Account saved.", sut.Message);
+    }
+
+    [Fact]
+    public async Task SaveAccountAsync_WithCustomPeriod_PersistsPeriodAndProjectsItsBadge()
+    {
+        var manager = new Mock<IAccountManager>();
+        Account? created = null;
+        manager.SetupSequence(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]))
+            .ReturnsAsync(() => Result.Ok<IReadOnlyList<Account>>(
+                created is null ? [] : [created]));
+        manager.Setup(value => value.AddNewAsync(It.IsAny<Account>()))
+            .Callback<Account>(account => created = account)
+            .ReturnsAsync(Result.Ok());
+        var sut = CreateSut(manager.Object);
+        await sut.BeginAddAsync();
+        sut.EditorIssuer = "Example";
+        sut.EditorSecret = ValidSecret;
+        sut.EditorPeriodSeconds = 60;
+
+        await sut.SaveAccountAsync();
+
+        Assert.NotNull(created);
+        Assert.Equal(60, created.PeriodSeconds);
+        var row = Assert.Single(sut.Accounts);
+        Assert.True(row.HasCustomPeriod);
+        Assert.Equal("60 s", row.CustomPeriodLabel);
+    }
+
+    [Fact]
+    public async Task SaveAccountAsync_WithUnsupportedPeriod_DoesNotWrite()
+    {
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([]));
+        var sut = CreateSut(manager.Object);
+        await sut.BeginAddAsync();
+        sut.EditorIssuer = "Example";
+        sut.EditorSecret = ValidSecret;
+        sut.EditorPeriodSeconds = 301;
+
+        await sut.SaveAccountAsync();
+
+        manager.Verify(value => value.AddNewAsync(It.IsAny<Account>()), Times.Never);
+        Assert.Equal("Enter a code period between 5 and 300 seconds.", sut.EditorMessage);
+        Assert.Equal(string.Empty, sut.EditorSecret);
+    }
+
+    [Fact]
+    public async Task AdvancedOptions_AfterClosingEditor_StartsCollapsedForNextAction()
+    {
+        var account = new Account(Guid.NewGuid(), "Example", ValidSecret, "alice");
+        var manager = new Mock<IAccountManager>();
+        manager.Setup(value => value.GetAllOtpEntriesSortedAsync())
+            .ReturnsAsync(Result.Ok<IReadOnlyList<Account>>([account]));
+        var sut = CreateSut(manager.Object);
+
+        await sut.BeginAddAsync();
+        Assert.False(sut.IsAdvancedOptionsExpanded);
+        sut.IsAdvancedOptionsExpanded = true;
+        await sut.CancelEditAsync();
+
+        await sut.LoadAsync();
+        sut.SelectedAccount = Assert.Single(sut.Accounts);
+        await sut.BeginEditAsync();
+
+        Assert.False(sut.IsAdvancedOptionsExpanded);
     }
 
     [Fact]

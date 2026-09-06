@@ -20,7 +20,7 @@ public sealed class ExportServiceTests
         var id = Guid.NewGuid();
         List<Account> input =
         [
-            new(id, "GitHub, Inc.", "AAAABBBB", "john\"doe"),
+            new(id, "GitHub, Inc.", "AAAABBBB", "john\"doe", 60),
             new(Guid.NewGuid(), "Google", "CCCCDDDD")
         ];
 
@@ -34,6 +34,7 @@ public sealed class ExportServiceTests
         Assert.Equal("GitHub, Inc.", import.Value[0].Issuer);
         Assert.Equal("AAAABBBB", import.Value[0].Secret);
         Assert.Equal("john\"doe", import.Value[0].AccountName);
+        Assert.Equal(60, import.Value[0].PeriodSeconds);
     }
 
     [Fact]
@@ -103,7 +104,7 @@ public sealed class ExportServiceTests
     {
         using var temp = new TempDir();
         var path = Path.Combine(temp.Path, "accounts.totp");
-        List<Account> input = [new(Guid.NewGuid(), "Azure", "ABCD1234", "tenant-user")];
+        List<Account> input = [new(Guid.NewGuid(), "Azure", "ABCD1234", "tenant-user", 60)];
 
         var export = await _sut.ExportToEncryptedFileAsync(input, "pw-123", path, format);
         var import = await _sut.ImportFromEncryptedFileAsync("pw-123", path);
@@ -114,6 +115,26 @@ public sealed class ExportServiceTests
         Assert.Equal("Azure", token.Issuer);
         Assert.Equal("ABCD1234", token.Secret);
         Assert.Equal("tenant-user", token.AccountName);
+        Assert.Equal(60, token.PeriodSeconds);
+    }
+
+    [Theory]
+    [InlineData("legacy.json", "[{\"id\":\"00000000-0000-0000-0000-000000000001\",\"issuer\":\"Legacy\",\"secret\":\"AAAABBBB\",\"account_name\":\"alice\"}]")]
+    [InlineData("legacy.txt", "issuer|account_name|secret|id\nLegacy|alice|AAAABBBB|00000000-0000-0000-0000-000000000001")]
+    [InlineData("legacy.csv", "id,issuer,account_name,secret\n00000000-0000-0000-0000-000000000001,Legacy,alice,AAAABBBB")]
+    public async Task ImportFromStreamAsync_WhenLegacyFormatHasNoPeriod_UsesDefault(
+        string fileName,
+        string content)
+    {
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(content));
+
+        var result = await _sut.ImportFromStreamAsync(
+            stream,
+            fileName,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(30, Assert.Single(result.Value).PeriodSeconds);
     }
 
     [Fact]

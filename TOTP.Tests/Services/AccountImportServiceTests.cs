@@ -28,6 +28,22 @@ public sealed class AccountImportServiceTests
     }
 
     [Fact]
+    public async Task ImportAsync_WhenPeriodIsOutsidePolicy_DoesNotReadOrMutateVault()
+    {
+        var accounts = new Mock<IAccountManager>(MockBehavior.Strict);
+        var sut = new AccountImportService(accounts.Object);
+
+        var result = await sut.ImportAsync(
+            [new Account(Guid.NewGuid(), "Issuer", "JBSWY3DPEHPK3PXP", "user", 301)],
+            ImportConflictStrategy.SkipExisting,
+            (_, _) => Task.FromResult(true),
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(AccountImportStatus.InvalidTargets, result.Value.Status);
+        accounts.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task ImportAsync_WithKeepBoth_AssignsNewIdentityAndCollisionFreeIssuer()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -50,7 +66,9 @@ public sealed class AccountImportServiceTests
         Assert.Equal(AccountImportStatus.Completed, result.Value.Status);
         Assert.Equal(1, result.Value.Added);
         accounts.Verify(value => value.AddNewAsync(It.Is<Account>(account =>
-            account.ID != existing.ID && account.Issuer == "Issuer (imported)")), Times.Once);
+            account.ID != existing.ID
+            && account.Issuer == "Issuer (imported)"
+            && account.PeriodSeconds == 30)), Times.Once);
     }
 
     [Fact]

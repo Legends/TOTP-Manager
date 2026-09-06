@@ -27,7 +27,8 @@ public sealed class AccountQrCodeService(
             var uri = qrCodeService.BuildOtpAuthUri(
                 account.Issuer,
                 account.Secret,
-                account.AccountName);
+                account.AccountName,
+                account.PeriodSeconds);
             png = qrCodeService.GenerateQr(uri);
             return Result.Ok(SensitiveBuffer.CopyFrom(png));
         }

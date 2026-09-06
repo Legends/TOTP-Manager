@@ -13,7 +13,7 @@
     ShowInTaskbar="False"
     WindowDecorations="None"
     WindowStartupLocation="CenterOwner"
-    Title="{DynamicResource GeneratedQr}">
+    Title="{Binding Title}">
     <Grid RowDefinitions="Auto,*">
         <controls:ProductTitleBar
             ShowIcon="False"

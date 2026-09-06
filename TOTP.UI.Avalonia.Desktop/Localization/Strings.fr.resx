@@ -63,6 +63,11 @@ L’entrée de compte chiffrée sera supprimée définitivement. Cette action es
   <data name="Issuer" xml:space="preserve"><value>Émetteur</value></data>
   <data name="AccountName" xml:space="preserve"><value>Nom du compte</value></data>
   <data name="Secret" xml:space="preserve"><value>Secret Base32</value></data>
+  <data name="AdvancedOptions" xml:space="preserve"><value>Options avancées</value></data>
+  <data name="TotpPeriod" xml:space="preserve"><value>Période du code en secondes</value></data>
+  <data name="TotpPeriodHelp" xml:space="preserve"><value>Conservez 30 secondes, sauf si le fournisseur exige explicitement une autre période.</value></data>
+  <data name="TotpPeriodInvalid" xml:space="preserve"><value>Saisissez une période comprise entre 5 et 300 secondes.</value></data>
+  <data name="CustomPeriodFormat" xml:space="preserve"><value>{0} s</value></data>
   <data name="SaveAccount" xml:space="preserve"><value>Enregistrer le compte</value></data>
   <data name="CancelEdit" xml:space="preserve"><value>Annuler la modification</value></data>
   <data name="AccountIssuerRequired" xml:space="preserve"><value>L’émetteur est requis.</value></data>
@@ -171,6 +176,7 @@ L’entrée de compte chiffrée sera supprimée définitivement. Cette action es
   <data name="AccountsList" xml:space="preserve"><value>Comptes</value></data>
   <data name="GeneratedCode" xml:space="preserve"><value>Code à usage unique généré</value></data>
   <data name="GeneratedQr" xml:space="preserve"><value>Code QR de compte généré</value></data>
+  <data name="GeneratedQrTitleFormat" xml:space="preserve"><value>{0} · {1} — code QR</value></data>
   <data name="QrPrivacyNotice" xml:space="preserve"><value>Ce code QR contient le secret du compte. Gardez-le confidentiel.</value></data>
   <data name="CameraPreview" xml:space="preserve"><value>Aperçu en direct de la caméra</value></data>
   <data name="CreatePasswordHeading" xml:space="preserve"><value>Créez votre mot de passe principal</value></data>

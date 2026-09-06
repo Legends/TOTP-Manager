@@ -319,6 +319,10 @@
                                                             IsVisible="{Binding HasAccountName}"
                                                             Text="{Binding AccountName}"
                                                             TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock
+                                                            Foreground="{DynamicResource BrushTextSecondary}"
+                                                            IsVisible="{Binding HasCustomPeriod}"
+                                                            Text="{Binding CustomPeriodLabel}" />
                                                     </StackPanel>
                                                     <TextBlock
                                                         Grid.Row="0"
@@ -558,6 +562,25 @@
                             PasswordChar="●"
                             PlaceholderText="{Binding EditorSecretPlaceholder}"
                             Text="{Binding EditorSecret, Mode=TwoWay}" />
+                        <Expander
+                            Header="{Binding AdvancedOptionsText}"
+                            IsExpanded="{Binding IsAdvancedOptionsExpanded, Mode=TwoWay}">
+                            <StackPanel Spacing="6">
+                                <TextBlock
+                                    Classes="field-label"
+                                    Text="{Binding TotpPeriodText}" />
+                                <NumericUpDown
+                                    automation:AutomationProperties.Name="{Binding TotpPeriodText}"
+                                    Increment="1"
+                                    Maximum="300"
+                                    Minimum="5"
+                                    Value="{Binding EditorPeriodSeconds, Mode=TwoWay}" />
+                                <TextBlock
+                                    Foreground="{DynamicResource BrushTextSecondary}"
+                                    Text="{Binding TotpPeriodHelpText}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Expander>
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                             <Button
                                 Grid.Column="0"
@@ -576,8 +599,12 @@
         </ScrollViewer>
 
         <controls:NotificationBanner
-            Grid.Row="2"
+            Grid.RowSpan="3"
             Margin="20,8,20,20"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Bottom"
+            IsHitTestVisible="False"
+            ZIndex="50"
             Severity="{Binding NotificationSeverity}"
             Text="{Binding NotificationText}" />
 

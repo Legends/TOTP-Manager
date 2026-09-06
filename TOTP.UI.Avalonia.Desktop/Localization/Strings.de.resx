@@ -62,6 +62,11 @@
   <data name="Issuer" xml:space="preserve"><value>Anbieter</value></data>
   <data name="AccountName" xml:space="preserve"><value>Kontoname</value></data>
   <data name="Secret" xml:space="preserve"><value>Base32-Geheimnis</value></data>
+  <data name="AdvancedOptions" xml:space="preserve"><value>Erweiterte Optionen</value></data>
+  <data name="TotpPeriod" xml:space="preserve"><value>Code-Periode in Sekunden</value></data>
+  <data name="TotpPeriodHelp" xml:space="preserve"><value>Behalten Sie 30 Sekunden bei, sofern der Anbieter nicht ausdrücklich eine andere Periode verlangt.</value></data>
+  <data name="TotpPeriodInvalid" xml:space="preserve"><value>Geben Sie eine Code-Periode zwischen 5 und 300 Sekunden ein.</value></data>
+  <data name="CustomPeriodFormat" xml:space="preserve"><value>{0} s</value></data>
   <data name="SaveAccount" xml:space="preserve"><value>Konto speichern</value></data>
   <data name="CancelEdit" xml:space="preserve"><value>Bearbeitung abbrechen</value></data>
   <data name="AccountIssuerRequired" xml:space="preserve"><value>Der Anbieter ist erforderlich.</value></data>
@@ -170,6 +175,7 @@
   <data name="AccountsList" xml:space="preserve"><value>Konten</value></data>
   <data name="GeneratedCode" xml:space="preserve"><value>Erzeugter Einmalcode</value></data>
   <data name="GeneratedQr" xml:space="preserve"><value>Erzeugter Konto-QR-Code</value></data>
+  <data name="GeneratedQrTitleFormat" xml:space="preserve"><value>{0} · {1} — QR-Code</value></data>
   <data name="QrPrivacyNotice" xml:space="preserve"><value>Dieser QR-Code enthält das Kontogeheimnis. Halten Sie ihn privat.</value></data>
   <data name="CameraPreview" xml:space="preserve"><value>Live-Kameravorschau</value></data>
   <data name="CreatePasswordHeading" xml:space="preserve"><value>Master-Passwort erstellen</value></data>

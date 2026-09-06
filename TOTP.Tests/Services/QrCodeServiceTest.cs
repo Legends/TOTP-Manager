@@ -22,4 +22,18 @@ public class QrCodeServiceTests
         Assert.Equal(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, pngBytes[..8]);
     }
 
+    [Fact]
+    public void BuildOtpAuthUri_WithCustomPeriod_PreservesPeriod()
+    {
+        var sut = new QrCodeService();
+
+        var uri = sut.BuildOtpAuthUri(
+            "Example",
+            "JBSWY3DPEHPK3PXP",
+            "alice",
+            60);
+
+        Assert.Contains("period=60", uri, StringComparison.Ordinal);
+    }
+
 }
